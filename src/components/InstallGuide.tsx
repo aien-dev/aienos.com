@@ -4,10 +4,14 @@ import { Download, Copy, Check, Globe } from "lucide-react";
 export const InstallGuide: React.FC = () => {
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
 
-  const copyText = (text: string, idx: number) => {
-    navigator.clipboard.writeText(text);
-    setCopiedIdx(idx);
-    setTimeout(() => setCopiedIdx(null), 2000);
+  const copyText = async (text: string, idx: number) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedIdx(idx);
+      setTimeout(() => setCopiedIdx(null), 2000);
+    } catch {
+      window.prompt("Copy this command:", text);
+    }
   };
 
   const methods = [
@@ -18,8 +22,8 @@ export const InstallGuide: React.FC = () => {
     },
     {
       os: "Windows (PowerShell)",
-      cmd: "iwr -useb https://raw.githubusercontent.com/aien-dev/aien-sovereign-core/main/install.ps1 | iex",
-      desc: "Automated PowerShell runner installing Rust toolchain and compiling native sovereign binaries."
+      cmd: "git clone --depth 1 https://github.com/aien-dev/aien-sovereign-core.git; cd aien-sovereign-core; .\\install.ps1",
+      desc: "Checks out the source, configures the local runtime, and compiles native sovereign binaries."
     },
     {
       os: "Build From Source (Cargo)",
@@ -69,7 +73,7 @@ export const InstallGuide: React.FC = () => {
                 gap: "10px"
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div className="install-method-heading" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span style={{ fontWeight: 700, fontSize: "15px", color: "var(--text-primary)" }}>
                   {m.os}
                 </span>
@@ -78,7 +82,7 @@ export const InstallGuide: React.FC = () => {
                 </span>
               </div>
 
-              <div style={{
+              <div className="install-method-command" style={{
                 background: "var(--bg-base)",
                 border: "1px solid var(--border-subtle)",
                 borderRadius: "6px",
@@ -93,6 +97,8 @@ export const InstallGuide: React.FC = () => {
                   {m.cmd}
                 </span>
                 <button
+                  type="button"
+                  aria-label={`Copy ${m.os} install command`}
                   onClick={() => copyText(m.cmd, idx)}
                   style={{
                     background: copiedIdx === idx ? "rgba(0, 229, 153, 0.15)" : "var(--bg-card)",

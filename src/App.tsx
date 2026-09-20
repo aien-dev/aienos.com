@@ -11,8 +11,9 @@ import { Footer } from "./components/Footer";
 export const App: React.FC = () => {
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      <a className="skip-link" href="#main-content">Skip to content</a>
       <Navbar />
-      <main style={{ flex: 1 }}>
+      <main id="main-content" style={{ flex: 1 }}>
         <Hero />
         <InteractiveTerminal />
         <BenchmarkTable />

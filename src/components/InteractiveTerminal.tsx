@@ -85,7 +85,7 @@ export const InteractiveTerminal: React.FC = () => {
     } else {
       newLogs.push({
         type: "resp",
-        text: `Unknown command: . Type help for available neural syscalls.`
+        text: `Unknown command: ${cmd}. Type help for available neural syscalls.`
       });
     }
 
@@ -123,6 +123,7 @@ export const InteractiveTerminal: React.FC = () => {
           flexWrap: "wrap"
         }}>
           <button
+            type="button"
             onClick={() => executeCommand("sys_telemetry")}
             style={{
               display: "flex",
@@ -143,6 +144,7 @@ export const InteractiveTerminal: React.FC = () => {
           </button>
 
           <button
+            type="button"
             onClick={() => executeCommand("sys_alloc_kv")}
             style={{
               display: "flex",
@@ -163,6 +165,7 @@ export const InteractiveTerminal: React.FC = () => {
           </button>
 
           <button
+            type="button"
             onClick={() => executeCommand("sys_bench")}
             style={{
               display: "flex",
@@ -183,6 +186,7 @@ export const InteractiveTerminal: React.FC = () => {
           </button>
 
           <button
+            type="button"
             onClick={() => executeCommand("sys_vault")}
             style={{
               display: "flex",
@@ -203,6 +207,7 @@ export const InteractiveTerminal: React.FC = () => {
           </button>
 
           <button
+            type="button"
             onClick={() => executeCommand("clear")}
             style={{
               display: "flex",
@@ -245,11 +250,11 @@ export const InteractiveTerminal: React.FC = () => {
               <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#ef4444" }} />
               <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#f59e0b" }} />
               <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#10b981" }} />
-              <span style={{ marginLeft: "12px", fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--text-muted)" }}>
+              <span className="terminal-title" style={{ marginLeft: "12px", fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--text-muted)" }}>
                 aien@spark-gb10: ~ (neural_syscall_v0.4.0)
               </span>
             </div>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--accent-green)" }}>
+            <span className="terminal-status" style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--accent-green)" }}>
               COHERENT BUS READY
             </span>
           </div>
@@ -263,7 +268,7 @@ export const InteractiveTerminal: React.FC = () => {
             fontFamily: "var(--font-mono)",
             fontSize: "13px",
             lineHeight: 1.6
-          }}>
+          }} aria-live="polite" aria-label="Terminal output">
             {logs.map((entry, idx) => (
               <div key={idx} style={{
                 marginBottom: "8px",
@@ -290,6 +295,9 @@ export const InteractiveTerminal: React.FC = () => {
           }}>
             <span style={{ color: "var(--accent-green)", fontFamily: "var(--font-mono)", fontSize: "14px" }}>$</span>
             <input
+              aria-label="Neural syscall command"
+              autoComplete="off"
+              spellCheck={false}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -306,6 +314,8 @@ export const InteractiveTerminal: React.FC = () => {
               }}
             />
             <button
+              type="button"
+              aria-label="Run terminal command"
               onClick={() => input.trim() && executeCommand(input)}
               style={{
                 background: "var(--bg-card)",

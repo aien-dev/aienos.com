@@ -5,10 +5,14 @@ export const Hero: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const installCmd = "curl -fsSL https://aienos.com/install.sh | bash";
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(installCmd);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(installCmd);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      window.prompt("Copy the install command:", installCmd);
+    }
   };
 
   return (
@@ -63,7 +67,7 @@ export const Hero: React.FC = () => {
             in-process cognitive kernels, sub-5MB daemon footprints, and hardware-enforced sovereign security.
           </p>
 
-          <div style={{
+          <div className="install-command" style={{
             background: "var(--bg-surface)",
             border: "1px solid var(--border-subtle)",
             borderRadius: "8px",
@@ -90,6 +94,8 @@ export const Hero: React.FC = () => {
               <span>{installCmd}</span>
             </div>
             <button
+              type="button"
+              aria-label="Copy the AIEN OS install command"
               onClick={handleCopy}
               style={{
                 background: copied ? "rgba(0, 229, 153, 0.15)" : "var(--bg-card)",

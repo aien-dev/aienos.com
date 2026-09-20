@@ -19,7 +19,7 @@ export const Navbar: React.FC = () => {
         justifyContent: "space-between",
         gap: "16px"
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <a href="#main-content" aria-label="AIEN OS home" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <div style={{
             width: "32px",
             height: "32px",
@@ -33,7 +33,7 @@ export const Navbar: React.FC = () => {
           }}>
             <Terminal size={18} color="var(--accent-blue)" />
           </div>
-          <div style={{ display: "flex", flexDirection: "column" }}>
+          <div className="brand-copy" style={{ display: "flex", flexDirection: "column" }}>
             <span style={{
               fontWeight: 700,
               fontSize: "18px",
@@ -51,20 +51,20 @@ export const Navbar: React.FC = () => {
               NEURAL OPERATING ENVIRONMENT
             </span>
           </div>
-        </div>
+        </a>
 
-        <nav style={{
+        <nav aria-label="Primary navigation" className="site-nav" style={{
           display: "flex",
           alignItems: "center",
           gap: "24px",
           fontSize: "14px",
           fontWeight: 500
         }}>
-          <a href="#terminal" style={{ color: "var(--text-secondary)" }}>Terminal</a>
-          <a href="#benchmarks" style={{ color: "var(--text-secondary)" }}>Benchmarks</a>
-          <a href="#architecture" style={{ color: "var(--text-secondary)" }}>Architecture</a>
-          <a href="#ecosystem" style={{ color: "var(--text-secondary)" }}>Ecosystem</a>
-          <a href="#install" style={{ color: "var(--text-secondary)" }}>Install</a>
+          <a className="nav-section-link" href="#terminal">Terminal</a>
+          <a className="nav-section-link" href="#benchmarks">Benchmarks</a>
+          <a className="nav-section-link" href="#architecture">Architecture</a>
+          <a className="nav-section-link" href="#ecosystem">Ecosystem</a>
+          <a className="nav-section-link" href="#install">Install</a>
           <a
             href="https://github.com/aien-dev"
             target="_blank"
