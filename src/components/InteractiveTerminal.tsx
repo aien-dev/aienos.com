@@ -8,7 +8,7 @@ interface LogEntry {
 
 export const InteractiveTerminal: React.FC = () => {
   const [logs, setLogs] = useState<LogEntry[]>([
-    { type: "sys", text: "[*] AIEN OS Neural Kernel v0.4.0 initialized on GB10 (aarch64)." },
+    { type: "sys", text: "[*] AIENOS Neural Kernel v0.4.0 initialized on GB10 (aarch64)." },
     { type: "sys", text: "[*] Unified coherent address space: 128 GB LPDDR5x online." },
     { type: "sys", text: "[*] Hardware TPM 2.0 vault locked. Zero disk secrets invariant active." },
     { type: "sys", text: "[*] Type a syscall below or click one of the quick trigger buttons." }
