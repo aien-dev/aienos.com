@@ -1,9 +1,9 @@
-# AIEN OS Web Platform (aienos.com)
+# AIENOS Web Platform (aienos.com)
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![GitHub Pages](https://github.com/aien-dev/aienos.com/actions/workflows/pages.yml/badge.svg)](https://github.com/aien-dev/aienos.com/actions/workflows/pages.yml)
 
-The official web platform and documentation portal for **AIEN OS**, the GPU-Native Neural Operating Environment.
+The official web platform and documentation portal for **AIENOS**, the GPU-Native Neural Operating Environment.
 
 Live: [https://aienos.com](https://aienos.com)
 
@@ -11,7 +11,7 @@ Live: [https://aienos.com](https://aienos.com)
 
 ## Mission & Architecture
 
-AIEN OS eliminates the 40-year CPU von Neumann bottleneck by pairing Grace Blackwell GB10 unified memory with pure compiled native systems:
+AIENOS eliminates the 40-year CPU von Neumann bottleneck by pairing Grace Blackwell GB10 unified memory with pure compiled native systems:
 
 - **Coherent Unified Memory**: 128 GB shared physical address space between ARM Cortex controller cores and the Blackwell GPU.
 - **Pure Native Silicon Priority**: Core daemons written in native Rust and Mojo 1.0. Zero Python or Node interpreter in the core runtime path.

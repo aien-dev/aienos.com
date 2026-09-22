@@ -23,7 +23,7 @@ export const Footer: React.FC = () => {
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
               <Terminal size={18} color="var(--accent-blue)" />
               <span style={{ fontWeight: 700, fontSize: "16px", color: "var(--text-primary)" }}>
-                AIEN OS
+                AIENOS
               </span>
             </div>
             <p style={{ lineHeight: 1.6, color: "var(--text-secondary)" }}>
@@ -52,6 +52,7 @@ export const Footer: React.FC = () => {
                 <li><a href="https://www.drakestapleton.com" target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-secondary)" }}>Drake Stapleton</a></li>
                 <li><a href="https://github.com/aien-dev" target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-secondary)" }}>GitHub Organization</a></li>
                 <li><a href="https://aienos.com/install.sh" style={{ color: "var(--accent-green)", fontFamily: "var(--font-mono)" }}>install.sh</a></li>
+                <li><a href="mailto:aien@aienos.com" style={{ color: "var(--text-secondary)" }}>aien@aienos.com</a></li>
               </ul>
             </div>
           </div>

@@ -95,7 +95,7 @@ export const Hero: React.FC = () => {
             </div>
             <button
               type="button"
-              aria-label="Copy the AIEN OS install command"
+              aria-label="Copy the AIENOS install command"
               onClick={handleCopy}
               style={{
                 background: copied ? "rgba(0, 229, 153, 0.15)" : "var(--bg-card)",

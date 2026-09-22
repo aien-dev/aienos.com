@@ -19,7 +19,7 @@ export const Navbar: React.FC = () => {
         justifyContent: "space-between",
         gap: "16px"
       }}>
-        <a href="#main-content" aria-label="AIEN OS home" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <a href="#main-content" aria-label="AIENOS home" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <div style={{
             width: "32px",
             height: "32px",
@@ -40,7 +40,7 @@ export const Navbar: React.FC = () => {
               letterSpacing: "-0.02em",
               color: "var(--text-primary)"
             }}>
-              AIEN OS
+              AIENOS
             </span>
             <span style={{
               fontSize: "10px",

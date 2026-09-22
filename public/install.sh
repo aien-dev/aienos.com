@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# AIEN OS Universal Installer Entrypoint
+# AIENOS Universal Installer Entrypoint
 # Checks out the canonical source before running its repository-aware installer.
 set -euo pipefail
 
 command -v git >/dev/null 2>&1 || {
-  echo "Error: git is required to install AIEN OS." >&2
+  echo "Error: git is required to install AIENOS." >&2
   exit 1
 }
 
