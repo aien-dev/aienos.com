@@ -37,7 +37,7 @@ export const ArchitectureMatrix: React.FC = () => {
       icon: <Plug size={22} color="var(--accent-blue)" />,
       crate: "spark-max-cabi",
       title: "Modular MAX Bridge",
-      desc: "C-ABI bridge between Mojo kernels and Rust, including Qwen FP8 mixture-of-experts execution work."
+      desc: "C-ABI bridge between Mojo kernels and Rust. The Qwen3-Coder A3B FP8 mixture-of-experts layer now runs in Rust and Mojo; full-model qualification is still in progress."
     }
   ];
 
