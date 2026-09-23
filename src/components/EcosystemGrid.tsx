@@ -36,12 +36,12 @@ export const EcosystemGrid: React.FC = () => {
       url: "https://github.com/aien-dev/spark-rsi"
     },
     {
-      repo: "openclaw-rs",
-      name: "OpenClaw Sovereign Host",
+      repo: "aegis-runtime",
+      name: "AEGIS Sovereign Host",
       desc: "Ultra-high-performance process supervisor and event dispatcher operating under 5MB resident set size.",
       lang: "Rust",
       stars: "4.56 MB RSS",
-      url: "https://github.com/aien-dev/openclaw-rs"
+      url: "https://github.com/aien-dev/aegis-runtime"
     },
     {
       repo: "cortex-rs",

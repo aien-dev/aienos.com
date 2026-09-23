@@ -40,7 +40,7 @@ export const Footer: React.FC = () => {
                 <li><a href="https://github.com/aien-dev/aien-sovereign-core" target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-secondary)" }}>AIEN Sovereign Core</a></li>
                 <li><a href="https://github.com/aien-dev/spark-rsi" target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-secondary)" }}>Spark RSI Engine</a></li>
                 <li><a href="https://github.com/aien-dev/benchmarks" target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-secondary)" }}>Performance Benchmarks</a></li>
-                <li><a href="https://github.com/aien-dev/openclaw-rs" target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-secondary)" }}>OpenClaw Supervisor</a></li>
+                <li><a href="https://github.com/aien-dev/aegis-runtime" target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-secondary)" }}>AEGIS Runtime</a></li>
               </ul>
             </div>
 
