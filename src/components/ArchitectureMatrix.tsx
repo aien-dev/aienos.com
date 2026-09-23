@@ -1,86 +1,92 @@
 import React from "react";
-import { Cpu, ShieldCheck, Zap, HardDrive, Terminal, GitMerge } from "lucide-react";
+import { Cpu, Terminal, HardDrive, Layers, GitBranch, Plug, FlaskConical } from "lucide-react";
 
 export const ArchitectureMatrix: React.FC = () => {
   const pillars = [
     {
-      icon: <Cpu size={24} color="var(--accent-blue)" />,
-      title: "Coherent Unified Address Space",
-      desc: "Grace Blackwell GB10 pairs 20 ARM Cortex cores with Blackwell GPU silicon across 128 GB coherent LPDDR5x memory. Tensors and page tables are manipulated in-place with zero host-to-device PCIe copy penalty."
+      icon: <Terminal size={22} color="var(--accent-green)" />,
+      crate: "aien-cli",
+      title: "Agent CLI and Orchestrator",
+      desc: "Terminal runtime with an initiation sequence, a fail-closed policy engine, lifecycle hooks, and context compaction."
     },
     {
-      icon: <Zap size={24} color="var(--accent-green)" />,
-      title: "Pure Native Compiled Systems",
-      desc: "Zero Python or Node interpreters in core agent services or background daemons. Rust handles high-throughput asynchronous networking and process isolation; Mojo handles accelerated SIMD mathematics and PagedAttention KV-caching."
+      icon: <HardDrive size={22} color="var(--accent-blue)" />,
+      crate: "cortex-rs",
+      title: "Persistent Memory",
+      desc: "Knowledge store with SQLite persistence, plus cortex-encoder-rs, an ONNX embedding service for vector recall."
     },
     {
-      icon: <ShieldCheck size={24} color="var(--accent-amber)" />,
-      title: "Hardware TPM 2.0 Key Vault",
-      desc: "Strict SECURE_TPM_ONLY policy bound to /dev/tpmrm0 ECDSA P-256 hardware. Plaintext .env secret files are strictly forbidden on disk. Keys resolve dynamically in-memory with real-time redaction interceptors."
+      icon: <Layers size={22} color="var(--accent-green)" />,
+      crate: "aien-kv-cache",
+      title: "Unified-Memory KV-Cache",
+      desc: "Physical page pool on Grace Blackwell unified memory with copy-on-write branch forking for parallel reasoning paths."
     },
     {
-      icon: <HardDrive size={24} color="var(--accent-blue)" />,
-      title: "Canonical Memory Engine",
-      desc: "High-performance SQLite WAL storage engine operating at 0.50 ms p50 latency and 19,000 req/s. Retains verified operational post-mortems and structured lessons without memory bloat."
+      icon: <GitBranch size={22} color="var(--accent-blue)" />,
+      crate: "aien-scheduler",
+      title: "Continuous Batching",
+      desc: "Continuous batching with chunked prefill, and the bench_inference_stack binary that produces its measurements."
     },
     {
-      icon: <Terminal size={24} color="var(--accent-green)" />,
-      title: "Neural Syscall Dispatcher",
-      desc: "Replaces legacy POSIX interruptions with semantic dispatch: sys_telemetry, sys_alloc_kv, sys_simd_benchmark, and sys_vault, routing context directly to hardware-resident cognitive models."
+      icon: <Cpu size={22} color="var(--accent-green)" />,
+      crate: "aien-inference-abi",
+      title: "Inference ABI",
+      desc: "Tensor backend trait with Blackwell GB10 and CPU reference paths, plus request and event contracts in aien-inference-service."
     },
     {
-      icon: <GitMerge size={24} color="var(--accent-blue)" />,
-      title: "Sovereign Dual-Remote Git Sync",
-      desc: "Autonomous change-management and recursive self-improvement pipelines sync commits to both public remotes and self-hosted Forgejo repositories, ensuring complete engineering sovereignty."
+      icon: <Plug size={22} color="var(--accent-blue)" />,
+      crate: "spark-max-cabi",
+      title: "Modular MAX Bridge",
+      desc: "C-ABI bridge between Mojo kernels and Rust, including Qwen FP8 mixture-of-experts execution work."
     }
   ];
 
   return (
-    <section id="architecture" style={{ padding: "80px 0", borderBottom: "1px solid var(--border-subtle)" }}>
+    <section id="architecture" className="section">
       <div className="container">
-        <div style={{ marginBottom: "48px" }}>
-          <div className="badge badge-blue" style={{ marginBottom: "12px" }}>
+        <div className="section-head">
+          <div className="badge badge-blue">
             <Cpu size={12} />
-            <span>HARDWARE-GROUNDED DESIGN</span>
+            <span>WHAT IS IMPLEMENTED TODAY</span>
           </div>
-          <h2 style={{ fontSize: "32px", fontWeight: 700, letterSpacing: "-0.02em", color: "var(--text-primary)" }}>
-            Architecture: Beyond the von Neumann Bottleneck
-          </h2>
-          <p style={{ color: "var(--text-secondary)", marginTop: "8px", maxWidth: "700px" }}>
-            Engineered for physical hardware reality. High-efficiency systems design removing four decades of legacy computing debt.
+          <h2>Architecture</h2>
+          <p>
+            Each component below has tests or runnable targets in{" "}
+            <a href="https://github.com/aien-dev/aien-sovereign-core" target="_blank" rel="noopener noreferrer">aien-sovereign-core</a>.
+            Execution is hybrid CPU and GPU, not exclusively accelerated.
           </p>
         </div>
 
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-          gap: "24px"
-        }}>
-          {pillars.map((item, idx) => (
+        <div className="card-grid">
+          {pillars.map((item) => (
             <div
-              key={idx}
+              key={item.crate}
               className="glow-box"
               style={{
-                padding: "28px",
+                padding: "24px",
                 borderRadius: "8px",
                 display: "flex",
                 flexDirection: "column",
-                gap: "16px"
+                gap: "12px"
               }}
             >
-              <div style={{
-                width: "44px",
-                height: "44px",
-                borderRadius: "6px",
-                background: "var(--bg-surface)",
-                border: "1px solid var(--border-subtle)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center"
-              }}>
-                {item.icon}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+                <div style={{
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "6px",
+                  background: "var(--bg-surface)",
+                  border: "1px solid var(--border-subtle)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0
+                }}>
+                  {item.icon}
+                </div>
+                <code style={{ fontSize: "11px", color: "var(--text-muted)" }}>crates/{item.crate}</code>
               </div>
-              <h3 style={{ fontSize: "18px", fontWeight: 700, color: "var(--text-primary)" }}>
+              <h3 style={{ fontSize: "17px", fontWeight: 700, color: "var(--text-primary)" }}>
                 {item.title}
               </h3>
               <p style={{ fontSize: "14px", color: "var(--text-secondary)", lineHeight: 1.6 }}>
@@ -88,6 +94,25 @@ export const ArchitectureMatrix: React.FC = () => {
               </p>
             </div>
           ))}
+        </div>
+
+        <div style={{
+          marginTop: "24px",
+          padding: "16px 20px",
+          borderRadius: "8px",
+          border: "1px dashed var(--border-subtle)",
+          display: "flex",
+          gap: "12px",
+          alignItems: "flex-start",
+          fontSize: "14px",
+          color: "var(--text-secondary)"
+        }}>
+          <FlaskConical size={18} color="var(--accent-amber)" style={{ flexShrink: 0, marginTop: "2px" }} />
+          <span>
+            <strong style={{ color: "var(--text-primary)" }}>Experimental, not yet core:</strong> AEGIS capability boundary,
+            MCP broker integration, supervisor, debugger, cockpit gateway, and the distillation pipeline. Research concepts
+            such as recursive self-improvement live in roadmap documents.
+          </span>
         </div>
       </div>
     </section>

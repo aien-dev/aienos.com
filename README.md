@@ -5,18 +5,13 @@
 
 The official web platform and documentation portal for **AIENOS**, the GPU-Native Neural Operating Environment.
 
-Live: [https://aienos.com](https://aienos.com)
+Live: [https://www.aienos.com](https://www.aienos.com)
 
 ---
 
-## Mission & Architecture
+## What the site covers
 
-AIENOS eliminates the 40-year CPU von Neumann bottleneck by pairing Grace Blackwell GB10 unified memory with pure compiled native systems:
-
-- **Coherent Unified Memory**: 128 GB shared physical address space between ARM Cortex controller cores and the Blackwell GPU.
-- **Pure Native Silicon Priority**: Core daemons written in native Rust and Mojo 1.0. Zero Python or Node interpreter in the core runtime path.
-- **Hardware TPM 2.0 Vault**: Bound to `/dev/tpmrm0` ECDSA P-256 keys. Zero plaintext `.env` secrets on disk.
-- **Sub-5MB RSS Footprint**: Sovereign gateway (`openclaw-rs`) operating at 4.56 MB resident set size.
+The site presents [aien-sovereign-core](https://github.com/aien-dev/aien-sovereign-core), a sovereign agent and inference runtime in native Rust with Modular MAX bridges, built on NVIDIA DGX Spark (Grace Blackwell GB10). Site copy tracks the core README: the architecture section lists what is implemented today, and the results section follows the evidence standard, where withdrawn figures stay off the page until their artifact bundles are regenerated.
 
 ---
 
@@ -59,4 +54,4 @@ npm run preview
 
 ## License
 
-Licensed under the Apache License, Version 2.0 and the Sovereign Reciprocal Commons License (SRCL-1.0).
+Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE). The runtime itself, aien-sovereign-core, is Apache-2.0 with LLVM Exception. Project values live in the nonbinding [COVENANT.md](https://github.com/aien-dev/aien-sovereign-core/blob/main/COVENANT.md), which grants and restricts no legal rights.
