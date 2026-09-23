@@ -34,6 +34,14 @@ export const Hero: React.FC = () => {
               <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--accent-green)" }} />
               NVIDIA GB10 COHERENT
             </span>
+            <span className="badge" style={{
+              border: "1px solid rgba(245, 158, 11, 0.4)",
+              color: "#f5a623",
+              background: "rgba(245, 158, 11, 0.08)"
+            }}>
+              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#f5a623" }} />
+              IN ACTIVE DEVELOPMENT
+            </span>
             <span className="badge badge-blue">
               <Zap size={11} />
               PURE COMPILED RUST + MOJO
@@ -61,10 +69,21 @@ export const Hero: React.FC = () => {
             lineHeight: 1.6,
             marginBottom: "40px",
             maxWidth: "760px",
-            margin: "0 auto 40px auto"
+            margin: "0 auto 16px auto"
           }}>
             Replacing the 40-year CPU von Neumann bottleneck with coherent unified memory,
             in-process cognitive kernels, sub-5MB daemon footprints, and hardware-enforced sovereign security.
+          </p>
+
+          <p style={{
+            fontSize: "15px",
+            color: "var(--text-secondary)",
+            marginBottom: "40px"
+          }}>
+            AIENOS is in active development.{" "}
+            <a href="#waitlist" style={{ color: "var(--accent-green)", fontWeight: 600 }}>
+              AIEN is coming soon, join the waitlist.
+            </a>
           </p>
 
           <div className="install-command" style={{

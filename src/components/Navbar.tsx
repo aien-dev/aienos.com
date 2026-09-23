@@ -65,6 +65,7 @@ export const Navbar: React.FC = () => {
           <a className="nav-section-link" href="#architecture">Architecture</a>
           <a className="nav-section-link" href="#ecosystem">Ecosystem</a>
           <a className="nav-section-link" href="#install">Install</a>
+          <a className="nav-section-link" href="#waitlist" style={{ color: "var(--accent-green)", fontWeight: 700 }}>Waitlist</a>
           <a
             href="https://github.com/aien-dev"
             target="_blank"

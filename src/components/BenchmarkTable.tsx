@@ -146,8 +146,39 @@ export const BenchmarkTable: React.FC = () => {
           color: "var(--text-muted)",
           fontFamily: "var(--font-mono)"
         }}>
-          <span>Source: github.com/aien-dev/benchmarks</span>
+          <span>Source: <a
+            href="https://github.com/aien-dev/benchmarks"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "var(--accent-blue)", textDecoration: "underline" }}
+          >github.com/aien-dev/benchmarks</a></span>
           <span>Zero interpreter overhead in production path</span>
+        </div>
+
+        <div style={{
+          marginTop: "20px",
+          padding: "16px 20px",
+          border: "1px solid var(--border-subtle)",
+          borderRadius: "8px",
+          background: "var(--bg-base)",
+          fontSize: "13px",
+          color: "var(--text-secondary)",
+          lineHeight: 1.7
+        }}>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--text-muted)", letterSpacing: "0.05em" }}>
+            RUN THEM YOURSELF
+          </span>
+          <div style={{ marginTop: "8px", display: "flex", gap: "20px", flexWrap: "wrap", fontFamily: "var(--font-mono)", fontSize: "12px" }}>
+            <a href="https://github.com/aien-dev/benchmarks" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent-green)" }}>
+              benchmarks: measurement suite
+            </a>
+            <a href="https://github.com/aien-dev/aien-sovereign-core" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent-green)" }}>
+              aien-sovereign-core: runtime
+            </a>
+            <a href="https://github.com/aien-dev/aegis-runtime" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent-green)" }}>
+              aegis-runtime: supervisor
+            </a>
+          </div>
         </div>
       </div>
     </section>
