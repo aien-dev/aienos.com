@@ -1,9 +1,16 @@
 import React, { useState } from "react";
-import { Copy, Check, ShieldCheck, Zap } from "lucide-react";
+import { Copy, Check, Scale, Zap } from "lucide-react";
 
 export const Hero: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const installCmd = "curl -fsSL https://aienos.com/install.sh | bash";
+
+  const facts = [
+    { label: "RUNTIME", value: "Native Rust", note: "Workspace with Mojo kernels", color: "var(--accent-green)" },
+    { label: "INFERENCE", value: "Modular MAX", note: "C-ABI bridge and tensor backends", color: "var(--accent-blue)" },
+    { label: "REFERENCE HARDWARE", value: "DGX Spark", note: "NVIDIA Grace Blackwell GB10", color: "var(--accent-blue)" },
+    { label: "LICENSE", value: "Apache-2.0", note: "With LLVM Exception", color: "var(--accent-green)" }
+  ];
 
   const handleCopy = async () => {
     try {
@@ -32,21 +39,21 @@ export const Hero: React.FC = () => {
           }}>
             <span className="badge badge-green">
               <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--accent-green)" }} />
-              NVIDIA GB10 COHERENT
+              BUILT ON NVIDIA DGX SPARK
             </span>
             <span className="badge badge-blue">
               <Zap size={11} />
-              PURE COMPILED RUST + MOJO
+              RUST + MOJO
             </span>
             <span className="badge badge-blue">
-              <ShieldCheck size={11} />
-              HARDWARE TPM 2.0
+              <Scale size={11} />
+              OPEN SOURCE, APACHE-2.0
             </span>
           </div>
 
           <h1 style={{
             fontSize: "clamp(36px, 5vw, 64px)",
-            fontWeight: 800,
+            fontWeight: 700,
             lineHeight: 1.1,
             letterSpacing: "-0.03em",
             marginBottom: "24px",
@@ -63,8 +70,9 @@ export const Hero: React.FC = () => {
             maxWidth: "760px",
             margin: "0 auto 40px auto"
           }}>
-            Replacing the 40-year CPU von Neumann bottleneck with coherent unified memory,
-            in-process cognitive kernels, sub-5MB daemon footprints, and hardware-enforced sovereign security.
+            A sovereign agent and inference runtime in native Rust: agent CLI, persistent memory,
+            unified-memory KV-cache, a continuous-batching scheduler, and Modular MAX bridges.
+            Built in the open on NVIDIA Grace Blackwell.
           </p>
 
           <div className="install-command" style={{
@@ -76,7 +84,7 @@ export const Hero: React.FC = () => {
             alignItems: "center",
             justifyContent: "space-between",
             maxWidth: "680px",
-            margin: "0 auto 48px auto",
+            margin: "0 auto 12px auto",
             boxShadow: "0 12px 36px rgba(0, 0, 0, 0.4)"
           }}>
             <div style={{
@@ -118,59 +126,29 @@ export const Hero: React.FC = () => {
             </button>
           </div>
 
-          <div style={{
+          <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "48px" }}>
+            Builds release binaries from source. Signed releases are planned; this script does not verify signatures yet.
+          </p>
+
+          <div className="hero-facts" style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 190px), 1fr))",
             gap: "16px",
             textAlign: "left"
           }}>
-            <div className="glow-box" style={{ padding: "18px 20px", borderRadius: "8px" }}>
-              <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", marginBottom: "4px" }}>
-                RESIDENT MEMORY (RSS)
+            {facts.map((f) => (
+              <div key={f.label} className="glow-box" style={{ padding: "18px 20px", borderRadius: "8px" }}>
+                <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", marginBottom: "6px", letterSpacing: "0.06em" }}>
+                  {f.label}
+                </div>
+                <div style={{ fontSize: "20px", fontWeight: 700, color: f.color, fontFamily: "var(--font-mono)", lineHeight: 1.25 }}>
+                  {f.value}
+                </div>
+                <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "4px" }}>
+                  {f.note}
+                </div>
               </div>
-              <div style={{ fontSize: "24px", fontWeight: 700, color: "var(--accent-green)", fontFamily: "var(--font-mono)" }}>
-                4.56 MB
-              </div>
-              <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "2px" }}>
-                -89.8% vs FastAPI baseline
-              </div>
-            </div>
-
-            <div className="glow-box" style={{ padding: "18px 20px", borderRadius: "8px" }}>
-              <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", marginBottom: "4px" }}>
-                SIMD VECTOR SPEED
-              </div>
-              <div style={{ fontSize: "24px", fontWeight: 700, color: "var(--accent-blue)", fontFamily: "var(--font-mono)" }}>
-                124.2 GFLOP/s
-              </div>
-              <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "2px" }}>
-                Native Mojo 32-lane vector
-              </div>
-            </div>
-
-            <div className="glow-box" style={{ padding: "18px 20px", borderRadius: "8px" }}>
-              <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", marginBottom: "4px" }}>
-                COHERENT BANDWIDTH
-              </div>
-              <div style={{ fontSize: "24px", fontWeight: 700, color: "var(--accent-blue)", fontFamily: "var(--font-mono)" }}>
-                81.6 GB/s
-              </div>
-              <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "2px" }}>
-                Zero-copy GPU-CPU unified
-              </div>
-            </div>
-
-            <div className="glow-box" style={{ padding: "18px 20px", borderRadius: "8px" }}>
-              <div style={{ fontSize: "11px", fontFamily: "var(--font-mono)", color: "var(--text-muted)", marginBottom: "4px" }}>
-                SECURITY INVARIANT
-              </div>
-              <div style={{ fontSize: "24px", fontWeight: 700, color: "var(--accent-green)", fontFamily: "var(--font-mono)" }}>
-                TPM 2.0
-              </div>
-              <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "2px" }}>
-                Zero plaintext disk secrets
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>

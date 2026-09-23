@@ -11,7 +11,8 @@ export const InteractiveTerminal: React.FC = () => {
     { type: "sys", text: "[*] AIENOS Neural Kernel v0.4.0 initialized on GB10 (aarch64)." },
     { type: "sys", text: "[*] Unified coherent address space: 128 GB LPDDR5x online." },
     { type: "sys", text: "[*] Hardware TPM 2.0 vault locked. Zero disk secrets invariant active." },
-    { type: "sys", text: "[*] Type a syscall below or click one of the quick trigger buttons." }
+    { type: "sys", text: "[*] Simulated session: all output below is sample data rendered in your browser." },
+    { type: "sys", text: "[*] Type a command below or click one of the buttons." }
   ]);
   const [input, setInput] = useState("");
 
@@ -51,15 +52,7 @@ export const InteractiveTerminal: React.FC = () => {
     } else if (trimmed === "sys_bench" || trimmed === "bench" || trimmed === "simd") {
       newLogs.push({
         type: "resp",
-        text: JSON.stringify({
-          syscall: "sys_simd_benchmark",
-          compiler: "Mojo 1.0 (MLIR LLVM)",
-          target: "aarch64-unknown-linux-gnu",
-          scalar_throughput_gflops: 12.8,
-          simd_32wide_throughput_gflops: 124.2,
-          speedup_multiplier: "9.70x",
-          coherent_memory_bandwidth_gbps: 81.6
-        }, null, 2)
+        text: "Benchmark figures are withdrawn pending regeneration under the evidence standard.\nReproduce on real hardware:\n  cargo run -p aien-scheduler --bin bench_inference_stack\nArtifacts: https://github.com/aien-dev/benchmarks"
       });
     } else if (trimmed === "sys_vault" || trimmed === "vault") {
       newLogs.push({
@@ -76,7 +69,7 @@ export const InteractiveTerminal: React.FC = () => {
     } else if (trimmed === "help") {
       newLogs.push({
         type: "resp",
-        text: "Supported Neural Syscalls:\n  sys_telemetry - Inspect GB10 thermals, power, and unified VRAM\n  sys_alloc_kv   - Allocate PagedAttention neural memory blocks\n  sys_bench      - Run Mojo 1.0 32-wide SIMD kernel benchmark\n  sys_vault      - Validate hardware TPM 2.0 key vault security\n  clear          - Clear terminal display"
+        text: "Supported Neural Syscalls:\n  sys_telemetry - Inspect GB10 thermals, power, and unified VRAM\n  sys_alloc_kv   - Allocate PagedAttention neural memory blocks\n  sys_bench      - Show how to reproduce benchmark measurements\n  sys_vault      - Validate hardware TPM 2.0 key vault security\n  clear          - Clear terminal display"
       });
     } else if (trimmed === "clear") {
       setLogs([]);
@@ -105,13 +98,13 @@ export const InteractiveTerminal: React.FC = () => {
         <div style={{ marginBottom: "32px" }}>
           <div className="badge badge-blue" style={{ marginBottom: "12px" }}>
             <TerminalIcon size={12} />
-            <span>INTERACTIVE KERNEL CONSOLE</span>
+            <span>SIMULATED DEMO</span>
           </div>
           <h2 style={{ fontSize: "32px", fontWeight: 700, letterSpacing: "-0.02em", color: "var(--text-primary)" }}>
-            Live Neural Syscall Interface
+            Console Preview
           </h2>
           <p style={{ color: "var(--text-secondary)", marginTop: "8px", maxWidth: "680px" }}>
-            Execute compiled system calls directly against the AIEN neural virtual machine definitions.
+            A browser-side mock of the runtime console. Responses are canned sample output, not a live connection to hardware.
           </p>
         </div>
 
@@ -251,11 +244,11 @@ export const InteractiveTerminal: React.FC = () => {
               <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#f59e0b" }} />
               <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#10b981" }} />
               <span className="terminal-title" style={{ marginLeft: "12px", fontFamily: "var(--font-mono)", fontSize: "12px", color: "var(--text-muted)" }}>
-                aien@spark-gb10: ~ (neural_syscall_v0.4.0)
+                aien@spark-gb10: ~ (simulated)
               </span>
             </div>
             <span className="terminal-status" style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--accent-green)" }}>
-              COHERENT BUS READY
+              DEMO MODE
             </span>
           </div>
 

@@ -3,24 +3,69 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AIENOS | The GPU-Native Neural Operating Environment</title>
-    <meta name="description" content="AIENOS replaces the 40-year CPU von Neumann bottleneck with unified memory, in-process cognitive kernels, and hardware TPM vaulting." />
+    <title>AIENOS | Sovereign Agent and Inference Runtime for NVIDIA DGX Spark</title>
+    <meta name="description" content="AIENOS is an open source agent and inference runtime in native Rust with Modular MAX bridges, built on NVIDIA DGX Spark (Grace Blackwell GB10). Apache-2.0 with LLVM Exception." />
     <meta name="theme-color" content="#08090c" />
     <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="https://aienos.com/" />
+    <meta name="author" content="Drake Stapleton" />
+    <link rel="canonical" href="https://www.aienos.com/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="AIENOS" />
-    <meta property="og:title" content="AIENOS | The GPU-Native Neural Operating Environment" />
-    <meta property="og:description" content="A GPU-native neural operating environment built around unified memory, compiled cognitive kernels, and hardware-enforced sovereign security." />
-    <meta property="og:url" content="https://aienos.com/" />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:title" content="AIENOS | Sovereign Agent and Inference Runtime" />
+    <meta property="og:description" content="Native Rust agent runtime, persistent memory, KV-cache management, and a continuous-batching scheduler with Modular MAX bridges. Built on NVIDIA DGX Spark." />
+    <meta property="og:url" content="https://www.aienos.com/" />
+    <meta property="og:image" content="https://www.aienos.com/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="AIENOS: sovereign agent and inference runtime" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="AIENOS | Sovereign Agent and Inference Runtime" />
+    <meta name="twitter:description" content="Native Rust agent and inference runtime with Modular MAX bridges, built on NVIDIA DGX Spark." />
+    <meta name="twitter:image" content="https://www.aienos.com/og.png" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://www.aienos.com/#org",
+            "name": "AIEN",
+            "url": "https://www.aienos.com/",
+            "logo": "https://www.aienos.com/favicon.svg",
+            "email": "aien@aienos.com",
+            "founder": { "@type": "Person", "name": "Drake Stapleton", "url": "https://www.drakestapleton.com/" },
+            "sameAs": ["https://github.com/aien-dev"]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://www.aienos.com/#site",
+            "name": "AIENOS",
+            "url": "https://www.aienos.com/",
+            "publisher": { "@id": "https://www.aienos.com/#org" }
+          },
+          {
+            "@type": "SoftwareSourceCode",
+            "name": "AIEN Sovereign Core",
+            "description": "Native Rust agent and inference runtime with Modular MAX bridges for NVIDIA DGX Spark (Grace Blackwell GB10).",
+            "codeRepository": "https://github.com/aien-dev/aien-sovereign-core",
+            "programmingLanguage": ["Rust", "Mojo"],
+            "license": "https://www.apache.org/licenses/LICENSE-2.0",
+            "author": { "@id": "https://www.aienos.com/#org" }
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <p>AIENOS is an open source agent and inference runtime in native Rust with Modular MAX bridges, built on NVIDIA DGX Spark. Source: <a href="https://github.com/aien-dev/aien-sovereign-core">github.com/aien-dev/aien-sovereign-core</a>.</p>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
