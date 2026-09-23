@@ -37,7 +37,7 @@ export const Footer: React.FC = () => {
                 ECOSYSTEM
               </div>
               <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "8px" }}>
-                <li><a href="https://github.com/aien-dev/aien-sovereign-core" target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-secondary)" }}>AIEN Sovereign Core</a></li>
+                <li><a href="https://github.com/aien-dev/aien-sovereign-core" target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-secondary)" }}>AIEN Neural Runtime</a></li>
                 <li><a href="https://github.com/aien-dev/benchmarks" target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-secondary)" }}>Benchmarks</a></li>
                 <li><a href="https://github.com/aien-dev/aien-protocols" target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-secondary)" }}>AIEN Protocols</a></li>
                 <li><a href="https://github.com/aien-dev/aegis-runtime" target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-secondary)" }}>AEGIS Runtime</a></li>

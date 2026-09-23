@@ -5,7 +5,7 @@ export const EcosystemGrid: React.FC = () => {
   const projects = [
     {
       repo: "aien-sovereign-core",
-      name: "AIEN Sovereign Core",
+      name: "AIEN Neural Runtime",
       desc: "The runtime workspace: agent CLI, memory, KV-cache, scheduler, inference ABI, and Modular MAX bridges.",
       lang: "Rust / Mojo",
       status: "Core",
