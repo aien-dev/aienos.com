@@ -76,6 +76,7 @@ fn build_pure_rust_site(dist: &Path) {
         (components::matrix::render_matrix())
         (components::ecosystem::render_ecosystem())
         (components::install::render_install())
+        (components::waitlist::render_waitlist())
     };
 
     let full_document = render_base_layout(page_content);
@@ -96,6 +97,7 @@ fn verify_site(dist: &Path) {
     assert!(content.contains("<div id=\"root\""), "Missing #root element in index.html");
     assert!(content.contains("<main id=\"main-content\""), "Missing main container in index.html");
     assert!(content.contains("id=\"terminal-output\""), "Missing interactive terminal output in index.html");
+    assert!(content.contains("id=\"waitlist\""), "Missing waitlist section in index.html");
 
     // Verify Unslop standard
     assert!(!content.contains('\u{2014}'), "Forbidden em dash detected in index.html");

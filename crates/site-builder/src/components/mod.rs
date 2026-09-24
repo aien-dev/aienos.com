@@ -6,3 +6,4 @@ pub mod install;
 pub mod matrix;
 pub mod navbar;
 pub mod terminal;
+pub mod waitlist;

@@ -12,6 +12,10 @@ pub fn render_hero() -> Markup {
                             span style="width: 6px; height: 6px; border-radius: 50%; background: var(--accent-green);" {}
                             "NVIDIA GB10 COHERENT"
                         }
+                        span class="badge" style="border: 1px solid rgba(245, 158, 11, 0.4); color: #f5a623; background: rgba(245, 158, 11, 0.08);" {
+                            span style="width: 6px; height: 6px; border-radius: 50%; background: #f5a623;" {}
+                            "IN ACTIVE DEVELOPMENT"
+                        }
                         span class="badge badge-blue" {
                             (PreEscaped(r#"<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>"#))
                             "PURE COMPILED RUST + MOJO"
@@ -26,8 +30,15 @@ pub fn render_hero() -> Markup {
                         "The GPU-Native Neural Operating Environment"
                     }
 
-                    p style="font-size: clamp(16px, 2vw, 20px); color: var(--text-secondary); line-height: 1.6; max-width: 760px; margin: 0 auto 40px auto;" {
+                    p style="font-size: clamp(16px, 2vw, 20px); color: var(--text-secondary); line-height: 1.6; max-width: 760px; margin: 0 auto 16px auto;" {
                         "Replacing the 40-year CPU von Neumann bottleneck with coherent unified memory, in-process cognitive kernels, sub-5MB daemon footprints, and hardware-enforced sovereign security."
+                    }
+
+                    p style="font-size: 15px; color: var(--text-secondary); margin-bottom: 40px;" {
+                        "AIENOS is in active development. "
+                        a href="#waitlist" style="color: var(--accent-green); font-weight: 600;" {
+                            "AIEN is coming soon, join the waitlist."
+                        }
                     }
 
                     div class="install-command" style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; max-width: 680px; margin: 0 auto 48px auto; box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);" {
