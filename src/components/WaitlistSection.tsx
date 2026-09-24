@@ -1,32 +1,36 @@
 import React, { useState } from "react";
 import { BellRing, Check, Mail, ArrowRight } from "lucide-react";
 
-// ---------------------------------------------------------------------------
-// Email capture endpoint. This site is static, so submissions POST here.
-//
-// To activate: create a free form at https://formspree.io (about two minutes),
-// then paste the endpoint below, e.g. "https://formspree.io/f/xabc1234".
-// Until then the form renders in a disabled "opening soon" state.
-// ---------------------------------------------------------------------------
-const WAITLIST_ENDPOINT = "";
+const WAITLIST_ENDPOINT = import.meta.env.VITE_WAITLIST_ENDPOINT ||
+  "https://spark.tail987627.ts.net/aienos-waitlist/api/signup";
+const CONSENT_VERSION = "2026-09-23-v1";
 
 export const WaitlistSection: React.FC = () => {
   const [email, setEmail] = useState("");
+  const [consent, setConsent] = useState(false);
+  const [website, setWebsite] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
-  const active = WAITLIST_ENDPOINT.length > 0;
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!active || status === "sending" || status === "done") return;
+    if (!consent || status === "sending" || status === "done") return;
     setStatus("sending");
+    setError("");
     try {
       const res = await fetch(WAITLIST_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ email, source: "aienos.com waitlist" })
+        body: JSON.stringify({ email: email.trim(), consent, consentVersion: CONSENT_VERSION, website })
       });
-      setStatus(res.ok ? "done" : "error");
+      if (!res.ok) {
+        setError(res.status === 429 ? "Please try again later." : "We could not save your email. Please try again.");
+        setStatus("error");
+        return;
+      }
+      setStatus("done");
     } catch {
+      setError("The signup service is unavailable. Please try again shortly.");
       setStatus("error");
     }
   };
@@ -90,7 +94,7 @@ export const WaitlistSection: React.FC = () => {
               margin: "0 auto"
             }}>
               <Check size={18} />
-              <span>You are on the list. Watch your inbox.</span>
+              <span>Received. We will email you when AIEN early access opens.</span>
             </div>
           ) : (
             <form onSubmit={handleSubmit} style={{
@@ -118,8 +122,11 @@ export const WaitlistSection: React.FC = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder={active ? "you@example.com" : "Waitlist opening soon"}
-                  disabled={!active}
+                  placeholder="you@example.com"
+                  disabled={status === "sending"}
+                  maxLength={254}
+                  autoComplete="email"
+                  name="email"
                   aria-label="Email address for the AIEN waitlist"
                   style={{
                     width: "100%",
@@ -131,23 +138,30 @@ export const WaitlistSection: React.FC = () => {
                     fontSize: "14px",
                     fontFamily: "var(--font-sans)",
                     outline: "none",
-                    opacity: active ? 1 : 0.6,
-                    cursor: active ? "text" : "not-allowed"
+                    cursor: "text"
                   }}
                 />
               </div>
+              <div aria-hidden="true" style={{ position: "absolute", width: "1px", height: "1px", overflow: "hidden", clipPath: "inset(50%)" }}>
+                <label htmlFor="waitlist-website">Website</label>
+                <input id="waitlist-website" name="website" type="text" tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
+              </div>
+              <label style={{ display: "flex", gap: "10px", alignItems: "flex-start", textAlign: "left", width: "100%", color: "var(--text-secondary)", fontSize: "13px", lineHeight: 1.5 }}>
+                <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} required disabled={status === "sending"} style={{ marginTop: "3px" }} />
+                <span>Use my email only to announce AIEN early access. Store my address and signup time for that purpose.</span>
+              </label>
               <button
                 type="submit"
-                disabled={!active || status === "sending"}
+                disabled={status === "sending"}
                 style={{
                   padding: "14px 24px",
                   borderRadius: "8px",
                   border: "1px solid var(--accent-green)",
-                  background: active ? "rgba(0, 229, 153, 0.12)" : "var(--bg-card)",
-                  color: active ? "var(--accent-green)" : "var(--text-muted)",
+                  background: "rgba(0, 229, 153, 0.12)",
+                  color: "var(--accent-green)",
                   fontWeight: 700,
                   fontSize: "14px",
-                  cursor: active ? "pointer" : "not-allowed",
+                  cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
                   gap: "8px",
@@ -166,8 +180,8 @@ export const WaitlistSection: React.FC = () => {
           )}
 
           {status === "error" && (
-            <p style={{ color: "#f59e0b", fontSize: "13px", marginTop: "12px" }}>
-              Something went wrong. Try again, or reach us at aien@aienos.com.
+            <p role="alert" style={{ color: "#f59e0b", fontSize: "13px", marginTop: "12px" }}>
+              {error}
             </p>
           )}
 
@@ -177,7 +191,7 @@ export const WaitlistSection: React.FC = () => {
             marginTop: "20px",
             fontFamily: "var(--font-mono)"
           }}>
-            One email when early access opens. No spam, no telemetry, unsubscribe anytime.
+            One early access announcement. No marketing list. Your email stays private.
           </p>
         </div>
       </div>
