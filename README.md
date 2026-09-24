@@ -1,22 +1,17 @@
-# AIEN OS Web Platform (aienos.com)
+# AIENOS Web Platform (aienos.com)
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![GitHub Pages](https://github.com/aien-dev/aienos.com/actions/workflows/pages.yml/badge.svg)](https://github.com/aien-dev/aienos.com/actions/workflows/pages.yml)
 
-The official web platform and documentation portal for **AIEN OS**, the GPU-Native Neural Operating Environment.
+The official web platform and documentation portal for **AIENOS**, the GPU-Native Neural Operating Environment.
 
-Live: [https://aienos.com](https://aienos.com)
+Live: [https://www.aienos.com](https://www.aienos.com)
 
 ---
 
-## Mission & Architecture
+## What the site covers
 
-AIEN OS eliminates the 40-year CPU von Neumann bottleneck by pairing Grace Blackwell GB10 unified memory with pure compiled native systems:
-
-- **Coherent Unified Memory**: 128 GB shared physical address space between ARM Cortex controller cores and the Blackwell GPU.
-- **Pure Native Silicon Priority**: Core daemons written in native Rust and Mojo 1.0. Zero Python or Node interpreter in the core runtime path.
-- **Hardware TPM 2.0 Vault**: Bound to `/dev/tpmrm0` ECDSA P-256 keys. Zero plaintext `.env` secrets on disk.
-- **Sub-5MB RSS Footprint**: Sovereign gateway (`openclaw-rs`) operating at 4.56 MB resident set size.
+The site presents [aien-sovereign-core](https://github.com/aien-dev/aien-sovereign-core), a sovereign agent and inference runtime in native Rust with Modular MAX bridges, built on NVIDIA DGX Spark (Grace Blackwell GB10). Site copy tracks the core README: the architecture section lists what is implemented today, and the results section follows the evidence standard, where withdrawn figures stay off the page until their artifact bundles are regenerated.
 
 ---
 
@@ -55,8 +50,27 @@ npm run build
 npm run preview
 ```
 
+## Rust waitlist API
+
+The waitlist form posts to the Rust API in [`server/`](server/). It stores
+unique email addresses, a consent version, and signup time in SQLite. The API
+accepts browser requests only from `aienos.com` and `www.aienos.com`; the
+database is never exposed by the static website.
+
+```bash
+cargo test --manifest-path server/Cargo.toml
+bash server/deploy-local.sh
+```
+
+The deployment script builds a Rust release binary and starts a container on
+`127.0.0.1:18171` with persistent data in
+`~/.local/share/aienos-waitlist`. The GitHub Pages form uses
+`https://spark.tail987627.ts.net/aienos-waitlist/api/signup` by default;
+`VITE_WAITLIST_ENDPOINT` can override it at build time. The public Tailscale
+Funnel route must forward `/aienos-waitlist` to the local listener.
+
 ---
 
 ## License
 
-Licensed under the Apache License, Version 2.0 and the Sovereign Reciprocal Commons License (SRCL-1.0).
+Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE). The runtime itself, aien-sovereign-core, is Apache-2.0 with LLVM Exception. Project values live in the nonbinding [COVENANT.md](https://github.com/aien-dev/aien-sovereign-core/blob/main/COVENANT.md), which grants and restricts no legal rights.

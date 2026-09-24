@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Official web platform and documentation portal for AIEN OS, the GPU-Native Neural Operating Environment.",
+  "description": "Official web platform and documentation portal for AIENOS, the GPU-Native Neural Operating Environment.",
   "scripts": {
     "build": "cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist",
     "test": "cargo test --manifest-path crates/site-builder/Cargo.toml",

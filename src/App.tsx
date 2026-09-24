@@ -6,6 +6,7 @@ import { BenchmarkTable } from "./components/BenchmarkTable";
 import { ArchitectureMatrix } from "./components/ArchitectureMatrix";
 import { EcosystemGrid } from "./components/EcosystemGrid";
 import { InstallGuide } from "./components/InstallGuide";
+import { WaitlistSection } from "./components/WaitlistSection";
 import { Footer } from "./components/Footer";
 
 export const App: React.FC = () => {
@@ -15,6 +16,7 @@ export const App: React.FC = () => {
       <Navbar />
       <main id="main-content" style={{ flex: 1 }}>
         <Hero />
+        <WaitlistSection />
         <InteractiveTerminal />
         <BenchmarkTable />
         <ArchitectureMatrix />
