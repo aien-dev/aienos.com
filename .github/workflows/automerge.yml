@@ -24,12 +24,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm run build
+          fetch-depth: 0
+      - name: Run verification test suite
+        run: cargo test --verbose --manifest-path crates/site-builder/Cargo.toml
+      - name: Build static site with pure Rust engine
+        run: cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist
       - name: Open PR and merge into main
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -38,8 +37,6 @@ jobs:
           BRANCH="${{ github.ref_name }}"
           PR_NUMBER="$(gh pr list --head "$BRANCH" --base main --json number --jq '.[0].number // empty')"
           if [ -z "$PR_NUMBER" ]; then
-            # NOTE: `gh pr create` prints the new PR's URL on success and has
-            # no --json flag, so the number is taken from the URL's tail.
             PR_URL="$(gh pr create --base main --head "$BRANCH" \
               --title "Auto-merge: $BRANCH" \
               --body "Opened automatically by the automerge pipeline after a successful build of \`$BRANCH\`.")"
@@ -48,5 +45,5 @@ jobs:
           else
             echo "Found existing PR #$PR_NUMBER"
           fi
-          gh pr merge "$PR_NUMBER" --merge --delete-branch
+          gh pr merge "$PR_NUMBER" --squash --delete-branch
           echo "Merged PR #$PR_NUMBER into main"

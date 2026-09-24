@@ -44,13 +44,6 @@ fn build_pure_rust_site(dist: &Path) {
     fs::create_dir_all(dist.join("assets")).expect("Failed to create assets dir");
     fs::create_dir_all(dist.join("js")).expect("Failed to create js dir");
 
-    // Copy stylesheet
-    let css_src = Path::new("src/index.css");
-    if css_src.exists() {
-        fs::copy(css_src, dist.join("assets/style.css")).expect("Failed to copy style.css");
-        println!("  [CSS] Copied src/index.css -> assets/style.css");
-    }
-
     // Copy public assets
     let public_dir = Path::new("public");
     if public_dir.exists() {
@@ -98,6 +91,10 @@ fn verify_site(dist: &Path) {
     assert!(content.contains("<main id=\"main-content\""), "Missing main container in index.html");
     assert!(content.contains("id=\"terminal-output\""), "Missing interactive terminal output in index.html");
     assert!(content.contains("id=\"waitlist\""), "Missing waitlist section in index.html");
+
+    // Verify asset output
+    assert!(dist.join("assets/style.css").exists(), "Missing assets/style.css");
+    assert!(dist.join("js/terminal.js").exists(), "Missing js/terminal.js");
 
     // Verify Unslop standard
     assert!(!content.contains('\u{2014}'), "Forbidden em dash detected in index.html");
