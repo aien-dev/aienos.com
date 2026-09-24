@@ -86,6 +86,14 @@ a {
   text-decoration: none;
 }
 
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -347,6 +355,10 @@ a {
 @media (max-width: 600px) {
   .container {
     padding: 0 16px;
+  }
+
+  .responsive-card-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 
   section {

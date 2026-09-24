@@ -5,10 +5,9 @@
   "type": "module",
   "description": "Official web platform and documentation portal for AIENOS, the GPU-Native Neural Operating Environment.",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit && vite build",
-    "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "build": "cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist",
+    "test": "cargo test --manifest-path crates/site-builder/Cargo.toml",
+    "dev": "cargo run --manifest-path crates/site-builder/Cargo.toml -- build dist"
   },
   "dependencies": {
     "lucide-react": "^1.16.0",
