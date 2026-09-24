@@ -50,6 +50,25 @@ npm run build
 npm run preview
 ```
 
+## Rust waitlist API
+
+The waitlist form posts to the Rust API in [`server/`](server/). It stores
+unique email addresses, a consent version, and signup time in SQLite. The API
+accepts browser requests only from `aienos.com` and `www.aienos.com`; the
+database is never exposed by the static website.
+
+```bash
+cargo test --manifest-path server/Cargo.toml
+bash server/deploy-local.sh
+```
+
+The deployment script builds a Rust release binary and starts a container on
+`127.0.0.1:18171` with persistent data in
+`~/.local/share/aienos-waitlist`. The GitHub Pages form uses
+`https://spark.tail987627.ts.net/aienos-waitlist/api/signup` by default;
+`VITE_WAITLIST_ENDPOINT` can override it at build time. The public Tailscale
+Funnel route must forward `/aienos-waitlist` to the local listener.
+
 ---
 
 ## License

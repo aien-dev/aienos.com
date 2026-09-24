@@ -1,5 +1,7 @@
 node_modules
 dist
 dist-ssr
+server/target
+server/*.sqlite3*
 *.local
 .DS_Store
