@@ -16,9 +16,7 @@ pub fn render_terminal() -> Markup {
                     }
                 }
 
-                // Terminal Shell Container
                 div class="terminal-shell" style="border: 1px solid var(--border-subtle); border-radius: 8px; background: var(--bg-base); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5); overflow: hidden;" {
-                    // Top Chrome Bar
                     div style="padding: 12px 16px; background: rgba(14, 18, 25, 0.95); border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; gap: 16px;" {
                         div style="display: flex; align-items: center; gap: 8px;" {
                             span style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444;" {}
@@ -34,7 +32,6 @@ pub fn render_terminal() -> Markup {
                         }
                     }
 
-                    // Quick Action Buttons
                     div style="padding: 10px 16px; background: rgba(14, 18, 25, 0.6); border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; gap: 8px; flex-wrap: wrap;" {
                         span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); text-transform: uppercase;" {
                             "Quick Triggers:"
@@ -56,7 +53,6 @@ pub fn render_terminal() -> Markup {
                         }
                     }
 
-                    // Terminal Logs Output Area
                     div id="terminal-output" style="padding: 20px; min-height: 280px; max-height: 440px; overflow-y: auto; font-family: var(--font-mono); font-size: 13px; line-height: 1.6;" {
                         div class="terminal-log-line sys" {
                             span class="sys-msg" style="color: var(--accent-blue);" {
@@ -80,7 +76,6 @@ pub fn render_terminal() -> Markup {
                         }
                     }
 
-                    // Input Form
                     form id="terminal-form" style="padding: 12px 16px; background: rgba(14, 18, 25, 0.95); border-top: 1px solid var(--border-subtle); display: flex; align-items: center; gap: 8px;" {
                         span style="color: var(--accent-green); font-family: var(--font-mono); font-size: 14px; font-weight: 700;" { "$" }
                         input id="terminal-input" type="text" placeholder="Type a syscall (sys_telemetry, sys_alloc_kv, sys_bench, sys_vault, help)..." autocomplete="off" style="flex: 1; background: transparent; border: none; outline: none; color: var(--text-primary); font-family: var(--font-mono); font-size: 13px;" {}

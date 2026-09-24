@@ -31,6 +31,20 @@ pub fn render_install() -> Markup {
         ("CNAME", "www", "aien-dev.github.io.", "1800"),
     ];
 
+    let formatted_methods: Vec<(&str, &str, &str, String, String, String)> = methods
+        .iter()
+        .enumerate()
+        .map(|(idx, (os, cmd, desc))| {
+            let method_idx = format!("METHOD 0{}", idx + 1);
+            let copy_label = format!("Copy install command for {}", os);
+            let copy_js = format!(
+                "navigator.clipboard.writeText('{}').then(() => {{ this.innerText = 'COPIED'; setTimeout(() => this.innerText = 'COPY', 2000); }})",
+                cmd
+            );
+            (*os, *cmd, *desc, method_idx, copy_label, copy_js)
+        })
+        .collect();
+
     html! {
         section id="install" style="padding: 80px 0; border-bottom: 1px solid var(--border-subtle);" {
             div class="container" {
@@ -47,25 +61,22 @@ pub fn render_install() -> Markup {
                 </div>
 
                 div style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 48px;" {
-                    @for (idx, (os, cmd, desc)) in methods.iter().enumerate() {
-                        @let method_idx = format!("METHOD 0{}", idx + 1);
-                        @let copy_label = format!("Copy install command for {}", os);
-                        @let copy_js = format!("navigator.clipboard.writeText('{}').then(() => {{ this.innerText = 'COPIED'; setTimeout(() => this.innerText = 'COPY', 2000); }})", cmd);
+                    @for (os, cmd, desc, method_idx, copy_label, copy_js) in &formatted_methods {
                         div class="glow-box" style="padding: 24px; border-radius: 8px;" {
                             div class="install-method-heading" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;" {
                                 h3 style="font-size: 16px; font-weight: 700; color: var(--text-primary);" {
-                                    (os)
+                                    (*os)
                                 }
                                 span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);" {
                                     (method_idx)
                                 }
                             }
                             p style="color: var(--text-secondary); font-size: 13px; line-height: 1.5; margin-bottom: 16px;" {
-                                (desc)
+                                (*desc)
                             }
                             div class="install-method-command" style="background: var(--bg-base); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px;" {
                                 span style="font-family: var(--font-mono); font-size: 13px; color: var(--accent-green); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" {
-                                    (cmd)
+                                    (*cmd)
                                 }
                                 button type="button" aria-label=(copy_label) onclick=(copy_js) style="background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 6px 12px; font-family: var(--font-mono); font-size: 11px; font-weight: 600; cursor: pointer;" {
                                     "COPY"
@@ -75,7 +86,6 @@ pub fn render_install() -> Markup {
                     }
                 }
 
-                // DNS Infrastructure Reference
                 div style="margin-top: 48px;" {
                     div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;" {
                         (PreEscaped(r#"<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>"#))

@@ -52,6 +52,14 @@ pub fn render_ecosystem() -> Markup {
         ),
     ];
 
+    let project_items: Vec<(&str, &str, &str, &str, &str, &str, String)> = projects
+        .iter()
+        .map(|(repo, name, desc, lang, badge, url)| {
+            let label = format!("Visit {}", name);
+            (*repo, *name, *desc, *lang, *badge, *url, label)
+        })
+        .collect();
+
     html! {
         section id="ecosystem" style="padding: 80px 0; border-bottom: 1px solid var(--border-subtle); background: var(--bg-surface);" {
             div class="container" {
@@ -68,8 +76,7 @@ pub fn render_ecosystem() -> Markup {
                 }
 
                 div class="responsive-card-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px;" {
-                    @for (_repo, name, desc, lang, badge, url) in projects {
-                        @let label = format!("Visit {}", name);
+                    @for (_repo, name, desc, lang, badge, url, label) in &project_items {
                         div class="glow-box" style="padding: 28px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; gap: 20px;" {
                             div {
                                 div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;" {
