@@ -69,7 +69,7 @@ export const EcosystemGrid: React.FC = () => {
           </p>
         </div>
 
-        <div style={{
+        <div className="responsive-card-grid" style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))",
           gap: "24px"

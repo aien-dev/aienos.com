@@ -51,7 +51,7 @@ export const ArchitectureMatrix: React.FC = () => {
           </p>
         </div>
 
-        <div style={{
+        <div className="responsive-card-grid" style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
           gap: "24px"
