@@ -47,7 +47,7 @@ pub fn render_matrix() -> Markup {
                     p style="color: var(--text-secondary); margin-top: 8px; max-width: 700px;" {
                         "Engineered for physical hardware reality. High-efficiency systems design removing four decades of legacy computing debt."
                     }
-                </div>
+                }
 
                 div class="responsive-card-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;" {
                     @for (icon_svg, title, desc) in pillars {
