@@ -58,7 +58,7 @@ pub fn render_install() -> Markup {
                     p style="color: var(--text-secondary); margin-top: 8px; max-width: 680px;" {
                         "Install the complete sovereign ecosystem with zero configuration. Free and open source for all humanity."
                     }
-                </div>
+                }
 
                 div style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 48px;" {
                     @for (os, cmd, desc, method_idx, copy_label, copy_js) in &formatted_methods {
