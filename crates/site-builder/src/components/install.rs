@@ -48,13 +48,16 @@ pub fn render_install() -> Markup {
 
                 div style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 48px;" {
                     @for (idx, (os, cmd, desc)) in methods.iter().enumerate() {
+                        @let method_idx = format!("METHOD 0{}", idx + 1);
+                        @let copy_label = format!("Copy install command for {}", os);
+                        @let copy_js = format!("navigator.clipboard.writeText('{}').then(() => {{ this.innerText = 'COPIED'; setTimeout(() => this.innerText = 'COPY', 2000); }})", cmd);
                         div class="glow-box" style="padding: 24px; border-radius: 8px;" {
                             div class="install-method-heading" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;" {
                                 h3 style="font-size: 16px; font-weight: 700; color: var(--text-primary);" {
                                     (os)
                                 }
                                 span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);" {
-                                    "METHOD 0" (idx + 1)
+                                    (method_idx)
                                 }
                             }
                             p style="color: var(--text-secondary); font-size: 13px; line-height: 1.5; margin-bottom: 16px;" {
@@ -64,7 +67,7 @@ pub fn render_install() -> Markup {
                                 span style="font-family: var(--font-mono); font-size: 13px; color: var(--accent-green); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" {
                                     (cmd)
                                 }
-                                button type="button" aria-label=(format!("Copy install command for {}", os)) onclick=(format!("navigator.clipboard.writeText('{}').then(() => {{ this.innerText = 'COPIED'; setTimeout(() => this.innerText = 'COPY', 2000); }})", cmd)) style="background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 6px 12px; font-family: var(--font-mono); font-size: 11px; font-weight: 600; cursor: pointer;" {
+                                button type="button" aria-label=(copy_label) onclick=(copy_js) style="background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 6px 12px; font-family: var(--font-mono); font-size: 11px; font-weight: 600; cursor: pointer;" {
                                     "COPY"
                                 }
                             }

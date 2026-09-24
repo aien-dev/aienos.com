@@ -65,17 +65,18 @@ pub fn render_ecosystem() -> Markup {
                     p style="color: var(--text-secondary); margin-top: 8px; max-width: 680px;" {
                         "A unified network of pure compiled Rust and Mojo repositories operating under the Sovereign Reciprocal Commons License."
                     }
-                </div>
+                }
 
                 div class="responsive-card-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px;" {
                     @for (_repo, name, desc, lang, badge, url) in projects {
+                        @let label = format!("Visit {}", name);
                         div class="glow-box" style="padding: 28px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; gap: 20px;" {
                             div {
                                 div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;" {
                                     span class="badge badge-blue" style="font-size: 10px;" {
                                         (badge)
                                     }
-                                    a href=(url) target="_blank" rel="noopener noreferrer" aria-label=(format!("Visit {}", name)) style="color: var(--text-muted); transition: color 0.15s ease;" {
+                                    a href=(url) target="_blank" rel="noopener noreferrer" aria-label=(label) style="color: var(--text-muted); transition: color 0.15s ease;" {
                                         (PreEscaped(r#"<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg>"#))
                                     }
                                 }
