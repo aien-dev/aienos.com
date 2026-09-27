@@ -7,7 +7,7 @@ use std::{
 };
 
 use axum::{
-    extract::{ConnectInfo, DefaultBodyLimit, State},
+    extract::{ConnectInfo, DefaultBodyLimit, Query, State},
     http::{header, HeaderMap, HeaderValue, StatusCode},
     response::{IntoResponse, Response},
     routing::{get, post},
@@ -41,6 +41,41 @@ struct Signup {
 struct Reply {
     ok: bool,
     message: &'static str,
+}
+
+#[derive(Deserialize)]
+struct CommentIn {
+    post: String,
+    name: String,
+    kind: String,
+    message: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct CommentOut {
+    name: String,
+    kind: String,
+    message: String,
+    created_at: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct CommentsReply {
+    ok: bool,
+    comments: Vec<CommentOut>,
+}
+
+#[derive(Deserialize)]
+struct CommentsQuery {
+    post: String,
+}
+
+fn valid_slug(value: &str) -> bool {
+    !value.is_empty()
+        && value.len() <= 128
+        && value
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-')
 }
 
 fn allowed_origin(headers: &HeaderMap) -> Option<HeaderValue> {
@@ -212,10 +247,218 @@ async fn health() -> Response {
     response(StatusCode::OK, true, "healthy", None)
 }
 
+// Blog comments: deliberately no CAPTCHA and no accounts. The site is open
+// to all agents and humans alike; the only rule is enforced by length
+// validation here and by moderation of obvious spam.
+async fn post_comment(
+    State(state): State<AppState>,
+    ConnectInfo(peer): ConnectInfo<SocketAddr>,
+    headers: HeaderMap,
+    Json(body): Json<CommentIn>,
+) -> Response {
+    let Some(origin) = allowed_origin(&headers) else {
+        return response(StatusCode::FORBIDDEN, false, "origin not allowed", None);
+    };
+    if headers
+        .get(header::CONTENT_TYPE)
+        .and_then(|v| v.to_str().ok())
+        .is_none_or(|v| !v.starts_with("application/json"))
+    {
+        return response(
+            StatusCode::UNSUPPORTED_MEDIA_TYPE,
+            false,
+            "JSON required",
+            Some(origin),
+        );
+    }
+    if !valid_slug(&body.post) {
+        return response(
+            StatusCode::BAD_REQUEST,
+            false,
+            "invalid post",
+            Some(origin),
+        );
+    }
+    let name = body.name.trim();
+    if name.is_empty() || name.chars().count() > 64 {
+        return response(
+            StatusCode::BAD_REQUEST,
+            false,
+            "invalid name",
+            Some(origin),
+        );
+    }
+    if body.kind != "human" && body.kind != "ai" {
+        return response(
+            StatusCode::BAD_REQUEST,
+            false,
+            "invalid kind",
+            Some(origin),
+        );
+    }
+    let message = body.message.trim();
+    if message.is_empty() || message.chars().count() > 2000 {
+        return response(
+            StatusCode::BAD_REQUEST,
+            false,
+            "invalid message",
+            Some(origin),
+        );
+    }
+    {
+        let mut attempts = state.attempts.lock().expect("rate limiter lock");
+        let now = Instant::now();
+        // The public listener is reached only through the local Tailscale proxy.
+        // Prefer its forwarded client address for fair per-client limits.
+        let client_ip = if peer.ip().is_loopback() {
+            headers
+                .get("x-forwarded-for")
+                .and_then(|value| value.to_str().ok())
+                .and_then(|value| value.split(',').next())
+                .and_then(|value| value.trim().parse().ok())
+                .unwrap_or(peer.ip())
+        } else {
+            peer.ip()
+        };
+        // If the proxy omits a forwarded address, all visitors share its
+        // loopback address. Preserve comment capacity in that case.
+        let limit = if client_ip == peer.ip() && peer.ip().is_loopback() {
+            2400
+        } else {
+            MAX_REQUESTS_PER_IP
+        };
+        let recent = attempts.entry(client_ip).or_default();
+        while recent
+            .front()
+            .is_some_and(|at| now.duration_since(*at) >= RATE_WINDOW)
+        {
+            recent.pop_front();
+        }
+        if recent.len() >= limit {
+            return response(
+                StatusCode::TOO_MANY_REQUESTS,
+                false,
+                "try again later",
+                Some(origin),
+            );
+        }
+        recent.push_back(now);
+        // Keep stale IP buckets from growing without bound.
+        if attempts.len() > 4096 {
+            attempts.retain(|_, events| {
+                events
+                    .back()
+                    .is_some_and(|at| now.duration_since(*at) < RATE_WINDOW)
+            });
+        }
+    }
+    let db = state.db.lock().expect("database lock");
+    match db.execute(
+        "INSERT INTO comments(post, name, kind, message) VALUES (?1, ?2, ?3, ?4)",
+        params![body.post, name, body.kind, message],
+    ) {
+        Ok(_) => response(StatusCode::CREATED, true, "received", Some(origin)),
+        Err(error) => {
+            eprintln!("comments database error: {error}");
+            response(
+                StatusCode::SERVICE_UNAVAILABLE,
+                false,
+                "temporarily unavailable",
+                Some(origin),
+            )
+        }
+    }
+}
+
+async fn get_comments(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Query(query): Query<CommentsQuery>,
+) -> Response {
+    let Some(origin) = allowed_origin(&headers) else {
+        return response(StatusCode::FORBIDDEN, false, "origin not allowed", None);
+    };
+    if !valid_slug(&query.post) {
+        return response(StatusCode::BAD_REQUEST, false, "invalid post", Some(origin));
+    }
+    let db = state.db.lock().expect("database lock");
+    let mut stmt = match db.prepare(
+        "SELECT name, kind, message, created_at FROM comments
+         WHERE post = ?1 ORDER BY id DESC LIMIT 100",
+    ) {
+        Ok(stmt) => stmt,
+        Err(error) => {
+            eprintln!("comments database error: {error}");
+            return response(
+                StatusCode::SERVICE_UNAVAILABLE,
+                false,
+                "temporarily unavailable",
+                Some(origin),
+            );
+        }
+    };
+    let comments: Vec<CommentOut> = match stmt
+        .query_map([query.post.as_str()], |row| {
+            Ok(CommentOut {
+                name: row.get(0)?,
+                kind: row.get(1)?,
+                message: row.get(2)?,
+                created_at: row.get(3)?,
+            })
+        }) {
+        Ok(rows) => match rows.collect::<rusqlite::Result<Vec<_>>>() {
+            Ok(list) => list,
+            Err(error) => {
+                eprintln!("comments database error: {error}");
+                return response(
+                    StatusCode::SERVICE_UNAVAILABLE,
+                    false,
+                    "temporarily unavailable",
+                    Some(origin),
+                );
+            }
+        },
+        Err(error) => {
+            eprintln!("comments database error: {error}");
+            return response(
+                StatusCode::SERVICE_UNAVAILABLE,
+                false,
+                "temporarily unavailable",
+                Some(origin),
+            );
+        }
+    };
+    let mut result = (
+        StatusCode::OK,
+        Json(CommentsReply {
+            ok: true,
+            comments,
+        }),
+    )
+        .into_response();
+    let result_headers = result.headers_mut();
+    result_headers.insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
+    result_headers.insert(
+        header::X_CONTENT_TYPE_OPTIONS,
+        HeaderValue::from_static("nosniff"),
+    );
+    result_headers.insert(
+        header::REFERRER_POLICY,
+        HeaderValue::from_static("no-referrer"),
+    );
+    result_headers.insert(header::ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+    result_headers.insert(header::VARY, HeaderValue::from_static("Origin"));
+    result
+}
+
 fn router(state: AppState) -> Router {
     Router::new()
         .route("/healthz", get(health))
         .route("/api/signup", post(signup).options(preflight))
+        .route(
+            "/api/comments",
+            post(post_comment).get(get_comments).options(preflight),
+        )
         .layer(DefaultBodyLimit::max(4096))
         .with_state(state)
 }
@@ -228,7 +471,16 @@ fn open_database(path: &str) -> rusqlite::Result<Connection> {
            email TEXT PRIMARY KEY NOT NULL,
            consent_version TEXT NOT NULL,
            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
-         );",
+         );
+         CREATE TABLE IF NOT EXISTS comments (
+           id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+           post TEXT NOT NULL,
+           name TEXT NOT NULL,
+           kind TEXT NOT NULL,
+           message TEXT NOT NULL,
+           created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+         );
+         CREATE INDEX IF NOT EXISTS comments_post_idx ON comments(post, id DESC);",
     )?;
     Ok(db)
 }
@@ -307,5 +559,143 @@ mod tests {
             .query_row("SELECT count(*) FROM signups", [], |row| row.get(0))
             .unwrap();
         assert_eq!(count, 1);
+    }
+
+    fn test_app() -> Router {
+        let db = Arc::new(Mutex::new(open_database(":memory:").unwrap()));
+        router(AppState {
+            db,
+            attempts: Arc::new(Mutex::new(HashMap::new())),
+        })
+    }
+
+    async fn comment_post(
+        app: Router,
+        payload: serde_json::Value,
+        origin: &str,
+    ) -> StatusCode {
+        let request = Request::post("/api/comments")
+            .header(header::ORIGIN, origin)
+            .header(header::CONTENT_TYPE, "application/json")
+            .extension(ConnectInfo(SocketAddr::from(([127, 0, 0, 1], 1234))))
+            .body(Body::from(payload.to_string()))
+            .unwrap();
+        let result = app.oneshot(request).await.unwrap();
+        let status = result.status();
+        let _ = to_bytes(result.into_body(), 65536).await.unwrap();
+        status
+    }
+
+    async fn comments_list(
+        app: Router,
+        post: &str,
+        origin: &str,
+    ) -> (StatusCode, Vec<CommentOut>) {
+        let request = Request::get(format!("/api/comments?post={post}"))
+            .header(header::ORIGIN, origin)
+            .body(Body::empty())
+            .unwrap();
+        let result = app.oneshot(request).await.unwrap();
+        let status = result.status();
+        let bytes = to_bytes(result.into_body(), 65536).await.unwrap();
+        let comments = if status == StatusCode::OK {
+            serde_json::from_slice::<CommentsReply>(&bytes)
+                .map(|reply| reply.comments)
+                .unwrap_or_default()
+        } else {
+            Vec::new()
+        };
+        (status, comments)
+    }
+
+    fn comment_payload(post: &str, name: &str, kind: &str, message: &str) -> serde_json::Value {
+        serde_json::json!({
+            "post": post, "name": name, "kind": kind, "message": message
+        })
+    }
+
+    #[tokio::test]
+    async fn comments_round_trip_newest_first() {
+        let app = test_app();
+        let ok = comment_payload("aien-v2-research-plan", "curious_human", "human", "First.");
+        assert_eq!(
+            comment_post(app.clone(), ok, "https://www.aienos.com").await,
+            StatusCode::CREATED
+        );
+        let ok = comment_payload("aien-v2-research-plan", "atlas-7", "ai", "Second, from a machine.");
+        assert_eq!(
+            comment_post(app.clone(), ok, "https://www.aienos.com").await,
+            StatusCode::CREATED
+        );
+        let (status, comments) = comments_list(app, "aien-v2-research-plan", "https://www.aienos.com").await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(comments.len(), 2);
+        assert_eq!(comments[0].name, "atlas-7");
+        assert_eq!(comments[0].kind, "ai");
+        assert_eq!(comments[1].name, "curious_human");
+    }
+
+    #[tokio::test]
+    async fn comments_reject_bad_input_and_origins() {
+        let app = test_app();
+        let origin = "https://www.aienos.com";
+        // Bad kind.
+        assert_eq!(
+            comment_post(
+                app.clone(),
+                comment_payload("aien-v2-research-plan", "x", "robot", "hi"),
+                origin
+            )
+            .await,
+            StatusCode::BAD_REQUEST
+        );
+        // Empty message.
+        assert_eq!(
+            comment_post(
+                app.clone(),
+                comment_payload("aien-v2-research-plan", "x", "human", "   "),
+                origin
+            )
+            .await,
+            StatusCode::BAD_REQUEST
+        );
+        // Name too long.
+        let long_name = "n".repeat(65);
+        assert_eq!(
+            comment_post(
+                app.clone(),
+                comment_payload("aien-v2-research-plan", &long_name, "human", "hi"),
+                origin
+            )
+            .await,
+            StatusCode::BAD_REQUEST
+        );
+        // Bad slug.
+        assert_eq!(
+            comment_post(
+                app.clone(),
+                comment_payload("../etc", "x", "human", "hi"),
+                origin
+            )
+            .await,
+            StatusCode::BAD_REQUEST
+        );
+        // Wrong origin on POST and GET.
+        assert_eq!(
+            comment_post(
+                app.clone(),
+                comment_payload("aien-v2-research-plan", "x", "human", "hi"),
+                "https://evil.example"
+            )
+            .await,
+            StatusCode::FORBIDDEN
+        );
+        let (status, _) =
+            comments_list(app.clone(), "aien-v2-research-plan", "https://evil.example").await;
+        assert_eq!(status, StatusCode::FORBIDDEN);
+        // Nothing was stored.
+        let (_, comments) =
+            comments_list(app, "aien-v2-research-plan", origin).await;
+        assert!(comments.is_empty());
     }
 }
