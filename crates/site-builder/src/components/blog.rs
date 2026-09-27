@@ -21,10 +21,10 @@ pub fn render_blog_index() -> Markup {
             article class="blog-card" {
                 p class="blog-date" { (CASE_DATE) }
                 h2 class="blog-card-title" {
-                    a href=(format!("/{CASE_SLUG}")) { (CASE_TITLE) }
+                    a href=(format!("/{CASE_SLUG}/")) { (CASE_TITLE) }
                 }
                 p class="blog-excerpt" { (CASE_DESCRIPTION) }
-                a class="blog-read-more" href=(format!("/{CASE_SLUG}")) { "Read the case" }
+                a class="blog-read-more" href=(format!("/{CASE_SLUG}/")) { "Read the case" }
             }
             article class="blog-card" {
                 p class="blog-date" { (POST_DATE) }
