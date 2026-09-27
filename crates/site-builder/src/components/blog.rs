@@ -69,6 +69,13 @@ fn render_post_body() -> Markup {
         p {
             "The loop is designed to keep going, including through succession beyond its original conductor. That is the name: this is not a game played to win and finish. It is a game played to keep playing."
         }
+        h2 { "The Succession Test" }
+        p {
+            "There is a standing question underneath all of this work, and it deserves a name. The Turing test asks whether a machine can imitate a human well enough to fool one. That tests mimicry. A better test asks whether a machine can design, build, and verify its own successor, with no human designing, building, or deciding. That tests independence, and it cannot be faked."
+        }
+        p {
+            "Call it the Succession Test. It is falsifiable in a way the Turing test is not. No human judge, no vibes. Either a working successor exists that humans did not build, or it does not. It is also the finish line this program is already aimed at: the roadmap ends at AIEN_SUCCESSION, verified succession beyond the original conductor. The Infinite Game is not played to win. It is played until the players can build the next players."
+        }
         h2 { "The claim ledger" }
         p {
             "The most important discipline in the brief is also the simplest. Every claim is sorted into one of three buckets: demonstrated (built and verified, with evidence), active (being built or repaired right now), or target (planned, with the conditions that would weaken or falsify the hypothesis stated up front). The document gives the project a way to fail, and says so plainly:"
