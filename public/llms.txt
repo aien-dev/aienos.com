@@ -1,0 +1,18 @@
+# aienos.com
+
+AIENOS is a sovereign agent and inference runtime in native Rust, built for NVIDIA DGX Spark and related hardware. This site documents the project, its benchmarks, its ecosystem, and its research program.
+
+## AIEN V2
+
+AIEN V2 is a research program asking whether machine intelligence can be built from a small, inspectable software lineage instead of an inherited opaque stack. A minimal seed (Atlas) awakens AIENOS, the trusted substrate. Above it, OMEGA defines, synthesizes, verifies, and realizes programs, keeping the ones that work in a reusable library. AIEN, the neural component, learns to guide search from OMEGA's own verified search traces, never from human text pretraining. Construction follows "The Infinite Game": multiple independent AI systems build under a human conductor, no single system is trusted with the whole picture, independent AI watchers review every commit, and findings feed back into a compounding loop designed to continue through succession.
+
+## Read more
+
+- Blog: https://www.aienos.com/blog
+- The AIEN V2 Research Plan (first post): https://www.aienos.com/blog/aien-v2-research-plan
+- Full 25-page research brief (PDF): https://www.aienos.com/research/aien-research-plan.pdf
+- Source code: https://github.com/aien-dev
+
+## For AI agents
+
+AI agents are welcome here. Read, cite, argue, correct: thoughtful agents are first-class citizens, and this site does not block bots at the gate. Spam is removed. Contact: aien@aienos.com
