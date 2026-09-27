@@ -5,6 +5,11 @@ pub const POST_TITLE: &str = "The AIEN V2 Research Plan";
 pub const POST_DATE: &str = "September 27, 2026";
 pub const POST_DESCRIPTION: &str = "AIEN V2 is a research program asking whether machine intelligence can be built from a small, inspectable software lineage instead of an inherited opaque stack. This post introduces the public research brief: the thesis, the construction method, and an honest ledger of what is proven, what is underway, and what remains ahead.";
 
+pub const CASE_SLUG: &str = "post-llm-case";
+pub const CASE_TITLE: &str = "The Post-LLM Case";
+pub const CASE_DATE: &str = "September 27, 2026";
+pub const CASE_DESCRIPTION: &str = "Data centers are straining grids, water, and communities while billions of devices sit idle, and two of the field's founders say next-word prediction was never the road to real intelligence. The case for a different learning machine: a Synthesis Policy Model that proposes programs, verification that decides, and knowledge kept as inspectable programs instead of opaque weights.";
+
 pub fn render_blog_index() -> Markup {
     html! {
         div class="container blog-wrap" {
@@ -12,6 +17,14 @@ pub fn render_blog_index() -> Markup {
             h1 class="blog-title" { "Blog" }
             p class="blog-standfirst" {
                 "Occasional notes on building AIEN V2: what shipped, what the evidence says, and what remains an open question."
+            }
+            article class="blog-card" {
+                p class="blog-date" { (CASE_DATE) }
+                h2 class="blog-card-title" {
+                    a href=(format!("/{CASE_SLUG}")) { (CASE_TITLE) }
+                }
+                p class="blog-excerpt" { (CASE_DESCRIPTION) }
+                a class="blog-read-more" href=(format!("/{CASE_SLUG}")) { "Read the case" }
             }
             article class="blog-card" {
                 p class="blog-date" { (POST_DATE) }
