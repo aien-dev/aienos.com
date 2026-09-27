@@ -264,6 +264,110 @@
     .not-rl strong { font: 600 12px/1.5 "IBM Plex Mono", monospace; color: var(--coral); }
     .not-rl p { margin: 0; color: #ccdad5; }
 
+    .machine { background: var(--surface); }
+    .machine .section-head { margin-bottom: 34px; }
+    .machine-intro {
+      margin: 0 0 42px 196px;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+    .machine-key {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 22px;
+      margin-bottom: 22px;
+      font: 600 10px/1.4 "IBM Plex Mono", monospace;
+      letter-spacing: .08em;
+      color: var(--muted);
+    }
+    .machine-key span { display: inline-flex; align-items: center; gap: 9px; }
+    .machine-key i { width: 22px; height: 4px; background: var(--green); display: inline-block; }
+    .machine-key .planned-key i { background: var(--gold); }
+    .machine-read {
+      margin: 0 0 12px;
+      text-align: center;
+      font: 500 10px/1.4 "IBM Plex Mono", monospace;
+      letter-spacing: .1em;
+      color: var(--green);
+    }
+    .machine-stack { display: grid; gap: 10px; }
+    .machine-layer {
+      width: var(--layer-width);
+      margin-inline: auto;
+      padding: 24px 26px;
+      background: var(--paper);
+      box-shadow: inset 0 4px 0 var(--green);
+      display: grid;
+      grid-template-columns: 160px minmax(0, 1fr) 172px;
+      gap: 24px;
+      align-items: center;
+    }
+    .machine-layer.planned-edge { box-shadow: inset 0 4px 0 var(--gold); }
+    .machine-layer h3 {
+      margin: 0;
+      font-size: clamp(24px, 3vw, 38px);
+      line-height: 1;
+      letter-spacing: -.045em;
+    }
+    .machine-layer p { margin: 0; color: var(--muted); }
+    .machine-layer .machine-line {
+      margin-top: 7px;
+      font: 600 11px/1.5 "IBM Plex Mono", monospace;
+      color: var(--green);
+    }
+    .machine-status {
+      justify-self: end;
+      text-align: right;
+      font: 600 10px/1.45 "IBM Plex Mono", monospace;
+      letter-spacing: .06em;
+      color: var(--green);
+    }
+    .machine-status.planned { color: var(--gold); }
+    .roadmap { margin-top: 70px; }
+    .roadmap-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: end;
+      margin-bottom: 20px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line-strong);
+    }
+    .roadmap-head h3 { margin: 0; font-size: 30px; letter-spacing: -.035em; }
+    .roadmap-head p { margin: 0; max-width: 590px; color: var(--muted); font-size: 14px; }
+    .era-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
+    .era {
+      min-height: 174px;
+      padding: 18px 14px 20px;
+      background: var(--surface-2);
+      border-top: 5px solid var(--green);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .era.planned {
+      border-top-color: var(--gold);
+      background: color-mix(in srgb, var(--surface-2) 72%, var(--paper));
+    }
+    .era-range { font: 600 11px/1 "IBM Plex Mono", monospace; color: var(--green); }
+    .era.planned .era-range { color: var(--gold); }
+    .era h4 { margin: 0; font-size: 15px; line-height: 1.25; letter-spacing: -.018em; }
+    .era-state { font: 500 9px/1.3 "IBM Plex Mono", monospace; letter-spacing: .07em; color: var(--muted); }
+    .succession {
+      margin-top: 2px;
+      background: var(--deep);
+      color: var(--deep-ink);
+      padding: 25px 28px;
+      display: grid;
+      grid-template-columns: 210px 1fr;
+      gap: 28px;
+      align-items: center;
+    }
+    .succession strong { font: 600 12px/1.5 "IBM Plex Mono", monospace; color: var(--gold); }
+    .succession p { margin: 0; color: #ccdad5; font-size: 17px; }
+
     .pipelines { background: var(--paper); }
     .pipeline-compare { display: grid; gap: 34px; }
     .pipeline { border-top: 1px solid var(--line-strong); padding-top: 22px; }
@@ -312,7 +416,10 @@
       .hero-grid, .impact-grid, .model-grid, .proof-grid { grid-template-columns: 1fr; }
       .hero-side { margin-top: 20px; }
       .section-head { grid-template-columns: 105px 1fr; gap: 18px; }
-      .lede { margin-left: 123px; }
+      .lede, .machine-intro { margin-left: 123px; }
+      .machine-layer { grid-template-columns: 126px minmax(0, 1fr) 150px; }
+      .era-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .era { min-height: 150px; }
       .stat-grid { grid-template-columns: 1fr 1fr; }
       .stat:nth-child(3) { border-left: 0; padding-left: 0; border-top: 1px solid rgba(255,255,255,.18); }
       .stat:nth-child(4) { border-top: 1px solid rgba(255,255,255,.18); }
@@ -334,7 +441,17 @@
       section { padding: 68px 0; }
       .section-head { display: block; margin-bottom: 36px; }
       .section-head .kicker { margin-bottom: 18px; }
-      .lede { margin: 18px 0 0; font-size: 17px; }
+      .lede, .machine-intro { margin: 18px 0 0; font-size: 17px; }
+      .machine-intro { margin-bottom: 34px; }
+      .machine-key { gap: 14px; }
+      .machine-layer { width: 100%; grid-template-columns: 1fr; gap: 12px; padding: 22px 20px; }
+      .machine-status { justify-self: start; text-align: left; }
+      .roadmap { margin-top: 52px; }
+      .roadmap-head { display: block; }
+      .roadmap-head p { margin-top: 10px; }
+      .era-grid { grid-template-columns: 1fr; gap: 8px; }
+      .era { min-height: 0; padding: 18px 20px; gap: 10px; }
+      .succession { grid-template-columns: 1fr; gap: 10px; padding: 22px 20px; }
       .thesis-grid, .stat-grid, .chart-row, .quote-stage, .two-learnings, .memory-grid { grid-template-columns: 1fr; }
       .thesis-item { padding: 27px 0; }
       .thesis-item + .thesis-item { border-left: 0; border-top: 1px solid var(--line); padding-left: 0; }
@@ -371,6 +488,7 @@
         <a href="#idle">Idle compute</a>
         <a href="#critique">Critique</a>
         <a href="#model">The model</a>
+        <a href="#machine">The Machine</a>
         <a href="#sources">Sources</a>
       </div>
     </div>
@@ -400,17 +518,17 @@
       <div class="thesis-grid">
         <article class="thesis-item">
           <div class="thesis-num">01</div>
-          <h3>Physical scaling is meeting physical limits.</h3>
+          <h3>Centralized scaling is encountering infrastructure constraints.</h3>
           <p>Power availability is becoming a binding constraint, while water use, pollution, transmission costs, and local opposition move beyond the data center fence line.</p>
         </article>
         <article class="thesis-item">
           <div class="thesis-num">02</div>
           <h3>Useful compute already exists outside the cluster.</h3>
-          <p>Consumer hardware and enterprise fleets contain idle capacity. Folding@home proved that coordinated volunteer machines can become an exascale system.</p>
+          <p>Consumer hardware and enterprise fleets contain idle capacity. Folding@home demonstrated that coordinated volunteer machines can compute at extraordinary distributed scale.</p>
         </article>
         <article class="thesis-item">
           <div class="thesis-num">03</div>
-          <h3>Language prediction is not world understanding.</h3>
+          <h3>Next-token prediction alone may not be enough for world understanding.</h3>
           <p>Richard Sutton and Yann LeCun argue that intelligence needs goals, experience, world models, and consequences, not just larger text prediction systems.</p>
         </article>
       </div>
@@ -428,24 +546,24 @@
           <div class="label">GLOBAL DATA CENTERS · 2026</div>
           <div class="value" id="energyValue">565 TWh</div>
           <p>Gartner’s estimate, up from 447 TWh in 2025.</p>
-          <a class="source-tag" href="https://indusbusinessjournal.com/2026/06/data-center-electricity-demand-projected-to-rise-nearly-26-percent-globally-in-2026/" target="_blank" rel="noopener">GARTNER VIA INDUS ↗</a>
+          <a class="source-tag" href="https://www.gartner.com/en/newsroom/press-releases/2026-06-10-gartner-says-data-center-electricity-demand-to-grow-26-percent-in-2026" target="_blank" rel="noopener">GARTNER ↗</a>
         </article>
         <article class="stat">
           <div class="label">COOLING WATER · 2025</div>
           <div class="value">222B L</div>
-          <p>Rystad Energy’s global estimate. Its projection reaches 644B liters by 2030 without adaptive measures.</p>
-          <a class="source-tag" href="https://techxplore.com/news/2026-09-ai-centers-thirsty-tech-giants.html" target="_blank" rel="noopener">AFP / TECH XPLORE ↗</a>
+          <p>Rystad Energy’s estimate of direct cooling water. Its risked central case reaches nearly 644B liters by 2030 without adaptive measures.</p>
+          <a class="source-tag" href="https://www.rystadenergy.com/news/data-center-water-consumption-could-triple-by-2030" target="_blank" rel="noopener">RYSTAD ENERGY ↗</a>
         </article>
         <article class="stat">
-          <div class="label">PJM CAPACITY PRICE</div>
+          <div class="label">PJM WHOLESALE CAPACITY CLEARING PRICE</div>
           <div class="value">+1,053%</div>
-          <p>From $28.92 per MW-day in 2024/25 to the $333.44 cap in 2027/28.</p>
-          <a class="source-tag" href="https://www.energy-storage.news/pjm-targets-data-centre-demand-with-6gw-backstop-auction-bess-expected-to-have-competitive-edge/" target="_blank" rel="noopener">ENERGY-STORAGE.NEWS ↗</a>
+          <p>From $28.92 per MW-day in 2024/25 to $333.44 per MW-day in 2027/28.</p>
+          <a class="source-tag" href="https://pjm.com/-/media/DotCom/markets-ops/rpm/rpm-auction-info/2027-2028/2027-2028-bra-report.pdf?_sp=656a1595-d27e-4e09-9309-eb3bba2e7dc2" target="_blank" rel="noopener">PJM ↗</a>
         </article>
         <article class="stat">
           <div class="label">PROJECTED AI BUILDOUT · 2025–32</div>
           <div class="value">$10.3T</div>
-          <p>Brookings estimates average investment equal to 3.63% of U.S. GDP per year across buildings, power, networks, and chips.</p>
+          <p>A Brookings Papers on Economic Activity paper projects average investment equal to 3.63% of U.S. GDP per year across buildings, power, networks, and chips. This is one paper’s model projection, not committed spending or an institutional forecast.</p>
           <a class="source-tag" href="https://www.brookings.edu/articles/financing-the-ai-buildout/" target="_blank" rel="noopener">BROOKINGS ↗</a>
         </article>
       </div>
@@ -475,34 +593,36 @@
       <div class="impact-grid">
         <aside class="impact-callout">
           <div class="big">75%</div>
-          <h3>opposed a data center in their community</h3>
-          <p>Heatmap News polling, as reported by The American Enterprise, rose from 42% in August 2025 to 75% in August 2026. Support fell from 43% to 15%.</p>
-          <a class="source-tag" href="https://theamericanenterprise.com/the-political-backlash-to-data-centers/" target="_blank" rel="noopener">SOURCE ↗</a>
+          <h3>of registered voters in a Heatmap Pro/Embold survey opposed a data center in their community</h3>
+          <p>The survey included 2,045 registered voters and ran August 8 to 13, 2026, with a margin of error of plus or minus 2.3 points. On the unchanged question, 2025 was 42% oppose and 43% support; 2026 was 75% oppose and 15% support.</p>
+          <a class="source-tag" href="https://heatmap.news/daily/data-center-opposition-poll-collapse" target="_blank" rel="noopener">HEATMAP ↗</a>
         </aside>
         <div class="cases">
           <article class="case">
             <div class="case-place">MEMPHIS</div>
             <div>
               <h3>Pollution becomes a legal question.</h3>
-              <p>An April 2026 NAACP lawsuit alleged that 27 unpermitted methane-gas turbines at xAI’s Colossus 2 would emit more than 1,700 tons of nitrogen oxides, 180 tons of fine particulate matter, and 19 tons of formaldehyde each year.</p>
-              <span class="qualifier">ALLEGATIONS IN ACTIVE LITIGATION</span><br>
-              <a class="source-tag" href="https://www.datacenterdynamics.com/en/news/lawsuit-launched-against-musks-xai-over-illegal-gas-turbines-at-memphis-data-center/" target="_blank" rel="noopener">DATA CENTER DYNAMICS ↗</a>
+              <p>In an April 2026 lawsuit, the plaintiffs alleged that 27 unpermitted methane-gas turbines at a Southaven, Mississippi power site serving Colossus 2 in Memphis had the potential to emit more than 1,700 tons of nitrogen oxides, 180 tons of fine particulate matter, and 19 tons of formaldehyde each year.</p>
+              <span class="qualifier">PLAINTIFFS’ ALLEGATIONS IN ACTIVE LITIGATION</span><br>
+              <a class="source-tag" href="https://earthjustice.org/press/2026/xai-sued-for-illegal-power-plant" target="_blank" rel="noopener">NAACP / EARTHJUSTICE ↗</a>
             </div>
           </article>
           <article class="case">
             <div class="case-place">URUGUAY</div>
             <div>
-              <h3>Cooling competes with households.</h3>
-              <p>During the country’s worst drought in 74 years, a planned Google facility was reported to require 7.6 million liters per day, equivalent to the daily household needs of 55,000 people. Public opposition preceded a switch to air cooling.</p>
-              <a class="source-tag" href="https://inview.org.uk/news/195334-big_tech_lobbyists_pushed_eu_to_hide_data_centre_water_use" target="_blank" rel="noopener">INVIEW ↗</a>
+              <h3>The design changed with the water assessment.</h3>
+              <p>The earlier proposed design was reported to require 7.6 million liters per day, about the daily household needs of 55,000 people. The current design uses air cooling. Google says its watershed assessment did not meet the responsible-use threshold, and Uruguay’s government confirms the revised air-cooled design. This evidence does not establish that public opposition caused the change.</p>
+              <a class="source-tag" href="https://storage.googleapis.com/gweb-mobius-cdn/sustainability/uploads/21455428735c7305f2cb5c0038fc14bb0803abb8.pdf" target="_blank" rel="noopener">GOOGLE ↗</a>
+              <a class="source-tag" href="https://documentos.diputados.gub.uy/docs/L50/Original/02242.pdf" target="_blank" rel="noopener">URUGUAY GOVERNMENT ↗</a>
             </div>
           </article>
           <article class="case">
             <div class="case-place">PJM GRID</div>
             <div>
-              <h3>Capacity costs reach the meter.</h3>
-              <p>For the 2025/26 auction, the independent market monitor estimated data centers caused about 63% of the increase, roughly $9.3 billion. IEEFA estimated average household impacts of $16 per month in Ohio and $18 in western Maryland.</p>
-              <a class="source-tag" href="https://chariotenergy.com/blog/why-texas-electricity-bills-going-up-data-centers-ai/" target="_blank" rel="noopener">CHARIOT ENERGY SUMMARY ↗</a>
+              <h3>Modeled capacity costs reach households.</h3>
+              <p>For the 2025/26 auction, Monitoring Analytics estimated data-center load’s contribution in a counterfactual analysis. These are modeled sensitivity estimates, not directly metered causal charges. IEEFA reported the modeled contribution as about 63%, or $9.3 billion, with average household impacts of $16 per month in Ohio and $18 in western Maryland.</p>
+              <a class="source-tag" href="http://www.monitoringanalytics.com/reports/reports/2026/IMM_Analysis_of_the_20272028_RPM_Base_Residual_Auction_Part_A_20260105.pdf" target="_blank" rel="noopener">MONITORING ANALYTICS ↗</a>
+              <a class="source-tag" href="https://ieefa.org/resources/projected-data-center-growth-spurs-pjm-capacity-prices-factor-10" target="_blank" rel="noopener">IEEFA ↗</a>
             </div>
           </article>
         </div>
@@ -519,22 +639,23 @@
       <div class="proof-grid">
         <article class="proof-main">
           <div class="massive">2.43</div>
-          <h3>exaflops from volunteer hardware</h3>
-          <p>On 12 April 2020, Folding@home reached 2.43 exaflops with 4.63 million CPU cores and about 430,000 GPUs. It became the first exascale system and was reported as faster than the world’s top 500 supercomputers combined.</p>
-          <a class="source-tag" href="https://www.sciencealert.com/so-many-people-are-running-folding-home-that-it-s-created-the-world-s-biggest-supercomputer" target="_blank" rel="noopener">SCIENCEALERT ↗</a>
+          <h3>exaflops reported by Folding@home in April 2020</h3>
+          <p>Folding@home reported 2.43 exaflops in April 2020 and described its volunteer network as bigger than the top 500 supercomputers combined. The separate figures of 4.63 million CPU cores and about 430,000 GPUs date from late March 2020, when the project was reported at around 1.5 exaflops. Distributed x86-equivalent throughput is not directly comparable to TOP500 HPL benchmark scores. This is evidence of distributed scale, not a benchmark win over supercomputers.</p>
+          <a class="source-tag" href="https://foldingathome.org/?p=12797" target="_blank" rel="noopener">FOLDING@HOME ↗</a>
+          <a class="source-tag" href="https://www.techspot.com/news/84561-foldinghome-exceeds-15-exaflops-battle-against-covid-19.html" target="_blank" rel="noopener">MARCH 2020 COUNTS ↗</a>
         </article>
         <div class="proof-stack">
           <article class="proof-mini">
             <div class="n">30%</div>
-            <h3>of physical servers were “comatose”</h3>
-            <p>An Anthesis Group and Jonathan Koomey study found they had delivered no compute services for six months or more, representing about 10 million servers and at least $30 billion in idle capital.</p>
-            <a class="source-tag" href="https://www.dqindia.com/10-million-physical-servers-in-data-centers-lying-idle/" target="_blank" rel="noopener">DQ INDIA ↗</a>
+            <h3>2015 study: physical servers were “comatose”</h3>
+            <p>A five-facility sample of about 4,000 servers found 30% had delivered no compute services for six months or more. The estimates of roughly 10 million servers worldwide and at least $30 billion in idle capital were extrapolations, not a 2026 measurement.</p>
+            <a class="source-tag" href="https://storageconsortium.de/files/Case-Study_DataSupports30PercentComatoseEstimate-FINAL_06032015.pdf" target="_blank" rel="noopener">ANTHESIS / KOOMEY ↗</a>
           </article>
           <article class="proof-mini alt">
             <div class="n">12–18%</div>
-            <h3>typical utilization</h3>
-            <p>An NRDC report described much of U.S. data-center energy as powering servers operating at only 12% to 18% of capacity.</p>
-            <a class="source-tag" href="https://www.fmlink.com/nrdc-data-center-report-up-to-30-of-servers-no-longer-used-yet-consume-vast-amounts-of-energy/" target="_blank" rel="noopener">NRDC VIA FMLINK ↗</a>
+            <h3>2014 NRDC estimate: 12–18% utilization</h3>
+            <p>NRDC reported that average server utilization had remained at 12% to 18% between 2006 and 2012. This is historical evidence, not a current utilization estimate.</p>
+            <a class="source-tag" href="https://www.nrdc.org/energy/files/data-center-efficiency-assessment-ip.pdf" target="_blank" rel="noopener">NRDC ↗</a>
           </article>
         </div>
       </div>
@@ -575,15 +696,15 @@
         <h2>AIEN is not a language model.</h2>
       </div>
       <div class="nameplate">
-        <div class="label">OVERALL PARADIGM</div>
+        <div class="label">AIEN PROPOSED PARADIGM:</div>
         <h3>Evidence-grounded neuro-symbolic procedural learning</h3>
-        <p>A system that accumulates inspectable procedures and uses learned search guidance, while external verification and machine evidence retain authority over correctness.</p>
+        <p>AIEN uses this descriptive term for a proposed system that would accumulate inspectable procedures and use learned search guidance, while external verification and machine evidence retain authority over correctness. It is not an established scientific taxonomy.</p>
       </div>
       <div class="model-grid">
         <article class="model-card">
-          <div class="model-class">MODEL CLASS</div>
+          <div class="model-class">WORKING MODEL-CLASS LABEL:</div>
           <h3>Synthesis Policy Model</h3>
-          <p>AIEN_0 is a verification-guided synthesis model, more specifically a learned search policy for program synthesis. It sees the current problem state, remaining objective, and semantics of possible next operations, then ranks which action Omega should try next. It is trained on Omega-generated traces, not language prediction. Verification remains outside the model.</p>
+          <p>AIEN_0 is planned as a verification-guided synthesis model, more specifically a learned search policy for program synthesis. “Synthesis Policy Model” is AIEN’s own working descriptive label, not an established scientific taxonomy. The planned model would see the current problem state, remaining objective, and semantics of possible next operations, then rank which action OMEGA should try next. It is planned to learn from OMEGA-generated traces, not language prediction. Verification would remain outside the model.</p>
         </article>
         <div class="two-learnings">
           <article class="learning">
@@ -594,13 +715,109 @@
           <article class="learning">
             <div class="num">2</div>
             <h3>Search-policy learning</h3>
-            <p>AIEN_0 learns from synthesis traces: candidate transitions, verifier outcomes, machine results, costs, successes, failures, and pruning decisions.</p>
+            <p>AIEN_0 is planned to learn from synthesis traces: candidate transitions, verifier outcomes, machine results, costs, successes, failures, and pruning decisions.</p>
           </article>
         </div>
       </div>
       <div class="not-rl">
         <strong>NOT PURE REINFORCEMENT LEARNING</strong>
-        <p>The process has RL-like actions, trajectories, outcomes, costs, and feedback. But the training objective is trace-trained ranking and search learning. Candidate technical framings include imitation learning, pairwise ranking, offline RL, or value learning. The exact objective remains an engineering choice to test, not a label to assume.</p>
+        <p>The planned supervision comes from synthesis traces. The eventual objective has not yet been frozen; candidate approaches include supervised/pairwise ranking, imitation learning, value learning, and potentially offline RL.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="machine" id="machine">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">06 / THE MACHINE</div>
+        <h2>The architecture is a chain of earned authority.</h2>
+      </div>
+      <p class="machine-intro">Read the stack from the bottom up. Each layer has a separate job. The machine exists today. The planned AIEN_0, a learned guide inside the top layer, has not been trained.</p>
+
+      <div class="machine-key" aria-label="Architecture status key">
+        <span><i aria-hidden="true"></i> BUILT MACHINE</span>
+        <span class="planned-key"><i aria-hidden="true"></i> PLANNED LEARNING</span>
+      </div>
+      <p class="machine-read">TOP: INTELLIGENCE AND SEARCH</p>
+      <div class="machine-stack" aria-label="AIEN architecture, shown from AIEN at the top to ATLAS at the foundation">
+        <article class="machine-layer planned-edge" style="--layer-width: 76%">
+          <h3>AIEN</h3>
+          <div>
+            <p>Thinks, searches, and invents. The planned AIEN_0 is described by AIEN with the working label “Synthesis Policy Model”: a small neural search guide planned to learn from OMEGA traces, not a language model.</p>
+          </div>
+          <div class="machine-status planned">MACHINE LAYER BUILT<br>AIEN_0 NOT TRAINED</div>
+        </article>
+        <article class="machine-layer" style="--layer-width: 84%">
+          <h3>OMEGA</h3>
+          <div>
+            <p>Defines, synthesizes, verifies, and realizes programs. Working programs become part of a governed library.</p>
+          </div>
+          <div class="machine-status">BUILT</div>
+        </article>
+        <article class="machine-layer" style="--layer-width: 92%">
+          <h3>PHYSICS</h3>
+          <div>
+            <p>The trusted substrate. It authorizes what is allowed to run on the bare metal.</p>
+          </div>
+          <div class="machine-status">BUILT</div>
+        </article>
+        <article class="machine-layer" style="--layer-width: 100%">
+          <h3>ATLAS</h3>
+          <div>
+            <p>The seed. It awakens the machine through verified boot.</p>
+            <div class="machine-line">“ATLAS AWAKENS.”</div>
+          </div>
+          <div class="machine-status">BUILT</div>
+        </article>
+      </div>
+      <p class="machine-read" style="margin-top: 12px; margin-bottom: 0">BOTTOM: VERIFIED BOOT</p>
+
+      <div class="roadmap">
+        <div class="roadmap-head">
+          <h3>The road to succession</h3>
+          <p>The solid green track is the machine and its early work. Gold begins at M20, where the roadmap remains planned. The planned AIEN_0 belongs to that future training era.</p>
+        </div>
+        <div class="era-grid" aria-label="AIEN roadmap eras from M0 through M40">
+          <article class="era">
+            <div class="era-range">M0–M3</div>
+            <h4>Foundational</h4>
+            <div class="era-state">BUILT</div>
+          </article>
+          <article class="era">
+            <div class="era-range">M4–M7</div>
+            <h4>Omega Core</h4>
+            <div class="era-state">BUILT</div>
+          </article>
+          <article class="era">
+            <div class="era-range">M8–M14</div>
+            <h4>Program Synthesis &amp; Library Learning</h4>
+            <div class="era-state">BUILT / EARLY MACHINE</div>
+          </article>
+          <article class="era">
+            <div class="era-range">M15–M19</div>
+            <h4>Accelerator Cognition</h4>
+            <div class="era-state">BUILT / EARLY MACHINE</div>
+          </article>
+          <article class="era planned">
+            <div class="era-range">M20–M26</div>
+            <h4>Sovereign Training</h4>
+            <div class="era-state">PLANNED</div>
+          </article>
+          <article class="era planned">
+            <div class="era-range">M27–M35</div>
+            <h4>Physics Zero Discovery</h4>
+            <div class="era-state">PLANNED</div>
+          </article>
+          <article class="era planned">
+            <div class="era-range">M36–M40</div>
+            <h4>General AIEN</h4>
+            <div class="era-state">PLANNED</div>
+          </article>
+        </div>
+        <div class="succession">
+          <strong>M40 / AIEN_SUCCESSION</strong>
+          <p>The point where the system can design, build, and verify its own successor.</p>
+        </div>
       </div>
     </div>
   </section>
@@ -608,17 +825,17 @@
   <section class="pipelines" id="pipeline">
     <div class="wrap">
       <div class="section-head">
-        <div class="kicker">06 / MECHANISM</div>
+        <div class="kicker">07 / MECHANISM</div>
         <h2>The difference is visible in the pipeline.</h2>
       </div>
       <div class="pipeline-compare">
         <div class="pipeline">
-          <div class="pipeline-label">AIEN / SYNTHESIS PATH</div>
-          <div class="flow aien" aria-label="AIEN synthesis pipeline">
+          <div class="pipeline-label">TARGET PIPELINE / AIEN SYNTHESIS PATH</div>
+          <div class="flow aien" aria-label="Target pipeline for the planned AIEN_0 synthesis system">
             <div class="step">Task</div><div class="arrow-step">→</div>
             <div class="step">Formal state</div><div class="arrow-step">→</div>
             <div class="step">Possible operations</div><div class="arrow-step">→</div>
-            <div class="step">AIEN_0 ranks</div><div class="arrow-step">→</div>
+            <div class="step">Planned AIEN_0 ranks</div><div class="arrow-step">→</div>
             <div class="step">Omega search</div><div class="arrow-step">→</div>
             <div class="step">Verifier</div><div class="arrow-step">→</div>
             <div class="step">Machine execution</div><div class="arrow-step">→</div>
@@ -638,7 +855,7 @@
       </div>
       <div class="analogy">
         <strong>USEFUL ANALOGY</strong>
-        <p>Think AlphaZero’s policy and value guidance, but over program construction rather than board moves. The neural part does not need to know the answer. It needs to identify the most promising next operation. Omega and AEGIS determine validity.</p>
+        <p>AlphaZero-style learned search guidance, but over program construction rather than board moves. The planned neural part would not need to know the answer. It would need to identify the most promising next operation. OMEGA’s external verifier would determine validity.</p>
       </div>
     </div>
   </section>
@@ -646,7 +863,7 @@
   <section class="memory" id="memory">
     <div class="wrap">
       <div class="section-head">
-        <div class="kicker">07 / MEMORY</div>
+        <div class="kicker">08 / MEMORY</div>
         <h2>What the system knows is not stored in one place.</h2>
       </div>
       <div class="memory-grid">
@@ -654,7 +871,7 @@
         <article class="memory-item"><div class="mnum">02</div><h3>Verified programs</h3><p>Durable procedural knowledge.</p></article>
         <article class="memory-item"><div class="mnum">03</div><h3>Cortex evidence</h3><p>Remembered empirical facts and outcomes.</p></article>
         <article class="memory-item"><div class="mnum">04</div><h3>Omega semantics</h3><p>What computations mean.</p></article>
-        <article class="memory-item"><div class="mnum">05</div><h3>Forge evidence</h3><p>What actually worked on a machine.</p></article>
+        <article class="memory-item"><div class="mnum">05</div><h3>PHYSICS evidence</h3><p>What actually worked on a machine.</p></article>
       </div>
       <p class="authority">Learned weights may guide the search. <span>They never get final authority over correctness.</span></p>
     </div>
@@ -663,14 +880,14 @@
   <section class="tests" id="questions">
     <div class="wrap">
       <div class="section-head">
-        <div class="kicker">08 / TESTS</div>
+        <div class="kicker">09 / TESTS</div>
         <h2>The post-LLM case still has to earn itself.</h2>
       </div>
       <div class="test-list">
         <article class="test"><div class="tn">01</div><h3>Distributed efficiency</h3><p>Does useful work per joule remain favorable after coordination, redundancy, networking, and device cooling are counted?</p></article>
         <article class="test"><div class="tn">02</div><h3>Heterogeneous execution</h3><p>Can procedures run reproducibly and securely across different CPUs, GPUs, memory limits, and network conditions?</p></article>
         <article class="test"><div class="tn">03</div><h3>Generalization</h3><p>Do governed program libraries produce reusable abstractions beyond the tasks that created them?</p></article>
-        <article class="test"><div class="tn">04</div><h3>Search advantage</h3><p>Does AIEN_0 improve synthesis search under equal verification budgets compared with unguided or hand-designed heuristics?</p></article>
+        <article class="test"><div class="tn">04</div><h3>Search advantage</h3><p>Will the planned AIEN_0 improve synthesis search under equal verification budgets compared with unguided or hand-designed heuristics?</p></article>
         <article class="test"><div class="tn">05</div><h3>Community bargain</h3><p>Can a distributed system avoid exporting power, water, noise, pollution, and financial risk to the same communities it claims to help?</p></article>
       </div>
     </div>
@@ -679,20 +896,24 @@
   <section class="sources" id="sources">
     <div class="wrap">
       <div class="section-head">
-        <div class="kicker">09 / SOURCES</div>
+        <div class="kicker">10 / SOURCES</div>
         <h2>Read the evidence, not just the argument.</h2>
       </div>
       <ol class="source-list">
-        <li><a href="https://indusbusinessjournal.com/2026/06/data-center-electricity-demand-projected-to-rise-nearly-26-percent-globally-in-2026/" target="_blank" rel="noopener">Gartner data-center electricity forecast</a>, via IndUS Business Journal, 10 June 2026.</li>
-        <li><a href="https://techxplore.com/news/2026-09-ai-centers-thirsty-tech-giants.html" target="_blank" rel="noopener">Data-center cooling water estimates</a>, AFP via Tech Xplore, 7 September 2026.</li>
-        <li><a href="https://www.energy-storage.news/pjm-targets-data-centre-demand-with-6gw-backstop-auction-bess-expected-to-have-competitive-edge/" target="_blank" rel="noopener">PJM capacity auction figures</a>, Energy-Storage.News.</li>
-        <li><a href="https://chariotenergy.com/blog/why-texas-electricity-bills-going-up-data-centers-ai/" target="_blank" rel="noopener">PJM household bill and market-monitor estimates</a>, Chariot Energy summary.</li>
-        <li><a href="https://www.datacenterdynamics.com/en/news/lawsuit-launched-against-musks-xai-over-illegal-gas-turbines-at-memphis-data-center/" target="_blank" rel="noopener">NAACP lawsuit concerning xAI turbines</a>, Data Center Dynamics.</li>
-        <li><a href="https://inview.org.uk/news/195334-big_tech_lobbyists_pushed_eu_to_hide_data_centre_water_use" target="_blank" rel="noopener">Water conflicts in Uruguay and Chile</a>, InView.</li>
-        <li><a href="https://theamericanenterprise.com/the-political-backlash-to-data-centers/" target="_blank" rel="noopener">Heatmap polling on local opposition</a>, The American Enterprise.</li>
-        <li><a href="https://www.sciencealert.com/so-many-people-are-running-folding-home-that-it-s-created-the-world-s-biggest-supercomputer" target="_blank" rel="noopener">Folding@home’s 2020 exascale milestone</a>, ScienceAlert.</li>
-        <li><a href="https://www.dqindia.com/10-million-physical-servers-in-data-centers-lying-idle/" target="_blank" rel="noopener">Comatose-server findings</a>, DQ India.</li>
-        <li><a href="https://www.fmlink.com/nrdc-data-center-report-up-to-30-of-servers-no-longer-used-yet-consume-vast-amounts-of-energy/" target="_blank" rel="noopener">NRDC server-utilization report</a>, via FMLink.</li>
+        <li><a href="https://www.gartner.com/en/newsroom/press-releases/2026-06-10-gartner-says-data-center-electricity-demand-to-grow-26-percent-in-2026" target="_blank" rel="noopener">Data-center electricity forecast</a>, Gartner, 10 June 2026.</li>
+        <li><a href="https://www.rystadenergy.com/news/data-center-water-consumption-could-triple-by-2030" target="_blank" rel="noopener">Direct cooling water estimates</a>, Rystad Energy.</li>
+        <li><a href="https://pjm.com/-/media/DotCom/markets-ops/rpm/rpm-auction-info/2027-2028/2027-2028-bra-report.pdf?_sp=656a1595-d27e-4e09-9309-eb3bba2e7dc2" target="_blank" rel="noopener">2027/2028 Base Residual Auction Report</a>, PJM, 17 December 2025.</li>
+        <li><a href="http://www.monitoringanalytics.com/reports/reports/2026/IMM_Analysis_of_the_20272028_RPM_Base_Residual_Auction_Part_A_20260105.pdf" target="_blank" rel="noopener">Counterfactual analysis of data-center load</a>, Monitoring Analytics, 5 January 2026.</li>
+        <li><a href="https://ieefa.org/resources/projected-data-center-growth-spurs-pjm-capacity-prices-factor-10" target="_blank" rel="noopener">PJM capacity-price and household estimates</a>, IEEFA.</li>
+        <li><a href="https://earthjustice.org/press/2026/xai-sued-for-illegal-power-plant" target="_blank" rel="noopener">NAACP lawsuit concerning xAI turbines</a>, Earthjustice, April 2026.</li>
+        <li><a href="https://storage.googleapis.com/gweb-mobius-cdn/sustainability/uploads/21455428735c7305f2cb5c0038fc14bb0803abb8.pdf" target="_blank" rel="noopener">Environmental report and water-risk framework</a>, Google, 2026.</li>
+        <li><a href="https://documentos.diputados.gub.uy/docs/L50/Original/02242.pdf" target="_blank" rel="noopener">Official response on the revised Canelones project</a>, Uruguay government, 30 July 2025.</li>
+        <li><a href="https://heatmap.news/daily/data-center-opposition-poll-collapse" target="_blank" rel="noopener">Survey of local data-center opposition</a>, Heatmap Pro and Embold, August 2026.</li>
+        <li><a href="https://foldingathome.org/?p=12797" target="_blank" rel="noopener">Folding@home’s April 2020 scale report</a>, Folding@home.</li>
+        <li><a href="https://www.techspot.com/news/84561-foldinghome-exceeds-15-exaflops-battle-against-covid-19.html" target="_blank" rel="noopener">Late-March 2020 CPU, GPU, and throughput counts</a>, TechSpot citing Folding@home.</li>
+        <li><a href="https://storageconsortium.de/files/Case-Study_DataSupports30PercentComatoseEstimate-FINAL_06032015.pdf" target="_blank" rel="noopener">Data supports 30 percent comatose estimate</a>, Jonathan Koomey and Jon Taylor, 3 June 2015.</li>
+        <li><a href="https://info.anthesisgroup.com/hubfs/Website%20PDFs/Comatose-Servers-Redux.pdf" target="_blank" rel="noopener">Comatose Servers Redux</a>, Anthesis Group, 2017.</li>
+        <li><a href="https://www.nrdc.org/energy/files/data-center-efficiency-assessment-ip.pdf" target="_blank" rel="noopener">Data Center Efficiency Assessment</a>, NRDC, August 2014.</li>
         <li><a href="https://www.brookings.edu/articles/financing-the-ai-buildout/" target="_blank" rel="noopener">Financing the AI buildout</a>, Brookings Papers on Economic Activity, 25 September 2026.</li>
         <li><a href="https://podscripts.co/podcasts/dwarkesh-podcast/richard-sutton-father-of-rl-thinks-llms-are-a-dead-end" target="_blank" rel="noopener">Richard Sutton interview transcript</a>, Dwarkesh Podcast.</li>
         <li><a href="https://web.archive.org/web/20260124085042/https://fortune.com/2026/01/23/deepmind-demis-hassabis-anthropic-dario-amodei-yann-lecun-ai-davos/" target="_blank" rel="noopener">Yann LeCun at Davos</a>, Fortune archive, January 2026.</li>
