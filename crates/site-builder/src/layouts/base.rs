@@ -1,27 +1,56 @@
 use maud::{html, Markup, PreEscaped, DOCTYPE};
 
 pub fn render_base_layout(content: Markup) -> Markup {
+    render_page_layout(
+        "AIEN OS | The GPU-Native Neural Operating Environment",
+        "AIEN OS eliminates the software orchestration tax with coherent unified memory, in-process cognitive kernels, sub-5MB daemon footprints, and hardware-enforced sovereign security.",
+        "https://aienos.com/",
+        "website",
+        html! {
+            // Zero-dependency terminal micro-script
+            script defer src="/js/terminal.js" {}
+            (PreEscaped(r#"<script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    console.log('[AIEN OS] Pure Rust Maud engine online. Zero hydration overhead.');
+                });
+            </script>"#))
+        },
+        content,
+    )
+}
+
+/// Parameterized page layout for non-homepage pages (blog, posts).
+/// Title, description, and canonical URL are set per page. `extra_head`
+/// carries page-specific scripts (e.g. the comments loader on post pages).
+pub fn render_page_layout(
+    title: &str,
+    description: &str,
+    og_url: &str,
+    og_type: &str,
+    extra_head: Markup,
+    content: Markup,
+) -> Markup {
     html! {
         (DOCTYPE)
         html lang="en" {
             head {
                 meta charset="utf-8";
                 meta name="viewport" content="width=device-width, initial-scale=1";
-                title { "AIEN OS | The GPU-Native Neural Operating Environment" }
-                meta name="description" content="AIEN OS eliminates the software orchestration tax with coherent unified memory, in-process cognitive kernels, sub-5MB daemon footprints, and hardware-enforced sovereign security.";
-                link rel="canonical" href="https://aienos.com/";
+                title { (title) }
+                meta name="description" content=(description);
+                link rel="canonical" href=(og_url);
                 link rel="icon" type="image/svg+xml" href="/favicon.svg";
 
                 // Open Graph / Twitter Meta
-                meta property="og:title" content="AIEN OS | The GPU-Native Neural Operating Environment";
-                meta property="og:description" content="AIEN OS eliminates the software orchestration tax with coherent unified memory, in-process cognitive kernels, and hardware TPM security.";
-                meta property="og:url" content="https://aienos.com/";
-                meta property="og:type" content="website";
-                meta property="og:image" content="https://aienos.com/og-card.png";
+                meta property="og:title" content=(title);
+                meta property="og:description" content=(description);
+                meta property="og:url" content=(og_url);
+                meta property="og:type" content=(og_type);
+                meta property="og:image" content="https://aienos.com/og.png";
                 meta name="twitter:card" content="summary_large_image";
-                meta name="twitter:title" content="AIEN OS | The GPU-Native Neural Operating Environment";
-                meta name="twitter:description" content="Replacing the CPU von Neumann bottleneck with coherent unified memory on Grace Blackwell silicon.";
-                meta name="twitter:image" content="https://aienos.com/og-card.png";
+                meta name="twitter:title" content=(title);
+                meta name="twitter:description" content=(description);
+                meta name="twitter:image" content="https://aienos.com/og.png";
 
                 // Fonts
                 link rel="preconnect" href="https://fonts.googleapis.com";
@@ -31,13 +60,7 @@ pub fn render_base_layout(content: Markup) -> Markup {
                 // Stylesheet
                 link rel="stylesheet" href="/assets/style.css";
 
-                // Zero-dependency terminal micro-script
-                script defer src="/js/terminal.js" {}
-                (PreEscaped(r#"<script>
-                    document.addEventListener('DOMContentLoaded', () => {
-                        console.log('[AIEN OS] Pure Rust Maud engine online. Zero hydration overhead.');
-                    });
-                </script>"#))
+                (extra_head)
             }
             body {
                 div id="root" style="min-height: 100vh; display: flex; flex-direction: column;" {
