@@ -5,7 +5,7 @@ use std::fs;
 use std::path::Path;
 use std::time::Instant;
 
-use layouts::base::render_base_layout;
+use layouts::base::{render_base_layout, render_page_layout};
 use maud::html;
 
 fn copy_dir_all(src: &Path, dst: &Path) -> std::io::Result<()> {
@@ -28,11 +28,14 @@ fn copy_dir_all(src: &Path, dst: &Path) -> std::io::Result<()> {
 }
 
 fn generate_sitemap_and_robots(dist: &Path) {
-    let sitemap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n  <url><loc>https://aienos.com/</loc><priority>1.0</priority></url>\n</urlset>\n";
+    let sitemap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n  <url><loc>https://aienos.com/</loc><priority>1.0</priority></url>\n  <url><loc>https://aienos.com/blog</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/blog/aien-v2-research-plan</loc><priority>0.9</priority></url>\n</urlset>\n";
     let sitemap_path = dist.join("sitemap.xml");
     fs::write(&sitemap_path, sitemap).expect("Failed to write sitemap.xml");
 
-    let robots = "User-agent: *\nAllow: /\nSitemap: https://aienos.com/sitemap.xml\n";
+    // Bot-friendly: the site is open to all agents and humans alike.
+    // AI crawlers are explicitly allowed; there are no CAPTCHAs and no
+    // bot blocking at the gate.
+    let robots = "User-agent: *\nAllow: /\n\nUser-agent: GPTBot\nAllow: /\n\nUser-agent: ChatGPT-User\nAllow: /\n\nUser-agent: ClaudeBot\nAllow: /\n\nUser-agent: anthropic-ai\nAllow: /\n\nUser-agent: CCBot\nAllow: /\n\nUser-agent: Bytespider\nAllow: /\n\nSitemap: https://aienos.com/sitemap.xml\n";
     let robots_path = dist.join("robots.txt");
     fs::write(&robots_path, robots).expect("Failed to write robots.txt");
 
@@ -77,6 +80,36 @@ fn build_pure_rust_site(dist: &Path) {
     fs::write(&output_file, full_document.into_string()).expect("Failed to write index.html");
     println!("  [PAGE] Emitted / (index.html)");
 
+    // Blog index page
+    let blog_index = render_page_layout(
+        "Blog | AIEN OS",
+        "Research notes on building AIEN V2: what shipped, what the evidence says, and what remains an open question.",
+        "https://aienos.com/blog",
+        "website",
+        html! {},
+        components::blog::render_blog_index(),
+    );
+    let blog_index_dir = dist.join("blog");
+    fs::create_dir_all(&blog_index_dir).expect("Failed to create blog dir");
+    fs::write(blog_index_dir.join("index.html"), blog_index.into_string())
+        .expect("Failed to write blog index.html");
+    println!("  [PAGE] Emitted /blog (index.html)");
+
+    // First post: the AIEN V2 research plan
+    let blog_post = render_page_layout(
+        &format!("{} | AIEN OS Blog", components::blog::POST_TITLE),
+        components::blog::POST_DESCRIPTION,
+        &format!("https://aienos.com/blog/{}", components::blog::POST_SLUG),
+        "article",
+        html! {},
+        components::blog::render_blog_post(),
+    );
+    let post_dir = blog_index_dir.join(components::blog::POST_SLUG);
+    fs::create_dir_all(&post_dir).expect("Failed to create post dir");
+    fs::write(post_dir.join("index.html"), blog_post.into_string())
+        .expect("Failed to write post index.html");
+    println!("  [PAGE] Emitted /blog/{} (index.html)", components::blog::POST_SLUG);
+
     generate_sitemap_and_robots(dist);
 }
 
@@ -103,6 +136,31 @@ fn verify_site(dist: &Path) {
     // Verify sitemap and robots
     assert!(dist.join("sitemap.xml").exists(), "Missing sitemap.xml");
     assert!(dist.join("robots.txt").exists(), "Missing robots.txt");
+
+    // Verify blog pages
+    let blog_index = dist.join("blog/index.html");
+    assert!(blog_index.exists(), "Missing blog/index.html");
+    let blog_post = dist.join("blog/aien-v2-research-plan/index.html");
+    assert!(blog_post.exists(), "Missing blog/aien-v2-research-plan/index.html");
+    for page in [&blog_index, &blog_post] {
+        let page_content = fs::read_to_string(page)
+            .unwrap_or_else(|_| panic!("Failed to read {}", page.display()));
+        assert!(
+            !page_content.contains('\u{2014}'),
+            "Forbidden em dash detected in {}",
+            page.display()
+        );
+        assert!(
+            !page_content.contains('\u{2013}'),
+            "Forbidden en dash detected in {}",
+            page.display()
+        );
+        assert!(
+            page_content.contains("og:title"),
+            "Missing og:title in {}",
+            page.display()
+        );
+    }
 
     println!("------------------------------------------------------------");
     println!("  Verified index.html ({} bytes)", content.len());

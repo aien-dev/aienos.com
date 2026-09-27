@@ -1,4 +1,5 @@
 pub mod benchmarks;
+pub mod blog;
 pub mod ecosystem;
 pub mod footer;
 pub mod hero;

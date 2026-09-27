@@ -5,3 +5,7 @@ server/target
 server/*.sqlite3*
 *.local
 .DS_Store
+
+# Rust build artifacts
+/target
+Cargo.lock
