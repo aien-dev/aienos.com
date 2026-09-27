@@ -53,6 +53,15 @@ fn render_post_body() -> Markup {
         p {
             "The lineage is deliberately small. A minimal seed (Atlas) awakens AIENOS, the trusted substrate. Above it, OMEGA defines, synthesizes, verifies, and realizes programs, keeping the ones that work in a reusable library. AIEN, the neural component, learns to guide the search from OMEGA's own verified search traces, never from human text pretraining. The architecture is explicit on this point: neural weights suggest where to search; they do not define meaning, truth, or authority. Verification does."
         }
+        h2 { "Why now" }
+        p {
+            "This brief is landing in a week when the tension it describes is playing out in public. GitHub, the platform where most of the world's software is written, is straining under the load of the AI systems it helped create: coding assistants writing and revising code around the clock, autonomous agents opening pull requests without waiting for a human, crawlers harvesting repositories to train the next models. "
+            a href="https://www.youtube.com/watch?v=xrSDHyL2FT4" { "LowLevel's ongoing coverage" }
+            " tracks the situation as it develops; one 2026 analysis counted 257 incidents in a single year, and GitHub's own CTO has publicly acknowledged the platform must be designed for far greater scale than planned."
+        }
+        p {
+            "That is the pattern this research program is built to break. Today's AI runs as a guest on human infrastructure, and the guest is now bigger than the house. AIEN's bet runs the other way: intelligence that owns its substrate, verified from the metal up, instead of renting space on systems that were never designed for machine-scale tenants."
+        }
         h2 { "The Infinite Game" }
         p {
             "The brief also documents how the system is being built, because the construction method mirrors the system itself. Multiple independent AI systems (Gemini, Claude, Codex, Grok, DeepSeek, and Muse) each contribute parts under a human conductor. No single system is trusted with the whole picture. Independent AI watchers review every commit, checking both the work and whether the other reviewers caught the mistakes, and every finding feeds back into a compounding loop that improves the building and the oversight together."
