@@ -6,7 +6,7 @@ message: "If you use the Turing measure, please cite the formal preprint. The co
 type: software
 authors:
   - family-names: Stapleton
-    given-names: Drake
+    given-names: M. Drake
     affiliation: "AIEN Project"
 version: "1.4"
 date-released: 2026-09-29
@@ -23,7 +23,7 @@ preferred-citation:
   type: unpublished
   authors:
     - family-names: Stapleton
-      given-names: Drake
+      given-names: M. Drake
       affiliation: "AIEN Project"
   title: "Computing Machinery and Understanding: From the Imitation Game to the Turing: An Operational Measure of Generalized Explanatory Compression"
   year: 2026
@@ -34,7 +34,7 @@ references:
   - type: unpublished
     authors:
       - family-names: Stapleton
-        given-names: Drake
+        given-names: M. Drake
         affiliation: "AIEN Project"
     title: "Computing Machinery and Understanding: The Turing as a Measure Emerging from AIEN"
     year: 2026

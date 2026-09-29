@@ -15,7 +15,7 @@
 \title{Computing Machinery and Understanding\\
 From the Imitation Game to the Turing:\\
 An Operational Measure of Generalized Explanatory Compression}
-\author{Drake Stapleton\\AIEN Project}
+\author{M. Drake Stapleton\\AIEN Project}
 \date{September 29, 2026\\v1.4 preprint (not peer reviewed)}
 
 \begin{document}
@@ -160,7 +160,7 @@ A Turing measurement is reported only together with a measurement profile: a ver
 \texttt{software\_version} & All software involved, pinned \\
 \texttt{energy\_instrumentation} & Physical measurement apparatus and calibration for energy terms \\
 \texttt{attribution\_rule} & How joules are attributed under concurrency (Definition~5) \\
-\texttt{uncertainty\_envelope} & Declared reproducibility tolerance for \(\mathcal{T}\) and yields \\
+\texttt{uncertainty\_envelope} & Declared reproducibility tolerance for \(\mathcal{T}\) and yields, \textit{with the estimation procedure stated}: which of bootstrap resampling over sealed held-out blocks, repeated runs under preregistered seeds, instrument/sensor calibration uncertainty, or predictive/coding uncertainty are included, and how the lower bound of \(\mathcal{T}\) is computed \\
 \texttt{verification\_requirements} & Independent recomputation requirements \\
 \bottomrule
 \end{tabular}
@@ -174,7 +174,7 @@ Let \(E_{\rm eval}\) be the energy in joules consumed by the evaluation run that
 \qquad\text{and}\qquad
 \boxed{Y_{\rm discovery} = \frac{\mathcal{T}(M;B,D,P)}{E_{\rm search}+E_{\rm train}+E_{\rm synthesis}+E_{\rm verify}+E_{\rm eval}}}.
 \]
-\(Y_{\rm eval}\) is the evaluation yield. \(Y_{\rm discovery}\) is the discovery yield, and it is the stronger quantity: ``understanding gained per joule burned'' must include the cost of discovery, since a model might require 10 MWh to discover and 1 kJ to evaluate, and reporting only evaluation yield would misrepresent its efficiency. Let \(s\) be the wall-clock duration of the evaluation run in seconds; \(\mathcal{T}/s\) is the Turing rate. None of these asserts that energy has been converted into intelligence in any thermodynamic sense; they state that under the given experiment and profile, the computation produced the stated bits of verified explanatory gain per unit of physical resource consumed. Note the fit: \href{https://github.com/aien-dev/omega}{AIEN/Omega} is designed to account for synthesis, verification, and realization costs rather than treating evaluation as the whole computational process --- the \(Y_{\rm discovery}\) denominator requires exactly that accounting. The energy instrumentation is in progress on the \href{https://github.com/aien-dev/omega/tree/feat/r15-performance-proof}{R15 performance-measurement branch}, which has no pull request yet and has produced no completed measurement; no yield figure is reported until it does.
+\(Y_{\rm eval}\) is the evaluation yield. \(Y_{\rm discovery}\) is the discovery yield, and it is the stronger quantity: ``understanding gained per joule burned'' must include the cost of discovery, since a model might require 10 MWh to discover and 1 kJ to evaluate, and reporting only evaluation yield would misrepresent its efficiency. Let \(s\) be the wall-clock duration of the evaluation run in seconds; \(\mathcal{T}/s\) is the Turing rate. None of these asserts that energy has been converted into intelligence in any thermodynamic sense; they state that under the given experiment and profile, the computation produced the stated bits of verified explanatory gain per unit of physical resource consumed. Note the fit: \href{https://github.com/aien-dev/omega}{AIEN/Omega} is designed to account for synthesis, verification, and realization costs rather than treating evaluation as the whole computational process --- the \(Y_{\rm discovery}\) denominator requires exactly that accounting. Physical energy instrumentation exists: the \href{https://github.com/aien-dev/omega}{AIEN/Omega} R15 performance harness completed its qualification on the DGX Spark (16 of 16 gates PASS, merged as \href{https://github.com/aien-dev/omega/pull/67}{pull request~67} on 2026-09-29, with package energy measured per operation in the machine-readable receipt), but those measurements have not yet been joined to a canonical Turing-gain receipt; no yield figure is reported until that joining exists.
 \end{definition}
 
 \begin{definition}[Energy attribution]
@@ -267,7 +267,7 @@ Each hypothesis below states a method sketch and an explicit pass/fail criterion
 
 \textbf{H2 --- Generalization.} \textit{Method:} Candidate abstractions produced by a discovery procedure are scored on sealed held-out \(D\) with their full \(L(M)\) charged. \textit{Pass:} at least one candidate achieves \(\mathcal{T}>0\) with the lower bound of the uncertainty envelope above zero. \textit{Fail:} candidates achieve positive training compression but non-positive held-out Turing gain --- they have demonstrated fitting, not generalized explanatory compression.
 
-\textbf{H3 --- Reproducibility.} \textit{Method:} The same measurement profile is executed repeatedly, including re-implementations that vary only irrelevant details (random seeds, code layout, non-semantic refactors). \textit{Pass:} \(\mathcal{T}\), \(Y_{\rm eval}\), and \(Y_{\rm discovery}\) reproduce within the profile's declared uncertainty envelope. \textit{Fail:} tiny irrelevant implementation choices cause score changes outside the envelope --- the profile is inadequate and must be revised before any measurement under it is reported.
+\textbf{H3 --- Reproducibility.} \textit{Method:} Two distinct tests. \textit{Replay reproducibility:} the same measurement profile is re-executed with the same preregistered seed, the same artifacts, and only non-semantic re-implementations (code layout, refactors that do not change computed values). \textit{Pass:} \(\mathcal{T}\), \(Y_{\rm eval}\), and \(Y_{\rm discovery}\) reproduce within numerical tolerance. \textit{Statistical robustness:} the profile is executed under different preregistered seeds drawn from the same experiment distribution (for EXP-002, different stochastic trajectories generated from the same hidden law family). \textit{Pass:} the conclusions remain stable within the profile's declared statistical envelope. \textit{Fail:} same-seed re-execution diverges beyond tolerance, or different preregistered seeds change the conclusions outside the envelope --- the profile is inadequate and must be revised before any measurement under it is reported. A changed seed is not an irrelevant implementation detail: it changes the sampled data or stochastic outcome, so it tests robustness, not replay.
 
 \textbf{H4 --- Physical conservation.} \textit{Method:} Under concurrent workloads, attribute energy per Definition~5 and check closure against measured machine energy. \textit{Pass:} \(E_{\text{measured}} \approx E_{\text{exclusive}} + E_{\text{shared}} + E_{\text{interaction}} + E_{\text{unattributed}}\) within sensor and model uncertainty on every run. \textit{Fail:} attributed totals consistently exceed physical totals --- the attribution model is invalid and no yield (\(Y_{\rm eval}\) or \(Y_{\rm discovery}\)) may be reported from it.
 
@@ -364,12 +364,12 @@ The first \href{https://github.com/aien-dev/omega}{AIEN/Omega} measurements will
 \toprule
 \textbf{Expt.} & \textbf{Workload} & \textbf{Baseline} & \textbf{Profile} & \(\mathcal{T}\) (T) & \(E_{\rm eval}\) (J) & \(E_{\rm disc.}\) (J) & \(Y_{\rm eval}\) & \(Y_{\rm disc.}\) & \textbf{Status} \\
 \midrule
-EXP-001 & Omega traces (instrument validation) & uniform / empirical / Markov / heuristic & profile v1.0 (registered) & --- & --- & --- & --- & --- & prereg.\ pending \\
-EXP-002 & Stochastic law discovery (diffusion, drift, mean reversion) & weak / deterministic / stochastic & profile v1.0 (registered) & --- & --- & --- & --- & --- & prereg.\ pending \\
-EXP-003 & Active experiment selection vs.\ passive baseline & passive schedule & profile v1.0 (registered) & --- & --- & --- & --- & --- & prereg.\ pending \\
+EXP-001 & Omega traces (instrument validation) & uniform / empirical / Markov / heuristic & profile v1.0 (draft) & --- & --- & --- & --- & --- & prereg.\ pending \\
+EXP-002 & Stochastic law discovery (diffusion, drift, mean reversion) & weak / deterministic / stochastic & profile v1.0 (draft) & --- & --- & --- & --- & --- & prereg.\ pending \\
+EXP-003 & Active experiment selection vs.\ passive baseline & passive schedule & profile v1.0 (draft) & --- & --- & --- & --- & --- & prereg.\ pending \\
 \bottomrule
 \end{tabular}
-\caption{Results skeleton. Workload, baseline, and profile cells name the preregistered instantiations of Section~5.4; numeric cells marked ``---'' await sealed runs.}
+\caption{Results skeleton. Workload, baseline, and profile cells name the planned instantiations of Section~5.4 (profiles currently draft; preregistration pending); numeric cells marked ``---'' await sealed runs.}
 \end{table}
 
 \textbf{Analysis plan (preregistered):} for each experiment, report \(\mathcal{T}\) with its uncertainty envelope, the energy attribution closure check (H4), and both yields \(Y_{\rm eval}\) and \(Y_{\rm discovery}\) where the corresponding energies are measured; test H1--H5 per their pass/fail criteria; publish the full profile, artifacts, and energy traces for independent recomputation. Negative or null results will be reported as such --- a failed \(\mathcal{T}>0\) is a result about the candidate, and a failed H3 or H4 is a result about the profile.
@@ -384,7 +384,7 @@ The proposal is exposed to falsification at three levels. These criteria are pre
 
 \textbf{F2 --- Generalization failure.} If H2 fails --- no discovered candidate achieves \(\mathcal{T}>0\) on sealed held-out data after paying its own description cost --- then the proposal has not demonstrated generalized explanatory compression in the tested regime. Persistent F2 failure across diverse regimes would confine Turing gain to a theoretical quantity.
 
-\textbf{F3 --- Profile fragility.} If H3 fails --- gains vary outside the uncertainty envelope under irrelevant implementation changes --- then Turing measurements are not reproducible under the tested profile, and no measurement reported under that profile may be treated as a stable quantity. A unit that cannot survive reimplementation is not a unit.
+\textbf{F3 --- Profile fragility.} If H3 fails --- gains vary outside the uncertainty envelope under same-seed replay or preregistered-seed variation --- then Turing measurements are not reproducible under the tested profile, and no measurement reported under that profile may be treated as a stable quantity. A unit that cannot survive reimplementation is not a unit.
 
 \textbf{F4 --- Attribution failure.} If H4 fails --- attributed energy cannot be reconciled with measured machine energy --- then no yield may be reported: \(Y_{\rm eval}\) requires a grounded \(E_{\rm eval}\), and \(Y_{\rm discovery}\) requires the full measured discovery sum. Note the asymmetry: \(\mathcal{T}\) can survive F4 while both yields cannot.
 
