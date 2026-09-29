@@ -24,22 +24,22 @@
     \large The Turing as a Measure Emerging from AIEN
 }
 \author{M. Drake Stapleton\\AIEN Project}
-\date{September 29, 2026\\v1.1 preprint (not peer reviewed)}
+\date{September 29, 2026\\v1.3 preprint (not peer reviewed)}
 
 \begin{document}
 
 \maketitle
 
-\noindent\textit{Companion to the formal preprint ``Computing Machinery and Understanding: From the Imitation Game to the Turing'' (v1.3), which gives the definitions, proofs, measurement protocol, and falsification criteria. This paper gives the engineering history the measure emerged from.}
+\noindent\textit{Companion to the formal preprint ``Computing Machinery and Understanding: From the Imitation Game to the Turing'' (v1.6), which gives the definitions, proofs, measurement protocol, and falsification criteria. This paper gives the engineering history the measure emerged from.}
 
-\noindent\textit{Version history. v1.1 (2026-09-29): cross-reference updated to the formal preprint v1.3; forward pointer to the preregistered experiment ladder EXP-001/002/003 defined there.}
+\noindent\textit{Version history. v1.1 (2026-09-29): cross-reference updated to the formal preprint v1.3; forward pointer to the preregistered experiment ladder EXP-001/002/003 defined there. v1.2 (2026-09-29): em dashes removed throughout at the author's direction (punctuation only, no content change). v1.3 (2026-09-29): cross-reference updated to the formal preprint v1.6; first canonical Turing measurement recorded (omega PR 85, profile V0); AEGIS role clarified per the AEGIS ruling; FORGE terminology; narrow-scope statement and specific Turing gain.}
 
 \begin{abstract}
 I did not begin this work by trying to invent a new unit of intelligence.
 
 I began by trying to build a machine whose internal claims could be separated from evidence, whose ideas could be separated from their physical implementations, whose failures could remain part of its history, and whose improvements could be tested against reality before they became authoritative.
 
-That work became AIEN, Omega, PHYSICS, FORGE, AEGIS, ARGUS, Cortex, and the resident reaction architecture now implemented across the AIEN repositories.
+That work became AIEN, Omega, FORGE, AEGIS, ARGUS, Cortex, and the resident reaction architecture now implemented across the AIEN repositories.
 
 While working inside that layer of abstraction, I encountered a measurement problem.
 
@@ -75,11 +75,11 @@ The important claim of this paper is therefore not that I have renamed the bit.
 
 It is that, while building an architecture in which explanations, measurements, realizations, authority, provenance, and physical cost were already separate objects, I found that \textbf{net held-out description-length reduction is the quantity that connects them}.
 
-AIEN already implements much of the machinery required to test that proposition. This paper documents that implementation, the evidence already produced, the places where the architecture failed and corrected itself, and the experiments still required before I will claim a measured Turing result.
+AIEN already implements much of the machinery required to test that proposition. This paper documents that implementation, the evidence already produced, the places where the architecture failed and corrected itself, and the first canonical Turing measurement, recorded 2026-09-29 under measurement profile V0: a candidate explanation of Omega search traces scored +2,559,679.825~T against its baseline on sealed held-out seeds, about 0.44~T per held-out observation. That result is a theoretical description length, not yet a physically encoded file, and no energy was measured in the run, so no Turing yield is claimed. What the unit does not measure, I state plainly: semantic grounding, causal direction, agency, values, alignment, and consciousness are outside its scope. The Turing is a thermometer for one quantity, net held-out explanatory compression, and the claim is only that this quantity is worth measuring well.
 
 \medskip
 
-\noindent\emph{Turing taught us to replace an unanswerable question with an operational one. My question is whether a machine can discover explanations that make unseen reality less surprising---and whether I can measure the physical cost of that discovery.}
+\noindent\emph{Turing taught us to replace an unanswerable question with an operational one. My question is whether a machine can discover explanations that make unseen reality less surprising, and whether I can measure the physical cost of that discovery.}
 \end{abstract}
 
 \section{I Did Not Start With the Turing}
@@ -95,7 +95,7 @@ The source code is public:
 \begin{itemize}
     \item AIEN/Omega: \url{https://github.com/aien-dev/omega}
     \item AIEN architecture: \url{https://github.com/aien-dev/aien-architecture}
-    \item PHYSICS / FORGE: \url{https://github.com/aien-dev/physics}
+    \item FORGE: \url{https://github.com/aien-dev/physics} (repository retains the historical PHYSICS name)
     \item AIENOS: \url{https://github.com/aien-dev/aienos}
     \item Sovereign core: \url{https://github.com/aien-dev/aien-sovereign-core}
     \item Benchmarks: \url{https://github.com/aien-dev/benchmarks}
@@ -115,9 +115,9 @@ The abstraction I eventually converged on separates four things that are usually
 
 Omega owns semantic meaning and candidate realizations.
 
-PHYSICS and FORGE describe and execute physical realizations.
+FORGE describes and executes physical realizations.
 
-AEGIS governs authority.
+AEGIS verifies generated code, including crumbs. It changes nothing, decides no policy, and is not part of the generation system.
 
 ARGUS observes defensive events without becoming an authority itself.
 
@@ -208,7 +208,7 @@ That receipt records:
     \item autonomous recurring-subsequence mining;
     \item \(+7\) instructions of net structural compression;
     \item semantic preservation after refactoring;
-    \item verification through Omega's V0--V2 ladder before admission;
+    \item verification through Omega's V0 to V2 ladder before admission;
     \item reduction in held-out synthesis exploration from \(54\) candidates to \(21\);
     \item all ten M11 qualification gates passing.
 \end{itemize}
@@ -356,7 +356,7 @@ The valid candidate remained available.
 
 \subsection{Forged authority}
 
-The test presented forged capability references, valid references under the wrong subject, revoked references, stale generations, forged GPU claims, stuffed grant slots, forged AEGIS decisions, and a promotion forgery.
+The test presented forged capability references, valid references under the wrong subject, revoked references, stale generations, forged GPU claims, stuffed grant slots, forged verification records attributed to AEGIS, and a promotion forgery.
 
 The receipt records them blocked or contained.
 
@@ -508,7 +508,7 @@ The qualification ran on the DGX Spark GB10 and passed
 
 gates.
 
-One measured difference was CPU--GPU synchronization:
+One measured difference was CPU to GPU synchronization:
 
 \[
 3.0
@@ -522,7 +522,7 @@ synchronization events per GPU result for the one-worker resident configuration 
 
 for the sequential control.
 
-The methodology also measures semantic operations per second, activation latency, dependency propagation, scheduler overhead, AEGIS fast-path cost, generation barriers, serialization, CPU--GPU synchronization, memory traffic, GPU residency, wasted reactions, conflict and invalidation, causal-evidence overhead, and energy per semantic result.
+The methodology also measures semantic operations per second, activation latency, dependency propagation, scheduler overhead, verification fast-path cost, generation barriers, serialization, CPU to GPU synchronization, memory traffic, GPU residency, wasted reactions, conflict and invalidation, causal-evidence overhead, and energy per semantic result.
 
 That last metric is directly relevant to the Turing.
 
@@ -700,6 +700,8 @@ The reporting unit is the \textbf{Turing}, \(T\):
 
 under the declared measurement profile.
 
+Raw totals may only be compared at fixed evidence volume. I therefore also report the \textbf{specific Turing gain}: \(\mathcal{T}\) divided by the number of held-out observations, in Turings per observation. A measurement report separates five quantities that must not be collapsed: the raw total \(T\), the specific gain, the candidate's quality, the baseline's strength, and the evidence volume.
+
 A note on the name, because I checked: an unrelated proposal called the ``Turing Ratio''~\cite{masum2003} is a chess performance rating on a decibel scale. It shares a name fragment with this unit and nothing else. I also searched the recent literature for the closest neighbors to this proposal. The nearest is SuperARC~\cite{superarc2025}, which defines intelligence through explanatory compression but as a benchmark score, not a named unit, with no baseline net-gain and no energy accounting. The formal intelligence measures of Legg and Hutter~\cite{legghutter2007} and Chollet~\cite{chollet2019} propose no unit at all, and the recent MDL theory of machine understanding~\cite{zhangliu2025} likewise names none. To my knowledge, no prior work uses the term \textit{Turing} for the protocol-bound quantity defined here.
 
 A score of
@@ -754,6 +756,14 @@ That statement implies:
 I do not claim to have discovered a new fundamental dimension of physics.
 
 I am giving a name and protocol to a particular measured difference.
+
+\section{What the Turing Does Not Measure}
+
+A precise instrument for one quantity is stronger than an indefensible measure of everything. The thermometer is the analogy I keep: nobody asks a thermometer to measure pressure, and its authority comes from refusing to.
+
+The Turing measures net held-out explanatory compression. It does not measure semantic grounding, causal direction, agency, intervention ability, social understanding, values, alignment, or consciousness. A high score means the candidate made unseen observations less surprising after paying its own cost. It does not mean the candidate understands in any broader sense, and I claim nothing of the kind.
+
+This narrowing is also what separates the unit from benchmark culture. A benchmark ranks systems on fixed tasks; the score conflates the candidate, the baseline, and the evidence volume, and the leaderboard becomes the product. The Turing protocol reports those quantities separately, under a declared profile, with the baseline named and the held-out evidence sealed. Two measurements are comparable only under the same profile, and the report must say so.
 
 \section{Why Memorization Does Not Get a Free Pass}
 
@@ -819,7 +829,7 @@ Turings measure explanatory gain.
 
 I now treat them as orthogonal axes.
 
-PHYSICS/FORGE already provides a substrate-neutral physical boundary.
+FORGE already provides a substrate-neutral physical boundary.
 
 The FORGE V2 specification is public:
 
@@ -1001,11 +1011,13 @@ The measurement layer measures.
 
 Authority remains authority.
 
-\section{The System Is Not Finished}
+\section{The First Turing Measurement Is Recorded}
 
 I want to be precise about what I have and have not demonstrated.
 
-I have \textbf{not yet produced the first canonical Turing measurement under the full profile discipline proposed here}.
+On 2026-09-29 the first canonical Turing measurement was completed under measurement profile V0 (\href{https://github.com/aien-dev/omega/pull/85}{omega pull request~85}, merged the same day). The candidate was a table conditioning on the tried operation plus the last four outcomes of Omega search traces; the baseline was a table conditioning only on the last outcome. On sealed held-out seeds 8, 9, and 10, about 5.8~million search events never seen during model selection, the candidate reduced total held-out description length by \textbf{2,559,679.825 bits}, scoring \textbf{+2,559,679.825~T}, about \textbf{0.44~T per held-out observation} of specific Turing gain. The preregistered bar of 234,602~bits was cleared, with each held-out seed passing on its own. The scoring tool refuses to score the held-out seeds a second time, and an independent verify command refits both models from the training files and reproduces the receipt exactly. Model cost is the exact stored table length, so pure memorization scores negatively; all scoring arithmetic is integer-only, with worst-case rounding under 6~bits over the whole held-out set.
+
+The honest limits, stated with the result: \(\mathcal{T}\) here is a theoretical code length. No entropy coder was built that produces the smaller file, so this is not yet a physically realized encoding. Energy was not measured in this run, so no Turing yield (\(T/J\)) is reported. Joining R15 energy measurements to Turing-gain receipts is the next step.
 
 I will not score old runs retroactively.
 
@@ -1013,59 +1025,21 @@ The R13 result predates the Turing protocol.
 
 The M11 abstraction experiment uses instruction-count compression, not probabilistic held-out description length.
 
-The R15 system measures energy and physical performance, but it does not yet join those measurements to a canonical Turing-gain receipt.
-
-Those are prerequisites, not completed proof of \(T/J\).
-
 Likewise, retirement of all remaining central orchestration is still an active architectural gate.
 
-The architecture is therefore evidence for the \emph{implementation of the ideal}, not yet evidence that the Turing metric itself has passed full experimental qualification.
+The architecture is therefore evidence for the \emph{implementation of the ideal}, and the first measurement is evidence that the instrument works under profile V0. Full qualification of the metric, including the physical coder bridge and energy-joined receipts, is still ahead.
 
-\section{The First Genuine Turing Experiment}
+\section{The First Experiment, Completed}
 
-The first scored experiment should be intentionally boring.
+The first scored experiment was intentionally boring.
 
-I do not need a giant language model.
+I did not need a giant language model.
 
-I already have an appropriate experimental substrate inside Omega.
+I already had an appropriate experimental substrate inside Omega: real search and synthesis traces, divided before candidate construction into training, validation, and sealed test.
 
-I propose to take real Omega search and synthesis traces and divide them, before candidate construction, into
+The candidates compared were simple predictors: uniform, empirical frequency, a small Markov-style table, the existing fixed heuristic, and the candidate explanatory table. For every candidate \(M\), the protocol calculated \(L(M)\) and \(L(D\mid M)\), then \(\mathcal{T}(M;B,D,P)\) against the declared baseline.
 
-\[
-\text{TRAIN},\qquad
-\text{VALIDATION},\qquad
-\text{SEALED TEST}.
-\]
-
-I will compare simple predictors first:
-
-\begin{itemize}
-    \item uniform;
-    \item empirical frequency;
-    \item small Markov model;
-    \item existing fixed heuristic;
-    \item candidate explanatory abstraction.
-\end{itemize}
-
-For every candidate \(M\), I will calculate
-
-\[
-L(M)
-\]
-
-and
-
-\[
-L(D\mid M),
-\]
-
-then
-
-\[
-\mathcal{T}(M;B,D,P).
-\]
-
-The first gate is simple:
+The first gate was simple:
 
 \[
 \boxed{\mathcal{T}>0}
@@ -1073,13 +1047,11 @@ The first gate is simple:
 
 with the lower uncertainty bound above zero.
 
-If that does not happen, the experiment fails.
-
-I will not redefine the Turing until it does.
+It passed, as recorded in the previous section: +2,559,679.825~T under profile V0, each held-out seed passing on its own.
 
 One more discipline the protocol enforces, and I want to state it plainly because it is easy to get wrong: the cryptographic hash of the sealed test set proves \textit{which} data was held out. It does not prove the machine never saw it. A hash is a commitment to identity, not a blindfold. Non-access has to be established by a separate, auditable blinding mechanism, and the protocol treats the two claims separately: the hash proves the dataset is the one declared, the blinding proves the candidate was built without it. Either claim without the other is not a measurement.
 
-In the formal companion paper this first experiment is registered as EXP-001: instrument validation. It is followed by EXP-002, Stochastic Law Discovery, in which a hidden evaluator generates quantized trajectories from an undisclosed stochastic law --- pure diffusion, diffusion with drift, and mean-reverting dynamics --- and the candidate must earn its complexity on sealed held-out trajectories without inventing deterministic structure inside noise; and by EXP-003, active experiment selection, in which the machine proposes the intervention that most efficiently distinguishes competing explanations. EXP-001 asks whether the instrument works. EXP-002 asks whether it can detect discovered structure. That is the empirical ladder the measure must climb.
+In the formal paper this first experiment is registered as EXP-001: instrument validation. It is followed by EXP-002, Stochastic Law Discovery, in which a hidden evaluator generates quantized trajectories from an undisclosed stochastic law: pure diffusion, diffusion with drift, and mean-reverting dynamics, and the candidate must earn its complexity on sealed held-out trajectories without inventing deterministic structure inside noise; and by EXP-003, active experiment selection, in which the machine proposes the intervention that most efficiently distinguishes competing explanations. EXP-001 asked whether the instrument works. It does, under profile V0. EXP-002 asks whether it can detect discovered structure. That is the empirical ladder the measure is now climbing.
 
 \section{The Second Experiment Joins the Machine Back to Physics}
 
@@ -1208,7 +1180,7 @@ When I say \emph{physical cost}, I can point to R15's measured energy, PMU, sync
 
 When I say \emph{negative evidence}, I can point to TURING Wave 1, where my proposed selector lost and remains permanently reproducible as a failed experiment.
 
-When I say \emph{evidence before authority}, I can point to AEGIS, the capability system, ARGUS, and the promotion barrier.
+When I say \emph{evidence before authority}, I can point to AEGIS verification, the capability system, ARGUS, and the promotion barrier.
 
 When I say \emph{different physical realizations of the same meaning}, I can point to FORGE's substrate-neutral machine boundary and Omega's realization system.
 
@@ -1386,7 +1358,7 @@ TURING reproducibility/tamper tests &
 \url{https://github.com/aien-dev/omega/blob/main/tests/turing/test_turing.c}\\
 Omega empirical cost model &
 \url{https://github.com/aien-dev/omega/blob/main/src/runtime/rx_costmodel.h}\\
-PHYSICS/FORGE V2 specification &
+FORGE V2 specification &
 \url{https://github.com/aien-dev/physics/blob/main/docs/FORGE_SUBSTRATE_V2_SPEC.md}\\
 FORGE implementation &
 \url{https://github.com/aien-dev/physics/tree/main/forge/v2}\\
@@ -1436,7 +1408,7 @@ J.~B.~S. Haldane,
 \newblock \emph{Evolution}, vol.~3, pp.~51--56, 1949.
 
 \bibitem{masum2003}
-H. Masum and S. Christensen,
+H. Masum, S. Christensen, and F. Oppacher,
 \newblock ``The Turing Ratio: A Framework for Open-Ended Task Metrics,''
 \newblock \emph{Journal of Evolution and Technology}, vol.~13, no.~2, 2003.
 
