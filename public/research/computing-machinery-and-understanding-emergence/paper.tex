@@ -1340,6 +1340,28 @@ That is exactly how I want it.
 \textbf{Reality decides.}
 \end{center}
 
+\section*{Addendum: Understanding Versus Search}
+
+Since completing the above, a sharp question has been put to me, and I want to record it here with my answer, because it clarifies what the Turing is and what it is not.
+
+The Turing asks: how much useful structure did the system discover? G\"odel's 1956 question asks something adjacent but different: how much work was required to discover a solution that is easy to verify? Put together, they give a way to study understanding versus search as two independent axes.
+
+I define, as an empirical quantity and nothing more, a discovery-verification gap. Let $x$ be a problem instance and $w$ a candidate witness: a proof, a satisfying assignment, a program, an explanation. Let $C_{\mathrm{verify}}(x, w)$ be the work required to check $w$, and let $C_{\mathrm{discover}, A}(x)$ be the work required for a specific algorithm $A$ to find $w$. The subscript matters: the gap measures the algorithm on the instance, not the instance alone. Then
+
+\[
+G_A(x) = \log_2 \frac{C_{\mathrm{discover}, A}(x)}{C_{\mathrm{verify}}(x, w)}.
+\]
+
+This is a measured quantity, not a complexity-theoretic invariant. Cost can be counted in machine steps, candidate evaluations, nodes expanded, or joules, and each counting is its own measurement.
+
+The Turing, $T(x, w)$, remains what it was: net held-out explanatory compression. The two questions are independent. A brute-force system can produce a perfectly valid witness with moderate $T$ and an enormous $G$. A system that has discovered reusable structure can show high $T$ with a much smaller $G$.
+
+The research question this opens is the one I find most worth pursuing: does explanatory compression systematically collapse search? If an abstraction worth a large $T$ causes future search on the same problem family to fall from near-exhaustive enumeration to a small search tree, that is evidence that compression corresponds to algorithmic understanding. There is a natural hierarchy here. A witness says ``here is the answer.'' An algorithm says ``here is how to find answers efficiently.'' A high-Turing theory says ``here is the compact structure explaining why this algorithm works across many cases.''
+
+I state the boundary with the same plainness I use everywhere else in this program: no finite experiment of this kind can resolve P versus NP. That question concerns asymptotic worst-case polynomial-time solvability over all inputs, and finite measurements, however spectacular their scaling, cannot prove it. Settling P versus NP would require an algorithm for an NP-complete problem together with a valid proof of a polynomial worst-case bound, or a genuine mathematical lower-bound proof. Experiments can inform the search for such proofs. They cannot substitute for them.
+
+The status of everything in this addendum is: proposal under investigation. No measurements exist yet. What makes me willing to record it is that the architecture described in this paper already enforces the separation the proposal needs: discovery is expensive and untrusted, verification is cheap recomputation from sealed artifacts. The first honest step is therefore not a new experimental series but instrumentation: recording discovery cost and verification cost on the work already running, and seeing what the numbers say.
+
 \section*{Implementation and Evidence Index}
 
 \begin{longtable}{p{0.32\textwidth}p{0.62\textwidth}}
