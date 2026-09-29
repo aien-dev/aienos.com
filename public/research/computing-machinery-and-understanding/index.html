@@ -70,7 +70,7 @@ pre.cite{background:var(--bg-surface);border:1px solid var(--border-subtle);bord
 <p class="paper-sub">From the Imitation Game to the Turing: An Operational Measure of Generalized Explanatory Compression</p>
 <div class="byline"><strong>M. Drake Stapleton</strong> &middot; AIEN Project &middot; September 29, 2026</div>
 <div class="version-row">
-<span class="badge">v1.6 preprint</span> <span class="badge badge-result">first measurement recorded</span>
+<span class="badge">v1.0</span> <span class="badge badge-result">first measurement recorded</span>
 <span class="badge preprint">Not peer reviewed</span>
 </div>
 <div class="actions">
@@ -92,7 +92,7 @@ pre.cite{background:var(--bg-surface);border:1px solid var(--border-subtle);bord
 <div class="section">
 <h2>What this paper claims</h2>
 <p>The paper defines the measure, states the assumptions under which it is meaningful, gives the measurement protocol (declared baselines, sealed held-out data, recomputable evidence), and specifies the conditions under which the proposal would be falsified. It names a preregistered experiment ladder and explicitly separates preregistered future experiments from apparatus-calibration runs, whose outputs are never reported as measurements.</p>
-<p>What it does not claim: the paper reports no empirical Turing measurements yet. The empirical-results section is a skeleton naming the preregistered experiments, with all numerical results blank until the experiments are run under frozen profiles.</p>
+<p>The empirical-results section records the first canonical measurement: TY-1+TY-2 PASS, +2,559,679.825 T under measurement profile V0 (omega PR #85, 2026-09-29). What it does not claim: Turing yield (T/J) is not yet measured; joining energy measurements to Turing-gain receipts is the next step.</p>
 </div>
 
 <div class="section">
@@ -117,11 +117,11 @@ pre.cite{background:var(--bg-surface);border:1px solid var(--border-subtle);bord
 <div class="section">
 <h2>Research artifacts</h2>
 <div class="artifact">
-<div><div class="name">Formal preprint (PDF)</div><div class="desc">17 pages. The reference document: definitions, proofs, protocol, related work, falsification criteria.</div><div class="hash">SHA-256: fcf17176a33b31cf8cf15854fc2d2bf4f73d1280dc8012e736f84a8b193402f2</div></div>
+<div><div class="name">Formal preprint (PDF)</div><div class="desc">23 pages. The reference document: definitions, proofs, protocol, related work, falsification criteria.</div><div class="hash">SHA-256: 1a098d550cc8fd8f18f8d2575c0bcd87eb613444aace0cedc906f2ae8b2a226c</div></div>
 <a href="./paper.pdf">paper.pdf</a>
 </div>
 <div class="artifact">
-<div><div class="name">LaTeX source</div><div class="desc">Complete compilable source for the preprint.</div><div class="hash">SHA-256: 533db73afb64422facd78455d3d2754fc37c854a1f65dd64c4c18ac3e394ea29</div></div>
+<div><div class="name">LaTeX source</div><div class="desc">Complete compilable source for the preprint.</div><div class="hash">SHA-256: 0855ba76107d5b1b65a18a34602038e5c14fc976c7440ec675cdee2bc7da7649</div></div>
 <a href="./paper.tex">paper.tex</a>
 </div>
 <div class="artifact">
@@ -137,23 +137,17 @@ pre.cite{background:var(--bg-surface);border:1px solid var(--border-subtle);bord
 <a href="https://github.com/aien-dev/omega" target="_blank" rel="noopener">github.com/aien-dev/omega</a>
 </div>
 <div class="artifact">
-<div><div class="name">Companion paper</div><div class="desc">&ldquo;The Turing as a Measure Emerging from AIEN&rdquo; &mdash; the engineering history: how the proposal emerged from the AIEN/Omega architecture.</div></div>
+<div><div class="artifact">
+<div><div class="name">Calibration protocol (PDF)</div><div class="desc">Turing Instrument Calibration and Validation Program v1.0 (27 pages): the ordered qualification gates CAL-0, EXP-001, EXP-002A/B/C/D, EXP-003, H3/H4/H5, with preregistration, blinding, and claim-ladder rules.</div></div>
+<a href="https://github.com/aien-dev/omega/blob/main/docs/turing/protocols/turing-instrument-calibration-validation-protocol-v1-0.pdf" target="_blank" rel="noopener">calibration protocol</a>
+</div>
+<div class="artifact">
+<div><div class="name">Laboratory execution protocol (PDF)</div><div class="desc">Turing Laboratory Execution Protocol v1.0 (42 pages): the engineering specification that makes the calibration program executable &mdash; repository layout, artifact schemas, the turing CLI, statistical procedures, runbooks, and acceptance gates. Written so an independent lab can replicate every result from the artifacts alone.</div></div>
+<a href="https://github.com/aien-dev/omega/blob/main/docs/turing/protocols/turing-laboratory-execution-protocol-v1-0.pdf" target="_blank" rel="noopener">execution protocol</a>
+</div>
+<div class="name">Companion paper</div><div class="desc">&ldquo;The Turing as a Measure Emerging from AIEN&rdquo; &mdash; the engineering history: how the proposal emerged from the AIEN/Omega architecture.</div></div>
 <a href="/research/computing-machinery-and-understanding-emergence">companion page</a>
 </div>
-</div>
-
-<div class="section">
-<h2>Version history</h2>
-<table class="versions">
-<tr><th>Version</th><th>Changes</th></tr>
-<tr><td>v1.0</td><td>Initial preprint: Turing gain definition, measurement protocol, falsification criteria.</td></tr>
-<tr><td>v1.1</td><td>Technical revision: unit/outcome distinction, Lemma 1 proof, Lemma 2 rewrite, yield split, seal/blinding distinction, claim softening.</td></tr>
-<tr><td>v1.2</td><td>Related work expanded after independent prior-art search (SuperARC, Legg&ndash;Hutter, Chollet, Zhang&ndash;Liu, unpublished manuscript on intelligence per joule); companion paper cross-reference.</td></tr>
-<tr><td>v1.3</td><td>Assumption A3: continuous observations encoded as declared quantized symbols; new quantizer profile field; preregistered experiment ladder EXP-001/002/003.</td></tr>
-<tr><td>v1.4</td><td>Citation corrections after source verification: Zhang/Liu author initials; anonymous 2026 manuscript given full title, date, stable URL; R15 state reconciled; H3 split; Table 2 profiles marked draft; uncertainty_envelope procedure required.</td></tr>
-<tr><td>v1.5</td><td>First empirical result: TY-1+TY-2 PASS, +2,559,679.825 T under measurement profile V0 (omega PR #85); Empirical Results section populated; Turing gain measured, Turing yield (T/J) still pending energy joining.</td></tr>
-<tr><td>v1.6</td><td>Research-driven revision: Turing reframed as net held-out explanatory compression; narrow scope statement (what the unit does not measure); specific Turing gain (T per observation); versioned measurement profile with shared background, reference coder, and model-cost rules; benchmark-culture contrast; Turing's ban/deciban precedent; 29 new references.</td></tr>
-</table>
 </div>
 
 <div class="section" id="cite">
@@ -166,14 +160,14 @@ pre.cite{background:var(--bg-surface);border:1px solid var(--border-subtle);bord
            Explanatory Compression},
   year = {2026},
   month = {September},
-  version = {1.6},
+  version = {1.0},
   note = {Preprint, not peer reviewed},
   url = {https://aienos.com/research/computing-machinery-and-understanding}
 }</pre>
 </div>
 
 <div class="footer-note">
-This is a preprint and has not been peer reviewed. v1.6 reports the first canonical Turing measurement: TY-1+TY-2 PASS, +2,559,679.825 T under measurement profile V0 (omega PR #85, 2026-09-29). Turing yield in T/J is not yet reported; joining energy measurements to Turing-gain receipts is the next step. Questions: <a href="https://github.com/aien-dev" target="_blank" rel="noopener">AIEN on GitHub</a>.
+This is a preprint and has not been peer reviewed. Version 1.0 reports the first canonical Turing measurement: TY-1+TY-2 PASS, +2,559,679.825 T under measurement profile V0 (omega PR #85, 2026-09-29). Turing yield in T/J is not yet reported; joining energy measurements to Turing-gain receipts is the next step. Questions: <a href="https://github.com/aien-dev" target="_blank" rel="noopener">AIEN on GitHub</a>.
 </div>
 </main>
 </body>
