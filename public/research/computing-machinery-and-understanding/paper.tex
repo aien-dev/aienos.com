@@ -7,6 +7,8 @@
 \usepackage{hyperref}
 \usepackage{booktabs}
 \usepackage{longtable}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc}
 \geometry{margin=1in}
 
 \newtheorem{definition}{Definition}
@@ -16,13 +18,13 @@
 From the Imitation Game to the Turing:\\
 An Operational Measure of Generalized Explanatory Compression}
 \author{M. Drake Stapleton\\AIEN Project}
-\date{September 30, 2026\\v1.7 preprint (not peer reviewed)}
+\date{September 30, 2026\\v1.8 preprint (not peer reviewed)}
 
 \begin{document}
 
 \maketitle
 
-\noindent\textit{Companion: ``Computing Machinery and Understanding: The Turing as a Measure Emerging from AIEN'' (v1.7) gives the engineering history the measure emerged from: the AIEN/Omega/FORGE architecture, the public evidence receipts, and the first experimental proposals. This preprint is the formal reference: definitions, proofs, protocol, related work, and falsification criteria.}
+\noindent\textit{Companion: ``Computing Machinery and Understanding: The Turing as a Measure Emerging from AIEN'' (v1.8) gives the engineering history the measure emerged from: the AIEN/Omega/FORGE architecture, the public evidence receipts, and the first experimental proposals. This preprint is the formal reference: definitions, proofs, protocol, related work, and falsification criteria.}
 
 \begin{abstract}
 In 1950, Alan Turing confronted the question ``Can machines think?'' not by attempting to define thought directly, but by replacing the question with an operational experiment: the imitation game. That methodological move transformed an ill-posed philosophical dispute into an empirical research program.
@@ -200,6 +202,28 @@ Let \(E_{\rm eval}\) be the energy in joules consumed by the evaluation run that
 \]
 \(Y_{\rm eval}\) is the evaluation yield. \(Y_{\rm discovery}\) is the discovery yield, and it is the stronger quantity: ``understanding gained per joule burned'' must include the cost of discovery, since a model might require 10 MWh to discover and 1 kJ to evaluate, and reporting only evaluation yield would misrepresent its efficiency. Let \(s\) be the wall-clock duration of the evaluation run in seconds; \(\mathcal{T}/s\) is the Turing rate. None of these asserts that energy has been converted into intelligence in any thermodynamic sense; they state that under the given experiment and profile, the computation produced the stated bits of verified explanatory gain per unit of physical resource consumed. Note the fit: \href{https://github.com/aien-dev/omega}{AIEN/Omega} is designed to account for synthesis, verification, and realization costs rather than treating evaluation as the whole computational process. The \(Y_{\rm discovery}\) denominator requires exactly that accounting. Physical energy instrumentation exists: the \href{https://github.com/aien-dev/omega}{AIEN/Omega} R15 performance harness completed its qualification on the DGX Spark (16 of 16 gates PASS, merged as \href{https://github.com/aien-dev/omega/pull/67}{pull request~67} on 2026-09-29, with package energy measured per operation in the machine-readable receipt). The first canonical Turing-gain measurement has now been recorded separately (\href{https://github.com/aien-dev/omega/pull/85}{pull request~85}: +2,559,679.825~T under measurement profile V0; Section~7), but the R15 energy measurements have not yet been joined to a Turing-gain receipt; no \textit{yield} figure (T/J) is reported until that joining exists.
 \end{definition}
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  arr/.style={-{Stealth[length=2.5mm]}, thick},
+  pt/.style={circle, fill=black, inner sep=2pt},
+]
+\draw[arr] (0,0) -- (8,0) node[below, font=\small] {$J$: measured joules for the run};
+\draw[arr] (0,0) -- (0,5.5) node[left, rotate=90, font=\small] {$\mathcal{T}$: bits of verified held-out explanatory gain};
+\node[pt, label={above right:run B (lean)}] (rb) at (2.5,3.6) {};
+\node[pt, label={above right:run A (expensive)}] (ra) at (6.5,3.6) {};
+\draw[dashed] (0,0) -- (rb);
+\draw[dashed] (0,0) -- (ra);
+\draw[dashed] (rb) -- (2.5,0);
+\draw[dashed] (ra) -- (6.5,0);
+\node[font=\small] at (1.3,1.3) {$Y$ larger};
+\node[font=\small] at (3.9,2.2) {$Y$ smaller};
+\node[font=\small, align=left] at (7.2,5.2) {Same $\mathcal{T}$, different $E$:\\yield is the slope\\from the origin};
+\end{tikzpicture}
+\caption{Conceptual illustration of the distinction between Turing gain $\mathcal{T}$ and Turing yield $Y=\mathcal{T}/E$ (Definition~4). Two runs can produce the same net held-out explanatory gain while consuming different measured energy; the yield discriminates between them, which is the environmental hypothesis H5. Conceptual illustration, not empirical data.}
+\label{fig:yield}
+\end{figure}
+
 
 \begin{definition}[Energy attribution]
 Let \(E_0\) be the measured baseline energy of the machine at rest, \(E_A\) the measured energy with process \(A\) running in isolation, \(E_B\) with process \(B\) running in isolation, and \(E_{AB}\) with both running concurrently. Define incremental consumptions \(e(A)=E_A-E_0\), \(e(B)=E_B-E_0\), \(e(A,B)=E_{AB}-E_0\). The interaction term is
@@ -273,6 +297,26 @@ Every experiment instantiates a versioned measurement profile satisfying Definit
 \item Energy instrumentation is calibrated and its uncertainty recorded; the attribution rule (Definition~5) is stated for the concurrency regime of the run; the profile declares whether the reported yield is \(Y_{\rm eval}\), \(Y_{\rm discovery}\), or both.
 \item After the run, all artifacts (profile, baseline, candidate, sealed data, energy traces, and the exact evaluation procedure) are published so that a stranger can recompute \(\mathcal{T}\) and the reported yields.
 \end{enumerate}
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  box/.style={draw, rounded corners, align=center, minimum width=9cm, minimum height=1.0cm, font=\small},
+  arr/.style={-{Stealth[length=2.5mm]}, thick},
+]
+\node[box] (p1) {Preregister the measurement profile: dataset, split, baseline $B$,\\encoding convention, energy instrumentation, attribution rule};
+\node[box, below=0.45cm of p1] (p2) {Seal the held-out set $D$: cryptographic hash for identity,\\auditable blinding for non-access};
+\node[box, below=0.45cm of p2] (p3) {Construct the candidate $M$ with no access to $D$;\\declare all shared background};
+\node[box, below=0.45cm of p3] (p4) {Evaluate: $DL(B,D)=L(B)+L(D\mid B)$ against $DL(M,D)=L(M)+L(D\mid M)$};
+\node[box, fill=gray!10, below=0.45cm of p4] (p5) {Publish the receipt: $\mathcal{T}=DL(B,D)-DL(M,D)$\\with uncertainty envelope and all artifacts};
+\draw[arr] (p1) -- (p2);
+\draw[arr] (p2) -- (p3);
+\draw[arr] (p3) -- (p4);
+\draw[arr] (p4) -- (p5);
+\end{tikzpicture}
+\caption{Conceptual schematic of the Turing measurement pipeline (Section~5). The profile is preregistered and the held-out set sealed before the candidate is constructed or selected; the reported value is the net held-out description-length difference with the candidate's own complexity charged. Conceptual illustration, not empirical data.}
+\label{fig:pipeline}
+\end{figure}
+
 
 \subsection{Sealing and blinding}
 
@@ -412,6 +456,24 @@ EXP-003 & Active experiment selection vs.\ passive baseline & passive schedule &
 \end{tabular}
 \caption{Results. The TY-1+TY-2 row reports the first canonical measurement (2026-09-29, profile V0); EXP rows await runs under preregistered profiles. Numeric cells marked ``pending'' await sealed runs with energy instrumentation.}
 \end{table}
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  box/.style={draw, rounded corners, align=center, minimum width=5.2cm, minimum height=1.0cm, font=\small},
+  arr/.style={-{Stealth[length=2.5mm]}, thick},
+]
+\node[box] (s1) at (0,0) {Score once: compute $\mathcal{T}$\\from the sealed receipts};
+\node[box] (s2) at (7.4,0) {Scoring tool seals the held-out\\seeds; refuses a second scoring};
+\node[box] (s3) at (7.4,-2.2) {Independent verify command refits\\$B$ and $M$ from the training files};
+\node[box, fill=gray!10] (s4) at (0,-2.2) {Reproduced receipt compared\\against the original: must match};
+\draw[arr] (s1) -- (s2);
+\draw[arr] (s2) -- (s3);
+\draw[arr] (s3) -- (s4);
+\draw[arr] (s4) -- (s1);
+\end{tikzpicture}
+\caption{Conceptual schematic of the verification-by-refit loop used for the first canonical measurement (Section~7). The held-out data can be scored exactly once; reproducibility is established by refitting both models from the training files and reproducing the receipt bit for bit. Conceptual illustration, not empirical data.}
+\label{fig:refit}
+\end{figure}
 
 \textbf{Analysis plan (preregistered):} for each experiment, report \(\mathcal{T}\) with its uncertainty envelope, the energy attribution closure check (H4), and both yields \(Y_{\rm eval}\) and \(Y_{\rm discovery}\) where the corresponding energies are measured; test H1--H5 per their pass/fail criteria; publish the full profile, artifacts, and energy traces for independent recomputation. Negative or null results will be reported as such. A failed \(\mathcal{T}>0\) is a result about the candidate, and a failed H3 or H4 is a result about the profile.
 
@@ -485,7 +547,7 @@ This paper is solo-authored. AI language models were used as drafting, analysis,
 \appendix
 \section{Revision history}
 
-This preprint was revised through v1.7 on 2026-09-30 before release. The revision record is kept here, outside the body of the paper, for transparency.
+This preprint was revised through v1.8 on 2026-09-30 before release. The revision record is kept here, outside the body of the paper, for transparency.
 
 \begin{description}
 \item[v1.1] Technical revision: unit/outcome distinction, Lemma~1 proof, Lemma~2 rewrite, yield split, seal/blinding distinction, claim softening.
@@ -495,6 +557,7 @@ This preprint was revised through v1.7 on 2026-09-30 before release. The revisio
 \item[v1.5] First empirical result: TY-1+TY-2 PASS (+2,559,679.825~T under profile V0, omega PR~85); Empirical Results section populated; Definition~4 updated to distinguish measured Turing gain from not-yet-joined Turing yield.
 \item[v1.6] Substantive revision addressing independent review: Turing gain reframed as net held-out explanatory compression (one measurable component of understanding, with explicit scope exclusions); Turing's ban/deciban precedent (Good 1979); specific Turing gain (per-observation rate) with totals compared only at fixed sample size; shared-background declaration and anti-gaming rule; declared reference coder; blessed model-cost code with sensitivity analysis; baseline-sensitivity reporting; benchmark-culture contrast with a fair statement of the world-models debate; physics-grounding thesis with physics-informed ML and the Bitter Lesson; interventional held-out regimes; bibliography expanded.
 \item[v1.7] Release versioning correction: the public release restores the true revision sequence (v1.1--v1.6) after the staged website build was erroneously labeled v1.0; companion cross-reference updated to v1.7. No content change from v1.6.
+\item[v1.8] Figures added (Sections~3, 5, and 7): the Turing measurement pipeline, the distinction between Turing gain $\mathcal{T}$ and Turing yield, and the verification-by-refit loop. No other content change from v1.7.
 \end{description}
 
 \begin{thebibliography}{99}

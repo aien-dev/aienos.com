@@ -8,6 +8,9 @@
 \usepackage{hyperref}
 \usepackage{url}
 \usepackage{longtable}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc}
+
 
 \hypersetup{
     colorlinks=true,
@@ -24,13 +27,13 @@
     \large The Turing as a Measure Emerging from AIEN
 }
 \author{M. Drake Stapleton\\AIEN Project}
-\date{September 30, 2026\\v1.7 preprint (not peer reviewed)}
+\date{September 30, 2026\\v1.8 preprint (not peer reviewed)}
 
 \begin{document}
 
 \maketitle
 
-\noindent\textit{Companion to the formal preprint ``Computing Machinery and Understanding: From the Imitation Game to the Turing'' (v1.7), which gives the definitions, proofs, measurement protocol, and falsification criteria. This paper gives the engineering history the measure emerged from.}
+\noindent\textit{Companion to the formal preprint ``Computing Machinery and Understanding: From the Imitation Game to the Turing'' (v1.8), which gives the definitions, proofs, measurement protocol, and falsification criteria. This paper gives the engineering history the measure emerged from.}
 
 \begin{abstract}
 I did not begin this work by trying to invent a new unit of intelligence.
@@ -124,6 +127,30 @@ The World holds operational state.
 Cortex retains epistemic memory.
 
 The evidence system records what actually occurred.
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  box/.style={draw, rounded corners, align=center, text width=2.85cm, minimum height=1.1cm, font=\footnotesize},
+  arr/.style={-{Stealth[length=2.5mm]}, thick},
+  darr/.style={-{Stealth[length=2.5mm]}, thick, dashed},
+]
+\node[font=\small\itshape] (cap) {meaning $\neq$ realization $\neq$ authority $\neq$ evidence};
+\node[box, below=0.5cm of cap] (aien) {AIEN\\proposes candidates};
+\node[box, right=0.55cm of aien] (omega) {Omega\\defines, synthesizes,\\verifies};
+\node[box, right=0.55cm of omega] (forge) {FORGE\\realizes on\\physical hardware};
+\node[box, right=0.55cm of forge] (ev) {Evidence\\records what\\actually occurred};
+\draw[arr] (aien) -- (omega);
+\draw[arr] (omega) -- (forge);
+\draw[arr] (forge) -- (ev);
+\draw[arr] (ev.south) -- ++(0,-0.55) -| (omega.south);
+\node[box, dashed, below=1.7cm of omega] (aegis) {AEGIS\\verifies\\generated code\\changes nothing,\\decides nothing};
+\node[box, dashed, left=0.55cm of aegis] (argus) {ARGUS\\observes\\defensive events\\never authorizes};
+\draw[darr] (aegis.north) -- (omega.south);
+\draw[darr] (argus.north) -- (aien.south);
+\end{tikzpicture}
+\caption{Conceptual map of the AIEN stack the Turing emerged from (Section~1). Solid arrows are the generation path with an evidence feedback loop; the dashed boxes verify and observe without deciding or authorizing. Conceptual illustration, not empirical data.}
+\label{fig:stack}
+\end{figure}
 
 That separation turned out to matter more than I expected.
 
@@ -1016,6 +1043,28 @@ I want to be precise about what I have and have not demonstrated.
 On 2026-09-29 the first canonical Turing measurement was completed under measurement profile V0 (\href{https://github.com/aien-dev/omega/pull/85}{omega pull request~85}, merged the same day). The candidate was a table conditioning on the tried operation plus the last four outcomes of Omega search traces; the baseline was a table conditioning only on the last outcome. On sealed held-out seeds 8, 9, and 10, about 5.8~million search events never seen during model selection, the candidate reduced total held-out description length by \textbf{2,559,679.825 bits}, scoring \textbf{+2,559,679.825~T}, about \textbf{0.44~T per held-out observation} of specific Turing gain. The preregistered bar of 234,602~bits was cleared, with each held-out seed passing on its own. The scoring tool refuses to score the held-out seeds a second time, and an independent verify command refits both models from the training files and reproduces the receipt exactly. Model cost is the exact stored table length, so pure memorization scores negatively; all scoring arithmetic is integer-only, with worst-case rounding under 6~bits over the whole held-out set.
 
 The honest limits, stated with the result: \(\mathcal{T}\) here is a theoretical code length. No entropy coder was built that produces the smaller file, so this is not yet a physically realized encoding. Energy was not measured in this run, so no Turing yield (\(T/J\)) is reported. Joining R15 energy measurements to Turing-gain receipts is the next step.
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  box/.style={draw, rounded corners, align=center, minimum width=6.8cm, minimum height=1.0cm, font=\small},
+  arr/.style={-{Stealth[length=2.5mm]}, thick},
+]
+\node[box] (b) {Baseline $B$: table conditioning\\on the last outcome only};
+\node[box, below=0.4cm of b] (c) {Candidate $M$: table conditioning on\\the tried operation plus the last four outcomes};
+\node[box, below=0.4cm of c] (d) {Held-out seeds 8, 9, 10: about\\5.8 million search events, never seen\\during model selection (profile V0)};
+\node[box, fill=gray!10, below=0.4cm of d] (r) {Result: \textbf{+2,559,679.825~T} (about 0.44~T per observation)\\preregistered bar of 234,602 bits cleared};
+\node[box, below=0.4cm of r] (v) {Verification: independent refit reproduces\\the receipt exactly; scoring refuses a second run};
+\node[box, dashed, below=0.4cm of v] (l) {Honest limits: theoretical codelength (no entropy\\coder built); no energy measured, so no $T/J$ yet};
+\draw[arr] (b) -- (c);
+\draw[arr] (c) -- (d);
+\draw[arr] (d) -- (r);
+\draw[arr] (r) -- (v);
+\draw[arr] (v) -- (l);
+\end{tikzpicture}
+\caption{Schematic of the recorded first canonical Turing measurement (2026-09-29, profile V0, omega PR~85). This diagram restates the reported run; it is a schematic of a recorded measurement, not new data.}
+\label{fig:firstmeasure}
+\end{figure}
+
 
 I will not score old runs retroactively.
 
@@ -1050,6 +1099,22 @@ It passed, as recorded in the previous section: +2,559,679.825~T under profile V
 One more discipline the protocol enforces, and I want to state it plainly because it is easy to get wrong: the cryptographic hash of the sealed test set proves \textit{which} data was held out. It does not prove the machine never saw it. A hash is a commitment to identity, not a blindfold. Non-access has to be established by a separate, auditable blinding mechanism, and the protocol treats the two claims separately: the hash proves the dataset is the one declared, the blinding proves the candidate was built without it. Either claim without the other is not a measurement.
 
 In the formal paper this first experiment is registered as EXP-001: instrument validation. It is followed by EXP-002, Stochastic Law Discovery, in which a hidden evaluator generates quantized trajectories from an undisclosed stochastic law: pure diffusion, diffusion with drift, and mean-reverting dynamics, and the candidate must earn its complexity on sealed held-out trajectories without inventing deterministic structure inside noise; and by EXP-003, active experiment selection, in which the machine proposes the intervention that most efficiently distinguishes competing explanations. EXP-001 asked whether the instrument works. It does, under profile V0. EXP-002 asks whether it can detect discovered structure. That is the empirical ladder the measure is now climbing.
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  box/.style={draw, rounded corners, align=center, minimum width=10.5cm, minimum height=1.3cm, font=\small},
+  arr/.style={-{Stealth[length=2.5mm]}, thick},
+]
+\node[box] (e1) {\textbf{EXP-001: instrument validation}\\Can $\mathcal{T}$ be measured reproducibly at all?};
+\node[box, below=0.4cm of e1] (e2) {\textbf{EXP-002: stochastic law discovery}\\Can a discovered structure earn its complexity on sealed held-out\\trajectories, without inventing deterministic structure inside noise?};
+\node[box, below=0.4cm of e2] (e3) {\textbf{EXP-003: active experiment selection}\\Can the machine choose the intervention that most\\efficiently distinguishes competing explanations?};
+\draw[arr] (e1) -- (e2);
+\draw[arr] (e2) -- (e3);
+\end{tikzpicture}
+\caption{The preregistered experiment ladder (Section~5.4 of the formal paper). Each rung validates the precondition of the next: first that the instrument works, then that it detects discovered stochastic structure, then that the machine can select its own experiments. Conceptual illustration.}
+\label{fig:ladder}
+\end{figure}
+
 
 \section{The Second Experiment Joins the Machine Back to Physics}
 
@@ -1370,13 +1435,14 @@ AIEN architecture &
 \appendix
 \section{Revision history}
 
-This companion paper was revised through v1.7 on 2026-09-30 before release. The revision record is kept here, outside the body of the paper, for transparency.
+This companion paper was revised through v1.8 on 2026-09-30 before release. The revision record is kept here, outside the body of the paper, for transparency.
 
 \begin{description}
 \item[v1.1] Cross-reference updated to the formal preprint v1.3; forward pointer to the preregistered experiment ladder EXP-001/002/003 defined there.
 \item[v1.2] Em dashes removed throughout at the author's direction (punctuation only, no content change).
 \item[v1.3] Cross-reference updated to the formal preprint v1.6; first canonical Turing measurement recorded (omega PR 85, profile V0); AEGIS role clarified per the AEGIS ruling; FORGE terminology; narrow-scope statement and specific Turing gain.
 \item[v1.7] Release versioning correction: the public release restores the true revision sequence after the staged website build was erroneously labeled v1.0; versions aligned with the formal preprint v1.7 as a coordinated release. No content change from v1.3.
+\item[v1.8] Figures added: the architecture-separation map, the EXP-001/002/003 experiment ladder, and a schematic of the first canonical measurement. No other content change from v1.7.
 \end{description}
 
 \begin{thebibliography}{9}
