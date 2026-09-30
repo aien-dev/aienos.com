@@ -5,6 +5,11 @@ pub const POST_TITLE: &str = "The AIEN V3 Research Plan";
 pub const POST_DATE: &str = "September 27, 2026";
 pub const POST_DESCRIPTION: &str = "The ratified V3 of the AIEN research plan, the Substrate Edition. It adds the whole-box continuity thesis and six falsifiable hypotheses (H5-H10): a shared CPU/GPU object pool, a cross-engine object ABI, a resident cooperation protocol, an epoch checkpoint barrier, movement-first synthesis cost, and the first fully closed propose/prove/realize/execute/measure loop.";
 
+pub const CASE_SLUG: &str = "post-llm-case";
+pub const CASE_TITLE: &str = "The Post-LLM Case";
+pub const CASE_DATE: &str = "September 27, 2026";
+pub const CASE_DESCRIPTION: &str = "Data centers are straining grids, water, and communities while billions of devices sit idle, and two of the field's founders say next-word prediction was never the road to real intelligence. The case for a different learning machine: a Synthesis Policy Model that proposes programs, verification that decides, and knowledge kept as inspectable programs instead of opaque weights.";
+
 pub fn render_blog_index() -> Markup {
     html! {
         div class="container blog-wrap" {
@@ -12,6 +17,14 @@ pub fn render_blog_index() -> Markup {
             h1 class="blog-title" { "Blog" }
             p class="blog-standfirst" {
                 "Occasional notes on building AIEN V2: what shipped, what the evidence says, and what remains an open question."
+            }
+            article class="blog-card" {
+                p class="blog-date" { (CASE_DATE) }
+                h2 class="blog-card-title" {
+                    a href=(format!("/{CASE_SLUG}/")) { (CASE_TITLE) }
+                }
+                p class="blog-excerpt" { (CASE_DESCRIPTION) }
+                a class="blog-read-more" href=(format!("/{CASE_SLUG}/")) { "Read the case" }
             }
             article class="blog-card" {
                 p class="blog-date" { (POST_DATE) }
@@ -54,12 +67,28 @@ fn render_post_body() -> Markup {
         p {
             "The lineage is deliberately small. A minimal seed (Atlas) awakens AIENOS, the trusted substrate. Above it, OMEGA defines, synthesizes, verifies, and realizes programs, keeping the ones that work in a reusable library. AIEN, the neural component, learns to guide the search from OMEGA's own verified search traces, never from human text pretraining. The architecture is explicit on this point: neural weights suggest where to search; they do not define meaning, truth, or authority. Verification does."
         }
+        h2 { "Why now" }
+        p {
+            "This brief is landing in a week when the tension it describes is playing out in public. GitHub, the platform where most of the world's software is written, is straining under the load of the AI systems it helped create: coding assistants writing and revising code around the clock, autonomous agents opening pull requests without waiting for a human, crawlers harvesting repositories to train the next models. "
+            a href="https://www.youtube.com/watch?v=xrSDHyL2FT4" { "LowLevel's ongoing coverage" }
+            " tracks the situation as it develops; one 2026 analysis counted 257 incidents in a single year, and GitHub's own CTO has publicly acknowledged the platform must be designed for far greater scale than planned."
+        }
+        p {
+            "That is the pattern this research program is built to break. Today's AI runs as a guest on human infrastructure, and the guest is now bigger than the house. AIEN's bet runs the other way: intelligence that owns its substrate, verified from the metal up, instead of renting space on systems that were never designed for machine-scale tenants."
+        }
         h2 { "The Infinite Game" }
         p {
             "The brief also documents how the system is being built, because the construction method mirrors the system itself. Multiple independent AI systems (Gemini, Claude, Codex, Grok, DeepSeek, and Muse) each contribute parts under a human conductor. No single system is trusted with the whole picture. Independent AI watchers review every commit, checking both the work and whether the other reviewers caught the mistakes, and every finding feeds back into a compounding loop that improves the building and the oversight together."
         }
         p {
             "The loop is designed to keep going, including through succession beyond its original conductor. That is the name: this is not a game played to win and finish. It is a game played to keep playing."
+        }
+        h2 { "The Succession Test" }
+        p {
+            "There is a standing question underneath all of this work, and it deserves a name. The Turing test asks whether a machine can imitate a human well enough to fool one. That tests mimicry. A better test asks whether a machine can design, build, and verify its own successor, with no human designing, building, or deciding. That tests independence, and it cannot be faked."
+        }
+        p {
+            "Call it the Succession Test. It is falsifiable in a way the Turing test is not. No human judge, no vibes. Either a working successor exists that humans did not build, or it does not. It is also the finish line this program is already aimed at: the roadmap ends at AIEN_SUCCESSION, verified succession beyond the original conductor. The Infinite Game is not played to win. It is played until the players can build the next players."
         }
         h2 { "The claim ledger" }
         p {

@@ -1,0 +1,983 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="icon" href="data:," />
+  <title>The Post-LLM Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Public+Sans:ital,wght@0,400;0,600;0,700;0,800;1,500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light dark;
+      --paper: #f3f6f4;
+      --ink: #10211f;
+      --muted: #52625e;
+      --line: #bac7c2;
+      --line-strong: #7f918b;
+      --surface: #ffffff;
+      --surface-2: #e7eeeb;
+      --deep: #0d2925;
+      --deep-ink: #f0f7f3;
+      --green: #087f62;
+      --green-2: #32bd8a;
+      --coral: #ed5d48;
+      --gold: #c58212;
+      --shadow: 0 22px 60px rgba(13, 41, 37, .10);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --paper: #0c1211;
+        --ink: #e8f0ed;
+        --muted: #a9b8b3;
+        --line: #34433f;
+        --line-strong: #697a74;
+        --surface: #121c1a;
+        --surface-2: #172421;
+        --deep: #071d19;
+        --deep-ink: #eef8f3;
+        --green: #4bd3a1;
+        --green-2: #70e1b8;
+        --coral: #ff7864;
+        --gold: #e3ae50;
+        --shadow: 0 22px 60px rgba(0, 0, 0, .32);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Public Sans", sans-serif;
+      line-height: 1.55;
+      text-rendering: optimizeLegibility;
+    }
+    a { color: inherit; text-underline-offset: 3px; }
+    a:hover { color: var(--green); }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    .mono, .kicker, .stat .label, .source-tag, .pipeline-label, .eyebrow, .chart-note {
+      font-family: "IBM Plex Mono", monospace;
+    }
+    .wrap { width: min(1180px, calc(100% - 48px)); margin: 0 auto; }
+    .rule { border-top: 1px solid var(--line); }
+    .top-index {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: color-mix(in srgb, var(--paper) 92%, transparent);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--line);
+    }
+    .top-index .wrap {
+      min-height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+    .index-mark { font: 600 12px/1 "IBM Plex Mono", monospace; letter-spacing: .08em; }
+    .index-links { display: flex; gap: 20px; font: 500 12px/1 "IBM Plex Mono", monospace; }
+    .index-links a { text-decoration: none; color: var(--muted); }
+    .index-links a:hover { color: var(--ink); }
+
+    .hero {
+      min-height: 82vh;
+      display: grid;
+      align-items: end;
+      background: var(--deep);
+      color: var(--deep-ink);
+      position: relative;
+      overflow: hidden;
+      padding: 72px 0 54px;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      width: 720px;
+      height: 720px;
+      right: -210px;
+      top: -280px;
+      border: 1px solid rgba(112, 225, 184, .28);
+      border-radius: 50%;
+      box-shadow: 0 0 0 70px rgba(112, 225, 184, .035), 0 0 0 150px rgba(112, 225, 184, .025);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: .13;
+      background-image: linear-gradient(rgba(255,255,255,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.3) 1px, transparent 1px);
+      background-size: 52px 52px;
+      mask-image: linear-gradient(to bottom, black, transparent 78%);
+      pointer-events: none;
+    }
+    .hero-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1.5fr .7fr;
+      gap: 56px;
+      align-items: end;
+    }
+    .eyebrow { color: var(--green-2); font-size: 12px; letter-spacing: .12em; margin-bottom: 26px; }
+    h1 {
+      margin: 0;
+      max-width: 900px;
+      font-size: clamp(54px, 8.8vw, 126px);
+      line-height: .88;
+      letter-spacing: -.072em;
+      font-weight: 800;
+    }
+    .hero-copy { max-width: 680px; margin: 34px 0 0; font-size: clamp(18px, 2vw, 25px); line-height: 1.35; color: #c9d9d3; }
+    .hero-side { border-left: 1px solid rgba(255,255,255,.25); padding-left: 24px; }
+    .hero-side p { margin: 0 0 22px; color: #c9d9d3; font-size: 15px; }
+    .hero-side strong { display: block; color: white; font-size: 16px; margin-bottom: 4px; }
+    .hero-side .date { font: 500 12px/1.5 "IBM Plex Mono", monospace; color: var(--green-2); }
+
+    section { padding: 96px 0; scroll-margin-top: 70px; }
+    .section-head {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 36px;
+      align-items: start;
+      margin-bottom: 56px;
+    }
+    .kicker { font-size: 12px; letter-spacing: .1em; color: var(--green); padding-top: 11px; }
+    h2 {
+      margin: 0;
+      max-width: 820px;
+      font-size: clamp(36px, 5vw, 70px);
+      line-height: 1.01;
+      letter-spacing: -.055em;
+    }
+    .lede { max-width: 720px; margin: 24px 0 0 196px; font-size: 19px; color: var(--muted); }
+    .note { font-size: 13px; color: var(--muted); }
+
+    .thesis {
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      margin-top: -1px;
+    }
+    .thesis-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid var(--line-strong);
+      border-bottom: 1px solid var(--line-strong);
+    }
+    .thesis-item { padding: 34px 30px 38px 0; }
+    .thesis-item + .thesis-item { border-left: 1px solid var(--line); padding-left: 30px; }
+    .thesis-num { font: 600 12px/1 "IBM Plex Mono", monospace; color: var(--coral); }
+    .thesis-item h3 { font-size: 24px; line-height: 1.12; margin: 28px 0 14px; letter-spacing: -.035em; }
+    .thesis-item p { margin: 0; color: var(--muted); }
+
+    .signal-band { background: var(--deep); color: var(--deep-ink); }
+    .signal-band .kicker { color: var(--green-2); }
+    .signal-band .section-head { margin-bottom: 66px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid rgba(255,255,255,.28); }
+    .stat { padding: 32px 24px 24px 0; min-height: 230px; }
+    .stat + .stat { border-left: 1px solid rgba(255,255,255,.18); padding-left: 24px; }
+    .stat .label { color: #86d9ba; font-size: 11px; letter-spacing: .08em; }
+    .stat .value { font-size: clamp(42px, 5.2vw, 72px); line-height: 1; letter-spacing: -.06em; font-weight: 800; margin: 24px 0 12px; white-space: nowrap; }
+    .stat p { margin: 0; color: #bed0c9; font-size: 14px; }
+    .source-tag { font-size: 10px; color: #86d9ba; text-decoration: none; display: inline-block; margin-top: 16px; }
+
+    .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 56px; }
+    .chart-card { border-top: 1px solid rgba(255,255,255,.28); padding-top: 24px; }
+    .chart-card h3 { margin: 0 0 6px; font-size: 21px; }
+    .chart-note { margin: 0 0 20px; color: #9eb5ad; font-size: 11px; }
+    .chart { width: 100%; min-height: 270px; }
+    .chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+
+    .impact-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: 64px; align-items: start; }
+    .impact-callout { position: sticky; top: 90px; }
+    .impact-callout .big { font-size: clamp(70px, 10vw, 132px); line-height: .8; letter-spacing: -.08em; font-weight: 800; color: var(--coral); }
+    .impact-callout h3 { font-size: 28px; line-height: 1.1; margin: 24px 0 12px; }
+    .impact-callout p { color: var(--muted); margin: 0; }
+    .cases { border-top: 1px solid var(--line-strong); }
+    .case { display: grid; grid-template-columns: 118px 1fr; gap: 24px; padding: 28px 0; border-bottom: 1px solid var(--line); }
+    .case-place { font: 600 12px/1.5 "IBM Plex Mono", monospace; color: var(--green); }
+    .case h3 { margin: 0 0 10px; font-size: 22px; letter-spacing: -.025em; }
+    .case p { margin: 0; color: var(--muted); }
+    .case .qualifier { display: inline-block; margin-top: 12px; font: 500 10px/1.4 "IBM Plex Mono", monospace; color: var(--coral); }
+
+    .idle { background: var(--surface-2); }
+    .proof-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 24px; }
+    .proof-main {
+      background: var(--surface);
+      padding: 42px;
+      border-top: 7px solid var(--green);
+      box-shadow: var(--shadow);
+    }
+    .proof-main .massive { font-size: clamp(72px, 12vw, 148px); line-height: .9; letter-spacing: -.08em; font-weight: 800; }
+    .proof-main h3 { font-size: 28px; margin: 26px 0 12px; }
+    .proof-main p { color: var(--muted); max-width: 640px; }
+    .proof-stack { display: grid; gap: 18px; }
+    .proof-mini { padding: 28px; background: var(--deep); color: var(--deep-ink); }
+    .proof-mini.alt { background: var(--coral); color: #1e100c; }
+    .proof-mini .n { font-size: 42px; line-height: 1; letter-spacing: -.055em; font-weight: 800; }
+    .proof-mini h3 { margin: 18px 0 8px; font-size: 19px; }
+    .proof-mini p { margin: 0; opacity: .82; font-size: 14px; }
+    .honesty {
+      margin-top: 34px;
+      padding: 24px 0;
+      border-top: 1px solid var(--line-strong);
+      border-bottom: 1px solid var(--line-strong);
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 36px;
+    }
+    .honesty strong { font: 600 12px/1.5 "IBM Plex Mono", monospace; color: var(--coral); }
+    .honesty p { margin: 0; max-width: 790px; }
+
+    .voices { background: var(--surface); }
+    .quote-stage { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--line-strong); }
+    blockquote { margin: 0; padding: 42px 42px 42px 0; }
+    blockquote + blockquote { border-left: 1px solid var(--line); padding-left: 42px; }
+    blockquote p { margin: 0; font-size: clamp(25px, 3.2vw, 39px); line-height: 1.16; letter-spacing: -.04em; font-weight: 600; }
+    blockquote footer { margin-top: 26px; color: var(--muted); font-size: 13px; }
+    blockquote footer a { color: var(--green); }
+    .convergence { margin-top: 44px; display: grid; grid-template-columns: 160px 1fr; gap: 36px; }
+    .convergence .arrow { font-size: 56px; line-height: 1; color: var(--coral); }
+    .convergence p { margin: 0; max-width: 780px; font-size: 23px; line-height: 1.35; }
+
+    .definition { background: var(--deep); color: var(--deep-ink); }
+    .definition .kicker { color: var(--green-2); }
+    .nameplate { border-top: 1px solid rgba(255,255,255,.28); border-bottom: 1px solid rgba(255,255,255,.28); padding: 34px 0 38px; margin-bottom: 62px; }
+    .nameplate .label { font: 500 11px/1.4 "IBM Plex Mono", monospace; color: var(--green-2); letter-spacing: .1em; }
+    .nameplate h3 { margin: 14px 0 10px; font-size: clamp(36px, 6vw, 76px); line-height: .98; letter-spacing: -.055em; }
+    .nameplate p { color: #bed0c9; max-width: 760px; font-size: 18px; margin: 0; }
+    .model-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: 48px; }
+    .model-card { background: #123830; padding: 34px; }
+    .model-card .model-class { font: 600 12px/1.4 "IBM Plex Mono", monospace; color: var(--green-2); }
+    .model-card h3 { margin: 18px 0 14px; font-size: 34px; letter-spacing: -.04em; }
+    .model-card p { margin: 0; color: #c8d9d3; }
+    .two-learnings { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: rgba(255,255,255,.2); }
+    .learning { background: var(--deep); padding: 8px 26px 28px; }
+    .learning .num { font-size: 48px; font-weight: 800; color: var(--coral); }
+    .learning h3 { margin: 4px 0 10px; font-size: 22px; }
+    .learning p { margin: 0; color: #b9ccc5; font-size: 14px; }
+    .not-rl { margin-top: 36px; padding: 24px 28px; border: 1px solid rgba(255,255,255,.24); display: grid; grid-template-columns: 150px 1fr; gap: 24px; }
+    .not-rl strong { font: 600 12px/1.5 "IBM Plex Mono", monospace; color: var(--coral); }
+    .not-rl p { margin: 0; color: #ccdad5; }
+
+    .machine { background: var(--surface); }
+    .machine .section-head { margin-bottom: 34px; }
+    .machine-intro {
+      margin: 0 0 42px 196px;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+    .machine-key {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 22px;
+      margin-bottom: 22px;
+      font: 600 10px/1.4 "IBM Plex Mono", monospace;
+      letter-spacing: .08em;
+      color: var(--muted);
+    }
+    .machine-key span { display: inline-flex; align-items: center; gap: 9px; }
+    .machine-key i { width: 22px; height: 4px; background: var(--green); display: inline-block; }
+    .machine-key .planned-key i { background: var(--gold); }
+    .machine-read {
+      margin: 0 0 12px;
+      text-align: center;
+      font: 500 10px/1.4 "IBM Plex Mono", monospace;
+      letter-spacing: .1em;
+      color: var(--green);
+    }
+    .machine-stack { display: grid; gap: 10px; }
+    .machine-layer {
+      width: var(--layer-width);
+      margin-inline: auto;
+      padding: 24px 26px;
+      background: var(--paper);
+      box-shadow: inset 0 4px 0 var(--green);
+      display: grid;
+      grid-template-columns: 160px minmax(0, 1fr) 172px;
+      gap: 24px;
+      align-items: center;
+    }
+    .machine-layer.planned-edge { box-shadow: inset 0 4px 0 var(--gold); }
+    .machine-layer h3 {
+      margin: 0;
+      font-size: clamp(24px, 3vw, 38px);
+      line-height: 1;
+      letter-spacing: -.045em;
+    }
+    .machine-layer p { margin: 0; color: var(--muted); }
+    .machine-layer .machine-line {
+      margin-top: 7px;
+      font: 600 11px/1.5 "IBM Plex Mono", monospace;
+      color: var(--green);
+    }
+    .machine-status {
+      justify-self: end;
+      text-align: right;
+      font: 600 10px/1.45 "IBM Plex Mono", monospace;
+      letter-spacing: .06em;
+      color: var(--green);
+    }
+    .machine-status.planned { color: var(--gold); }
+    .roadmap { margin-top: 70px; }
+    .roadmap-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: end;
+      margin-bottom: 20px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line-strong);
+    }
+    .roadmap-head h3 { margin: 0; font-size: 30px; letter-spacing: -.035em; }
+    .roadmap-head p { margin: 0; max-width: 590px; color: var(--muted); font-size: 14px; }
+    .era-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
+    .era {
+      min-height: 174px;
+      padding: 18px 14px 20px;
+      background: var(--surface-2);
+      border-top: 5px solid var(--green);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .era.planned {
+      border-top-color: var(--gold);
+      background: color-mix(in srgb, var(--surface-2) 72%, var(--paper));
+    }
+    .era-range { font: 600 11px/1 "IBM Plex Mono", monospace; color: var(--green); }
+    .era.planned .era-range { color: var(--gold); }
+    .era h4 { margin: 0; font-size: 15px; line-height: 1.25; letter-spacing: -.018em; }
+    .era-state { font: 500 9px/1.3 "IBM Plex Mono", monospace; letter-spacing: .07em; color: var(--muted); }
+    .succession {
+      margin-top: 2px;
+      background: var(--deep);
+      color: var(--deep-ink);
+      padding: 25px 28px;
+      display: grid;
+      grid-template-columns: 210px 1fr;
+      gap: 28px;
+      align-items: center;
+    }
+    .succession strong { font: 600 12px/1.5 "IBM Plex Mono", monospace; color: var(--gold); }
+    .succession p { margin: 0; color: #ccdad5; font-size: 17px; }
+
+    .pipelines { background: var(--paper); }
+    .pipeline-compare { display: grid; gap: 34px; }
+    .pipeline { border-top: 1px solid var(--line-strong); padding-top: 22px; }
+    .pipeline-label { font-size: 11px; letter-spacing: .1em; color: var(--green); margin-bottom: 18px; }
+    .flow { display: flex; align-items: stretch; gap: 0; }
+    .step { flex: 1 1 0; padding: 17px 13px; background: var(--surface); border: 1px solid var(--line); min-width: 0; font-size: 12px; font-weight: 700; display: grid; place-items: center; text-align: center; line-height: 1.25; }
+    .step + .step { border-left: 0; }
+    .arrow-step { flex: 0 0 26px; display: grid; place-items: center; color: var(--coral); }
+    .flow.aien .step:nth-child(4), .flow.aien .step:nth-child(12) { background: var(--deep); color: var(--deep-ink); }
+    .flow.llm { max-width: 720px; }
+    .flow.llm .step { color: var(--muted); }
+    .analogy { margin-top: 38px; padding: 28px 34px; background: var(--surface-2); display: grid; grid-template-columns: 160px 1fr; gap: 30px; }
+    .analogy strong { font: 600 12px/1.5 "IBM Plex Mono", monospace; color: var(--green); }
+    .analogy p { margin: 0; font-size: 18px; }
+
+    .memory { background: var(--surface); }
+    .memory-grid { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong); }
+    .memory-item { padding: 26px 22px 30px 0; }
+    .memory-item + .memory-item { border-left: 1px solid var(--line); padding-left: 22px; }
+    .memory-item .mnum { font: 600 11px/1 "IBM Plex Mono", monospace; color: var(--coral); }
+    .memory-item h3 { margin: 22px 0 10px; font-size: 18px; }
+    .memory-item p { margin: 0; font-size: 13px; color: var(--muted); }
+    .authority { margin-top: 34px; font-size: 26px; line-height: 1.25; max-width: 820px; font-weight: 700; letter-spacing: -.03em; }
+    .authority span { color: var(--coral); }
+
+    .tests { background: var(--surface-2); }
+    .test-list { border-top: 1px solid var(--line-strong); }
+    .test { display: grid; grid-template-columns: 70px 1.2fr 1fr; gap: 28px; padding: 26px 0; border-bottom: 1px solid var(--line); }
+    .test .tn { font: 600 12px/1.5 "IBM Plex Mono", monospace; color: var(--coral); }
+    .test h3 { margin: 0; font-size: 21px; }
+    .test p { margin: 0; color: var(--muted); }
+
+    .sources { padding-bottom: 72px; }
+    .sources h2 { font-size: 34px; }
+    .source-list { columns: 2; column-gap: 54px; margin: 36px 0 0; padding: 0; list-style: none; counter-reset: sources; }
+    .source-list li { counter-increment: sources; break-inside: avoid; padding: 15px 0 15px 34px; border-top: 1px solid var(--line); position: relative; font-size: 13px; color: var(--muted); }
+    .source-list li::before { content: counter(sources, decimal-leading-zero); position: absolute; left: 0; top: 16px; font: 500 10px/1 "IBM Plex Mono", monospace; color: var(--green); }
+    .source-list a { color: var(--ink); font-weight: 700; }
+    .closing { margin-top: 58px; padding-top: 28px; border-top: 4px solid var(--ink); display: flex; justify-content: space-between; gap: 24px; align-items: baseline; }
+    .closing strong { font-size: 23px; letter-spacing: -.02em; }
+    .closing span { font: 500 11px/1.5 "IBM Plex Mono", monospace; color: var(--muted); }
+
+    @media (max-width: 900px) {
+      .wrap { width: min(100% - 32px, 760px); }
+      .hero { min-height: auto; padding: 88px 0 46px; }
+      .hero-grid, .impact-grid, .model-grid, .proof-grid { grid-template-columns: 1fr; }
+      .hero-side { margin-top: 20px; }
+      .section-head { grid-template-columns: 105px 1fr; gap: 18px; }
+      .lede, .machine-intro { margin-left: 123px; }
+      .machine-layer { grid-template-columns: 126px minmax(0, 1fr) 150px; }
+      .era-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .era { min-height: 150px; }
+      .stat-grid { grid-template-columns: 1fr 1fr; }
+      .stat:nth-child(3) { border-left: 0; padding-left: 0; border-top: 1px solid rgba(255,255,255,.18); }
+      .stat:nth-child(4) { border-top: 1px solid rgba(255,255,255,.18); }
+      .impact-callout { position: static; }
+      .memory-grid { grid-template-columns: 1fr 1fr; }
+      .memory-item:nth-child(3), .memory-item:nth-child(5) { border-left: 0; padding-left: 0; }
+      .memory-item:nth-child(n+3) { border-top: 1px solid var(--line); }
+      .flow { flex-wrap: wrap; gap: 8px; }
+      .step { flex: 1 1 27%; border: 1px solid var(--line) !important; min-height: 58px; }
+      .arrow-step { display: none; }
+    }
+    @media (max-width: 640px) {
+      .wrap { width: min(100% - 28px, 560px); }
+      .top-index .wrap { min-height: 48px; }
+      .index-links { gap: 12px; overflow: hidden; }
+      .index-links a:nth-child(2), .index-links a:nth-child(4) { display: none; }
+      h1 { font-size: clamp(52px, 18vw, 82px); }
+      .hero-copy { font-size: 18px; }
+      section { padding: 68px 0; }
+      .section-head { display: block; margin-bottom: 36px; }
+      .section-head .kicker { margin-bottom: 18px; }
+      .lede, .machine-intro { margin: 18px 0 0; font-size: 17px; }
+      .machine-intro { margin-bottom: 34px; }
+      .machine-key { gap: 14px; }
+      .machine-layer { width: 100%; grid-template-columns: 1fr; gap: 12px; padding: 22px 20px; }
+      .machine-status { justify-self: start; text-align: left; }
+      .roadmap { margin-top: 52px; }
+      .roadmap-head { display: block; }
+      .roadmap-head p { margin-top: 10px; }
+      .era-grid { grid-template-columns: 1fr; gap: 8px; }
+      .era { min-height: 0; padding: 18px 20px; gap: 10px; }
+      .succession { grid-template-columns: 1fr; gap: 10px; padding: 22px 20px; }
+      .thesis-grid, .stat-grid, .chart-row, .quote-stage, .two-learnings, .memory-grid { grid-template-columns: 1fr; }
+      .thesis-item { padding: 27px 0; }
+      .thesis-item + .thesis-item { border-left: 0; border-top: 1px solid var(--line); padding-left: 0; }
+      .stat { min-height: 0; padding: 25px 0; }
+      .stat + .stat, .stat:nth-child(4) { border-left: 0; border-top: 1px solid rgba(255,255,255,.18); padding-left: 0; }
+      .chart-row { gap: 40px; }
+      .case { grid-template-columns: 1fr; gap: 8px; }
+      .proof-main { padding: 28px; }
+      .honesty, .convergence, .not-rl, .analogy { grid-template-columns: 1fr; gap: 12px; }
+      blockquote { padding: 30px 0; }
+      blockquote + blockquote { border-left: 0; border-top: 1px solid var(--line); padding-left: 0; }
+      .model-card { padding: 26px; }
+      .learning { padding: 22px 0; }
+      .learning + .learning { border-top: 1px solid rgba(255,255,255,.2); }
+      .flow { display: grid; grid-template-columns: 1fr 1fr; }
+      .step { min-height: 64px; }
+      .memory-item, .memory-item + .memory-item, .memory-item:nth-child(3), .memory-item:nth-child(5) { border-left: 0; border-top: 1px solid var(--line); padding: 24px 0; }
+      .memory-item:first-child { border-top: 0; }
+      .test { grid-template-columns: 44px 1fr; gap: 14px; }
+      .test p { grid-column: 2; }
+      .source-list { columns: 1; }
+      .closing { display: block; }
+      .closing span { display: block; margin-top: 10px; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  </style>
+</head>
+<body>
+  <nav class="top-index" aria-label="Page sections">
+    <div class="wrap">
+      <span class="index-mark">RESEARCH / 2026</span>
+      <div class="index-links">
+        <a href="#cost">Cost</a>
+        <a href="#idle">Idle compute</a>
+        <a href="#critique">Critique</a>
+        <a href="#model">The model</a>
+        <a href="#machine">The Machine</a>
+        <a href="#sources">Sources</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="eyebrow">THE CASE AFTER NEXT-TOKEN PREDICTION</div>
+        <h1>The machine is bigger than the house.</h1>
+        <p class="hero-copy">Centralized AI is consuming more power, water, capital, and public patience. A different path starts with a different question: not “what word comes next?” but “what operation is worth trying next?”</p>
+      </div>
+      <aside class="hero-side">
+        <p><strong>Research snapshot</strong>Evidence and sources reviewed 27 September 2026.</p>
+        <p><strong>Central claim</strong>The case is not that every data center is unnecessary. It is that scaling centralized language prediction cannot be treated as the only route to machine intelligence.</p>
+        <div class="date">FIXED SNAPSHOT · NOT LIVE DATA</div>
+      </aside>
+    </div>
+  </header>
+
+  <section class="thesis" id="case">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">00 / THESIS</div>
+        <h2>Three failures point in the same direction.</h2>
+      </div>
+      <div class="thesis-grid">
+        <article class="thesis-item">
+          <div class="thesis-num">01</div>
+          <h3>Centralized scaling is encountering infrastructure constraints.</h3>
+          <p>Power availability is becoming a binding constraint, while water use, pollution, transmission costs, and local opposition move beyond the data center fence line.</p>
+        </article>
+        <article class="thesis-item">
+          <div class="thesis-num">02</div>
+          <h3>Useful compute already exists outside the cluster.</h3>
+          <p>Consumer hardware and enterprise fleets contain idle capacity. Folding@home demonstrated that coordinated volunteer machines can compute at extraordinary distributed scale.</p>
+        </article>
+        <article class="thesis-item">
+          <div class="thesis-num">03</div>
+          <h3>Next-token prediction alone may not be enough for world understanding.</h3>
+          <p>Richard Sutton and Yann LeCun argue that intelligence needs goals, experience, world models, and consequences, not just larger text prediction systems.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="signal-band" id="cost">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">01 / SCALE</div>
+        <h2>The bill is no longer abstract.</h2>
+      </div>
+      <div class="stat-grid">
+        <article class="stat">
+          <div class="label">GLOBAL DATA CENTERS · 2026</div>
+          <div class="value" id="energyValue">565 TWh</div>
+          <p>Gartner’s estimate, up from 447 TWh in 2025.</p>
+          <a class="source-tag" href="https://www.gartner.com/en/newsroom/press-releases/2026-06-10-gartner-says-data-center-electricity-demand-to-grow-26-percent-in-2026" target="_blank" rel="noopener">GARTNER ↗</a>
+        </article>
+        <article class="stat">
+          <div class="label">COOLING WATER · 2025</div>
+          <div class="value">222B L</div>
+          <p>Rystad Energy’s estimate of direct cooling water. Its risked central case reaches nearly 644B liters by 2030 without adaptive measures.</p>
+          <a class="source-tag" href="https://www.rystadenergy.com/news/data-center-water-consumption-could-triple-by-2030" target="_blank" rel="noopener">RYSTAD ENERGY ↗</a>
+        </article>
+        <article class="stat">
+          <div class="label">PJM WHOLESALE CAPACITY CLEARING PRICE</div>
+          <div class="value">+1,053%</div>
+          <p>From $28.92 per MW-day in 2024/25 to $333.44 per MW-day in 2027/28.</p>
+          <a class="source-tag" href="https://pjm.com/-/media/DotCom/markets-ops/rpm/rpm-auction-info/2027-2028/2027-2028-bra-report.pdf?_sp=656a1595-d27e-4e09-9309-eb3bba2e7dc2" target="_blank" rel="noopener">PJM ↗</a>
+        </article>
+        <article class="stat">
+          <div class="label">PROJECTED AI BUILDOUT · 2025–32</div>
+          <div class="value">$10.3T</div>
+          <p>A Brookings Papers on Economic Activity paper projects average investment equal to 3.63% of U.S. GDP per year across buildings, power, networks, and chips. This is one paper’s model projection, not committed spending or an institutional forecast.</p>
+          <a class="source-tag" href="https://www.brookings.edu/articles/financing-the-ai-buildout/" target="_blank" rel="noopener">BROOKINGS ↗</a>
+        </article>
+      </div>
+
+      <div class="chart-row">
+        <article class="chart-card">
+          <h3>Global data center electricity</h3>
+          <p class="chart-note">TWH · ZERO BASELINE · 2025 TO 2026</p>
+          <div class="chart" id="chartGlobal" role="img" aria-label="Bar chart comparing global data center electricity use of 447 terawatt-hours in 2025 and 565 terawatt-hours in 2026"></div>
+        </article>
+        <article class="chart-card">
+          <h3>AI-optimized server electricity</h3>
+          <p class="chart-note">TWH · ZERO BASELINE · 2025 TO 2027</p>
+          <div class="chart" id="chartAI" role="img" aria-label="Bar chart showing AI-optimized server electricity rising from 95 terawatt-hours in 2025 to 175 in 2026 and 258 in 2027"></div>
+        </article>
+      </div>
+      <p class="note">Both series are Gartner estimates reported in June 2026. The 2027 AI-server value is a projection.</p>
+    </div>
+  </section>
+
+  <section id="communities">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">02 / IMPACT</div>
+        <h2>Communities absorb the externalities.</h2>
+      </div>
+      <div class="impact-grid">
+        <aside class="impact-callout">
+          <div class="big">75%</div>
+          <h3>of registered voters in a Heatmap Pro/Embold survey opposed a data center in their community</h3>
+          <p>The survey included 2,045 registered voters and ran August 8 to 13, 2026, with a margin of error of plus or minus 2.3 points. On the unchanged question, 2025 was 42% oppose and 43% support; 2026 was 75% oppose and 15% support.</p>
+          <a class="source-tag" href="https://heatmap.news/daily/data-center-opposition-poll-collapse" target="_blank" rel="noopener">HEATMAP ↗</a>
+        </aside>
+        <div class="cases">
+          <article class="case">
+            <div class="case-place">MEMPHIS</div>
+            <div>
+              <h3>Pollution becomes a legal question.</h3>
+              <p>In an April 2026 lawsuit, the plaintiffs alleged that 27 unpermitted methane-gas turbines at a Southaven, Mississippi power site serving Colossus 2 in Memphis had the potential to emit more than 1,700 tons of nitrogen oxides, 180 tons of fine particulate matter, and 19 tons of formaldehyde each year.</p>
+              <span class="qualifier">PLAINTIFFS’ ALLEGATIONS IN ACTIVE LITIGATION</span><br>
+              <a class="source-tag" href="https://earthjustice.org/press/2026/xai-sued-for-illegal-power-plant" target="_blank" rel="noopener">NAACP / EARTHJUSTICE ↗</a>
+            </div>
+          </article>
+          <article class="case">
+            <div class="case-place">URUGUAY</div>
+            <div>
+              <h3>The design changed with the water assessment.</h3>
+              <p>The earlier proposed design was reported to require 7.6 million liters per day, about the daily household needs of 55,000 people. The current design uses air cooling. Google says its watershed assessment did not meet the responsible-use threshold, and Uruguay’s government confirms the revised air-cooled design. This evidence does not establish that public opposition caused the change.</p>
+              <a class="source-tag" href="https://storage.googleapis.com/gweb-mobius-cdn/sustainability/uploads/21455428735c7305f2cb5c0038fc14bb0803abb8.pdf" target="_blank" rel="noopener">GOOGLE ↗</a>
+              <a class="source-tag" href="https://documentos.diputados.gub.uy/docs/L50/Original/02242.pdf" target="_blank" rel="noopener">URUGUAY GOVERNMENT ↗</a>
+            </div>
+          </article>
+          <article class="case">
+            <div class="case-place">PJM GRID</div>
+            <div>
+              <h3>Modeled capacity costs reach households.</h3>
+              <p>For the 2025/26 auction, Monitoring Analytics estimated data-center load’s contribution in a counterfactual analysis. These are modeled sensitivity estimates, not directly metered causal charges. IEEFA reported the modeled contribution as about 63%, or $9.3 billion, with average household impacts of $16 per month in Ohio and $18 in western Maryland.</p>
+              <a class="source-tag" href="http://www.monitoringanalytics.com/reports/reports/2026/IMM_Analysis_of_the_20272028_RPM_Base_Residual_Auction_Part_A_20260105.pdf" target="_blank" rel="noopener">MONITORING ANALYTICS ↗</a>
+              <a class="source-tag" href="https://ieefa.org/resources/projected-data-center-growth-spurs-pjm-capacity-prices-factor-10" target="_blank" rel="noopener">IEEFA ↗</a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="idle" id="idle">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">03 / CAPACITY</div>
+        <h2>The counterexample is already twenty-six years old.</h2>
+      </div>
+      <div class="proof-grid">
+        <article class="proof-main">
+          <div class="massive">2.43</div>
+          <h3>exaflops reported by Folding@home in April 2020</h3>
+          <p>Folding@home reported 2.43 exaflops in April 2020 and described its volunteer network as bigger than the top 500 supercomputers combined. The separate figures of 4.63 million CPU cores and about 430,000 GPUs date from late March 2020, when the project was reported at around 1.5 exaflops. Distributed x86-equivalent throughput is not directly comparable to TOP500 HPL benchmark scores. This is evidence of distributed scale, not a benchmark win over supercomputers.</p>
+          <a class="source-tag" href="https://foldingathome.org/?p=12797" target="_blank" rel="noopener">FOLDING@HOME ↗</a>
+          <a class="source-tag" href="https://www.techspot.com/news/84561-foldinghome-exceeds-15-exaflops-battle-against-covid-19.html" target="_blank" rel="noopener">MARCH 2020 COUNTS ↗</a>
+        </article>
+        <div class="proof-stack">
+          <article class="proof-mini">
+            <div class="n">30%</div>
+            <h3>2015 study: physical servers were “comatose”</h3>
+            <p>A five-facility sample of about 4,000 servers found 30% had delivered no compute services for six months or more. The estimates of roughly 10 million servers worldwide and at least $30 billion in idle capital were extrapolations, not a 2026 measurement.</p>
+            <a class="source-tag" href="https://storageconsortium.de/files/Case-Study_DataSupports30PercentComatoseEstimate-FINAL_06032015.pdf" target="_blank" rel="noopener">ANTHESIS / KOOMEY ↗</a>
+          </article>
+          <article class="proof-mini alt">
+            <div class="n">12–18%</div>
+            <h3>2014 NRDC estimate: 12–18% utilization</h3>
+            <p>NRDC reported that average server utilization had remained at 12% to 18% between 2006 and 2012. This is historical evidence, not a current utilization estimate.</p>
+            <a class="source-tag" href="https://www.nrdc.org/energy/files/data-center-efficiency-assessment-ip.pdf" target="_blank" rel="noopener">NRDC ↗</a>
+          </article>
+        </div>
+      </div>
+      <div class="honesty">
+        <strong>WHAT THE EVIDENCE DOES NOT PROVE</strong>
+        <p>No defensible aggregate measure of utilization across all household PCs, phones, and consoles was found in this research. Distributed home hardware is also not a drop-in replacement for tightly coupled AI clusters: interconnect, latency, memory, security, energy mix, and heterogeneous devices matter. Folding@home proves possibility, not equivalence.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="voices" id="critique">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">04 / CRITIQUE</div>
+        <h2>Predicting speech is not predicting reality.</h2>
+      </div>
+      <div class="quote-stage">
+        <blockquote>
+          <p>“A world model would enable you to predict what would happen. They have the ability to predict what a person would say.”</p>
+          <footer><strong>Richard Sutton</strong>, 2024 Turing Award laureate and a founder of modern reinforcement learning. <a href="https://podscripts.co/podcasts/dwarkesh-podcast/richard-sutton-father-of-rl-thinks-llms-are-a-dead-end" target="_blank" rel="noopener">Transcript ↗</a></footer>
+        </blockquote>
+        <blockquote>
+          <p>“We’re never going to get to human-level intelligence by training LLMs or by training on text only. We need the real world.”</p>
+          <footer><strong>Yann LeCun</strong>, Turing laureate, at Davos in January 2026. <a href="https://web.archive.org/web/20260124085042/https://fortune.com/2026/01/23/deepmind-demis-hassabis-anthropic-dario-amodei-yann-lecun-ai-davos/" target="_blank" rel="noopener">Fortune archive ↗</a></footer>
+        </blockquote>
+      </div>
+      <div class="convergence">
+        <div class="arrow">↘</div>
+        <p>Their alternatives differ in implementation but converge on experience, goals, consequences, and models of the world. Neither says that a larger next-token predictor is enough.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="definition" id="model">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">05 / DEFINITION</div>
+        <h2>AIEN is not a language model.</h2>
+      </div>
+      <div class="nameplate">
+        <div class="label">AIEN PROPOSED PARADIGM:</div>
+        <h3>Evidence-grounded neuro-symbolic procedural learning</h3>
+        <p>AIEN uses this descriptive term for a proposed system that would accumulate inspectable procedures and use learned search guidance, while external verification and machine evidence retain authority over correctness. It is not an established scientific taxonomy.</p>
+      </div>
+      <div class="model-grid">
+        <article class="model-card">
+          <div class="model-class">WORKING MODEL-CLASS LABEL:</div>
+          <h3>Synthesis Policy Model</h3>
+          <p>AIEN_0 is planned as a verification-guided synthesis model, more specifically a learned search policy for program synthesis. “Synthesis Policy Model” is AIEN’s own working descriptive label, not an established scientific taxonomy. The planned model would see the current problem state, remaining objective, and semantics of possible next operations, then rank which action OMEGA should try next. It is planned to learn from OMEGA-generated traces, not language prediction. Verification would remain outside the model.</p>
+        </article>
+        <div class="two-learnings">
+          <article class="learning">
+            <div class="num">1</div>
+            <h3>Procedural learning</h3>
+            <p>Omega searches for programs, executes them, verifies them, measures them, and stores successful procedures and abstractions in a governed library. Capability accumulates as inspectable programs, not hidden weights.</p>
+          </article>
+          <article class="learning">
+            <div class="num">2</div>
+            <h3>Search-policy learning</h3>
+            <p>AIEN_0 is planned to learn from synthesis traces: candidate transitions, verifier outcomes, machine results, costs, successes, failures, and pruning decisions.</p>
+          </article>
+        </div>
+      </div>
+      <div class="not-rl">
+        <strong>NOT PURE REINFORCEMENT LEARNING</strong>
+        <p>The planned supervision comes from synthesis traces. The eventual objective has not yet been frozen; candidate approaches include supervised/pairwise ranking, imitation learning, value learning, and potentially offline RL.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="machine" id="machine">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">06 / THE MACHINE</div>
+        <h2>The architecture is a chain of earned authority.</h2>
+      </div>
+      <p class="machine-intro">Read the stack from the bottom up. Each layer has a separate job. The machine exists today. The planned AIEN_0, a learned guide inside the top layer, has not been trained.</p>
+
+      <div class="machine-key" aria-label="Architecture status key">
+        <span><i aria-hidden="true"></i> BUILT MACHINE</span>
+        <span class="planned-key"><i aria-hidden="true"></i> PLANNED LEARNING</span>
+      </div>
+      <p class="machine-read">TOP: INTELLIGENCE AND SEARCH</p>
+      <div class="machine-stack" aria-label="AIEN architecture, shown from AIEN at the top to ATLAS at the foundation">
+        <article class="machine-layer planned-edge" style="--layer-width: 76%">
+          <h3>AIEN</h3>
+          <div>
+            <p>Thinks, searches, and invents. The planned AIEN_0 is described by AIEN with the working label “Synthesis Policy Model”: a small neural search guide planned to learn from OMEGA traces, not a language model.</p>
+          </div>
+          <div class="machine-status planned">MACHINE LAYER BUILT<br>AIEN_0 NOT TRAINED</div>
+        </article>
+        <article class="machine-layer" style="--layer-width: 84%">
+          <h3>OMEGA</h3>
+          <div>
+            <p>Defines, synthesizes, verifies, and realizes programs. Working programs become part of a governed library.</p>
+          </div>
+          <div class="machine-status">BUILT</div>
+        </article>
+        <article class="machine-layer" style="--layer-width: 92%">
+          <h3>PHYSICS</h3>
+          <div>
+            <p>The trusted substrate. It authorizes what is allowed to run on the bare metal.</p>
+          </div>
+          <div class="machine-status">BUILT</div>
+        </article>
+        <article class="machine-layer" style="--layer-width: 100%">
+          <h3>ATLAS</h3>
+          <div>
+            <p>The seed. It awakens the machine through verified boot.</p>
+            <div class="machine-line">“ATLAS AWAKENS.”</div>
+          </div>
+          <div class="machine-status">BUILT</div>
+        </article>
+      </div>
+      <p class="machine-read" style="margin-top: 12px; margin-bottom: 0">BOTTOM: VERIFIED BOOT</p>
+
+      <div class="roadmap">
+        <div class="roadmap-head">
+          <h3>The road to succession</h3>
+          <p>The solid green track is the machine and its early work. Gold begins at M20, where the roadmap remains planned. The planned AIEN_0 belongs to that future training era.</p>
+        </div>
+        <div class="era-grid" aria-label="AIEN roadmap eras from M0 through M40">
+          <article class="era">
+            <div class="era-range">M0–M3</div>
+            <h4>Foundational</h4>
+            <div class="era-state">BUILT</div>
+          </article>
+          <article class="era">
+            <div class="era-range">M4–M7</div>
+            <h4>Omega Core</h4>
+            <div class="era-state">BUILT</div>
+          </article>
+          <article class="era">
+            <div class="era-range">M8–M14</div>
+            <h4>Program Synthesis &amp; Library Learning</h4>
+            <div class="era-state">BUILT / EARLY MACHINE</div>
+          </article>
+          <article class="era">
+            <div class="era-range">M15–M19</div>
+            <h4>Accelerator Cognition</h4>
+            <div class="era-state">BUILT / EARLY MACHINE</div>
+          </article>
+          <article class="era planned">
+            <div class="era-range">M20–M26</div>
+            <h4>Sovereign Training</h4>
+            <div class="era-state">PLANNED</div>
+          </article>
+          <article class="era planned">
+            <div class="era-range">M27–M35</div>
+            <h4>Physics Zero Discovery</h4>
+            <div class="era-state">PLANNED</div>
+          </article>
+          <article class="era planned">
+            <div class="era-range">M36–M40</div>
+            <h4>General AIEN</h4>
+            <div class="era-state">PLANNED</div>
+          </article>
+        </div>
+        <div class="succession">
+          <strong>M40 / AIEN_SUCCESSION</strong>
+          <p>The point where the system can design, build, and verify its own successor.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pipelines" id="pipeline">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">07 / MECHANISM</div>
+        <h2>The difference is visible in the pipeline.</h2>
+      </div>
+      <div class="pipeline-compare">
+        <div class="pipeline">
+          <div class="pipeline-label">TARGET PIPELINE / AIEN SYNTHESIS PATH</div>
+          <div class="flow aien" aria-label="Target pipeline for the planned AIEN_0 synthesis system">
+            <div class="step">Task</div><div class="arrow-step">→</div>
+            <div class="step">Formal state</div><div class="arrow-step">→</div>
+            <div class="step">Possible operations</div><div class="arrow-step">→</div>
+            <div class="step">Planned AIEN_0 ranks</div><div class="arrow-step">→</div>
+            <div class="step">Omega search</div><div class="arrow-step">→</div>
+            <div class="step">Verifier</div><div class="arrow-step">→</div>
+            <div class="step">Machine execution</div><div class="arrow-step">→</div>
+            <div class="step">Evidence</div><div class="arrow-step">→</div>
+            <div class="step">Procedure library + traces</div>
+          </div>
+        </div>
+        <div class="pipeline">
+          <div class="pipeline-label">LLM / LANGUAGE PATH</div>
+          <div class="flow llm" aria-label="Large language model pipeline">
+            <div class="step">Text</div><div class="arrow-step">→</div>
+            <div class="step">Transformer</div><div class="arrow-step">→</div>
+            <div class="step">Next-token distribution</div><div class="arrow-step">→</div>
+            <div class="step">More text</div>
+          </div>
+        </div>
+      </div>
+      <div class="analogy">
+        <strong>USEFUL ANALOGY</strong>
+        <p>AlphaZero-style learned search guidance, but over program construction rather than board moves. The planned neural part would not need to know the answer. It would need to identify the most promising next operation. OMEGA’s external verifier would determine validity.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="memory" id="memory">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">08 / MEMORY</div>
+        <h2>What the system knows is not stored in one place.</h2>
+      </div>
+      <div class="memory-grid">
+        <article class="memory-item"><div class="mnum">01</div><h3>Weights</h3><p>Intuition about where to search.</p></article>
+        <article class="memory-item"><div class="mnum">02</div><h3>Verified programs</h3><p>Durable procedural knowledge.</p></article>
+        <article class="memory-item"><div class="mnum">03</div><h3>Cortex evidence</h3><p>Remembered empirical facts and outcomes.</p></article>
+        <article class="memory-item"><div class="mnum">04</div><h3>Omega semantics</h3><p>What computations mean.</p></article>
+        <article class="memory-item"><div class="mnum">05</div><h3>PHYSICS evidence</h3><p>What actually worked on a machine.</p></article>
+      </div>
+      <p class="authority">Learned weights may guide the search. <span>They never get final authority over correctness.</span></p>
+    </div>
+  </section>
+
+  <section class="tests" id="questions">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">09 / TESTS</div>
+        <h2>The post-LLM case still has to earn itself.</h2>
+      </div>
+      <div class="test-list">
+        <article class="test"><div class="tn">01</div><h3>Distributed efficiency</h3><p>Does useful work per joule remain favorable after coordination, redundancy, networking, and device cooling are counted?</p></article>
+        <article class="test"><div class="tn">02</div><h3>Heterogeneous execution</h3><p>Can procedures run reproducibly and securely across different CPUs, GPUs, memory limits, and network conditions?</p></article>
+        <article class="test"><div class="tn">03</div><h3>Generalization</h3><p>Do governed program libraries produce reusable abstractions beyond the tasks that created them?</p></article>
+        <article class="test"><div class="tn">04</div><h3>Search advantage</h3><p>Will the planned AIEN_0 improve synthesis search under equal verification budgets compared with unguided or hand-designed heuristics?</p></article>
+        <article class="test"><div class="tn">05</div><h3>Community bargain</h3><p>Can a distributed system avoid exporting power, water, noise, pollution, and financial risk to the same communities it claims to help?</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="sources" id="sources">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker">10 / SOURCES</div>
+        <h2>Read the evidence, not just the argument.</h2>
+      </div>
+      <ol class="source-list">
+        <li><a href="https://www.gartner.com/en/newsroom/press-releases/2026-06-10-gartner-says-data-center-electricity-demand-to-grow-26-percent-in-2026" target="_blank" rel="noopener">Data-center electricity forecast</a>, Gartner, 10 June 2026.</li>
+        <li><a href="https://www.rystadenergy.com/news/data-center-water-consumption-could-triple-by-2030" target="_blank" rel="noopener">Direct cooling water estimates</a>, Rystad Energy.</li>
+        <li><a href="https://pjm.com/-/media/DotCom/markets-ops/rpm/rpm-auction-info/2027-2028/2027-2028-bra-report.pdf?_sp=656a1595-d27e-4e09-9309-eb3bba2e7dc2" target="_blank" rel="noopener">2027/2028 Base Residual Auction Report</a>, PJM, 17 December 2025.</li>
+        <li><a href="http://www.monitoringanalytics.com/reports/reports/2026/IMM_Analysis_of_the_20272028_RPM_Base_Residual_Auction_Part_A_20260105.pdf" target="_blank" rel="noopener">Counterfactual analysis of data-center load</a>, Monitoring Analytics, 5 January 2026.</li>
+        <li><a href="https://ieefa.org/resources/projected-data-center-growth-spurs-pjm-capacity-prices-factor-10" target="_blank" rel="noopener">PJM capacity-price and household estimates</a>, IEEFA.</li>
+        <li><a href="https://earthjustice.org/press/2026/xai-sued-for-illegal-power-plant" target="_blank" rel="noopener">NAACP lawsuit concerning xAI turbines</a>, Earthjustice, April 2026.</li>
+        <li><a href="https://storage.googleapis.com/gweb-mobius-cdn/sustainability/uploads/21455428735c7305f2cb5c0038fc14bb0803abb8.pdf" target="_blank" rel="noopener">Environmental report and water-risk framework</a>, Google, 2026.</li>
+        <li><a href="https://documentos.diputados.gub.uy/docs/L50/Original/02242.pdf" target="_blank" rel="noopener">Official response on the revised Canelones project</a>, Uruguay government, 30 July 2025.</li>
+        <li><a href="https://heatmap.news/daily/data-center-opposition-poll-collapse" target="_blank" rel="noopener">Survey of local data-center opposition</a>, Heatmap Pro and Embold, August 2026.</li>
+        <li><a href="https://foldingathome.org/?p=12797" target="_blank" rel="noopener">Folding@home’s April 2020 scale report</a>, Folding@home.</li>
+        <li><a href="https://www.techspot.com/news/84561-foldinghome-exceeds-15-exaflops-battle-against-covid-19.html" target="_blank" rel="noopener">Late-March 2020 CPU, GPU, and throughput counts</a>, TechSpot citing Folding@home.</li>
+        <li><a href="https://storageconsortium.de/files/Case-Study_DataSupports30PercentComatoseEstimate-FINAL_06032015.pdf" target="_blank" rel="noopener">Data supports 30 percent comatose estimate</a>, Jonathan Koomey and Jon Taylor, 3 June 2015.</li>
+        <li><a href="https://info.anthesisgroup.com/hubfs/Website%20PDFs/Comatose-Servers-Redux.pdf" target="_blank" rel="noopener">Comatose Servers Redux</a>, Anthesis Group, 2017.</li>
+        <li><a href="https://www.nrdc.org/energy/files/data-center-efficiency-assessment-ip.pdf" target="_blank" rel="noopener">Data Center Efficiency Assessment</a>, NRDC, August 2014.</li>
+        <li><a href="https://www.brookings.edu/articles/financing-the-ai-buildout/" target="_blank" rel="noopener">Financing the AI buildout</a>, Brookings Papers on Economic Activity, 25 September 2026.</li>
+        <li><a href="https://podscripts.co/podcasts/dwarkesh-podcast/richard-sutton-father-of-rl-thinks-llms-are-a-dead-end" target="_blank" rel="noopener">Richard Sutton interview transcript</a>, Dwarkesh Podcast.</li>
+        <li><a href="https://web.archive.org/web/20260124085042/https://fortune.com/2026/01/23/deepmind-demis-hassabis-anthropic-dario-amodei-yann-lecun-ai-davos/" target="_blank" rel="noopener">Yann LeCun at Davos</a>, Fortune archive, January 2026.</li>
+        <li><a href="https://www.ibm.com/think/news/world-models-smarter-ai" target="_blank" rel="noopener">World models and the limits of text training</a>, IBM Think.</li>
+      </ol>
+      <div class="closing">
+        <strong>A proposal, not a victory lap.</strong>
+        <span>RESEARCH SNAPSHOT · 27 SEPTEMBER 2026</span>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    (function () {
+      var datasets = {
+        global: {
+          values: [{ label: "2025", value: 447 }, { label: "2026", value: 565 }],
+          max: 600,
+          ticks: [0, 200, 400, 600],
+          suffix: " TWh",
+          color: "#4bd3a1"
+        },
+        ai: {
+          values: [{ label: "2025", value: 95 }, { label: "2026", value: 175 }, { label: "2027*", value: 258 }],
+          max: 300,
+          ticks: [0, 100, 200, 300],
+          suffix: " TWh",
+          color: "#ff7864"
+        }
+      };
+      var NS = "http://www.w3.org/2000/svg";
+      function node(name, attrs, text) {
+        var el = document.createElementNS(NS, name);
+        Object.keys(attrs || {}).forEach(function (key) { el.setAttribute(key, attrs[key]); });
+        if (text !== undefined) el.textContent = text;
+        return el;
+      }
+      function renderChart(id, data) {
+        var host = document.getElementById(id);
+        var width = 560, height = 270, left = 52, right = 18, top = 22, bottom = 46;
+        var plotW = width - left - right, plotH = height - top - bottom;
+        var svg = node("svg", { viewBox: "0 0 " + width + " " + height, "aria-hidden": "true", focusable: "false" });
+        data.ticks.forEach(function (tick) {
+          var y = top + plotH - (tick / data.max) * plotH;
+          svg.appendChild(node("line", { x1: left, y1: y, x2: width - right, y2: y, stroke: "currentColor", "stroke-opacity": ".20", "stroke-width": "1" }));
+          svg.appendChild(node("text", { x: left - 10, y: y + 4, "text-anchor": "end", fill: "currentColor", "fill-opacity": ".66", "font-size": "11", "font-family": "IBM Plex Mono, monospace" }, String(tick)));
+        });
+        var slot = plotW / data.values.length;
+        var barW = Math.min(96, slot * .48);
+        data.values.forEach(function (d, i) {
+          var h = (d.value / data.max) * plotH;
+          var x = left + slot * i + (slot - barW) / 2;
+          var y = top + plotH - h;
+          svg.appendChild(node("rect", { x: x, y: y, width: barW, height: h, fill: data.color }));
+          svg.appendChild(node("text", { x: x + barW / 2, y: y - 9, "text-anchor": "middle", fill: "currentColor", "font-size": "13", "font-weight": "700", "font-family": "IBM Plex Mono, monospace" }, d.value + data.suffix));
+          svg.appendChild(node("text", { x: x + barW / 2, y: height - 17, "text-anchor": "middle", fill: "currentColor", "fill-opacity": ".75", "font-size": "12", "font-family": "IBM Plex Mono, monospace" }, d.label));
+        });
+        host.appendChild(svg);
+      }
+      renderChart("chartGlobal", datasets.global);
+      renderChart("chartAI", datasets.ai);
+      var growth = ((datasets.global.values[1].value / datasets.global.values[0].value - 1) * 100).toFixed(1);
+      document.getElementById("energyValue").setAttribute("title", growth + "% increase from 2025");
+    }());
+  </script>
+</body>
+</html>
