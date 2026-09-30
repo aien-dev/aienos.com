@@ -18,13 +18,13 @@
 From the Imitation Game to the Turing:\\
 An Operational Measure of Generalized Explanatory Compression}
 \author{M. Drake Stapleton\\AIEN Project}
-\date{September 30, 2026\\v1.8 preprint (not peer reviewed)}
+\date{September 30, 2026\\v1.9 preprint (not peer reviewed)}
 
 \begin{document}
 
 \maketitle
 
-\noindent\textit{Companion: ``Computing Machinery and Understanding: The Turing as a Measure Emerging from AIEN'' (v1.8) gives the engineering history the measure emerged from: the AIEN/Omega/FORGE architecture, the public evidence receipts, and the first experimental proposals. This preprint is the formal reference: definitions, proofs, protocol, related work, and falsification criteria.}
+\noindent\textit{Companion: ``Computing Machinery and Understanding: The Turing as a Measure Emerging from AIEN'' (v1.9) gives the engineering history the measure emerged from: the AIEN/Omega/FORGE architecture, the public evidence receipts, and the first experimental proposals. This preprint is the formal reference: definitions, proofs, protocol, related work, and falsification criteria.}
 
 \begin{abstract}
 In 1950, Alan Turing confronted the question ``Can machines think?'' not by attempting to define thought directly, but by replacing the question with an operational experiment: the imitation game. That methodological move transformed an ill-posed philosophical dispute into an empirical research program.
@@ -402,6 +402,10 @@ The profile answers by rule, not by trust:
 \end{enumerate}
 Externalization is not always gaming. Human science does exactly this: Newton externalizes calculus. The difference is declaration. Shared background that is declared, versioned, and cost-accounted is legitimate cumulative science; undeclared background is cheating. The versioned measurement profile is the instrument that turns the loophole into a feature.
 
+The contemporary form of this question deserves to be named, because it is now a mainstream position. Andrej Karpathy wrote in January 2023 that ``the hottest new programming language is English''~\cite{karpathy2023}; his later Software 3.0 framing extends the point, treating natural-language prompts as the programs of a new software era. David Heinemeier Hansson, the creator of Ruby on Rails, stated the strongest version in his opening keynote at Rails World 2026: his company 37signals has gone ``pencils down'' on hand-written code, and, in his words, ``English is a better programming language than Ruby''~\cite{hansson2026}. Stated fairly, the claim is that a natural-language specification, interpreted by a sufficiently capable pretrained model, is now the operative program, and that the formal code underneath has become a compilation detail.
+
+This protocol is neutral about the language in which a candidate is specified. It is not neutral about what the candidate must pay. A prompt is a short description only when the interpreter is left off the books. Under the rules above, an English-specified candidate is admitted with its interpreter declared in the shared background, versioned, and charged its accounted share, exactly as a candidate in any other notation is charged for its own description. Whether English is the better programming language is therefore, under this protocol, an empirical question with a definite form: does an explanation specified in English, with its interpreter fully declared, compress sealed observations better per bit of total declared cost than the alternatives? Fluency of specification is not itself explanatory gain, and a claim that cannot survive declaration of its own background has not been measured at all.
+
 \section{Related Work}
 
 Only real, verifiable citations are included. The mathematical ancestry is credited in full; the claim of this paper is the named unit and its protocol, not the mathematics. An independent prior-art search (September 2026) across arXiv 2020--2026, the Anthropic/OpenAI/Google DeepMind research publications, and the conference literature found no existing unit named \textit{Turing} for net held-out explanatory compression, and no equivalent named unit. The nearest neighbors are engaged below, precisely to mark the boundary.
@@ -547,7 +551,7 @@ This paper is solo-authored. AI language models were used as drafting, analysis,
 \appendix
 \section{Revision history}
 
-This preprint was revised through v1.8 on 2026-09-30 before release. The revision record is kept here, outside the body of the paper, for transparency.
+This preprint was revised through v1.9 on 2026-09-30 before release. The revision record is kept here, outside the body of the paper, for transparency.
 
 \begin{description}
 \item[v1.1] Technical revision: unit/outcome distinction, Lemma~1 proof, Lemma~2 rewrite, yield split, seal/blinding distinction, claim softening.
@@ -558,6 +562,7 @@ This preprint was revised through v1.8 on 2026-09-30 before release. The revisio
 \item[v1.6] Substantive revision addressing independent review: Turing gain reframed as net held-out explanatory compression (one measurable component of understanding, with explicit scope exclusions); Turing's ban/deciban precedent (Good 1979); specific Turing gain (per-observation rate) with totals compared only at fixed sample size; shared-background declaration and anti-gaming rule; declared reference coder; blessed model-cost code with sensitivity analysis; baseline-sensitivity reporting; benchmark-culture contrast with a fair statement of the world-models debate; physics-grounding thesis with physics-informed ML and the Bitter Lesson; interventional held-out regimes; bibliography expanded.
 \item[v1.7] Release versioning correction: the public release restores the true revision sequence (v1.1--v1.6) after the staged website build was erroneously labeled v1.0; companion cross-reference updated to v1.7. No content change from v1.6.
 \item[v1.8] Figures added (Sections~3, 5, and 7): the Turing measurement pipeline, the distinction between Turing gain $\mathcal{T}$ and Turing yield, and the verification-by-refit loop. No other content change from v1.7.
+\item[v1.9] Named engagement added: the shared-background and anti-gaming discussion now states the English-as-programming-language claim by name (Karpathy 2023; Hansson, Rails World 2026 opening keynote) and answers it in protocol terms. Figures from v1.8 carried unchanged. No other content change from v1.8.
 \end{description}
 
 \begin{thebibliography}{99}
@@ -782,6 +787,18 @@ R.~T. McCoy, S. Yao, D. Friedman, M.~D. Hardy, and T.~L. Griffiths,
 K. Vafa et al.,
 \newblock ``Evaluating the World Model Implicit in a Generative Model,''
 \newblock arXiv:2406.03689, 2024.
+
+\bibitem{karpathy2023}
+A. Karpathy,
+\newblock ``The hottest new programming language is English,''
+\newblock post on X, January 24, 2023.
+\newblock \url{https://twitter.com/karpathy/status/1617979122625712128}.
+
+\bibitem{hansson2026}
+D.~H. Hansson,
+\newblock ``Rails World 2026 Opening Keynote,''
+\newblock Rails World 2026, Austin, TX, 2026.
+\newblock \url{https://www.youtube.com/watch?v=vDjW_dRyKXY}.
 
 \end{thebibliography}
 

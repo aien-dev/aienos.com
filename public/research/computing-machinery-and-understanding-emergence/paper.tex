@@ -27,13 +27,13 @@
     \large The Turing as a Measure Emerging from AIEN
 }
 \author{M. Drake Stapleton\\AIEN Project}
-\date{September 30, 2026\\v1.8 preprint (not peer reviewed)}
+\date{September 30, 2026\\v1.9 preprint (not peer reviewed)}
 
 \begin{document}
 
 \maketitle
 
-\noindent\textit{Companion to the formal preprint ``Computing Machinery and Understanding: From the Imitation Game to the Turing'' (v1.8), which gives the definitions, proofs, measurement protocol, and falsification criteria. This paper gives the engineering history the measure emerged from.}
+\noindent\textit{Companion to the formal preprint ``Computing Machinery and Understanding: From the Imitation Game to the Turing'' (v1.9), which gives the definitions, proofs, measurement protocol, and falsification criteria. This paper gives the engineering history the measure emerged from.}
 
 \begin{abstract}
 I did not begin this work by trying to invent a new unit of intelligence.
@@ -1181,6 +1181,8 @@ I did not build this measure because I wanted a new number. I built it because t
 
 First, the environment. As machine computation scales, the energy cost of producing understanding is invisible in every benchmark I know. Accuracy per watt tells you how cheaply a model performs; it does not tell you how cheaply a machine \textit{learns}. Turings per joule makes the energy cost of discovery legible. If the field ever has to answer how much understanding it bought per unit of energy, this is the shape of the answer.
 
+The absence of that accounting is not for lack of spending on efficiency. The industry's current answer is faster hardware for moving data. Lightmatter, a photonics company spun out of MIT, has raised roughly 850 million dollars, including a 400 million dollar Series D at a 4.4 billion dollar valuation in October 2024, for Passage, a photonic interconnect whose M1000 platform moves data between chips with light at up to 114 terabits per second. Passage moves data; it does not compute. And none of the efficiency claims around it, or around the hardware generation it belongs to, is stated as held-out explanatory gain per joule. That is not a criticism of the engineering. It is the gap this measure names: until efficiency claims are expressed in a unit like Turing yield, there is no common ruler on which a photonic interconnect, a new accelerator, and a better algorithm can be compared.
+
 Second, honesty. The protocol only works if the baseline is declared in advance, the held-out data is sealed, every artifact is recomputable, and negative results are reported as what they are: a candidate that did not pay for itself. That discipline is not a nicety. It is the difference between a measure and a marketing claim. A field that adopts this unit adopts, along with it, the habit of saying what it tried and what failed.
 
 Third, alignment. A great deal of alignment work has no measurable target: we ask machines to be safe, helpful, and honest, and we grade them with vibes. Verified understanding, operationalized as net held-out explanatory compression, is one thing we can actually measure. It is not the whole of alignment, and I claim nothing more.
@@ -1198,6 +1200,10 @@ The question I encountered while building AIEN was different.
 I already had machines capable of producing fluent responses.
 
 That did not solve my problem.
+
+This contrast has since become a public position, and it deserves to be named rather than gestured at. Andrej Karpathy wrote in 2023 that ``the hottest new programming language is English''~\cite{karpathy2023}, and his Software 3.0 framing treats the English prompt as the program. In his opening keynote at Rails World 2026, David Heinemeier Hansson, the creator of Ruby on Rails, carried the claim to its conclusion: 37signals has gone ``pencils down'' on hand-written code, because, in his words, ``English is a better programming language than Ruby''~\cite{hansson2026}.
+
+The Turing was built for exactly this dispute. If English is the language, the model is the interpreter, and what an English sentence means is whatever that interpreter does with it. This paper does not settle the question by argument. It settles it by accounting: declare the candidate together with its interpreter, charge the full cost, and measure the explanatory gain on sealed data. A specification language earns its standing by what its programs explain per bit and per joule, not by how natural it feels to write.
 
 I needed to know whether the system had discovered structure that generalized beyond what it had already seen.
 
@@ -1435,7 +1441,7 @@ AIEN architecture &
 \appendix
 \section{Revision history}
 
-This companion paper was revised through v1.8 on 2026-09-30 before release. The revision record is kept here, outside the body of the paper, for transparency.
+This companion paper was revised through v1.9 on 2026-09-30 before release. The revision record is kept here, outside the body of the paper, for transparency.
 
 \begin{description}
 \item[v1.1] Cross-reference updated to the formal preprint v1.3; forward pointer to the preregistered experiment ladder EXP-001/002/003 defined there.
@@ -1443,6 +1449,7 @@ This companion paper was revised through v1.8 on 2026-09-30 before release. The 
 \item[v1.3] Cross-reference updated to the formal preprint v1.6; first canonical Turing measurement recorded (omega PR 85, profile V0); AEGIS role clarified per the AEGIS ruling; FORGE terminology; narrow-scope statement and specific Turing gain.
 \item[v1.7] Release versioning correction: the public release restores the true revision sequence after the staged website build was erroneously labeled v1.0; versions aligned with the formal preprint v1.7 as a coordinated release. No content change from v1.3.
 \item[v1.8] Figures added: the architecture-separation map, the EXP-001/002/003 experiment ladder, and a schematic of the first canonical measurement. No other content change from v1.7.
+\item[v1.9] Named engagement added: the framing discussion now addresses the English-as-programming-language claim by name (Karpathy 2023; Hansson, Rails World 2026 opening keynote), and the environment discussion names Lightmatter and its Passage photonic interconnect as the hardware case for Turing yield accounting. Figures from v1.8 carried unchanged. No other content change from v1.8.
 \end{description}
 
 \begin{thebibliography}{9}
@@ -1507,6 +1514,18 @@ F. Chollet,
 Y. Zhang and Y. Liu,
 \newblock ``A Theory of Machine Understanding via the Minimum Description Length Principle,''
 \newblock arXiv:2504.00395, 2025.
+
+\bibitem{karpathy2023}
+A. Karpathy,
+\newblock ``The hottest new programming language is English,''
+\newblock post on X, January 24, 2023.
+\newblock \url{https://twitter.com/karpathy/status/1617979122625712128}.
+
+\bibitem{hansson2026}
+D.~H. Hansson,
+\newblock ``Rails World 2026 Opening Keynote,''
+\newblock Rails World 2026, Austin, TX, 2026.
+\newblock \url{https://www.youtube.com/watch?v=vDjW_dRyKXY}.
 
 \end{thebibliography}
 
