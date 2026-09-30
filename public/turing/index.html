@@ -65,6 +65,8 @@ p.lead strong{color:#f1f5f9}
 .film-frame::before{content:"";display:block;padding-top:56.25%}
 .film-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .film-cap{text-align:center;color:#64748b;font-size:13px;margin-top:18px;font-family:"JetBrains Mono",monospace;letter-spacing:.14em}
+.film-title{text-align:center;font-size:clamp(22px,3vw,30px);font-weight:800;letter-spacing:-.02em;margin:0}
+.film-entry{margin-top:56px}
 .trio{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:44px}
 @media(max-width:820px){.trio{grid-template-columns:1fr}}
 .step-card{background:#0e1219;border:1px solid #1c2536;border-radius:18px;padding:30px 26px;position:relative;overflow:hidden;transition:.3s}
@@ -203,23 +205,32 @@ input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;bac
     <p class="tag">A unit for <strong>how much a machine actually understood</strong>. Not how fluent it sounds. Not how fast it runs. How much hidden reality its explanations can predict, after the explanations pay for themselves.</p>
     <div class="cta-row">
       <a class="btn" href="#play">Play with it</a>
-      <a class="btn ghost" href="#film">Watch the film</a>
+      <a class="btn ghost" href="#film">Watch the films</a>
       <a class="btn ghost" href="#papers">Read the papers</a>
     </div>
   </div>
   <div class="scroll-cue">SCROLL</div>
 </div>
 
-<!-- THE FILM -->
-<!-- VIDEO: paste the YouTube video ID into the iframe src below when the upload link arrives -->
+<!-- THE FILMS -->
+<!-- VIDEO: paste the YouTube video IDs into the iframe srcs below when the upload links arrive -->
 <section class="block" id="film">
   <div class="reveal">
-    <div class="kicker">The film</div>
-    <h2 class="st">The Ledger of Understanding</h2>
-    <p class="lead">The story of the Turing, told straight: what it measures, why it matters, and what changes when understanding itself becomes measurable.</p>
+    <div class="kicker">The films</div>
+    <h2 class="st">The idea, on film</h2>
+    <p class="lead">Two short films from the AIEN channel: the story of the Turing, and how machine understanding gets measured.</p>
   </div>
-  <div class="film-frame reveal">
-    <iframe src="https://www.youtube.com/embed/REPLACE_WITH_VIDEO_ID?rel=0" title="The Ledger of Understanding" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+  <div class="film-entry reveal">
+    <h3 class="film-title">The Ledger of Understanding</h3>
+    <div class="film-frame">
+      <iframe src="https://www.youtube.com/embed/REPLACE_WITH_VIDEO_ID_1?rel=0" title="The Ledger of Understanding" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+    </div>
+  </div>
+  <div class="film-entry reveal">
+    <h3 class="film-title">The Complexity Ledger: Measuring Machine Understanding</h3>
+    <div class="film-frame">
+      <iframe src="https://www.youtube.com/embed/REPLACE_WITH_VIDEO_ID_2?rel=0" title="The Complexity Ledger: Measuring Machine Understanding" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+    </div>
   </div>
   <div class="film-cap reveal">AIEN ON YOUTUBE</div>
 </section>
