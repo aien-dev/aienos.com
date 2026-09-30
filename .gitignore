@@ -9,3 +9,4 @@ server/*.sqlite3*
 # Rust build artifacts
 /target
 Cargo.lock
+dist-rust

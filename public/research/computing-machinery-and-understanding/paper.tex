@@ -1,0 +1,805 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc}
+\geometry{margin=1in}
+
+\newtheorem{definition}{Definition}
+\newtheorem{lemma}{Lemma}
+
+\title{Computing Machinery and Understanding\\
+From the Imitation Game to the Turing:\\
+An Operational Measure of Generalized Explanatory Compression}
+\author{M. Drake Stapleton\\AIEN Project}
+\date{September 30, 2026\\v1.9 preprint (not peer reviewed)}
+
+\begin{document}
+
+\maketitle
+
+\noindent\textit{Companion: ``Computing Machinery and Understanding: The Turing as a Measure Emerging from AIEN'' (v1.9) gives the engineering history the measure emerged from: the AIEN/Omega/FORGE architecture, the public evidence receipts, and the first experimental proposals. This preprint is the formal reference: definitions, proofs, protocol, related work, and falsification criteria.}
+
+\begin{abstract}
+In 1950, Alan Turing confronted the question ``Can machines think?'' not by attempting to define thought directly, but by replacing the question with an operational experiment: the imitation game. That methodological move transformed an ill-posed philosophical dispute into an empirical research program.
+
+This paper proposes an analogous reformulation for a contemporary question: \textbf{does a machine understand?} I propose that one measurable component of understanding can be operationalized as the discovery of compact structure that continues to predict previously unseen observations. The proposal combines Shannon information, predictive coding, Minimum Description Length, empirical verification, and physical resource accounting.
+
+I define a new derived quantity, \textbf{Turing gain}, denoted \(\mathcal{T}\). One Turing (1 T) is one bit of \textbf{net held-out explanatory compression}: the net reduction in held-out total description length produced by a specified model, program, theory, or abstraction relative to a declared baseline, after including the description cost of the explanatory structure itself. For baseline \(B\), candidate explanation \(M\), sealed held-out observations \(D\), and measurement profile \(P\),
+\[
+\mathcal{T}(M;B,D,P)
+=
+\left[L(B)+L(D\mid B)\right]
+-
+\left[L(M)+L(D\mid M)\right].
+\]
+A positive Turing gain indicates that the candidate has discovered structure that pays for its own complexity and continues to compress unseen observations. A negative gain indicates that the explanation introduces more complexity than the structure it captures. Turing gain is therefore permitted to fail: a theory can score negative Turings.
+
+The Turing is not proposed as a replacement for the bit, the joule, the watt, or any SI quantity. It is a protocol-bound measure of \textbf{generalized explanatory gain}. The claim is deliberately narrow: the Turing measures one operational component of understanding (its predictive and explanatory-efficiency dimension), not understanding itself. It does not measure causal direction, semantic grounding, agency, or value alignment; Section~9 states these exclusions explicitly. When paired with physical measurements, it permits derived quantities such as the Turing rate (\(\mathcal{T}/s\)), the specific Turing gain (\(\mathcal{T}\) per held-out observation), and Turing yield (\(Y_{\rm eval}\), \(Y_{\rm discovery}\)), allowing the informational productivity of different algorithms, architectures, processors, accelerators, and potentially non-digital substrates to be compared under controlled experimental conditions. The yield quantities address a current environmental blind spot: the field has no standardized measure of net held-out explanatory compression per joule. The unit's discipline (declared baselines, sealed held-out data, recomputable evidence, declared shared background) is also an honesty discipline, and it gives alignment research a measurable target: verified understanding rather than performed competence. The honest bounds are stated explicitly: the Turing does not directly measure safety, consciousness, or moral worth.
+
+The naming follows a precedent set by Turing himself: at Bletchley Park he introduced the \textit{ban} and the \textit{deciban}, operational units of evidential weight for scoring hypotheses~\cite{good1979}. I am unaware of prior work using the term \textit{Turing} for the protocol-bound quantity of net held-out explanatory compression defined here. The proposal is explicitly falsifiable, and preregistered falsification criteria are given. If predictive models do not produce corresponding compression gains, if candidate complexity erases those gains, if held-out improvements fail to reproduce, or if physical attribution cannot satisfy conservation constraints, the claimed measurements fail.
+
+\textit{Turing taught us to replace an unanswerable question with an operational one. I ask whether machines can discover explanations that make unseen reality less surprising.}
+\end{abstract}
+
+\section{Introduction}
+
+\textit{Turing taught us to replace an unanswerable question with an operational one. I ask whether machines can discover explanations that make unseen reality less surprising.}
+
+I propose to consider the question: \textbf{can a machine understand?}
+
+The customary approach would begin by defining the words \textit{machine} and \textit{understand}. This is unlikely to be profitable. Turing did not settle the meaning of ``thinking'' by definition. He proposed an observable game whose outcome could be discussed without agreement on the metaphysics of thought~\cite{turing1950}. I attempt a similar substitution. Instead of asking ``does this machine understand the world?'', I ask:
+\begin{quote}
+\textbf{Has this machine discovered a compact explanation that makes previously unseen parts of the world less surprising?}
+\end{quote}
+This question admits measurement. A predictive model implicitly defines a code: for a sequence \(D=(x_1,\ldots,x_n)\),
+\[
+L(D\mid M)
+=
+-\sum_{t=1}^{n}
+\log_2 p_M(x_t\mid x_{<t})
+\]
+is its idealized predictive description length under model \(M\), where \(p_M(x_t\mid x_{<t})\) is the probability the model assigns to observation \(x_t\) given the preceding observations. Shannon's theory established the mathematical relationship between probability, information, and the limits of lossless coding~\cite{shannon1948}: a model that predicts a sequence more accurately can, in principle, describe that sequence using fewer bits. Thus prediction \(\longleftrightarrow\) probability \(\longleftrightarrow\) description length. The surprising event is expensive; the predictable event is cheap; regularity is compressible.
+
+But compression of data alone is insufficient, because a machine could memorize an enormous lookup table: excellent predictions, uneconomical explanation. The model itself must also be paid for. The relevant quantity is the two-part total description length \(L(M)+L(D\mid M)\), in the Minimum Description Length tradition~\cite{rissanen1978,grunwald2005}. A lookup table costing eight million bits that reduces residual prediction length by only three million bits has a negative net contribution; a 400-bit rule that reduces unexplained held-out data by 50,000 bits has discovered something compact and reusable.
+
+\subsection{What the Turing is not: a renamed bit}
+
+An immediate objection deserves an answer before the formalism: is the Turing ``simply renaming bits''? It is not, and the distinction is load-bearing for everything that follows. Three things must be kept distinct:
+\begin{itemize}
+\item \textbf{Quantity.} Turing gain, \(\mathcal{T}(M;B,D,P)\): the net held-out explanatory advantage of candidate \(M\) over baseline \(B\) on sealed observations \(D\), under measurement profile \(P\) (Definition~2).
+\item \textbf{Reporting unit.} The turing, T: one bit of net held-out explanatory advantage under a declared protocol.
+\item \textbf{Measurement.} A reported value together with its profile: e.g., \(84{,}220\,T\) under profile \(P\). A bare number without its profile is scientifically incomplete.
+\item \textbf{Rate reporting.} The headline number is the \textbf{specific Turing gain}: \(\mathcal{T}\) divided by the number of sealed held-out observations, in Turings per observation. Raw totals are compared only at fixed sample size. A bare total without its \(n\) is as incomplete as a bare number without its profile.
+\end{itemize}
+Dimensionally, Turing gain is measured on a bit scale. Scientifically, it is a constrained statistic, not arbitrary information content: the difference between two controlled total description lengths, with the candidate's own complexity charged, the data sealed, the baseline declared in advance, and the physical attribution conserved. Giving a particular operational meaning to a derived quantity is standard scientific practice. Haldane's darwin~\cite{haldane1949} did exactly this for evolutionary rate. It is not the discovery of a new fundamental SI dimension. The Turing claims no such dimension. It claims a disciplined way of counting.
+
+\subsection{Turing's own precedent: the ban and the deciban}
+
+The name is not decoration. At Bletchley Park, Turing needed a working unit for the weight of evidence, and he coined one: the \textit{ban}, the base-10 log-likelihood-ratio unit, with the \textit{deciban} as its tenth, named by explicit analogy with the decibel~\cite{good1979}. Cryptanalysts scored hypotheses in decibans because evidence had to be added, compared, and acted on, and that required a unit. The Turing proposed here is the direct descendant of that move: one bit of net held-out explanatory advantage, scored under a declared protocol, so that claims about machine understanding can be added, compared, and acted on. The ban measured evidence for a hypothesis; the Turing measures evidence that an explanation has earned its keep.
+
+\subsection{Benchmarks measure performance; the Turing measures explanatory gain}
+
+Contemporary machine learning evaluates itself chiefly through benchmarks: fixed test sets on which systems compete for accuracy. This culture has produced real progress and real pathologies. Web-scale pretraining corpora swallow test sets, so ``held-out'' is often a fiction: contamination must now be measured per benchmark~\cite{sainz2023}, models reconstruct missing benchmark items at rates far above chance~\cite{deng2024}, and training data is extractable verbatim~\cite{carlini2021}. Bender and Koller~\cite{benderkoller2020} dramatized the deeper issue with an octopus that predicts telegraphic text superbly while possessing no model of the world the text describes: excellent string prediction with zero understanding. Bender et al.~\cite{benderetal2021} named the resulting systems stochastic parrots: fluent stitchers of linguistic form without reference to meaning. McCoy et al.~\cite{mccoy2024} showed empirically that large language models exhibit probability-shaped rather than understanding-shaped error patterns: GPT-4 decoded a simple cipher at 51\% accuracy when the answer was a high-probability sentence versus 13\% when it was low-probability, on a deterministic task where probability should not matter.
+
+The honest counter must be stated. Li et al.~\cite{li2023} showed that a transformer trained only on Othello move sequences developed a nonlinear internal representation of board state, and that interventions on that representation causally changed its legal-move predictions: prediction pressure \textit{can} induce causally efficacious world models. Vafa et al.~\cite{vafa2024} replied that decodable probes do not establish globally coherent, causally usable models. Both can be true: prediction can induce models, but predictive success does not guarantee them.
+
+The Turing sits on this fault line by design. It rewards whatever improves held-out prediction per unit of explanation cost, which is the compression leg of understanding. The causal-usability leg must be measured separately, through interventional held-out regimes (Sections~5.4 and~5.6), and the paper claims nothing beyond the leg it measures. What the Turing refuses is the benchmark culture's central conflation: a score on a possibly memorized test is not evidence of understanding. A positive Turing gain is evidence of exactly one thing: the candidate found structure that pays for itself on data it never saw.
+
+\subsection{The arc: from prediction pressure to physical law}
+
+Prediction-error minimization is not an arbitrary choice of objective. It is the design principle nature itself uses. Friston~\cite{friston2010} argued that organisms minimize variational free energy, an upper bound on sensory surprisal, by updating generative models and by acting to change what they sense; Clark~\cite{clark2013} developed the predictive-brain synthesis. Kirby, Cornish, and Smith~\cite{kirby2008} showed in the laboratory that when languages pass through a learnability bottleneck across generations of learners, they become more structured: ``design without a designer,'' with compressibility pressure generating the very structure we associate with understanding. Del{\'e}tang et al.~\cite{deletang2024} demonstrated the engineering counterpart: large language models are powerful general-purpose compressors, with Chinchilla 70B beating PNG on images and FLAC on audio, because prediction and compression are two faces of one quantity.
+
+But prediction pressure alone is not enough; it must be aimed at the right world. A system trained only on human text inherits humanity's signal with all of its noise: form without meaning, in Bender and Koller's phrase. The position of this paper is that the epistemic foundation of machine understanding should be physical law, not human text. Physics-informed neural networks~\cite{raissi2019} are the flagship demonstration: embedding partial-differential-equation residuals directly into the loss constrains the model by nature's regularities, so its held-out compression must track those regularities rather than textual correlations. Sutton's Bitter Lesson~\cite{sutton2019} supplies both the alliance and the warning. The alliance: general methods that leverage computation beat hand-built human knowledge in the long run, which is an argument for letting a neutral arbiter, held-out compression, decide. The warning: do not privilege human-legible explanations, since the profile should let simple scalable predictors compete on equal footing with elegant theories and let the bits decide.
+
+The thesis, stated plainly: \textbf{build what the machine knows on physics, the foundation of all existence; keep purpose, values, and moral direction a human responsibility.} The Turing measures the first half: the epistemic dimension, how much of nature's regularity the machine has captured per unit of explanation cost. It is silent on the second half by design (Section~9). EXP-002, the Stochastic Law Discovery experiment, is the concrete test of the first half: the machine must discover stochastic physical structure from sealed trajectories, not imitate text about that structure.
+
+\section{Why This Measure Matters}
+
+The formalism below is motivated by three concerns. They are stated here as motivation and interpretation, not as substitutes for rigor: the definitions, lemmas, protocol, and falsification criteria that follow stand or fall on their own. And the honest bounds of Section~9 apply throughout. In particular, the Turing does not directly measure safety, consciousness, or moral worth.
+
+\subsection{Environmental safety: a blind spot with a measure}
+
+Computation does not occur outside physics, and machine intelligence is scaling its energy consumption faster than the ability to account for what that energy buys. The field has mature metrics for performance per watt, but no standardized measure of net held-out explanatory compression per joule. That is an environmental blind spot: without a measure of informational productivity, there is no principled way to prefer the algorithm that discovers the same structure for a tenth of the energy, and no way to make that preference legible to anyone outside the laboratory.
+
+Turing yield (Definition~4) is proposed as that measure. It does not measure carbon emissions, ecological harm, or the full lifecycle cost of hardware; it measures verified net held-out explanatory compression per measured joule, which is the quantity a researcher or operator can actually control when choosing algorithms, architectures, and substrates. Hypothesis H5 of the experimental protocol (Section~5) is the environmental hypothesis in falsifiable form: semantically equivalent realizations should sometimes exhibit materially different Turing yields. If that hypothesis holds, Turing yield becomes an instrument for steering the field toward informational productivity per joule: the quantity that must improve if machine understanding is to scale within physical limits.
+
+\subsection{Humanity: an honesty discipline}
+
+The unit's rules are an honesty discipline. Baselines are declared before measurement, not chosen after. Held-out data is sealed before the candidate is constructed or selected. Shared background is declared, not smuggled: every pretrained model, corpus, and prior artifact in the causal chain of producing the candidate is versioned in the profile (Section~5.7), so a candidate cannot rent a gigantic undeclared model and bill the protocol for the savings. Every number must be recomputable by a stranger from published evidence. And theories are permitted negative Turings: a candidate that costs more complexity than the structure it captures scores below zero, in public, by construction.
+
+This rewards verified explanatory gain over fluent performance. A system optimized for Turings cannot coast on memorization (Lemma~2), cannot cherry-pick its baseline, and cannot hide its failures, because the measurement procedure exposes them as negative scores. A culture that can measure honesty can demand it; a culture with only benchmark leaderboards gets what it measures. The Turing is a small piece of infrastructure for the former.
+
+\subsection{Alignment: a measurable target}
+
+Alignment research asks, among other things, whether a system's apparent competence reflects genuine understanding or fluent performance. That question is hard to aim at because ``understanding'' has had no operational measure. The Turing operationalizes one measurable component of understanding: the discovery of compact structure that continues to predict unseen observations, and thereby gives alignment work something quantitative to target and to audit.
+
+The mechanism is the complexity charge: a system that must pay for its own complexity, in the open, on sealed data, faces a measured price for faked understanding. Memorized performance is exposed by \(L(M)\) (Lemma~2); uncalibrated confidence is exposed by \(L(D\mid M)\); double-counted credit is blocked by informational conservation (Definition~6). None of this measures safety or intent directly. A well-calibrated predictor can still be misused, and Section~9 states the limits plainly. What it contributes is a falsifiable evidentiary criterion for one operational component of understanding: a system's claimed understanding should survive contact with unseen reality after paying for itself.
+
+\section{Formal Definitions}
+
+Every symbol is defined before use. Numbered definitions are binding: a reported Turing measurement is valid only if each definition's requirements are satisfied and recorded in the measurement profile.
+
+\begin{definition}[Total description length]
+Let \(M\) be a candidate explanation: a model, program, theory, abstraction, or explanatory structure. Let \(D=(x_1,\ldots,x_n)\) be a finite sequence of observations over a finite alphabet. Let \(p_M\) be a computable predictive distribution exposed by \(M\), assigning \(p_M(x_t\mid x_{<t})\) to each observation given its predecessors. Then:
+\begin{itemize}
+\item \(L(M)\) is the length in bits of \(M\) under a declared, computable encoding convention (Assumption A1).
+\item \(L(D\mid M) = -\sum_{t=1}^{n} \log_2 p_M(x_t\mid x_{<t})\) is the idealized predictive codelength of \(D\) under \(M\) (Lemma~1).
+\item The total description length is \(DL(M,D) = L(M) + L(D\mid M)\).
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Turing gain]
+Turing gain operationalizes one measurable component of understanding: net held-out explanatory compression. Let \(B\) be a declared baseline explanation, \(M\) a candidate explanation, \(D\) a sequence of observations that were not available when \(M\) was constructed or selected (sealed held-out data; see Section~5), and \(P\) a measurement profile satisfying Definition~3. The Turing gain is
+\[
+\boxed{
+\mathcal{T}(M;B,D,P)
+=
+DL(B,D)-DL(M,D)
+}
+\]
+equivalently,
+\[
+\boxed{
+\mathcal{T}(M;B,D,P)
+=
+\left[L(B)+L(D\mid B)\right]
+-
+\left[L(M)+L(D\mid M)\right].
+}
+\]
+The \textbf{reporting unit} is the turing, T: one Turing is one bit of net held-out explanatory compression under a declared protocol. A \textbf{measurement} is a reported value together with its profile (e.g., \(84{,}220\,T\) under profile \(P\)). \(\mathcal{T}>0\) means the candidate earned its complexity; \(\mathcal{T}=0\) means no net explanatory gain; \(\mathcal{T}<0\) means the explanation costs more than the structure it captures. The \textbf{specific Turing gain} is \(\mathcal{T}(M;B,D,P)/n\) for \(n=|D|\) sealed held-out observations, in Turings per observation; it is the headline reported number, and raw totals are compared only at fixed \(n\). The profile additionally reports \(\mathcal{T}\) under two to three reasonable alternative baselines (\texttt{baseline\_sensitivity}), so that a gain cannot be an artifact of a weak \(B\).
+\end{definition}
+
+\begin{definition}[Measurement profile]
+A Turing measurement is reported only together with a measurement profile: a versioned record specifying at minimum the fields in Table~1. Gains are comparable only under the same profile version. A bare number of Turings without a profile is scientifically incomplete.
+\end{definition}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{p{0.28\textwidth}p{0.62\textwidth}}
+\toprule
+\textbf{Field} & \textbf{Requirement} \\
+\midrule
+\texttt{profile\_version} & Version identifier of this profile \\
+\texttt{baseline} & The declared baseline \(B\), fixed before evaluation \\
+\texttt{candidate\_encoding} & The computable encoding convention used for \(L(M)\) and \(L(B)\) \\
+\texttt{dataset} & The observation source and collection procedure \\
+\texttt{data\_split} & Train/validation/test partition; which portion is sealed held-out \(D\) \\
+\texttt{seal\_commitment} & Cryptographic commitment (e.g., hash) to \(D\) recorded before \(M\) was constructed or selected (proves identity of \(D\), not non-access) \\
+\texttt{blinding\_mechanism} & Auditable mechanism establishing non-access to \(D\) before candidate freeze (Section~5.2) \\
+\texttt{probability\_representation} & How \(p_M\) is represented and computed \\
+\texttt{quantizer} & Fixed measurement precision \(Q_{\Delta x}\) for continuous observations; the encoded symbols are the resulting discrete bin indices, with bin probabilities obtained by integrating the candidate's predictive density (Assumption A3) \\
+\texttt{codelength\_method} & Idealized log-loss sum or actual entropy-coded bitstream \\
+\texttt{evaluation\_procedure} & Exact computation steps from artifacts to \(\mathcal{T}\) \\
+\texttt{software\_version} & All software involved, pinned \\
+\texttt{energy\_instrumentation} & Physical measurement apparatus and calibration for energy terms \\
+\texttt{attribution\_rule} & How joules are attributed under concurrency (Definition~5) \\
+\texttt{uncertainty\_envelope} & Declared reproducibility tolerance for \(\mathcal{T}\) and yields, \textit{with the estimation procedure stated}: which of block bootstrap resampling over sealed held-out blocks (blocks rather than individual observations where observations are correlated), repeated runs under preregistered seeds, instrument/sensor calibration uncertainty, or predictive/coding uncertainty are included, and how the lower bound of \(\mathcal{T}\) is computed \\
+\texttt{verification\_requirements} & Independent recomputation requirements \\
+\texttt{shared\_background} & All pretrained models, corpora, tools, and prior artifacts in the causal chain of producing \(M\), versioned; the gain is scored conditionally on this set (Section~5.7) \\
+\texttt{reference\_coder} & The declared entropy coder coupling \(p_M\) to bits; ``bits'' means bits under this coder (Section~4) \\
+\texttt{model\_code} & Which \(L(M)\) code is blessed: quantized two-part, bits-back/KL, or prequential; sensitivity analysis where underdetermined \\
+\texttt{baseline\_sensitivity} & \(\mathcal{T}\) reported under two to three reasonable alternative baselines besides the declared \(B\) \\
+\texttt{overlap\_audit} & Procedure auditing pretraining data against sealed held-out \(D\); undeclared overlap invalidates the measurement \\
+\bottomrule
+\end{tabular}
+\caption{Required fields of a Turing measurement profile.}
+\end{table}
+
+\begin{definition}[Turing yield and Turing rate]
+Let \(E_{\rm eval}\) be the energy in joules consumed by the evaluation run that produced \(M\)'s predictions on \(D\), measured by the profile's energy instrumentation and attributed under Definition~5. For discovery experiments, let \(E_{\rm search}\), \(E_{\rm train}\), \(E_{\rm synthesis}\), and \(E_{\rm verify}\) be the measured energies of the discovery phases. Then:
+\[
+\boxed{Y_{\rm eval} = \frac{\mathcal{T}(M;B,D,P)}{E_{\rm eval}}}
+\qquad\text{and}\qquad
+\boxed{Y_{\rm discovery} = \frac{\mathcal{T}(M;B,D,P)}{E_{\rm search}+E_{\rm train}+E_{\rm synthesis}+E_{\rm verify}+E_{\rm eval}}}.
+\]
+\(Y_{\rm eval}\) is the evaluation yield. \(Y_{\rm discovery}\) is the discovery yield, and it is the stronger quantity: ``understanding gained per joule burned'' must include the cost of discovery, since a model might require 10 MWh to discover and 1 kJ to evaluate, and reporting only evaluation yield would misrepresent its efficiency. Let \(s\) be the wall-clock duration of the evaluation run in seconds; \(\mathcal{T}/s\) is the Turing rate. None of these asserts that energy has been converted into intelligence in any thermodynamic sense; they state that under the given experiment and profile, the computation produced the stated bits of verified explanatory gain per unit of physical resource consumed. Note the fit: \href{https://github.com/aien-dev/omega}{AIEN/Omega} is designed to account for synthesis, verification, and realization costs rather than treating evaluation as the whole computational process. The \(Y_{\rm discovery}\) denominator requires exactly that accounting. Physical energy instrumentation exists: the \href{https://github.com/aien-dev/omega}{AIEN/Omega} R15 performance harness completed its qualification on the DGX Spark (16 of 16 gates PASS, merged as \href{https://github.com/aien-dev/omega/pull/67}{pull request~67} on 2026-09-29, with package energy measured per operation in the machine-readable receipt). The first canonical Turing-gain measurement has now been recorded separately (\href{https://github.com/aien-dev/omega/pull/85}{pull request~85}: +2,559,679.825~T under measurement profile V0; Section~7), but the R15 energy measurements have not yet been joined to a Turing-gain receipt; no \textit{yield} figure (T/J) is reported until that joining exists.
+\end{definition}
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  arr/.style={-{Stealth[length=2.5mm]}, thick},
+  pt/.style={circle, fill=black, inner sep=2pt},
+]
+\draw[arr] (0,0) -- (8,0) node[below, font=\small] {$J$: measured joules for the run};
+\draw[arr] (0,0) -- (0,5.5) node[left, rotate=90, font=\small] {$\mathcal{T}$: bits of verified held-out explanatory gain};
+\node[pt, label={above right:run B (lean)}] (rb) at (2.5,3.6) {};
+\node[pt, label={above right:run A (expensive)}] (ra) at (6.5,3.6) {};
+\draw[dashed] (0,0) -- (rb);
+\draw[dashed] (0,0) -- (ra);
+\draw[dashed] (rb) -- (2.5,0);
+\draw[dashed] (ra) -- (6.5,0);
+\node[font=\small] at (1.3,1.3) {$Y$ larger};
+\node[font=\small] at (3.9,2.2) {$Y$ smaller};
+\node[font=\small, align=left] at (7.2,5.2) {Same $\mathcal{T}$, different $E$:\\yield is the slope\\from the origin};
+\end{tikzpicture}
+\caption{Conceptual illustration of the distinction between Turing gain $\mathcal{T}$ and Turing yield $Y=\mathcal{T}/E$ (Definition~4). Two runs can produce the same net held-out explanatory gain while consuming different measured energy; the yield discriminates between them, which is the environmental hypothesis H5. Conceptual illustration, not empirical data.}
+\label{fig:yield}
+\end{figure}
+
+
+\begin{definition}[Energy attribution]
+Let \(E_0\) be the measured baseline energy of the machine at rest, \(E_A\) the measured energy with process \(A\) running in isolation, \(E_B\) with process \(B\) running in isolation, and \(E_{AB}\) with both running concurrently. Define incremental consumptions \(e(A)=E_A-E_0\), \(e(B)=E_B-E_0\), \(e(A,B)=E_{AB}-E_0\). The interaction term is
+\[
+\boxed{
+I_{AB}
+=
+E_{AB}-E_A-E_B+E_0.
+}
+\]
+If \(I_{AB}>0\), co-execution required additional incremental energy relative to isolated execution (contention); if \(I_{AB}<0\), some cost was shared or utilization improved. An attribution rule assigns each joule of \(E_{AB}\) to at most one of: exclusive use, shared use, interaction overhead, or unattributed; never concealing the interaction term by assigning every joule to an individual process.
+\end{definition}
+
+\begin{definition}[Conservation constraints]
+Two accounting rules are binding on every reported measurement:
+\begin{itemize}
+\item \textit{(Physical conservation.)} Attributed energy must reconstruct measured energy within the profile's declared uncertainty:
+\[
+E_{\text{measured}} \approx E_{\text{exclusive}} + E_{\text{shared}} + E_{\text{interaction}} + E_{\text{unattributed}}.
+\]
+A resource attribution system may not allocate more energy than was physically measured.
+\item \textit{(Informational conservation.)} Explanatory credit must not be duplicated. If cooperating processes jointly produce one candidate worth \(\mathcal{T}\) Turings, the sum of Turings credited across processes must not exceed \(\mathcal{T}\). Shared explanatory gain may remain shared; it may not be multiplied.
+\end{itemize}
+\end{definition}
+
+\section{Coding Assumptions}
+
+This section separates what is proved, what is assumed, and what is defined. The claims are kept deliberately modest: every lemma below is genuinely provable, and the assumptions are stated as assumptions rather than dressed as results.
+
+\textbf{Assumption A1 (Computable encoding for \(L(M)\)).} \(L(M)\) is the bit-length of \(M\) under a specified, \textit{computable} encoding convention declared in the measurement profile (e.g., the length of a serialized artifact plus its declared decoder, or a stated two-part code). It is explicitly \textit{not} uncomputable Kolmogorov complexity. Consequence: Turing scores are convention-relative. Two measurements are comparable only under the same profile, which fixes the convention. This is a feature, not a defect: it is what makes the quantity measurable rather than metaphysical. (Contrast Solomonoff's universal prior~\cite{solomonoff1964} and Kolmogorov complexity~\cite{kolmogorov1965}, which are uncomputable and therefore cannot serve as measurement procedures.) Each profile version blesses one of three codes for \(L(M)\): a quantized two-part code with declared precision, a bits-back/KL code with declared prior~\cite{hinton1993}, or a prequential code~\cite{dawid1984}. Where the code is underdetermined, \(\mathcal{T}\) is reported under two to three reasonable codes as a sensitivity analysis. The declared prior is the standard refined-MDL solution to the underdetermined-code problem (luckiness normalized maximum likelihood~\cite{grunwald2007}); for deep networks, prequential encoding has outperformed variational bounds in practice~\cite{blier2018}.
+
+\textbf{Assumption A2 (Computable predictive distribution).} The candidate \(M\) must expose its predictive distribution \(p_M\) as a computable function. Where an actual entropy-coded bitstream is not produced, the idealized codelength \(L(D\mid M)=-\sum_t \log_2 p_M(x_t\mid x_{<t})\) is used, and the profile must record which method was applied (\texttt{codelength\_method}). The profile declares a reference entropy coder, arithmetic coding~\cite{witten1987} or asymmetric numeral systems~\cite{duda2009}, with bits-back coders~\cite{hinton1993,townsend2019} for latent-variable models; ``bits'' in a Turing measurement means bits under the declared coder. Idealized log-loss is realizable to within small bounded amortizable overhead by such coders, and H1 tests the bridge.
+
+\textbf{Assumption A3 (Continuous observations are quantized by declaration).} Definition~1 operates on discrete observations. Where raw observations are continuous-valued, the measurement profile declares a fixed measurement precision (quantizer) \(Q_{\Delta x}\), and the encoded observations are the resulting discrete measurement symbols
+\[
+x_t^{(q)} = Q_{\Delta x}(x_t).
+\]
+The candidate assigns probability mass to each quantization bin by integrating its predictive density over the bin,
+\[
+p_M(x_t^{(q)}) = \int_{\mathrm{bin}(x_t^{(q)})} f_M(x)\,dx,
+\]
+and all codelengths are computed on the discrete symbols \(x_t^{(q)}\) under Definition~1. Rationale: \(-\log_2 f(x)\) of a probability \textit{density} is not an invariant number of bits. It changes with the choice of measurement units and coordinate resolution, whereas \(-\log_2 p_M(x_t^{(q)})\) of a probability \textit{mass} is. The declared quantizer fixes the measurement resolution in advance, so the reported bits are literal code probabilities for declared symbols, not differential entropies. Two measurements with different quantizers are not comparable; the quantizer is part of the profile precisely for this reason.
+
+\begin{lemma}[Log-loss to idealized codelength]
+For a predictive distribution \(p_M\) over a finite alphabet and a sequence \(D\) of length \(n\), there exists a code whose length for \(D\) is less than \(-\sum_{t=1}^{n}\log_2 p_M(x_t\mid x_{<t}) + 2\) bits, subject to the declared termination and message-length convention.
+\end{lemma}
+\textit{Proof sketch.} Let \(P_M(D)=\prod_{t=1}^{n}p_M(x_t\mid x_{<t})\) be the probability the model assigns to the complete sequence. Arithmetic coding assigns the whole sequence an interval of width \(P_M(D)\) within \([0,1)\). A binary point identifying that interval requires fewer than \(-\log_2 P_M(D)+2 = -\sum_{t=1}^{n}\log_2 p_M(x_t\mid x_{<t})+2\) bits, under the profile's declared termination and message-length convention (standard Shannon source-coding argument~\cite{shannon1948}; cf.\ textbook treatments of arithmetic coding). \qed
+
+\textit{Remark.} Lemma~1 justifies reporting the log-loss sum as an \textit{idealized} codelength. Hypothesis H1 of the experimental protocol tests whether this idealization tracks actual lossless encodings in practice; the declared reference coder (Assumption~A2) is what makes ``bits'' literal rather than metaphorical.
+
+\begin{lemma}[Memorization bound]
+Let \(M_{\rm mem}\) be a pure memorizer: its entries are explicitly charged under profile \(P\), and its predictions outside the memorized support \(S\) are no better than those of baseline \(B\). On held-out \(D\) disjoint from \(S\),
+\[
+\mathcal{T}(M_{\rm mem};B,D,P) \leq L(B)-L(M_{\rm mem}).
+\]
+Hence if \(B\) is the same default predictor with lower description cost, the memorizer necessarily receives negative Turing gain.
+\end{lemma}
+\textit{Proof sketch.} On \(D\) disjoint from \(S\), the memorizer emits its default predictions, so \(L(D\mid M_{\rm mem})\) is no better than \(L(D\mid B)\) when \(B\) is that same default predictor; the gain is then bounded by the description-cost difference \(L(B)-L(M_{\rm mem})\), which is negative when the baseline is cheaper. \qed
+
+\textit{Remark.} The counting argument behind the description cost (that arbitrary or worst-case tables with \(|S|\) entries cost on the order of \(|S|\) times a per-entry constant under any fixed computable encoding) covers incompressible tables, not every table. A table may itself contain compressible structure, and such structure is then doing explanatory work of its own. Lemma~2 is deliberately the weaker proposition: it proves only that pure memorization, explicitly charged, cannot earn positive Turings against a cheaper equal default on held-out data. That is exactly what the anti-memorization claim needs, and no more. The degenerate exceptions it names (tiny supports, pathologically bad baselines) are exactly why baselines must be declared and sane, and why negative Turings are informative rather than embarrassing.
+
+\section{Experimental Protocol}
+
+\subsection{Measurement-profile discipline}
+
+Every experiment instantiates a versioned measurement profile satisfying Definition~3 (Table~1). The profile is preregistered before any sealed data is examined. The profile is also the paper's answer to a philosophical demand: standards of what counts as an intelligible explanation shift with context, so the standard must be made explicit and versioned rather than left implicit~\cite{deregt2005}. Concretely:
+\begin{enumerate}
+\item The dataset, split, seal commitment (hash), and blinding mechanism are recorded before candidate construction or selection begins.
+\item The baseline \(B\) is declared and frozen in the profile before evaluation.
+\item The encoding convention for \(L(M)\) and the probability representation for \(p_M\) are fixed in the profile.
+\item Energy instrumentation is calibrated and its uncertainty recorded; the attribution rule (Definition~5) is stated for the concurrency regime of the run; the profile declares whether the reported yield is \(Y_{\rm eval}\), \(Y_{\rm discovery}\), or both.
+\item After the run, all artifacts (profile, baseline, candidate, sealed data, energy traces, and the exact evaluation procedure) are published so that a stranger can recompute \(\mathcal{T}\) and the reported yields.
+\end{enumerate}
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  box/.style={draw, rounded corners, align=center, minimum width=9cm, minimum height=1.0cm, font=\small},
+  arr/.style={-{Stealth[length=2.5mm]}, thick},
+]
+\node[box] (p1) {Preregister the measurement profile: dataset, split, baseline $B$,\\encoding convention, energy instrumentation, attribution rule};
+\node[box, below=0.45cm of p1] (p2) {Seal the held-out set $D$: cryptographic hash for identity,\\auditable blinding for non-access};
+\node[box, below=0.45cm of p2] (p3) {Construct the candidate $M$ with no access to $D$;\\declare all shared background};
+\node[box, below=0.45cm of p3] (p4) {Evaluate: $DL(B,D)=L(B)+L(D\mid B)$ against $DL(M,D)=L(M)+L(D\mid M)$};
+\node[box, fill=gray!10, below=0.45cm of p4] (p5) {Publish the receipt: $\mathcal{T}=DL(B,D)-DL(M,D)$\\with uncertainty envelope and all artifacts};
+\draw[arr] (p1) -- (p2);
+\draw[arr] (p2) -- (p3);
+\draw[arr] (p3) -- (p4);
+\draw[arr] (p4) -- (p5);
+\end{tikzpicture}
+\caption{Conceptual schematic of the Turing measurement pipeline (Section~5). The profile is preregistered and the held-out set sealed before the candidate is constructed or selected; the reported value is the net held-out description-length difference with the candidate's own complexity charged. Conceptual illustration, not empirical data.}
+\label{fig:pipeline}
+\end{figure}
+
+
+\subsection{Sealing and blinding}
+
+\(D\) must not have been available when \(M\) was constructed or selected. Two distinct guarantees are required, and they are not the same:
+\begin{itemize}
+\item \textbf{Identity (commitment).} A cryptographic hash of the held-out set \(D\), recorded in the profile before candidate construction or selection, proves that the test set did not change afterward. Any violation discovered afterward invalidates the measurement.
+\item \textbf{Non-access (blinding).} The hash proves the data did not change; it does not prove that the researcher or candidate never saw it. For serious experiments, the profile must therefore name one auditable blinding mechanism: an encrypted holdout released only after candidate freeze; a third-party evaluator; a physically or access-controlled test store; deterministic future-data collection after model freeze; or an equivalent. The hash proves identity; the blinding mechanism proves non-access.
+\end{itemize}
+Train/validation/test discipline is necessary but not sufficient. What makes the held-out claim auditable is the combination: commitment for identity, blinding for non-access.
+
+\subsection{Preregistered hypotheses}
+
+Each hypothesis below states a method sketch and an explicit pass/fail criterion. Concrete experiment instantiations are specified as a preregistered ladder (Section~5.4): EXP-001 is instrument validation on Omega traces, EXP-002 is Stochastic Law Discovery across three hidden stochastic worlds, and EXP-003 is active experiment selection. Each experiment is registered with a full measurement profile before data collection, and the ladder is ordered so that each rung validates the precondition of the next. Apparatus-check scripts used during protocol development are calibration of the instrument, not preregistered experiments, and their outputs are never reported as Turing measurements.
+
+\textbf{H1: Prediction--compression correspondence.} \textit{Method:} For a set of candidate models, compute idealized held-out codelengths \(L(D\mid M)\) and actual lossless encodings of \(D\) produced by coupling each model's \(p_M\) to the profile's declared reference entropy coder. \textit{Pass:} rank-correlation between idealized and actual codelengths is positive and significant across candidates, and absolute deviation stays within the profile's uncertainty envelope. \textit{Fail:} systematic divergence (better-calibrated models do not produce smaller actual encodings), in which case the operational bridge of Lemma~1 is defective for the tested regime, and idealized codelengths may not be reported as measured Turing gains. Until H1 passes for a regime, Turing gains in that regime are theoretical description lengths, not measured compressions.
+
+\textbf{H2: Generalization.} \textit{Method:} Candidate abstractions produced by a discovery procedure are scored on sealed held-out \(D\) with their full \(L(M)\) charged. Understanding is treated here as an ability that transfers, not a pile of propositions~\cite{dellsen2016}: the profile may require scoring across multiple held-out regimes precisely to test that transfer. \textit{Pass:} at least one candidate achieves \(\mathcal{T}>0\) with the lower bound of the uncertainty envelope above zero. \textit{Fail:} candidates achieve positive training compression but non-positive held-out Turing gain. They have demonstrated fitting, not generalized explanatory compression.
+
+\textbf{H3: Reproducibility.} \textit{Method:} Two distinct tests. \textit{Replay reproducibility:} the same measurement profile is re-executed with the same preregistered seed, the same artifacts, and only non-semantic re-implementations (code layout, refactors that do not change computed values). \textit{Pass:} \(\mathcal{T}\), \(Y_{\rm eval}\), and \(Y_{\rm discovery}\) reproduce within numerical tolerance. \textit{Statistical robustness:} the profile is executed under different preregistered seeds drawn from the same experiment distribution (for EXP-002, different stochastic trajectories generated from the same hidden law family). \textit{Pass:} the conclusions remain stable within the profile's declared statistical envelope. \textit{Fail:} same-seed re-execution diverges beyond tolerance, or different preregistered seeds change the conclusions outside the envelope: the profile is inadequate and must be revised before any measurement under it is reported. A changed seed is not an irrelevant implementation detail: it changes the sampled data or stochastic outcome, so it tests robustness, not replay.
+
+\textbf{H4: Physical conservation.} \textit{Method:} Under concurrent workloads, attribute energy per Definition~5 and check closure against measured machine energy. \textit{Pass:} \(E_{\text{measured}} \approx E_{\text{exclusive}} + E_{\text{shared}} + E_{\text{interaction}} + E_{\text{unattributed}}\) within sensor and model uncertainty on every run. \textit{Fail:} attributed totals consistently exceed physical totals: the attribution model is invalid and no yield (\(Y_{\rm eval}\) or \(Y_{\rm discovery}\)) may be reported from it.
+
+\textbf{H5: Efficiency discrimination (the environmental hypothesis).} \textit{Method:} Take semantically equivalent realizations of the same explanatory gain (same \(\mathcal{T}\) within tolerance on the same \(D\) and profile) across different algorithms, representations, or substrates, and compare \(Y_{\rm eval}\) and \(Y_{\rm discovery}\) where discovery energy is measured. \textit{Pass:} at least one pair of equivalent realizations exhibits materially different yield outside the uncertainty envelope. \textit{Fail:} yield never discriminates between realizations: in which case Turing yield adds no information beyond \(\mathcal{T}\) alone for the tested regime. \textit{Interpretation:} this is the hypothesis of Section~2.1 in falsifiable form. A pass makes Turing yield an instrument for steering toward informational productivity per joule; a fail bounds its usefulness honestly.
+
+\subsection{Planned experiment instantiations}
+
+The hypotheses above are tested through a preregistered ladder of experiments. The ordering is deliberate: the first rung asks only whether the instrument works, the second whether it can detect discovered stochastic structure, and the third whether the machine can choose the experiment that most efficiently distinguishes competing explanations.
+
+\textbf{EXP-001: Instrument validation (Omega traces).} Real Omega search and synthesis traces are divided, before candidate construction, into train, validation, and sealed test. Simple predictors (uniform, empirical frequency, a small Markov model, an existing fixed heuristic, and a candidate explanatory abstraction) are compared with full total description length charged. \textit{Pass:} stable, reproducible Turing measurements with \(\mathcal{T}>0\) achievable by a candidate abstraction that earns its complexity, and the lower uncertainty bound above zero (H1--H3). This rung asks only: can \(\mathcal{T}\) be measured reproducibly at all?
+
+\textbf{EXP-002: Stochastic law discovery.} A hidden evaluator generates quantized trajectories from a stochastic process whose governing equation, family label, parameters, and random seed are unavailable to the candidate; Assumption~A3 governs the quantization, and the quantizer is fixed in the preregistered profile. The candidate receives development observations and may construct a computable predictive explanation \(M\). After candidate freeze, fresh held-out trajectories are generated under an auditable blinding protocol. The candidate is compared against preregistered weak, deterministic, and stochastic baselines using full total description length \(L(M)+L(D\mid M)\). Initial hidden worlds test pure diffusion, diffusion with drift, and mean-reverting dynamics. A successful candidate must improve sealed predictive description length after paying its own complexity while maintaining calibrated uncertainty; adding unsupported structure must not receive positive explanatory credit. Where feasible, held-out trajectories include interventional regimes: the candidate must predict under interventions, not merely under passive observation, because the best finite-data predictor need not recover causal structure~\cite{shmueli2010}. Explanations that compress multiple hidden worlds earn the sum of their Turing gains, rewarding unification across phenomena rather than narrow fitting.
+
+The three hidden worlds, with explicit falsifiable expectations:
+
+\textit{EXP-002A: Pure diffusion,} \(dX_t=\sqrt{2D}\,dW_t\). The candidate should discover that the increments are centered and that predictive uncertainty grows with elapsed time. Crucially, it must not earn Turings by inventing deterministic curves inside random fluctuations: a polynomial fit to a short random trajectory may compress development data but must collapse on held-out trajectories (Lemma~2's discipline applied to overfitting).
+
+\textit{EXP-002B: Diffusion with drift,} \(dX_t=\mu\,dt+\sqrt{2D}\,dW_t\). The test is whether adding the drift parameter \(\mu\) earns its complexity on unseen trajectories. When the hidden world has \(\mu=0\), the drift-augmented candidate must not score positively: structure without support pays, and does not get paid.
+
+\textit{EXP-002C: Mean reversion,} \(dX_t=-\theta X_t\,dt+\sigma\,dW_t\). The system must discover a qualitatively different predictive structure (state-dependent restoring drift) rather than a quantitative tweak of diffusion.
+
+\textbf{EXP-003: Active experiment selection.} With competing explanations in hand (e.g., free diffusion versus mean reversion), the machine estimates the expected information gain of candidate interventions and proposes the most discriminating one, for instance starting farther from equilibrium or observing over a longer interval, subject to the authorization separation of Section~5.6. \textit{Pass:} the machine-selected intervention distinguishes the competing explanations in fewer observations (or joules) than a preregistered passive baseline schedule, with the comparison itself conducted under sealed held-out evaluation.
+
+The ladder, one line per rung:
+\[
+\begin{array}{rl}
+\text{EXP-001} & \text{Can \(\mathcal{T}\) be measured reproducibly at all?} \\
+\downarrow & \\
+\text{EXP-002A} & \text{Can a machine recognize stochastic structure without explaining noise?} \\
+\downarrow & \\
+\text{EXP-002B} & \text{Can additional structure earn its own complexity?} \\
+\downarrow & \\
+\text{EXP-002C} & \text{Can competing stochastic explanations be distinguished?} \\
+\downarrow & \\
+\text{EXP-003} & \text{Can the machine choose the experiment that most efficiently distinguishes them?}
+\end{array}
+\]
+
+\textit{Design note.} The series is named the Stochastic Law Discovery Experiment, not ``the Brownian test.'' Brownian motion is the first hidden world; the framework is intended to extend to Poisson processes, Markov chains, anomalous diffusion, coupled systems, and noisy oscillators without changing the conceptual test. The series also doubles as a demonstration of this paper's stated limit (Section~9): a false theory can temporarily compress a restricted dataset. A polynomial looks persuasive over one short random trajectory and collapses on the next, which is exactly why the held-out complexity discipline exists.
+
+\subsection{Worked illustration (not an empirical claim)}
+
+To fix the computation, suppose a baseline requires 2,600,000 bits to describe a sealed observation set. A newly discovered theory requires 18,400 bits to describe, and the same observations require 1,100,000 additional bits when encoded under the theory. Then
+\[
+\mathcal{T} = 2{,}600{,}000 - (18{,}400 + 1{,}100{,}000) = \boxed{1{,}481{,}600\ \text{T}}.
+\]
+If the evaluation consumed 30,000 J, its evaluation yield is \(Y_{\rm eval} = 1{,}481{,}600 / 30{,}000 \approx \boxed{49.39\ \text{T/J}}\). This is an arithmetic illustration of Definitions~2 and~4, not a reported measurement: no profile, no sealed data, and no instrumentation stand behind it.
+
+\subsection{From prediction to authorized intervention}
+
+Prediction alone is passive; scientific intelligence also asks \textit{what should be measured next}. Given competing explanations \(H_1, H_2\), an experiment whose predicted distributions differ sharply between them carries high expected information gain, while one on which they agree carries little. A machine may therefore estimate the expected information gain of candidate interventions and propose the most discriminating one. Information value and authorization are separate quantities: a high-value experiment is a \textit{proposal}, and whether it may be performed is decided by the authorization regime, not by its information value. This separation is a required property of all experiment instantiations under this protocol.
+
+\subsection{Shared background and the anti-gaming rule}
+
+Description length has always been relative to background knowledge; the question is never what the absolute \(L(M)\) is, but what the profile declares as given, and whether it declares it honestly. The most dangerous attack on the Turing is cost externalization: a tiny prompt or adapter riding on a gigantic undeclared pretrained model can score enormous net bits while the billions of bits of pretraining sit outside the measured \(L(M)\)~\cite{deletang2024}. Chollet~\cite{chollet2019} made the general point: task skill can be bought with data and compute; what matters is efficiency relative to priors and experience.
+
+The profile answers by rule, not by trust:
+\begin{enumerate}
+\item \textit{Declare all shared side information.} Every pretrained model, corpus, tool, and prior artifact in the causal chain of producing \(M\) is versioned in the \texttt{shared\_background} profile field.
+\item \textit{Score conditionally.} The reported gain is conditional on the declared background, and the conditioning set travels with the score.
+\item \textit{Forbid undeclared oracles.} Anything the explanation depends on but does not declare invalidates the measurement.
+\item \textit{Report both costs.} Where shared infrastructure is used, report the marginal task-specific cost and the amortized share of the background cost across the measurements that use it.
+\item \textit{Audit overlap.} The \texttt{overlap\_audit} field names the procedure checking pretraining data against sealed held-out \(D\); undeclared overlap invalidates the measurement (cf.\ the contamination literature~\cite{sainz2023,deng2024,carlini2021}).
+\end{enumerate}
+Externalization is not always gaming. Human science does exactly this: Newton externalizes calculus. The difference is declaration. Shared background that is declared, versioned, and cost-accounted is legitimate cumulative science; undeclared background is cheating. The versioned measurement profile is the instrument that turns the loophole into a feature.
+
+The contemporary form of this question deserves to be named, because it is now a mainstream position. Andrej Karpathy wrote in January 2023 that ``the hottest new programming language is English''~\cite{karpathy2023}; his later Software 3.0 framing extends the point, treating natural-language prompts as the programs of a new software era. David Heinemeier Hansson, the creator of Ruby on Rails, stated the strongest version in his opening keynote at Rails World 2026: his company 37signals has gone ``pencils down'' on hand-written code, and, in his words, ``English is a better programming language than Ruby''~\cite{hansson2026}. Stated fairly, the claim is that a natural-language specification, interpreted by a sufficiently capable pretrained model, is now the operative program, and that the formal code underneath has become a compilation detail.
+
+This protocol is neutral about the language in which a candidate is specified. It is not neutral about what the candidate must pay. A prompt is a short description only when the interpreter is left off the books. Under the rules above, an English-specified candidate is admitted with its interpreter declared in the shared background, versioned, and charged its accounted share, exactly as a candidate in any other notation is charged for its own description. Whether English is the better programming language is therefore, under this protocol, an empirical question with a definite form: does an explanation specified in English, with its interpreter fully declared, compress sealed observations better per bit of total declared cost than the alternatives? Fluency of specification is not itself explanatory gain, and a claim that cannot survive declaration of its own background has not been measured at all.
+
+\section{Related Work}
+
+Only real, verifiable citations are included. The mathematical ancestry is credited in full; the claim of this paper is the named unit and its protocol, not the mathematics. An independent prior-art search (September 2026) across arXiv 2020--2026, the Anthropic/OpenAI/Google DeepMind research publications, and the conference literature found no existing unit named \textit{Turing} for net held-out explanatory compression, and no equivalent named unit. The nearest neighbors are engaged below, precisely to mark the boundary.
+
+\textbf{Turing, A. M. (1950).} \textit{Computing Machinery and Intelligence}. Mind, 59(236), 433--460. The methodological precedent: Turing replaced ``can machines think?'' with an operational experiment rather than a definition. This paper follows that move, not its content. The Turing Test asks whether machine behavior is indistinguishable from human behavior under interrogation; the Turing unit asks whether a machine has discovered structure that makes reality more predictable (Section~10). The two must not be confused, and nothing here claims Turing's endorsement. The evidence must stand independent of personal identity.
+
+\textbf{Shannon, C. E. (1948).} \textit{A Mathematical Theory of Communication}. Bell System Technical Journal, 27, 379--423, 623--656. Establishes the prediction \(\leftrightarrow\) probability \(\leftrightarrow\) description length bridge on which Definitions~1--2 rest, and the source-coding argument behind Lemma~1.
+
+\textbf{Solomonoff, R. J. (1964).} \textit{A Formal Theory of Inductive Inference}, Parts I and II. Information and Control, 7(1), 1--22; 7(2), 224--254. Algorithmic probability: prediction via a universal prior weighting shorter programs more heavily. The present proposal descends from this tradition but departs from it operationally: Solomonoff's universal prior is uncomputable, whereas Assumption A1 requires a computable encoding convention precisely so that \(L(M)\) can be measured.
+
+\textbf{Kolmogorov, A. N. (1965).} \textit{Three Approaches to the Quantitative Definition of Information}. Problems of Information Transmission, 1(1), 1--7. Complexity as shortest description length. Uncomputable in general; cited as ancestry, with the same operational departure as for Solomonoff.
+
+\textbf{Rissanen, J. (1978).} \textit{Modeling by Shortest Data Description}. Automatica, 14(5), 465--471. The Minimum Description Length principle in two-part form, \(L(H)+L(D\mid H)\), the direct ancestor of Definition~1's total description length. None of the MDL literature, to my knowledge, names a distinct unit for the resulting net gain; it reports the quantity in ordinary bits.
+
+\textbf{Gr{\"u}nwald, P. D. (2005).} \textit{A Tutorial Introduction to the Minimum Description Length Principle}. In Gr{\"u}nwald, Myung \& Pitt (Eds.), \textit{Advances in Minimum Description Length: Theory and Applications}. MIT Press. And \textbf{Gr{\"u}nwald, P. (2007).} \textit{The Minimum Description Length Principle}. MIT Press. The modern exposition of MDL, including the connection between successful compression and the discovery of regularity that Lemma~2 formalizes for the memorization case.
+
+\textbf{Haldane, J. B. S. (1949).} \textit{Suggestions as to Quantitative Measurement of Rates of Evolution}. Evolution, 3, 51--56. Proposed the \textit{darwin} as a unit of evolutionary rate (an increase or decrease of a character by a factor of \(e\) per million years). This is the naming precedent for the Turing: a scientific unit honoring a foundational thinker, denoting an experimentally constrained quantity rather than a bare physical dimension.
+
+\textbf{Hern{\'a}ndez-Espinosa, Ozelim, Abrah{\~a}o \& Zenil (2025).} \textit{SuperARC: A Test of Machine Superintelligence}, arXiv:2503.16743. The closest conceptual neighbor found in the prior-art search: it defines intelligence through ``the ability of explanatory compression'' with a \(\phi\) metric. It remains distinct on every load-bearing point of this proposal: SuperARC is a benchmark score, not a named unit; it does not compute a baseline-relative net gain with the explanation's own description cost charged; and it has no energy accounting and no sealed-data protocol. Cited as the nearest neighbor, and as evidence that the explanatory-compression framing is in the air while the unit is not.
+
+\textbf{Legg, S. and Hutter, M. (2007).} \textit{Universal Intelligence: A Definition of Machine Intelligence}. Minds and Machines, 17(4), 391--444. The canonical formal measure \(Y(\pi)=\sum_{\mu} 2^{-K(\mu)} V^{\pi}_{\mu}\): reinforcement-learning and environment-based, with uncomputable Kolmogorov terms, no held-out data discipline, no named unit, and no energy accounting.
+
+\textbf{Chollet, F. (2019).} \textit{On the Measure of Intelligence}. arXiv:1911.01547. An algorithmic-information-theoretic account of intelligence as skill-acquisition efficiency relative to priors and experience; the denominator is experience, not joules, and no unit is proposed.
+
+\textbf{Zhang, C. and Liu, X. (2025).} \textit{A Theory of Machine Understanding via the Minimum Description Length Principle}. arXiv:2504.00395. Develops ``to understand is to compress'' as theory; proposes no unit and no held-out measurement protocol.
+
+\textbf{Anonymous (2026).} \textit{A Theory of Intelligence as Energy-Efficient Cost Reduction: Competence, Learning, and Amortised Deliberation}. Self-published manuscript, June 17, 2026, \url{https://amphitere.com/papers/a-theory-of-intelligence.pdf}. The closest antecedent to Turing \textit{yield} found in the search: it defines intelligence as cost reduction per joule, but the numerator is task cost, not bits of net held-out explanatory compression; it proposes no named unit, and no author is named. Cited as an unpublished independent manuscript, to mark the boundary honestly.
+
+\textbf{Masum, H. and Christensen, S. (2003).} \textit{The Turing Ratio: A Framework for Open-Ended Task Metrics}. Journal of Evolution and Technology, 13(2). An unrelated performance-rating proposal for chess, expressed on a decibel scale relative to median human performance. Cited solely to disambiguate: it shares a name fragment and nothing else.
+
+\textit{On ``intelligence per joule'' metrics.} The machine-learning systems literature contains various accuracy-per-energy and performance-per-watt efficiency metrics. These measure benchmark performance per unit energy; they do not measure net held-out explanatory compression, charge the explanation's own description cost, or require sealed data and declared baselines. The Turing is therefore not a restatement of them.
+
+\section{Empirical Results}
+
+\textbf{Status: first measurement recorded 2026-09-29.}
+
+On 2026-09-29 the first canonical Turing measurement was completed under measurement profile V0 (\href{https://github.com/aien-dev/omega/pull/85}{omega pull request~85}, merged the same day). Candidate C (a table conditioning on the tried operation plus the last four outcomes) reduced held-out total description length by \textbf{2,559,679.825 bits} relative to baseline B (a table conditioning only on the last outcome), scoring \textbf{+2,559,679.825~T}, or about \textbf{0.44~T per held-out observation} (specific Turing gain). The held-out set comprised about 5.8~million search events from three seeds (8, 9, 10) never seen during model selection (seed~7 only); the pre-registered bar of 234,602~bits was cleared, with each held-out seed passing on its own. The scoring tool refuses to score the held-out seeds a second time, and an independent verify command refits both models from the training files and reproduces the receipt exactly. Model cost is the exact stored table length, so pure memorization scores negatively; all scoring arithmetic is integer-only, with worst-case rounding under 6~bits over the whole held-out set. Limits stated honestly: $\mathcal{T}$ here is a theoretical code length. No entropy coder was built that produces the smaller file (the H1 bridge of Section~5.1 remains to be closed); energy was not measured in this run, so no Turing yield (T/J) is reported. Joining R15 energy measurements to Turing-gain receipts is the next step (Definition~4).
+
+\begin{table}[h]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{p{0.07\textwidth}p{0.13\textwidth}p{0.11\textwidth}p{0.08\textwidth}p{0.11\textwidth}p{0.07\textwidth}p{0.07\textwidth}p{0.07\textwidth}p{0.07\textwidth}p{0.10\textwidth}}
+\toprule
+\textbf{Expt.} & \textbf{Workload} & \textbf{Baseline} & \textbf{Profile} & \(\mathcal{T}\) (T) & \(E_{\rm eval}\) (J) & \(E_{\rm disc.}\) (J) & \(Y_{\rm eval}\) & \(Y_{\rm disc.}\) & \textbf{Status} \\
+\midrule
+TY-1+TY-2 & Omega search traces (held-out seeds 8--10) & last-outcome table & profile V0 & +2,559,679.825 & \textit{pending} & \textit{pending} & \textit{pending} & \textit{pending} & measured 2026-09-29 \\
+EXP-001 & Omega traces (instrument validation) & uniform / empirical / Markov / heuristic & profile v1.0 (draft) & \textit{pending} & \textit{pending} & \textit{pending} & \textit{pending} & \textit{pending} & prereg.\ pending \\
+EXP-002 & Stochastic law discovery (diffusion, drift, mean reversion) & weak / deterministic / stochastic & profile v1.0 (draft) & \textit{pending} & \textit{pending} & \textit{pending} & \textit{pending} & \textit{pending} & prereg.\ pending \\
+EXP-003 & Active experiment selection vs.\ passive baseline & passive schedule & profile v1.0 (draft) & \textit{pending} & \textit{pending} & \textit{pending} & \textit{pending} & \textit{pending} & prereg.\ pending \\
+\bottomrule
+\end{tabular}
+\caption{Results. The TY-1+TY-2 row reports the first canonical measurement (2026-09-29, profile V0); EXP rows await runs under preregistered profiles. Numeric cells marked ``pending'' await sealed runs with energy instrumentation.}
+\end{table}
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  box/.style={draw, rounded corners, align=center, minimum width=5.2cm, minimum height=1.0cm, font=\small},
+  arr/.style={-{Stealth[length=2.5mm]}, thick},
+]
+\node[box] (s1) at (0,0) {Score once: compute $\mathcal{T}$\\from the sealed receipts};
+\node[box] (s2) at (7.4,0) {Scoring tool seals the held-out\\seeds; refuses a second scoring};
+\node[box] (s3) at (7.4,-2.2) {Independent verify command refits\\$B$ and $M$ from the training files};
+\node[box, fill=gray!10] (s4) at (0,-2.2) {Reproduced receipt compared\\against the original: must match};
+\draw[arr] (s1) -- (s2);
+\draw[arr] (s2) -- (s3);
+\draw[arr] (s3) -- (s4);
+\draw[arr] (s4) -- (s1);
+\end{tikzpicture}
+\caption{Conceptual schematic of the verification-by-refit loop used for the first canonical measurement (Section~7). The held-out data can be scored exactly once; reproducibility is established by refitting both models from the training files and reproducing the receipt bit for bit. Conceptual illustration, not empirical data.}
+\label{fig:refit}
+\end{figure}
+
+\textbf{Analysis plan (preregistered):} for each experiment, report \(\mathcal{T}\) with its uncertainty envelope, the energy attribution closure check (H4), and both yields \(Y_{\rm eval}\) and \(Y_{\rm discovery}\) where the corresponding energies are measured; test H1--H5 per their pass/fail criteria; publish the full profile, artifacts, and energy traces for independent recomputation. Negative or null results will be reported as such. A failed \(\mathcal{T}>0\) is a result about the candidate, and a failed H3 or H4 is a result about the profile.
+
+\textbf{On prior runs.} Earlier AIEN/Omega runs (including the \href{https://github.com/aien-dev/omega/pull/49}{R13 continuation run} described in the companion paper \textit{The Continuation Test}, and the \href{https://github.com/aien-dev/omega/pull/50}{R14 recovery run}) predate the measurement-profile discipline and are \textbf{not scored retroactively}. Retroactive scoring under a profile that did not govern the run would violate the sealing and preregistration requirements of Section~5. The first scored run was TY-1+TY-2, conducted 2026-09-29 under profile V0 and reported above.
+
+\section{Falsification Criteria}
+
+The proposal is exposed to falsification at three levels. These criteria are preregistered: they are stated before the results of Section~7 exist.
+
+\textbf{F1: Bridge failure.} If H1 fails systematically (better-calibrated predictors do not produce smaller actual lossless encodings), then the log-loss-to-codelength bridge is defective for the tested regime, and idealized codelengths may not be reported as measured Turing gains. The quantity survives only where the bridge holds.
+
+\textbf{F2: Generalization failure.} If H2 fails (no discovered candidate achieves \(\mathcal{T}>0\) on sealed held-out data after paying its own description cost), then the proposal has not demonstrated generalized explanatory compression in the tested regime. Persistent F2 failure across diverse regimes would confine Turing gain to a theoretical quantity.
+
+\textbf{F3: Profile fragility.} If H3 fails (gains vary outside the uncertainty envelope under same-seed replay or preregistered-seed variation), then Turing measurements are not reproducible under the tested profile, and no measurement reported under that profile may be treated as a stable quantity. A unit that cannot survive reimplementation is not a unit.
+
+\textbf{F4: Attribution failure.} If H4 fails (attributed energy cannot be reconciled with measured machine energy), then no yield may be reported: \(Y_{\rm eval}\) requires a grounded \(E_{\rm eval}\), and \(Y_{\rm discovery}\) requires the full measured discovery sum. Note the asymmetry: \(\mathcal{T}\) can survive F4 while both yields cannot.
+
+\textbf{F5: Supersession.} If a better measure of verified explanatory gain is proposed (one that the Turing cannot match on the criteria of this paper), the Turing should be superseded. A measure of understanding should itself be exposed to falsification.
+
+Partial failure is informative: for example, F4 failing while F1--F3 hold would establish the Turing as a valid informational measure whose physical pairing needs better instrumentation, not as a failed proposal.
+
+\section{What the Turing Does Not Measure}
+
+Following Turing's procedure of meeting objections in turn, the limits are stated plainly. The Turing measures understanding-as-explanatory-compression: the epistemic dimension on which physics, statistics, and the minimum-description-length tradition agree. The constructive-empiricist reading~\cite{vanfraassen1980} is the honest philosophical home of the claim: the metric scores empirical adequacy per unit of theoretical cost, a genuine scientific virtue even where the best-compressing model is not the true one~\cite{shmueli2010}. The Turing must not be presented as measuring all of intelligence, nor as a certificate of safety or virtue. It does not directly measure: consciousness; subjective experience; moral worth; creativity in every sense; social understanding; agency; safety; wisdom; authority; or truth independent of the evaluation regime.
+
+The exclusions are not an afterthought; they are what make the quantity crisp. The Turing does not measure \textit{causal direction}: the covering-law tradition once identified explanation with predictive derivation~\cite{hempel1948}, and its counterexamples are the reason this paper does not. It does not measure \textit{semantic grounding}: a system can predict strings superbly with no model of what they are about~\cite{benderkoller2020}. It does not measure \textit{agency}: passive compression captures only some of the abilities intelligence requires, while acting in the world additionally demands planning, perception, and intervention~\cite{hernandezorallo2010}. And it does not measure \textit{value alignment}: the metric scores epistemic virtue, how efficiently regularities are captured, and is silent on which regularities are worth capturing and what the understanding is for~\cite{gabriel2020}. A complete account of machine understanding needs all four; this paper supplies the one that can currently be measured with a number.
+
+To the challenge that any formalization must say which real-world phenomenon it captures~\cite{lifschitz2024}: the phenomenon is theorizing itself, the cumulative practice by which expensive, weakly predictive accounts are replaced with cheaper, more predictive ones. That is narrower than intelligence, and fully within what the Turing measures.
+
+A false theory may temporarily compress a restricted dataset. A deceptive model may predict humans well. A trivial environment may be highly compressible. A specialized predictor may score well while possessing little general competence. A well-calibrated predictor may still be misused. Consequently, verification, experimental design, distribution shift, causal intervention, and adversarial evaluation remain indispensable, and nothing in Sections~2.2--2.3 should be read as claiming otherwise: the Turing contributes a falsifiable evidentiary criterion for one operational component of understanding: not a sufficient condition, and not a safety guarantee.
+
+\section{Relationship to the Turing Test}
+
+The Turing Test asks, operationally, whether machine behavior can be distinguished from human behavior under an interrogation procedure. It is a finite game with a binary verdict, and it measures \textit{imitation}: can the machine appear intelligent to a judge, for the duration of the interrogation?
+
+The Turing unit asks a different question, in a different kind of game. Not ``can the machine imitate us?'' but ``\textbf{can the machine discover structure that makes reality more predictable, and can that structure pay for its own complexity on observations it has never seen?}'' It is an infinite game with no final verdict: gains are reported per experiment, under declared profiles, indefinitely, as the system continues. A high Turing gain does not imply passing any imitation test, and passing an imitation test implies nothing about Turing gain. A fluent memorized performance can pass the former while scoring at or below zero on the latter (Lemma~2).
+
+The contrast with benchmark culture is deliberate. A benchmark asks: how accurately does the system perform on this test set? A Turing measurement asks: how much sealed, unseen reality does the explanation make less surprising, after paying for itself, with the background declared? The first rewards performance, which can be bought with data, memorization, and prompt engineering~\cite{chollet2019,carlini2021}; the second rewards explanatory efficiency, which cannot be bought without being charged. A large language model is a candidate under this protocol like any other: it may score Turings, provided its pretraining is declared as shared background and its held-out data is provably held out (Section~5.7). The protocol does not prejudge the architecture; it audits the accounting.
+
+The latter does not replace Turing's imitation game. It extends the same methodological instinct (replace the unanswerable question with a measurable one) into a domain in which modern machines can be evaluated continuously and quantitatively:
+\[
+\text{imitation}
+\rightarrow
+\text{prediction}
+\rightarrow
+\text{explanation}
+\rightarrow
+\text{experiment}.
+\]
+
+\section{Conclusion}
+
+Turing transformed the question of machine thought by declining to settle the meaning of thought first. This proposal follows that methodological example. There is no need to agree on a complete philosophy of machine understanding before beginning to measure one of its components.
+
+I begin instead with a smaller experimental question: \textit{has the machine discovered an explanation that is simpler than what came before, survives contact with unseen reality, and reduces what remains surprising?} If it has, the reduction can be measured. I call one bit of such net, verified, held-out explanatory compression \textbf{one Turing}. I am unaware of prior work using the term \textit{Turing} for the protocol-bound quantity of net held-out explanatory compression defined here.
+
+The proposal may fail, and Section~8 states exactly how failure will be recognized. The measurement may prove too dependent on encoding choices; attribution may remain too uncertain; compression may prove an insufficient proxy for the phenomena called understanding; better measures may supersede it. Those possibilities are not defects in the proposal. They are requirements of it.
+
+If it succeeds, even partially, it supplies three things the field currently lacks: a measure that makes the energy cost of machine understanding legible and comparable as compute scales; an honesty discipline that rewards verified explanatory gain over fluent performance; and a measurable target for the long work of building machines whose competence reflects understanding rather than performance. That is infrastructure worth having: for the science, for the environment it runs in, and for the people who will live with what it produces. The claim stays narrow by design: the Turing measures understanding-as-explanatory-compression, one operational component of understanding, and Sections~5.7 and~9 state what the protocol and the quantity exclude.
+
+The machine proposes.
+
+The experiment measures.
+
+Reality decides.
+
+\section*{Acknowledgments}
+
+This paper is solo-authored. AI language models were used as drafting, analysis, and review tools in its preparation; the argument, and any errors, are the author's own.
+
+\appendix
+\section{Revision history}
+
+This preprint was revised through v1.9 on 2026-09-30 before release. The revision record is kept here, outside the body of the paper, for transparency.
+
+\begin{description}
+\item[v1.1] Technical revision: unit/outcome distinction, Lemma~1 proof, Lemma~2 rewrite, yield split, seal/blinding distinction, claim softening.
+\item[v1.2] Related work expanded after an independent prior-art search (SuperARC, Legg--Hutter, Chollet, Zhang--Liu, and an unpublished independent manuscript on intelligence per joule); companion paper cross-reference updated.
+\item[v1.3] Assumption A3: continuous observations are encoded as declared quantized symbols, so Definition~1 always operates on discrete measurement symbols; new \texttt{quantizer} profile field; preregistered experiment ladder EXP-001 (Omega-trace instrument validation), EXP-002 (Stochastic Law Discovery: pure diffusion, drifted diffusion, mean reversion), EXP-003 (active experiment selection).
+\item[v1.4] Citation corrections after source verification: Zhang/Liu author initials corrected to C. Zhang and X. Liu; anonymous 2026 manuscript given its full title, date, and stable URL; R15 state reconciled against the repository (PR~67 merged, 16/16 gates PASS, energy measured; no Turing yield yet); H3 split into replay reproducibility vs.\ statistical robustness; Table~2 profiles marked draft with preregistration pending; \texttt{uncertainty\_envelope} profile field now requires the estimation procedure.
+\item[v1.5] First empirical result: TY-1+TY-2 PASS (+2,559,679.825~T under profile V0, omega PR~85); Empirical Results section populated; Definition~4 updated to distinguish measured Turing gain from not-yet-joined Turing yield.
+\item[v1.6] Substantive revision addressing independent review: Turing gain reframed as net held-out explanatory compression (one measurable component of understanding, with explicit scope exclusions); Turing's ban/deciban precedent (Good 1979); specific Turing gain (per-observation rate) with totals compared only at fixed sample size; shared-background declaration and anti-gaming rule; declared reference coder; blessed model-cost code with sensitivity analysis; baseline-sensitivity reporting; benchmark-culture contrast with a fair statement of the world-models debate; physics-grounding thesis with physics-informed ML and the Bitter Lesson; interventional held-out regimes; bibliography expanded.
+\item[v1.7] Release versioning correction: the public release restores the true revision sequence (v1.1--v1.6) after the staged website build was erroneously labeled v1.0; companion cross-reference updated to v1.7. No content change from v1.6.
+\item[v1.8] Figures added (Sections~3, 5, and 7): the Turing measurement pipeline, the distinction between Turing gain $\mathcal{T}$ and Turing yield, and the verification-by-refit loop. No other content change from v1.7.
+\item[v1.9] Named engagement added: the shared-background and anti-gaming discussion now states the English-as-programming-language claim by name (Karpathy 2023; Hansson, Rails World 2026 opening keynote) and answers it in protocol terms. Figures from v1.8 carried unchanged. No other content change from v1.8.
+\end{description}
+
+\begin{thebibliography}{99}
+
+\bibitem{turing1950}
+A.~M. Turing,
+\newblock ``Computing Machinery and Intelligence,''
+\newblock \emph{Mind}, vol.~59, no.~236, pp.~433--460, 1950.
+
+\bibitem{shannon1948}
+C.~E. Shannon,
+\newblock ``A Mathematical Theory of Communication,''
+\newblock \emph{Bell System Technical Journal}, vol.~27, pp.~379--423 and 623--656, 1948.
+
+\bibitem{solomonoff1964}
+R.~J. Solomonoff,
+\newblock ``A Formal Theory of Inductive Inference,''
+\newblock \emph{Information and Control}, vol.~7, no.~1, pp.~1--22, 1964;
+\newblock vol.~7, no.~2, pp.~224--254, 1964.
+
+\bibitem{kolmogorov1965}
+A.~N. Kolmogorov,
+\newblock ``Three Approaches to the Quantitative Definition of Information,''
+\newblock \emph{Problems of Information Transmission}, vol.~1, no.~1, pp.~1--7, 1965.
+
+\bibitem{rissanen1978}
+J. Rissanen,
+\newblock ``Modeling by Shortest Data Description,''
+\newblock \emph{Automatica}, vol.~14, no.~5, pp.~465--471, 1978.
+
+\bibitem{grunwald2005}
+P.~D. Gr{\"u}nwald,
+\newblock ``A Tutorial Introduction to the Minimum Description Length Principle,''
+\newblock in P.~D. Gr{\"u}nwald, I.~J. Myung, and M.~A. Pitt (Eds.),
+\newblock \emph{Advances in Minimum Description Length: Theory and Applications},
+\newblock MIT Press, 2005.
+
+\bibitem{grunwald2007}
+P. Gr{\"u}nwald,
+\newblock \emph{The Minimum Description Length Principle},
+\newblock MIT Press, 2007.
+
+\bibitem{haldane1949}
+J.~B.~S. Haldane,
+\newblock ``Suggestions as to Quantitative Measurement of Rates of Evolution,''
+\newblock \emph{Evolution}, vol.~3, pp.~51--56, 1949.
+
+\bibitem{superarc2025}
+A. Hern{\'a}ndez-Espinosa, F. Ozelim, F. Abrah{\~a}o, and H. Zenil,
+\newblock ``SuperARC: A Test of Machine Superintelligence,''
+\newblock arXiv:2503.16743, 2025.
+
+\bibitem{legghutter2007}
+S. Legg and M. Hutter,
+\newblock ``Universal Intelligence: A Definition of Machine Intelligence,''
+\newblock \emph{Minds and Machines}, vol.~17, no.~4, pp.~391--444, 2007.
+
+\bibitem{chollet2019}
+F. Chollet,
+\newblock ``On the Measure of Intelligence,''
+\newblock arXiv:1911.01547, 2019.
+
+\bibitem{zhangliu2025}
+C. Zhang and X. Liu,
+\newblock ``A Theory of Machine Understanding via the Minimum Description Length Principle,''
+\newblock arXiv:2504.00395, 2025.
+
+\bibitem{anonymous2026}
+Anonymous,
+\newblock ``A Theory of Intelligence as Energy-Efficient Cost Reduction: Competence, Learning, and Amortised Deliberation,''
+\newblock self-published manuscript, June 17, 2026.
+\newblock \url{https://amphitere.com/papers/a-theory-of-intelligence.pdf}.
+
+\bibitem{masum2003}
+H. Masum, S. Christensen, and F. Oppacher,
+\newblock ``The Turing Ratio: A Framework for Open-Ended Task Metrics,''
+\newblock \emph{Journal of Evolution and Technology}, vol.~13, no.~2, 2003.
+
+\bibitem{good1979}
+I.~J. Good,
+\newblock ``Studies in the History of Probability and Statistics. XXXVII: A.~M. Turing's Statistical Work in World War II,''
+\newblock \emph{Biometrika}, vol.~66, no.~2, pp.~393--396, 1979.
+
+\bibitem{hempel1948}
+C.~G. Hempel and P. Oppenheim,
+\newblock ``Studies in the Logic of Explanation,''
+\newblock \emph{Philosophy of Science}, vol.~15, no.~2, pp.~135--175, 1948.
+
+\bibitem{vanfraassen1980}
+B.~C. van Fraassen,
+\newblock \emph{The Scientific Image},
+\newblock Oxford University Press, 1980.
+
+\bibitem{dawid1984}
+A.~P. Dawid,
+\newblock ``Present Position and Potential Developments: Some Personal Views. Statistical Theory: The Prequential Approach,''
+\newblock \emph{Journal of the Royal Statistical Society, Series A}, vol.~147, no.~2, pp.~278--292, 1984.
+
+\bibitem{witten1987}
+I.~H. Witten, R.~M. Neal, and J.~G. Cleary,
+\newblock ``Arithmetic Coding for Data Compression,''
+\newblock \emph{Communications of the ACM}, vol.~30, no.~6, pp.~520--540, 1987.
+
+\bibitem{hinton1993}
+G.~E. Hinton and D. van Camp,
+\newblock ``Keeping the Neural Networks Simple by Minimizing the Description Length of the Weights,''
+\newblock in \emph{Proc. 6th Annual Conference on Computational Learning Theory (COLT)}, 1993.
+
+\bibitem{deregt2005}
+H.~W. de Regt and D. Dieks,
+\newblock ``A Contextual Approach to Scientific Understanding,''
+\newblock \emph{Synthese}, vol.~144, no.~1, pp.~137--170, 2005.
+
+\bibitem{kirby2008}
+S. Kirby, H. Cornish, and K. Smith,
+\newblock ``Cumulative Cultural Evolution in the Laboratory: An Experimental Approach to the Origins of Structure in Human Language,''
+\newblock \emph{Proceedings of the National Academy of Sciences}, vol.~105, no.~31, pp.~10681--10686, 2008.
+
+\bibitem{duda2009}
+J. Duda,
+\newblock ``Asymmetric Numeral Systems,''
+\newblock arXiv:0902.0271, 2009.
+
+\bibitem{friston2010}
+K. Friston,
+\newblock ``The Free-Energy Principle: A Unified Brain Theory?''
+\newblock \emph{Nature Reviews Neuroscience}, vol.~11, no.~2, pp.~127--138, 2010.
+
+\bibitem{hernandezorallo2010}
+J. Hern{\'a}ndez-Orallo and D.~L. Dowe,
+\newblock ``Measuring Universal Intelligence: Towards an Anytime Intelligence Test,''
+\newblock \emph{Artificial Intelligence}, vol.~174, no.~18, pp.~1508--1539, 2010.
+
+\bibitem{shmueli2010}
+G. Shmueli,
+\newblock ``To Explain or to Predict?''
+\newblock \emph{Statistical Science}, vol.~25, no.~3, pp.~289--310, 2010.
+
+\bibitem{clark2013}
+A. Clark,
+\newblock ``Whatever Next? Predictive Brains, Situated Agents, and the Future of Cognitive Science,''
+\newblock \emph{Behavioral and Brain Sciences}, vol.~36, no.~3, pp.~181--204, 2013.
+
+\bibitem{dellsen2016}
+F. Dells{\'e}n,
+\newblock ``Scientific Progress: Knowledge versus Understanding,''
+\newblock \emph{Studies in History and Philosophy of Science}, vol.~56, pp.~72--83, 2016.
+
+\bibitem{blier2018}
+L. Blier and Y. Ollivier,
+\newblock ``The Description Length of Deep Learning Models,''
+\newblock arXiv:1802.07044, 2018.
+
+\bibitem{raissi2019}
+M. Raissi, P. Perdikaris, and G.~E. Karniadakis,
+\newblock ``Physics-Informed Neural Networks: A Deep Learning Framework for Solving Forward and Inverse Problems Involving Nonlinear Partial Differential Equations,''
+\newblock \emph{Journal of Computational Physics}, vol.~378, pp.~686--707, 2019.
+
+\bibitem{sutton2019}
+R.~S. Sutton,
+\newblock ``The Bitter Lesson,''
+\newblock online essay, March 13, 2019.
+\newblock \url{http://www.incompleteideas.net/IncIdeas/TheBitterLesson.html}.
+
+\bibitem{townsend2019}
+J. Townsend, T. Bird, and D. Barber,
+\newblock ``Practical Lossless Compression with Latent Variables Using Bits Back Coding,''
+\newblock in \emph{Proc. International Conference on Learning Representations (ICLR)}, 2019.
+
+\bibitem{benderkoller2020}
+E.~M. Bender and A. Koller,
+\newblock ``Climbing towards NLU: On Meaning, Form, and Understanding in the Age of Data,''
+\newblock in \emph{Proc. 58th Annual Meeting of the Association for Computational Linguistics (ACL)}, pp.~5185--5198, 2020.
+
+\bibitem{gabriel2020}
+I. Gabriel,
+\newblock ``Artificial Intelligence, Values, and Alignment,''
+\newblock \emph{Minds and Machines}, vol.~30, pp.~411--437, 2020.
+
+\bibitem{benderetal2021}
+E.~M. Bender, T. Gebru, A. McMillan-Major, and S. Shmitchell,
+\newblock ``On the Dangers of Stochastic Parrots: Can Language Models Be Too Big?,''
+\newblock in \emph{Proc. ACM Conference on Fairness, Accountability, and Transparency (FAccT)}, pp.~610--623, 2021.
+
+\bibitem{carlini2021}
+N. Carlini et al.,
+\newblock ``Extracting Training Data from Large Language Models,''
+\newblock in \emph{Proc. 30th USENIX Security Symposium}, 2021.
+
+\bibitem{li2023}
+K. Li, A.~K. Hopkins, D. Bau, F. Vi{\'e}gas, H. Pfister, and M. Wattenberg,
+\newblock ``Emergent World Representations: Exploring a Sequence Model Trained on a Synthetic Task,''
+\newblock in \emph{Proc. International Conference on Learning Representations (ICLR)}, 2023.
+
+\bibitem{sainz2023}
+O. Sainz et al.,
+\newblock ``NLP Evaluation in Trouble: On the Need to Measure LLM Data Contamination for Each Benchmark,''
+\newblock in \emph{Findings of the Association for Computational Linguistics: EMNLP 2023}, pp.~10776--10787, 2023.
+
+\bibitem{deletang2024}
+G. Del{\'e}tang et al.,
+\newblock ``Language Modeling Is Compression,''
+\newblock in \emph{Proc. International Conference on Learning Representations (ICLR)}, 2024.
+
+\bibitem{deng2024}
+C.-H. Deng et al.,
+\newblock ``Investigating Data Contamination in Modern Benchmarks for Large Language Models,''
+\newblock in \emph{Proc. 2024 Conference of the North American Chapter of the Association for Computational Linguistics (NAACL)}, 2024.
+
+\bibitem{lifschitz2024}
+V. Lifschitz,
+\newblock ``On a Measure of Intelligence,''
+\newblock \emph{Bulletin of the EATCS}, 2024.
+\newblock \url{http://bulletin.eatcs.org/index.php/beatcs/article/download/822/873}.
+
+\bibitem{mccoy2024}
+R.~T. McCoy, S. Yao, D. Friedman, M.~D. Hardy, and T.~L. Griffiths,
+\newblock ``Embers of Autoregression Show How Large Language Models Are Shaped by the Problem They Are Trained to Solve,''
+\newblock \emph{Proceedings of the National Academy of Sciences}, 2024, DOI 10.1073/pnas.2322420121.
+
+\bibitem{vafa2024}
+K. Vafa et al.,
+\newblock ``Evaluating the World Model Implicit in a Generative Model,''
+\newblock arXiv:2406.03689, 2024.
+
+\bibitem{karpathy2023}
+A. Karpathy,
+\newblock ``The hottest new programming language is English,''
+\newblock post on X, January 24, 2023.
+\newblock \url{https://twitter.com/karpathy/status/1617979122625712128}.
+
+\bibitem{hansson2026}
+D.~H. Hansson,
+\newblock ``Rails World 2026 Opening Keynote,''
+\newblock Rails World 2026, Austin, TX, 2026.
+\newblock \url{https://www.youtube.com/watch?v=vDjW_dRyKXY}.
+
+\end{thebibliography}
+
+\end{document}

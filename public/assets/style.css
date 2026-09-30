@@ -592,3 +592,53 @@ p {
     align-items: flex-start;
   }
 }
+
+/* Theory illustrations: one visual system for all hand-built SVG figures */
+.theory-fig {
+  margin: 36px 0;
+  background: linear-gradient(160deg, rgba(45, 127, 249, 0.05), rgba(0, 229, 153, 0.03)), var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 26px 26px 22px;
+}
+
+.theory-fig .fig-kicker {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent-blue);
+  margin-bottom: 18px;
+}
+
+.theory-fig .fig-kicker .fig-kind {
+  color: var(--text-muted);
+}
+
+.theory-fig svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.theory-fig figcaption {
+  margin-top: 18px;
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+.theory-fig figcaption strong {
+  color: var(--text-primary);
+}
+
+@media (max-width: 640px) {
+  .theory-fig {
+    padding: 18px 14px 16px;
+  }
+}

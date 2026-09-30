@@ -9,8 +9,8 @@ AIEN V2 is a research program asking whether machine intelligence can be built f
 ## Read more
 
 - Blog: https://www.aienos.com/blog
-- The AIEN V2 Research Plan (first post): https://www.aienos.com/blog/aien-v2-research-plan
-- Full 25-page research brief (PDF): https://www.aienos.com/research/aien-research-plan.pdf
+- The AIEN V3 Research Plan (first post): https://www.aienos.com/blog/aien-v3-research-plan
+- Full research plan (Markdown, ratified V3): https://www.aienos.com/research/aien-research-plan.md
 - Source code: https://github.com/aien-dev
 
 ## For AI agents

@@ -1,0 +1,44 @@
+# Citation metadata for the AIEN Turing preprints.
+# https://citation-file-format.github.io/
+cff-version: 1.2.0
+title: "Computing Machinery and Understanding: From the Imitation Game to the Turing"
+message: "If you use the Turing measure, please cite the formal preprint. The companion engineering paper is cited separately below."
+type: software
+authors:
+  - family-names: Stapleton
+    given-names: M. Drake
+    affiliation: "AIEN Project"
+version: "1.9"
+date-released: 2026-09-30
+url: "https://aienos.com/research/computing-machinery-and-understanding"
+repository-code: "https://github.com/aien-dev/omega"
+license: "Apache-2.0"
+keywords:
+  - turing-gain
+  - explanatory-compression
+  - minimum-description-length
+  - machine-understanding
+  - intelligence-measurement
+preferred-citation:
+  type: unpublished
+  authors:
+    - family-names: Stapleton
+      given-names: M. Drake
+      affiliation: "AIEN Project"
+  title: "Computing Machinery and Understanding: From the Imitation Game to the Turing: An Operational Measure of Generalized Explanatory Compression"
+  year: 2026
+  month: 9
+  notes: "Preprint v1.9, not peer reviewed"
+  url: "https://aienos.com/research/computing-machinery-and-understanding"
+references:
+  - type: unpublished
+    authors:
+      - family-names: Stapleton
+        given-names: M. Drake
+        affiliation: "AIEN Project"
+    title: "Computing Machinery and Understanding: The Turing as a Measure Emerging from AIEN"
+    year: 2026
+    month: 9
+    version: "1.9"
+    notes: "Companion paper, preprint v1.9, not peer reviewed"
+    url: "https://aienos.com/research/computing-machinery-and-understanding-emergence"
