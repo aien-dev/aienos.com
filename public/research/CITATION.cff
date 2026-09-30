@@ -8,8 +8,8 @@ authors:
   - family-names: Stapleton
     given-names: M. Drake
     affiliation: "AIEN Project"
-version: "1.4"
-date-released: 2026-09-29
+version: "1.7"
+date-released: 2026-09-30
 url: "https://aienos.com/research/computing-machinery-and-understanding"
 repository-code: "https://github.com/aien-dev/omega"
 license: "Apache-2.0"
@@ -28,7 +28,7 @@ preferred-citation:
   title: "Computing Machinery and Understanding: From the Imitation Game to the Turing: An Operational Measure of Generalized Explanatory Compression"
   year: 2026
   month: 9
-  notes: "Preprint v1.4, not peer reviewed"
+  notes: "Preprint v1.7, not peer reviewed"
   url: "https://aienos.com/research/computing-machinery-and-understanding"
 references:
   - type: unpublished
@@ -39,6 +39,6 @@ references:
     title: "Computing Machinery and Understanding: The Turing as a Measure Emerging from AIEN"
     year: 2026
     month: 9
-    version: "1.1"
-    notes: "Companion paper, preprint v1.1, not peer reviewed"
+    version: "1.7"
+    notes: "Companion paper, preprint v1.7, not peer reviewed"
     url: "https://aienos.com/research/computing-machinery-and-understanding-emergence"

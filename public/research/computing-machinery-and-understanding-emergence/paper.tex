@@ -24,13 +24,13 @@
     \large The Turing as a Measure Emerging from AIEN
 }
 \author{M. Drake Stapleton\\AIEN Project}
-\date{September 29, 2026\\Version 1.0 (not peer reviewed)}
+\date{September 30, 2026\\v1.7 preprint (not peer reviewed)}
 
 \begin{document}
 
 \maketitle
 
-\noindent\textit{Companion to the formal preprint ``Computing Machinery and Understanding: From the Imitation Game to the Turing'' (Version 1.0), which gives the definitions, proofs, measurement protocol, and falsification criteria. This paper gives the engineering history the measure emerged from.}
+\noindent\textit{Companion to the formal preprint ``Computing Machinery and Understanding: From the Imitation Game to the Turing'' (v1.7), which gives the definitions, proofs, measurement protocol, and falsification criteria. This paper gives the engineering history the measure emerged from.}
 
 \begin{abstract}
 I did not begin this work by trying to invent a new unit of intelligence.
@@ -1160,20 +1160,6 @@ I am trying to operationalize an argument about explanatory progress.
 
 The intellectual debt is methodological, not rhetorical.
 
-\section{Nature Invented the Loop}
-
-There is a question I have been asked, in different words, more than once: does this touch the P versus NP problem?
-
-It does not, and I want to be precise about why, because the precise answer is more interesting than the question.
-
-P versus NP asks whether finding a solution is fundamentally harder than checking one, measured in compute time. My work makes no claim about that problem and needs none. The Turing is about description length, not time complexity. Different axes.
-
-But the mechanism, expensive search paired with cheap verification, is not something I invented. Nature runs it everywhere.
-
-Evolution generates variation blindly and wastefully, at the cost of uncounted failed organisms across deep time, and then verifies with a check so cheap it is automatic: did it survive and reproduce, or not. The immune system builds a vast random library of antibodies, most of them useless, and a simple binding check selects the winners for mass production. Directed evolution in the laboratory is the human-run version of the same loop: expensive random mutation, cheap assay. And science itself, which this protocol formalizes: the hypothesis is the expensive part, the experiment the cheap and decisive part.
-
-I state the disanalogy plainly, because an analogy is not an identity. In nature the check is a filter, not a proof; nothing is recomputed exactly. The receipt architecture in this program is stronger than that: verification is exact recomputation from sealed artifacts, so anyone can re-verify a measurement without trusting the measurer. Nature invented the loop. What this work contributes is the unit: a way to say, in bits, how much understanding the loop produced.
-
 \section{The Architecture Is the Argument}
 
 The reason I am willing to publish the idea now is not that the equation looks elegant.
@@ -1340,28 +1326,6 @@ That is exactly how I want it.
 \textbf{Reality decides.}
 \end{center}
 
-\section*{Addendum: Understanding Versus Search}
-
-Since completing the above, a sharp question has been put to me, and I want to record it here with my answer, because it clarifies what the Turing is and what it is not.
-
-The Turing asks: how much useful structure did the system discover? G\"odel's 1956 question asks something adjacent but different: how much work was required to discover a solution that is easy to verify? Put together, they give a way to study understanding versus search as two independent axes.
-
-I define, as an empirical quantity and nothing more, a discovery-verification gap. Let $x$ be a problem instance and $w$ a candidate witness: a proof, a satisfying assignment, a program, an explanation. Let $C_{\mathrm{verify}}(x, w)$ be the work required to check $w$, and let $C_{\mathrm{discover}, A}(x)$ be the work required for a specific algorithm $A$ to find $w$. The subscript matters: the gap measures the algorithm on the instance, not the instance alone. Then
-
-\[
-G_A(x) = \log_2 \frac{C_{\mathrm{discover}, A}(x)}{C_{\mathrm{verify}}(x, w)}.
-\]
-
-This is a measured quantity, not a complexity-theoretic invariant. Cost can be counted in machine steps, candidate evaluations, nodes expanded, or joules, and each counting is its own measurement.
-
-The Turing, $T(x, w)$, remains what it was: net held-out explanatory compression. The two questions are independent. A brute-force system can produce a perfectly valid witness with moderate $T$ and an enormous $G$. A system that has discovered reusable structure can show high $T$ with a much smaller $G$.
-
-The research question this opens is the one I find most worth pursuing: does explanatory compression systematically collapse search? If an abstraction worth a large $T$ causes future search on the same problem family to fall from near-exhaustive enumeration to a small search tree, that is evidence that compression corresponds to algorithmic understanding. There is a natural hierarchy here. A witness says ``here is the answer.'' An algorithm says ``here is how to find answers efficiently.'' A high-Turing theory says ``here is the compact structure explaining why this algorithm works across many cases.''
-
-I state the boundary with the same plainness I use everywhere else in this program: no finite experiment of this kind can resolve P versus NP. That question concerns asymptotic worst-case polynomial-time solvability over all inputs, and finite measurements, however spectacular their scaling, cannot prove it. Settling P versus NP would require an algorithm for an NP-complete problem together with a valid proof of a polynomial worst-case bound, or a genuine mathematical lower-bound proof. Experiments can inform the search for such proofs. They cannot substitute for them.
-
-The status of everything in this addendum is: proposal under investigation. No measurements exist yet. What makes me willing to record it is that the architecture described in this paper already enforces the separation the proposal needs: discovery is expensive and untrusted, verification is cheap recomputation from sealed artifacts. The first honest step is therefore not a new experimental series but instrumentation: recording discovery cost and verification cost on the work already running, and seeing what the numbers say.
-
 \section*{Implementation and Evidence Index}
 
 \begin{longtable}{p{0.32\textwidth}p{0.62\textwidth}}
@@ -1404,7 +1368,16 @@ AIEN architecture &
 \end{longtable}
 
 \appendix
+\section{Revision history}
 
+This companion paper was revised through v1.7 on 2026-09-30 before release. The revision record is kept here, outside the body of the paper, for transparency.
+
+\begin{description}
+\item[v1.1] Cross-reference updated to the formal preprint v1.3; forward pointer to the preregistered experiment ladder EXP-001/002/003 defined there.
+\item[v1.2] Em dashes removed throughout at the author's direction (punctuation only, no content change).
+\item[v1.3] Cross-reference updated to the formal preprint v1.6; first canonical Turing measurement recorded (omega PR 85, profile V0); AEGIS role clarified per the AEGIS ruling; FORGE terminology; narrow-scope statement and specific Turing gain.
+\item[v1.7] Release versioning correction: the public release restores the true revision sequence after the staged website build was erroneously labeled v1.0; versions aligned with the formal preprint v1.7 as a coordinated release. No content change from v1.3.
+\end{description}
 
 \begin{thebibliography}{9}
 
