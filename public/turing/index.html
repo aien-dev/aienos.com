@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Turing: An Interactive Field Guide | AIEN Research</title>
+<meta name="description" content="What is the Turing? Play with it. An interactive field guide to the unit that measures how much a machine actually understood: games, live calculations, and the theories behind it.">
+<link rel="canonical" href="https://aienos.com/turing/">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta property="og:title" content="The Turing: An Interactive Field Guide">
+<meta property="og:description" content="A unit for how much a machine actually understood. Play the games, run the numbers, see the theories.">
+<meta property="og:url" content="https://aienos.com/turing/">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://aienos.com/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<style>
+:root{
+  --t-blue:#2d7ff9; --t-green:#00e599; --t-amber:#f59e0b; --t-red:#ff5d5d;
+  --t-violet:#a78bfa;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:#08090c;color:#f1f5f9;font-family:"Space Grotesk",system-ui,sans-serif;overflow-x:hidden}
+.tnav{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+  padding:14px 28px;background:rgba(8,9,12,.72);backdrop-filter:blur(14px);border-bottom:1px solid #1c2536}
+.tnav .brand{font-weight:800;font-size:17px;letter-spacing:-.02em;color:#f1f5f9;text-decoration:none}
+.tnav .brand span{color:var(--t-blue)}
+.tnav nav{display:flex;gap:20px;font-size:14px}
+.tnav nav a{color:#94a3b8;text-decoration:none}
+.tnav nav a:hover{color:#f1f5f9}
+.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:120px 24px 80px;overflow:hidden}
+#field{position:absolute;inset:0;width:100%;height:100%}
+.hero-inner{position:relative;z-index:2;max-width:900px}
+.script-t{font-family:Georgia,"Times New Roman",serif;font-style:italic;font-size:clamp(90px,14vw,150px);line-height:1;
+  background:linear-gradient(135deg,#7db4ff,#2d7ff9 40%,#00e599);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 34px rgba(45,127,249,.45));margin-bottom:10px}
+.hero h1{font-size:clamp(38px,6vw,72px);font-weight:800;letter-spacing:-.03em;margin:0 0 18px;line-height:1.04}
+.hero .tag{font-size:clamp(17px,2.4vw,22px);color:#94a3b8;max-width:640px;margin:0 auto 34px;line-height:1.55}
+.hero .tag strong{color:#f1f5f9}
+.cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:14px 28px;border-radius:12px;font-weight:700;font-size:15px;
+  text-decoration:none;border:1px solid var(--t-blue);background:rgba(45,127,249,.14);color:#7db4ff;transition:.25s;cursor:pointer;font-family:inherit}
+.btn:hover{background:rgba(45,127,249,.28);transform:translateY(-2px);box-shadow:0 12px 40px rgba(45,127,249,.25)}
+.btn.ghost{border-color:#1c2536;background:transparent;color:#94a3b8}
+.btn.ghost:hover{color:#f1f5f9;border-color:#2d7ff9;box-shadow:none}
+.scroll-cue{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);color:#64748b;font-size:12px;
+  font-family:"JetBrains Mono",monospace;letter-spacing:.2em;z-index:2;animation:bob 2.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,10px)}}
+section.block{position:relative;max-width:1080px;margin:0 auto;padding:110px 24px}
+.kicker{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.22em;color:var(--t-blue);text-transform:uppercase;margin-bottom:18px}
+h2.st{font-size:clamp(30px,4.4vw,48px);font-weight:800;letter-spacing:-.025em;line-height:1.1;margin:0 0 18px}
+p.lead{font-size:18px;color:#94a3b8;line-height:1.65;max-width:720px;margin:0 0 14px}
+p.lead strong{color:#f1f5f9}
+.reveal{opacity:0;transform:translateY(34px);transition:opacity .8s ease,transform .8s ease}
+.reveal.visible{opacity:1;transform:none}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:44px}
+@media(max-width:820px){.trio{grid-template-columns:1fr}}
+.step-card{background:#0e1219;border:1px solid #1c2536;border-radius:18px;padding:30px 26px;position:relative;overflow:hidden;transition:.3s}
+.step-card:hover{border-color:#2d7ff9;transform:translateY(-4px)}
+.step-card .n{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--t-blue);letter-spacing:.18em;margin-bottom:14px}
+.step-card h3{font-size:21px;margin:0 0 12px;letter-spacing:-.01em}
+.step-card p{font-size:15px;color:#94a3b8;line-height:1.65;margin:0}
+.tiles{display:flex;gap:10px;margin:18px 0 6px;flex-wrap:wrap}
+.tile{width:58px;height:58px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-family:"JetBrains Mono",monospace;font-weight:700;font-size:20px}
+.tile.seen{background:rgba(45,127,249,.16);border:1px solid rgba(45,127,249,.5);color:#7db4ff}
+.tile.hidden{background:#131822;border:2px dashed #475569;color:#475569}
+.game{background:#0b0e14;border:1px solid #1c2536;border-radius:24px;padding:44px;margin-top:48px;position:relative;overflow:hidden}
+.game-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+.game-head h3{font-size:24px;margin:0;letter-spacing:-.01em}
+.score-chip{font-family:"JetBrains Mono",monospace;font-size:13px;padding:8px 16px;border-radius:999px;
+  border:1px solid #1c2536;color:#94a3b8;background:#0e1219}
+.score-chip b{color:var(--t-amber)}
+.rule-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:26px 0}
+@media(max-width:820px){.rule-row{grid-template-columns:1fr}}
+.rule-btn{background:#131822;border:1px solid #2a3648;border-radius:14px;padding:20px;color:#f1f5f9;cursor:pointer;
+  font-family:inherit;text-align:left;transition:.22s;font-size:15px;line-height:1.5}
+.rule-btn:hover:not(:disabled){border-color:var(--t-blue);transform:translateY(-3px);box-shadow:0 10px 30px rgba(45,127,249,.18)}
+.rule-btn:disabled{cursor:default;opacity:.85}
+.rule-btn .rl{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:#64748b;display:block;margin-top:10px;letter-spacing:.06em}
+.rule-btn.picked{border-color:var(--t-green);box-shadow:0 0 0 1px var(--t-green),0 10px 30px rgba(0,229,153,.15)}
+.rule-btn.dim{opacity:.45}
+.result{display:none;margin-top:8px;border-top:1px solid #1c2536;padding-top:26px}
+.result.show{display:block;animation:fadeUp .5s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.verdict{font-size:19px;font-weight:700;margin-bottom:6px}
+.verdict.good{color:var(--t-green)} .verdict.bad{color:var(--t-red)} .verdict.mid{color:var(--t-amber)}
+.math{font-family:"JetBrains Mono",monospace;font-size:15px;color:#94a3b8;background:#08090c;border:1px solid #1c2536;
+  border-radius:12px;padding:16px 20px;margin:16px 0;line-height:1.8}
+.math b{color:var(--t-amber);font-size:18px}
+.explain{font-size:15.5px;color:#94a3b8;line-height:1.7;max-width:700px}
+.explain strong{color:#f1f5f9}
+.again{margin-top:20px}
+.lab{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:44px;align-items:start}
+@media(max-width:860px){.lab{grid-template-columns:1fr}}
+.lab-panel{background:#0e1219;border:1px solid #1c2536;border-radius:18px;padding:30px}
+.lab-panel label{display:block;font-size:14px;color:#94a3b8;margin:22px 0 10px;font-weight:600}
+.lab-panel label:first-of-type{margin-top:6px}
+.lab-panel label output{float:right;color:#f1f5f9;font-family:"JetBrains Mono",monospace}
+input[type=range]{width:100%;appearance:none;-webkit-appearance:none;height:8px;border-radius:99px;background:#1c2536;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;
+  background:linear-gradient(135deg,#2d7ff9,#00e599);cursor:pointer;box-shadow:0 0 18px rgba(45,127,249,.6);border:none}
+input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#2d7ff9;cursor:pointer;border:none}
+.meter{background:#08090c;border:1px solid #1c2536;border-radius:18px;padding:34px 30px;text-align:center;position:sticky;top:90px}
+.meter .tval{font-family:"JetBrains Mono",monospace;font-size:clamp(48px,6vw,76px);font-weight:700;line-height:1;margin:8px 0 4px}
+.meter .tval.pos{color:var(--t-green);text-shadow:0 0 30px rgba(0,229,153,.4)}
+.meter .tval.neg{color:var(--t-red);text-shadow:0 0 30px rgba(255,93,93,.4)}
+.meter .tval.zero{color:#94a3b8}
+.meter .cap{font-size:13px;color:#64748b;font-family:"JetBrains Mono",monospace;letter-spacing:.12em}
+.meter .formula{font-family:"JetBrains Mono",monospace;font-size:14px;color:#94a3b8;margin-top:18px;line-height:2}
+.meter .formula b{color:#f1f5f9}
+.bar-wrap{height:14px;background:#1c2536;border-radius:99px;margin-top:22px;overflow:hidden;position:relative}
+.bar{height:100%;border-radius:99px;transition:width .3s ease,background .3s ease}
+.zone-note{font-size:13.5px;margin-top:14px;min-height:44px;line-height:1.6;color:#94a3b8}
+.quiz-card{background:#0e1219;border:1px solid #1c2536;border-radius:18px;padding:28px;margin-top:22px;transition:.25s}
+.quiz-q{font-size:19px;font-weight:700;margin:0 0 6px}
+.quiz-sub{font-size:14.5px;color:#94a3b8;margin:0 0 20px;line-height:1.6}
+.duel{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:700px){.duel{grid-template-columns:1fr}}
+.duel button{background:#131822;border:1px solid #2a3648;border-radius:14px;padding:22px;color:#f1f5f9;cursor:pointer;
+  font-family:inherit;text-align:left;font-size:15.5px;line-height:1.6;transition:.22s}
+.duel button:hover:not(:disabled){border-color:var(--t-violet);transform:translateY(-3px)}
+.duel button:disabled{cursor:default}
+.duel button.right{border-color:var(--t-green);box-shadow:0 0 0 1px var(--t-green)}
+.duel button.wrong{border-color:var(--t-red);box-shadow:0 0 0 1px var(--t-red);opacity:.55}
+.duel .who{display:block;font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.14em;color:#64748b;margin-bottom:10px}
+.quiz-why{display:none;margin-top:18px;font-size:15px;color:#94a3b8;line-height:1.7;border-left:3px solid var(--t-violet);padding-left:16px}
+.quiz-why.show{display:block;animation:fadeUp .5s ease}
+.quiz-why strong{color:#f1f5f9}
+.bigstat{background:linear-gradient(135deg,rgba(45,127,249,.1),rgba(0,229,153,.06));border:1px solid #1c2536;border-radius:24px;
+  padding:60px 40px;text-align:center;margin-top:48px;position:relative;overflow:hidden}
+.bigstat .num{font-family:"JetBrains Mono",monospace;font-size:clamp(40px,7vw,84px);font-weight:700;color:var(--t-green);
+  text-shadow:0 0 44px rgba(0,229,153,.35);letter-spacing:-.02em;line-height:1.1}
+.bigstat .lbl{font-size:15px;color:#94a3b8;margin-top:14px;line-height:1.7;max-width:640px;margin-left:auto;margin-right:auto}
+.bigstat .lbl a{color:#7db4ff}
+.honest{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px;text-align:left}
+@media(max-width:760px){.honest{grid-template-columns:1fr}}
+.honest div{background:#0b0e14;border:1px solid #1c2536;border-radius:14px;padding:20px;font-size:14.5px;color:#94a3b8;line-height:1.65}
+.honest div strong{color:#f1f5f9;display:block;margin-bottom:6px;font-size:15px}
+.ladder{display:flex;gap:0;margin-top:44px;flex-wrap:wrap}
+.rung{flex:1;min-width:220px;background:#0e1219;border:1px solid #1c2536;padding:30px 26px;position:relative;transition:.3s}
+.rung:first-child{border-radius:18px 0 0 18px}.rung:last-child{border-radius:0 18px 18px 0}
+@media(max-width:760px){.rung:first-child{border-radius:18px 18px 0 0}.rung:last-child{border-radius:0 0 18px 18px}}
+.rung:hover{border-color:var(--t-violet);transform:translateY(-4px)}
+.rung .rk{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.2em;color:var(--t-violet);margin-bottom:12px}
+.rung h3{font-size:20px;margin:0 0 10px}
+.rung p{font-size:14.5px;color:#94a3b8;line-height:1.65;margin:0}
+.rung .say{margin-top:14px;font-size:14px;color:#c4b5fd;font-style:italic;line-height:1.6}
+.nature{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:44px}
+@media(max-width:860px){.nature{grid-template-columns:1fr}}
+.ncard{border-radius:20px;padding:34px 28px;position:relative;overflow:hidden;min-height:300px;display:flex;flex-direction:column;justify-content:flex-end}
+.ncard h3{font-size:23px;margin:0 0 10px;letter-spacing:-.01em}
+.ncard p{font-size:15px;line-height:1.7;margin:0;color:rgba(241,245,249,.82)}
+.ncard .tag2{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.2em;margin-bottom:14px;opacity:.75}
+.n1{background:linear-gradient(160deg,#12351f 0%,#0b1f13 70%),#0b1f13;border:1px solid #1e4d2e}
+.n2{background:linear-gradient(160deg,#3a2b10 0%,#241b0b 70%),#241b0b;border:1px solid #6b4e1f}
+.n3{background:linear-gradient(160deg,#1b2a4a 0%,#0e1626 70%),#0e1626;border:1px solid #2d4a7f}
+.loop-line{text-align:center;margin-top:54px;font-size:clamp(20px,3vw,28px);font-weight:700;letter-spacing:-.01em}
+.loop-line em{color:var(--t-green);font-style:normal}
+.docs{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:44px}
+@media(max-width:760px){.docs{grid-template-columns:1fr}}
+.doc{background:#0e1219;border:1px solid #1c2536;border-radius:18px;padding:30px;transition:.3s;display:flex;flex-direction:column}
+.doc:hover{border-color:var(--t-blue);transform:translateY(-4px)}
+.doc .dk{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.18em;color:var(--t-blue);margin-bottom:12px}
+.doc h3{font-size:20px;margin:0 0 10px}
+.doc p{font-size:14.5px;color:#94a3b8;line-height:1.65;margin:0 0 20px;flex:1}
+.doc a{align-self:flex-start}
+.cite{background:#08090c;border:1px solid #1c2536;border-radius:14px;padding:22px;font-family:"JetBrains Mono",monospace;
+  font-size:13px;color:#94a3b8;line-height:1.8;overflow-x:auto;white-space:pre;margin-top:26px}
+.tfoot{border-top:1px solid #1c2536;padding:44px 24px;text-align:center;color:#64748b;font-size:13.5px;line-height:1.8}
+.tfoot a{color:#7db4ff;text-decoration:none}
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,#2d7ff9,#00e599);z-index:60;width:0}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<header class="tnav">
+  <a class="brand" href="/">AIEN<span>OS</span></a>
+  <nav>
+    <a href="/research/">Research</a>
+    <a href="/turing/" style="color:#7db4ff">The Turing</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <canvas id="field"></canvas>
+  <div class="hero-inner">
+    <div class="script-t">T</div>
+    <h1>The Turing</h1>
+    <p class="tag">A unit for <strong>how much a machine actually understood</strong>. Not how fluent it sounds. Not how fast it runs. How much hidden reality its explanations can predict, after the explanations pay for themselves.</p>
+    <div class="cta-row">
+      <a class="btn" href="#play">Play with it</a>
+      <a class="btn ghost" href="#papers">Read the papers</a>
+    </div>
+  </div>
+  <div class="scroll-cue">SCROLL</div>
+</div>
+
+<!-- THE IDEA IN 60 SECONDS -->
+<section class="block" id="idea">
+  <div class="reveal">
+    <div class="kicker">The idea in 60 seconds</div>
+    <h2 class="st">Short explanations that predict hidden things earn Turings.</h2>
+    <p class="lead">One <strong>Turing (T)</strong> is one bit of predictive power a machine's explanation earns on data it has never seen, minus what the explanation itself cost to say. Long, memorizable lists score near zero. Compact rules that keep working on new data score high.</p>
+  </div>
+  <div class="trio">
+    <div class="step-card reveal">
+      <div class="n">STEP 1</div>
+      <h3>The challenge</h3>
+      <p>Some data is shown, some is sealed away. The machine must predict the sealed part.</p>
+      <div class="tiles">
+        <div class="tile seen">3</div><div class="tile seen">8</div><div class="tile seen">13</div>
+        <div class="tile seen">18</div><div class="tile seen">23</div>
+        <div class="tile hidden">?</div><div class="tile hidden">?</div><div class="tile hidden">?</div>
+      </div>
+    </div>
+    <div class="step-card reveal">
+      <div class="n">STEP 2</div>
+      <h3>The explanation pays rent</h3>
+      <p>"Add 5 each time" is 4 words and nails every hidden number. A rule that just recites the shown numbers is 15 words and predicts nothing new. Length counts against you.</p>
+    </div>
+    <div class="step-card reveal">
+      <div class="n">STEP 3</div>
+      <h3>The score</h3>
+      <p><strong style="color:#f1f5f9">Turings = hidden events predicted − cost of the explanation.</strong><br><br>Score is always measured against a declared baseline, on sealed data, with every artifact re-checkable by anyone.</p>
+    </div>
+  </div>
+
+  <!-- GAME 1 -->
+  <div class="game reveal" id="play">
+    <div class="game-head">
+      <h3>Game 1: Crack the code</h3>
+      <div class="score-chip">SCORE <b id="g1-score">--</b></div>
+    </div>
+    <p class="lead" style="font-size:16px">The machine saw <strong>3, 8, 13, 18, 23</strong>. Three numbers are sealed. Pick the explanation you would submit. The scorer is honest: it only counts sealed predictions, and it charges rent for every word.</p>
+    <div class="tiles" id="g1-tiles">
+      <div class="tile seen">3</div><div class="tile seen">8</div><div class="tile seen">13</div>
+      <div class="tile seen">18</div><div class="tile seen">23</div>
+      <div class="tile hidden" id="g1-h0">?</div><div class="tile hidden" id="g1-h1">?</div><div class="tile hidden" id="g1-h2">?</div>
+    </div>
+    <div class="rule-row" id="g1-rules">
+      <button class="rule-btn" data-rule="good">"add 5 each time"<span class="rl">4 WORDS · A REAL RULE</span></button>
+      <button class="rule-btn" data-rule="memo">"the sequence so far is 3, 8, 13, 18, 23"<span class="rl">10 WORDS · PURE MEMORY</span></button>
+      <button class="rule-btn" data-rule="wrong">"double it and subtract 3"<span class="rl">5 WORDS · SOUNDS SMART</span></button>
+    </div>
+    <div class="result" id="g1-result">
+      <div class="verdict" id="g1-verdict"></div>
+      <div class="math" id="g1-math"></div>
+      <p class="explain" id="g1-explain"></p>
+      <button class="btn ghost again" id="g1-again">Try another rule</button>
+    </div>
+  </div>
+</section>
+
+<!-- RULE LAB -->
+<section class="block" id="lab">
+  <div class="reveal">
+    <div class="kicker">Interactive toy</div>
+    <h2 class="st">The Rule Lab</h2>
+    <p class="lead">Drag the sliders. Feel the tradeoff every explanation faces: <strong>predict more, or say less</strong>. The meter scores your rule live, exactly the way the real scorer thinks.</p>
+  </div>
+  <div class="lab">
+    <div class="lab-panel reveal">
+      <label>Hidden events your rule predicts <output id="o-gain">6</output></label>
+      <input type="range" id="r-gain" min="0" max="12" value="6" step="1">
+      <label>Rule length, in words <output id="o-cost">8</output></label>
+      <input type="range" id="r-cost" min="1" max="40" value="8" step="1">
+      <label>Baseline: blind guessing <output>0 T</output></label>
+      <input type="range" min="0" max="0" value="0" disabled style="opacity:.4">
+      <p style="font-size:13.5px;color:#64748b;line-height:1.7;margin-top:22px">Each hidden event you nail is worth <strong style="color:#f1f5f9">+1&nbsp;T</strong>. Each word of explanation costs <strong style="color:#f1f5f9">0.1&nbsp;T</strong> of rent. The baseline, blind guessing, always scores zero.</p>
+    </div>
+    <div class="meter reveal">
+      <div class="cap">YOUR RULE SCORES</div>
+      <div class="tval pos" id="lab-t">+5.2 T</div>
+      <div class="bar-wrap"><div class="bar" id="lab-bar" style="width:70%;background:linear-gradient(90deg,#2d7ff9,#00e599)"></div></div>
+      <div class="formula"><b id="lab-f-gain">6</b> predicted <span style="color:#64748b">−</span> <b id="lab-f-cost">0.8</b> rent <span style="color:#64748b">=</span> <b id="lab-f-t" style="color:#f59e0b">+5.2 T</b></div>
+      <div class="zone-note" id="lab-note"></div>
+    </div>
+  </div>
+
+  <!-- GAME 2 -->
+  <div class="game reveal" id="duel">
+    <div class="game-head">
+      <h3>Game 2: Beat the memorizer</h3>
+      <div class="score-chip">SCORE <b id="g2-score">0 / 3</b></div>
+    </div>
+    <p class="lead" style="font-size:16px">Three duels. Two explanations enter, one earns more Turings. <strong>Judge them.</strong> Watch out: round three has a twist.</p>
+    <div id="g2-rounds"></div>
+  </div>
+</section>
+
+<!-- FIRST MEASUREMENT -->
+<section class="block" id="measured">
+  <div class="reveal">
+    <div class="kicker">It is not just an idea</div>
+    <h2 class="st">The first real measurement is on the books.</h2>
+    <p class="lead">On September 29, 2026, a candidate explanation was scored against sealed data under a frozen measurement profile. It cleared its pre-registered bar by more than ten times. Every artifact is public and re-checkable.</p>
+  </div>
+  <div class="bigstat reveal">
+    <div class="num">+<span id="bignum">0</span> T</div>
+    <div class="lbl">net held-out explanatory compression, measured once, verified by independent re-fit.<br>
+    Recorded in <a href="https://github.com/aien-dev/omega/pull/85">omega PR #85</a> · profile V0 · seeds 8-10 · integer-only math.</div>
+    <div class="honest">
+      <div><strong>What this proves</strong>The instrument works end to end: declare a baseline, seal the data, score the candidate, verify by re-running. Memorizers score negative, as the math demands.</div>
+      <div><strong>What it does not prove</strong>No energy was measured in this run, so there is no Turing yield (T/J) yet. The unit is theoretical code length; no entropy coder has been built. The next experiments close those gaps.</div>
+    </div>
+  </div>
+</section>
+
+<!-- UNDERSTANDING VS SEARCH -->
+<section class="block" id="search">
+  <div class="reveal">
+    <div class="kicker">New research direction</div>
+    <h2 class="st">Understanding versus search</h2>
+    <p class="lead">The Turing asks <strong>how much structure was discovered</strong>. A second question, raised by Gödel in 1956, asks <strong>how hard that structure was to discover, compared to checking it</strong>. Finding a proof can be enormously expensive while verifying it is cheap. That gap is measurable too.</p>
+  </div>
+  <div class="reveal" style="margin-top:44px;background:#0e1219;border:1px solid #1c2536;border-radius:20px;padding:36px">
+    <svg viewBox="0 0 900 340" style="width:100%;height:auto" font-family="JetBrains Mono, monospace">
+      <text x="20" y="30" fill="#64748b" font-size="13" letter-spacing="2">DISCOVERY COST (LOG SCALE) →</text>
+      <text x="20" y="320" fill="#64748b" font-size="13" letter-spacing="2">TURINGS EARNED →</text>
+      <line x1="60" y1="300" x2="860" y2="300" stroke="#2a3648" stroke-width="2"/>
+      <line x1="60" y1="300" x2="60" y2="40" stroke="#2a3648" stroke-width="2"/>
+      <path id="gcurve" d="M 120 260 C 300 240, 420 180, 700 90" fill="none" stroke="#a78bfa" stroke-width="3"
+        stroke-dasharray="640" stroke-dashoffset="640"/>
+      <circle cx="150" cy="252" r="9" fill="#ff5d5d"/>
+      <text x="150" y="285" fill="#ff5d5d" font-size="14" text-anchor="middle">brute force</text>
+      <text x="150" y="180" fill="#94a3b8" font-size="12" text-anchor="middle">valid answer,</text>
+      <text x="150" y="198" fill="#94a3b8" font-size="12" text-anchor="middle">enormous search</text>
+      <circle cx="700" cy="90" r="9" fill="#00e599"/>
+      <text x="700" y="60" fill="#00e599" font-size="14" text-anchor="middle">real theory</text>
+      <text x="700" y="125" fill="#94a3b8" font-size="12" text-anchor="middle">compact structure,</text>
+      <text x="700" y="143" fill="#94a3b8" font-size="12" text-anchor="middle">search collapses</text>
+    </svg>
+    <p class="explain" style="margin-top:10px">The deep question: <strong>does explanatory compression systematically collapse search?</strong> If an abstraction worth a large T makes future search fall from near-exhaustive enumeration to a small search tree, compression <em>is</em> algorithmic understanding. This is proposal, not result: no measurements exist yet, and no finite experiment can ever settle P vs NP. The honest first step is instrumenting discovery cost and verification cost on work already running.</p>
+  </div>
+  <div class="ladder">
+    <div class="rung reveal"><div class="rk">LEVEL 1</div><h3>Witness</h3><p>A single answer to a single instance.</p><div class="say">"Here is the answer."</div></div>
+    <div class="rung reveal"><div class="rk">LEVEL 2</div><h3>Algorithm</h3><p>A reusable method that finds answers efficiently.</p><div class="say">"Here is how to find answers."</div></div>
+    <div class="rung reveal"><div class="rk">LEVEL 3</div><h3>Theory</h3><p>Compact structure explaining why the method works across cases.</p><div class="say">"Here is why it works, everywhere."</div></div>
+  </div>
+</section>
+
+<!-- NATURE -->
+<section class="block" id="nature">
+  <div class="reveal">
+    <div class="kicker">The mechanism is older than computers</div>
+    <h2 class="st">Nature invented the loop.</h2>
+    <p class="lead">Expensive search paired with cheap verification is not something anyone invented. It is how the living world builds complexity without a designer. The Turing is the first unit written down for what the loop produces.</p>
+  </div>
+  <div class="nature">
+    <div class="ncard n1 reveal"><div><div class="tag2">BLIND SEARCH → AUTOMATIC CHECK</div><h3>Evolution</h3><p>Variation is generated wastefully, at the cost of uncounted failed organisms across deep time. Verification is free: did it survive and reproduce, or not.</p></div></div>
+    <div class="ncard n2 reveal"><div><div class="tag2">RANDOM LIBRARY → BINDING CHECK</div><h3>The immune system</h3><p>A vast random library of antibodies, most of them useless. One simple binding check selects the winners for mass production.</p></div></div>
+    <div class="ncard n3 reveal"><div><div class="tag2">HYPOTHESIS → EXPERIMENT</div><h3>Science itself</h3><p>The hypothesis is the expensive part. The experiment is the cheap, decisive part. The Turing protocol is this loop, formalized.</p></div></div>
+  </div>
+  <div class="loop-line reveal">Nature invented the loop. <em>This work contributes the unit.</em></div>
+</section>
+
+<!-- PAPERS -->
+<section class="block" id="papers">
+  <div class="reveal">
+    <div class="kicker">Go deeper</div>
+    <h2 class="st">The papers and the protocols.</h2>
+    <p class="lead">Everything is public: the formal definitions, the engineering history, and the replication protocols anyone can run to check the measurements.</p>
+  </div>
+  <div class="docs">
+    <div class="doc reveal">
+      <div class="dk">FORMAL PAPER · VERSION 1.0</div>
+      <h3>Computing Machinery and Understanding</h3>
+      <p>From the imitation game to the Turing. Six definitions, the measurement protocol, falsification criteria, and the first canonical measurement. 23 pages.</p>
+      <a class="btn" href="/research/computing-machinery-and-understanding/paper.pdf">Read the PDF</a>
+    </div>
+    <div class="doc reveal">
+      <div class="dk">COMPANION PAPER · VERSION 1.0</div>
+      <h3>The Turing as a Measure Emerging from AIEN</h3>
+      <p>The engineering history the unit grew out of: the architecture, the failures that stayed in the record, and the new addendum on understanding versus search. 24 pages.</p>
+      <a class="btn" href="/research/computing-machinery-and-understanding-emergence/paper.pdf">Read the PDF</a>
+    </div>
+    <div class="doc reveal">
+      <div class="dk">REPLICATION · GITHUB</div>
+      <h3>Calibration and laboratory protocols</h3>
+      <p>The exact procedures for calibrating the instrument and executing a measurement run, so anyone can reproduce or challenge a claimed result.</p>
+      <a class="btn ghost" href="https://github.com/aien-dev/omega/tree/main/docs/turing/protocols">Open on GitHub</a>
+    </div>
+    <div class="doc reveal">
+      <div class="dk">CITE IT</div>
+      <h3>Use the unit</h3>
+      <p>The Turing is free for public use. The price of admission: report your baseline, your measurement profile, and your evidence.</p>
+      <a class="btn ghost" href="/research/computing-machinery-and-understanding/">Citation details</a>
+    </div>
+  </div>
+  <div class="cite reveal">M. Drake Stapleton. "Computing Machinery and Understanding:
+From the Imitation Game to the Turing." AIEN Research, 2026.
+Version 1.0 (not peer reviewed).</div>
+</section>
+
+<footer class="tfoot">
+  The Turing (T) is a protocol-bound scientific unit proposed by the AIEN project.<br>
+  Papers are Version 1.0, not peer reviewed. Measurements are pre-registered and independently re-verifiable.<br>
+  <a href="/research/">AIEN Research</a> · <a href="https://github.com/aien-dev/omega">Omega on GitHub</a>
+</footer>
+
+<script>
+(function(){
+"use strict";
+var $ = function(id){ return document.getElementById(id); };
+
+/* ---------- scroll progress ---------- */
+var prog = $("progress");
+function onScroll(){
+  var h = document.documentElement;
+  var p = h.scrollTop / (h.scrollHeight - h.clientHeight);
+  prog.style.width = (p*100).toFixed(2) + "%";
+}
+window.addEventListener("scroll", onScroll, {passive:true}); onScroll();
+
+/* ---------- reveal on scroll ---------- */
+var io = new IntersectionObserver(function(es){
+  es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add("visible"); io.unobserve(e.target); } });
+},{threshold:.12});
+document.querySelectorAll(".reveal").forEach(function(el){ io.observe(el); });
+
+/* ---------- hero particle field: scattered bits coalescing ---------- */
+var cv = $("field"), ctx = cv.getContext("2d"), W=0, H=0, parts=[];
+function sizeCanvas(){
+  W = cv.width = cv.offsetWidth; H = cv.height = cv.offsetHeight;
+  parts = [];
+  var n = Math.max(90, Math.min(240, Math.floor(W*H/9000)));
+  for(var i=0;i<n;i++){
+    parts.push({
+      hx: Math.random()*W, hy: Math.random()*H,
+      sa: Math.random()*Math.PI*2,
+      sr: 26 + Math.random()*Math.min(W,H)*0.30,
+      s: .7 + Math.random()*1.9,
+      sp: .5 + Math.random()*.9,
+      c: Math.random()<.72 ? "45,127,249" : "0,229,153",
+      dr: (Math.random()-.5)*.14
+    });
+  }
+}
+sizeCanvas(); window.addEventListener("resize", sizeCanvas);
+function ease(x){ return x<.5 ? 2*x*x : 1-Math.pow(-2*x+2,2)/2; }
+var t0 = performance.now();
+function frame(now){
+  var t = ((now - t0)/16000) % 1;              /* 16s loop */
+  var k = t<.5 ? ease(t*2) : ease((1-t)*2);    /* 0 scattered, 1 coalesced */
+  ctx.clearRect(0,0,W,H);
+  ctx.globalCompositeOperation = "lighter";
+  var cx = W/2, cy = H*0.40, rot = now*0.00012;
+  for(var i=0;i<parts.length;i++){
+    var p = parts[i];
+    p.hx += p.dr; p.hy += p.dr*.6;
+    if(p.hx<0)p.hx=W; if(p.hx>W)p.hx=0; if(p.hy<0)p.hy=H; if(p.hy>H)p.hy=0;
+    var a = p.sa + rot*p.sp;
+    var tx = cx + Math.cos(a)*p.sr, ty = cy + Math.sin(a)*p.sr*.72;
+    var x = p.hx + (tx-p.hx)*k, y = p.hy + (ty-p.hy)*k;
+    var al = .16 + .6*k;
+    ctx.beginPath(); ctx.arc(x, y, p.s*(0.7+0.9*k), 0, 6.2832);
+    ctx.fillStyle = "rgba("+p.c+","+al.toFixed(3)+")"; ctx.fill();
+  }
+  ctx.globalCompositeOperation = "source-over";
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ---------- GAME 1: crack the code ---------- */
+var g1rules = document.querySelectorAll("#g1-rules .rule-btn");
+var g1tiles = [$("g1-h0"),$("g1-h1"),$("g1-h2")];
+function paintTiles(vals, ok){
+  g1tiles.forEach(function(t,i){
+    t.textContent = vals[i];
+    t.style.borderStyle = "solid";
+    if(ok===true){ t.style.background="rgba(0,229,153,.14)"; t.style.borderColor="#00e599"; t.style.color="#00e599"; }
+    else if(ok===false){ t.style.background="rgba(255,93,93,.12)"; t.style.borderColor="#ff5d5d"; t.style.color="#ff5d5d"; }
+  });
+}
+function resetTiles(){
+  g1tiles.forEach(function(t){
+    t.textContent="?"; t.style.background=""; t.style.borderColor=""; t.style.color=""; t.style.borderStyle="";
+  });
+}
+var g1data = {
+  good: { vals:["28","33","38"], ok:true, cls:"good",
+    verdict:"+2.6 T. The rule earns its keep.",
+    math:"3 sealed events nailed &nbsp;<b>+3.0</b><br>rule rent, 4 words &times; 0.1 &nbsp;<b>&minus;0.4</b><br>= <b>+2.6 T</b>",
+    explain:"<strong>Why it wins:</strong> four words that keep working on data nobody has seen. The rent is tiny and the prediction is total. This is what a Turing rewards." },
+  memo: { vals:["23","23","23"], ok:false, cls:"bad",
+    verdict:"&minus;1.0 T. Memory is not understanding.",
+    math:"0 sealed events predicted &nbsp;<b>+0.0</b><br>rule rent, 10 words &times; 0.1 &nbsp;<b>&minus;1.0</b><br>= <b>&minus;1.0 T</b>",
+    explain:"<strong>Why it fails:</strong> the rule only recites what was already shown, so when it meets sealed numbers it just repeats the last thing it saw. Ten words of rent, zero prediction. Negative Turings." },
+  wrong: { vals:["43","83","163"], ok:false, cls:"bad",
+    verdict:"&minus;0.5 T. Confident and wrong.",
+    math:"0 sealed events predicted &nbsp;<b>+0.0</b><br>rule rent, 5 words &times; 0.1 &nbsp;<b>&minus;0.5</b><br>= <b>&minus;0.5 T</b>",
+    explain:"<strong>Why it fails:</strong> it sounds like a rule, but the sealed data disagrees with every guess. The scorer does not grade confidence. It grades sealed predictions minus rent." }
+};
+g1rules.forEach(function(btn){
+  btn.addEventListener("click", function(){
+    var d = g1data[btn.getAttribute("data-rule")];
+    g1rules.forEach(function(b){ b.disabled=true; b.classList.add("dim"); });
+    btn.classList.remove("dim"); btn.classList.add("picked");
+    paintTiles(d.vals, d.ok);
+    $("g1-score").textContent = d.cls==="good" ? "+2.6 T" : (btn.getAttribute("data-rule")==="memo" ? "-1.0 T" : "-0.5 T");
+    var v=$("g1-verdict"); v.className="verdict "+d.cls; v.innerHTML=d.verdict;
+    $("g1-math").innerHTML=d.math; $("g1-explain").innerHTML=d.explain;
+    $("g1-result").classList.add("show");
+  });
+});
+$("g1-again").addEventListener("click", function(){
+  g1rules.forEach(function(b){ b.disabled=false; b.classList.remove("dim","picked"); });
+  resetTiles(); $("g1-result").classList.remove("show"); $("g1-score").textContent="--";
+});
+
+/* ---------- RULE LAB ---------- */
+var rGain=$("r-gain"), rCost=$("r-cost");
+function lab(){
+  var g=+rGain.value, c=+rCost.value, rent=c*0.1, t=g-rent;
+  $("o-gain").textContent=g; $("o-cost").textContent=c;
+  var tv=$("lab-t");
+  var txt=(t>0?"+":"")+(Math.round(t*10)/10).toFixed(1)+" T";
+  tv.textContent=txt;
+  tv.className="tval "+(t>0?"pos":t<0?"neg":"zero");
+  $("lab-f-gain").textContent=g; $("lab-f-cost").textContent=rent.toFixed(1);
+  var ft=$("lab-f-t"); ft.textContent=txt; ft.style.color=t>0?"#00e599":t<0?"#ff5d5d":"#94a3b8";
+  var w=Math.max(3,Math.min(100,(t+4)/16*100));
+  var bar=$("lab-bar"); bar.style.width=w+"%";
+  bar.style.background=t>0?"linear-gradient(90deg,#2d7ff9,#00e599)":t<0?"linear-gradient(90deg,#7f1d1d,#ff5d5d)":"#475569";
+  var note=$("lab-note"), msg;
+  if(t>=8) msg="Theory territory. Short, powerful, keeps predicting on unseen data.";
+  else if(t>=3) msg="A solid explanation. It earns its keep with room to spare.";
+  else if(t>0) msg="Positive but thin. Can you say it in fewer words?";
+  else if(t===0) msg="Exactly at baseline. It predicts nothing beyond its own cost.";
+  else msg="Memorizer zone: longer than the insight it carries. The scorer charges rent.";
+  note.textContent=msg;
+}
+rGain.addEventListener("input", lab); rCost.addEventListener("input", lab); lab();
+
+/* ---------- GAME 2: beat the memorizer ---------- */
+var rounds=[
+ {q:"Duel 1: the number game", sub:"A machine watched 3, 8, 13, 18, 23, then sealed data.",
+  a:{who:"CANDIDATE A", text:"\u201Cadd 5 each time\u201D (4 words)"},
+  b:{who:"CANDIDATE B", text:"\u201Cthe numbers are 3, 8, 13, 18, 23, 28, 33, 38\u201D (12 words)"},
+  correct:"a",
+  why:"<strong>A wins.</strong> Both name the hidden numbers, but B is three times longer and carries no reusable rule. On a brand-new game, A still works and B knows nothing. Turings reward the rule, not the recital."},
+ {q:"Duel 2: the night sky", sub:"Two explanations of dots moving overhead.",
+  a:{who:"CANDIDATE A", text:"\u201Cplanets orbit the sun in ellipses\u201D (6 words)"},
+  b:{who:"CANDIDATE B", text:"\u201C4,000 sky-dots move along these 4,000 listed paths\u201D (plus a 4,000-line table)"},
+  correct:"a",
+  why:"<strong>A wins.</strong> Six words that predict every future night. B is a phone book of the sky: enormous rent, zero generalization. This is the whole game in one duel."},
+ {q:"Duel 3: the twist", sub:"Now length is not the whole story.",
+  a:{who:"CANDIDATE A", text:"\u201Cadd 5 each time\u201D (4 words), predicts 3 sealed events"},
+  b:{who:"CANDIDATE B", text:"\u201Cadd 5 each time, except after primes add 7\u201D (10 words), predicts 9 sealed events"},
+  correct:"b",
+  why:"<strong>B wins.</strong> 9 predicted minus 1.0 rent = +8.0 T, against A's 3 minus 0.4 = +2.6 T. A longer rule CAN win, but only if the extra words buy more prediction than they cost. That is what \u201Cnet\u201D means."}
+];
+var g2score=0, g2done=0;
+var wrap=$("g2-rounds");
+rounds.forEach(function(r,i){
+  var card=document.createElement("div"); card.className="quiz-card";
+  card.innerHTML='<p class="quiz-q">'+r.q+'</p><p class="quiz-sub">'+r.sub+'</p>'+
+    '<div class="duel"><button data-pick="a"><span class="who">'+r.a.who+'</span>'+r.a.text+'</button>'+
+    '<button data-pick="b"><span class="who">'+r.b.who+'</span>'+r.b.text+'</button></div>'+
+    '<div class="quiz-why"></div>';
+  wrap.appendChild(card);
+  var btns=card.querySelectorAll("button"), why=card.querySelector(".quiz-why"), open=false;
+  btns.forEach(function(b){
+    b.addEventListener("click", function(){
+      if(open) return; open=true; g2done++;
+      var pick=b.getAttribute("data-pick"), win=pick===r.correct;
+      btns.forEach(function(x){
+        x.disabled=true;
+        if(x.getAttribute("data-pick")===r.correct) x.classList.add("right"); else x.classList.add("wrong");
+      });
+      if(win){ g2score++; }
+      why.innerHTML=(win?"<strong style='color:#00e599'>Correct. </strong>":"<strong style='color:#ff5d5d'>Not this one. </strong>")+r.why;
+      why.classList.add("show");
+      $("g2-score").textContent=g2score+" / 3";
+      if(g2done===3){
+        var msg=g2score===3?"Flawless. You score explanations like the instrument does.":
+                g2score===2?"Strong. Round 3 tricks almost everyone the first time.":
+                "The twist got you. Replay it: net means prediction minus rent, always.";
+        var d=document.createElement("p"); d.className="explain"; d.style.marginTop="22px";
+        d.innerHTML="<strong>"+msg+"</strong>";
+        wrap.appendChild(d);
+      }
+    });
+  });
+});
+
+/* ---------- big number count-up ---------- */
+var bignum=$("bignum"), counted=false;
+function fmt(n){ return n.toLocaleString("en-US",{minimumFractionDigits:3,maximumFractionDigits:3}); }
+var bio=new IntersectionObserver(function(es){
+  es.forEach(function(e){
+    if(e.isIntersecting && !counted){
+      counted=true; var target=2559679.825, start=performance.now(), dur=2200;
+      (function tick(now){
+        var p=Math.min(1,(now-start)/dur), v=target*(1-Math.pow(1-p,3));
+        bignum.textContent=fmt(v);
+        if(p<1) requestAnimationFrame(tick); else bignum.textContent=fmt(target);
+      })(start);
+      var gc=$("gcurve");
+      gc.style.transition="stroke-dashoffset 2.2s ease .3s"; gc.style.strokeDashoffset="0";
+      bio.disconnect();
+    }
+  });
+},{threshold:.3});
+bio.observe(document.querySelector(".bigstat"));
+var cio=new IntersectionObserver(function(es){
+  es.forEach(function(e){
+    if(e.isIntersecting){
+      var gc=$("gcurve");
+      gc.style.transition="stroke-dashoffset 2.2s ease .3s"; gc.style.strokeDashoffset="0";
+      cio.disconnect();
+    }
+  });
+},{threshold:.4});
+cio.observe($("gcurve"));
+})();
+</script>
+</body>
+</html>
