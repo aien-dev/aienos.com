@@ -91,6 +91,126 @@ pre.cite{background:var(--bg-surface);border:1px solid var(--border-subtle);bord
 </div>
 
 <div class="section">
+<h2>The architecture in one picture</h2>
+<p>The stack the measure emerged from runs on a discipline of separation: the part that proposes is not the part that verifies, the part that verifies is not the part that authorizes, and every step leaves evidence behind. The map below restates the companion paper's architecture figure for the web.</p>
+<figure class="theory-fig">
+  <div class="fig-kicker"><span>Figure · The architecture</span><span class="fig-kind">Conceptual schematic</span></div>
+  <svg viewBox="0 0 960 496" role="img" aria-label="Architecture map: AIEN proposes, Omega defines synthesizes and verifies, FORGE realizes, AEGIS and ARGUS verify and observe from outside the path, and Evidence records everything">
+    <defs>
+      <marker id="f4-ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
+      <marker id="f4-ahg" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#00e599"/></marker>
+    </defs>
+    <rect x="24" y="20" width="912" height="52" rx="12" fill="#0e1219" stroke="#1c2536" stroke-width="1.5"/>
+    <text x="480" y="53" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700"><tspan fill="#7db4ff">MEANING</tspan><tspan fill="#64748b" font-weight="400"> &#8800; </tspan><tspan fill="#f59e0b">REALIZATION</tspan><tspan fill="#64748b" font-weight="400"> &#8800; </tspan><tspan fill="#a78bfa">AUTHORITY</tspan><tspan fill="#64748b" font-weight="400"> &#8800; </tspan><tspan fill="#00e599">EVIDENCE</tspan></text>
+    <path d="M 14 432 V 170 H 20" fill="none" stroke="#00e599" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#f4-ahg)"/>
+    <g>
+      <rect x="24" y="104" width="272" height="132" rx="14" fill="#0e1219" stroke="#2d7ff9" stroke-width="1.5"/>
+      <text x="46" y="142" font-size="21" font-weight="700" fill="#f1f5f9">AIEN</text>
+      <text x="46" y="164" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="1.5" fill="#64748b">PROPOSES</text>
+      <text x="46" y="190" font-size="12.5" fill="#94a3b8">Generates candidate programs</text>
+      <text x="46" y="207" font-size="12.5" fill="#94a3b8">and explanations. It suggests;</text>
+      <text x="46" y="224" font-size="12.5" fill="#94a3b8">it never decides.</text>
+    </g>
+    <g>
+      <rect x="344" y="104" width="272" height="132" rx="14" fill="#0e1219" stroke="#00e599" stroke-width="1.5"/>
+      <text x="366" y="142" font-size="21" font-weight="700" fill="#f1f5f9">OMEGA</text>
+      <text x="366" y="164" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="1" fill="#64748b">DEFINES, SYNTHESIZES, VERIFIES</text>
+      <text x="366" y="190" font-size="12.5" fill="#94a3b8">Fixes what programs mean,</text>
+      <text x="366" y="207" font-size="12.5" fill="#94a3b8">builds the candidate, and</text>
+      <text x="366" y="224" font-size="12.5" fill="#94a3b8">checks it against the rules.</text>
+    </g>
+    <g>
+      <rect x="664" y="104" width="272" height="132" rx="14" fill="#0e1219" stroke="#f59e0b" stroke-width="1.5"/>
+      <text x="686" y="142" font-size="21" font-weight="700" fill="#f1f5f9">FORGE</text>
+      <text x="686" y="164" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="1.5" fill="#64748b">REALIZES</text>
+      <text x="686" y="190" font-size="12.5" fill="#94a3b8">Turns verified programs into</text>
+      <text x="686" y="207" font-size="12.5" fill="#94a3b8">running systems on hardware,</text>
+      <text x="686" y="224" font-size="12.5" fill="#94a3b8">at real physical cost.</text>
+    </g>
+    <g stroke="#64748b" stroke-width="2">
+      <line x1="300" y1="170" x2="340" y2="170" marker-end="url(#f4-ah)"/>
+      <line x1="620" y1="170" x2="660" y2="170" marker-end="url(#f4-ah)"/>
+    </g>
+    <text x="480" y="262" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="1.5" fill="#64748b">OUTSIDE THE PATH: THEY CHECK AND WATCH. THEY NEVER DECIDE.</text>
+    <g>
+      <rect x="24" y="276" width="440" height="92" rx="14" fill="#0b0e14" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="6 4"/>
+      <text x="44" y="308" font-size="16" font-weight="700" fill="#f1f5f9">AEGIS</text>
+      <text x="110" y="308" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="1.5" fill="#a78bfa">VERIFY ONLY</text>
+      <text x="44" y="336" font-size="12" fill="#94a3b8">Checks generated code. Changes nothing.</text>
+      <text x="44" y="354" font-size="12" fill="#94a3b8">Decides nothing.</text>
+    </g>
+    <g>
+      <rect x="496" y="276" width="440" height="92" rx="14" fill="#0b0e14" stroke="#64748b" stroke-width="1.5" stroke-dasharray="6 4"/>
+      <text x="516" y="308" font-size="16" font-weight="700" fill="#f1f5f9">ARGUS</text>
+      <text x="582" y="308" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="1.5" fill="#94a3b8">OBSERVE ONLY</text>
+      <text x="516" y="336" font-size="12" fill="#94a3b8">Watches the running system and reports</text>
+      <text x="516" y="354" font-size="12" fill="#94a3b8">what it sees. Authorizes nothing.</text>
+    </g>
+    <rect x="24" y="392" width="912" height="80" rx="14" fill="rgba(0,229,153,.05)" stroke="rgba(0,229,153,.45)" stroke-width="1.5"/>
+    <text x="48" y="428" font-size="18" font-weight="700" fill="#00e599">EVIDENCE</text>
+    <text x="48" y="450" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="1.5" fill="#64748b">RECORDS</text>
+    <text x="210" y="424" font-size="13.5" fill="#94a3b8">Every score, receipt, and failure is written down in public.</text>
+    <text x="210" y="446" font-size="13.5" fill="#94a3b8">Those records feed the next round of proposals.</text>
+  </svg>
+  <figcaption><strong>The architecture the measure emerged from.</strong> Generation flows in one direction: AIEN proposes, Omega defines, synthesizes, and verifies, and FORGE realizes. AEGIS and ARGUS sit outside that path, verifying and observing without deciding or authorizing. Evidence records everything, and the dashed line on the left is the loop back: receipts feed the next round. Conceptual schematic, after the companion paper's architecture figure.</figcaption>
+</figure>
+</div>
+
+<div class="section">
+<h2>The loop the architecture runs</h2>
+<p>Inside that separation, every claim travels the same loop. Weights suggest candidates. Programs carry the meaning in a form that can be checked. Omega verifies. Physics authorizes what actually runs, on real hardware at real cost. And the evidence left behind teaches the next round.</p>
+<figure class="theory-fig">
+  <div class="fig-kicker"><span>Figure · The doctrine loop</span><span class="fig-kind">Conceptual schematic</span></div>
+  <svg viewBox="0 0 960 520" role="img" aria-label="Cycle diagram: weights suggest, programs explain, Omega verifies, physics authorizes, evidence teaches, and back to weights">
+    <defs>
+      <marker id="f5-ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker>
+    </defs>
+    <g stroke="#475569" stroke-width="2" fill="none">
+      <path d="M 540 134 L 600 176" marker-end="url(#f5-ah)"/>
+      <path d="M 650 272 L 612 394" marker-end="url(#f5-ah)"/>
+      <path d="M 488 443 L 472 443" marker-end="url(#f5-ah)"/>
+      <path d="M 350 394 L 312 274" marker-end="url(#f5-ah)"/>
+      <path d="M 356 178 L 418 138" marker-end="url(#f5-ah)"/>
+    </g>
+    <text x="480" y="264" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="3" fill="#64748b">THE DOCTRINE LOOP</text>
+    <text x="480" y="294" text-anchor="middle" font-size="17" font-weight="700" fill="#f1f5f9">No step can be skipped.</text>
+    <text x="480" y="318" text-anchor="middle" font-size="12.5" fill="#94a3b8">Every claim travels the full circle.</text>
+    <g>
+      <rect x="378" y="48" width="204" height="84" rx="14" fill="#0e1219" stroke="#a78bfa" stroke-width="1.5"/>
+      <text x="480" y="73" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="2" fill="#a78bfa">STEP 1</text>
+      <text x="480" y="97" text-anchor="middle" font-size="16" font-weight="700" fill="#f1f5f9">WEIGHTS SUGGEST</text>
+      <text x="480" y="117" text-anchor="middle" font-size="11.5" fill="#94a3b8">the model proposes candidates</text>
+    </g>
+    <g>
+      <rect x="563" y="183" width="204" height="84" rx="14" fill="#0e1219" stroke="#2d7ff9" stroke-width="1.5"/>
+      <text x="665" y="208" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="2" fill="#2d7ff9">STEP 2</text>
+      <text x="665" y="232" text-anchor="middle" font-size="16" font-weight="700" fill="#f1f5f9">PROGRAMS EXPLAIN</text>
+      <text x="665" y="252" text-anchor="middle" font-size="11.5" fill="#94a3b8">crumbs carry the meaning</text>
+    </g>
+    <g>
+      <rect x="493" y="401" width="204" height="84" rx="14" fill="#0e1219" stroke="#00e599" stroke-width="1.5"/>
+      <text x="595" y="426" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="2" fill="#00e599">STEP 3</text>
+      <text x="595" y="450" text-anchor="middle" font-size="16" font-weight="700" fill="#f1f5f9">OMEGA VERIFIES</text>
+      <text x="595" y="470" text-anchor="middle" font-size="11.5" fill="#94a3b8">receipts, or it did not happen</text>
+    </g>
+    <g>
+      <rect x="263" y="401" width="204" height="84" rx="14" fill="#0e1219" stroke="#f59e0b" stroke-width="1.5"/>
+      <text x="365" y="426" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="2" fill="#f59e0b">STEP 4</text>
+      <text x="365" y="450" text-anchor="middle" font-size="16" font-weight="700" fill="#f1f5f9">PHYSICS AUTHORIZES</text>
+      <text x="365" y="470" text-anchor="middle" font-size="11.5" fill="#94a3b8">real hardware, real cost</text>
+    </g>
+    <g>
+      <rect x="193" y="183" width="204" height="84" rx="14" fill="#0e1219" stroke="#7db4ff" stroke-width="1.5"/>
+      <text x="295" y="208" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="2" fill="#7db4ff">STEP 5</text>
+      <text x="295" y="232" text-anchor="middle" font-size="16" font-weight="700" fill="#f1f5f9">EVIDENCE TEACHES</text>
+      <text x="295" y="252" text-anchor="middle" font-size="11.5" fill="#94a3b8">receipts become the lessons</text>
+    </g>
+  </svg>
+  <figcaption><strong>The doctrine loop.</strong> Model weights only suggest. The meaning lives in programs, Omega verifies them, physics authorizes what actually runs, and the recorded evidence teaches the next round. No step can be skipped, and no step may do another step's job. Conceptual schematic.</figcaption>
+</figure>
+</div>
+
+<div class="section">
 <h2>Research artifacts</h2>
 <div class="artifact">
 <div><div class="name">Companion paper (PDF)</div><div class="desc">25 pages. The engineering history: the AIEN/Omega architecture, the public evidence receipts, and the first experimental proposals.</div><div class="hash">SHA-256: dd5671eb1ae7348c3c32db74f3e32005248c17071e419505abfd2ade00b1f815</div></div>
