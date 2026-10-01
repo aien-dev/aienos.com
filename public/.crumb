@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0.0",
+  "name": "public",
+  "layer": "website",
+  "purpose": "Static public website assets",
+  "above": {
+    "name": "aienos.com",
+    "path": ".."
+  },
+  "invariants": [
+    "Never commit .crumb.local or credentials.",
+    "Report retained public repository evidence; do not equate code size, test files or CI runs with verified capability."
+  ]
+}

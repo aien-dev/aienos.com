@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0.0",
+  "name": "public/data",
+  "layer": "website",
+  "purpose": "Published generated project measurements with pinned sources",
+  "above": {
+    "name": "public",
+    "path": ".."
+  },
+  "invariants": [
+    "Never commit .crumb.local or credentials.",
+    "Report retained public repository evidence; do not equate code size, test files or CI runs with verified capability."
+  ],
+  "exports": [
+    "/data/project-progress.json: schemaVersion 2, collection timestamp, daily snapshots, pinned Git heads"
+  ]
+}

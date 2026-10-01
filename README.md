@@ -74,3 +74,22 @@ Funnel route must forward `/aienos-waitlist` to the local listener.
 ## License
 
 Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE). The runtime itself, aien-sovereign-core, is Apache-2.0 with LLVM Exception. Project values live in the nonbinding [COVENANT.md](https://github.com/aien-dev/aien-sovereign-core/blob/main/COVENANT.md), which grants and restricts no legal rights.
+
+## Project progress dashboard
+
+[Progress](https://www.aienos.com/progress/) is built by the existing Rust generator. It plots daily default-branch snapshots from the beginning of the retained public project history, exact-content-deduplicated physical source lines, named test-file footprint, distinct reachable commit SHAs, all PRs and available GitHub Actions runs. These metrics measure repository activity, not qualification or individual executed tests.
+
+The Pages workflow collects on pushes to main, manual runs, and hourly at minute 17 (UTC). GitHub can delay scheduled runs. The browser checks the published JSON every five minutes, preserves a selected historical day and marks snapshots older than three hours. Collection and reconciliation must succeed before deployment; a failed refresh retains the last good live page. Collection uses the built-in read-only Actions token against public endpoints; no token is shipped to browsers and no generated hourly commits are made. PR builds use the committed snapshot.
+
+```bash
+node --test scripts/collect-progress.test.mjs
+node scripts/collect-progress.mjs
+cargo test --manifest-path crates/site-builder/Cargo.toml
+cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist
+```
+
+Source boundaries, exclusions and the initial public repository allowlist are in scripts/collect-progress.mjs. Newly discovered project-named public repositories are included automatically; forks/private repositories are excluded. The JSON includes the collection timestamp and every measured default-branch head. Deleted CI records cannot be reconstructed. Historical milestones and experiment examples are curated and linked to evidence; recent PR activity is collected automatically. D3 7.9.0 is self-hosted with its ISC license in public/vendor/.
+
+### Crumb coordination
+
+This integration adopts [RFC-0001](https://github.com/aien-dev/crumb-spec/blob/10b8251/SPEC.md), following the [current protocol pointer](https://github.com/aien-dev/aien-architecture/blob/main/docs/CRUMB_PROTOCOL.md). Durable .crumb files describe the changed directory boundaries. Using the canonical aien-architecture/tools/crumb tool: sniff before edits, respect unexpired locks, claim multi-step work, then close with the result. .crumb.local is ephemeral, ignored and excluded from the public site. Adoption started after the initial dashboard draft; the coordination record does not claim earlier edits were locked.

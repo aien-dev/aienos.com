@@ -58,7 +58,8 @@ pub const FOOTER_GROUPS: [(&str, &[FooterLink]); 6] = [
 ];
 
 /// Secondary links, after the six sections.
-const FOOTER_MORE: [FooterLink; 5] = [
+const FOOTER_MORE: [FooterLink; 6] = [
+    ("Progress", "/progress/", false),
     ("Blog", "/blog", false),
     ("Waitlist", "/#waitlist", false),
     ("Licensing", "/licensing/", false),

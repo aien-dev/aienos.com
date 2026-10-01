@@ -10,3 +10,7 @@ server/*.sqlite3*
 /target
 Cargo.lock
 dist-rust
+
+# Ephemeral RFC-0001 coordination and local measurement mirrors
+.crumb.local
+.progress-cache/

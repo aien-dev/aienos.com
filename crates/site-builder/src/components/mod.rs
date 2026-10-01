@@ -11,6 +11,7 @@ pub mod machine;
 pub mod matrix;
 pub mod narrative;
 pub mod navbar;
+pub mod progress;
 pub mod research;
 pub mod research_status;
 pub mod status;

@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0.0",
+  "name": "scripts",
+  "layer": "website",
+  "purpose": "Dependency-free public GitHub measurement collection and validation",
+  "above": {
+    "name": "aienos.com",
+    "path": ".."
+  },
+  "invariants": [
+    "Never commit .crumb.local or credentials.",
+    "Report retained public repository evidence; do not equate code size, test files or CI runs with verified capability."
+  ],
+  "exports": [
+    "collect-progress.mjs: collect, validateSnapshot, paginate, classify, physicalLines"
+  ]
+}
