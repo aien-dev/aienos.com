@@ -135,18 +135,28 @@ pre.cite{background:var(--bg-surface);border:1px solid var(--border-subtle);bord
 
 <div class="section">
 <h2>Experiment ladder</h2>
+<ul class="exp-ladder">
+<li>CAL-0: PASS for EXP-001R</li>
+<li>EXP-001: FAIL, preserved as a record (failed an overlap audit gate before scoring)</li>
+<li>EXP-001R: PASS (a new successor experiment to EXP-001, under profile v1.1, with an overlap gate amended after EXP-001 failed)</li>
+<li>EXP-002 A/B/C: PASS, limited to Brownian instrument-certification scope</li>
+<li>EXP-002D: INCOMPLETE</li>
+<li>EXP-003: BLOCKED, contract not frozen</li>
+<li>Turing yield (bits per joule): NOT STARTED (energy attribution partial)</li>
+<li>Current claim ceiling: Level 2 (Brownian instrument-certification scope only; Level 1 elsewhere). General scientific discovery is not established.</li>
+</ul>
 <div class="exp">
-<span class="status">Preregistered &mdash; profile pending</span>
+<span class="status">FAIL, preserved as a record</span>
 <h3>EXP-001 &mdash; Omega-trace instrument validation</h3>
 <p>Does the Turing measurement work reproducibly on real Omega execution traces?</p>
 </div>
 <div class="exp">
-<span class="status">Preregistered &mdash; profile pending</span>
+<span class="status">A/B/C: PASS, limited to Brownian instrument-certification scope; D: INCOMPLETE</span>
 <h3>EXP-002 &mdash; Stochastic Law Discovery</h3>
 <p>A hidden evaluator generates quantized trajectories from an undisclosed stochastic law &mdash; pure diffusion, diffusion with drift, or mean reversion. The candidate must earn complexity on sealed held-out trajectories without inventing structure inside noise.</p>
 </div>
 <div class="exp">
-<span class="status future">Planned</span>
+<span class="status future">BLOCKED, contract not frozen</span>
 <h3>EXP-003 &mdash; Active experiment selection</h3>
 <p>The machine proposes the most discriminating intervention.</p>
 </div>
@@ -167,7 +177,7 @@ pre.cite{background:var(--bg-surface);border:1px solid var(--border-subtle);bord
 <a href="./SHA256SUMS">SHA256SUMS</a>
 </div>
 <div class="artifact">
-<div><div class="name">Measurement profiles (preregistration)</div><div class="desc">Frozen profile JSONs for EXP-001/002/003: baselines, candidate encodings, quantizer, blinding, seeds, verdict rules. Published when frozen.</div><div class="hash">Status: in preparation &mdash; no profile is frozen yet</div></div>
+<div><div class="name">Measurement profiles (preregistration)</div><div class="desc">Frozen profile JSONs for EXP-001/002/003: baselines, candidate encodings, quantizer, blinding, seeds, verdict rules. Published when frozen.</div><div class="hash">Status: EXP-001 (profile v1.0) and EXP-001R (profile v1.1) profiles are frozen. EXP-002 profile commitments v1.0 to v1.3 are published; the profile files follow after the sealed Brownian run (BRN-10) closes. EXP-003 has no frozen contract.</div></div>
 <a href="./profiles/">profiles/</a>
 </div>
 <div class="artifact">
