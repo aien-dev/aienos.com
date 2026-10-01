@@ -1151,7 +1151,8 @@ p {
 /* Homepage top (NARR-HOME): central statement, slogan, canonical loop,
    three questions. Pure CSS, no images, no JS. */
 :root {
-  --loop-perimeter: #f5a623;
+  --loop-perimeter: var(--accent-amber);
+  --accent-amber-glow: rgba(245, 158, 11, 0.12);
   --loop-feedback: var(--accent-green);
   --loop-gen: var(--accent-blue);
 }
@@ -1267,7 +1268,7 @@ p {
 
 .loop-key-feedback::before {
   border: 2px solid var(--loop-feedback);
-  background: rgba(0, 229, 153, 0.18);
+  background: var(--accent-green-glow);
 }
 
 .loop-key-perimeter::before {
@@ -1299,11 +1300,11 @@ p {
 }
 
 .loop-guard {
-  border: 1px dashed rgba(245, 166, 35, 0.55);
+  border: 1px dashed var(--loop-perimeter);
   border-radius: 8px;
   padding: 10px 14px;
   text-align: center;
-  background: rgba(245, 158, 11, 0.06);
+  background: var(--accent-amber-glow);
 }
 
 .loop-guard-name {
@@ -1325,7 +1326,7 @@ p {
   counter-reset: loop-stage;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px 28px;
+  gap: 34px 28px;
   margin: 20px 0 0;
 }
 
@@ -1362,6 +1363,18 @@ p {
   color: var(--text-muted);
 }
 
+/* Row end: no sideways arrow off the edge; a turn cue below points to the
+   first box of the next row. Order is still carried by the <ol>. */
+.loop-stage:nth-child(4n):not(:last-child)::after {
+  content: "\2199";
+  content: "\2199" / "";
+  right: auto;
+  left: 50%;
+  top: auto;
+  bottom: -30px;
+  transform: translateX(-50%);
+}
+
 .loop-stage-reality {
   border-style: double;
   border-width: 4px;
@@ -1370,7 +1383,7 @@ p {
 
 .loop-stage-feedback {
   border-color: var(--loop-feedback);
-  background: rgba(0, 229, 153, 0.08);
+  background: var(--accent-green-glow);
 }
 
 .loop-stage-name {
@@ -1412,7 +1425,7 @@ p {
   padding: 12px 16px;
   border: 2px solid var(--loop-feedback);
   border-radius: 999px;
-  background: rgba(0, 229, 153, 0.08);
+  background: var(--accent-green-glow);
   font-size: 15px;
   color: var(--text-primary);
   text-align: left;
@@ -1497,8 +1510,8 @@ p {
 
 .home-q-badge.status-experimental {
   color: var(--accent-blue);
-  border: 1px solid rgba(45, 127, 249, 0.45);
-  background: rgba(45, 127, 249, 0.1);
+  border: 1px solid var(--accent-blue);
+  background: var(--accent-blue-glow);
 }
 
 .home-q-badge.status-planned {
@@ -1577,6 +1590,15 @@ p {
   .loop-stages {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .loop-stage:nth-child(2n):not(:last-child)::after {
+    content: "\2199";
+    content: "\2199" / "";
+    right: auto;
+    left: 50%;
+    top: auto;
+    bottom: -30px;
+    transform: translateX(-50%);
+  }
   .home-q-list {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1603,7 +1625,7 @@ p {
   .loop-stages {
     gap: 26px;
   }
-  .loop-stage:not(:last-child)::after {
+  .loop-stage:nth-child(n):not(:last-child)::after {
     content: "\2193";
     content: "\2193" / "";
     right: auto;
