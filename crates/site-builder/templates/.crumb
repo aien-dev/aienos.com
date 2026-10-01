@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0.0",
+  "name": "crates/site-builder/templates",
+  "layer": "website",
+  "purpose": "Reviewed HTML templates for source-backed pages",
+  "above": {
+    "name": "crates/site-builder",
+    "path": ".."
+  },
+  "invariants": [
+    "Never commit .crumb.local or credentials.",
+    "Report retained public repository evidence; do not equate code size, test files or CI runs with verified capability."
+  ]
+}

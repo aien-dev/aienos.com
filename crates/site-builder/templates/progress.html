@@ -1,0 +1,69 @@
+<div id="aien-growth-observatory">
+
+
+  <div class="ag-mast">
+    <div>
+
+      <h1>Project progress</h1>
+      <p id="ag-scope" class="ag-scope">Measured history across the public AIEN repositories</p>
+    </div>
+  <div class="ag-refresh"><span id="ag-freshness">Loading snapshot</span><button id="ag-refresh" type="button">Check for updates</button><span class="text-small">Refreshes hourly</span></div></div><div class="ag-stats" aria-live="polite">
+    <div class="ag-stat"><span class="text-small text-muted">Measured source lines</span><div><h2 id="ag-lines" class="tabular-nums">__LINES__</h2><span id="ag-line-context" class="ag-stat-context text-small text-muted"></span></div></div>
+    <div class="ag-stat"><span class="text-small text-muted">Unique recorded revisions</span><div><h2 id="ag-revisions" class="tabular-nums">__REVISIONS__</h2><span id="ag-rev-context" class="ag-stat-context text-small text-muted"></span></div></div>
+    <div class="ag-stat"><span class="text-small text-muted">Available CI runs</span><div><h2 id="ag-ci" class="tabular-nums">__CI__</h2><span id="ag-ci-context" class="ag-stat-context text-small text-muted"></span></div></div>
+  </div>
+  <div class="ag-nav">
+    <div class="ag-date"><label class="form-label" for="ag-date-slider">Daily snapshot <span id="ag-selected-date" class="tabular-nums"></span></label><span class="text-small text-muted">Chicago time · latest day is partial</span></div>
+    <input id="ag-date-slider" type="range" class="form-range" min="0" max="49" value="49" aria-label="Explore daily project snapshots">
+  </div>
+  <div class="ag-section-head"><h2>Codebase growth</h2><span class="text-small text-muted">Physical lines, including blanks and comments</span></div>
+  <div id="ag-code-legend" class="ag-legends"></div>
+  <div id="ag-code" class="ag-plot"></div>
+  <p class="ag-caption text-small">August is retained site history. September 19 is the runtime's first recorded release; its initial import already contains substantial code.</p>
+
+  <div class="ag-pair">
+    <section><h3>Revisions and review</h3><div id="ag-revision-legend" class="ag-legends"></div><div id="ag-revision" class="ag-plot"></div></section>
+    <section><h3>Verification activity</h3><div class="ag-legends text-small"><span>GitHub Actions workflow runs</span></div><div id="ag-ci-plot" class="ag-plot"></div></section>
+  </div>
+  <div class="ag-pair">
+    <section><h3>The test footprint</h3><div class="ag-legends text-small"><span id="ag-test-summary"></span></div><div id="ag-tests" class="ag-plot"></div><p class="ag-caption text-small">Named test files, deduplicated by contents. Inline tests remain in the general source count.</p></section>
+    <section><h3>The language shift</h3><div id="ag-lang-legend" class="ag-legends"></div><div id="ag-languages" class="ag-plot"></div><p class="ag-caption text-small">C includes headers and .inc files; other languages include shell, assembly, web, Mojo, Python and CUDA.</p></section>
+  </div>
+
+  <section class="ag-section">
+    <div class="ag-section-head"><h2>Evidence at different scales</h2><span class="text-small text-muted">Selected reported experiments · candidate-specific</span></div>
+    <div class="ag-evidence">
+      <div><span class="text-small text-muted">Physical GB10 · SQRT</span><h3 class="tabular-nums">4,294,967,296 inputs</h3><p class="text-small">Exhaustive FP32 comparison · 0 mismatches</p><a class="text-small" href="https://github.com/aien-dev/omega/pull/141" target="_blank" rel="noopener noreferrer">Omega #141</a></div>
+      <div><span class="text-small text-muted">Host · OSC-3 handles</span><h3 class="tabular-nums">4,896 fuzz executions</h3><p class="text-small">Interpreter/native comparison · 0 mismatches</p><a class="text-small" href="https://github.com/aien-dev/omega/pull/166" target="_blank" rel="noopener noreferrer">Omega #166</a></div>
+      <div><span class="text-small text-muted">Host · R16 inventory repair</span><h3 class="tabular-nums">329 loop sites classified</h3><p class="text-small">0 unclassified · silicon reruns NOT_RUN</p><a class="text-small" href="https://github.com/aien-dev/omega/pull/172" target="_blank" rel="noopener noreferrer">Omega #172</a></div>
+    </div>
+  </section>
+  <section class="ag-section"><div class="ag-section-head"><h2>Recent repository activity</h2><span class="text-small text-muted">Merged and open pull requests</span></div><div id="ag-activity" class="ag-events"></div></section>
+  <section class="ag-section">
+    <div class="ag-section-head"><h2>From runtime to computing stack</h2><span class="text-small text-muted">Historical milestones · select for evidence</span></div>
+    <div id="ag-events" class="ag-events"></div>
+  </section>
+
+  <section class="ag-section">
+    <div class="ag-section-head"><h2>The repositories behind the growth</h2><span class="text-small text-muted">Current pinned heads · source and test lines</span></div>
+    <div class="ag-legends text-small"><span><i class="ag-swatch" style="background:var(--viz-series-1)"></i> General source</span><span><i class="ag-swatch" style="background:var(--viz-series-2)"></i> Test-path source</span><span><span id="ag-repo-counts"></span></span></div>
+    <div class="table-responsive"><table class="table table-sm" aria-label="Repository code and revision breakdown"><thead><tr><th>Repository</th><th class="text-end">Source lines</th><th class="text-end">Revisions</th><th class="text-end">PRs</th><th class="text-end">CI runs</th></tr></thead><tbody id="ag-repos"></tbody></table></div>
+    <p class="ag-caption text-small">Rows count each repository independently. The project total deduplicates exact matching file contents across repositories, so rows do not sum to the headline.</p>
+  </section>
+
+  <details class="ag-methods">
+    <summary class="cursor-interaction">Scope, counting rules and pinned sources</summary>
+    <p id="ag-asof" class="text-small"></p>
+    <p class="text-small">Scope: the original 29 public AIEN repositories, including archived precursors, experimental projects, documentation and project websites; newly discovered public AIEN, Spark, Omega, Atlas, Physics and related named repositories are added automatically. Forks are excluded. Private repositories, unrelated private applications, unmerged branches, deleted history and work before the retained imports are excluded.</p>
+    <p class="text-small">Lines: physical source lines, including blanks and comments, in Rust, C/headers/.inc, C++, Mojo, assembly, shell, Python, web, CUDA and Zig files. Evidence, receipts, data, fixture directories, generated/build/vendor trees and symlinks are excluded. Exact matching blobs are counted once per daily snapshot. Similar migrated copies can remain. Test classification follows file-path names; embedded tests are not separated. This is repository footprint, not original authored SLOC.</p>
+    <p class="text-small">Revisions: distinct commit SHAs reachable from the pinned default branches, including merges. Snapshots use the latest first-parent state at each Chicago day end. Pull requests include all states; merged counts use the merge date. CI counts use available GitHub Actions records, deduplicated by run URL and limited to the measurement cutoff. Deleted CI records cannot be reconstructed; a run is a workflow execution, not an individual test case.</p>
+    <p class="text-small">Charts connect daily observations. Hover values between observations are interpolated; the date scrubber and headline counts use exact daily snapshots. The latest day ends at the measurement cutoff. Collection runs hourly through GitHub Actions and on site updates; scheduled runs can be delayed. This page checks for published data every five minutes. An unsuccessful collection leaves the previous deployment intact.</p>
+    <p class="text-small">There is no comparable project-wide count of individual executed tests: assertions, input sweeps, fuzz iterations and qualification gates measure different things. Reported evidence above is linked to its PR and applies to its candidate. These measurements inspect Git history and GitHub records; they do not rerun the reported runtime experiments or observe hardware. code growth and CI activity do not establish full-system qualification.</p>
+    <p id="ag-secondary-counts" class="text-small"></p>
+    <div id="ag-pins" class="ag-pins text-small"></div>
+  </details>
+  <div id="ag-tooltip" class="ag-tooltip tooltip" role="tooltip"></div>
+
+
+
+<noscript><p>Enable JavaScript to explore the charts. <a href="/data/project-progress.json">Read the measured dataset</a>.</p></noscript>__DATA__</div>

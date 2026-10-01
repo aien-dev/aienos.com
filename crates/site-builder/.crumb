@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0.0",
+  "name": "crates/site-builder",
+  "layer": "website",
+  "purpose": "Rust static site generator",
+  "above": {
+    "name": "crates",
+    "path": ".."
+  },
+  "invariants": [
+    "Never commit .crumb.local or credentials.",
+    "Report retained public repository evidence; do not equate code size, test files or CI runs with verified capability."
+  ]
+}
