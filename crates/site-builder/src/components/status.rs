@@ -1,5 +1,7 @@
 use maud::{html, Markup};
 
+use super::research_status as rs;
+
 /// The canonical public state of the project. This list is the single
 /// source of truth: the homepage status section, /status.json, and
 /// /llms.txt all render from it. Statuses are a small fixed set:
@@ -27,8 +29,8 @@ pub fn layer_states() -> Vec<LayerState> {
         },
         LayerState {
             name: "Turing instrument",
-            status: "QUALIFIED",
-            note: "The frozen measurement profile (EXP-001 calibration) holds, and the TY-2 yield log re-verified at T = 2,559,679.825 bits. Qualified for the calibration scope; discovery claims are the separate experiment program below.",
+            status: rs::turing_instrument_status(),
+            note: rs::turing_instrument_note(),
             receipt_label: Some("aien-dev/omega · PR #88"),
             receipt_url: Some("https://github.com/aien-dev/omega/pull/88"),
         },
@@ -49,7 +51,7 @@ pub fn layer_states() -> Vec<LayerState> {
         LayerState {
             name: "Turing experiments (EXP-001 / 002 / 003)",
             status: "EXPERIMENTAL",
-            note: "Validation runs under frozen, published protocols. Milestones and failures both get receipts.",
+            note: rs::experiments_note(),
             receipt_label: Some("aien-dev/omega · PR #119"),
             receipt_url: Some("https://github.com/aien-dev/omega/pull/119"),
         },
@@ -203,6 +205,7 @@ pub fn llms_txt() -> String {
         out.push_str(&format!("- {}: {}. {}\n", layer.name, layer.status, layer.note));
     }
     out.push_str("\nMachine-readable state: https://www.aienos.com/status.json\n\n");
+    out.push_str(&format!("Research status: {} Full ladder and experiment cards: https://www.aienos.com/research/status/ (data: https://www.aienos.com/research-status.json)\n\n", rs::current_level_sentence()));
     out.push_str("## Links\n\n");
     out.push_str("- Homepage: https://www.aienos.com/\n");
     out.push_str("- Current status: https://www.aienos.com/#status\n");

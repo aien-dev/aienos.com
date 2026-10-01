@@ -1,10 +1,12 @@
 use maud::{html, Markup, PreEscaped};
 
+use super::research_status as rs;
+
 pub fn render_research() -> Markup {
     let papers = [
         (
             "Computing Machinery and Understanding",
-            "The formal paper. The Turing is defined, the measurement protocol is frozen, and the first measurements are published with sealed data and receipts anyone can recompute.",
+            rs::paper_note(),
             "Formal paper",
             "/research/computing-machinery-and-understanding",
             "Read the paper",
@@ -61,7 +63,9 @@ pub fn render_research() -> Markup {
                                 "One Turing is one bit of net held-out description-length improvement: a short explanation that predicts things it has never seen earns Turings. Guessing earns nothing. Memorizing earns nothing, because the test data is new."
                             }
                             p style="color: var(--text-secondary); font-size: 15px; line-height: 1.6; margin-bottom: 20px;" {
-                                "It is the meter this whole project runs on, and the first real measurement is already on the books."
+                                (rs::current_level_sentence())
+                                " "
+                                a href="/research/status/" style="color: var(--accent-green); font-weight: 600;" { "See the full research ladder." }
                             }
                             div style="display: flex; gap: 12px; flex-wrap: wrap;" {
                                 a href="/turing/" style="background: var(--accent-green); color: var(--bg-base); border-radius: 4px; padding: 8px 16px; font-family: var(--font-mono); font-size: 13px; font-weight: 700;" {
