@@ -211,8 +211,48 @@ pub fn llms_txt() -> String {
     out.push_str("- Current status: https://www.aienos.com/#status\n");
     out.push_str("- Evidence: https://www.aienos.com/#evidence\n");
     out.push_str("- Research index: https://www.aienos.com/research/\n");
-    out.push_str("- The Turing, the unit of machine understanding: https://www.aienos.com/turing/\n");
+    out.push_str("- The Turing, a unit of net held-out explanatory compression (one operational component of machine understanding): https://www.aienos.com/turing/\n");
     out.push_str("- Licensing (Apache-2.0 WITH LLVM-exception): https://www.aienos.com/licensing/\n");
     out.push_str("- GitHub organization: https://github.com/aien-dev\n");
     out
+}
+
+#[cfg(test)]
+mod wording_tests {
+    use super::*;
+
+    const STALE: [&str; 5] = [
+        "in preparation",
+        "profile holds",
+        "yield log",
+        "actually understood",
+        "first unit written down",
+    ];
+
+    fn stale_hit(text: &str) -> Option<&'static str> {
+        STALE.iter().copied().find(|s| text.contains(s))
+    }
+
+    #[test]
+    fn experiments_note_follows_the_status_file() {
+        let layers = layer_states();
+        let l = layers
+            .iter()
+            .find(|l| l.name.starts_with("Turing experiments"))
+            .expect("experiments layer present");
+        for want in ["EXP-001 FAIL", "EXP-001R PASS", "EXP-002D INCOMPLETE", "EXP-003 BLOCKED", "Failures stay on the record"] {
+            assert!(l.note.contains(want), "missing: {want}");
+        }
+    }
+
+    #[test]
+    fn published_status_has_no_stale_wording() {
+        assert_eq!(stale_hit(&(status_json() + &llms_txt())), None);
+    }
+
+    #[test]
+    fn counterexample_stale_wording_is_caught() {
+        assert_eq!(stale_hit("how much a machine actually understood"), Some("actually understood"));
+        assert_eq!(stale_hit("Measurement profiles in preparation"), Some("in preparation"));
+    }
 }
