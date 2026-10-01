@@ -102,7 +102,7 @@ pub fn render_experiments_hub() -> Markup {
             section class="hub-section" aria-labelledby="experiments-more" {
                 h2 id="experiments-more" class="hub-h2" { "Check it yourself" }
                 p {
-                    "Each experiment is frozen before it is scored, and its record stays public whatever the outcome. The same record is published as "
+                    "An experiment is frozen before it is scored, and its record stays public whatever the outcome. The same record is published as "
                     a href=(STATUS_JSON) { "machine-readable data" }
                     ", the protocols sit with the "
                     a href=(PAPER) { "Turing paper" }
@@ -266,9 +266,21 @@ pub fn verify_hub_pages(dist: &Path) {
     }
 }
 
+/// Where the shared site footer starts. The footer links the status record
+/// and its data on every page, so required links are checked before it.
+pub const FOOTER_START: &str = "<footer";
+
+/// The page before the shared footer: header, nav and the hub's own body.
+/// Required markup must be found here, so a link that only the footer
+/// carries does not satisfy a hub.
+fn hub_body(page: &str) -> &str {
+    page.split(FOOTER_START).next().unwrap_or(page)
+}
+
 fn check_hub_document(hub: &Hub, page: &str) -> Result<(), String> {
+    let body = hub_body(page);
     for required in hub.required {
-        if !page.contains(required) {
+        if !body.contains(required) {
             return Err(format!("missing required markup {required:?}"));
         }
     }
@@ -338,9 +350,10 @@ mod tests {
     #[test]
     fn experiments_hub_embeds_the_ladder_and_links_the_full_record() {
         let page = doc("experiments");
-        assert!(page.contains(&rs::render_research_status_summary().into_string()), "ladder summary missing");
-        assert!(page.contains(STATUS_BUTTON), "full record button missing");
-        assert!(page.contains(STATUS_JSON_LINK), "data file link missing");
+        let body = hub_body(&page);
+        assert!(body.contains(&rs::render_research_status_summary().into_string()), "ladder summary missing");
+        assert!(body.contains(STATUS_BUTTON), "full record button missing");
+        assert!(body.contains(STATUS_JSON_LINK), "data file link missing outside the footer");
         let ladder = page.find("experiments-ladder").expect("ladder section");
         let cards = page.find(EXPERIMENTS_SLOT).expect("cards section");
         assert!(ladder < cards, "ladder comes before the cards");
@@ -358,8 +371,10 @@ mod tests {
     #[test]
     fn evidence_hub_links_the_status_record_and_its_data() {
         let page = doc("evidence");
-        assert!(page.contains(STATUS_PAGE_LINK), "/research/status/ link missing");
-        assert!(page.contains(STATUS_JSON_LINK), "/research-status.json link missing");
+        assert!(page.contains(FOOTER_START), "footer missing, so the body check would be vacuous");
+        let body = hub_body(&page);
+        assert!(body.contains(STATUS_PAGE_LINK), "/research/status/ link missing outside the footer");
+        assert!(body.contains(STATUS_JSON_LINK), "/research-status.json link missing outside the footer");
     }
 
     #[test]
@@ -423,6 +438,12 @@ mod tests {
         let evidence = &HUBS[1];
         let page = render_hub_document(evidence);
         assert!(check_hub_document(evidence, &page.replace("Failure is evidence.", "")).is_err());
+        // A status link that survives only in the footer does not count.
+        let footer = page.find(FOOTER_START).expect("footer present");
+        let (head, foot) = page.split_at(footer);
+        let unlinked = format!("{}{foot}", head.replace(STATUS_JSON_LINK, "href=\"/x\""));
+        assert!(foot.contains(STATUS_JSON_LINK), "footer still links the data");
+        assert!(check_hub_document(evidence, &unlinked).is_err());
         assert!(check_hub_document(evidence, &format!("{page}\u{2014}")).is_err());
         let status = rs::ALLOWED_STATUSES[0];
         assert!(check_hub_document(evidence, &format!("{page}{status}")).is_err());
