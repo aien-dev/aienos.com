@@ -1,11 +1,14 @@
 pub mod benchmarks;
 pub mod blog;
 pub mod ecosystem;
+pub mod evidence;
 pub mod footer;
 pub mod hero;
 pub mod install;
 pub mod matrix;
 pub mod navbar;
 pub mod research;
+pub mod status;
+pub mod story;
 pub mod terminal;
 pub mod waitlist;

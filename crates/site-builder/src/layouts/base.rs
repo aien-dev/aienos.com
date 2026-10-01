@@ -2,8 +2,8 @@ use maud::{html, Markup, PreEscaped, DOCTYPE};
 
 pub fn render_base_layout(content: Markup) -> Markup {
     render_page_layout(
-        "AIEN OS | The GPU-Native Neural Operating Environment",
-        "AIEN OS eliminates the software orchestration tax with coherent unified memory, in-process cognitive kernels, sub-5MB daemon footprints, and hardware-enforced sovereign security.",
+        "AIENOS | Persistent Machine Intelligence on a Machine You Own",
+        "AIENOS is an experimental sovereign machine for persistent machine intelligence: Atlas awakens it on hardware you own, Omega turns intent into verified programs, and AIEN learns from verified experience. Every claim carries a public receipt.",
         "https://aienos.com/",
         "website",
         html! {

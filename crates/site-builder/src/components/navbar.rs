@@ -4,28 +4,26 @@ pub fn render_navbar() -> Markup {
     html! {
         header style="border-bottom: 1px solid var(--border-subtle); background: rgba(8, 9, 12, 0.85); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 50; padding: 16px 0;" {
             div class="container" style="display: flex; align-items: center; justify-content: space-between; gap: 16px;" {
-                a href="#main-content" aria-label="AIEN OS home" style="display: flex; align-items: center; gap: 12px;" {
+                a href="#main-content" aria-label="AIENOS home" style="display: flex; align-items: center; gap: 12px;" {
                     div style="width: 32px; height: 32px; borderRadius: 6px; background: linear-gradient(135deg, #131822 0%, #1e2638 100%); border: 1px solid var(--accent-blue); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 12px var(--accent-blue-glow);" {
                         (PreEscaped(r#"<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>"#))
                     }
                     div class="brand-copy" style="display: flex; flex-direction: column;" {
                         span style="font-weight: 700; font-size: 18px; letter-spacing: -0.02em; color: var(--text-primary);" {
-                            "AIEN OS"
+                            "AIENOS"
                         }
                         span style="font-size: 10px; font-family: var(--font-mono); color: var(--text-muted); letter-spacing: 0.08em;" {
-                            "NEURAL OPERATING ENVIRONMENT"
+                            "PERSISTENT MACHINE INTELLIGENCE"
                         }
                     }
                 }
 
                 nav aria-label="Primary navigation" class="site-nav" style="display: flex; align-items: center; gap: 24px; font-size: 14px; font-weight: 500;" {
-                    a class="nav-section-link" href="/#terminal" { "Terminal" }
-                    a class="nav-section-link" href="/#benchmarks" { "Benchmarks" }
+                    a class="nav-section-link" href="/#evidence" { "Evidence" }
+                    a class="nav-section-link" href="/#architecture" { "Architecture" }
                     a class="nav-section-link" href="/#research" { "Research" }
                     a class="nav-section-link" href="/turing/" { "The Turing" }
-                    a class="nav-section-link" href="/#architecture" { "Architecture" }
-                    a class="nav-section-link" href="/#ecosystem" { "Ecosystem" }
-                    a class="nav-section-link" href="/#install" { "Install" }
+                    a class="nav-section-link" href="/#status" { "Status" }
                     a class="nav-section-link" href="/blog" { "Blog" }
                     a class="nav-section-link" href="https://www.drakestapleton.com/philosophy" { "Philosophy" }
                     a class="nav-section-link" href="/#waitlist" style="color: var(--accent-green); font-weight: 700;" { "Waitlist" }

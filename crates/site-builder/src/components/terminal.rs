@@ -6,13 +6,13 @@ pub fn render_terminal() -> Markup {
             div class="container" {
                 div style="margin-bottom: 32px;" {
                     div class="badge badge-green" style="margin-bottom: 12px;" {
-                        "LIVE INTERACTIVE ENVIRONMENT"
+                        "INTERACTIVE SIMULATION"
                     }
                     h2 style="font-size: 32px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-primary);" {
-                        "Neural Syscall Dispatcher"
+                        "The syscall interface, simulated"
                     }
                     p style="color: var(--text-secondary); margin-top: 8px; max-width: 680px;" {
-                        "Execute direct cognitive syscalls against simulated Grace Blackwell silicon. Zero runtime interpreter lag."
+                        "A simulation that runs entirely in your browser. No live machine is attached to this page, and nothing you type leaves it. It shows the shape of the interface the real machine speaks. The real machine's proof is in the evidence section above, receipts and all."
                     }
                 }
 

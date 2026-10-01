@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Licensing · AIENOS</title>
+<meta name="description" content="The one canonical licensing statement for AIENOS: Apache-2.0 WITH LLVM-exception. Older SRCL-1.0 references are stale.">
+<link rel="canonical" href="https://aienos.com/licensing/">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap">
+<style>
+  :root {
+    --bg-base: #08090c; --bg-surface: #0e1219; --bg-card: #131822;
+    --border-subtle: #1c2536; --accent-green: #00e599; --accent-blue: #2d7ff9;
+    --text-primary: #f1f5f9; --text-secondary: #94a3b8; --text-muted: #8ea0b5;
+    --font-sans: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg-base); color: var(--text-primary); font-family: var(--font-sans); line-height: 1.6; }
+  .container { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+  header { border-bottom: 1px solid var(--border-subtle); padding: 18px 0; }
+  header a { color: var(--text-primary); font-weight: 700; text-decoration: none; letter-spacing: -0.02em; }
+  header span { color: var(--text-muted); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; display: block; }
+  main { padding: 64px 0 80px 0; }
+  .badge { display: inline-block; font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.06em; color: var(--accent-green); border: 1px solid var(--border-subtle); background: var(--bg-surface); border-radius: 999px; padding: 5px 12px; margin-bottom: 16px; }
+  h1 { font-size: 38px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 16px; }
+  h2 { font-size: 22px; font-weight: 700; margin: 40px 0 12px 0; }
+  p { color: var(--text-secondary); margin-bottom: 14px; font-size: 16px; }
+  a { color: var(--accent-green); }
+  .card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 24px 28px; margin: 20px 0; }
+  .row { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 14px 0; border-top: 1px solid var(--border-subtle); }
+  .row:first-child { border-top: none; padding-top: 0; }
+  .row:last-child { padding-bottom: 0; }
+  .repo { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--text-primary); }
+  .lic { font-family: var(--font-mono); font-size: 13px; color: var(--accent-green); }
+  .note { font-size: 14px; color: var(--text-muted); }
+  footer { border-top: 1px solid var(--border-subtle); padding: 24px 0; font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <a href="/">AIENOS</a>
+    <span>PERSISTENT MACHINE INTELLIGENCE</span>
+  </div>
+</header>
+<main>
+  <div class="container">
+    <div class="badge">OPEN SOURCE</div>
+    <h1>Licensing, stated once</h1>
+    <p>AIENOS is open source under one license: the <strong style="color: var(--text-primary);">Apache License 2.0 WITH LLVM-exception</strong>. This page is the canonical statement. If any other page, document, or badge says something different, this page controls.</p>
+
+    <div class="card">
+      <div class="row">
+        <span class="repo">aien-dev/aienos (AIENOS)</span>
+        <span class="lic">Apache-2.0 WITH LLVM-exception</span>
+      </div>
+      <div class="row">
+        <span class="repo">aien-dev/aienos.com (this website)</span>
+        <span class="lic">Apache-2.0</span>
+      </div>
+      <div class="row">
+        <span class="repo">Omega, Physics, aien-architecture, and the other aien-dev repositories</span>
+        <span class="lic">See each repository's LICENSE file</span>
+      </div>
+    </div>
+    <p class="note">For the other repositories in the organization, the LICENSE file inside each repository is the controlling text. Read it in the repo before relying on it.</p>
+
+    <h2>What changed, and when</h2>
+    <p>Before 2026-09-23 the project used the Sovereign Reciprocal Commons License (SRCL-1.0). On 2026-09-23 it was replaced by Apache-2.0 WITH LLVM-exception. Any page, PDF, or badge that still cites SRCL-1.0 is stale and should be read as superseded by this page.</p>
+
+    <h2>What the LLVM exception is</h2>
+    <p>The LLVM exception is a standard add-on to Apache-2.0 used by projects built with LLVM toolchains. In plain terms, it keeps the Apache terms workable when the code is combined with LLVM-compiled components, so the license does not accidentally fight the compiler the project is built with. The controlling text is the LICENSE file in the <a href="https://github.com/aien-dev/aienos" target="_blank" rel="noopener noreferrer">AIENOS repository</a>.</p>
+
+    <p style="margin-top: 32px;"><a href="/">Back to the homepage</a></p>
+  </div>
+</main>
+<footer>
+  <div class="container">AIEN © 2026 · APACHE-2.0 WITH LLVM-EXCEPTION · RECEIPTS OVER CLAIMS</div>
+</footer>
+</body>
+</html>
