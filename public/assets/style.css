@@ -1148,6 +1148,339 @@ p {
   }
 }
 
+/* ==========================================================================
+   NARR-NAV: six-section footer and section hub pages
+   (/experiments/, /evidence/, /philosophy/). Self-contained block; the
+   header nav itself lives in /assets/site-nav.css so hand-written pages
+   that do not load this file can share it.
+   ========================================================================== */
+
+.aien-footer {
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-base);
+  padding: 48px 0 32px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.aien-footer-top {
+  display: grid;
+  grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+  gap: 40px;
+  margin-bottom: 40px;
+}
+
+.aien-footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+.aien-footer-about p {
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.aien-footer-sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 28px 24px;
+}
+
+.aien-footer-heading {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin: 0 0 12px;
+}
+
+.aien-footer-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.aien-footer-group a {
+  color: var(--text-secondary);
+  transition: color 0.15s ease;
+}
+
+.aien-footer-group a:hover {
+  color: var(--text-primary);
+}
+
+.aien-footer-more .aien-footer-heading {
+  color: var(--text-muted);
+}
+
+.aien-footer-legal {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.aien-footer-legal a {
+  color: var(--text-secondary);
+  text-decoration: underline;
+}
+
+.aien-footer-mottos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+/* Hub pages: one centered reading column, generous whitespace. */
+.hub-wrap {
+  max-width: 760px;
+  padding-top: 64px;
+  padding-bottom: 96px;
+}
+
+.hub-kicker {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-green);
+  margin: 0 0 12px;
+}
+
+.hub-label {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 5px 12px;
+  margin: 0 0 16px;
+}
+
+/* Philosophy pages argue a stance: amber outline plus the text label,
+   never color alone. */
+.hub-label-position {
+  color: var(--accent-amber);
+  border: 1px dashed var(--accent-amber);
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.hub-title {
+  font-size: 40px;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin: 0 0 16px;
+}
+
+.hub-standfirst {
+  max-width: 68ch;
+  font-size: 18px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  margin: 0 0 48px;
+}
+
+.hub-standfirst a,
+.hub-section p a {
+  color: var(--accent-blue);
+}
+
+.hub-section {
+  margin: 0 0 48px;
+}
+
+.hub-section p {
+  max-width: 68ch;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin: 0 0 16px;
+}
+
+.hub-h2 {
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  margin: 0 0 16px;
+}
+
+/* Experiments hub: ladder and cards rendered from research_status data.
+   The wrap widens for the card grid; prose stays in a 68ch column. */
+.hub-wrap-wide {
+  max-width: 1100px;
+}
+
+.hub-data {
+  margin: 0 0 64px;
+}
+
+.hub-data .hub-lede {
+  max-width: 68ch;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin: 0 0 24px;
+}
+
+.hub-data-foot {
+  margin: 32px 0 0;
+}
+
+.hub-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 11px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--accent-blue);
+  background: rgba(45, 127, 249, 0.12);
+  color: var(--accent-blue);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.hub-button:hover {
+  background: rgba(45, 127, 249, 0.2);
+}
+
+.hub-ladder {
+  counter-reset: hub-ladder;
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hub-ladder li {
+  counter-increment: hub-ladder;
+  display: grid;
+  grid-template-columns: 2.25em minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: baseline;
+  padding: 12px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: var(--bg-card);
+}
+
+.hub-ladder li::before {
+  content: counter(hub-ladder);
+  grid-row: span 2;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--accent-green);
+}
+
+.hub-ladder strong {
+  color: var(--text-primary);
+  font-size: 15px;
+}
+
+.hub-ladder span {
+  color: var(--text-secondary);
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+
+.hub-section .hub-note {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.hub-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.hub-card {
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: var(--bg-card);
+  padding: 20px;
+  transition: border-color 0.2s ease;
+}
+
+.hub-card:hover {
+  border-color: var(--border-active);
+}
+
+.hub-card a {
+  display: block;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text-primary);
+  margin: 0 0 8px;
+}
+
+.hub-card a:hover {
+  color: var(--accent-blue);
+}
+
+.hub-card p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.hub-callout {
+  border-left: 3px solid var(--accent-green);
+  padding: 4px 0 4px 20px;
+}
+
+@media (max-width: 720px) {
+  .aien-footer-top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hub-wrap {
+    padding-top: 40px;
+    padding-bottom: 64px;
+  }
+
+  .hub-title {
+    font-size: 32px;
+  }
+
+  .hub-data {
+    margin-bottom: 48px;
+  }
+}
+
+@media (max-width: 600px) {
+  .aien-footer .container,
+  .hub-wrap {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+/* ========================= end NARR-NAV block ========================= */
 
 /* ==========================================================================
    NARR-RESEARCH: research narrative pages (/machine/, /discovery/)

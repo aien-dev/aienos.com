@@ -5,6 +5,7 @@ pub mod ecosystem;
 pub mod evidence;
 pub mod footer;
 pub mod hero;
+pub mod hubs;
 pub mod install;
 pub mod machine;
 pub mod matrix;

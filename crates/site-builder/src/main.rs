@@ -28,7 +28,7 @@ fn copy_dir_all(src: &Path, dst: &Path) -> std::io::Result<()> {
 }
 
 fn generate_sitemap_and_robots(dist: &Path) {
-    let sitemap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n  <url><loc>https://aienos.com/</loc><priority>1.0</priority></url>\n  <url><loc>https://aienos.com/blog</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/blog/aien-v3-research-plan</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/post-llm-case/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/status/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/computing-machinery-and-understanding</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/computing-machinery-and-understanding-emergence</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/research/the-stapleton-doctrine</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/machine/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/discovery/</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/turing/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/licensing/</loc><priority>0.5</priority></url>\n</urlset>\n";
+    let sitemap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n  <url><loc>https://aienos.com/</loc><priority>1.0</priority></url>\n  <url><loc>https://aienos.com/blog</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/blog/aien-v3-research-plan</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/post-llm-case/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/status/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/computing-machinery-and-understanding</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/computing-machinery-and-understanding-emergence</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/research/the-stapleton-doctrine</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/machine/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/turing/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/experiments/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/discovery/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/evidence/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/philosophy/</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/licensing/</loc><priority>0.5</priority></url>\n</urlset>\n";
     let sitemap_path = dist.join("sitemap.xml");
     fs::write(&sitemap_path, sitemap).expect("Failed to write sitemap.xml");
 
@@ -166,6 +166,9 @@ fn build_pure_rust_site(dist: &Path) {
         println!("  [PAGE] Emitted /{}/ (index.html)", slug);
     }
 
+    // Section hubs: /experiments/, /evidence/, /philosophy/ (NARR-NAV)
+    components::hubs::emit_hub_pages(dist);
+
     generate_sitemap_and_robots(dist);
 }
 
@@ -221,6 +224,9 @@ fn verify_site(dist: &Path) {
         );
     }
 
+    // Section hubs exist, carry their required phrase and the six-section
+    // nav, and contain no em or en dash.
+    components::hubs::verify_hub_pages(dist);
 
     // Verify research narrative pages (NARR-RESEARCH)
     for slug in ["machine", "discovery"] {
