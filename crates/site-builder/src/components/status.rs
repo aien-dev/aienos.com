@@ -269,10 +269,39 @@ mod wording_tests {
             .filter(|s| line.contains(**s))
             .map(|s| (*s).to_string())
             .collect();
-        if line.contains("Turing yield") && line.contains("2,559,679") {
+        // The stale claim is the TY-2 gain figure presented as Turing yield.
+        // Checked per sentence (split on ". "), in either order, so a sentence
+        // that gives the gain and a later sentence saying yield is not yet
+        // measured is honest, while "Turing yield of 2,559,679" and
+        // "2,559,679.825 bits of Turing yield" are caught.
+        if line
+            .split(". ")
+            .any(|s| s.contains("Turing yield") && s.contains("2,559,679"))
+        {
             out.push("Turing yield.*2,559,679".to_string());
         }
         out
+    }
+
+    #[test]
+    fn yield_claim_is_caught_per_sentence() {
+        // Stale claims, either order, one sentence: caught.
+        for bad in [
+            "a Turing yield of 2,559,679 bits",
+            "2,559,679.825 bits of Turing yield",
+            "Turing yield: +2,559,679.825 T/J under profile V0.",
+            "Gain recorded. The Turing yield was 2,559,679.825 T.",
+        ] {
+            assert_eq!(line_is_stale(bad), vec!["Turing yield.*2,559,679".to_string()], "{bad}");
+        }
+        // Honest wording from the research page (lines 95 and 218): gain
+        // figure and the "yield not yet measured" note are separate sentences.
+        for ok in [
+            "<p>The empirical-results section records the first canonical measurement: TY-1+TY-2 PASS, +2,559,679.825 T under measurement profile V0 (omega PR #85, 2026-09-29). What it does not claim: Turing yield (T/J) is not yet measured; joining energy measurements to Turing-gain receipts is the next step.</p>",
+            "Version 1.0 reports the first canonical Turing measurement: TY-1+TY-2 PASS, +2,559,679.825 T under measurement profile V0 (omega PR #85, 2026-09-29). Turing yield in T/J is not yet reported; joining energy measurements to Turing-gain receipts is the next step.",
+        ] {
+            assert!(line_is_stale(ok).is_empty(), "{ok}");
+        }
     }
 
     // Exact-path match after resolving "..", so a root such as
