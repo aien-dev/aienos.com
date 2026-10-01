@@ -6,6 +6,8 @@
 
 use maud::{html, Markup};
 
+use super::research_status;
+
 /// Central statement, first sentence (the page h1).
 pub const LEAD: &str =
     "AIENOS is an owned experimental machine for turning search into verified understanding.";
@@ -77,54 +79,77 @@ pub const PERIMETER_BOTTOM: [(&str, &str); 2] = [
     ("Evidence receipts", "make outcomes reproducible"),
 ];
 
-/// Status of a question, shown as a text badge plus a distinct style.
+/// Where a question's status comes from. A status word is never written
+/// by hand here: it is read from data/research_status.json through
+/// research_status.rs, so the homepage cannot drift from the research
+/// status page.
 #[derive(Clone, Copy)]
 pub enum QStatus {
-    Experimental,
-    NotYetMeasured,
-    ResearchDirection,
+    /// A Turing row in research_status.json, by id. `show_id` puts the row
+    /// id in front of the status word (e.g. "TY-2 PASS").
+    TuringRow { id: &'static str, show_id: bool },
+    /// No row exists for this question: no badge, plain prose only.
+    NoRow,
+}
+
+/// What the homepage shows for one question: badge class, badge label
+/// and note, all taken from the research status data.
+pub struct QShown {
+    pub class: &'static str,
+    pub label: String,
+    pub note: String,
 }
 
 impl QStatus {
-    fn class(self) -> &'static str {
+    pub fn shown(self) -> Option<QShown> {
         match self {
-            QStatus::Experimental => "home-q-badge status-experimental",
-            QStatus::NotYetMeasured => "home-q-badge status-planned",
-            QStatus::ResearchDirection => "home-q-badge status-hypothesis",
-        }
-    }
-    fn label(self) -> &'static str {
-        match self {
-            QStatus::Experimental => "Experimental",
-            QStatus::NotYetMeasured => "Not yet measured",
-            QStatus::ResearchDirection => "Research direction",
+            QStatus::NoRow => None,
+            QStatus::TuringRow { id, show_id } => {
+                let row = research_status::data()
+                    .turing_row(id)
+                    .unwrap_or_else(|| panic!("{id} row missing from research status data"));
+                let class = match row.status.as_str() {
+                    "NOT STARTED" | "NOT ESTABLISHED" | "BLOCKED" => "home-q-badge status-planned",
+                    _ => "home-q-badge status-experimental",
+                };
+                let label = if show_id {
+                    format!("{} {}", row.id, row.status)
+                } else {
+                    row.status.clone()
+                };
+                let note = match &row.headline {
+                    Some(h) => format!("{} recorded {}.", row.id, h),
+                    None => row.plain.clone(),
+                };
+                Some(QShown { class, label, note })
+            }
         }
     }
 }
 
 /// The three questions (handoff section 15): question, measure, meaning,
-/// status, optional status note.
+/// status source, plain note (used only when there is no row).
 pub const QUESTIONS: [(&str, &str, &str, QStatus, Option<&str>); 3] = [
     (
         "Did it learn anything?",
         "Turing gain",
         "Net explanatory structure that survives held-out reality.",
-        QStatus::Experimental,
+        QStatus::TuringRow { id: "TY-2", show_id: true },
         None,
     ),
     (
         "What did it cost to learn?",
         "Turing yield",
         "Verified explanatory gain per measured physical resource.",
-        QStatus::NotYetMeasured,
-        Some("Yield (T/J) is not started in the Omega qualification record. No yield figure is claimed."),
+        QStatus::TuringRow { id: "TURING-YIELD-TJ", show_id: false },
+        None,
     ),
     (
         "Did what it learned make future discovery easier?",
         "Search / verification gap",
         "Whether acquired abstraction would collapse future search complexity.",
-        QStatus::ResearchDirection,
-        Some("A research direction. Nothing here is measured yet."),
+        QStatus::NoRow,
+        Some("An open question we want to study. Nothing here is measured yet."),
     ),
 ];
 
@@ -207,15 +232,22 @@ pub fn render_home_loop() -> Markup {
                     h2 class="home-questions-title" { "Three questions under the loop" }
                     ol class="home-q-list" {
                         @for (question, measure, meaning, status, note) in QUESTIONS.iter() {
+                            @let shown = status.shown();
+                            @let note_text: Option<String> = shown
+                                .as_ref()
+                                .map(|s| s.note.clone())
+                                .or_else(|| note.map(|n| n.to_string()));
                             li class="home-q" {
                                 p class="home-q-question" { (question) }
                                 p class="home-q-measure" {
                                     span class="home-q-measure-name" { (measure) }
-                                    " "
-                                    span class=(status.class()) { (status.label()) }
+                                    @if let Some(s) = &shown {
+                                        " "
+                                        span class=(s.class) { (s.label) }
+                                    }
                                 }
                                 p class="home-q-meaning" { (meaning) }
-                                @if let Some(n) = note {
+                                @if let Some(n) = &note_text {
                                     p class="home-q-note" { (n) }
                                 }
                             }
@@ -361,15 +393,28 @@ mod tests {
         let y = s.find("Turing yield").expect("Turing yield missing");
         let gap = s.find("Search / verification gap").expect("gap missing");
         assert!(y < gap);
+        // Status words come from research_status.json, never hand-written.
+        let d = research_status::data();
+        let ty2 = d.turing_row("TY-2").expect("TY-2 row");
+        let tj = d.turing_row("TURING-YIELD-TJ").expect("TURING-YIELD-TJ row");
         let yield_block = &s[y..gap];
-        assert!(yield_block.contains("status-planned"), "yield must carry the planned style");
-        assert!(yield_block.contains("Not yet measured"), "yield must be labelled not yet measured");
-        assert!(yield_block.contains("not started"), "yield must say not started");
+        assert!(
+            yield_block.contains(&format!(">{}<", tj.status)),
+            "yield badge must be the TURING-YIELD-TJ status from the data"
+        );
+        assert!(yield_block.contains(&tj.plain), "yield note must be the data row's plain text");
+        if tj.status == "NOT STARTED" {
+            assert!(yield_block.contains("status-planned"), "unstarted yield must carry the planned style");
+        }
         let gap_block = &s[gap..s.find("class=\"home-actions\"").unwrap()];
-        assert!(gap_block.contains("status-hypothesis"));
-        assert!(gap_block.contains("Research direction"));
-        // Gain is never called yield.
+        assert!(!gap_block.contains("home-q-badge"), "gap has no data row, so no status badge");
+        assert!(gap_block.contains("Nothing here is measured yet."));
+        // Gain is never called yield, and its badge is the TY-2 row.
         let gain = s.find("Turing gain").expect("Turing gain missing");
+        assert!(
+            s[gain..y].contains(&format!(">TY-2 {}<", ty2.status)),
+            "gain badge must be the TY-2 status from the data"
+        );
         assert!(!s[gain..y].contains("yield"), "gain block must not mention yield");
     }
 
