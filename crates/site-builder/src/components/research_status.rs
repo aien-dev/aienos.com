@@ -797,6 +797,43 @@ mod tests {
         assert!(validate(&bad2).is_err());
     }
 
+    const NEW_ROW_IDS: [&str; 6] = [
+        "Dirac (DIRAC-0 and sealed exam ladder)",
+        "AEGIS",
+        "ARGUS (ARGUS-0, ARGUS-1)",
+        "FORGE (v1 and V2)",
+        "ATLAS (M1 ATLAS_BOOT and roadmap)",
+        "Typed result contracts",
+    ];
+
+    fn new_rows_have_evidence(d: &StatusData) -> Result<(), String> {
+        for id in NEW_ROW_IDS {
+            let n = d.implementation_rows.iter().filter(|r| r.id == id).count();
+            if n != 1 {
+                return Err(format!("row {id} appears {n} times"));
+            }
+            let row = d.implementation_row(id).unwrap();
+            if row.evidence.trim().is_empty() {
+                return Err(format!("row {id} has no evidence"));
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn new_implementation_rows_present_once_with_evidence() {
+        let d = real();
+        new_rows_have_evidence(&d).unwrap();
+        // Counterexample: one row with its evidence blanked must fail.
+        let mut bad = d.clone();
+        bad.implementation_rows
+            .iter_mut()
+            .find(|r| r.id == "AEGIS")
+            .unwrap()
+            .evidence = String::new();
+        assert!(new_rows_have_evidence(&bad).is_err());
+    }
+
     #[test]
     fn ladder_matches_table() {
         let d = real();
