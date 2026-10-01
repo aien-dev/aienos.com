@@ -271,26 +271,43 @@ mod wording_tests {
         None
     }
 
-    fn scan_tree(dir: &std::path::Path, skip: &[std::path::PathBuf], hits: &mut Vec<String>) {
-        let Ok(rd) = std::fs::read_dir(dir) else { return };
-        for e in rd.flatten() {
+    // Scans text files; returns Err on any directory or file read error
+    // (non-UTF-8 binary files such as png are the only thing not read as text).
+    // `scanned` records every text file actually read.
+    fn scan_tree(
+        dir: &std::path::Path,
+        skip: &[std::path::PathBuf],
+        hits: &mut Vec<String>,
+        scanned: &mut Vec<std::path::PathBuf>,
+    ) -> Result<(), String> {
+        let rd = std::fs::read_dir(dir).map_err(|e| format!("read_dir {}: {e}", dir.display()))?;
+        for e in rd {
+            let e = e.map_err(|e| format!("entry in {}: {e}", dir.display()))?;
             let p = e.path();
             let name = e.file_name().to_string_lossy().to_string();
             if p.is_dir() {
                 if ["target", "node_modules", ".git", "dist"].contains(&name.as_str()) {
                     continue;
                 }
-                scan_tree(&p, skip, hits);
+                scan_tree(&p, skip, hits, scanned)?;
             } else if p.extension().map_or(false, |x| x == "tex") || skip.iter().any(|s| s == &p) {
                 continue;
-            } else if let Ok(text) = std::fs::read_to_string(&p) {
-                for (i, line) in text.lines().enumerate() {
-                    if let Some(w) = line_is_stale(line) {
-                        hits.push(format!("{}:{}: {}", p.display(), i + 1, w));
+            } else {
+                match std::fs::read_to_string(&p) {
+                    Ok(text) => {
+                        scanned.push(p.clone());
+                        for (i, line) in text.lines().enumerate() {
+                            if let Some(w) = line_is_stale(line) {
+                                hits.push(format!("{}:{}: {}", p.display(), i + 1, w));
+                            }
+                        }
                     }
+                    Err(err) if err.kind() == std::io::ErrorKind::InvalidData => {}
+                    Err(err) => return Err(format!("read {}: {err}", p.display())),
                 }
             }
         }
+        Ok(())
     }
 
     #[test]
@@ -298,8 +315,37 @@ mod wording_tests {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let me = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/components/status.rs");
         let mut hits = Vec::new();
-        scan_tree(&root, &[me], &mut hits);
+        let mut scanned = Vec::new();
+        scan_tree(&root, &[me], &mut hits, &mut scanned).expect("scan must read every directory and file");
+        check_floor(&root, &scanned).expect("scan floor");
         assert!(hits.is_empty(), "stale wording: {hits:?}");
+    }
+
+    fn check_floor(root: &std::path::Path, scanned: &[std::path::PathBuf]) -> Result<(), String> {
+        if scanned.is_empty() {
+            return Err("scan read zero files".into());
+        }
+        for must in ["index.html", "public/turing/index.html", "public/research/index.html"] {
+            let want = root.join(must).canonicalize().ok();
+            if !scanned.iter().any(|p| p.canonicalize().ok() == want) {
+                return Err(format!("required page not scanned: {must}"));
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn counterexample_empty_or_missing_directory_fails() {
+        let missing = std::env::temp_dir().join(format!("stalegrep-missing-{}", std::process::id()));
+        let mut hits = Vec::new();
+        let mut scanned = Vec::new();
+        assert!(scan_tree(&missing, &[], &mut hits, &mut scanned).is_err());
+        let empty = std::env::temp_dir().join(format!("stalegrep-empty-{}", std::process::id()));
+        std::fs::create_dir_all(&empty).unwrap();
+        let r = scan_tree(&empty, &[], &mut hits, &mut scanned);
+        let _ = std::fs::remove_dir_all(&empty);
+        assert!(r.is_ok());
+        assert!(check_floor(&empty, &scanned).is_err(), "empty scan must fail the floor");
     }
 
     #[test]
@@ -312,7 +358,8 @@ mod wording_tests {
         std::fs::write(&page, "<p>\"Turing yield of 2,559,679\" and \"actually understood\"</p>\n").unwrap();
         std::fs::write(&src, "const A: &str = \"first unit written down\";\n").unwrap();
         let mut hits = Vec::new();
-        scan_tree(&d, &[src.clone()], &mut hits);
+        let mut scanned = Vec::new();
+        scan_tree(&d, &[src.clone()], &mut hits, &mut scanned).unwrap();
         let _ = std::fs::remove_dir_all(&d);
         assert_eq!(hits.len(), 2, "{hits:?}");
         assert!(hits.iter().all(|h| h.contains("x.html")), "{hits:?}");
