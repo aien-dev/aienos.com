@@ -15,6 +15,16 @@
   --text-muted: #8ea0b5;
   --font-sans: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  /* Research status (generated /research/status/ page) */
+  --rs-pass: #00e599;
+  --rs-pass-bg: rgba(0, 229, 153, 0.12);
+  --rs-fail: #f87171;
+  --rs-fail-bg: rgba(248, 113, 113, 0.08);
+  --rs-warn: #f5a623;
+  --rs-warn-bg: rgba(245, 166, 35, 0.1);
+  --rs-blocked: #fca5a5;
+  --rs-open: #94a3b8;
+  --rs-stair: clamp(4px, 2vw, 28px);
 }
 
 * {
@@ -649,5 +659,491 @@ p {
 @media (max-width: 640px) {
   .theory-fig {
     padding: 18px 14px 16px;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Research status: ladder, experiment cards, implementation list.
+   Rendered from crates/site-builder/data/research_status.json.
+   Status is always written as text; colour and line style only repeat it.
+   ------------------------------------------------------------------ */
+.rs-page {
+  padding-top: 56px;
+  padding-bottom: 88px;
+  max-width: 1100px;
+  line-height: 1.65;
+}
+
+.rs-kicker {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-green);
+  margin-bottom: 10px;
+}
+
+.rs-page-title {
+  font-size: clamp(30px, 6vw, 44px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin-bottom: 16px;
+}
+
+.rs-standfirst {
+  max-width: 720px;
+  color: var(--text-secondary);
+  font-size: 17px;
+  margin-bottom: 10px;
+}
+
+.rs-toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: 18px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.rs-toc a,
+.rs-embed-link a {
+  color: var(--accent-green);
+  font-weight: 600;
+}
+
+.rs-section {
+  margin-top: 64px;
+}
+
+.rs-h2 {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 12px;
+}
+
+.rs-h3 {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 24px 0 8px;
+}
+
+.rs-section-lede {
+  max-width: 720px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+.rs-mono {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  overflow-wrap: anywhere;
+}
+
+/* Badges */
+.rs-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rs-badge--pass { color: var(--rs-pass); background: var(--rs-pass-bg); border-color: rgba(0, 229, 153, 0.4); }
+.rs-badge--fail { color: var(--bg-base); background: var(--rs-fail); border-color: var(--rs-fail); }
+.rs-badge--incomplete { color: var(--rs-warn); background: var(--rs-warn-bg); border-color: var(--rs-warn); }
+.rs-badge--partial { color: var(--rs-warn); background: var(--rs-warn-bg); border: 1px dashed var(--rs-warn); }
+.rs-badge--blocked { color: var(--rs-blocked); background: var(--rs-fail-bg); border: 1px dashed var(--rs-fail); }
+.rs-badge--not-established,
+.rs-badge--not-started,
+.rs-badge--unknown { color: var(--rs-open); background: transparent; border: 1px dashed var(--rs-open); }
+
+/* Ladder */
+.rs-current {
+  font-size: 18px;
+  color: var(--text-primary);
+  max-width: 760px;
+}
+
+.rs-current strong {
+  color: var(--accent-green);
+}
+
+.rs-current-meaning,
+.rs-ladder-hint {
+  color: var(--text-secondary);
+  max-width: 760px;
+  margin-top: 6px;
+}
+
+.rs-ladder-hint {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.rs-stairs {
+  list-style: none;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 10px;
+  margin: 24px 0 0;
+  padding: 0;
+}
+
+.rs-step {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 12px;
+  margin-left: calc(var(--i) * var(--rs-stair));
+}
+
+.rs-step-mark {
+  width: 18px;
+  height: 18px;
+  margin-top: 17px;
+  border-radius: 50%;
+  border: 2px solid var(--rs-open);
+}
+
+.rs-step--achieved .rs-step-mark { background: var(--rs-pass); border-color: var(--rs-pass); }
+.rs-step--partial .rs-step-mark { background: linear-gradient(to top, var(--rs-warn) 50%, transparent 50%); border-color: var(--rs-warn); }
+.rs-step--not-achieved .rs-step-mark { background: transparent; border-style: dashed; }
+.rs-step--not-attempted .rs-step-mark { background: transparent; border-style: dotted; }
+
+.rs-step-body {
+  min-width: 0;
+  padding: 14px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+}
+
+.rs-step--achieved .rs-step-body { border-left: 4px solid var(--rs-pass); }
+.rs-step--partial .rs-step-body { border-left: 4px dashed var(--rs-warn); }
+.rs-step--not-achieved .rs-step-body,
+.rs-step--not-attempted .rs-step-body {
+  background: transparent;
+  border-style: dashed;
+}
+
+.rs-step-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+
+.rs-step-level {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.rs-step-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.rs-step--not-achieved .rs-step-name,
+.rs-step--not-attempted .rs-step-name {
+  color: var(--text-secondary);
+}
+
+.rs-here {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bg-base);
+  background: var(--accent-green);
+  border-radius: 4px;
+  padding: 2px 8px;
+}
+
+.rs-step-state {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-top: 4px;
+  color: var(--rs-open);
+}
+
+.rs-step--achieved .rs-step-state { color: var(--rs-pass); }
+.rs-step--partial .rs-step-state { color: var(--rs-warn); }
+
+.rs-step-detail {
+  color: var(--text-secondary);
+  font-size: 15px;
+  margin-top: 4px;
+}
+
+.rs-step-basis {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+}
+
+.rs-attempt {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--rs-fail);
+  background: var(--rs-fail-bg);
+  color: var(--text-secondary);
+  font-size: 14.5px;
+}
+
+.rs-attempt-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-bottom: 4px;
+  color: var(--text-primary);
+}
+
+.rs-attempt-head span:last-child {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.rs-embed-link {
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+/* Experiment cards */
+.rs-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 20px;
+}
+
+.rs-card {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 22px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+}
+
+.rs-card--fail { border-color: var(--rs-fail); }
+.rs-card--blocked,
+.rs-card--not-started,
+.rs-card--not-established { border-style: dashed; }
+
+.rs-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rs-card-id {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.rs-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.rs-card-headline {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.rs-card-callout {
+  padding: 10px 12px;
+  border-left: 3px solid var(--rs-warn);
+  background: var(--rs-warn-bg);
+  color: var(--text-primary);
+  font-size: 14.5px;
+}
+
+.rs-card-plain {
+  color: var(--text-secondary);
+  font-size: 15px;
+}
+
+.rs-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 13.5px;
+}
+
+.rs-facts > div {
+  display: grid;
+  grid-template-columns: 8.5em minmax(0, 1fr);
+  gap: 10px;
+}
+
+.rs-facts dt {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding-top: 2px;
+}
+
+.rs-facts dd {
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+/* Implementation list */
+.rs-impl {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.rs-group {
+  padding: 20px 22px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+}
+
+.rs-group--research-hypothesis {
+  border: 1px dashed var(--rs-open);
+  background: repeating-linear-gradient(135deg, transparent 0 12px, rgba(148, 163, 184, 0.04) 12px 24px);
+}
+
+.rs-group--planned {
+  border-style: dashed;
+}
+
+.rs-group-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.rs-group-count {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.rs-group-blurb {
+  color: var(--text-secondary);
+  font-size: 14.5px;
+  margin: 2px 0 14px;
+}
+
+.rs-impl-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.rs-impl-item {
+  padding: 14px 0;
+  border-top: 1px solid var(--border-subtle);
+  min-width: 0;
+}
+
+.rs-impl-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+.rs-impl-name {
+  font-weight: 700;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.rs-impl-status {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.rs-impl-scope {
+  color: var(--text-secondary);
+  font-size: 14.5px;
+  margin-top: 4px;
+}
+
+.rs-impl-more {
+  margin-top: 8px;
+}
+
+.rs-impl-more summary {
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--accent-green);
+}
+
+.rs-impl-more .rs-facts {
+  margin-top: 10px;
+}
+
+.rs-sources p,
+.rs-sources li {
+  color: var(--text-secondary);
+  font-size: 14.5px;
+  max-width: 820px;
+  margin-bottom: 8px;
+  overflow-wrap: anywhere;
+}
+
+.rs-sources ul {
+  padding-left: 20px;
+}
+
+@media (max-width: 600px) {
+  .rs-page {
+    padding-top: 36px;
+  }
+
+  .rs-facts > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+
+  .rs-card,
+  .rs-group {
+    padding: 18px 16px;
+  }
+
+  .rs-step-body {
+    padding: 12px 14px;
   }
 }

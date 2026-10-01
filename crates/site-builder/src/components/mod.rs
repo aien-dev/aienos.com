@@ -8,6 +8,7 @@ pub mod install;
 pub mod matrix;
 pub mod navbar;
 pub mod research;
+pub mod research_status;
 pub mod status;
 pub mod story;
 pub mod terminal;

@@ -1,13 +1,17 @@
 use maud::{html, Markup};
 
+use super::research_status as rs;
+
 pub fn render_evidence() -> Markup {
     // Every figure below traces to a merged public record, checked against
     // github.com/aien-dev on 2026-10-01 before publication:
     //   Gate 14:        aien-dev/omega PR #111, merged 2026-09-30 (CDT),
     //                   combined receipt binding Omega 8024e9a + Physics
     //                   e95e3ed, 230 checks, 0 failures.
-    //   Turing yield:   aien-dev/omega PR #88, merged 2026-09-29,
-    //                   TY-2 verify log re-verified, T = 2,559,679.825 bits.
+    //   TY-2 card:      every field except environment and URL is read from
+    //                   data/research_status.json (row TY-2). It is a Turing
+    //                   gain in bits, not a yield; the verify log in omega
+    //                   PR #88 is a self re-derivation with the same tool.
     //   C kernel:       aien-dev/aienos PR #194 (UEFI boot, QEMU) and
     //                   PR #195 (NVMe, ARGUS, sealed Store), 2026-10-01.
     //   M5 NOT_QUALIFIED: aien-dev/aienos PR #187, merged 2026-09-30 (CDT),
@@ -30,16 +34,16 @@ pub fn render_evidence() -> Markup {
             "aien-dev/omega · PR #111",
         ),
         (
-            "VERIFIED",
-            "badge-blue",
-            "T = 2,559,679.825 bits",
-            "Turing yield, re-verified end to end",
-            "The TY-2 verification log, checked again from the public record: a measured quantity of machine understanding in the project's own unit, reproducible by anyone.",
-            "2026-09-29",
+            rs::ty2_status(),
+            "badge-green",
+            rs::ty2_headline(),
+            rs::ty2_title(),
+            rs::ty2_plain(),
+            rs::ty2_date(),
             "Omega verification suite, turing-yield CI on main",
-            "TY-2 verify log re-verification",
-            "The recorded Turing yield reproduces exactly from the public log under the frozen profile.",
-            "Discovery. That is the job of the EXP-002 experiment series, which is still running.",
+            rs::ty2_receipt(),
+            rs::ty2_scope(),
+            rs::ty2_limitations(),
             "https://github.com/aien-dev/omega/pull/88",
             "aien-dev/omega · PR #88",
         ),

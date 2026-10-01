@@ -28,7 +28,7 @@ fn copy_dir_all(src: &Path, dst: &Path) -> std::io::Result<()> {
 }
 
 fn generate_sitemap_and_robots(dist: &Path) {
-    let sitemap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n  <url><loc>https://aienos.com/</loc><priority>1.0</priority></url>\n  <url><loc>https://aienos.com/blog</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/blog/aien-v3-research-plan</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/post-llm-case/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/computing-machinery-and-understanding</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/computing-machinery-and-understanding-emergence</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/research/the-stapleton-doctrine</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/turing/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/licensing/</loc><priority>0.5</priority></url>\n</urlset>\n";
+    let sitemap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n  <url><loc>https://aienos.com/</loc><priority>1.0</priority></url>\n  <url><loc>https://aienos.com/blog</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/blog/aien-v3-research-plan</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/post-llm-case/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/status/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/computing-machinery-and-understanding</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/computing-machinery-and-understanding-emergence</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/research/the-stapleton-doctrine</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/turing/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/licensing/</loc><priority>0.5</priority></url>\n</urlset>\n";
     let sitemap_path = dist.join("sitemap.xml");
     fs::write(&sitemap_path, sitemap).expect("Failed to write sitemap.xml");
 
@@ -123,6 +123,25 @@ fn build_pure_rust_site(dist: &Path) {
         .expect("Failed to write post index.html");
     println!("  [PAGE] Emitted /blog/{} (index.html)", components::blog::POST_SLUG);
 
+    // Research status: ladder, experiment cards, and implementation list,
+    // all rendered from data/research_status.json. The data file itself is
+    // published next to it so machines read the same source.
+    let research_status = render_page_layout(
+        "Research status | AIEN OS",
+        "Where the AIEN research stands: the qualification ladder, every experiment with its verdict, receipt and limits, and what is built versus still a hypothesis.",
+        "https://aienos.com/research/status/",
+        "website",
+        html! {},
+        components::research_status::render_research_status_page(),
+    );
+    let research_status_dir = dist.join("research/status");
+    fs::create_dir_all(&research_status_dir).expect("Failed to create research/status dir");
+    fs::write(research_status_dir.join("index.html"), research_status.into_string())
+        .expect("Failed to write research/status/index.html");
+    fs::write(dist.join("research-status.json"), components::research_status::RAW)
+        .expect("Failed to write research-status.json");
+    println!("  [PAGE] Emitted /research/status (index.html) and /research-status.json");
+
     generate_sitemap_and_robots(dist);
 }
 
@@ -155,7 +174,10 @@ fn verify_site(dist: &Path) {
     assert!(blog_index.exists(), "Missing blog/index.html");
     let blog_post = dist.join("blog/aien-v3-research-plan/index.html");
     assert!(blog_post.exists(), "Missing blog/aien-v3-research-plan/index.html");
-    for page in [&blog_index, &blog_post] {
+    let research_status = dist.join("research/status/index.html");
+    assert!(research_status.exists(), "Missing research/status/index.html");
+    assert!(dist.join("research-status.json").exists(), "Missing research-status.json");
+    for page in [&blog_index, &blog_post, &research_status] {
         let page_content = fs::read_to_string(page)
             .unwrap_or_else(|_| panic!("Failed to read {}", page.display()));
         assert!(
