@@ -38,6 +38,8 @@ pub const FOOTER_GROUPS: [(&str, &[FooterLink]); 6] = [
         "Evidence",
         &[
             ("Evidence", "/evidence/", false),
+            ("Research status", "/research/status/", false),
+            ("Status data (JSON)", "/research-status.json", false),
             (
                 "Qualification record",
                 "https://github.com/aien-dev/omega/blob/main/docs/turing/TURING_SCIENTIFIC_QUALIFICATION_STATE.md",
@@ -163,6 +165,17 @@ mod tests {
         for ((heading, links), hub) in FOOTER_GROUPS.iter().zip(hubs) {
             assert_eq!(links[0].1, hub, "footer group {heading} must link {hub} first");
         }
+    }
+
+    #[test]
+    fn evidence_group_reaches_the_research_status_record() {
+        let (_, links) = FOOTER_GROUPS
+            .iter()
+            .find(|(heading, _)| *heading == "Evidence")
+            .expect("Evidence group present");
+        let hrefs: Vec<&str> = links.iter().map(|l| l.1).collect();
+        assert!(hrefs.contains(&"/research/status/"), "Evidence group must link /research/status/");
+        assert!(hrefs.contains(&"/research-status.json"), "Evidence group must link /research-status.json");
     }
 
     #[test]

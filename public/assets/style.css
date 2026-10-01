@@ -1305,13 +1305,11 @@ p {
   color: var(--accent-blue);
 }
 
-.hub-section,
-.hub-slot {
+.hub-section {
   margin: 0 0 48px;
 }
 
-.hub-section p,
-.hub-slot p {
+.hub-section p {
   max-width: 68ch;
   font-size: 16px;
   line-height: 1.7;
@@ -1326,12 +1324,26 @@ p {
   margin: 0 0 16px;
 }
 
-/* The experiment-cards slot: visibly a placeholder until LT-TRUTH fills it. */
-.hub-slot {
-  border: 1px dashed var(--border-active);
-  border-radius: 12px;
-  background: var(--bg-surface);
-  padding: 28px;
+/* Experiments hub: ladder and cards rendered from research_status data.
+   The wrap widens for the card grid; prose stays in a 68ch column. */
+.hub-wrap-wide {
+  max-width: 1100px;
+}
+
+.hub-data {
+  margin: 0 0 64px;
+}
+
+.hub-data .hub-lede {
+  max-width: 68ch;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin: 0 0 24px;
+}
+
+.hub-data-foot {
+  margin: 32px 0 0;
 }
 
 .hub-button {
@@ -1456,8 +1468,8 @@ p {
     font-size: 32px;
   }
 
-  .hub-slot {
-    padding: 20px 16px;
+  .hub-data {
+    margin-bottom: 48px;
   }
 }
 

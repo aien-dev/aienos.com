@@ -1,30 +1,51 @@
 //! Section hub pages: /experiments/, /evidence/, /philosophy/ (NARR-NAV).
 //!
 //! Short generated pages that share the site header and footer through
-//! `render_page_layout`. They carry no experiment status values: those
-//! will come from the canonical status source (LT-TRUTH), never from prose.
+//! `render_page_layout`. No status word is written in this file. The
+//! experiments hub renders its ladder and cards from the canonical status
+//! source (`research_status`, data/research_status.json); the other hubs
+//! carry no status values at all and only link to that record.
 
 use std::fs;
 use std::path::Path;
 
 use maud::{html, Markup};
 
+use crate::components::research_status as rs;
 use crate::layouts::base::render_page_layout;
 
 const PAPER: &str = "/research/computing-machinery-and-understanding/";
 const QUALIFICATION_RECORD: &str =
     "https://github.com/aien-dev/omega/blob/main/docs/turing/TURING_SCIENTIFIC_QUALIFICATION_STATE.md";
+const STATUS_PAGE: &str = "/research/status/";
+const STATUS_JSON: &str = "/research-status.json";
 
-/// The phrase each hub must carry. verify_hub_pages and the tests check it.
-pub const EXPERIMENTS_SLOT: &str = "id=\"experiment-cards\"";
+/// Markup each hub must carry. verify_hub_pages and the tests check it.
+pub const EXPERIMENTS_SLOT: &str = "<section id=\"experiment-cards\"";
+/// The wrapper render_cards emits around the experiment cards.
+pub const CARDS_MARKUP: &str = "<div class=\"rs-cards\">";
+/// The full-record button on the experiments hub.
+pub const STATUS_BUTTON: &str = "<a class=\"hub-button\" href=\"/research/status/\">";
 pub const EVIDENCE_PHRASE: &str = "Failure is evidence.";
+pub const STATUS_PAGE_LINK: &str = "href=\"/research/status/\"";
+pub const STATUS_JSON_LINK: &str = "href=\"/research-status.json\"";
 pub const PHILOSOPHY_PHRASE: &str = "Position, not evidence";
+
+/// Where a hub's status values come from.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum StatusSource {
+    /// Every status on the page is rendered from research_status data.
+    Data,
+    /// The page shows no status values at all.
+    Absent,
+}
 
 pub struct Hub {
     pub slug: &'static str,
     pub title: &'static str,
     pub description: &'static str,
-    pub required: &'static str,
+    pub required: &'static [&'static str],
+    pub status: StatusSource,
     pub render: fn() -> Markup,
 }
 
@@ -33,44 +54,59 @@ pub static HUBS: [Hub; 3] = [
         slug: "experiments",
         title: "Experiments | AIENOS",
         description: "Every experiment on the AIEN research ladder, failures included, rendered from one canonical status source.",
-        required: EXPERIMENTS_SLOT,
+        required: &[EXPERIMENTS_SLOT, CARDS_MARKUP, STATUS_BUTTON],
+        status: StatusSource::Data,
         render: render_experiments_hub,
     },
     Hub {
         slug: "evidence",
         title: "Evidence | AIENOS",
-        description: "What counts as evidence for AIEN, which source wins when two disagree, and where to inspect the receipts, frozen profiles, and qualification record.",
-        required: EVIDENCE_PHRASE,
+        description: "What counts as evidence for AIEN, which source wins when two disagree, and where to inspect the receipts, frozen profiles, research status record, and qualification record.",
+        required: &[EVIDENCE_PHRASE, STATUS_PAGE_LINK, STATUS_JSON_LINK],
+        status: StatusSource::Absent,
         render: render_evidence_hub,
     },
     Hub {
         slug: "philosophy",
         title: "Philosophy | AIENOS",
         description: "Position papers behind AIEN: the Stapleton Doctrine and the Post-LLM Case. These argue a stance and are not experimental results.",
-        required: PHILOSOPHY_PHRASE,
+        required: &[PHILOSOPHY_PHRASE],
+        status: StatusSource::Absent,
         render: render_philosophy_hub,
     },
 ];
 
 pub fn render_experiments_hub() -> Markup {
+    let d = rs::data();
     html! {
-        div class="container hub-wrap" {
+        div class="container hub-wrap hub-wrap-wide" {
             p class="hub-kicker" { "Experiments" }
             h1 class="hub-title" { "Experiments" }
             p class="hub-standfirst" {
-                "Every experiment on the AIEN research ladder belongs here with its protocol, its scope, and its outcome, including the ones that failed. The list will render from one canonical status source, so this page cannot drift from the qualification record."
+                "Every experiment on the AIEN research ladder, with its scope, its receipt and its outcome, failures included. Everything below is rendered from one data file, so this page cannot drift from the record."
             }
-            section id="experiment-cards" class="hub-slot" data-source="LT-TRUTH status source (pending)" aria-labelledby="experiment-cards-title" {
+            section class="hub-data" aria-labelledby="experiments-ladder" {
+                h2 id="experiments-ladder" class="hub-h2" { "Where the research stands" }
+                (rs::render_research_status_summary())
+            }
+            section id="experiment-cards" class="hub-data" data-source="research_status.json" aria-labelledby="experiment-cards-title" {
                 h2 id="experiment-cards-title" class="hub-h2" { "Experiment cards" }
-                p {
-                    "The experiment list is being connected to the canonical status source. Until that lands, the current ladder lives on the Turing paper page."
+                p class="hub-lede" {
+                    "One card per result. The badge is the verdict; the lines below say what it covers, what it does not, and what it waits on."
                 }
-                a class="hub-button" href=(PAPER) { "See the current experiment ladder" }
+                (rs::render_cards(d))
+                p class="hub-data-foot" {
+                    a class="hub-button" href=(STATUS_PAGE) { "Open the full research status record" }
+                }
             }
             section class="hub-section" aria-labelledby="experiments-more" {
                 h2 id="experiments-more" class="hub-h2" { "Check it yourself" }
                 p {
-                    "Each experiment is frozen before it is scored, and its record stays public whatever the outcome. The "
+                    "Each experiment is frozen before it is scored, and its record stays public whatever the outcome. The same record is published as "
+                    a href=(STATUS_JSON) { "machine-readable data" }
+                    ", the protocols sit with the "
+                    a href=(PAPER) { "Turing paper" }
+                    ", and the "
                     a href="/evidence/" { "Evidence" }
                     " page explains which sources count and where to find them."
                 }
@@ -118,6 +154,14 @@ pub fn render_evidence_hub() -> Markup {
             section class="hub-section" aria-labelledby="evidence-where" {
                 h2 id="evidence-where" class="hub-h2" { "Where to inspect it" }
                 ul class="hub-cards" {
+                    li class="hub-card" {
+                        a href=(STATUS_PAGE) { "Research status record" }
+                        p { "Every experiment with its verdict, receipt, scope and limits, plus the research ladder. Rendered from one data file." }
+                    }
+                    li class="hub-card" {
+                        a href=(STATUS_JSON) { "Research status data (JSON)" }
+                        p { "The same record in machine-readable form: the file the status pages are built from." }
+                    }
                     @for (name, what, href) in &artifacts {
                         li class="hub-card" {
                             a href=(href) { (name) }
@@ -209,8 +253,10 @@ pub fn emit_hub_pages(dist: &Path) {
     }
 }
 
-/// Fails the build if a hub page is missing, lacks its required phrase,
-/// lacks any of the six nav sections, or contains an em or en dash.
+/// Fails the build if a hub page is missing, lacks its required markup,
+/// lacks any of the six nav sections, contains an em or en dash, shows a
+/// status word on a hub that must carry none, or (for the data hub) misses
+/// a card for any row of the canonical status source.
 pub fn verify_hub_pages(dist: &Path) {
     for hub in &HUBS {
         let path = dist.join(hub.slug).join("index.html");
@@ -221,8 +267,10 @@ pub fn verify_hub_pages(dist: &Path) {
 }
 
 fn check_hub_document(hub: &Hub, page: &str) -> Result<(), String> {
-    if !page.contains(hub.required) {
-        return Err(format!("missing required phrase {:?}", hub.required));
+    for required in hub.required {
+        if !page.contains(required) {
+            return Err(format!("missing required markup {required:?}"));
+        }
     }
     if page.contains('\u{2014}') || page.contains('\u{2013}') {
         return Err("forbidden em or en dash".to_string());
@@ -232,9 +280,21 @@ fn check_hub_document(hub: &Hub, page: &str) -> Result<(), String> {
             return Err(format!("nav item {label} missing"));
         }
     }
-    for status in ["PASS", "FAIL", "BLOCKED", "INCOMPLETE"] {
-        if page.contains(status) {
-            return Err(format!("hand-written status value {status} on a hub page"));
+    match hub.status {
+        StatusSource::Absent => {
+            for status in rs::ALLOWED_STATUSES {
+                if page.contains(status) {
+                    return Err(format!("status value {status} on a hub that must carry none"));
+                }
+            }
+        }
+        StatusSource::Data => {
+            for row in &rs::data().turing_rows {
+                let card = format!("data-row=\"{}\" data-status=\"{}\"", row.id, row.status);
+                if !page.contains(&card) {
+                    return Err(format!("card for {} missing or not from data", row.id));
+                }
+            }
         }
     }
     Ok(())
@@ -249,6 +309,11 @@ mod tests {
         render_hub_document(hub)
     }
 
+    /// The part of a source file before its test module.
+    fn non_test_source(src: &str) -> &str {
+        src.split("#[cfg(test)]").next().unwrap_or(src)
+    }
+
     #[test]
     fn three_hubs_are_registered() {
         let slugs: Vec<&str> = HUBS.iter().map(|h| h.slug).collect();
@@ -256,11 +321,29 @@ mod tests {
     }
 
     #[test]
-    fn experiments_hub_has_the_pending_card_slot() {
+    fn experiments_hub_renders_the_cards_from_data() {
         let page = doc("experiments");
-        assert!(page.contains("<section id=\"experiment-cards\""), "experiment-cards slot missing");
-        assert!(page.contains("data-source=\"LT-TRUTH status source (pending)\""), "slot data-source missing");
-        assert!(page.contains(PAPER), "link to the current ladder missing");
+        assert!(page.contains(EXPERIMENTS_SLOT), "experiment-cards section missing");
+        assert!(page.contains(CARDS_MARKUP), "render_cards markup missing");
+        assert!(page.contains("data-row=\"EXP-001\""), "EXP-001 card missing");
+        let d = rs::data();
+        let cards = rs::render_cards(d).into_string();
+        assert!(page.contains(&cards), "cards differ from research_status::render_cards");
+        for row in &d.turing_rows {
+            let card = format!("data-row=\"{}\" data-status=\"{}\"", row.id, row.status);
+            assert!(page.contains(&card), "card for {} missing", row.id);
+        }
+    }
+
+    #[test]
+    fn experiments_hub_embeds_the_ladder_and_links_the_full_record() {
+        let page = doc("experiments");
+        assert!(page.contains(&rs::render_research_status_summary().into_string()), "ladder summary missing");
+        assert!(page.contains(STATUS_BUTTON), "full record button missing");
+        assert!(page.contains(STATUS_JSON_LINK), "data file link missing");
+        let ladder = page.find("experiments-ladder").expect("ladder section");
+        let cards = page.find(EXPERIMENTS_SLOT).expect("cards section");
+        assert!(ladder < cards, "ladder comes before the cards");
     }
 
     #[test]
@@ -270,6 +353,13 @@ mod tests {
         assert!(page.contains("Failed and incomplete experiments stay on the record."));
         assert!(page.contains(QUALIFICATION_RECORD), "qualification record link missing");
         assert!(page.contains("SHA256SUMS"), "checksum link missing");
+    }
+
+    #[test]
+    fn evidence_hub_links_the_status_record_and_its_data() {
+        let page = doc("evidence");
+        assert!(page.contains(STATUS_PAGE_LINK), "/research/status/ link missing");
+        assert!(page.contains(STATUS_JSON_LINK), "/research-status.json link missing");
     }
 
     #[test]
@@ -314,10 +404,30 @@ mod tests {
     }
 
     #[test]
-    fn build_check_rejects_a_dash_and_a_missing_phrase() {
-        let hub = &HUBS[1];
-        let page = render_hub_document(hub);
-        assert!(check_hub_document(hub, &page.replace("Failure is evidence.", "")).is_err());
-        assert!(check_hub_document(hub, &format!("{page}\u{2014}")).is_err());
+    fn nav_and_hub_source_has_no_hand_written_status() {
+        let sources = [
+            ("hubs.rs", include_str!("hubs.rs")),
+            ("navbar.rs", include_str!("navbar.rs")),
+            ("footer.rs", include_str!("footer.rs")),
+        ];
+        for (name, src) in sources {
+            let body = non_test_source(src);
+            for status in rs::ALLOWED_STATUSES {
+                assert!(!body.contains(status), "{name} hand-writes the status word {status}");
+            }
+        }
+    }
+
+    #[test]
+    fn build_check_rejects_bad_pages() {
+        let evidence = &HUBS[1];
+        let page = render_hub_document(evidence);
+        assert!(check_hub_document(evidence, &page.replace("Failure is evidence.", "")).is_err());
+        assert!(check_hub_document(evidence, &format!("{page}\u{2014}")).is_err());
+        let status = rs::ALLOWED_STATUSES[0];
+        assert!(check_hub_document(evidence, &format!("{page}{status}")).is_err());
+        let experiments = &HUBS[0];
+        let page = render_hub_document(experiments);
+        assert!(check_hub_document(experiments, &page.replace("data-row=\"EXP-001\"", "data-row=\"X\"")).is_err());
     }
 }
