@@ -28,7 +28,7 @@ pub const ENFORCERS: [(&str, &str); 3] = [
 
 pub const QUESTIONS: [(&str, &str, Option<&str>); 3] = [
     ("Turing gain", "Did it learn anything?", None),
-    ("Turing yield", "What did it cost?", Some("not yet measured")),
+    ("Turing yield", "What did it cost?", Some("not started")),
     ("Search/verification gap", "Did it make future discovery easier?", None),
 ];
 
@@ -109,7 +109,7 @@ mod tests {
         assert!(s.contains(SLOGAN));
         assert!(s.contains("<ol class=\"closed-loop-stages\""));
         assert!(s.contains("back to AIEN"));
-        assert!(s.contains("not yet measured"));
+        assert!(s.contains("not started"));
         for (name, _) in STAGES.iter() {
             assert!(s.contains(name), "missing stage {name}");
         }
