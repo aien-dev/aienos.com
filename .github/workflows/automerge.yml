@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: branch to build and merge (only after an inspector VERDICT: merge)
+        description: "branch to build and merge (only after an inspector VERDICT merge)"
         required: true
 
 permissions:
