@@ -313,54 +313,64 @@ pub fn layer_status_for_class(class: &str) -> &'static str {
     }
 }
 
+fn instrument_row(d: &StatusData) -> &ImplementationRow {
+    d.implementation_row("Turing measurement machinery")
+        .expect("Turing measurement machinery row missing")
+}
+
+/// Homepage layer status for the Turing instrument, from a given data set.
+pub fn turing_instrument_status_for(d: &StatusData) -> &'static str {
+    layer_status_for_class(&instrument_row(d).class)
+}
+
 pub fn turing_instrument_status() -> &'static str {
-    let row = data()
-        .implementation_row("Turing measurement machinery")
-        .expect("Turing measurement machinery row missing");
-    layer_status_for_class(&row.class)
+    turing_instrument_status_for(data())
 }
 
 /// One sentence for the homepage layer list: the instrument row plus the
-/// current level and the TY-2 gain, all from the data file.
+/// current level, its limits and the TY-2 gain, all from a given data set.
+pub fn turing_instrument_note_for(d: &StatusData) -> String {
+    let row = instrument_row(d);
+    let t = d.turing_row("TY-2").expect("TY-2 row missing from research status data");
+    format!(
+        "{}. Current level: {}. {} {} TY-2 recorded {}. {}",
+        row.status_detail,
+        d.current_level.summary,
+        d.current_level.limitations,
+        d.current_level.outside_scope,
+        t.headline.as_deref().unwrap_or(""),
+        t.not_yield.as_deref().unwrap_or("")
+    )
+    .trim_end()
+    .to_string()
+}
+
 pub fn turing_instrument_note() -> &'static str {
     static NOTE: OnceLock<String> = OnceLock::new();
-    NOTE.get_or_init(|| {
-        let d = data();
-        let row = d
-            .implementation_row("Turing measurement machinery")
-            .expect("Turing measurement machinery row missing");
-        format!(
-            "{}. Current level: {}. {} TY-2 recorded {}. {}",
-            row.status_detail,
-            d.current_level.summary,
-            d.current_level.outside_scope,
-            ty2_headline(),
-            ty2().not_yield.as_deref().unwrap_or("")
-        )
-        .trim_end()
-        .to_string()
-    })
+    NOTE.get_or_init(|| turing_instrument_note_for(data()))
 }
 
 /// Experiment roll call for the homepage layer list, e.g.
 /// "EXP-001 FAIL, EXP-001R PASS, ... EXP-003 BLOCKED."
+pub fn experiments_note_for(d: &StatusData) -> String {
+    let parts: Vec<String> = d
+        .turing_rows
+        .iter()
+        .filter(|r| r.id.starts_with("EXP-"))
+        .map(|r| {
+            if r.status_detail.contains("doc-level") {
+                format!("{} {} (doc-level)", r.id, r.status)
+            } else {
+                format!("{} {}", r.id, r.status)
+            }
+        })
+        .collect();
+    format!("{}. Failures stay on the record.", parts.join(", "))
+}
+
 pub fn experiments_note() -> &'static str {
     static NOTE: OnceLock<String> = OnceLock::new();
-    NOTE.get_or_init(|| {
-        let parts: Vec<String> = data()
-            .turing_rows
-            .iter()
-            .filter(|r| r.id.starts_with("EXP-"))
-            .map(|r| {
-                if r.status_detail.contains("doc-level") {
-                    format!("{} {} (doc-level)", r.id, r.status)
-                } else {
-                    format!("{} {}", r.id, r.status)
-                }
-            })
-            .collect();
-        format!("{}. Failures stay on the record.", parts.join(", "))
-    })
+    NOTE.get_or_init(|| experiments_note_for(data()))
 }
 
 /// The research paper card line on the homepage.
@@ -867,20 +877,58 @@ mod tests {
         assert!(check_ty2_card(&render_cards(&quiet).into_string()).is_err());
     }
 
+    /// Research hypothesis rows from the consolidated table, Table 2.
+    const TABLE_HYPOTHESES: [&str; 5] = [
+        "General causal discovery",
+        "Full active experimentation",
+        "Equality saturation",
+        "General representation discovery",
+        "SUSY / Zeta rediscovery",
+    ];
+
+    fn group_html<'a>(html: &'a str, class: &str) -> Option<&'a str> {
+        let key = format!("data-class=\"{class}\"");
+        let start = html.find(&key)?;
+        let end = html[start..].find("</section>")? + start;
+        Some(&html[start..end])
+    }
+
+    /// The grouping check, as a function so a mutated copy can be shown
+    /// to fail it: every table hypothesis renders inside the hypothesis
+    /// group and inside no other group.
+    fn check_grouping(html: &str) -> Result<(), String> {
+        let hyp = group_html(html, "Research hypothesis").ok_or("hypothesis group missing")?;
+        for id in TABLE_HYPOTHESES {
+            let marker = format!("data-impl=\"{}\"", id.replace('/', "&#x2F;"));
+            let plain = format!("data-impl=\"{id}\"");
+            let inside = hyp.contains(&plain) || hyp.contains(&marker);
+            if !inside {
+                return Err(format!("{id} is not in the research hypothesis group"));
+            }
+            for class in ALLOWED_CLASSES.iter().filter(|c| **c != "Research hypothesis") {
+                if let Some(g) = group_html(html, class) {
+                    if g.contains(&plain) || g.contains(&marker) {
+                        return Err(format!("{id} also renders under {class}"));
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
     #[test]
     fn research_hypotheses_are_grouped_apart() {
         let d = real();
-        let html = render_implementation(&d).into_string();
-        let key = "data-class=\"Research hypothesis\"";
-        let start = html.find(key).expect("hypothesis group missing");
-        let end = html[start..].find("</section>").unwrap() + start;
-        let group = &html[start..end];
-        for r in d.implementation_rows.iter().filter(|r| r.class == "Research hypothesis") {
-            assert!(group.contains(&format!("data-impl=\"{}\"", r.id)), "{} outside its group", r.id);
-        }
-        let impl_start = html.find("data-class=\"Implemented\"").unwrap();
-        let impl_end = html[impl_start..].find("</section>").unwrap() + impl_start;
-        assert!(!html[impl_start..impl_end].contains("SUSY"));
+        check_grouping(&render_implementation(&d).into_string()).unwrap();
+        // Counterexample: a copy that reclassifies SUSY / Zeta as
+        // Implemented renders it in the wrong group and fails the check.
+        let mut bad = d.clone();
+        bad.implementation_rows
+            .iter_mut()
+            .find(|r| r.id == "SUSY / Zeta rediscovery")
+            .unwrap()
+            .class = "Implemented".into();
+        assert!(check_grouping(&render_implementation(&bad).into_string()).is_err());
     }
 
     #[test]
@@ -903,14 +951,51 @@ mod tests {
         assert!(parse(&dashed).is_err());
     }
 
+    /// The homepage lookup check, as a function so a mutated copy can be
+    /// shown to fail it.
+    fn check_homepage(d: &StatusData) -> Result<(), String> {
+        if turing_instrument_status_for(d) != "IMPLEMENTED" {
+            return Err(format!("instrument status is {}, table says Implemented", turing_instrument_status_for(d)));
+        }
+        let note = turing_instrument_note_for(d);
+        if note.to_lowercase().contains("turing yield") || !note.contains("gain") {
+            return Err("instrument note does not say gain, or says Turing yield".to_string());
+        }
+        if !note.contains("sealed records not re-verified") {
+            return Err("instrument note drops the sealed-records limitation".to_string());
+        }
+        let exp = experiments_note_for(d);
+        for want in ["EXP-001 FAIL", "EXP-002D INCOMPLETE", "EXP-003 BLOCKED"] {
+            if !exp.contains(want) {
+                return Err(format!("experiments note is missing {want}"));
+            }
+        }
+        Ok(())
+    }
+
     #[test]
     fn homepage_lookups_never_upgrade() {
-        assert_eq!(turing_instrument_status(), "IMPLEMENTED");
+        let d = real();
+        check_homepage(&d).unwrap();
+        assert_eq!(turing_instrument_note(), turing_instrument_note_for(&d));
+        assert_eq!(experiments_note(), experiments_note_for(&d));
         assert_ne!(layer_status_for_class("Research hypothesis"), "IMPLEMENTED");
-        assert!(experiments_note().contains("EXP-001 FAIL"));
-        assert!(experiments_note().contains("EXP-002D INCOMPLETE"));
-        assert!(experiments_note().contains("EXP-003 BLOCKED"));
-        assert!(!turing_instrument_note().to_lowercase().contains("turing yield"));
-        assert!(turing_instrument_note().contains("gain"));
+        // Counterexample: instrument row reclassified as a hypothesis.
+        let mut hyp = d.clone();
+        hyp.implementation_rows
+            .iter_mut()
+            .find(|r| r.id == "Turing measurement machinery")
+            .unwrap()
+            .class = "Research hypothesis".into();
+        assert!(check_homepage(&hyp).is_err());
+        // Counterexample: EXP-003 quietly upgraded to PASS.
+        let mut up = d.clone();
+        up.turing_rows.iter_mut().find(|r| r.id == "EXP-003").unwrap().status = "PASS".into();
+        assert!(check_homepage(&up).is_err());
+        // Counterexample: TY-2 headline relabelled as yield.
+        let mut y = d.clone();
+        y.turing_rows.iter_mut().find(|r| r.id == "TY-2").unwrap().headline =
+            Some("2,559,679.825 bits of Turing yield".into());
+        assert!(check_homepage(&y).is_err());
     }
 }
