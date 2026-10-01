@@ -261,14 +261,27 @@ mod wording_tests {
     // named source file, by path. Content is never used to exclude a hit.
     const REPO_STALE: [&str; 2] = ["actually understood", "first unit written down"];
 
-    fn line_is_stale(line: &str) -> Option<String> {
-        if let Some(s) = REPO_STALE.iter().find(|s| line.contains(**s)) {
-            return Some((*s).to_string());
-        }
+    // Every pattern on a line is reported, so two stale phrases on one line
+    // count as two hits.
+    fn line_is_stale(line: &str) -> Vec<String> {
+        let mut out: Vec<String> = REPO_STALE
+            .iter()
+            .filter(|s| line.contains(**s))
+            .map(|s| (*s).to_string())
+            .collect();
         if line.contains("Turing yield") && line.contains("2,559,679") {
-            return Some("Turing yield.*2,559,679".to_string());
+            out.push("Turing yield.*2,559,679".to_string());
         }
-        None
+        out
+    }
+
+    // Exact-path match after resolving "..", so a root such as
+    // "crates/site-builder/../.." still matches the skipped file.
+    fn same_file(a: &std::path::Path, b: &std::path::Path) -> bool {
+        match (a.canonicalize(), b.canonicalize()) {
+            (Ok(x), Ok(y)) => x == y,
+            _ => false,
+        }
     }
 
     // Scans text files; returns Err on any directory or file read error
@@ -290,14 +303,16 @@ mod wording_tests {
                     continue;
                 }
                 scan_tree(&p, skip, hits, scanned)?;
-            } else if p.extension().map_or(false, |x| x == "tex") || skip.iter().any(|s| s == &p) {
+            } else if p.extension().map_or(false, |x| x == "tex") {
+                continue;
+            } else if skip.iter().any(|s| same_file(s, &p)) {
                 continue;
             } else {
                 match std::fs::read_to_string(&p) {
                     Ok(text) => {
                         scanned.push(p.clone());
                         for (i, line) in text.lines().enumerate() {
-                            if let Some(w) = line_is_stale(line) {
+                            for w in line_is_stale(line) {
                                 hits.push(format!("{}:{}: {}", p.display(), i + 1, w));
                             }
                         }
@@ -360,8 +375,20 @@ mod wording_tests {
         let mut hits = Vec::new();
         let mut scanned = Vec::new();
         scan_tree(&d, &[src.clone()], &mut hits, &mut scanned).unwrap();
+        // Same tree through a ".." root, as the repo test uses: the exclusion
+        // must still hold and the page must still be caught.
+        let mut hits2 = Vec::new();
+        let mut scanned2 = Vec::new();
+        scan_tree(&public.join(".."), &[src.clone()], &mut hits2, &mut scanned2).unwrap();
+        // Without the exclusion the source file is caught as well.
+        let mut hits3 = Vec::new();
+        let mut scanned3 = Vec::new();
+        scan_tree(&d, &[], &mut hits3, &mut scanned3).unwrap();
         let _ = std::fs::remove_dir_all(&d);
         assert_eq!(hits.len(), 2, "{hits:?}");
         assert!(hits.iter().all(|h| h.contains("x.html")), "{hits:?}");
+        assert_eq!(hits2.len(), 2, "{hits2:?}");
+        assert!(hits2.iter().all(|h| h.contains("x.html")), "{hits2:?}");
+        assert_eq!(hits3.len(), 3, "{hits3:?}");
     }
 }
