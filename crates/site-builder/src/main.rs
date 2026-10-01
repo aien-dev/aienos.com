@@ -64,6 +64,18 @@ fn build_pure_rust_site(dist: &Path) {
         println!("  [ASSETS] Synced public/ assets into {}", dist.display());
     }
 
+    // Canonical project state for machines: rendered from the same
+    // source as the homepage status section (components::status), so
+    // the page, the JSON, and llms.txt can never drift apart.
+    fs::write(
+        dist.join("status.json"),
+        components::status::status_json(),
+    )
+    .expect("Failed to write status.json");
+    fs::write(dist.join("llms.txt"), components::status::llms_txt())
+        .expect("Failed to write llms.txt");
+    println!("  [STATE] Wrote status.json and llms.txt from the canonical layer states");
+
     // Render landing page in Maud
     let page_content = html! {
         (components::hero::render_hero())
