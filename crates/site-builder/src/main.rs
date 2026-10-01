@@ -80,6 +80,7 @@ fn build_pure_rust_site(dist: &Path) {
     let page_content = html! {
         (components::hero::render_hero())
         (components::story::render_story())
+        (components::closed_loop::render_closed_loop())
         (components::evidence::render_evidence())
         (components::matrix::render_matrix())
         (components::research::render_research())
@@ -137,6 +138,11 @@ fn verify_site(dist: &Path) {
     assert!(content.contains("<main id=\"main-content\""), "Missing main container in index.html");
     assert!(content.contains("id=\"terminal-output\""), "Missing interactive terminal output in index.html");
     assert!(content.contains("id=\"waitlist\""), "Missing waitlist section in index.html");
+    assert!(content.contains("id=\"closed-loop\""), "Missing closed-loop section in index.html");
+    assert!(
+        content.contains(components::closed_loop::SLOGAN),
+        "Missing closed-loop slogan in index.html"
+    );
 
     // Verify asset output
     assert!(dist.join("assets/style.css").exists(), "Missing assets/style.css");

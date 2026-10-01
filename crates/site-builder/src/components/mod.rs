@@ -1,5 +1,6 @@
 pub mod benchmarks;
 pub mod blog;
+pub mod closed_loop;
 pub mod ecosystem;
 pub mod evidence;
 pub mod footer;
