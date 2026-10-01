@@ -4,6 +4,7 @@ pub mod ecosystem;
 pub mod evidence;
 pub mod footer;
 pub mod hero;
+pub mod hubs;
 pub mod install;
 pub mod matrix;
 pub mod navbar;

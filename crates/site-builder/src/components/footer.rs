@@ -1,62 +1,173 @@
 use maud::{html, Markup, PreEscaped};
 
+/// One footer link: (label, href, opens in a new tab).
+pub type FooterLink = (&'static str, &'static str, bool);
+
+/// Footer link groups, one per top-level section (handoff section 21),
+/// in the same order as the primary nav. Each group links its hub first.
+pub const FOOTER_GROUPS: [(&str, &[FooterLink]); 6] = [
+    (
+        "The Machine",
+        &[
+            ("The Machine", "/machine/", false),
+            ("AIENOS source", "https://github.com/aien-dev/aienos", true),
+            ("Omega source", "https://github.com/aien-dev/omega", true),
+            ("Architecture", "https://github.com/aien-dev/aien-architecture", true),
+            ("Physics", "https://github.com/aien-dev/physics", true),
+        ],
+    ),
+    (
+        "The Turing",
+        &[
+            ("The Turing", "/turing/", false),
+            ("The Turing paper", "/research/computing-machinery-and-understanding/", false),
+        ],
+    ),
+    (
+        "Experiments",
+        &[
+            ("Experiments", "/experiments/", false),
+            ("Research index", "/research/", false),
+        ],
+    ),
+    (
+        "Scientific Discovery",
+        &[("Scientific Discovery", "/discovery/", false)],
+    ),
+    (
+        "Evidence",
+        &[
+            ("Evidence", "/evidence/", false),
+            (
+                "Qualification record",
+                "https://github.com/aien-dev/omega/blob/main/docs/turing/TURING_SCIENTIFIC_QUALIFICATION_STATE.md",
+                true,
+            ),
+        ],
+    ),
+    (
+        "Philosophy",
+        &[
+            ("Philosophy", "/philosophy/", false),
+            ("The Stapleton Doctrine", "/research/the-stapleton-doctrine/", false),
+            ("The Post-LLM Case", "/post-llm-case/", false),
+        ],
+    ),
+];
+
+/// Secondary links, after the six sections.
+const FOOTER_MORE: [FooterLink; 5] = [
+    ("Blog", "/blog", false),
+    ("Waitlist", "/#waitlist", false),
+    ("Licensing", "/licensing/", false),
+    ("GitHub", "https://github.com/aien-dev", true),
+    ("Drake Stapleton", "https://www.drakestapleton.com", true),
+];
+
+fn footer_link(link: &FooterLink) -> Markup {
+    let (label, href, external) = *link;
+    html! {
+        li {
+            @if external {
+                a href=(href) target="_blank" rel="noopener noreferrer" { (label) }
+            } @else {
+                a href=(href) { (label) }
+            }
+        }
+    }
+}
+
 pub fn render_footer() -> Markup {
     html! {
-        footer style="border-top: 1px solid var(--border-subtle); background: var(--bg-base); padding: 48px 0 32px 0; font-size: 13px; color: var(--text-muted);" {
+        footer class="aien-footer" {
             div class="container" {
-                div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 32px; margin-bottom: 40px;" {
-                    div style="max-width: 380px;" {
-                        div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;" {
-                            (PreEscaped(r#"<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>"#))
-                            span style="font-weight: 700; font-size: 16px; color: var(--text-primary);" {
-                                "AIENOS"
-                            }
+                div class="aien-footer-top" {
+                    div class="aien-footer-about" {
+                        div class="aien-footer-brand" {
+                            (PreEscaped(r#"<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>"#))
+                            span { "AIENOS" }
                         }
-                        p style="line-height: 1.6; color: var(--text-secondary);" {
+                        p {
                             "Persistent machine intelligence on hardware you own. Experimental, open source, and verified in public, receipts and all."
                         }
                     }
-
-                    div style="display: flex; gap: 48px; flex-wrap: wrap;" {
-                        div {
-                            div style="font-weight: 600; color: var(--text-primary); margin-bottom: 12px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.05em;" {
-                                "THE LINEAGE"
-                            }
-                            ul style="list-style: none; display: flex; flex-direction: column; gap: 8px;" {
-                                li { a href="https://github.com/aien-dev/aienos" target="_blank" rel="noopener noreferrer" style="color: var(--text-secondary);" { "AIENOS" } }
-                                li { a href="https://github.com/aien-dev/omega" target="_blank" rel="noopener noreferrer" style="color: var(--text-secondary);" { "Omega" } }
-                                li { a href="https://github.com/aien-dev/aien-architecture" target="_blank" rel="noopener noreferrer" style="color: var(--text-secondary);" { "Architecture" } }
-                                li { a href="https://github.com/aien-dev/physics" target="_blank" rel="noopener noreferrer" style="color: var(--text-secondary);" { "Physics" } }
+                    nav class="aien-footer-sections" aria-label="Site sections" {
+                        @for (heading, links) in FOOTER_GROUPS {
+                            div class="aien-footer-group" {
+                                h2 class="aien-footer-heading" { (heading) }
+                                ul {
+                                    @for link in links {
+                                        (footer_link(link))
+                                    }
+                                }
                             }
                         }
-
-                        div {
-                            div style="font-weight: 600; color: var(--text-primary); margin-bottom: 12px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.05em;" {
-                                "SITE"
-                            }
-                            ul style="list-style: none; display: flex; flex-direction: column; gap: 8px;" {
-                                li { a href="/research/" style="color: var(--text-secondary);" { "Research" } }
-                                li { a href="/turing/" style="color: var(--text-secondary);" { "The Turing" } }
-                                li { a href="/licensing/" style="color: var(--text-secondary);" { "Licensing" } }
-                                li { a href="https://github.com/aien-dev" target="_blank" rel="noopener noreferrer" style="color: var(--text-secondary);" { "GitHub Organization" } }
-                                li { a href="https://www.drakestapleton.com" target="_blank" rel="noopener noreferrer" style="color: var(--text-secondary);" { "Drake Stapleton" } }
+                        div class="aien-footer-group aien-footer-more" {
+                            h2 class="aien-footer-heading" { "More" }
+                            ul {
+                                @for link in &FOOTER_MORE {
+                                    (footer_link(link))
+                                }
                             }
                         }
                     }
                 }
 
-                div style="border-top: 1px solid var(--border-subtle); padding-top: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; font-family: var(--font-mono); font-size: 11px;" {
+                div class="aien-footer-legal" {
                     div {
                         "AIEN © 2026. Licensed under "
-                        a href="/licensing/" style="color: var(--text-secondary); text-decoration: underline;" { "Apache-2.0 WITH LLVM-exception" }
+                        a href="/licensing/" { "Apache-2.0 WITH LLVM-exception" }
                         "."
                     }
-                    div style="display: flex; gap: 16px;" {
+                    div class="aien-footer-mottos" {
                         span { "RECEIPTS OVER CLAIMS" }
                         span { "ZERO_UNSOLICITED_TELEMETRY" }
                     }
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const EXPECTED_HEADINGS: [&str; 6] = [
+        "The Machine",
+        "The Turing",
+        "Experiments",
+        "Scientific Discovery",
+        "Evidence",
+        "Philosophy",
+    ];
+
+    #[test]
+    fn footer_groups_follow_the_six_sections_in_order() {
+        let html = render_footer().into_string();
+        let mut last = 0usize;
+        for heading in EXPECTED_HEADINGS {
+            let needle = format!("<h2 class=\"aien-footer-heading\">{heading}</h2>");
+            let pos = html[last..]
+                .find(&needle)
+                .unwrap_or_else(|| panic!("footer heading {heading} missing or out of order"));
+            last += pos + needle.len();
+        }
+        let more = html.find(">More</h2>").expect("More group present");
+        assert!(more > last, "secondary group must follow the six sections");
+    }
+
+    #[test]
+    fn each_footer_group_links_its_hub_first() {
+        let hubs = ["/machine/", "/turing/", "/experiments/", "/discovery/", "/evidence/", "/philosophy/"];
+        for ((heading, links), hub) in FOOTER_GROUPS.iter().zip(hubs) {
+            assert_eq!(links[0].1, hub, "footer group {heading} must link {hub} first");
+        }
+    }
+
+    #[test]
+    fn footer_has_no_em_or_en_dash() {
+        let html = render_footer().into_string();
+        assert!(!html.contains('\u{2014}') && !html.contains('\u{2013}'));
     }
 }

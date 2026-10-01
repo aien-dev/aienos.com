@@ -60,6 +60,8 @@ pub fn render_page_layout(
 
                 // Stylesheet
                 link rel="stylesheet" href="/assets/style.css";
+                // Shared six-section header (also linked by hand-written pages)
+                link rel="stylesheet" href="/assets/site-nav.css";
 
                 (extra_head)
             }
