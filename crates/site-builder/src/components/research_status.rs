@@ -357,13 +357,7 @@ pub fn experiments_note_for(d: &StatusData) -> String {
         .turing_rows
         .iter()
         .filter(|r| r.id.starts_with("EXP-"))
-        .map(|r| {
-            if r.status_detail.contains("doc-level") {
-                format!("{} {} (doc-level)", r.id, r.status)
-            } else {
-                format!("{} {}", r.id, r.status)
-            }
-        })
+        .map(|r| format!("{} {}", r.id, r.status))
         .collect();
     format!("{}. Failures stay on the record.", parts.join(", "))
 }
@@ -961,8 +955,8 @@ mod tests {
         if note.to_lowercase().contains("turing yield") || !note.contains("gain") {
             return Err("instrument note does not say gain, or says Turing yield".to_string());
         }
-        if !note.contains("sealed records not re-verified") {
-            return Err("instrument note drops the sealed-records limitation".to_string());
+        if !note.contains("checked against the private sealed records on 2026-10-01") {
+            return Err("instrument note drops the sealed-records check statement".to_string());
         }
         let exp = experiments_note_for(d);
         for want in ["EXP-001 FAIL", "EXP-002D INCOMPLETE", "EXP-003 BLOCKED"] {
@@ -997,5 +991,42 @@ mod tests {
         y.turing_rows.iter_mut().find(|r| r.id == "TY-2").unwrap().headline =
             Some("2,559,679.825 bits of Turing yield".into());
         assert!(check_homepage(&y).is_err());
+        // Counterexample: the sealed-records check statement removed.
+        let mut s = d.clone();
+        s.current_level.limitations = "L2 rests on private sealed records.".into();
+        assert!(check_homepage(&s).is_err());
+    }
+
+    /// EXP-002A, B and C must each point at an aien-sealed commit.
+    fn check_sealed_pointers(d: &StatusData) -> Result<(), String> {
+        for (id, commits) in [
+            ("EXP-002A", &["760bfe9"][..]),
+            ("EXP-002B", &["1310e06", "111a5ea"][..]),
+            ("EXP-002C", &["f546162", "111a5ea"][..]),
+        ] {
+            let r = d.turing_row(id).ok_or_else(|| format!("{id} row missing"))?;
+            if !r.receipt.contains("aien-sealed") {
+                return Err(format!("{id} receipt does not name aien-sealed"));
+            }
+            for c in commits {
+                if !r.receipt.contains(c) {
+                    return Err(format!("{id} receipt lacks aien-sealed commit {c}"));
+                }
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn exp_002_rows_carry_sealed_commit_pointers() {
+        let d = real();
+        check_sealed_pointers(&d).unwrap();
+        // Counterexample: each row in turn loses its pointers.
+        for id in ["EXP-002A", "EXP-002B", "EXP-002C"] {
+            let mut bad = d.clone();
+            bad.turing_rows.iter_mut().find(|r| r.id == id).unwrap().receipt =
+                "PRIVATE aien-sealed R3-49 (not read)".into();
+            assert!(check_sealed_pointers(&bad).is_err(), "{id} without commit passed");
+        }
     }
 }
