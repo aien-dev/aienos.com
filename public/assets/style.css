@@ -1151,9 +1151,9 @@ p {
 
 /* ==========================================================================
    NARR-RESEARCH: research narrative pages (/machine/, /discovery/)
-   Self-contained block: reading column + five status badge classes.
-   Status is carried by the badge TEXT plus a distinct border style per class,
-   never by color alone. Dark is the default; light follows the OS setting.
+   Reading column and narrative layout. Status badges reuse the shared rs-*
+   badge styles; the badge TEXT comes from the research status data and each
+   class adds a distinct border style. Light follows the OS setting.
    ========================================================================== */
 .narr-page {
   --narr-bg: var(--bg-base);
@@ -1164,11 +1164,6 @@ p {
   --narr-muted: var(--text-muted);
   --narr-link: #6aa7ff;
   --narr-green: var(--accent-green);
-  --narr-impl: #00e599;
-  --narr-partial: #6aa7ff;
-  --narr-exp: #c4a3ff;
-  --narr-planned: #f5b544;
-  --narr-hyp: #b6c2d1;
   background: var(--narr-bg);
   color: var(--narr-text);
   padding: 56px 16px 96px;
@@ -1184,11 +1179,6 @@ p {
     --narr-muted: #475569;
     --narr-link: #1d5fd1;
     --narr-green: #047857;
-    --narr-impl: #047857;
-    --narr-partial: #1d5fd1;
-    --narr-exp: #6d28d9;
-    --narr-planned: #92400e;
-    --narr-hyp: #334155;
   }
 }
 
@@ -1372,7 +1362,7 @@ p {
 }
 
 .narr-rule {
-  border-left: 3px solid var(--narr-planned);
+  border-left: 3px solid var(--rs-warn);
   padding: 4px 0 4px 20px;
   margin: 0 0 24px;
 }
@@ -1383,107 +1373,39 @@ p {
   color: var(--narr-text);
 }
 
-.narr-legend {
-  list-style: none;
-  padding: 0;
-  font-size: 14px;
-}
+/* Implementation-class badges. Base look is the shared .rs-badge; text comes
+   from the research status data. Each class adds its own border style so the
+   class never depends on colour alone. */
+.rs-class--implemented { color: var(--rs-pass); background: var(--rs-pass-bg); border: 1px solid var(--rs-pass); }
+.rs-class--partially-implemented { color: var(--rs-warn); background: var(--rs-warn-bg); border: 1px solid var(--rs-warn); border-right-style: dashed; border-bottom-style: dashed; }
+.rs-class--experimental { color: var(--rs-warn); background: transparent; border: 3px double var(--rs-warn); }
+.rs-class--planned { color: var(--rs-open); background: transparent; border: 1px dashed var(--rs-open); }
+.rs-class--research-hypothesis { color: var(--rs-open); background: transparent; border: 1px dotted var(--rs-open); border-radius: 999px; font-style: italic; }
 
-.narr-legend li {
-  margin: 0 0 8px;
-}
-
-.narr-status-list {
-  list-style: none;
-  padding: 0;
-}
-
-.narr-status-item {
-  border-top: 1px solid var(--narr-border);
-  padding: 16px 0 2px;
-}
-
-.narr-status-head {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 6px;
-}
-
-.narr-status-name {
-  font-weight: 700;
-  color: var(--narr-text);
-}
-
-/* Status badges: text label + distinct border style per class */
-.status-badge {
-  display: inline-block;
+.narr-page .rs-badge {
   vertical-align: middle;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  line-height: 1;
-  padding: 5px 9px;
-  border-radius: 4px;
-  border: 2px solid currentColor;
-  white-space: nowrap;
 }
 
-.status-implemented {
-  --status-color: var(--narr-impl, #00e599);
-}
-
-.status-partial {
-  --status-color: var(--narr-partial, #6aa7ff);
-}
-
-.status-experimental {
-  --status-color: var(--narr-exp, #c4a3ff);
-}
-
-.status-planned {
-  --status-color: var(--narr-planned, #f5b544);
-}
-
-.status-hypothesis {
-  --status-color: var(--narr-hyp, #b6c2d1);
-}
-
-.status-badge.status-implemented {
-  color: var(--status-color);
-  border-style: solid;
-}
-
-.status-badge.status-partial {
-  color: var(--status-color);
-  border-style: solid;
-  border-right-style: dashed;
-  border-bottom-style: dashed;
-}
-
-.status-badge.status-experimental {
-  color: var(--status-color);
-  border-style: double;
-  border-width: 3px;
-}
-
-.status-badge.status-planned {
-  color: var(--status-color);
-  border-style: dashed;
-}
-
-.status-badge.status-hypothesis {
-  color: var(--status-color);
-  border-style: dotted;
-  border-radius: 999px;
-  font-style: italic;
-}
-
-.narr-exam h2 .status-badge {
+.narr-exam h2 .rs-badge,
+.narr-connections dt .rs-badge,
+.narr-card h3 .rs-badge {
   margin-left: 6px;
+}
+
+.narr-figure .rs-badge,
+.narr-card p .rs-badge {
+  margin-right: 4px;
+}
+
+.narr-norecord {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--narr-muted);
+}
+
+.narr-page .rs-ladder,
+.narr-page .rs-impl {
+  margin-top: 24px;
 }
 
 @media (max-width: 640px) {

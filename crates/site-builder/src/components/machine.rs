@@ -1,12 +1,18 @@
 //! /machine/ : "The Machine", the main research narrative.
 //!
 //! Wording comes from the PRE-APPROVED synthesis handoff
-//! (~/handoffs/2026-10-01-research-synthesis-handoff.md). Status labels in
-//! "What exists today" come only from ~/handoffs/2026-10-01-NARR-IMPL-scout.md.
+//! (~/handoffs/2026-10-01-research-synthesis-handoff.md). Every level,
+//! verdict and implementation class on this page is rendered from the one
+//! canonical record, data/research_status.json, through
+//! components::research_status. No status word is written here by hand.
 
 use maud::{html, Markup};
 
-use super::narrative::{badge, status_legend, Status, SLOGAN, TURING_FORMULA, TY2_GAIN_BITS};
+use super::narrative::{class_badge, status_badge, SLOGAN, TURING_FORMULA};
+use super::research_status::{
+    data, render_implementation, render_research_status_summary, ty2_headline, ImplementationRow,
+    TuringRow,
+};
 
 pub const TITLE: &str = "The Machine | AIENOS";
 pub const DESCRIPTION: &str = "AIENOS is an owned experimental machine for turning search into verified understanding. The closed epistemic loop, the Turing as its accounting layer, and an honest list of what exists today.";
@@ -31,141 +37,25 @@ const LOOP_STAGES: [&str; 11] = [
     "Search again",
 ];
 
-/// One row of the "What exists today" list. `sentence` is the safe public
-/// sentence from the NARR-IMPL scout table, kept with its stated limits.
-pub struct StatusItem {
-    pub name: &'static str,
-    pub status: Status,
-    pub sentence: &'static str,
+/// Record ids this page reads. A missing id fails the build run and every
+/// test, so a renamed row cannot silently drop a badge.
+const TY2: &str = "TY-2";
+const YIELD_TJ: &str = "TURING-YIELD-TJ";
+const ENERGY: &str = "ENERGY-ATTRIBUTION";
+const EXP_003: &str = "EXP-003";
+const CEGIS: &str = "CEGIS";
+const BAYES: &str = "Bayesian cost prediction (belief/estimation)";
+const EGRAPH: &str = "Equality saturation";
+
+fn trow(id: &str) -> &'static TuringRow {
+    data().turing_row(id).unwrap_or_else(|| panic!("research status row {id} missing"))
 }
 
-pub const STATUS_ITEMS: &[StatusItem] = &[
-    StatusItem {
-        name: "Resident World and reactions",
-        status: Status::Implemented,
-        sentence: "A resident runtime of reactions over a shared World runs on the machine; its current living build has not yet been re-qualified.",
-    },
-    StatusItem {
-        name: "World lifecycle model",
-        status: Status::Implemented,
-        sentence: "A small formal model of the World's lifecycle exists as a test, alongside the real code.",
-    },
-    StatusItem {
-        name: "State-space exploration",
-        status: Status::Implemented,
-        sentence: "Exhaustive exploration of a small World model checks four safety rules and prints the shortest failing trace; it currently shows two known gaps in the real World (no cancel, deadlines only checked at admission).",
-    },
-    StatusItem {
-        name: "Differential checking",
-        status: Status::Implemented,
-        sentence: "The model is replayed against the real World code for every short operation sequence and must match it. This runs on a host computer only.",
-    },
-    StatusItem {
-        name: "Omega program identities",
-        status: Status::Implemented,
-        sentence: "Omega programs get identities bound to their canonical body and contract.",
-    },
-    StatusItem {
-        name: "Action graph",
-        status: Status::Implemented,
-        sentence: "Goals can be compiled into a typed action graph, demonstrated in a qualification test. The live loop does not call it yet.",
-    },
-    StatusItem {
-        name: "Typed result contracts",
-        status: Status::Implemented,
-        sentence: "Results can be checked against typed contracts before they are published, demonstrated in a qualification test. The live loop does not call it yet.",
-    },
-    StatusItem {
-        name: "Verification infrastructure",
-        status: Status::Implemented,
-        sentence: "Changes are checked by verifiers and recorded with receipts tied to the exact code version.",
-    },
-    StatusItem {
-        name: "AEGIS",
-        status: Status::Implemented,
-        sentence: "AEGIS, the part that decides what is allowed, is in the runtime and passed its qualification gate.",
-    },
-    StatusItem {
-        name: "Evidence receipts",
-        status: Status::Implemented,
-        sentence: "Results are kept as receipts bound to the exact code version; they are not yet cryptographically signed.",
-    },
-    StatusItem {
-        name: "Turing scorer",
-        status: Status::Implemented,
-        sentence: "The Turing measurement has a frozen scoring profile and a second, independently written scorer that agreed on all 312 checked values.",
-    },
-    StatusItem {
-        name: "SearchTrace",
-        status: Status::Partial,
-        sentence: "Omega records every step of its program search; learning from those records is not built yet.",
-    },
-    StatusItem {
-        name: "Bayesian cost prediction",
-        status: Status::Partial,
-        sentence: "A Bayesian cost model that picks among verified realizations from measured runs passed its qualification test; it is not yet used by the live runtime.",
-    },
-    StatusItem {
-        name: "Capabilities and authority",
-        status: Status::Partial,
-        sentence: "Authority is held as unforgeable capabilities, tested on the host and in an emulated machine; not yet on real hardware boots.",
-    },
-    StatusItem {
-        name: "ARGUS",
-        status: Status::Partial,
-        sentence: "ARGUS, the defensive observer, exists and can revoke one narrow permission in an emulated machine; wider defence is still ahead.",
-    },
-    StatusItem {
-        name: "FORGE",
-        status: Status::Partial,
-        sentence: "FORGE, the layer that turns verified programs into work on the chip, passed its gates as seen from Omega; its own repository was not audited here.",
-    },
-    StatusItem {
-        name: "Cortex",
-        status: Status::Partial,
-        sentence: "Cortex today is an append-only typed memory that can record what the World did and what failed; storing search history, counterexamples and costs for future search is planned.",
-    },
-    StatusItem {
-        name: "Energy attribution",
-        status: Status::Partial,
-        sentence: "Energy attribution is designed and unit-tested; no measured bits-per-joule figure exists yet.",
-    },
-    StatusItem {
-        name: "ATLAS",
-        status: Status::Planned,
-        sentence: "ATLAS is the designed boot seed of the stack; this check did not verify its code, so it is listed as planned.",
-    },
-    StatusItem {
-        name: "Turing yield (T/J)",
-        status: Status::Planned,
-        sentence: "A measured Turings-per-joule figure has not been started; it will need the energy attribution above joined to a Turing receipt.",
-    },
-    StatusItem {
-        name: "Active experiment choice (EXP-003)",
-        status: Status::Planned,
-        sentence: "Choosing experiments that best separate competing explanations is the next planned test; it has not run.",
-    },
-    StatusItem {
-        name: "Physics Zero and the Dirac test",
-        status: Status::Planned,
-        sentence: "Physics Zero and the Dirac test are planned examinations; a reference oracle has been written but never built or run.",
-    },
-    StatusItem {
-        name: "Counterexample generalization (CEGIS style)",
-        status: Status::Hypothesis,
-        sentence: "Turning failed candidates into general rules that prune future search is a research direction, not a feature.",
-    },
-    StatusItem {
-        name: "E-graphs and equality saturation",
-        status: Status::Hypothesis,
-        sentence: "E-graphs are a research reference for treating equivalent forms as one discovery; Omega does not use them.",
-    },
-    StatusItem {
-        name: "Self-improvement through measured abstraction",
-        status: Status::Hypothesis,
-        sentence: "Whether verified abstractions make later discovery cheaper is an open research question; only a small abstraction-finding component exists today.",
-    },
-];
+fn irow(id: &str) -> &'static ImplementationRow {
+    data()
+        .implementation_row(id)
+        .unwrap_or_else(|| panic!("research status implementation row {id} missing"))
+}
 
 fn section_lead() -> Markup {
     html! {
@@ -242,6 +132,9 @@ fn section_turing() -> Markup {
 }
 
 fn section_quantities() -> Markup {
+    let ty2 = trow(TY2);
+    let yield_tj = trow(YIELD_TJ);
+    let energy = trow(ENERGY);
     html! {
         section id="quantities" class="narr-section" aria-labelledby="quantities-heading" {
             h2 id="quantities-heading" { "Three quantities" }
@@ -251,25 +144,30 @@ fn section_quantities() -> Markup {
                     p {
                         "Did the machine learn explanatory structure? Gain is net held-out explanatory compression after paying for the explanation."
                     }
+                    p class="narr-figure" {
+                        (status_badge(ty2)) " Run TY-2 recorded " (ty2_headline()) " against an order-1 baseline on held-out seeds."
+                    }
                     p {
-                        "Run TY-2 recorded a gain of +" (TY2_GAIN_BITS) " bits against an order-1 baseline on held-out seeds. The re-check used the same tool, so it is a self re-derivation and still awaits an independent one. This result certifies the instrument; it does not show that AIEN discovered anything."
+                        "The re-check used the same tool, so it is a self re-derivation and still awaits an independent one. This result certifies the instrument; it does not show that AIEN discovered anything."
                     }
                 }
                 li class="narr-card" {
-                    h3 { "Turing yield (T/J) " (badge(Status::Planned)) }
+                    h3 { "Turing yield (T/J) " (status_badge(yield_tj)) }
                     p {
                         "What physical resources did that gain cost? Yield will divide Turings by joules, and may separate evaluation yield from discovery yield, the more important of the two."
                     }
+                    p { (yield_tj.plain) }
+                    p { (status_badge(energy)) " Energy attribution. " (energy.plain) }
                     p {
-                        "Not started. Energy attribution is partial: designed and unit-tested, with no timed run yet. No yield figure exists, and none will be claimed until energy attribution and the Turing receipt are joined under the qualifying protocol."
+                        "No yield figure exists, and none will be claimed until energy attribution and the Turing receipt are joined under the qualifying protocol."
                     }
                 }
                 li class="narr-card" {
-                    h3 { "Search and verification gap " (badge(Status::Hypothesis)) }
+                    h3 { "Search and verification gap" }
                     p {
-                        "How hard was the explanation to discover compared with verifying it once found? The hypothesis: discovered explanatory structure reduces the cost of future search, through prediction, compression, abstraction, reusable procedure, reduced search and faster discovery."
+                        "How hard was the explanation to discover compared with verifying it once found? The idea to test: discovered explanatory structure reduces the cost of future search, through prediction, compression, abstraction, reusable procedure, reduced search and faster discovery."
                     }
-                    p { "This is a research direction. No such result exists yet." }
+                    p { "This is a research direction. No result on it exists yet." }
                 }
             }
         }
@@ -284,9 +182,11 @@ fn section_cortex() -> Markup {
                 "Cortex exists to preserve the evidence needed to make future search better. That means evidence continuity: verified explanations, failed hypotheses, counterexamples, validity regions, measurement receipts, experimental conditions, search traces, physical costs, uncertainty and provenance."
             }
             p {
-                "Today Cortex is an append-only typed memory that records what the World did and what failed. Storing search history, counterexamples and costs is planned."
+                "Today Cortex is an append-only store that records what the World did. Search history, counterexamples and costs are what it is meant to hold next; its current standing is listed under "
+                a href="#today" { "What exists today" }
+                "."
             }
-            p { "Once that is built, AIEN will be able to ask:" }
+            p { "With that evidence in place, AIEN will be able to ask:" }
             ul class="narr-questions" {
                 li { "What did we already try?" }
                 li { "Why did it fail?" }
@@ -300,13 +200,12 @@ fn section_cortex() -> Markup {
 
 fn section_ladder() -> Markup {
     html! {
-        section id="research-ladder" class="narr-section" data-source="LT-TRUTH status source (pending)" aria-labelledby="ladder-heading" {
+        section id="research-ladder" class="narr-section" data-source="research_status.json" aria-labelledby="ladder-heading" {
             h2 id="ladder-heading" { "The discovery ladder" }
             p {
-                "The research ladder will render here from the canonical status source, so this page never states a level's result by hand. Until then, see "
-                a href="/experiments/" { "the experiments" }
-                "."
+                "Each rung is a stronger claim about what the machine has shown, and each rests on the rung below. The ladder is drawn from the research status record, the same record behind the full status page, so this page never states a result by hand."
             }
+            (render_research_status_summary())
         }
     }
 }
@@ -341,27 +240,28 @@ fn section_connections() -> Markup {
     html! {
         section id="connections" class="narr-section" aria-labelledby="connections-heading" {
             h2 id="connections-heading" { "Connections to other research" }
-            p { "Each of these is a connection or an opportunity. None of them describes a present capability of AIEN or Omega." }
+            p { "Each of these is a connection or an opportunity. Where the research status record has a matching entry, its badge sits beside the name." }
             dl class="narr-connections" {
                 dt { "Petri nets and reaction systems" }
                 dd {
                     "The World lifecycle work already has a state model, reachable-state exploration, invariants, shortest counterexample traces, mutants and differential checking against the real World code. Formal concurrency theory may offer reachability, liveness and deadlock analysis, partial-order reduction and invariant proofs. The World keeps its own name; it is not being relabelled a Petri net."
                 }
-                dt { "Counterexample-guided synthesis (CEGIS)" }
+                dt { "Counterexample-guided synthesis (CEGIS) " (class_badge(irow(CEGIS))) }
                 dd {
-                    "Omega's search already runs candidate, transform, verify, accept or reject, and records the trace and cost. The opportunity: turn a failed candidate into a semantic counterexample, generalize it into a constraint, eliminate a whole family of candidates, and measure how much search that saves. Omega does not implement CEGIS today."
+                    "Omega's search already runs candidate, transform, verify, accept or reject, and records the trace and cost. The opportunity: turn a failed candidate into a semantic counterexample, generalize it into a constraint, eliminate a whole family of candidates, and measure how much search that saves."
                 }
-                dt { "Bayesian adaptive search" }
+                dt { "Bayesian adaptive search " (class_badge(irow(BAYES))) }
                 dd {
-                    "A Bayesian cost model for choosing between verified realizations passed its qualification test. A future direction is safe contextual exploration. Exploration must stay explicitly authorized, and production authority is never inferred from prediction confidence."
+                    "A Bayesian cost model for choosing between verified realizations is being tried against recorded signals, and its failed attempts stay on the record. A future direction is safe contextual exploration. Exploration must stay explicitly authorized, and production authority is never inferred from prediction confidence."
                 }
-                dt { "Active causal discovery" }
+                dt { "Active causal discovery " (status_badge(trow(EXP_003))) }
                 dd {
-                    "EXP-003 is planned as the move from passive prediction to active inquiry: hold competing explanations, predict their consequences, choose the intervention that best separates them, run one authorized experiment and update belief. It has not run."
+                    "EXP-003 is designed as the move from passive prediction to active inquiry: hold competing explanations, predict their consequences, choose the intervention that best separates them, run one authorized experiment and update belief. "
+                    (trow(EXP_003).plain)
                 }
-                dt { "E-graphs and equality saturation" }
+                dt { "E-graphs and equality saturation " (class_badge(irow(EGRAPH))) }
                 dd {
-                    "A research reference for treating rewritten expressions, basis changes, coordinate systems and equivalent implementations as one discovery. Omega does not use them."
+                    "A research reference for treating rewritten expressions, basis changes, coordinate systems and equivalent implementations as one discovery. Omega has no e-graph code."
                 }
             }
         }
@@ -373,19 +273,11 @@ fn section_today() -> Markup {
         section id="today" class="narr-section" aria-labelledby="today-heading" {
             h2 id="today-heading" { "What exists today" }
             p {
-                "Every label below comes from a check of the code on the main branches of Omega and AIENOS on October 1, 2026. Planned and hypothesis items do not exist yet."
+                "This list is drawn from the research status record, built from a check of the code on the main branches of Omega and AIENOS. Built work and open research questions are kept apart, and each entry opens to show its limits and evidence."
             }
-            (status_legend())
-            ul class="narr-status-list" {
-                @for item in STATUS_ITEMS.iter() {
-                    li class=(format!("narr-status-item {}", item.status.class())) {
-                        div class="narr-status-head" {
-                            (badge(item.status))
-                            span class="narr-status-name" { (item.name) }
-                        }
-                        p { (item.sentence) }
-                    }
-                }
+            (render_implementation(data()))
+            p class="narr-more" {
+                a href="/research/status/#implementation" { "The same list on the research status page, beside every experiment." }
             }
         }
     }
@@ -404,7 +296,7 @@ fn section_nature() -> Markup {
             p {
                 "Nature invented the loop. This work proposes a unit for one measurable thing the loop can produce: explanatory structure that survives unseen reality. The aim is to make the loop explicit, persistent, owned, auditable, metered, reproducible and bounded by authority."
             }
-            p { a href="/discovery/" { "Next: Scientific Discovery, the planned examinations." } }
+            p { a href="/discovery/" { "Next: Scientific Discovery, the examinations ahead." } }
         }
     }
 }
@@ -431,27 +323,30 @@ pub fn render_machine() -> Markup {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::components::narrative::check::stray_status_words;
     use crate::layouts::base::render_page_layout;
-
-    /// Items allowed to carry the Implemented badge. Source of truth:
-    /// ~/handoffs/2026-10-01-NARR-IMPL-scout.md (rows classed IMPLEMENTED).
-    /// Change this list only when that table changes.
-    const ALLOWED_IMPLEMENTED: &[&str] = &[
-        "Resident World and reactions",
-        "World lifecycle model",
-        "State-space exploration",
-        "Differential checking",
-        "Omega program identities",
-        "Action graph",
-        "Typed result contracts",
-        "Verification infrastructure",
-        "AEGIS",
-        "Evidence receipts",
-        "Turing scorer",
-    ];
 
     fn page() -> String {
         render_page_layout(TITLE, DESCRIPTION, URL, "article", html! {}, render_machine()).into_string()
+    }
+
+    /// Every piece of markup on /machine/ that is allowed to carry a status
+    /// word: the shared components and every data-driven badge and sentence.
+    fn data_renderings() -> Vec<String> {
+        let d = data();
+        let mut v = vec![
+            render_research_status_summary().into_string(),
+            render_implementation(d).into_string(),
+        ];
+        for r in &d.turing_rows {
+            v.push(status_badge(r).into_string());
+            v.push(html! { (r.plain) }.into_string());
+        }
+        for r in &d.implementation_rows {
+            v.push(class_badge(r).into_string());
+        }
+        v.push(html! { (ty2_headline()) }.into_string());
+        v
     }
 
     #[test]
@@ -471,13 +366,14 @@ mod tests {
     }
 
     /// The TY-2 figure is a gain. The block (p or li) that holds it must not
-    /// mention yield.
+    /// mention yield. The figure itself comes from the data.
     #[test]
     fn gain_figure_is_never_called_yield() {
         let p = page();
+        let fig = ty2_headline();
         let mut found = false;
         let mut from = 0;
-        while let Some(rel) = p[from..].find(TY2_GAIN_BITS) {
+        while let Some(rel) = p[from..].find(fig) {
             found = true;
             let at = from + rel;
             let start = ["<p", "<li"].iter().filter_map(|t| p[..at].rfind(*t)).max().unwrap_or(0);
@@ -487,34 +383,41 @@ mod tests {
                 .min()
                 .unwrap_or(p.len());
             let block = p[start..end].to_lowercase();
-            assert!(
-                !block.contains("yield"),
-                "TY-2 gain figure sits next to the word yield: {block}"
-            );
-            from = at + TY2_GAIN_BITS.len();
+            assert!(!block.contains("yield"), "TY-2 gain figure sits next to the word yield: {block}");
+            from = at + fig.len();
         }
         assert!(found, "TY-2 gain figure missing from /machine/");
     }
 
+    /// The research-ladder section holds the ladder rendered by
+    /// research_status::render_ladder (class rs-ladder, one rs-step per level)
+    /// and the link to the full status page.
     #[test]
-    fn implemented_badges_match_scout_table() {
-        for item in STATUS_ITEMS.iter().filter(|i| i.status == Status::Implemented) {
-            assert!(
-                ALLOWED_IMPLEMENTED.contains(&item.name),
-                "{} is badged Implemented but is not IMPLEMENTED in the NARR-IMPL scout table",
-                item.name
-            );
-        }
-        let rendered = page().matches("narr-status-item status-implemented").count();
-        let declared = STATUS_ITEMS.iter().filter(|i| i.status == Status::Implemented).count();
-        assert_eq!(rendered, declared, "rendered Implemented rows differ from the item list");
+    fn research_ladder_section_renders_the_canonical_ladder() {
+        let p = page();
+        let start = p.find("id=\"research-ladder\"").expect("research-ladder section missing");
+        let end = start + p[start..].find("</section>").expect("research-ladder section not closed");
+        let section = &p[start..end];
+        assert!(section.contains(&render_research_status_summary().into_string()), "ladder markup differs from render_research_status_summary");
+        assert!(section.contains("class=\"rs-ladder\""), "rs-ladder markup missing from research-ladder");
+        assert_eq!(section.matches("class=\"rs-step ").count(), data().ladder.len(), "ladder steps missing");
+        assert!(section.contains("href=\"/research/status/\""), "link to the full status page missing");
     }
 
+    /// What exists today is the canonical implementation list, verbatim.
     #[test]
-    fn research_ladder_slot_is_present() {
+    fn today_section_renders_the_canonical_implementation_list() {
         let p = page();
-        assert!(p.contains("id=\"research-ladder\""), "research-ladder slot missing");
-        assert!(p.contains("data-source=\"LT-TRUTH status source (pending)\""));
+        assert!(p.contains(&render_implementation(data()).into_string()));
+        assert!(!p.contains("status-badge"), "old hand-kept badge markup is back");
+    }
+
+    /// No status word on /machine/ may come from anywhere but the data.
+    #[test]
+    fn no_hand_written_status_words() {
+        let body = render_machine().into_string();
+        let stray = stray_status_words(&body, &data_renderings());
+        assert!(stray.is_empty(), "hand-written status words on /machine/: {stray:?}");
     }
 
     #[test]

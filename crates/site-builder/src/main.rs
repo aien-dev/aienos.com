@@ -231,12 +231,15 @@ fn verify_site(dist: &Path) {
         assert!(!page_content.contains('\u{2014}'), "Forbidden em dash detected in {}", page.display());
         assert!(!page_content.contains('\u{2013}'), "Forbidden en dash detected in {}", page.display());
         assert!(page_content.contains("og:title"), "Missing og:title in {}", page.display());
-        assert!(page_content.contains("status-badge"), "Missing status badges in {}", page.display());
+        assert!(page_content.contains("rs-badge"), "Missing data-driven status badges in {}", page.display());
+        assert!(!page_content.contains("status-badge"), "Old hand-kept status badge markup in {}", page.display());
     }
     let machine = fs::read_to_string(dist.join("machine/index.html")).expect("Failed to read machine page");
     assert!(machine.contains(components::narrative::SLOGAN), "Missing slogan in machine/index.html");
     assert!(machine.contains(components::narrative::TURING_FORMULA), "Missing Turing formula in machine/index.html");
-    assert!(machine.contains("id=\"research-ladder\""), "Missing research-ladder slot in machine/index.html");
+    assert!(machine.contains("id=\"research-ladder\""), "Missing research-ladder section in machine/index.html");
+    assert!(machine.contains("class=\"rs-ladder\""), "Missing research ladder markup in machine/index.html");
+    assert!(machine.contains("class=\"rs-impl\""), "Missing implementation list in machine/index.html");
 
     println!("------------------------------------------------------------");
     println!("  Verified index.html ({} bytes)", content.len());
