@@ -21,6 +21,8 @@ pub fn render_navbar() -> Markup {
                 nav aria-label="Primary navigation" class="site-nav" style="display: flex; align-items: center; gap: 24px; font-size: 14px; font-weight: 500;" {
                     a class="nav-section-link" href="/#terminal" { "Terminal" }
                     a class="nav-section-link" href="/#benchmarks" { "Benchmarks" }
+                    a class="nav-section-link" href="/#research" { "Research" }
+                    a class="nav-section-link" href="/turing/" { "The Turing" }
                     a class="nav-section-link" href="/#architecture" { "Architecture" }
                     a class="nav-section-link" href="/#ecosystem" { "Ecosystem" }
                     a class="nav-section-link" href="/#install" { "Install" }

@@ -6,5 +6,6 @@ pub mod hero;
 pub mod install;
 pub mod matrix;
 pub mod navbar;
+pub mod research;
 pub mod terminal;
 pub mod waitlist;
