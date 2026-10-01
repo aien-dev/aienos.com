@@ -45,7 +45,7 @@ pub fn render_research() -> Markup {
                         "Do not take our word for it. Check the receipts."
                     }
                     p style="color: var(--text-secondary); margin-top: 8px; line-height: 1.6;" {
-                        "Most AI asks you to trust a demo and a promise. This project publishes its science in the open instead: a unit for measuring machine understanding, the papers behind it, and the data anyone can recheck. It starts with the Turing."
+                        "Most AI asks you to trust a demo and a promise. This project publishes its science in the open instead: the Turing, a unit of net held-out explanatory compression (one operational component of machine understanding), plus the papers behind it and the data anyone can recheck. It starts with the Turing."
                     }
                 }
 
@@ -57,7 +57,7 @@ pub fn render_research() -> Markup {
                                 "THE TURING (T)"
                             }
                             h3 style="font-size: 24px; font-weight: 700; color: var(--text-primary); margin-bottom: 10px;" {
-                                "A unit for machine understanding"
+                                "A unit of net held-out explanatory compression"
                             }
                             p style="color: var(--text-secondary); font-size: 15px; line-height: 1.6; margin-bottom: 12px;" {
                                 "One Turing is one bit of net held-out description-length improvement: a short explanation that predicts things it has never seen earns Turings. Guessing earns nothing. Memorizing earns nothing, because the test data is new."

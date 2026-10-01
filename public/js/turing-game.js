@@ -79,7 +79,7 @@
 
   function verdict() {
     if (score >= 8) {
-      return "That is understanding. A short rule in your head just compressed a stream you had never seen, and it paid out in Turings. The full measure, with sealed data and recomputable receipts, is in the paper.";
+      return "That is one part of understanding. A short rule in your head just compressed a stream you had never seen, and it paid out in Turings. The full measure, with sealed data and recomputable receipts, is in the paper.";
     }
     if (score >= 3) {
       return "You are finding the pattern. That climb, from guessing to predicting, is exactly what the Turing measures. Memorizers cannot do it on new data.";
