@@ -34,6 +34,7 @@ pub const EXAMS: &[Exam] = &[
         record_id: Some("Full Physics Zero"),
         summary: &[
             "Physics Zero comes last in the order of work. Like the other exams, it will follow the rule above.",
+            "It will be an examination of representation discovery: AIEN will not be given the named answer, and a structure will count only if it earns explanatory power on behavior it has not seen.",
         ],
         capabilities: &[],
     },

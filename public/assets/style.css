@@ -1153,7 +1153,7 @@ p {
    NARR-RESEARCH: research narrative pages (/machine/, /discovery/)
    Reading column and narrative layout. Status badges reuse the shared rs-*
    badge styles; the badge TEXT comes from the research status data and each
-   class adds a distinct border style. Light follows the OS setting.
+   class adds a distinct border style. Dark only, like the rest of the site.
    ========================================================================== */
 .narr-page {
   --narr-bg: var(--bg-base);
@@ -1167,19 +1167,6 @@ p {
   background: var(--narr-bg);
   color: var(--narr-text);
   padding: 56px 16px 96px;
-}
-
-@media (prefers-color-scheme: light) {
-  .narr-page {
-    --narr-bg: #f8fafc;
-    --narr-card: #ffffff;
-    --narr-border: #d5dde8;
-    --narr-text: #0f172a;
-    --narr-text-2: #334155;
-    --narr-muted: #475569;
-    --narr-link: #1d5fd1;
-    --narr-green: #047857;
-  }
 }
 
 .narr-column {
@@ -1318,7 +1305,6 @@ p {
   white-space: pre-wrap;
   word-break: break-word;
   font-size: 15px;
-  color: var(--narr-text);
 }
 
 .narr-ledger,

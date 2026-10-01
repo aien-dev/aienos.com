@@ -351,7 +351,12 @@ mod tests {
 
     #[test]
     fn slogan_is_present() {
-        assert!(page().contains(SLOGAN), "slogan missing from /machine/");
+        assert!(
+            page().contains(
+                "Weights suggest. Programs explain. Verification decides. Evidence teaches. The Turing keeps score."
+            ),
+            "slogan missing from /machine/"
+        );
     }
 
     #[test]
