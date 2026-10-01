@@ -24,7 +24,7 @@ pub fn render_hero() -> Markup {
                     }
 
                     p style="font-size: 17px; color: var(--text-primary); font-weight: 600; margin-bottom: 40px;" {
-                        "Intelligence should be property, not rent."
+                        "Intelligence should be owned, not rented."
                     }
 
                     div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-bottom: 44px;" {

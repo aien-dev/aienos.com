@@ -190,7 +190,7 @@ pub fn status_json() -> String {
 pub fn llms_txt() -> String {
     let mut out = String::new();
     out.push_str("# AIENOS\n\n");
-    out.push_str("> AIENOS is an experimental sovereign machine for persistent machine intelligence: Atlas awakens it on hardware you own, Omega turns intent into verified programs, and AIEN learns from verified experience. Intelligence should be property, not rent. Every claim carries a public receipt.\n\n");
+    out.push_str("> AIENOS is an experimental sovereign machine for persistent machine intelligence: Atlas awakens it on hardware you own, Omega turns intent into verified programs, and AIEN learns from verified experience. Intelligence should be owned, not rented. Every claim carries a public receipt.\n\n");
     out.push_str("AIENOS is more than an operating system. It is a substrate where a persistent intelligence lives on the owner's hardware, keeps its memory and identity on the owner's side of the line, and treats hardware as capability, not identity. Status: experimental, pre-alpha.\n\n");
     out.push_str("## The lineage\n\n");
     out.push_str("- Atlas: awakens. The seed that wakes AIENOS on a machine.\n");
