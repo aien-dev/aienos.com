@@ -3,7 +3,7 @@ pub mod blog;
 pub mod ecosystem;
 pub mod evidence;
 pub mod footer;
-pub mod hero;
+pub mod home_loop;
 pub mod install;
 pub mod matrix;
 pub mod navbar;
