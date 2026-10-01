@@ -28,7 +28,7 @@ fn copy_dir_all(src: &Path, dst: &Path) -> std::io::Result<()> {
 }
 
 fn generate_sitemap_and_robots(dist: &Path) {
-    let sitemap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n  <url><loc>https://aienos.com/</loc><priority>1.0</priority></url>\n  <url><loc>https://aienos.com/blog</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/blog/aien-v3-research-plan</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/post-llm-case/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/status/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/computing-machinery-and-understanding</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/computing-machinery-and-understanding-emergence</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/research/the-stapleton-doctrine</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/turing/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/licensing/</loc><priority>0.5</priority></url>\n</urlset>\n";
+    let sitemap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n  <url><loc>https://aienos.com/</loc><priority>1.0</priority></url>\n  <url><loc>https://aienos.com/blog</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/blog/aien-v3-research-plan</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/post-llm-case/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/status/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/computing-machinery-and-understanding</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/computing-machinery-and-understanding-emergence</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/research/the-stapleton-doctrine</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/machine/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/discovery/</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/turing/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/licensing/</loc><priority>0.5</priority></url>\n</urlset>\n";
     let sitemap_path = dist.join("sitemap.xml");
     fs::write(&sitemap_path, sitemap).expect("Failed to write sitemap.xml");
 
@@ -141,6 +141,30 @@ fn build_pure_rust_site(dist: &Path) {
     fs::write(dist.join("research-status.json"), components::research_status::RAW)
         .expect("Failed to write research-status.json");
     println!("  [PAGE] Emitted /research/status (index.html) and /research-status.json");
+    // Research narrative pages (NARR-RESEARCH): The Machine and Scientific Discovery
+    for (slug, title, description, url, body) in [
+        (
+            "machine",
+            components::machine::TITLE,
+            components::machine::DESCRIPTION,
+            components::machine::URL,
+            components::machine::render_machine(),
+        ),
+        (
+            "discovery",
+            components::discovery::TITLE,
+            components::discovery::DESCRIPTION,
+            components::discovery::URL,
+            components::discovery::render_discovery(),
+        ),
+    ] {
+        let page = render_page_layout(title, description, url, "article", html! {}, body);
+        let page_dir = dist.join(slug);
+        fs::create_dir_all(&page_dir).expect("Failed to create narrative page dir");
+        fs::write(page_dir.join("index.html"), page.into_string())
+            .expect("Failed to write narrative page index.html");
+        println!("  [PAGE] Emitted /{}/ (index.html)", slug);
+    }
 
     generate_sitemap_and_robots(dist);
 }
@@ -196,6 +220,26 @@ fn verify_site(dist: &Path) {
             page.display()
         );
     }
+
+
+    // Verify research narrative pages (NARR-RESEARCH)
+    for slug in ["machine", "discovery"] {
+        let page = dist.join(slug).join("index.html");
+        assert!(page.exists(), "Missing {}", page.display());
+        let page_content = fs::read_to_string(&page)
+            .unwrap_or_else(|_| panic!("Failed to read {}", page.display()));
+        assert!(!page_content.contains('\u{2014}'), "Forbidden em dash detected in {}", page.display());
+        assert!(!page_content.contains('\u{2013}'), "Forbidden en dash detected in {}", page.display());
+        assert!(page_content.contains("og:title"), "Missing og:title in {}", page.display());
+        assert!(page_content.contains("rs-badge"), "Missing data-driven status badges in {}", page.display());
+        assert!(!page_content.contains("status-badge"), "Old hand-kept status badge markup in {}", page.display());
+    }
+    let machine = fs::read_to_string(dist.join("machine/index.html")).expect("Failed to read machine page");
+    assert!(machine.contains(components::narrative::SLOGAN), "Missing slogan in machine/index.html");
+    assert!(machine.contains(components::narrative::TURING_FORMULA), "Missing Turing formula in machine/index.html");
+    assert!(machine.contains("id=\"research-ladder\""), "Missing research-ladder section in machine/index.html");
+    assert!(machine.contains("class=\"rs-ladder\""), "Missing research ladder markup in machine/index.html");
+    assert!(machine.contains("class=\"rs-impl\""), "Missing implementation list in machine/index.html");
 
     println!("------------------------------------------------------------");
     println!("  Verified index.html ({} bytes)", content.len());
