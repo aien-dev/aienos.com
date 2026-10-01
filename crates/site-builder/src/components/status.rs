@@ -255,4 +255,66 @@ mod wording_tests {
         assert_eq!(stale_hit("how much a machine actually understood"), Some("actually understood"));
         assert_eq!(stale_hit("Measurement profiles in preparation"), Some("in preparation"));
     }
+
+    // Repo-wide stale scan. Mirrors the receipt grep (phrases below, skips
+    // target, node_modules, .git, dist and *.tex). The only exclusion is the
+    // named source file, by path. Content is never used to exclude a hit.
+    const REPO_STALE: [&str; 2] = ["actually understood", "first unit written down"];
+
+    fn line_is_stale(line: &str) -> Option<String> {
+        if let Some(s) = REPO_STALE.iter().find(|s| line.contains(**s)) {
+            return Some((*s).to_string());
+        }
+        if line.contains("Turing yield") && line.contains("2,559,679") {
+            return Some("Turing yield.*2,559,679".to_string());
+        }
+        None
+    }
+
+    fn scan_tree(dir: &std::path::Path, skip: &[std::path::PathBuf], hits: &mut Vec<String>) {
+        let Ok(rd) = std::fs::read_dir(dir) else { return };
+        for e in rd.flatten() {
+            let p = e.path();
+            let name = e.file_name().to_string_lossy().to_string();
+            if p.is_dir() {
+                if ["target", "node_modules", ".git", "dist"].contains(&name.as_str()) {
+                    continue;
+                }
+                scan_tree(&p, skip, hits);
+            } else if p.extension().map_or(false, |x| x == "tex") || skip.iter().any(|s| s == &p) {
+                continue;
+            } else if let Ok(text) = std::fs::read_to_string(&p) {
+                for (i, line) in text.lines().enumerate() {
+                    if let Some(w) = line_is_stale(line) {
+                        hits.push(format!("{}:{}: {}", p.display(), i + 1, w));
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn repo_has_no_stale_wording_outside_this_source_file() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let me = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/components/status.rs");
+        let mut hits = Vec::new();
+        scan_tree(&root, &[me], &mut hits);
+        assert!(hits.is_empty(), "stale wording: {hits:?}");
+    }
+
+    #[test]
+    fn counterexample_quoted_phrase_in_public_page_is_caught() {
+        let d = std::env::temp_dir().join(format!("stalegrep-{}", std::process::id()));
+        let public = d.join("public");
+        std::fs::create_dir_all(&public).unwrap();
+        let page = public.join("x.html");
+        let src = d.join("status.rs");
+        std::fs::write(&page, "<p>\"Turing yield of 2,559,679\" and \"actually understood\"</p>\n").unwrap();
+        std::fs::write(&src, "const A: &str = \"first unit written down\";\n").unwrap();
+        let mut hits = Vec::new();
+        scan_tree(&d, &[src.clone()], &mut hits);
+        let _ = std::fs::remove_dir_all(&d);
+        assert_eq!(hits.len(), 2, "{hits:?}");
+        assert!(hits.iter().all(|h| h.contains("x.html")), "{hits:?}");
+    }
 }
