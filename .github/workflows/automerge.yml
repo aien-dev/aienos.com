@@ -1,12 +1,16 @@
 name: automerge
 
-# Pipeline-driven merging: any push to a non-main branch gets built, gets a PR
+# Opt-in merging (hive rule 2026-10-01): nothing merges without an inspector verdict.
+# This workflow now runs only when started by hand (workflow_dispatch) for a named
+# branch; it no longer fires on every push. Former behavior: any push to a non-main branch got built, got a PR
 # opened against main if none exists, and is merged once the build passes.
 # This keeps work flowing to main instead of leaving branches unmerged.
 on:
-  push:
-    branches-ignore:
-      - main
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: branch to build and merge (only after an inspector VERDICT: merge)
+        required: true
 
 permissions:
   contents: write
@@ -23,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref_name }}
+          ref: ${{ inputs.branch }}
           fetch-depth: 0
       - name: Run verification test suite
         run: cargo test --verbose --manifest-path crates/site-builder/Cargo.toml
@@ -34,7 +38,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          BRANCH="${{ github.ref_name }}"
+          BRANCH="${{ inputs.branch }}"
           PR_NUMBER="$(gh pr list --head "$BRANCH" --base main --json number --jq '.[0].number // empty')"
           if [ -z "$PR_NUMBER" ]; then
             PR_URL="$(gh pr create --base main --head "$BRANCH" \
