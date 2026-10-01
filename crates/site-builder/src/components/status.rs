@@ -255,4 +255,169 @@ mod wording_tests {
         assert_eq!(stale_hit("how much a machine actually understood"), Some("actually understood"));
         assert_eq!(stale_hit("Measurement profiles in preparation"), Some("in preparation"));
     }
+
+    // Repo-wide stale scan. Mirrors the receipt grep (phrases below, skips
+    // target, node_modules, .git, dist and *.tex). The only exclusion is the
+    // named source file, by path. Content is never used to exclude a hit.
+    const REPO_STALE: [&str; 2] = ["actually understood", "first unit written down"];
+
+    // Every pattern on a line is reported, so two stale phrases on one line
+    // count as two hits.
+    fn line_is_stale(line: &str) -> Vec<String> {
+        let mut out: Vec<String> = REPO_STALE
+            .iter()
+            .filter(|s| line.contains(**s))
+            .map(|s| (*s).to_string())
+            .collect();
+        // The stale claim is the TY-2 gain figure presented as Turing yield.
+        // Checked per sentence (split on ". "), in either order, so a sentence
+        // that gives the gain and a later sentence saying yield is not yet
+        // measured is honest, while "Turing yield of 2,559,679" and
+        // "2,559,679.825 bits of Turing yield" are caught.
+        if line
+            .split(". ")
+            .any(|s| s.contains("Turing yield") && s.contains("2,559,679"))
+        {
+            out.push("Turing yield.*2,559,679".to_string());
+        }
+        out
+    }
+
+    #[test]
+    fn yield_claim_is_caught_per_sentence() {
+        // Stale claims, either order, one sentence: caught.
+        for bad in [
+            "a Turing yield of 2,559,679 bits",
+            "2,559,679.825 bits of Turing yield",
+            "Turing yield: +2,559,679.825 T/J under profile V0.",
+            "Gain recorded. The Turing yield was 2,559,679.825 T.",
+        ] {
+            assert_eq!(line_is_stale(bad), vec!["Turing yield.*2,559,679".to_string()], "{bad}");
+        }
+        // Honest wording from the research page (lines 95 and 218): gain
+        // figure and the "yield not yet measured" note are separate sentences.
+        for ok in [
+            "<p>The empirical-results section records the first canonical measurement: TY-1+TY-2 PASS, +2,559,679.825 T under measurement profile V0 (omega PR #85, 2026-09-29). What it does not claim: Turing yield (T/J) is not yet measured; joining energy measurements to Turing-gain receipts is the next step.</p>",
+            "Version 1.0 reports the first canonical Turing measurement: TY-1+TY-2 PASS, +2,559,679.825 T under measurement profile V0 (omega PR #85, 2026-09-29). Turing yield in T/J is not yet reported; joining energy measurements to Turing-gain receipts is the next step.",
+        ] {
+            assert!(line_is_stale(ok).is_empty(), "{ok}");
+        }
+    }
+
+    // Exact-path match after resolving "..", so a root such as
+    // "crates/site-builder/../.." still matches the skipped file.
+    fn same_file(a: &std::path::Path, b: &std::path::Path) -> bool {
+        match (a.canonicalize(), b.canonicalize()) {
+            (Ok(x), Ok(y)) => x == y,
+            _ => false,
+        }
+    }
+
+    // Scans text files; returns Err on any directory or file read error
+    // (non-UTF-8 binary files such as png are the only thing not read as text).
+    // `scanned` records every text file actually read.
+    fn scan_tree(
+        dir: &std::path::Path,
+        skip: &[std::path::PathBuf],
+        hits: &mut Vec<String>,
+        scanned: &mut Vec<std::path::PathBuf>,
+    ) -> Result<(), String> {
+        let rd = std::fs::read_dir(dir).map_err(|e| format!("read_dir {}: {e}", dir.display()))?;
+        for e in rd {
+            let e = e.map_err(|e| format!("entry in {}: {e}", dir.display()))?;
+            let p = e.path();
+            let name = e.file_name().to_string_lossy().to_string();
+            if p.is_dir() {
+                if ["target", "node_modules", ".git", "dist"].contains(&name.as_str()) {
+                    continue;
+                }
+                scan_tree(&p, skip, hits, scanned)?;
+            } else if p.extension().map_or(false, |x| x == "tex") {
+                continue;
+            } else if skip.iter().any(|s| same_file(s, &p)) {
+                continue;
+            } else {
+                match std::fs::read_to_string(&p) {
+                    Ok(text) => {
+                        scanned.push(p.clone());
+                        for (i, line) in text.lines().enumerate() {
+                            for w in line_is_stale(line) {
+                                hits.push(format!("{}:{}: {}", p.display(), i + 1, w));
+                            }
+                        }
+                    }
+                    Err(err) if err.kind() == std::io::ErrorKind::InvalidData => {}
+                    Err(err) => return Err(format!("read {}: {err}", p.display())),
+                }
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn repo_has_no_stale_wording_outside_this_source_file() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let me = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/components/status.rs");
+        let mut hits = Vec::new();
+        let mut scanned = Vec::new();
+        scan_tree(&root, &[me], &mut hits, &mut scanned).expect("scan must read every directory and file");
+        check_floor(&root, &scanned).expect("scan floor");
+        assert!(hits.is_empty(), "stale wording: {hits:?}");
+    }
+
+    fn check_floor(root: &std::path::Path, scanned: &[std::path::PathBuf]) -> Result<(), String> {
+        if scanned.is_empty() {
+            return Err("scan read zero files".into());
+        }
+        for must in ["index.html", "public/turing/index.html", "public/research/index.html"] {
+            let want = root.join(must).canonicalize().ok();
+            if !scanned.iter().any(|p| p.canonicalize().ok() == want) {
+                return Err(format!("required page not scanned: {must}"));
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn counterexample_empty_or_missing_directory_fails() {
+        let missing = std::env::temp_dir().join(format!("stalegrep-missing-{}", std::process::id()));
+        let mut hits = Vec::new();
+        let mut scanned = Vec::new();
+        assert!(scan_tree(&missing, &[], &mut hits, &mut scanned).is_err());
+        let empty = std::env::temp_dir().join(format!("stalegrep-empty-{}", std::process::id()));
+        std::fs::create_dir_all(&empty).unwrap();
+        let r = scan_tree(&empty, &[], &mut hits, &mut scanned);
+        let _ = std::fs::remove_dir_all(&empty);
+        assert!(r.is_ok());
+        assert!(check_floor(&empty, &scanned).is_err(), "empty scan must fail the floor");
+    }
+
+    #[test]
+    fn counterexample_quoted_phrase_in_public_page_is_caught() {
+        let d = std::env::temp_dir().join(format!("stalegrep-{}", std::process::id()));
+        let public = d.join("public");
+        std::fs::create_dir_all(&public).unwrap();
+        let page = public.join("x.html");
+        let src = d.join("status.rs");
+        std::fs::write(&page, "<p>\"Turing yield of 2,559,679\" and \"actually understood\"</p>\n").unwrap();
+        std::fs::write(&src, "const A: &str = \"first unit written down\";\n").unwrap();
+        let mut hits = Vec::new();
+        let mut scanned = Vec::new();
+        scan_tree(&d, &[src.clone()], &mut hits, &mut scanned).unwrap();
+        // Same tree through a ".." root, as the repo test uses: the exclusion
+        // must still hold and the page must still be caught.
+        let mut hits2 = Vec::new();
+        let mut scanned2 = Vec::new();
+        scan_tree(&public.join(".."), &[src.clone()], &mut hits2, &mut scanned2).unwrap();
+        // Without the exclusion the source file is caught as well.
+        let mut hits3 = Vec::new();
+        let mut scanned3 = Vec::new();
+        scan_tree(&d, &[], &mut hits3, &mut scanned3).unwrap();
+        let _ = std::fs::remove_dir_all(&d);
+        assert_eq!(hits.len(), 2, "{hits:?}");
+        assert!(hits.iter().all(|h| h.contains("x.html")), "{hits:?}");
+        assert_eq!(hits2.len(), 2, "{hits2:?}");
+        assert!(hits2.iter().all(|h| h.contains("x.html")), "{hits2:?}");
+        assert_eq!(hits3.len(), 3, "{hits3:?}");
+    }
 }
