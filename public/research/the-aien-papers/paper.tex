@@ -1,0 +1,115 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{pdfpages}
+\usepackage{hyperref}
+\hypersetup{hidelinks,pdftitle={The AIEN Papers},pdfauthor={M. Drake Stapleton}}
+\usepackage{parskip}
+
+\title{The AIEN Papers}
+\author{M. Drake Stapleton}
+\date{October 2026}
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+\newpage
+\section*{Preface}
+\addcontentsline{toc}{section}{Preface}
+
+I am writing these papers because machine intelligence needs a foundation it can stand on, and I want that foundation to be public.
+
+The stack these papers describe is simple to state. Conversation produces proposals. Semantic objects make proposals explicit. Verification produces evidence. Crumbs make verified knowledge reusable. The Crumbline preserves its history. The Turing measures whether a new explanation earns its complexity on unseen evidence. T/J measures how physically expensive that gain was.
+
+On measurement, I keep two quantities distinct. T\_ideal is the complexity-adjusted held-out log-loss improvement: what the mathematics says the gain is. T\_real is the complexity-adjusted improvement in an actual reference-coded bitstream: what an encoder really produced. On September 29, 2026, TY-1+TY-2 recorded the first profile-bound idealized Turing result: +2,559,679.825 T\_ideal. H1, the claim that T\_ideal approximates T\_real within the declared bound, remains open until the reference coder closes the bridge. I state the result's standing plainly: TY-1+TY-2 is an internally replayed descriptive result under historical profile V0. The experiment record reports separation of fitting, selection, and evaluation seeds, but independent blinding was not established, and the original corpus is not publicly downloadable. It does not constitute full qualification under the current protocol. The full evidence ledger is in the formal paper.
+
+The Crumb Doctrine is at v1.4: the epistemic constitution. Omega proceeds next to Omega Core Semantics v0.1.
+
+\subsection*{The doctrine is becoming executable}
+
+On October 2, 2026, the Crumb Doctrine gained its first executable spine across four repositories. aien-architecture merged ADR 0029 (``Verified Crumbs''), making Omega's verified library the dependency-resolution authority. aien-protocols merged VerifiedCrumbV1: the protocol spec with 17 golden vectors, malformed and refusal vectors, a C checker, and a failure taxonomy (MISSING\_RECEIPT, RECEIPT\_HASH\_MISMATCH, STALE\_RECEIPT, UNVERIFIED\_DEPENDENCY, UNKNOWN\_VERIFIER\_PROFILE, VERIFIER\_TOO\_OLD). omega hardened omega\_library\_insert to refuse missing or all-zero receipt hashes, require dependencies to already exist, and restrict BOOTSTRAP admission to genesis alone, with no flag able to unlock it. aien-sovereign-core merged aien-closure: a verify-closure binary plus CI that fails closed on unverified dependencies, missing receipts, hash mismatches, unpinned dependencies, cycles, stale receipts, undeclared imports, tainted artifacts, and unknown verifier profiles.
+
+The pipeline is now: protocol, then Omega admission, then dependency closure verification, then CI enforcement.
+
+I state the boundary honestly. This establishes verified artifacts, receipts, and closure checks. It does not yet establish the full Omega language semantics, the five identifiers as one universally enforced runtime model, the complete sealed foreign-crumb ABI, or the full check/build/verify/seal toolchain. Those remain proposed or partial. aien-test Slice C (digest cache) is proposed as PR \#170, not yet merged.
+
+I name the identifiers as the Omega language defines them: \texttt{SEMANTIC\_ID}, \texttt{SPEC\_ID}, \texttt{CLAIM\_ID}, \texttt{RECEIPT\_ID}, and \texttt{SEAL\_ID}. An earlier draft of this preface said ``four''; the language defines five, and I correct the number openly rather than silently. Enforcing all five as one runtime model is itself proposed, not done.
+
+The verdict I draw: receipt-and-closure checking is implemented and exercised in CI; repository-wide enforcement is not yet active. The doctrine is becoming executable, but it is not yet a property the machine enforces.
+
+\subsection*{Where the claims stand}
+
+I collect the major claims and mechanisms of the seven papers in one table, with a single status each. The labels mean: \textit{proved}, closed by proof under stated assumptions; \textit{observed}, recorded in an experiment; \textit{implemented}, running in the toolchain; \textit{partial}, implemented in part but not enforced repository-wide; \textit{proposed}, defined but not yet built or run. Anything I cannot verify from the papers is marked \textit{proposed} rather than given a stronger label.
+
+\begin{center}
+\begin{tabular}{p{0.63\textwidth} p{0.30\textwidth}}
+\hline
+\textbf{Item} & \textbf{Status} \\
+\hline
+The Turing measurement protocol, as defined in the formal paper & proposed \\
+TY-1+TY-2 idealized result (+2,559,679.825 T\_ideal, September 29, 2026) & observed \\
+T\_real bridge (H1: T\_ideal approximates T\_real within the declared bound) & proposed \\
+Claim A (the conditional theorem) & proved, conditional on one-way functions \\
+Claim B (the unconditional separation) & proposed \\
+Claim C / CEXP-1 (the AIEN program-reuse hypothesis) & proposed \\
+Crumb receipts and dependency-closure enforcement & partial \\
+The Omega language & proposed \\
+The Stapleton Doctrine & philosophical essay, not a scientific claim \\
+\hline
+\end{tabular}
+\end{center}
+
+\newpage
+\tableofcontents
+\newpage
+
+% ---- Section 1 ----
+\section*{The Turing Brief}
+\addcontentsline{toc}{section}{1. The Turing Brief (public explanation)}
+\begin{center}\textit{The entry point. What the Turing is, in plain words.}\end{center}
+\newpage
+\includepdf[pages=-]{/home/hatch/workspace/aien-youtube/sources/the-turing-brief.pdf}
+
+% ---- Section 2 ----
+\section*{The Formal Turing Paper}
+\addcontentsline{toc}{section}{2. The Formal Turing Paper v1.13 (scientific specification)}
+\begin{center}\textit{The scientific center of gravity. Definitions, proofs, protocol, and falsification criteria.}\end{center}
+\newpage
+\includepdf[pages=-]{/home/hatch/workspace/goals/the-continuation-test-paper/files/computing-machinery-and-understanding-v1-13-preprint.pdf}
+
+% ---- Section 3 ----
+\section*{The Emergence Companion}
+\addcontentsline{toc}{section}{3. The Emergence Companion v1.7 (engineering history)}
+\begin{center}\textit{The engineering history the measure emerged from.}\end{center}
+\newpage
+\includepdf[pages=-]{/home/hatch/workspace/goals/the-continuation-test-paper/files/computing-machinery-and-understanding-emergence-v1-7.pdf}
+
+% ---- Section 4 ----
+\section*{The Turing Discovery Gap Conjecture}
+\addcontentsline{toc}{section}{4. The Turing Discovery Gap Conjecture rev 9}
+\begin{center}\textit{The conjecture: available explanatory value versus accessible explanatory value.}\end{center}
+\newpage
+\includepdf[pages=-]{/home/hatch/workspace/goals/turing-discovery-gap-conjecture/files/turing-discovery-gap-conjecture.pdf}
+
+% ---- Section 5 ----
+\section*{The Stapleton Doctrine}
+\addcontentsline{toc}{section}{5. The Stapleton Doctrine v1.5 (philosophy)}
+\begin{center}\textit{The philosophy. Why property beats rent.}\end{center}
+\newpage
+\includepdf[pages=-]{/home/hatch/workspace/goals/the-stapleton-doctrine/files/the-stapleton-doctrine/stapleton-doctrine.pdf}
+
+% ---- Section 6 ----
+\section*{The Crumb Doctrine}
+\addcontentsline{toc}{section}{6. The Crumb Doctrine v1.4 (epistemic constitution)}
+\begin{center}\textit{The epistemic constitution. No receipt, no crumb.}\end{center}
+\newpage
+\includepdf[pages=-]{/home/hatch/workspace/your_files/crumb-doctrine.pdf}
+
+% ---- Section 7 ----
+\section*{The Omega Language}
+\addcontentsline{toc}{section}{7. The Omega Language (enforcement language)}
+\begin{center}\textit{The proposed enforcement language. Syntax is disposable; meaning is permanent.}\end{center}
+\newpage
+\includepdf[pages=-]{/home/hatch/workspace/your_files/omega-language.pdf}
+
+\end{document}

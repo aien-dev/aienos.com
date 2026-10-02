@@ -7,10 +7,10 @@
 \usepackage{xcolor}
 \usepackage{hyperref}
 \usepackage{url}
+\makeatletter
+\g@addto@macro\UrlBreaks{\do\a\do\b\do\c\do\d\do\e\do\f\do\g\do\h\do\i\do\j\do\k\do\l\do\m\do\n\do\o\do\p\do\q\do\r\do\s\do\t\do\u\do\v\do\w\do\x\do\y\do\z\do\A\do\B\do\C\do\D\do\E\do\F\do\G\do\H\do\I\do\J\do\K\do\L\do\M\do\N\do\O\do\P\do\Q\do\R\do\S\do\T\do\U\do\V\do\W\do\X\do\Y\do\Z\do\0\do\1\do\2\do\3\do\4\do\5\do\6\do\7\do\8\do\9}
+\makeatother
 \usepackage{longtable}
-\usepackage{tikz}
-\usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc}
-
 
 \hypersetup{
     colorlinks=true,
@@ -26,14 +26,14 @@
     \textbf{Computing Machinery and Understanding}\\[0.5em]
     \large The Turing as a Measure Emerging from AIEN
 }
-\author{M. Drake Stapleton\\AIEN Project}
-\date{September 30, 2026\\v1.9 preprint (not peer reviewed)}
+\author{M. Drake Stapleton}
+\date{October 2, 2026\\v1.7 preprint (not peer reviewed)}
 
 \begin{document}
 
 \maketitle
 
-\noindent\textit{Companion to the formal preprint ``Computing Machinery and Understanding: From the Imitation Game to the Turing'' (v1.9), which gives the definitions, proofs, measurement protocol, and falsification criteria. This paper gives the engineering history the measure emerged from.}
+\noindent\textit{Companion to the formal preprint ``Computing Machinery and Understanding: From the Imitation Game to the Turing'' (v1.13), which gives the definitions, proofs, measurement protocol, and falsification criteria. This paper gives the engineering history the measure emerged from.}
 
 \begin{abstract}
 I did not begin this work by trying to invent a new unit of intelligence.
@@ -76,7 +76,7 @@ The important claim of this paper is therefore not that I have renamed the bit.
 
 It is that, while building an architecture in which explanations, measurements, realizations, authority, provenance, and physical cost were already separate objects, I found that \textbf{net held-out description-length reduction is the quantity that connects them}.
 
-AIEN already implements much of the machinery required to test that proposition. This paper documents that implementation, the evidence already produced, the places where the architecture failed and corrected itself, and the first canonical Turing measurement, recorded 2026-09-29 under measurement profile V0: a candidate explanation of Omega search traces scored +2,559,679.825~T against its baseline on sealed held-out seeds, about 0.44~T per held-out observation. That result is a theoretical description length, not yet a physically encoded file, and no energy was measured in the run, so no Turing yield is claimed. What the unit does not measure, I state plainly: semantic grounding, causal direction, agency, values, alignment, and consciousness are outside its scope. The Turing is a thermometer for one quantity, net held-out explanatory compression, and the claim is only that this quantity is worth measuring well.
+AIEN already implements much of the machinery required to test that proposition. This paper documents that implementation, the evidence already produced, the places where the architecture failed and corrected itself, and the first profile-bound idealized Turing result, +2,559,679.825~\(T_{\mathrm{ideal}}\) under profile V0, recorded 2026-09-29: a candidate explanation of Omega search traces scored +2,559,679.825~\(T_{\mathrm{ideal}}\) under profile V0 against its baseline on sealed held-out seeds, about 0.44~\(T_{\mathrm{ideal}}\) per held-out observation of specific Turing gain. That result is a theoretical description length, not yet a physically encoded file, and no energy was measured in the run, so no Turing yield is claimed. What the unit does not measure, I state plainly: semantic grounding, causal direction, agency, values, alignment, and consciousness are outside its scope. The Turing is a thermometer for one quantity, net held-out explanatory compression, and the claim is only that this quantity is worth measuring well.
 
 \medskip
 
@@ -114,11 +114,11 @@ The abstraction I eventually converged on separates four things that are usually
 \text{evidence}.
 \]
 
-Omega owns semantic meaning and candidate realizations.
+Omega defines semantics and synthesizes candidates.
 
-FORGE describes and executes physical realizations.
+FORGE realizes and measures physical realizations.
 
-AEGIS verifies generated code, including crumbs. It changes nothing, decides no policy, and is not part of the generation system.
+AEGIS certifies generated code, including crumbs, according to policy and verification evidence. It changes nothing, decides no policy, and is not part of the generation system.
 
 ARGUS observes defensive events without becoming an authority itself.
 
@@ -127,30 +127,6 @@ The World holds operational state.
 Cortex retains epistemic memory.
 
 The evidence system records what actually occurred.
-\begin{figure}[htbp]
-\centering
-\begin{tikzpicture}[
-  box/.style={draw, rounded corners, align=center, text width=2.85cm, minimum height=1.1cm, font=\footnotesize},
-  arr/.style={-{Stealth[length=2.5mm]}, thick},
-  darr/.style={-{Stealth[length=2.5mm]}, thick, dashed},
-]
-\node[font=\small\itshape] (cap) {meaning $\neq$ realization $\neq$ authority $\neq$ evidence};
-\node[box, below=0.5cm of cap] (aien) {AIEN\\proposes candidates};
-\node[box, right=0.55cm of aien] (omega) {Omega\\defines, synthesizes,\\verifies};
-\node[box, right=0.55cm of omega] (forge) {FORGE\\realizes on\\physical hardware};
-\node[box, right=0.55cm of forge] (ev) {Evidence\\records what\\actually occurred};
-\draw[arr] (aien) -- (omega);
-\draw[arr] (omega) -- (forge);
-\draw[arr] (forge) -- (ev);
-\draw[arr] (ev.south) -- ++(0,-0.55) -| (omega.south);
-\node[box, dashed, below=1.7cm of omega] (aegis) {AEGIS\\verifies\\generated code\\changes nothing,\\decides nothing};
-\node[box, dashed, left=0.55cm of aegis] (argus) {ARGUS\\observes\\defensive events\\never authorizes};
-\draw[darr] (aegis.north) -- (omega.south);
-\draw[darr] (argus.north) -- (aien.south);
-\end{tikzpicture}
-\caption{Conceptual map of the AIEN stack the Turing emerged from (Section~1). Solid arrows are the generation path with an evidence feedback loop; the dashed boxes verify and observe without deciding or authorizing. Conceptual illustration, not empirical data.}
-\label{fig:stack}
-\end{figure}
 
 That separation turned out to matter more than I expected.
 
@@ -187,8 +163,8 @@ Before I formulated the Turing, Omega already contained an implemented abstracti
 The implementation is public:
 
 \begin{itemize}
-    \item \url{https://github.com/aien-dev/omega/blob/main/src/omega_discovery.c}
-    \item \url{https://github.com/aien-dev/omega/blob/main/src/omega_discovery.h}
+    \item \url{https://github.com/aien-dev/omega/blob/4f55f45ed13f63cf8171bebf223c6258f8351ab9/src/omega_discovery.c}
+    \item \url{https://github.com/aien-dev/omega/blob/1ee43fbf1c7d588734b80bd0743e5d054aea750b/src/omega_discovery.h}
 \end{itemize}
 
 The experiment is deliberately small.
@@ -224,7 +200,7 @@ This was already a primitive Minimum Description Length calculation in the sense
 The qualification receipt is public:
 
 \begin{quote}
-\url{https://github.com/aien-dev/omega/blob/main/evidence/omega_library_discovery_qualification_receipt.json}
+\url{https://github.com/aien-dev/omega/blob/8e0a50a45814c5e3b427efd36a83a1e2e79a7500/evidence/omega_library_discovery_qualification_receipt.json}
 \end{quote}
 
 That receipt records:
@@ -233,7 +209,7 @@ That receipt records:
     \item autonomous recurring-subsequence mining;
     \item \(+7\) instructions of net structural compression;
     \item semantic preservation after refactoring;
-    \item verification through Omega's V0 to V2 ladder before admission;
+    \item admission checks through Omega's V0 to V2 ladder;
     \item reduction in held-out synthesis exploration from \(54\) candidates to \(21\);
     \item all ten M11 qualification gates passing.
 \end{itemize}
@@ -267,7 +243,7 @@ Instead, state changes made dependent reactions ready.
 The relevant runtime work lives in:
 
 \begin{quote}
-\url{https://github.com/aien-dev/omega/tree/main/src/runtime}
+\url{https://github.com/aien-dev/omega/tree/614393d5b3f3d9d06f214c5f9a30a5788166bb07/src/runtime}
 \end{quote}
 
 The central pattern is
@@ -289,7 +265,7 @@ The resulting causal system was qualified in the R13 living-system experiment.
 The actual machine receipt is public:
 
 \begin{quote}
-\url{https://github.com/aien-dev/omega/blob/main/evidence/R13/48d5a36c0ec2a8885aa21ebe1fd9d5d2259db1a25e935749adde6a1addd3b5b3.json}
+\url{https://github.com/aien-dev/omega/blob/89e72ed72ba004631e1a0d81b874a136973d905f/evidence/R13/48d5a36c0ec2a8885aa21ebe1fd9d5d2259db1a25e935749adde6a1addd3b5b3.json}
 \end{quote}
 
 This was not a simulated architecture diagram. It ran on the GB10 system.
@@ -326,7 +302,7 @@ The receipt records:
     \item generation \(1\rightarrow2\);
     \item selected realization identity exactly matching the promoted identity;
     \item the same identity reconstructed from durable bytes;
-    \item \(3{,}159\) verified causal crumbs;
+    \item \(3{,}159\) causal records;
     \item \(11\) durable provenance links verified;
     \item zero production results using the unpromoted realization;
     \item all five control conditions passing;
@@ -364,7 +340,7 @@ The R14 qualification injected failures into the same resident architecture.
 The receipt is public:
 
 \begin{quote}
-\url{https://github.com/aien-dev/omega/blob/main/evidence/R14/0c09168743bfc8acac8b137a561958e9644c1d4160f92400b9a4bcec7b18965f.json}
+\url{https://github.com/aien-dev/omega/blob/2c647c6ff54be87c96041ce1fdd0abbdd52a19a9/evidence/R14/0c09168743bfc8acac8b137a561958e9644c1d4160f92400b9a4bcec7b18965f.json}
 \end{quote}
 
 Six classes of failure were tested.
@@ -474,7 +450,9 @@ The full R14 run produced
 180{,}808
 \]
 
-causal crumbs with causal verification passing.
+causal records with causal verification passing.
+
+These are causal reaction records, not crumbs in the Crumb Doctrine sense: a Doctrine crumb is a verified program plus its verification receipt.
 
 Just as importantly, the experiment found real defects in earlier stages of the architecture. Those defects were fixed at the layer that owned them and preserved in regression tests.
 
@@ -499,7 +477,7 @@ The R15 performance specification states:
 The preregistered methodology is public:
 
 \begin{quote}
-\url{https://github.com/aien-dev/omega/blob/main/spec/r15-performance-proof.md}
+\url{https://github.com/aien-dev/omega/blob/4d47ce7fe85c3dc6bcfa5f5157250194656b3154/spec/r15-performance-proof.md}
 \end{quote}
 
 I built a sequential control using the same semantic work, same objects, same authority, same evidence, and same GPU seat.
@@ -521,8 +499,8 @@ and
 The final qualification is public:
 
 \begin{itemize}
-    \item \url{https://github.com/aien-dev/omega/blob/main/evidence/R15/ATTEMPT-2-PASS.md}
-    \item \url{https://github.com/aien-dev/omega/blob/main/evidence/R15/065c688408aa18950f363b52be2357c3cb853827592dc71ea72b6da181b4569a.json}
+    \item \url{https://github.com/aien-dev/omega/blob/de4f32dee665b45faa7f96cb87015830e2b7f313/evidence/R15/ATTEMPT-2-PASS.md}
+    \item \url{https://github.com/aien-dev/omega/blob/de4f32dee665b45faa7f96cb87015830e2b7f313/evidence/R15/065c688408aa18950f363b52be2357c3cb853827592dc71ea72b6da181b4569a.json}
 \end{itemize}
 
 The qualification ran on the DGX Spark GB10 and passed
@@ -572,9 +550,9 @@ I built the first TURING Field as an evidence-backed decision-record layer aroun
 The source and tests are public:
 
 \begin{itemize}
-    \item \url{https://github.com/aien-dev/omega/blob/main/src/turing/field.h}
-    \item \url{https://github.com/aien-dev/omega/blob/main/tests/turing/test_turing.c}
-    \item \url{https://github.com/aien-dev/omega/blob/main/docs/turing/TURING_W0_PROPOSAL.md}
+    \item \url{https://github.com/aien-dev/omega/blob/cc341abbe203c64506b2acab824f2e58e43f99ab/src/turing/field.h}
+    \item \url{https://github.com/aien-dev/omega/blob/cc341abbe203c64506b2acab824f2e58e43f99ab/tests/turing/test_turing.c}
+    \item \url{https://github.com/aien-dev/omega/blob/cc341abbe203c64506b2acab824f2e58e43f99ab/docs/turing/TURING_W0_PROPOSAL.md}
 \end{itemize}
 
 I expected the new selection rule to perform at least as well as a simple history-based control.
@@ -607,7 +585,7 @@ I did not tune the benchmark until my method won.
 The failed selector remains in the repository so the failure can continue to be reproduced:
 
 \begin{quote}
-\url{https://github.com/aien-dev/omega/blob/main/src/turing/field_select_v0_retired.c}
+\url{https://github.com/aien-dev/omega/blob/cc341abbe203c64506b2acab824f2e58e43f99ab/src/turing/field_select_v0_retired.c}
 \end{quote}
 
 The live Field was reframed around what the evidence actually supported: immutable, replayable decision records that cite their measurements.
@@ -859,7 +837,7 @@ FORGE already provides a substrate-neutral physical boundary.
 The FORGE V2 specification is public:
 
 \begin{quote}
-\url{https://github.com/aien-dev/physics/blob/main/docs/FORGE_SUBSTRATE_V2_SPEC.md}
+\url{https://github.com/aien-dev/physics/blob/2da7b9d8d429abb590c4a12b1bae95eb6fd4461e/docs/FORGE_SUBSTRATE_V2_SPEC.md}
 \end{quote}
 
 Its stated purpose is that FORGE realizes semantic operations on physical devices.
@@ -879,7 +857,7 @@ The substrate description advertises evidence capabilities including:
 The implementation is here:
 
 \begin{quote}
-\url{https://github.com/aien-dev/physics/tree/main/forge/v2}
+\url{https://github.com/aien-dev/physics/tree/5969159c383217178b7b524fff13869489c8d799/forge/v2}
 \end{quote}
 
 The informational quantity is
@@ -915,7 +893,7 @@ Omega's R15 harness already does.
 The implementation includes:
 
 \begin{quote}
-\url{https://github.com/aien-dev/omega/blob/main/tests/runtime/r15_measure.c}
+\url{https://github.com/aien-dev/omega/blob/ac09e6247da619e5cc1f29a70fa4792f10b679f1/tests/runtime/r15_measure.c}
 \end{quote}
 
 The measurement layer uses physical telemetry including energy counters, GPU power/energy instrumentation, ARM performance counters, CPU cycles, retired instructions, bus accesses, cache misses, memory accesses, thread CPU time, and wall-clock time.
@@ -923,7 +901,7 @@ The measurement layer uses physical telemetry including energy counters, GPU pow
 Omega's empirical cost model already includes an energy dimension:
 
 \begin{quote}
-\url{https://github.com/aien-dev/omega/blob/main/src/runtime/rx_costmodel.h}
+\url{https://github.com/aien-dev/omega/blob/8290082331072f45fb0b3a60ca4f7654190fbfb6/src/runtime/rx_costmodel.h}
 \end{quote}
 
 A prediction contains an energy estimate and a request may specify an energy budget.
@@ -1013,7 +991,7 @@ ARGUS is the defensive observation plane in AIENOS.
 Its ABI is public:
 
 \begin{quote}
-\url{https://github.com/aien-dev/aienos/blob/main/native/argus/argus_abi.h}
+\url{https://github.com/aien-dev/aienos/blob/b908e0187c2af7ab5675bafaf5768dc2f877441d/native/argus/argus_abi.h}
 \end{quote}
 
 Its boundary is explicit: ARGUS observes, detects, contains by request, and defends; it never authorizes.
@@ -1040,31 +1018,11 @@ Authority remains authority.
 
 I want to be precise about what I have and have not demonstrated.
 
-On 2026-09-29 the first canonical Turing measurement was completed under measurement profile V0 (\href{https://github.com/aien-dev/omega/pull/85}{omega pull request~85}, merged the same day). The candidate was a table conditioning on the tried operation plus the last four outcomes of Omega search traces; the baseline was a table conditioning only on the last outcome. On sealed held-out seeds 8, 9, and 10, about 5.8~million search events never seen during model selection, the candidate reduced total held-out description length by \textbf{2,559,679.825 bits}, scoring \textbf{+2,559,679.825~T}, about \textbf{0.44~T per held-out observation} of specific Turing gain. The preregistered bar of 234,602~bits was cleared, with each held-out seed passing on its own. The scoring tool refuses to score the held-out seeds a second time, and an independent verify command refits both models from the training files and reproduces the receipt exactly. Model cost is the exact stored table length, so pure memorization scores negatively; all scoring arithmetic is integer-only, with worst-case rounding under 6~bits over the whole held-out set.
+On 2026-09-29 the first profile-bound idealized Turing result was recorded under measurement profile V0 (\href{https://github.com/aien-dev/omega/pull/85}{omega pull request~85}, merged the same day). The candidate was a table conditioning on the tried operation plus the last four outcomes of Omega search traces; the baseline was a table conditioning only on the last outcome. On sealed held-out seeds 8, 9, and 10, about 5.8~million search events never seen during model selection, the candidate reduced total held-out description length by \textbf{2,559,679.825 bits}, scoring \textbf{+2,559,679.825~$T_{\mathrm{ideal}}$} under profile V0, about \textbf{0.44~$T_{\mathrm{ideal}}$ per held-out observation} of specific Turing gain. The preregistered bar of 234,602~bits was cleared, with each held-out seed passing on its own. The scoring tool refuses to score the held-out seeds a second time, and a refit check refits both models from the training files and reproduces the receipt exactly. The complexity charge penalizes stored information that does not earn its cost on held-out observations. Under Lemma~2's assumptions, pure memorization cannot outperform the cheaper baseline. All scoring arithmetic uses fixed-point integer micro-bits, with worst-case rounding under 6~bits over the whole held-out set.
+
+I state the result's status plainly, because the ledger now makes it checkable. TY-1+TY-2 is an internally replayed descriptive result under historical profile V0. The experiment record reports separation of fitting, selection, and evaluation seeds, but independent blinding was not established. The original corpus is not publicly downloadable, so public end-to-end replay is not currently available. Statistical uncertainty, baseline sensitivity, and attribution ablations remain pending. The result therefore does not constitute full qualification under the current protocol. This does not establish contamination and does not make the arithmetic worthless; it distinguishes an internally reported held-out result from an independently auditable demonstration. The full evidence ledger is in the formal paper.
 
 The honest limits, stated with the result: \(\mathcal{T}\) here is a theoretical code length. No entropy coder was built that produces the smaller file, so this is not yet a physically realized encoding. Energy was not measured in this run, so no Turing yield (\(T/J\)) is reported. Joining R15 energy measurements to Turing-gain receipts is the next step.
-\begin{figure}[htbp]
-\centering
-\begin{tikzpicture}[
-  box/.style={draw, rounded corners, align=center, minimum width=6.8cm, minimum height=1.0cm, font=\small},
-  arr/.style={-{Stealth[length=2.5mm]}, thick},
-]
-\node[box] (b) {Baseline $B$: table conditioning\\on the last outcome only};
-\node[box, below=0.4cm of b] (c) {Candidate $M$: table conditioning on\\the tried operation plus the last four outcomes};
-\node[box, below=0.4cm of c] (d) {Held-out seeds 8, 9, 10: about\\5.8 million search events, never seen\\during model selection (profile V0)};
-\node[box, fill=gray!10, below=0.4cm of d] (r) {Result: \textbf{+2,559,679.825~T} (about 0.44~T per observation)\\preregistered bar of 234,602 bits cleared};
-\node[box, below=0.4cm of r] (v) {Verification: independent refit reproduces\\the receipt exactly; scoring refuses a second run};
-\node[box, dashed, below=0.4cm of v] (l) {Honest limits: theoretical codelength (no entropy\\coder built); no energy measured, so no $T/J$ yet};
-\draw[arr] (b) -- (c);
-\draw[arr] (c) -- (d);
-\draw[arr] (d) -- (r);
-\draw[arr] (r) -- (v);
-\draw[arr] (v) -- (l);
-\end{tikzpicture}
-\caption{Schematic of the recorded first canonical Turing measurement (2026-09-29, profile V0, omega PR~85). This diagram restates the reported run; it is a schematic of a recorded measurement, not new data.}
-\label{fig:firstmeasure}
-\end{figure}
-
 
 I will not score old runs retroactively.
 
@@ -1074,9 +1032,9 @@ The M11 abstraction experiment uses instruction-count compression, not probabili
 
 Likewise, retirement of all remaining central orchestration is still an active architectural gate.
 
-The architecture is therefore evidence for the \emph{implementation of the ideal}, and the first measurement is evidence that the instrument works under profile V0. Full qualification of the metric, including the physical coder bridge and energy-joined receipts, is still ahead.
+The architecture is therefore evidence for the \emph{implementation of the ideal}, and the TY-1+TY-2 result is a completed pre-EXP instrument result under profile V0. EXP-001's preregistered runs, which close the reference-coder bridge (H1: \(T_{\mathrm{ideal}} \approx T_{\mathrm{real}}\) within the declared bound), are pending; full qualification of the metric, including the physical coder bridge and energy-joined receipts, is still ahead.
 
-\section{The First Experiment, Completed}
+\section{The First Scored Experiment}
 
 The first scored experiment was intentionally boring.
 
@@ -1084,7 +1042,7 @@ I did not need a giant language model.
 
 I already had an appropriate experimental substrate inside Omega: real search and synthesis traces, divided before candidate construction into training, validation, and sealed test.
 
-The candidates compared were simple predictors: uniform, empirical frequency, a small Markov-style table, the existing fixed heuristic, and the candidate explanatory table. For every candidate \(M\), the protocol calculated \(L(M)\) and \(L(D\mid M)\), then \(\mathcal{T}(M;B,D,P)\) against the declared baseline.
+The scored run compared two predictors: the candidate explanatory table (conditioning on the tried operation plus the last four outcomes) against the declared baseline (a table conditioning only on the last outcome). The wider comparison set, uniform, empirical frequency, a small Markov-style table, the existing fixed heuristic, belongs to the EXP-001 design, whose preregistered runs are pending. For every candidate \(M\), the protocol calculated \(L(M)\) and \(L(D\mid M)\), then \(\mathcal{T}(M;B,D,G,P)\) against the declared baseline.
 
 The first gate was simple:
 
@@ -1092,29 +1050,11 @@ The first gate was simple:
 \boxed{\mathcal{T}>0}
 \]
 
-with the lower uncertainty bound above zero.
-
-It passed, as recorded in the previous section: +2,559,679.825~T under profile V0, each held-out seed passing on its own.
+It passed, as recorded in the previous section: +2,559,679.825~\(T_{\mathrm{ideal}}\) under profile V0, each held-out seed passing on its own. The 6-bit figure reported with the result is an arithmetic rounding bound on the scoring computation, not a statistical confidence interval; statistical uncertainty for \(\mathcal{T}\) is required future work.
 
 One more discipline the protocol enforces, and I want to state it plainly because it is easy to get wrong: the cryptographic hash of the sealed test set proves \textit{which} data was held out. It does not prove the machine never saw it. A hash is a commitment to identity, not a blindfold. Non-access has to be established by a separate, auditable blinding mechanism, and the protocol treats the two claims separately: the hash proves the dataset is the one declared, the blinding proves the candidate was built without it. Either claim without the other is not a measurement.
 
-In the formal paper this first experiment is registered as EXP-001: instrument validation. It is followed by EXP-002, Stochastic Law Discovery, in which a hidden evaluator generates quantized trajectories from an undisclosed stochastic law: pure diffusion, diffusion with drift, and mean-reverting dynamics, and the candidate must earn its complexity on sealed held-out trajectories without inventing deterministic structure inside noise; and by EXP-003, active experiment selection, in which the machine proposes the intervention that most efficiently distinguishes competing explanations. EXP-001 asked whether the instrument works. It does, under profile V0. EXP-002 asks whether it can detect discovered structure. That is the empirical ladder the measure is now climbing.
-\begin{figure}[htbp]
-\centering
-\begin{tikzpicture}[
-  box/.style={draw, rounded corners, align=center, minimum width=10.5cm, minimum height=1.3cm, font=\small},
-  arr/.style={-{Stealth[length=2.5mm]}, thick},
-]
-\node[box] (e1) {\textbf{EXP-001: instrument validation}\\Can $\mathcal{T}$ be measured reproducibly at all?};
-\node[box, below=0.4cm of e1] (e2) {\textbf{EXP-002: stochastic law discovery}\\Can a discovered structure earn its complexity on sealed held-out\\trajectories, without inventing deterministic structure inside noise?};
-\node[box, below=0.4cm of e2] (e3) {\textbf{EXP-003: active experiment selection}\\Can the machine choose the intervention that most\\efficiently distinguishes competing explanations?};
-\draw[arr] (e1) -- (e2);
-\draw[arr] (e2) -- (e3);
-\end{tikzpicture}
-\caption{The preregistered experiment ladder (Section~5.4 of the formal paper). Each rung validates the precondition of the next: first that the instrument works, then that it detects discovered stochastic structure, then that the machine can select its own experiments. Conceptual illustration.}
-\label{fig:ladder}
-\end{figure}
-
+In the formal paper the preregistered instrument-validation step is EXP-001. The scored run described above is not EXP-001; it is the completed pre-EXP instrument result TY-1+TY-2. EXP-001's preregistered runs are pending, and with them the reference-coder bridge: H1, that \(T_{\mathrm{ideal}} \approx T_{\mathrm{real}}\) within the declared bound, is open. EXP-001 is followed by EXP-002, Stochastic Law Discovery, in which a hidden evaluator generates quantized trajectories from an undisclosed stochastic law: pure diffusion, diffusion with drift, and mean-reverting dynamics, and the candidate must earn its complexity on sealed held-out trajectories without inventing deterministic structure inside noise; and by EXP-003, active experiment selection, in which the machine proposes the intervention that most efficiently distinguishes competing explanations. EXP-002 asks whether the instrument can detect discovered structure. That is the empirical ladder the measure is now climbing.
 
 \section{The Second Experiment Joins the Machine Back to Physics}
 
@@ -1181,8 +1121,6 @@ I did not build this measure because I wanted a new number. I built it because t
 
 First, the environment. As machine computation scales, the energy cost of producing understanding is invisible in every benchmark I know. Accuracy per watt tells you how cheaply a model performs; it does not tell you how cheaply a machine \textit{learns}. Turings per joule makes the energy cost of discovery legible. If the field ever has to answer how much understanding it bought per unit of energy, this is the shape of the answer.
 
-The absence of that accounting is not for lack of spending on efficiency. The industry's current answer is faster hardware for moving data. Lightmatter, a photonics company spun out of MIT, has raised roughly 850 million dollars, including a 400 million dollar Series D at a 4.4 billion dollar valuation in October 2024, for Passage, a photonic interconnect whose M1000 platform moves data between chips with light at up to 114 terabits per second. Passage moves data; it does not compute. And none of the efficiency claims around it, or around the hardware generation it belongs to, is stated as held-out explanatory gain per joule. That is not a criticism of the engineering. It is the gap this measure names: until efficiency claims are expressed in a unit like Turing yield, there is no common ruler on which a photonic interconnect, a new accelerator, and a better algorithm can be compared.
-
 Second, honesty. The protocol only works if the baseline is declared in advance, the held-out data is sealed, every artifact is recomputable, and negative results are reported as what they are: a candidate that did not pay for itself. That discipline is not a nicety. It is the difference between a measure and a marketing claim. A field that adopts this unit adopts, along with it, the habit of saying what it tried and what failed.
 
 Third, alignment. A great deal of alignment work has no measurable target: we ask machines to be safe, helpful, and honest, and we grade them with vibes. Verified understanding, operationalized as net held-out explanatory compression, is one thing we can actually measure. It is not the whole of alignment, and I claim nothing more.
@@ -1200,10 +1138,6 @@ The question I encountered while building AIEN was different.
 I already had machines capable of producing fluent responses.
 
 That did not solve my problem.
-
-This contrast has since become a public position, and it deserves to be named rather than gestured at. Andrej Karpathy wrote in 2023 that ``the hottest new programming language is English''~\cite{karpathy2023}, and his Software 3.0 framing treats the English prompt as the program. In his opening keynote at Rails World 2026, David Heinemeier Hansson, the creator of Ruby on Rails, carried the claim to its conclusion: 37signals has gone ``pencils down'' on hand-written code, because, in his words, ``English is a better programming language than Ruby''~\cite{hansson2026}.
-
-The Turing was built for exactly this dispute. If English is the language, the model is the interpreter, and what an English sentence means is whatever that interpreter does with it. This paper does not settle the question by argument. It settles it by accounting: declare the candidate together with its interpreter, charge the full cost, and measure the explanatory gain on sealed data. A specification language earns its standing by what its programs explain per bit and per joule, not by how natural it feels to write.
 
 I needed to know whether the system had discovered structure that generalized beyond what it had already seen.
 
@@ -1249,7 +1183,7 @@ When I say \emph{physical cost}, I can point to R15's measured energy, PMU, sync
 
 When I say \emph{negative evidence}, I can point to TURING Wave 1, where my proposed selector lost and remains permanently reproducible as a failed experiment.
 
-When I say \emph{evidence before authority}, I can point to AEGIS verification, the capability system, ARGUS, and the promotion barrier.
+When I say \emph{evidence before authority}, I can point to AEGIS certification, the capability system, ARGUS, and the promotion barrier.
 
 When I say \emph{different physical realizations of the same meaning}, I can point to FORGE's substrate-neutral machine boundary and Omega's realization system.
 
@@ -1271,7 +1205,7 @@ If better probabilistic prediction does not produce correspondingly smaller real
 
 \subsection{F2: No held-out gain}
 
-If candidates compress training traces but do not produce positive net Turing gain on sealed unseen observations after paying \(L(M)\), I have demonstrated fitting rather than explanatory progress.
+If candidates compress training traces but do not produce positive net Turing gain on sealed held-out observations after paying \(L(M)\), I have demonstrated fitting rather than explanatory progress.
 
 \subsection{F3: Profile instability}
 
@@ -1397,59 +1331,197 @@ That is exactly how I want it.
 \textbf{Reality decides.}
 \end{center}
 
-\section*{Implementation and Evidence Index}
+\section{Epilogue}
 
-\begin{longtable}{p{0.32\textwidth}p{0.62\textwidth}}
+After this engineering history was written, TY-1+TY-2 produced the first profile-bound idealized Turing result (+2,559,679.825 \(T_{\mathrm{ideal}}\)). EXP-001 remains the instrument-validation step required to close the reference-coder bridge (H1: \(T_{\mathrm{ideal}} \approx T_{\mathrm{real}}\) within the declared bound).
+
+\section*{Reproducibility Manifest}
+
+Each entry names the repository, the commit whose tree holds the cited artifact, the artifact SHA-256, the experiment it belongs to, the hardware profile where one was declared, and the receipt identifier where one exists. Where I could not establish a value from the repository or the receipt itself, I mark it [unavailable]; nothing is invented.
+
+
+\begin{longtable}{p{0.22\textwidth}p{0.72\textwidth}}
 \toprule
-\textbf{Artifact} & \textbf{Public location}\\
+\textbf{Artifact} & \textbf{Reproducibility fields} \\
 \midrule
-Omega repository &
-\url{https://github.com/aien-dev/omega}\\
-Omega Library Discovery &
-\url{https://github.com/aien-dev/omega/blob/main/src/omega_discovery.c}\\
-M11 qualification receipt &
-\url{https://github.com/aien-dev/omega/blob/main/evidence/omega_library_discovery_qualification_receipt.json}\\
-R13 living-system silicon receipt &
-\url{https://github.com/aien-dev/omega/blob/main/evidence/R13/48d5a36c0ec2a8885aa21ebe1fd9d5d2259db1a25e935749adde6a1addd3b5b3.json}\\
-R14 recovery qualification receipt &
-\url{https://github.com/aien-dev/omega/blob/main/evidence/R14/0c09168743bfc8acac8b137a561958e9644c1d4160f92400b9a4bcec7b18965f.json}\\
-R15 preregistered methodology &
-\url{https://github.com/aien-dev/omega/blob/main/spec/r15-performance-proof.md}\\
-R15 qualification summary &
-\url{https://github.com/aien-dev/omega/blob/main/evidence/R15/ATTEMPT-2-PASS.md}\\
-R15 machine-readable receipt &
-\url{https://github.com/aien-dev/omega/blob/main/evidence/R15/065c688408aa18950f363b52be2357c3cb853827592dc71ea72b6da181b4569a.json}\\
-TURING Field record definitions &
-\url{https://github.com/aien-dev/omega/blob/main/src/turing/field.h}\\
-TURING preregistered experiment &
-\url{https://github.com/aien-dev/omega/blob/main/docs/turing/TURING_W0_PROPOSAL.md}\\
-TURING reproducibility/tamper tests &
-\url{https://github.com/aien-dev/omega/blob/main/tests/turing/test_turing.c}\\
-Omega empirical cost model &
-\url{https://github.com/aien-dev/omega/blob/main/src/runtime/rx_costmodel.h}\\
-FORGE V2 specification &
-\url{https://github.com/aien-dev/physics/blob/main/docs/FORGE_SUBSTRATE_V2_SPEC.md}\\
-FORGE implementation &
-\url{https://github.com/aien-dev/physics/tree/main/forge/v2}\\
-ARGUS ABI &
-\url{https://github.com/aien-dev/aienos/blob/main/native/argus/argus_abi.h}\\
-AIEN architecture &
-\url{https://github.com/aien-dev/aien-architecture}\\
+\endfirsthead
+\toprule
+\textbf{Artifact} & \textbf{Reproducibility fields} \\
+\midrule
+\endhead
 \bottomrule
+\endfoot
+Omega repository &
+Repository: \texttt{aien-dev/omega} \newline
+Commit: {\footnotesize\texttt{2d52219708b42c5d9b2e8f7d577fbb5226631a78}} \newline
+Artifact SHA-256: [unavailable] \newline
+Experiment ID: [unavailable] \newline
+Hardware profile: [unavailable] \newline
+Receipt ID: [unavailable] \newline
+Public location: \url{https://github.com/aien-dev/omega} \\
+\midrule
+Omega Library Discovery source &
+Repository: \texttt{aien-dev/omega} \newline
+Commit: {\footnotesize\texttt{4f55f45ed13f63cf8171bebf223c6258f8351ab9}} \newline
+Artifact SHA-256: {\footnotesize\texttt{2adebb01bb69c2c9\allowbreak{}36fdae73ef97dcdd\allowbreak{}45aaa965a854713a\allowbreak{}05ab831b42f701e4}} \newline
+Experiment ID: M11 \newline
+Hardware profile: [unavailable] \newline
+Receipt ID: [unavailable] \newline
+Public location: \url{https://github.com/aien-dev/omega/blob/4f55f45ed13f63cf8171bebf223c6258f8351ab9/src/omega_discovery.c} \\
+\midrule
+Omega Library Discovery header &
+Repository: \texttt{aien-dev/omega} \newline
+Commit: {\footnotesize\texttt{1ee43fbf1c7d588734b80bd0743e5d054aea750b}} \newline
+Artifact SHA-256: {\footnotesize\texttt{4d607ec8f6ecb45c\allowbreak{}3f12cc1b0923fd09\allowbreak{}a8dc92bb9b7983c8\allowbreak{}c200d7f2555338b0}} \newline
+Experiment ID: M11 \newline
+Hardware profile: [unavailable] \newline
+Receipt ID: [unavailable] \newline
+Public location: \url{https://github.com/aien-dev/omega/blob/1ee43fbf1c7d588734b80bd0743e5d054aea750b/src/omega_discovery.h} \\
+\midrule
+M11 qualification receipt &
+Repository: \texttt{aien-dev/omega} \newline
+Commit: {\footnotesize\texttt{8e0a50a45814c5e3b427efd36a83a1e2e79a7500}} \newline
+Artifact SHA-256: {\footnotesize\texttt{193bfce34119a66d\allowbreak{}7b8b739347a9ddd9\allowbreak{}10b91348359ef59f\allowbreak{}61d3f2cad579638d}} \newline
+Experiment ID: M11 \newline
+Hardware profile: Linux, aarch64 (per receipt host record) \newline
+Receipt ID: CONTRACT-OMEGA-LIBRARY-DISCOVERY-M11 \newline
+Public location: \url{https://github.com/aien-dev/omega/blob/8e0a50a45814c5e3b427efd36a83a1e2e79a7500/evidence/omega_library_discovery_qualification_receipt.json} \\
+\midrule
+R13 living-system silicon receipt &
+Repository: \texttt{aien-dev/omega} \newline
+Commit: {\footnotesize\texttt{89e72ed72ba004631e1a0d81b874a136973d905f}} \newline
+Artifact SHA-256: {\footnotesize\texttt{48d5a36c0ec2a888\allowbreak{}5aa21ebe1fd9d5d2\allowbreak{}259db1a25e935749\allowbreak{}adde6a1addd3b5b3}} \newline
+Experiment ID: R13 \newline
+Hardware profile: DGX Spark (NVIDIA GB10), node spark-b87b, Linux 7.0.0-1019-nvidia, aarch64; silicon run \newline
+Receipt ID: 20260928T122742Z-83f880786202 \newline
+Run code commit: {\footnotesize\texttt{83f880786202bb2274848933395d55295cb0b679}} \newline
+Public location: \url{https://github.com/aien-dev/omega/blob/89e72ed72ba004631e1a0d81b874a136973d905f/evidence/R13/48d5a36c0ec2a8885aa21ebe1fd9d5d2259db1a25e935749adde6a1addd3b5b3.json} \\
+\midrule
+R14 recovery qualification receipt &
+Repository: \texttt{aien-dev/omega} \newline
+Commit: {\footnotesize\texttt{2c647c6ff54be87c96041ce1fdd0abbdd52a19a9}} \newline
+Artifact SHA-256: {\footnotesize\texttt{0c09168743bfc8ac\allowbreak{}ac8b137a561958e9\allowbreak{}644c1d4160f92400\allowbreak{}b9a4bcec7b18965f}} \newline
+Experiment ID: R14 \newline
+Hardware profile: DGX Spark (NVIDIA GB10), node spark-b87b, Linux 7.0.0-1019-nvidia, aarch64; silicon run \newline
+Receipt ID: 20260928T134432Z-6b38173cd5be \newline
+Run code commit: {\footnotesize\texttt{6b38173cd5bee75cbdb0b132d535ec0f0df38d4c}} \newline
+Public location: \url{https://github.com/aien-dev/omega/blob/2c647c6ff54be87c96041ce1fdd0abbdd52a19a9/evidence/R14/0c09168743bfc8acac8b137a561958e9644c1d4160f92400b9a4bcec7b18965f.json} \\
+\midrule
+R15 preregistered methodology &
+Repository: \texttt{aien-dev/omega} \newline
+Commit: {\footnotesize\texttt{4d47ce7fe85c3dc6bcfa5f5157250194656b3154}} \newline
+Artifact SHA-256: {\footnotesize\texttt{cae61c9bb0a1e48f\allowbreak{}b316e8159a296f50\allowbreak{}3ce155015eec3a02\allowbreak{}c814478f62dfda0a}} \newline
+Experiment ID: R15 \newline
+Hardware profile: [unavailable] \newline
+Receipt ID: [unavailable] \newline
+Public location: \url{https://github.com/aien-dev/omega/blob/4d47ce7fe85c3dc6bcfa5f5157250194656b3154/spec/r15-performance-proof.md} \\
+\midrule
+R15 qualification summary &
+Repository: \texttt{aien-dev/omega} \newline
+Commit: {\footnotesize\texttt{de4f32dee665b45faa7f96cb87015830e2b7f313}} \newline
+Artifact SHA-256: {\footnotesize\texttt{5b3541e9d3f7568e\allowbreak{}5e74c5429e9dc0e5\allowbreak{}ecec297c5626b9f6\allowbreak{}6d01749bbd401172}} \newline
+Experiment ID: R15 \newline
+Hardware profile: [unavailable] \newline
+Receipt ID: [unavailable] \newline
+Public location: \url{https://github.com/aien-dev/omega/blob/de4f32dee665b45faa7f96cb87015830e2b7f313/evidence/R15/ATTEMPT-2-PASS.md} \\
+\midrule
+R15 machine-readable receipt &
+Repository: \texttt{aien-dev/omega} \newline
+Commit: {\footnotesize\texttt{de4f32dee665b45faa7f96cb87015830e2b7f313}} \newline
+Artifact SHA-256: {\footnotesize\texttt{065c688408aa1895\allowbreak{}0f363b52be2357c3\allowbreak{}cb853827592dc71e\allowbreak{}a72b6da181b4569a}} \newline
+Experiment ID: R15 \newline
+Hardware profile: DGX Spark GB10, host spark-b87b, kernel 7.0.0-1019-nvidia; silicon mode \newline
+Receipt ID: 20260929T025735Z-3e9e53be3358-silicon \newline
+Run code commit: {\footnotesize\texttt{3e9e53be3358f6f2849a4f02044a1fd809240cbb}} \newline
+Public location: \url{https://github.com/aien-dev/omega/blob/de4f32dee665b45faa7f96cb87015830e2b7f313/evidence/R15/065c688408aa18950f363b52be2357c3cb853827592dc71ea72b6da181b4569a.json} \\
+\midrule
+TURING Field record definitions &
+Repository: \texttt{aien-dev/omega} \newline
+Commit: {\footnotesize\texttt{cc341abbe203c64506b2acab824f2e58e43f99ab}} \newline
+Artifact SHA-256: {\footnotesize\texttt{62f5eae7c870ce87\allowbreak{}c5b3a20b0d99473c\allowbreak{}c2bc0b5eb617398c\allowbreak{}0555ef08ad22823c}} \newline
+Experiment ID: TURING W0 \newline
+Hardware profile: [unavailable] \newline
+Receipt ID: [unavailable] \newline
+Public location: \url{https://github.com/aien-dev/omega/blob/cc341abbe203c64506b2acab824f2e58e43f99ab/src/turing/field.h} \\
+\midrule
+TURING preregistered experiment &
+Repository: \texttt{aien-dev/omega} \newline
+Commit: {\footnotesize\texttt{cc341abbe203c64506b2acab824f2e58e43f99ab}} \newline
+Artifact SHA-256: {\footnotesize\texttt{a709f74fdadcf5f7\allowbreak{}20a5bfb62c8949e6\allowbreak{}cd439363c676cf25\allowbreak{}526147ef65b08705}} \newline
+Experiment ID: TURING W0 \newline
+Hardware profile: [unavailable] \newline
+Receipt ID: [unavailable] \newline
+Public location: \url{https://github.com/aien-dev/omega/blob/cc341abbe203c64506b2acab824f2e58e43f99ab/docs/turing/TURING_W0_PROPOSAL.md} \\
+\midrule
+TURING reproducibility and tamper tests &
+Repository: \texttt{aien-dev/omega} \newline
+Commit: {\footnotesize\texttt{cc341abbe203c64506b2acab824f2e58e43f99ab}} \newline
+Artifact SHA-256: {\footnotesize\texttt{50c9a8174f19b348\allowbreak{}d101d3dd352d1c99\allowbreak{}25b5fa1a688a44e0\allowbreak{}8572aabfd10af54e}} \newline
+Experiment ID: TURING W0 \newline
+Hardware profile: [unavailable] \newline
+Receipt ID: [unavailable] \newline
+Public location: \url{https://github.com/aien-dev/omega/blob/cc341abbe203c64506b2acab824f2e58e43f99ab/tests/turing/test_turing.c} \\
+\midrule
+Omega empirical cost model &
+Repository: \texttt{aien-dev/omega} \newline
+Commit: {\footnotesize\texttt{8290082331072f45fb0b3a60ca4f7654190fbfb6}} \newline
+Artifact SHA-256: {\footnotesize\texttt{89b9b953099e10eb\allowbreak{}9a3ce01ec109d72c\allowbreak{}18153f67f3f41399\allowbreak{}35c8997e2a6cffc1}} \newline
+Experiment ID: R15 \newline
+Hardware profile: [unavailable] \newline
+Receipt ID: [unavailable] \newline
+Public location: \url{https://github.com/aien-dev/omega/blob/8290082331072f45fb0b3a60ca4f7654190fbfb6/src/runtime/rx_costmodel.h} \\
+\midrule
+FORGE V2 specification &
+Repository: \texttt{aien-dev/physics} \newline
+Commit: {\footnotesize\texttt{2da7b9d8d429abb590c4a12b1bae95eb6fd4461e}} \newline
+Artifact SHA-256: {\footnotesize\texttt{a9c15f8b2dc52810\allowbreak{}6b1690e6147fb578\allowbreak{}3c090648e828397c\allowbreak{}95c007699f6458d3}} \newline
+Experiment ID: [unavailable] \newline
+Hardware profile: [unavailable] \newline
+Receipt ID: [unavailable] \newline
+Public location: \url{https://github.com/aien-dev/physics/blob/2da7b9d8d429abb590c4a12b1bae95eb6fd4461e/docs/FORGE_SUBSTRATE_V2_SPEC.md} \\
+\midrule
+FORGE V2 implementation &
+Repository: \texttt{aien-dev/physics} \newline
+Commit: {\footnotesize\texttt{5969159c383217178b7b524fff13869489c8d799}} \newline
+Artifact SHA-256: [unavailable] \newline
+Experiment ID: [unavailable] \newline
+Hardware profile: [unavailable] \newline
+Receipt ID: [unavailable] \newline
+Public location: \url{https://github.com/aien-dev/physics/tree/5969159c383217178b7b524fff13869489c8d799/forge/v2} \\
+\midrule
+ARGUS ABI &
+Repository: \texttt{aien-dev/aienos} \newline
+Commit: {\footnotesize\texttt{b908e0187c2af7ab5675bafaf5768dc2f877441d}} \newline
+Artifact SHA-256: {\footnotesize\texttt{7368f92744b0d048\allowbreak{}1b64462fa00f873f\allowbreak{}0820e7a612171d9c\allowbreak{}65d476222e952e51}} \newline
+Experiment ID: [unavailable] \newline
+Hardware profile: [unavailable] \newline
+Receipt ID: [unavailable] \newline
+Public location: \url{https://github.com/aien-dev/aienos/blob/b908e0187c2af7ab5675bafaf5768dc2f877441d/native/argus/argus_abi.h} \\
+\midrule
+AIEN architecture &
+Repository: \texttt{aien-dev/aien-architecture} \newline
+Commit: {\footnotesize\texttt{33acd896e5d0cebe18201472b8f6b0b2e91f1b91}} \newline
+Artifact SHA-256: [unavailable] \newline
+Experiment ID: [unavailable] \newline
+Hardware profile: [unavailable] \newline
+Receipt ID: [unavailable] \newline
+Public location: \url{https://github.com/aien-dev/aien-architecture} \\
+\midrule
 \end{longtable}
+
 
 \appendix
 \section{Revision history}
 
-This companion paper was revised through v1.9 on 2026-09-30 before release. The revision record is kept here, outside the body of the paper, for transparency.
+This companion paper was revised through v1.7 on 2026-10-02 before release. The revision record is kept here, outside the body of the paper, for transparency.
 
 \begin{description}
+\item[v1.7] Result-status reconciliation with the formal preprint v1.13: result-status paragraph added beside the TY-1+TY-2 measurement (internally replayed descriptive result; independent blinding not established; corpus not publicly downloadable); ``sealed unseen'' replaced by ``sealed held-out'' with the blinding distinction; cross-reference updated to the formal preprint v1.13.
+\item[v1.5] Terminology and status reconciliation with the formal preprint v1.9: ``first canonical Turing measurement'' replaced throughout by the first profile-bound idealized Turing result, +2,559,679.825~\(T_{\mathrm{ideal}}\) under profile V0; the TY-1+TY-2 run restated as the completed pre-EXP instrument result, with EXP-001's preregistered runs pending and H1 open; cross-reference updated to the formal preprint v1.9.
 \item[v1.1] Cross-reference updated to the formal preprint v1.3; forward pointer to the preregistered experiment ladder EXP-001/002/003 defined there.
 \item[v1.2] Em dashes removed throughout at the author's direction (punctuation only, no content change).
 \item[v1.3] Cross-reference updated to the formal preprint v1.6; first canonical Turing measurement recorded (omega PR 85, profile V0); AEGIS role clarified per the AEGIS ruling; FORGE terminology; narrow-scope statement and specific Turing gain.
-\item[v1.7] Release versioning correction: the public release restores the true revision sequence after the staged website build was erroneously labeled v1.0; versions aligned with the formal preprint v1.7 as a coordinated release. No content change from v1.3.
-\item[v1.8] Figures added: the architecture-separation map, the EXP-001/002/003 experiment ladder, and a schematic of the first canonical measurement. No other content change from v1.7.
-\item[v1.9] Named engagement added: the framing discussion now addresses the English-as-programming-language claim by name (Karpathy 2023; Hansson, Rails World 2026 opening keynote), and the environment discussion names Lightmatter and its Passage photonic interconnect as the hardware case for Turing yield accounting. Figures from v1.8 carried unchanged. No other content change from v1.8.
+\item[v1.4] Epilogue added (TY-1+TY-2 idealized Turing result; EXP-001 as the reference-coder bridge); cross-reference updated to the formal preprint v1.8; live branch URLs replaced with immutable commit permalinks; evidence index rebuilt as a reproducibility manifest (repository, commit, artifact SHA-256, experiment ID, hardware profile, receipt ID); R13/R14 causal records renamed out of the Crumb Doctrine vocabulary with the distinction stated; canonical role vocabulary applied throughout (AIEN proposes, Omega defines semantics and synthesizes candidates, AEGIS authorizes/certifies, independent verifiers verify, PHYSICS/FORGE realizes and measures, hardware executes, evidence records, Cortex learns/retains).
 \end{description}
 
 \begin{thebibliography}{9}
@@ -1511,21 +1583,9 @@ F. Chollet,
 \newblock arXiv:1911.01547, 2019.
 
 \bibitem{zhangliu2025}
-Y. Zhang and Y. Liu,
+Canlin Zhang and Xiuwen Liu,
 \newblock ``A Theory of Machine Understanding via the Minimum Description Length Principle,''
 \newblock arXiv:2504.00395, 2025.
-
-\bibitem{karpathy2023}
-A. Karpathy,
-\newblock ``The hottest new programming language is English,''
-\newblock post on X, January 24, 2023.
-\newblock \url{https://twitter.com/karpathy/status/1617979122625712128}.
-
-\bibitem{hansson2026}
-D.~H. Hansson,
-\newblock ``Rails World 2026 Opening Keynote,''
-\newblock Rails World 2026, Austin, TX, 2026.
-\newblock \url{https://www.youtube.com/watch?v=vDjW_dRyKXY}.
 
 \end{thebibliography}
 
