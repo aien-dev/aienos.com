@@ -1,6 +1,6 @@
 \contentsline {section}{Preface}{2}{section*.1}%
 \contentsline {section}{1. The Turing Brief (public explanation)}{5}{section*.5}%
-\contentsline {section}{2. The Formal Turing Paper v1.13 (scientific specification)}{9}{section*.6}%
+\contentsline {section}{2. The Formal Turing Paper v1.14 (scientific specification)}{9}{section*.6}%
 \contentsline {section}{3. The Emergence Companion v1.7 (engineering history)}{40}{section*.7}%
 \contentsline {section}{4. The Turing Discovery Gap Conjecture rev 9}{69}{section*.8}%
 \contentsline {section}{5. The Stapleton Doctrine v1.5 (philosophy)}{80}{section*.9}%

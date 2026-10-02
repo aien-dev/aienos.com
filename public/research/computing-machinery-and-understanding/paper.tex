@@ -21,7 +21,7 @@
 From the Imitation Game to the Turing:\\
 An Operational Measure of Generalized Explanatory Compression}
 \author{M. Drake Stapleton}
-\date{October 2, 2026\\v1.13 preprint (not peer reviewed)}
+\date{October 2, 2026\\v1.14 preprint (not peer reviewed)}
 
 \begin{document}
 
@@ -224,15 +224,16 @@ Let \(E_{\rm eval}\) be the energy in joules consumed by the evaluation run that
   pt/.style={circle, fill=black, inner sep=2pt},
 ]
 \draw[arr] (0,0) -- (8,0) node[below, font=\small] {$J$: measured joules for the run};
-\draw[arr] (0,0) -- (0,5.5) node[left, rotate=90, font=\small] {$\mathcal{T}$: bits of verified held-out explanatory gain};
+\draw[arr] (0,0) -- (0,5.5);
+\node[rotate=90, font=\small] at (-0.75,2.75) {$\mathcal{T}$: bits of verified held-out explanatory gain};
 \node[pt, label={above right:run B (lean)}] (rb) at (2.5,3.6) {};
 \node[pt, label={above right:run A (expensive)}] (ra) at (6.5,3.6) {};
 \draw[dashed] (0,0) -- (rb);
 \draw[dashed] (0,0) -- (ra);
 \draw[dashed] (rb) -- (2.5,0);
 \draw[dashed] (ra) -- (6.5,0);
-\node[font=\small] at (1.3,1.3) {$Y$ larger};
-\node[font=\small] at (3.9,2.2) {$Y$ smaller};
+\node[font=\small] at (0.95,2.15) {$Y$ larger};
+\node[font=\small] at (3.05,2.3) {$Y$ smaller};
 \node[font=\small, align=left] at (7.2,5.2) {Same $\mathcal{T}$, different $E$:\\yield is the slope\\from the origin};
 \end{tikzpicture}
 \caption{Conceptual illustration of the distinction between Turing gain $\mathcal{T}$ and Turing yield $Y=\mathcal{T}/E$ (Definition~4). Two runs can produce the same net held-out explanatory gain while consuming different measured energy; the yield discriminates between them, which is the environmental hypothesis H5. Conceptual illustration, not empirical data.}
@@ -607,7 +608,7 @@ This paper is solo-authored. AI language models were used as drafting, analysis,
 \appendix
 \section{Revision history}
 
-This preprint was revised through v1.13 on 2026-10-02 before release. The revision record is kept here, outside the body of the paper, for transparency.
+This preprint was revised through v1.14 on 2026-10-02 before release. The revision record is kept here, outside the body of the paper, for transparency.
 
 \begin{description}
 \item[v1.1] Technical revision: unit/outcome distinction, Lemma~1 proof, Lemma~2 rewrite, yield split, seal/blinding distinction, claim softening.
@@ -622,6 +623,7 @@ This preprint was revised through v1.13 on 2026-10-02 before release. The revisi
 \item[v1.10] Review-driven revision: invalid certainties in EXP-002A/B replaced with preregistered null-world comparisons and a false-positive criterion; the H1 prediction--compression bridge restated with lossless round-trip correctness and bounded deviation as the primary requirements (rank correlation demoted to supplementary evidence), with the bridge equation \(\mathcal{T}_{\rm real}-\mathcal{T}_{\rm ideal}=\delta_B-\delta_M\) and a stated rule that a failed coder implementation invalidates the implementation, not the source-coding result; the scientific falsification criterion made concrete with preregistered transfer tasks, expected prediction, simple comparators, and the result that would count against the interpretation; the specific-gain discussion notes the model-cost term's \(1/n\) dependence, so specific gain is not fully sample-size independent; the scoring-tool refusal wording softened to procedural discipline, with replayability from the refit check and non-access from the seed discipline; the future-data commitment rule stated (commit to the collection protocol before the freeze, hash realized data after); TY-1+TY-2 attribution ablations marked pending (operation-only, operation+last-outcome, longer-history-without-operation); the measurement profile split into comparison protocol and execution manifest; energy attribution requires matched workloads, treats a negative interaction term as a signed saving, and bounds the permissible unattributed fraction; TY-1+TY-2 evidence ledger added; repeated unit-name defenses, Turing-Test comparisons, and may-fail declarations reduced.
 \item[v1.11] Evidence ledger completed from the live repository: exact observation count \(n = 5{,}834{,}845\), per-seed gains (8: 745,936.441~T; 9: 707,551.494~T; 10: 746,835.890~T), model lengths (B: 1,156~bits; C: 180,834~bits), held-out predictive losses, Krichevsky--Trofimov smoothing, artifact and profile links with SHA-256 digests, freeze chronology, receipt identifier, and replay command; 10-candidate selection on seed~7 recorded; Table~2 headline leads with the 0.44 per-observation specific gain.
 \item[v1.13] Final reconciliation pass. The exact micro-bit gain is corrected: the receipt's \texttt{t\_microbits} = 2{,}559{,}679{,}824{,}815 micro-bits (2{,}559{,}679.824815~T\(_{\rm ideal}\)), and the headline +2{,}559{,}679.825~T is that value rounded to three decimals. A TY-1+TY-2 result-status paragraph is added: an internally replayed descriptive result under historical profile V0, with independent blinding not established, the corpus not publicly downloadable, and statistical uncertainty, baseline sensitivity, and attribution ablations pending, so the result does not constitute full qualification under the current protocol; this distinguishes an internally reported held-out result from an independently auditable demonstration without establishing contamination. The Candidate~C generalization claim is qualified with the same limits; the categorical ``earns no net credit'' verdict is softened so that the repeated null-world false-positive test carries it; the companion cross-reference is corrected to v1.7; \(G\) (declared shared background) is defined in the Definition~1 symbol list; and ``per unit of explanation cost'' is restated as predictive improvement after accounting for model-description cost (the score is a difference, not a ratio).
+\item[v1.14] Figure repair: Figure~1 (Turing gain vs.\ Turing yield) redrawn --- the y-axis label no longer collides with the axis, and the ``$Y$ larger'' / ``$Y$ smaller'' labels now sit adjacent to their respective slope lines instead of floating ambiguously.
 \end{description}
 
 \begin{thebibliography}{99}
