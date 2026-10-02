@@ -17,6 +17,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700;800&amp;display=swap">
 <link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/site-nav.css">
 <style>
 .research-wrap{max-width:880px;margin:0 auto;padding:48px 24px 96px}
 .kicker{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;color:var(--accent-blue);text-transform:uppercase;margin-bottom:16px}
@@ -44,29 +45,44 @@
 .tenets li strong{color:var(--text-primary)}
 .chain{font-family:var(--font-mono);font-size:14px;color:var(--text-primary);line-height:1.9;border:1px solid var(--border-subtle);border-radius:10px;background:var(--bg-card);padding:16px 18px;margin:0 0 18px}
 pre.cite{background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:10px;padding:18px;font-family:var(--font-mono);font-size:13px;color:var(--text-secondary);overflow-x:auto;line-height:1.6}
-.topnav{border-bottom:1px solid var(--border-subtle);background:rgba(8,9,12,.85);backdrop-filter:blur(12px);position:sticky;top:0;z-index:50;padding:14px 0}
-.topnav .inner{max-width:1180px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.topnav a.brand{font-weight:700;color:var(--text-primary);text-decoration:none;font-size:17px;letter-spacing:-.02em}
-.topnav nav{display:flex;gap:22px;font-size:14px}
-.topnav nav a{color:var(--text-secondary);text-decoration:none}
-.topnav nav a.active{color:var(--accent-blue)}
 .footer-note{margin-top:56px;padding-top:24px;border-top:1px solid var(--border-subtle);font-size:13px;color:var(--text-muted);line-height:1.6}
 .footer-note a{color:var(--accent-blue);text-decoration:none}
 </style>
 </head>
 <body>
-<div class="topnav"><div class="inner">
-<a class="brand" href="/">AIEN OS</a>
-<nav><a href="/">Home</a><a href="/blog">Blog</a><a href="/research" class="active">Research</a><a href="https://github.com/aien-dev" target="_blank" rel="noopener">GitHub</a></nav>
-</div></div>
+<!-- Shared six-section site header (NARR-NAV). Keep in sync with crates/site-builder/src/components/navbar.rs; a test checks the six links. -->
+<header class="aien-header">
+  <div class="aien-header-inner">
+    <a class="aien-brand" href="/" aria-label="AIENOS home">
+      <span class="aien-brand-mark" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg></span>
+      <span class="aien-brand-copy"><span class="aien-brand-name">AIENOS</span><span class="aien-brand-tag">PERSISTENT MACHINE INTELLIGENCE</span></span>
+    </a>
+    <nav class="aien-nav" aria-label="Primary navigation">
+      <ul class="aien-nav-primary">
+        <li><a class="aien-nav-link" href="/machine/">The Machine</a></li>
+        <li><a class="aien-nav-link" href="/turing/">The Turing</a></li>
+        <li><a class="aien-nav-link" href="/experiments/">Experiments</a></li>
+        <li><a class="aien-nav-link" href="/discovery/">Scientific Discovery</a></li>
+        <li><a class="aien-nav-link" href="/evidence/">Evidence</a></li>
+        <li><a class="aien-nav-link" href="/philosophy/">Philosophy</a></li>
+      </ul>
+      <ul class="aien-nav-secondary" aria-label="More">
+<li><a class="aien-nav-minor" href="/progress/">Progress</a></li>
+        <li><a class="aien-nav-minor" href="/blog">Blog</a></li>
+        <li><a class="aien-nav-minor" href="/#waitlist">Waitlist</a></li>
+        <li><a class="aien-nav-minor" href="https://github.com/aien-dev">GitHub</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
 <main class="research-wrap">
 <div class="kicker">AIEN Research &middot; Position Paper</div>
 <h1 class="paper-title">The Stapleton Doctrine</h1>
 <p class="paper-sub">A Personal Philosophy of AI Architecture and Programming</p>
-<div class="byline"><strong>M. Drake Stapleton</strong> &middot; AIEN Project &middot; September 30, 2026</div>
+<div class="byline"><strong>M. Drake Stapleton</strong> &middot; September 30, 2026</div>
 <div class="version-row">
-<span class="badge">v1.1</span>
-<span class="badge">9 pages</span>
+<span class="badge">v1.5</span>
+<span class="badge">10 pages</span>
 <span class="badge preprint">Not peer reviewed</span>
 </div>
 <div class="actions">
@@ -178,11 +194,11 @@ pre.cite{background:var(--bg-surface);border:1px solid var(--border-subtle);bord
 <div class="section">
 <h2>Research artifacts</h2>
 <div class="artifact">
-<div><div class="name">Doctrine paper (PDF)</div><div class="desc">9 pages. The position paper: the disagreement with Hansson on the record, the verified program as the universal artifact, the verification loop, the two futures, the ladder, property over rent, and the doctrine in tenets.</div><div class="hash">SHA-256: 4bf6c0f2f25febbfe250b893a52b0a7cc3057addf7a97c78b31b3d7718b3122d</div></div>
+<div><div class="name">Doctrine paper (PDF)</div><div class="desc">10 pages. The position paper: the disagreement with Hansson on the record, the verified program as the universal artifact, the verification loop, the two futures, the ladder, property over rent, and the doctrine in tenets.</div><div class="hash">SHA-256: 2923f5ef59c85028bea66957ca32c231c3b985a2381462c16d6ff0f01710ff28</div></div>
 <a href="./paper.pdf">paper.pdf</a>
 </div>
 <div class="artifact">
-<div><div class="name">LaTeX source</div><div class="desc">Complete compilable source for the doctrine paper.</div><div class="hash">SHA-256: 4ac3dbaec83dbfb75203da67e635afb2871e7e7b6777f1dbb2a9c9a92526eb3a</div></div>
+<div><div class="name">LaTeX source</div><div class="desc">Complete compilable source for the doctrine paper.</div><div class="hash">SHA-256: edac1b816d658f3bbe36df9ce07ea2d1cf3ac35484aea2c85ddf96dccbd5757</div></div>
 <a href="./paper.tex">paper.tex</a>
 </div>
 <div class="artifact">
@@ -190,11 +206,11 @@ pre.cite{background:var(--bg-surface);border:1px solid var(--border-subtle);bord
 <a href="./SHA256SUMS">SHA256SUMS</a>
 </div>
 <div class="artifact">
-<div><div class="name">Formal paper</div><div class="desc">&ldquo;From the Imitation Game to the Turing&rdquo; (Version 1.9): the reference document for the Turing, the unit that measures the architecture this doctrine governs.</div></div>
+<div><div class="name">Formal paper</div><div class="desc">&ldquo;From the Imitation Game to the Turing&rdquo; (Version 1.13): the reference document for the Turing, the unit that measures the architecture this doctrine governs.</div></div>
 <a href="/research/computing-machinery-and-understanding">formal paper page</a>
 </div>
 <div class="artifact">
-<div><div class="name">Companion paper</div><div class="desc">&ldquo;The Turing as a Measure Emerging from AIEN&rdquo; (Version 1.9): the engineering history of AIEN, Omega, and the sovereign-lineage architecture.</div></div>
+<div><div class="name">Companion paper</div><div class="desc">&ldquo;The Turing as a Measure Emerging from AIEN&rdquo; (Version 1.13): the engineering history of AIEN, Omega, and the sovereign-lineage architecture.</div></div>
 <a href="/research/computing-machinery-and-understanding-emergence">companion page</a>
 </div>
 </div>
@@ -208,14 +224,14 @@ pre.cite{background:var(--bg-surface);border:1px solid var(--border-subtle);bord
            and Programming},
   year = {2026},
   month = {September},
-  version = {1.1},
+  version = {1.5},
   note = {Position paper, not peer reviewed},
   url = {https://aienos.com/research/the-stapleton-doctrine}
 }</pre>
 </div>
 
 <div class="footer-note">
-This is a position paper and has not been peer reviewed. It states the philosophy behind AIEN, Omega, FORGE, AEGIS, and the Turing, a unit of net held-out explanatory compression; the formal measurement work lives in the <a href="/research/computing-machinery-and-understanding">formal paper</a> (Version 1.9). Questions: <a href="https://github.com/aien-dev" target="_blank" rel="noopener">AIEN on GitHub</a>.
+This is a position paper and has not been peer reviewed. It states the philosophy behind AIEN, Omega, FORGE, AEGIS, and the Turing, a unit of net held-out explanatory compression; the formal measurement work lives in the <a href="/research/computing-machinery-and-understanding">formal paper</a> (Version 1.13). Questions: <a href="https://github.com/aien-dev" target="_blank" rel="noopener">AIEN on GitHub</a>.
 </div>
 </main>
 </body>

@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0.0",
+  "name": ".github/workflows",
+  "layer": "website",
+  "purpose": "Test, collect public project metrics and deploy the GitHub Pages site",
+  "above": {
+    "name": ".github",
+    "path": ".."
+  },
+  "invariants": [
+    "Never commit .crumb.local or credentials.",
+    "Report retained public repository evidence; do not equate code size, test files or CI runs with verified capability."
+  ]
+}

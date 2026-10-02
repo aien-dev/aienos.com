@@ -11,16 +11,22 @@
 
 \title{The Stapleton Doctrine\\[0.4em]\large A Personal Philosophy of AI
 Architecture and Programming}
-\author{M. Drake Stapleton\\ \small AIEN Project}
-\date{September 30, 2026\\ \small Version 1.1}
+\author{M. Drake Stapleton}
+\date{October 2, 2026\\ \small Version 1.5}
 
 \begin{document}
 \maketitle
 
 \begin{center}
 \small English is the conversation. The verified program is the thing that
-was said. This paper states why the universal language of machines must be
+was said. I state here why the universal language of machines must be
 built, verified, and owned, not rented.
+\end{center}
+
+\begin{center}
+\small \textit{A philosophical essay and manifesto, distinct from the
+measurement papers of this project. This one argues a position; those
+report measurements.}
 \end{center}
 
 \begin{abstract}
@@ -28,13 +34,13 @@ On September 23, 2026, at Rails World 2026 in Austin before an audience
 of over a thousand developers, David Heinemeier Hansson, the creator of
 Ruby on Rails, retired as a professional programmer and declared:
 ``English is a better programming language than Ruby''\cite{dhh-keynote}.
-This paper takes that claim as stated and rejects it. English is
+I take that claim as stated and reject it. English is
 ambiguous; two agents can read one sentence two different ways; and
 there is no way to prove a sentence means what you think it means.
-The universal thing in this author's architecture is not a spoken
+The universal thing in my architecture is not a spoken
 language at all. It is the verified program: a small, checkable
 artifact, with a measured receipt, that any machine can recheck
-without trusting the machine that wrote it. This paper sets down the
+without trusting the machine that wrote it. I set down here the
 doctrine behind that architecture: how meaning is supposed to flow
 from suggestion to verification to evidence, how the software stack is
 to be stripped layer by layer down to a foundation the author owns
@@ -59,7 +65,7 @@ the machine now understands human language directly; therefore the
 translation layer disappears, and whatever sits underneath can be a
 black box that nobody ever reads.
 
-This paper agrees with one half of that argument and rejects the other.
+I agree with one half of that argument and reject the other.
 
 The half that is right: talking \emph{is} becoming the main interface.
 Humans should not have to hold a compiler in their heads. A person who
@@ -73,6 +79,20 @@ English means, then whoever owns the model owns the meaning of your
 instructions. That is not the end of the meter. It is the meter moving up one layer,
 out of sight, where you can no longer measure it.
 
+I owe the other side one honesty before I go on. Preferring English as
+the interface does not by itself force perpetual dependence on a
+vendor. A model running on your own machine, and generated artifacts
+you keep and can inspect, break the binary: the interface can be
+English while the interpreter and the artifacts are yours. I reject
+the rented form of the interpreter picture, not every arrangement that
+involves talking. What I claim is narrower, and I state it as a design
+preference under explicit threat models rather than as the only
+coherent alternative. The threats are three, and I name them: who can
+cut you off, who sets the price, who holds the off switch. If your
+arrangement answers all three to your satisfaction, renting is
+rational, and nothing in this paper disputes it. Mine does not, so I
+build to own.
+
 \section{The Disagreement, On the Record}
 
 The position answered in this paper belongs to a named person and has
@@ -85,12 +105,12 @@ verbose Rust he states outright he does not want to look at. In that
 context he said the sentence this paper answers: ``English is a better
 programming language than Ruby''\cite{dhh-keynote}. He evaluates the
 agent-written code ``as a black box ... as any business owner in
-history''\cite{dhh-notes}, and he names the future role the
+history''\cite{dhh-keynote}, and he names the future role the
 ``professional maker of things''\cite{dhh-keynote}.
 
-The doctrine grants the generous half of this position. Talking is
+I grant the generous half of this position. Talking is
 becoming the interface, and Hansson is right that a careful person can
-now make real things through agents. It rejects the rest. A black box
+now make real things through agents. I reject the rest. A black box
 you own and may open is one thing; a black box whose contents live
 below the hand of a machine you rent, and whose meaning is settled by
 interpretation, is another. The difference between the two is the
@@ -99,38 +119,44 @@ whole argument of this paper.
 There is a precedent for answering claims by name. Alan Turing, in
 ``Computing Machinery and Intelligence'' (1950), takes the objection
 he attributes to Ada Lovelace, labels it ``Lady Lovelace's
-Objection,'' and answers it by name. This paper follows that courtesy:
+Objection,'' and answers it by name. I follow that courtesy:
 the claim gets its speaker's name, its date, and its exact text, and
 is then met on its merits\cite{turing50}.
 
 The claim also has a history older than the current argument, and the
-history is instructive. English as a programming language is not a new
-idea. COBOL, designed in 1959 under the CODASYL committee at Grace
-Hopper's impetus, was made to read like English on purpose, so that
-business managers could follow their own programs without thinking in
-the machine's terms\cite{cobol1959}. It ran, at mainframe scale, the
-experiment the industry now proposes to re-run: prose itself as the
-language of machines. The verdict was handed down within a generation,
-and it has not been reversed. Edsger Dijkstra, the man who spent his
+history is instructive, but I will not overclaim it. English-like
+syntax as a design goal is not a new idea. COBOL, designed in 1959
+under the CODASYL committee at Grace Hopper's impetus, was made to
+read like English on purpose, so that business managers could follow
+their own programs without thinking in the machine's
+terms\cite{cobol1959}. But COBOL's English-likeness is a fixed
+vocabulary and a fixed grammar; it is not unrestricted natural
+language, and no statistical model interprets it. It tested the
+accessibility of English-like syntax, not the proposal on the table
+now. The verdict handed down was a design judgment, not an
+experiment. Edsger Dijkstra, the man who spent his
 career arguing that correctness must be built in rather than wished
-in, gave the experiment its sentence: ``The use of COBOL cripples the
-mind''\cite{dijkstra75}. In the same body of work he warns that
+in, wrote of COBOL that ``The use of COBOL cripples the
+mind''\cite{dijkstra75}. I quote him as a critic of a language design,
+not as evidence about natural-language programming, which his line
+does not address. In the same body of work he warns that
 ``program testing can be used to show the presence of bugs, but never
 to show their absence''\cite{dijkstra70}, and supplies the line that
 belongs on any wall of this debate: ``The purpose of abstracting is
 not to be vague, but to create a new semantic level in which one can
 be absolutely precise''\cite{dijkstra72}. English is precisely vague,
 endlessly interpretable, and semantic levels built on it inherit that
-property. Hopper's experiment served its cause and proved the point
-anyway: legibility is not rigor. The doctrine keeps the accessibility
-and puts the rigor where it belongs, in the verified artifact.
+property. What the COBOL episode does teach, and what I keep, is
+smaller than a verdict: legibility is not rigor. Hopper's aim served
+its cause; the rigor still has to live somewhere, and I put it in the
+verified artifact.
 
 \section{The Claim}
 
 \textit{English is the conversation. The program is what was actually
 said.}
 
-The doctrine's central claim is simple. The candidate for a universal
+My central claim is simple. The candidate for a universal
 language of machines is not English, and it is not any language a
 human already speaks. It is the verified program. A program counts as
 a program here only if it passes every check thrown at it and carries
@@ -138,7 +164,9 @@ the receipt to prove it.
 
 ``Universal'' does not mean everyone can read it. It means no one has
 to take anyone's word for it. A sentence can be argued with. A receipt
-cannot. If the artifact is checkable, any machine on earth can verify
+makes its evidence inspectable and recheckable. Its specification,
+verifier, assumptions, and applicability remain open to challenge.
+If the artifact is checkable, any machine on earth can verify
 it independently. That property, and not human readability, is what
 makes an artifact universal.
 
@@ -147,9 +175,9 @@ The smallest such artifact in this architecture is called a
 checked by an independent verifier, measured for what it gains and
 what it costs, and filed with evidence. Programs are built the way
 cities are built, from the curb upward; each block laid is proven
-before the next one rests on it. This paper is the philosophy; the
+before the next one rests on it. I offer this paper as the philosophy; the
 engineering rules for crumbs live in the sovereign-lineage doctrine
-that governs this author's repositories.
+that governs my repositories.
 
 Note what this turns down. It turns down ``the code doesn't matter
 because agents write it.'' In this doctrine, the code is the only
@@ -162,17 +190,18 @@ Nothing in this architecture is believed on arrival. Everything passes
 through the same loop (Figure~\ref{fig:loop}):
 
 \begin{quote}
-\textbf{Weights suggest. Programs explain. Omega verifies. Physics
-authorizes. Evidence teaches.}
+\textbf{Weights suggest. Programs explain. Omega defines and
+synthesizes. Physics realizes and measures. Evidence teaches.}
 \end{quote}
 
 A model's weights propose a candidate. The candidate is restated as an
 explicit program, the crumb, which \emph{explains} the proposal in the
 sense the loop demands: a procedure a machine can run and a checker
-can examine. Omega, the definitional layer, compiles the claim into
-something with crisp boundaries. Physics gets the last vote: only
-measured execution, watts drawn, bits observed, outcomes counted,
-counts as real. And evidence teaches, because the outcome of the
+can examine. Omega, the definitional layer, defines the semantics of
+the claim and synthesizes it into something with crisp boundaries.
+PHYSICS realizes the claim in measured execution: watts drawn, bits
+observed, outcomes counted; only what is measured counts as real. And
+evidence teaches, because the outcome of the
 measurement feeds back into the weights, so every loop ought to begin
 with a better suggestion than the last.
 
@@ -186,9 +215,9 @@ with a better suggestion than the last.
 \node[lnode, draw=green!55!black] (P) at (18:3.3) {\textbf{PROGRAMS}\\[0.3ex]
   \normalsize \textsl{explain}\\[0.3ex]\tiny crumbs, drafted and checked};
 \node[lnode, draw=purple!60!black] (O) at (-54:3.3) {\textbf{OMEGA}\\[0.3ex]
-  \normalsize \textsl{verifies}\\[0.3ex]\tiny meaning made crisp};
+  \normalsize \textsl{defines, synthesizes}\\[0.3ex]\tiny meaning made crisp};
 \node[lnode, draw=blue!60!black] (H) at (-126:3.3) {\textbf{PHYSICS}\\[0.3ex]
-  \normalsize \textsl{authorizes}\\[0.3ex]\tiny measured execution only};
+  \normalsize \textsl{realizes, measures}\\[0.3ex]\tiny measured execution only};
 \node[lnode, draw=orange!70!black] (E) at (162:3.3) {\textbf{EVIDENCE}\\[0.3ex]
   \normalsize \textsl{teaches}\\[0.3ex]\tiny receipt feeds back};
 \tikzstyle{larrow}=[-{Stealth[length=3mm]}, line width=1.3pt, black!70]
@@ -199,7 +228,8 @@ with a better suggestion than the last.
 \draw[larrow] (E) to [bend left=10] (W);
 \end{tikzpicture}
 \caption{The verification loop. Weights suggest, programs explain,
-Omega verifies, Physics authorizes, evidence teaches. Evidence
+Omega defines and synthesizes, Physics realizes and measures,
+evidence teaches. Evidence
 returns to the weights, so every pass through the loop can begin with
 a better suggestion than the last.}
 \label{fig:loop}
@@ -208,18 +238,23 @@ a better suggestion than the last.}
 A word about the first two steps of the loop. Writing in 1843, Ada
 Lovelace held of Babbage's Engine that ``The Analytical Engine has no
 pretensions whatever to \emph{originate} anything. It can do whatever
-we know how to order it to perform''\cite{lovelace43}. The doctrine
-extends her line one step without breaking it: a large model can order
+we know how to order it to perform''\cite{lovelace43}. I extend
+her line one step without breaking it: a large model can order
 its own suggestions, but the suggestions still originate nothing.
 They become something only when a program embodies them, the witness
-verifies them, and physics authorizes them. Suggesting and ruling are
+verifies them, and physics realizes them. Suggesting and ruling are
 kept apart for the same reason. Lovelace's doubt stands, answered now
 by proof.
 
 A word about the verifying seat. In the working machine it is held by
-AEGIS. He verifies what the agents generate, including every crumb,
-and leaves everything as he found it: he changes nothing, decides no
-policy, and is not part of the generation system. A checker that
+independent verifiers. The witness verifies what the agents generate,
+including every crumb, and leaves everything as he found it: he
+changes nothing and is not part of the generation system. A word about
+the authorizing seat. In the working machine it is held by AEGIS. He
+certifies what the verifiers have checked, according to policy and the
+verification evidence, and leaves everything as he found it: he
+changes nothing, decides no policy, and is not part of the generation
+system. A checker that
 rewrites the checked work is a second author, not a witness. The
 doctrine insists on a witness.
 
@@ -228,7 +263,7 @@ something else, something verifiable, is what is actually said. The
 loop is also why this doctrine consumes less trust than the
 alternatives: each stage can be re-run independently, on your own
 machine, with your own eyes on the numbers. Trust is a tax. The loop
-is how you stop paying it.
+is how you stop paying it to someone else.
 
 \section{Two Futures}
 
@@ -243,6 +278,13 @@ it; nobody needs to. But somebody pays for it, per token, forever,
 and somebody else decides what the words meant. The interpreter that
 matters is rented, and interpretation is the thing you can never
 stop buying.
+
+This picture is the rented form of that future, and I paint it as the
+rented form. I grant the owned form: the model runs locally, the
+artifacts are filed where you can inspect them, and English stays the
+interface. Nothing in that arrangement rents you the meaning of your
+instructions. The danger is not English as the interface; it is
+dependence you cannot exit.
 
 In the second future, the conversation stays at the top, where humans
 are good, and verification descends into the machine, where proof
@@ -266,7 +308,7 @@ in the open. This future ends when there is nothing left to rent.
 \node[fh] (rh) at (3.4,0) {\color{green!55!black}THE OWNED FOUNDATION\\\tiny (THIS DOCTRINE)};
 \node[fb, draw=green!55!black, below=of rh] (r1) {\textbf{You talk}\\\tiny plain conversation};
 \node[fb, draw=green!55!black, below=of r1] (r2) {\textbf{Weights suggest; a crumb is drafted}\\\tiny the proposal made explicit};
-\node[fb, draw=green!55!black, below=of r2] (r3) {\textbf{Aegis verifies; physics authorizes}\\\tiny nothing runs unproven};
+\node[fb, draw=green!55!black, below=of r2] (r3) {\textbf{Verifiers verify; Aegis authorizes; physics realizes}\\\tiny each layer files its receipt; receipts differ in weight};
 \node[fb, draw=green!55!black, below=of r3] (r4) {\textbf{Evidence teaches; the receipt is filed}\\\tiny gain measured, not promised};
 \node[fe, text=green!55!black, below=of r4] (re) {ENDS: NOTHING LEFT TO RENT};
 \tikzstyle{farrow}=[-{Stealth[length=2.5mm]}, line width=1pt]
@@ -288,19 +330,20 @@ it.}
 The left picture is sold as freedom, ``everyone can program now.''
 Hansson is sincere and consistent about the terms: he admits in the
 same breath that English is vaguer and less deterministic than the tool
-he gave up, and calls it a trade rather than a discount\cite{dhh-sloptv}.
-The doctrine reads it as the oldest trick in the landlord's book:
-declare the foundation irrelevant, own the foundation, and collect
-rent on every word. The right picture asks for more work, but every
+he gave up, and calls it a trade rather than a discount\cite{dhh-keynote}.
+The terms of the trade are the issue, not the sincerity of the man who
+stated them: the foundation is declared irrelevant while it stays under
+someone else's control, and the interpreter decides what your words
+meant, per token, forever. The right picture asks for more work, but every
 bit of that work buys something: one more artifact you can prove,
 one more layer no one can take away. Which of the two pictures is
-freedom depends on where you stand: the doctrine stands at the bottom,
+freedom depends on where you stand: I stand at the bottom,
 with the receipt.
 
 \section{The Ladder}
 
-The doctrine is not content with verifying the crown of the stack. It
-wants the foundation. The machine a verified artifact runs on has to
+I am not content with verifying the crown of the stack. I
+want the foundation. The machine a verified artifact runs on has to
 be ownable below the artifact, or verification is theater. So the
 stack is to be stripped layer by layer, down to a foundation no one
 else can rename, reprice, or revoke. Figure~\ref{fig:ladder} shows
@@ -317,7 +360,7 @@ direction.
 \node[lr, draw=gray!60, below=of s0] (s1) {\textbf{RUST}\\
   \tiny compiled. owner written. the current workhorse};
 \node[lr, draw=gray!60, below=of s1] (s2) {\textbf{C}\\
-  \tiny minimal, exact, still verified};
+  \tiny minimal, exact, auditable base};
 \node[lr, draw=green!55!black, very thick, fill=green!7, below=of s2] (s3) {\textbf{MY LANGUAGE}\\
   \tiny built, read, and owned end to end};
 \node[font=\scriptsize\bfseries, text=red!60!black, left=0.35cm of s0] {OUT};
@@ -349,18 +392,23 @@ Hoare's line is the defense for doing it anyway. Difficulty is the
 feature, because simplicity is what proof can see.
 
 The ladder is not an aspiration; it is a history. The whole project
-started when this author bounced off someone else's language, took
-their layer out, and put his own in. That substitution is how AIEN
+started when I bounced off someone else's language, took
+their layer out, and put my own in. That substitution is how AIEN
 began. What follows is the same move repeated on schedule: strip the
 hosted pieces, move down through the migration steps, and never stop
 before the bedrock.
 
-Two clarifications matter. First, C is a step on this ladder, not the
+Two clarifications matter, and the first needs a third. First, C is a step on this ladder, not the
 destination. It narrows the foundation to a minimal, exact base, but
-the doctrine does not end in C; it ends when the language at the
+my doctrine does not end in C; it ends when the language at the
 bottom is mine all the way down. Second, the stripped layers are not
 denied, they are replaced only when a proven replacement stands under
 the load. The ladder descends on evidence, not on declarations.
+Third, I do not claim that C is safer than Rust; the move down
+purchases no safety. What it purchases is a smaller base with fewer
+dependencies, chosen for auditability under the threat models I named:
+fewer parties who can cut me off, fewer hands on the price. Safety is
+a property of verification, not of the rung.
 And a word about what counts as evidence along the way. Dijkstra's
 warning from 1970 holds: ``Program testing can be used to show the
 presence of bugs, but never to show their absence''\cite{dijkstra70}.
@@ -377,15 +425,20 @@ Figure~\ref{fig:machine} renders the machine in full. Read top to
 bottom, it is a chain of custody for meaning: thought is proposed,
 definition is made, verification is performed by an independent
 witness, and what is verified is what the silicon executes. Nothing
-runs that did not pass every layer, and evidence from below feeds
-back up, because the loop must teach or it is decoration.
+runs without the receipt of every layer it passed, and evidence from
+below feeds back up, because the loop must teach or it is decoration.
+The receipts are not all one kind. A proof-backed receipt says the
+argument closes. A rerunnable test or measurement receipt says the run
+was observed and can be repeated, and it carries the epistemic limits
+of a test: it shows what happened, not what could not happen. Both
+are filed. They are not weighed the same.
 
 \begin{figure}[p]
 \centering
 \includegraphics[height=0.88\textheight]{sovereign-machine}
 \caption{The Sovereign Machine: the pipeline that proposes, defines,
-verifies, realizes, and executes, with evidence flowing back up to
-teach the mind. No tokens, no meters, no landlords.}
+verifies, authorizes, realizes, and executes, with evidence flowing
+back up to teach the mind. No tokens, no meters, no landlords.}
 \label{fig:machine}
 \end{figure}
 
@@ -393,7 +446,7 @@ Richard Stallman stated the underlying rule a generation ago, about
 the software on your own disk: ``The users (both individually and
 collectively) control the program and what it does for them. When
 users don't control the program, the program controls the
-users''\cite{stallman}. The doctrine applies the same rule one layer
+users''\cite{stallman}. I apply the same rule one layer
 up, to the model that interprets your English. If the interpreter is
 someone else's program under someone else's control, then it is no
 metaphor to say the interpretation is not yours either. Hansson
@@ -407,7 +460,7 @@ means: the artifact on your machine can be re-run, re-measured, and
 re-verified by you, tomorrow, without a subscription and without
 anyone's permission. Rent means someone else's black box deciding
 what your instructions meant today, and charging you for the next
-round. The doctrine is a plain choice of property over rent, stated
+round. I choose property over rent, and state the choice
 in an architecture rather than in a slogan.
 
 \section{The Doctrine in Tenets}
@@ -429,15 +482,18 @@ The Stapleton Doctrine, stated whole:
 
 \item \textbf{Meaning descends the loop.}
   Suggestion, explicit program, clarified definition, measured
-  execution, filed evidence. What arrives at the bottom is the truth
-  of what was said at the top.
+  execution, filed evidence. What arrives at the bottom is what the
+  receipt can support: empirical adequacy under the receipt. The
+  best-compressing model need not be the true one.
 
-\item \textbf{The witness verifies and touches nothing.}
-  AEGIS checks what agents generate and changes nothing, decides no
-  policy, and belongs to no part of the generation system. Without a
+\item \textbf{The witness verifies; AEGIS authorizes.}
+  Independent verifiers check what agents generate and change nothing,
+  and belong to no part of the generation system. AEGIS certifies what
+  the verifiers have checked, according to policy and the verification
+  evidence. Without a
   separate witness, verification is just more authorship.
 
-\item \textbf{Physics is the final authorizer.}
+\item \textbf{PHYSICS realizes and measures.}
   If it was not measured, it was not done. Documentation, claims,
   and architecture diagrams never outrank an execution receipt.
 
@@ -446,7 +502,7 @@ The Stapleton Doctrine, stated whole:
   steps. The foundation is not finished until it is owned end to end
   in the author's own language.
 
-\item \textbf{Nothing is deserved until it is replaced.}
+\item \textbf{Nothing is removed until it is replaced.}
   A layer is removed only when a proven replacement stands under the
   load. The ladder descends on evidence, not on declarations.
 
@@ -459,28 +515,35 @@ The Stapleton Doctrine, stated whole:
   Property is built before it is productized.
 \end{enumerate}
 
-The Stapleton Doctrine is the philosophy behind AIEN, Omega, FORGE,
+The Stapleton Doctrine is my philosophy behind AIEN, Omega, FORGE,
 AEGIS, and the Turing unit that measures their progress. English is
 allowed to be the conversation forever, but the machine will never
 be told that English is the language, because a language you cannot
 verify is a language you cannot own. What is said is a program;
 what is kept is the proof.
 
+\section*{Revision History}
+
+\begin{description}
+\item[v1.5 (October 2, 2026).] Reconciliation pass: receipt-challenge
+language made consistent across the collection (``A receipt makes its
+evidence inspectable and recheckable''); DHH citations consolidated
+on the primary keynote source. Version set to v1.5.
+\item[v1.4 (October 2, 2026).] Reconciliation pass. The receipt
+formulation was corrected: a receipt makes its evidence inspectable
+and recheckable, and its specification, verifier, assumptions, and
+applicability remain open to challenge. A trust passage was aligned
+to the same standard. Version set to v1.4.
+\end{description}
+
 \begin{thebibliography}{9}
 
-\bibitem{dhh-keynote} David Heinemeier Hansson, opening keynote at Rails
-World 2026, Austin, TX, September 23, 2026. Reported in
-``Ruby on Rails creator DHH says he's done writing code by hand,''
-The Decoder, September 2026.
-\url{https://the-decoder.com/ruby-on-rails-creator-dhh-says-hes-done-writing-code-by-hand/}
-
-\bibitem{dhh-sloptv} ``Ruby on Rails creator has retired from writing code
-by hand,'' Sloptv News, September 2026.
-\url{https://sloptvnews.com/dhh-rails-world-2026-keynote-hot-takes/}
-
-\bibitem{dhh-notes} ``Rails World 2026 Opening Keynote: Media Summary,''
-keynote notes on GitHub.
-\url{https://gist.github.com/cristoslc/5f11ff7d49a3c08a7042b8a8354a3b36}
+\bibitem{dhh-keynote} David Heinemeier Hansson, opening keynote,
+Rails World 2026, Austin, TX, September 23, 2026. The quoted passage,
+``English is a better programming language than Ruby,'' occurs in the
+segment on English as the programming language, beginning at
+approximately 38:06.
+\url{https://www.youtube.com/watch?v=vDjW_dRyKXY}
 
 \bibitem{turing50} Alan M.\@ Turing, ``Computing Machinery and
 Intelligence,'' Mind {\bf 59}(236), October 1950, 433-460.

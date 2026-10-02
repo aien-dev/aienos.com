@@ -1,0 +1,100 @@
+
+    #aien-growth-observatory {color:var(--foreground);position:relative;}
+    #aien-growth-observatory .ag-mast {display:flex;justify-content:space-between;align-items:start;gap:24px;padding-top:8px;margin-bottom:24px;}
+    #aien-growth-observatory .ag-kicker {letter-spacing:.15em;text-transform:uppercase;color:var(--muted-foreground);font-weight:500;}
+    #aien-growth-observatory h1 {margin:8px 0 12px;}
+    #aien-growth-observatory h2 {margin:0;}
+    #aien-growth-observatory .ag-scope {color:var(--muted-foreground);margin:0;}
+    #aien-growth-observatory .ag-stats {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;margin:28px 0 22px;}
+    #aien-growth-observatory .ag-stat h2 {margin:4px 0;}
+    #aien-growth-observatory .ag-stat span {display:block;}
+    #aien-growth-observatory .ag-nav {margin:18px 0 12px;}
+    #aien-growth-observatory .ag-date {display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:8px;}
+    #aien-growth-observatory .ag-legends {display:flex;flex-wrap:wrap;gap:10px 20px;margin:10px 0;}
+    #aien-growth-observatory .ag-legend {background:none;border:0;padding:0;color:var(--foreground);font:inherit;display:inline-flex;gap:8px;align-items:center;}
+    #aien-growth-observatory .ag-legend[aria-pressed="false"] {opacity:.45;}
+    #aien-growth-observatory .ag-swatch {width:18px;height:3px;display:inline-block;}
+    #aien-growth-observatory .ag-plot {min-width:0;position:relative;}
+    #aien-growth-observatory .ag-plot svg {display:block;overflow:visible;width:100%;}
+    #aien-growth-observatory .ag-chart text {fill:var(--foreground);font-size:12px;font-weight:400;}
+    #aien-growth-observatory .ag-chart .domain {display:none;}
+    #aien-growth-observatory .ag-chart .tick line {stroke:var(--border);}
+    #aien-growth-observatory .ag-chart .axis-title {fill:var(--muted-foreground);}
+    #aien-growth-observatory .ag-section {margin-top:34px;}
+    #aien-growth-observatory .ag-section-head {display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:10px;}
+    #aien-growth-observatory .ag-pair {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:30px;}
+    #aien-growth-observatory .ag-pair h3 {margin:0 0 6px;}
+    #aien-growth-observatory .ag-caption {color:var(--muted-foreground);margin:8px 0 0;}
+    #aien-growth-observatory .ag-tooltip {position:absolute;display:none;z-index:10;pointer-events:none;max-width:280px;}
+    #aien-growth-observatory .ag-tooltip-row {display:flex;justify-content:space-between;gap:22px;}
+    #aien-growth-observatory .ag-evidence {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;margin:20px 0 0;}
+    #aien-growth-observatory .ag-evidence h3 {margin:6px 0;}
+    #aien-growth-observatory .ag-evidence p {margin:4px 0;}
+    #aien-growth-observatory .ag-events {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px;row-gap:0;}
+    #aien-growth-observatory .ag-event {padding:15px 0;border-bottom:1px solid var(--border);}
+    #aien-growth-observatory .ag-event summary {list-style:none;}
+    #aien-growth-observatory .ag-event summary::-webkit-details-marker {display:none;}
+    #aien-growth-observatory .ag-event-title {display:flex;align-items:start;justify-content:space-between;gap:12px;margin-top:7px;font-weight:500;}
+    #aien-growth-observatory .ag-event-meta {display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+    #aien-growth-observatory .ag-event p {margin:10px 0;}
+    #aien-growth-observatory .ag-barcell {min-width:110px;}
+    #aien-growth-observatory .ag-bar {display:flex;height:5px;background:color-mix(in srgb,var(--foreground) 6%,transparent);margin-top:6px;}
+    #aien-growth-observatory .ag-bar > span {display:block;}
+    #aien-growth-observatory .ag-methods {margin-top:30px;}
+    #aien-growth-observatory .ag-methods p {margin:12px 0;}
+    #aien-growth-observatory .ag-pins {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 22px;}
+    #aien-growth-observatory .ag-pin {display:flex;justify-content:space-between;gap:10px;min-width:0;}
+    #aien-growth-observatory .ag-pin a {overflow-wrap:anywhere;}
+    @media(max-width:740px) {#aien-growth-observatory .ag-pair {grid-template-columns:1fr;gap:28px;}#aien-growth-observatory .ag-evidence {grid-template-columns:1fr;gap:18px;}}
+    @media(max-width:540px) {#aien-growth-observatory .ag-stats {grid-template-columns:1fr;gap:14px;}#aien-growth-observatory .ag-stat {display:flex;justify-content:space-between;gap:14px;align-items:center;}#aien-growth-observatory .ag-stat h2 {margin:0;}#aien-growth-observatory .ag-stat .ag-stat-context {display:none;}#aien-growth-observatory .ag-events,#aien-growth-observatory .ag-pins {grid-template-columns:1fr;}#aien-growth-observatory .ag-mast {margin-bottom:14px;}}
+  /* Match the existing AIEN website while keeping analytical styles scoped. */
+#aien-growth-observatory {
+  --foreground: var(--text-primary); --muted-foreground: var(--text-secondary);
+  --border: var(--border-subtle); --viz-series-1: #63a9ff; --viz-series-2: #00e599;
+  --viz-series-3: #f5b75e; --viz-series-4: #bda0ff; --viz-series-5: #56cdd6;
+  width: min(1200px,100%); margin: 0 auto; padding: 52px 24px 72px; font-size:16px; font-weight:400;
+}
+#aien-growth-observatory h1 {font-size:clamp(30px,4vw,42px);font-weight:600;letter-spacing:-.035em;line-height:1.2;}
+#aien-growth-observatory h2 {font-size:22px;font-weight:500;letter-spacing:-.02em;}
+#aien-growth-observatory h3 {font-size:18px;font-weight:500;}
+#aien-growth-observatory .text-small {font-size:13px;line-height:1.6;}
+#aien-growth-observatory .text-muted {color:var(--muted-foreground);}
+#aien-growth-observatory .tabular-nums {font-variant-numeric:tabular-nums;font-family:var(--font-mono);}
+#aien-growth-observatory .text-end {text-align:right;}
+#aien-growth-observatory .cursor-interaction {cursor:pointer;}
+#aien-growth-observatory a {color:var(--viz-series-1);}
+#aien-growth-observatory a:hover {text-decoration:underline;text-underline-offset:4px;}
+#aien-growth-observatory .ag-mast {padding:0 0 24px;border-bottom:1px solid var(--border);}
+#aien-growth-observatory .ag-refresh {display:flex;align-items:flex-end;flex-direction:column;gap:8px;font-size:12px;color:var(--muted-foreground);white-space:nowrap;}
+#aien-growth-observatory #ag-freshness {color:var(--viz-series-2);}
+#aien-growth-observatory #ag-freshness[data-stale="true"] {color:var(--viz-series-3);}
+#aien-growth-observatory #ag-refresh {background:var(--bg-surface);color:var(--foreground);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px;cursor:pointer;}
+#aien-growth-observatory #ag-refresh:hover {border-color:var(--viz-series-1);}
+#aien-growth-observatory .ag-stats {gap:32px;margin:32px 0;}
+#aien-growth-observatory .ag-stat {padding:0 0 22px;border-bottom:1px solid var(--border);}
+#aien-growth-observatory .ag-stat h2 {font-size:clamp(26px,3.2vw,36px);font-weight:500;line-height:1.35;margin:8px 0;letter-spacing:-.05em;}
+#aien-growth-observatory .ag-nav {margin:20px 0 32px;padding:16px 20px;background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;}
+#aien-growth-observatory .form-label {font-size:14px;}
+#aien-growth-observatory .form-range {width:100%;height:24px;accent-color:var(--viz-series-1);cursor:ew-resize;}
+#aien-growth-observatory .ag-pair {gap:32px;margin-top:36px;}
+#aien-growth-observatory .ag-pair section {min-width:0;}
+#aien-growth-observatory .ag-section {margin-top:48px;}
+#aien-growth-observatory .ag-section-head {margin-bottom:16px;}
+#aien-growth-observatory .ag-chart text {font-family:var(--font-sans);fill:var(--muted-foreground);}
+#aien-growth-observatory .ag-tooltip {padding:12px 16px;border:1px solid #3d506b;border-radius:6px;background:#131c2b;box-shadow:0 12px 28px #0006;}
+#aien-growth-observatory .ag-evidence {padding:22px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+#aien-growth-observatory .ag-evidence h3 {font-size:19px;color:var(--foreground);}
+#aien-growth-observatory .ag-event-title {font-size:15px;line-height:1.5;}
+#aien-growth-observatory .ag-event-meta {font-family:var(--font-mono);font-size:12px;}
+#aien-growth-observatory .table-responsive {overflow-x:auto;margin-top:16px;}
+#aien-growth-observatory .table {width:100%;border-collapse:collapse;min-width:630px;font-size:14px;}
+#aien-growth-observatory .table th {text-transform:uppercase;letter-spacing:.05em;font-size:11px;font-weight:500;color:var(--muted-foreground);padding:12px 8px;border-bottom:1px solid #354156;white-space:nowrap;}
+#aien-growth-observatory .table td {padding:12px 8px;border-bottom:1px solid var(--border);}
+#aien-growth-observatory .table th:first-child,#aien-growth-observatory .table td:first-child {padding-left:0;}
+#aien-growth-observatory .table tbody tr:hover {background:var(--bg-surface);}
+#aien-growth-observatory .ag-methods {border-top:1px solid var(--border);padding-top:20px;}
+#aien-growth-observatory .ag-methods summary {color:var(--muted-foreground);font-size:14px;}
+#aien-growth-observatory .ag-pins {margin-top:20px;}
+#aien-growth-observatory .ag-pin code {color:var(--muted-foreground);font-size:11px;}
+@media(max-width:740px) {#aien-growth-observatory {padding:32px 20px 48px;}#aien-growth-observatory .ag-mast {flex-direction:column;gap:16px;}#aien-growth-observatory .ag-refresh {flex-direction:row;align-items:center;flex-wrap:wrap;white-space:normal;}#aien-growth-observatory .ag-refresh > .text-small {display:none;}}
+@media(max-width:540px) {#aien-growth-observatory .ag-stats {gap:14px;}#aien-growth-observatory .ag-stat {padding-bottom:14px;}#aien-growth-observatory .ag-stat h2 {font-size:25px;}#aien-growth-observatory .ag-nav {padding:12px;}#aien-growth-observatory .ag-date {gap:4px;}}

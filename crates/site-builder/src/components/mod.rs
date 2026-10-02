@@ -1,12 +1,17 @@
 pub mod benchmarks;
 pub mod blog;
+pub mod discovery;
 pub mod ecosystem;
 pub mod evidence;
 pub mod footer;
 pub mod home_loop;
+pub mod hubs;
 pub mod install;
+pub mod machine;
 pub mod matrix;
+pub mod narrative;
 pub mod navbar;
+pub mod progress;
 pub mod research;
 pub mod research_status;
 pub mod status;

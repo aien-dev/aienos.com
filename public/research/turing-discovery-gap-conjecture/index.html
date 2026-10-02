@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Turing Discovery Gap Conjecture | AIEN Research</title>
+<meta name="description" content="The Turing Discovery Gap Conjecture: a conditional proof that compact explanations can exist while efficient learners cannot capture their predictive gain.">
+<link rel="canonical" href="https://aienos.com/research/turing-discovery-gap-conjecture">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta property="og:title" content="The Turing Discovery Gap Conjecture">
+<meta property="og:description" content="The Turing Discovery Gap Conjecture: a conditional proof that compact explanations can exist while efficient learners cannot capture their predictive gain.">
+<meta property="og:url" content="https://aienos.com/research/turing-discovery-gap-conjecture">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://aienos.com/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700;800&amp;display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+<style>
+.research-wrap{max-width:880px;margin:0 auto;padding:48px 24px 96px}
+.kicker{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;color:var(--accent-blue);text-transform:uppercase;margin-bottom:16px}
+.paper-title{font-size:clamp(30px,4.5vw,46px);font-weight:800;letter-spacing:-.02em;line-height:1.12;color:var(--text-primary);margin:0 0 12px}
+.paper-sub{font-size:18px;color:var(--text-secondary);margin:0 0 24px;line-height:1.5}
+.byline{font-size:15px;color:var(--text-secondary);margin-bottom:6px}
+.byline strong{color:var(--text-primary)}
+.version-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0 28px}
+.badge{font-family:var(--font-mono);font-size:12px;padding:5px 12px;border-radius:999px;border:1px solid var(--border-subtle);color:var(--text-secondary)}
+.badge.preprint{border-color:var(--accent-amber);color:var(--accent-amber)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 40px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none;border:1px solid var(--accent-blue);background:rgba(45,127,249,.12);color:var(--accent-blue);font-family:var(--font-sans)}
+.btn.secondary{border-color:var(--border-subtle);background:transparent;color:var(--text-primary)}
+.section{margin:44px 0}
+.section h2{font-size:20px;font-weight:700;color:var(--text-primary);margin:0 0 16px;letter-spacing:-.01em}
+.section p{color:var(--text-secondary);line-height:1.7;font-size:15.5px;margin:0 0 14px}
+.artifact{border:1px solid var(--border-subtle);border-radius:10px;padding:16px 18px;margin:10px 0;background:var(--bg-card);display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.artifact .name{font-weight:700;color:var(--text-primary);font-size:15px}
+.artifact .desc{font-size:13.5px;color:var(--text-secondary);margin-top:4px;line-height:1.55}
+.artifact a{font-family:var(--font-mono);font-size:13px;color:var(--accent-blue);text-decoration:none;white-space:nowrap}
+.hash{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);word-break:break-all;margin-top:6px}
+.topnav{border-bottom:1px solid var(--border-subtle);background:rgba(8,9,12,.85);backdrop-filter:blur(12px);position:sticky;top:0;z-index:50;padding:14px 0}
+.topnav .inner{max-width:1180px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.topnav a.brand{font-weight:700;color:var(--text-primary);text-decoration:none;font-size:17px;letter-spacing:-.02em}
+.topnav nav{display:flex;gap:22px;font-size:14px}
+.topnav nav a{color:var(--text-secondary);text-decoration:none}
+.topnav nav a.active{color:var(--accent-blue)}
+.footer-note{margin-top:56px;padding-top:24px;border-top:1px solid var(--border-subtle);font-size:13px;color:var(--text-muted);line-height:1.6}
+.footer-note a{color:var(--accent-blue);text-decoration:none}
+pre.cite{background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:10px;padding:18px;font-family:var(--font-mono);font-size:13px;color:var(--text-secondary);overflow-x:auto;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="topnav"><div class="inner">
+<a class="brand" href="/">AIEN OS</a>
+<nav><a href="/">Home</a><a href="/blog">Blog</a><a href="/research" class="active">Research</a><a href="https://github.com/aien-dev" target="_blank" rel="noopener">GitHub</a></nav>
+</div></div>
+<main class="research-wrap">
+<div class="kicker">AIEN Research &middot; Conjecture</div>
+<h1 class="paper-title">The Turing Discovery Gap Conjecture</h1>
+<p class="paper-sub">Available explanatory value versus accessible explanatory value: worlds with compact explanations that no efficient learner can reach.</p>
+<div class="byline"><strong>M. Drake Stapleton</strong> &middot; October 2, 2026</div>
+<div class="version-row">
+<span class="badge">rev 9</span><span class="badge">10 pages</span><span class="badge preprint">Not peer reviewed</span>
+</div>
+<div class="actions">
+<a class="btn" href="./paper.pdf">Read PDF</a>
+<a class="btn secondary" href="./paper.tex">LaTeX source</a>
+<a class="btn secondary" href="#cite">Cite</a>
+</div>
+
+<div class="section">
+<h2>Abstract</h2>
+<p>This paper conjectures a gap between available and accessible explanatory value: worlds generated by compact O(n) programs, with Omega(n^2) Turings of predictive gain available, where no probabilistic polynomial-time learner reliably captures a fixed fraction of that gain.</p><p>Claim A is proved, conditional on one-way functions: a counting lemma (Kraft bound on short residuals) plus a distinguisher turns any successful learner into a PRF distinguisher. Claim B, the unconditional separation, is proposed. Claim C, the AIEN program-reuse hypothesis that a retained verified library increases net held-out Turing gain under a fixed discovery budget, is specified as a draft preregistration (CEXP-1).</p><p>Preprint; not peer reviewed.</p>
+</div>
+
+<div class="section">
+<h2>Research artifacts</h2>
+<div class="artifact">
+<div><div class="name">Paper (PDF)</div><div class="hash">SHA-256: f722f7d532e6a40887c508f47c20ab2bb2ac5263c2e10b104335b394ee5b916e</div></div>
+<a href="./paper.pdf">paper.pdf</a>
+</div>
+<div class="artifact">
+<div><div class="name">LaTeX source</div><div class="desc">Complete compilable source.</div><div class="hash">SHA-256: 8ac9cb279a7cb89b47bcf09a66b3816109734d7abc1d2dff1b4ac3f61531c294</div></div>
+<a href="./paper.tex">paper.tex</a>
+</div>
+<div class="artifact">
+<div><div class="name">Digest manifest</div><div class="desc">SHA-256 manifest for this release.</div></div>
+<a href="./SHA256SUMS">SHA256SUMS</a>
+</div>
+</div>
+
+<div class="section" id="cite">
+<h2>Cite</h2>
+<pre class="cite">@misc{stapleton2026discoverygap,
+  author = {M. Drake Stapleton},
+  title = {The Turing Discovery Gap Conjecture},
+  year = {2026},
+  month = {October},
+  version = {rev 9},
+  note = {Preprint, not peer reviewed},
+  url = {https://aienos.com/research/turing-discovery-gap-conjecture}
+}</pre>
+</div>
+
+<div class="footer-note">
+This is a preprint and has not been peer reviewed. Claim A is proved conditional on one-way functions; Claims B and C are proposed. Source and evidence are public at <a href="https://github.com/aien-dev" target="_blank" rel="noopener">github.com/aien-dev</a>.
+</div>
+</main>
+</body>
+</html>

@@ -1,0 +1,190 @@
+/*
+ * Shared site header: the six-section navigation (NARR-NAV).
+ * Self-contained on purpose: hand-written pages under public/ that do not
+ * load style.css (post-llm-case, licensing) link this file too, so every
+ * value has its own fallback and nothing depends on page tokens.
+ * Phone width: the nav wraps onto rows. No horizontal scroll, no script.
+ */
+.aien-header {
+  --an-bg: rgba(8, 9, 12, 0.92);
+  --an-border: #1c2536;
+  --an-text: #f1f5f9;
+  --an-text-2: #94a3b8;
+  --an-muted: #8ea0b5;
+  --an-blue: #2d7ff9;
+  --an-green: #00e599;
+  --an-sans: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --an-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--an-border);
+  background: var(--an-bg);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  padding: 14px 0;
+  font-family: var(--an-sans);
+  line-height: 1.4;
+  color: var(--an-text);
+  z-index: 50;
+}
+
+.aien-header *,
+.aien-header *::before,
+.aien-header *::after {
+  box-sizing: border-box;
+}
+
+.aien-header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+}
+
+.aien-header .aien-brand,
+.aien-header .aien-brand:hover {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--an-text);
+  text-decoration: none;
+}
+
+.aien-brand-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--an-blue);
+  background: linear-gradient(135deg, #131822 0%, #1e2638 100%);
+  border: 1px solid var(--an-blue);
+  box-shadow: 0 0 12px rgba(45, 127, 249, 0.15);
+  flex: none;
+}
+
+.aien-brand-copy {
+  display: flex;
+  flex-direction: column;
+}
+
+.aien-brand-name {
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  color: var(--an-text);
+}
+
+.aien-brand-tag {
+  font-family: var(--an-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--an-muted);
+}
+
+.aien-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+}
+
+.aien-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.aien-nav-primary {
+  gap: 6px 20px;
+}
+
+.aien-nav .aien-nav-secondary {
+  gap: 6px 14px;
+  padding-left: 20px;
+  border-left: 1px solid var(--an-border);
+}
+
+.aien-nav a.aien-nav-link {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--an-text-2);
+  text-decoration: none;
+  padding: 4px 0;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.aien-nav a.aien-nav-minor {
+  font-family: var(--an-mono);
+  font-size: 12px;
+  color: var(--an-muted);
+  text-decoration: none;
+  padding: 4px 0;
+}
+
+.aien-nav a[href="/#waitlist"] {
+  color: var(--an-green);
+}
+
+.aien-nav a.aien-nav-link:hover,
+.aien-nav a.aien-nav-minor:hover {
+  color: var(--an-text);
+  border-bottom-color: var(--an-blue);
+}
+
+.aien-nav a.aien-nav-link:focus-visible,
+.aien-nav a.aien-nav-minor:focus-visible,
+.aien-brand:focus-visible {
+  outline: 2px solid var(--an-green);
+  outline-offset: 3px;
+}
+
+/* Wide screens: the header stays pinned while reading. A page with its own
+   sticky bar opts out with data-sticky="off" on the header. */
+@media (min-width: 1100px) {
+  .aien-header {
+    position: sticky;
+    top: 0;
+  }
+}
+
+/* Narrow screens: brand on its own row, sections wrap below it. */
+@media (max-width: 1099px) {
+  .aien-nav {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .aien-header-inner {
+    padding: 0 16px;
+  }
+
+  .aien-nav-primary {
+    gap: 4px 16px;
+  }
+
+  .aien-nav a.aien-nav-link {
+    font-size: 13.5px;
+  }
+
+  .aien-nav .aien-nav-secondary {
+    width: 100%;
+    padding-left: 0;
+    padding-top: 8px;
+    border-left: none;
+    border-top: 1px solid var(--an-border);
+  }
+}
+
+.aien-header[data-sticky="off"] {
+  position: static;
+}

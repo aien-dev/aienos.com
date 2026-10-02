@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0.0",
+  "name": "crates/site-builder/src/components",
+  "layer": "website",
+  "purpose": "Reusable page content and navigation",
+  "above": {
+    "name": "crates/site-builder/src",
+    "path": ".."
+  },
+  "invariants": [
+    "Never commit .crumb.local or credentials.",
+    "Report retained public repository evidence; do not equate code size, test files or CI runs with verified capability."
+  ],
+  "exports": [
+    "progress::render_progress_page: source-backed project history page"
+  ]
+}

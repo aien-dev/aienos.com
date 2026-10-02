@@ -1,5 +1,7 @@
 name: pages
 on:
+  schedule:
+    - cron: "17 * * * *"
   workflow_dispatch:
   push:
     branches: [main]
@@ -10,13 +12,23 @@ permissions:
   pages: write
   id-token: write
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify measurement boundaries
+        run: node --test scripts/collect-progress.test.mjs
+      - name: Collect public project history
+        if: github.event_name != 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/collect-progress.mjs
       - name: Run verification test suite
         run: cargo test --verbose --manifest-path crates/site-builder/Cargo.toml
       - name: Build static site with pure Rust engine
