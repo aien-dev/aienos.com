@@ -4,7 +4,7 @@ pub mod discovery;
 pub mod ecosystem;
 pub mod evidence;
 pub mod footer;
-pub mod hero;
+pub mod home_loop;
 pub mod hubs;
 pub mod install;
 pub mod machine;

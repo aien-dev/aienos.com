@@ -80,7 +80,7 @@ fn build_pure_rust_site(dist: &Path) {
 
     // Render landing page in Maud
     let page_content = html! {
-        (components::hero::render_hero())
+        (components::home_loop::render_home_loop())
         (components::story::render_story())
         (components::evidence::render_evidence())
         (components::matrix::render_matrix())
@@ -199,6 +199,19 @@ fn verify_site(dist: &Path) {
     assert!(content.contains("<main id=\"main-content\""), "Missing main container in index.html");
     assert!(content.contains("id=\"terminal-output\""), "Missing interactive terminal output in index.html");
     assert!(content.contains("id=\"waitlist\""), "Missing waitlist section in index.html");
+
+    // Homepage top (NARR-HOME): literal phrases, so a wording change in the
+    // component cannot pass by accident.
+    for phrase in [
+        "AIENOS is an owned experimental machine for turning search into verified understanding.",
+        "Weights suggest. Programs explain. Verification decides. Evidence teaches. The Turing keeps score.",
+        "Did it learn anything?",
+        "What did it cost to learn?",
+        "Did what it learned make future discovery easier?",
+    ] {
+        assert!(content.contains(phrase), "Missing homepage phrase in index.html: {phrase}");
+    }
+    assert!(content.contains("<ol class=\"loop-stages\""), "Missing loop stage list in index.html");
 
     // Verify asset output
     assert!(dist.join("assets/style.css").exists(), "Missing assets/style.css");
