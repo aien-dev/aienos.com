@@ -1,0 +1,189 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{enumitem}
+\usepackage{amsmath,amssymb,amsthm}
+\setlength{\parskip}{0.6em}
+\setlength{\parindent}{0pt}
+
+\title{The Atemporal AIEN Postulate\\Causal Semantics Without Clocks}
+\author{M. Drake Stapleton}
+\date{Version 0.1, 2026-10-02}
+
+\begin{document}
+\maketitle
+
+\section{The proposal}
+
+I propose that an AIEN computation is defined by what causally depends on what, not by when those events occur. Physical time characterizes a realization of the computation; it does not define the computation itself.
+
+I do not mean by this that the machine runs without time. Hardware takes time. The GPU has clocks. Electrons move. Experiments consume joules and seconds. I mean that those quantities belong to the realization boundary, not to the ontology of Omega. Omega has order without clocks. FORGE has clocks without defining meaning.
+
+The present paper states the postulate, formalizes it, derives its consequences for the existing AIEN papers, answers the objections I expect, and specifies the experiment that would test it. The experiment is specified, not run. Everything here is proposed.
+
+\section{Why this postulate, why now}
+
+The resident Omega runtime has already moved away from a central loop. In its place is a model in which publication makes dependencies ready, reactions execute, verified results become new publications, and the chain continues: conjecture, test, retain, continue. That process is already closer to a causal partial order than to a traditional clocked state machine. The postulate below does not invent a new architecture. It names what the architecture is already becoming, and it states the rule precisely enough to be enforced.
+
+There is a second reason. The AIEN papers already separate the informational quantity $T$ from the physical quantity $J$, arguing that Turing gain and physical energy are orthogonal quantities and that physics does not disappear when we measure understanding. I believe the same separation can be extended much further: not only is energy not meaning, but timing is not meaning either.
+
+\section{The five postulates}
+
+\textbf{Postulate 1: Atemporal semantics.} Omega semantic identity contains no primitive wall-clock coordinate. Clock measurements belong to physical realizations and receipts, not to meaning. I do not describe Omega as ``analog.'' I describe it as atemporal, relational, and event-driven. Analog hardware may eventually be one realization of it, but the semantics do not need to be analog.
+
+\textbf{Postulate 2: Causal order.} The primitive ordering relation is $a \prec b$: $b$ depends upon $a$. It is a strict partial order, acyclic and transitive. It is not necessarily a total order. Two events $a$ and $b$ may satisfy neither $a \prec b$ nor $b \prec a$. They are then causally independent, or concurrent. There is no need to ask which happened ``first.''
+
+\textbf{Postulate 3: Immutable causal past.} Once an object is sealed, its causal ancestry cannot be altered. New objects may cite existing objects. Existing objects may not acquire newly invented causes.
+
+\textbf{Postulate 4: Causal-cone admissibility.} A claim may depend only on information reachable through its declared causal past. No semantic effect is valid without an auditable causal path to its evidence. For every semantic event $e$, define $\mathrm{Past}(e) = \{x \mid x \prec e\}$. Only information in $\mathrm{Past}(e)$ may legitimately contribute to $e$. This is the computational equivalent of preventing information from appearing outside its causal cone.
+
+\textbf{Postulate 5: Schedule invariance.} If two physical executions realize the same semantic graph and preserve its dependency relation, then they are realizations of the same Omega computation, regardless of their clock ordering, duration, concurrency, CPU/GPU placement, or scheduling. This is the postulate that turns the proposal from a philosophical essay into an engineering research program, because it can be tested.
+
+\section{The Crumbline is not a timeline}
+
+The Crumb Doctrine currently describes the Crumbline as an append-only lineage. Under the atemporal postulate, ``append-only'' must be restated, because chronological order is no longer the thing being preserved. The correction is:
+
+\begin{center}
+\fbox{\parbox{0.85\textwidth}{\textbf{``Append-only'' becomes causal immutability, not chronological order.}}}
+\end{center}
+
+I define the Crumbline state as
+\[
+\mathcal{C} = (V, \prec)
+\]
+where $V$ is the set of admitted crumbs and receipts, and $a \prec b$ means that $b$ depends causally or evidentially upon $a$.
+
+An admissible extension is
+\[
+\mathcal{C}' = (V \cup \{r\}, \prec')
+\]
+subject to three conditions:
+\begin{enumerate}[leftmargin=*]
+\item $\forall d \in \mathrm{Dependencies}(r),\; d \in V$ (dependencies must already exist),
+\item $d \prec' r$ (the new receipt is ordered after its dependencies),
+\item $\prec'|_V = \prec$ (the restriction of the new order to the old vertices is the old order).
+\end{enumerate}
+
+The third condition is the important one. It says: adding a receipt may extend the causal graph, but it may never rewrite the causal relationships among things already admitted. The append-only rule becomes:
+
+\begin{center}
+\fbox{\parbox{0.85\textwidth}{\textbf{The causal past of an admitted crumb is immutable.}}}
+\end{center}
+
+This resolves the apparent paradox. Two receipts $A$ and $B$ can be created independently, with neither $A \prec B$ nor $B \prec A$. The database may physically write $A$ at 12:01 and $B$ at 12:02. Another replica may receive $B$ before $A$. Neither ordering means anything to Omega. Later $C$ can depend on both, $A \to C \leftarrow B$. Now $A$ and $B$ belong to $C$'s causal past, but $A$ and $B$ remain unordered relative to one another.
+
+This is not exotic computer science. Distributed systems have defined ``happened-before'' relations without physical clocks since Lamport's 1978 paper, and that relation is a partial order. Content-addressed Merkle DAGs exploit a related property: nodes are immutable and reference content-addressed dependencies, so changing an existing node creates a different graph rather than silently changing its identity. What would be distinctive in Omega is making that structure part of the semantics and epistemology of computation, rather than merely a storage and data-integrity mechanism.
+
+The Crumb Doctrine already points here: provenance is permanent, dependencies are closed, receipts carry the evidence supporting claims, and the Crumbline preserves failures alongside successes. The postulate does not replace the doctrine. It provides the formal explanation of what ``append-only'' ought to mean once wall-clock chronology is removed.
+
+\section{The compiler, in both directions}
+
+I propose the compiler be bidirectional.
+
+Lowering takes Omega meaning to a clocked physical realization. Lifting, or verification, takes a physical execution trace back up to Omega evidence plus a causal graph.
+
+An Omega program is then something like
+\[
+S = (V, \prec, C, E)
+\]
+where $V$ are operations, $\prec$ is causal dependency, $C$ are constraints, and $E$ are declared effects. There is deliberately no clock.
+
+The compiler may produce any physical schedule consistent with $\prec$. Suppose Omega declares $A \to C$, $B \to C$, $C \to D$. A conventional machine might physically execute $A$, then $B$, then $C$, then $D$ on successive ticks. Or it might execute $A$ and $B$ simultaneously, then $C$, then $D$. A GPU may execute pieces of $A$ and $B$ in overlapping waves. Omega regards all of these as the same computation, because their semantic causal structure is identical.
+
+Hence:
+\[
+\text{meaning} \neq \text{schedule}.
+\]
+The existing papers already separate meaning from realization, realization from authority, and authority from evidence. The postulate adds:
+\[
+\boxed{\text{meaning} \neq \text{timing}.}
+\]
+
+This yields the compiler theorem I want, stated carefully in both directions:
+\[
+\boxed{\text{same semantic causal graph} \not\Rightarrow \text{same physical execution}}
+\]
+but
+\[
+\boxed{\text{every valid physical schedule preserving that graph} \Rightarrow \text{same Omega semantic computation}.}
+\]
+
+\section{The experiment}
+
+Postulate 5 can be tested. I specify the test here; I have not run it.
+
+Take one Omega causal graph: $A \to C$, $B \to C$, $C \to D$.
+
+Execute it once almost serially: $A$, $B$, $C$, $D$.
+
+Execute it again with $A$ and $B$ concurrent. Deliberately randomize scheduling. Move one realization onto the GPU. Introduce arbitrary delays. Reverse the physical completion order of independent operations.
+
+Then require:
+\[
+\mathrm{SEMANTIC\_ID}_1 = \mathrm{SEMANTIC\_ID}_2,
+\]
+\[
+\mathrm{CLAIM\_ID}_1 = \mathrm{CLAIM\_ID}_2,
+\]
+and, after normalizing away realization-specific evidence,
+\[
+\mathrm{CausalGraph}_1 \cong \mathrm{CausalGraph}_2.
+\]
+
+The physical receipts must \textit{not} be identical, because duration, energy, device, scheduling, and execution environment genuinely differed. The Omega language already distinguishes semantic identity from receipt identity for essentially this reason. The test passes when sameness holds at the semantic level and difference holds, honestly recorded, at the physical level.
+
+\section{What changes in the existing papers}
+
+I keep the seven existing AIEN papers intact. The postulate is separate. But it has consequences I state here so they are not discovered by accident later.
+
+\textbf{The Turing does not need time.} The present definition writes predictive description length sequentially,
+\[
+L(D \mid M, G) = -\sum_t \log_2 p_M(x_t \mid x_{<t}, G),
+\]
+which implicitly gives the observations a total ordering. Let the evidence itself be a causal graph $D = (V, \prec)$. Then the timeless definition is
+\[
+L(D \mid M, G) = -\log_2 P_M(D \mid G),
+\]
+or, where a causal factorization exists,
+\[
+L(D \mid M, G) = -\sum_{v \in V} \log_2 P_M(x_v \mid \mathrm{Pa}(v), G),
+\]
+where $\mathrm{Pa}(v)$ means the causal parents of $v$, not ``everything that happened earlier.'' The Turing definition itself barely changes:
+\[
+T(M; B, D, G, P) = [L(B \mid G) + L(D \mid B, G)] - [L(M \mid G) + L(D \mid M, G)].
+\]
+The Turing requires evidence, not time.
+
+\textbf{EXP-002 must be replaced.} The diffusion worlds are genuinely time-parameterized stochastic processes, for example $dX_t = \mu\,dt + \sqrt{2D}\,dW_t$ with mean-reverting dynamics. Under the postulate I would replace EXP-002 with relational and causal law discovery: give AIEN a hidden causal network and ask it to discover $A \to B$, $A,C \to D$, $D \to E$ from observations and interventions. The question becomes whether AIEN can discover invariant relationships between events without being given an external clock. That is arguably a cleaner experiment for what AIEN claims to be.
+
+\textbf{T/s is demoted.} The formal paper defines the Turing rate using wall-clock duration. I would retain the rate but demote it to a physical realization metric belonging to FORGE and hardware, while $T$, $T$ per observation, $T$ per causal event, and $T$ per causal depth live inside Omega.
+
+\textbf{Stale receipts are redefined.} ``Stale'' should eventually stop meaning ``old.'' Under the postulate, evidence becomes invalid because its assumptions no longer match: the environment changed, a dependency was superseded, or the verification policy changed. Not merely because seconds elapsed.
+
+\textbf{The Discovery Gap needs care.} The conjecture says explanations may be compact and efficiently executable yet inaccessible to every polynomial-time learner. If ``timeless'' means no wall-clock time, almost nothing needs changing: ``polynomial time'' in complexity theory can be read as a bound on computation steps, or polynomial work $W(n) \le n^k$. But if the position becomes stronger, with no notion of sequential computational steps at all, the conjecture should move toward circuit complexity, polynomial-size computational realization. I would not casually claim the current one-way-function proof carries over unchanged; the standard cryptographic statement uses efficient probabilistic polynomial-time adversaries, and Claim A would have to be rebuilt around the exact nonuniform or circuit assumption. I distinguish atemporal semantics, which is immediately compatible with the project, from atemporal computational complexity, which is a stronger theoretical claim requiring new mathematics.
+
+\section{Objections}
+
+\textbf{``This is just Lamport clocks. Distributed systems have done this since 1978.''} The mathematics is indeed not new, and I do not claim it is. What is new, if anything, is the proposal to make causal order the semantics and epistemology of machine intelligence itself, rather than a coordination mechanism between machines that already know what they mean. Lamport told processes how to agree on order. I am proposing that order is, in a precise sense, all the machine's meaning consists of, with time demoted to realization metadata. The novelty claim is architectural and epistemological, not mathematical.
+
+\textbf{``Something still has to run first. You cannot execute without sequence.''} I agree, and the postulate agrees. Implementation has sequence; meaning does not contain it. When the GPU executes $A$ and $B$ in overlapping waves, something physically happened in some order. The claim is only that the order is not part of what the computation means. Meaning is the graph; schedule is the weather.
+
+\textbf{``Your original photon argument was physically wrong, so the whole thing collapses.''} The photon framing was wrong and I have dropped it. A photon has no inertial rest frame, and the Lorentz factor diverges without bound rather than exponentially. But the postulate does not depend on that framing. It depends on causal-set mathematics and on the Page-Wootters relational treatment of time, both of which stand independently of anything I once said about photons.
+
+\textbf{``Without time you cannot do complexity theory, and without complexity theory the Discovery Gap dies.''} Polynomial work, $W(n) \le n^k$, carries the conjecture's intended meaning without wall-clock seconds. I concede the stronger version of the claim: if sequential steps go too, Claim A's proof must be rebuilt for circuit complexity, and I have not done that. The postulate paper therefore claims atemporal semantics now and marks atemporal complexity as open work.
+
+\textbf{``This contradicts the seven papers.''} It does not touch them. The seven papers are left intact, with their versions and evidentiary statuses unchanged. This postulate is an eighth paper. Where it implies future revisions, EXP-002's replacement, the T/s demotion, the stale-receipt redefinition, I have listed them above as consequences, not as edits.
+
+\textbf{``An untested postulate is just philosophy.''} That is fair, and it is why Section 6 specifies the experiment instead of gesturing at it. The schedule-invariance test has a pass criterion written before anyone runs it: identical semantic and claim identifiers, isomorphic causal graphs after normalization, honestly differing physical receipts. If the identifiers differ across schedules, the postulate fails in its strongest form, and I will record that.
+
+\section{Status}
+
+Version 0.1. Proposed, not peer reviewed, not tested. The experiment is specified but not run. The consequences for EXP-002, T/s, stale receipts, and the Discovery Gap are stated as intentions, not carried out. The seven AIEN papers are unchanged.
+
+The line I want carried forward from this paper is the one that states the whole correction:
+
+\begin{center}
+\fbox{\parbox{0.85\textwidth}{\textbf{The Crumbline is not a timeline. It is a causal record.}}}
+\end{center}
+
+\end{document}
