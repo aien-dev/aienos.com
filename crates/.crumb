@@ -1,14 +1,35 @@
 {
-  "schema_version": "1.0.0",
-  "name": "crates",
-  "layer": "website",
-  "purpose": "Native Rust website crates",
   "above": {
     "name": "aienos.com",
     "path": ".."
   },
+  "extensions": {
+    "generated": {
+      "children": [
+        {
+          "digest": "c8d0c90b80d74ceb23c497604a1445081408fe9825052402a25fed9f928f8170",
+          "last_commit": "f153e12",
+          "name": "site-builder",
+          "purpose": "Rust static site generator"
+        }
+      ],
+      "children_root": "sha256:86dfcfd2bf5746f1dbf1256b8414546520c232308be9e7fbddebc2bfda73e7d8",
+      "compiled_at": "2026-10-04T18:14:55Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:59ee3ebd654709547e53b324e91b909bb437259920d48ee21fa421145cdaee08",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 27,
+      "generated_at_commit": "37e78cf4d7664459d749a213da65377d999f53be",
+      "source_tree": "sha256:398c8b7181d2cff0aac9283e16fd6a29009fcf9bd0e334085d6e74727c405255"
+    }
+  },
   "invariants": [
     "Never commit .crumb.local or credentials.",
     "Report retained public repository evidence; do not equate code size, test files or CI runs with verified capability."
-  ]
+  ],
+  "layer": "website",
+  "name": "crates",
+  "purpose": "Native Rust website crates",
+  "schema_version": "1.0.0"
 }

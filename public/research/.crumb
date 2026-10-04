@@ -1,6 +1,27 @@
 {
-  "schema_version": "1.0.0",
-  "name": "public/research",
+  "extensions": {
+    "generated": {
+      "children": [
+        {
+          "digest": "5b9c2659511754311f59c2bd72e1f69846ae7e3101958657b11f732152d809da",
+          "last_commit": "cc389e3",
+          "name": "the-stapleton-doctrine",
+          "purpose": "Public static research or licensing pages using the shared website navigation"
+        }
+      ],
+      "children_root": "sha256:d4e73f50ddfadfb6ad64c5323e2035e2738e870aa000e0a607a4ff78d9de5fb4",
+      "compiled_at": "2026-10-04T18:14:55Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:754c9d9040c7a85f9a08d898d164a2cab81c61a841ea5bfd9c7cffa72fb15f82",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 50,
+      "generated_at_commit": "37e78cf4d7664459d749a213da65377d999f53be",
+      "source_tree": "sha256:b4b43476e38fae9ea2a10ae58dbd9108076e1f41c90682cdd24f42b16bccbabd"
+    }
+  },
   "layer": "website",
-  "purpose": "Public static research or licensing pages using the shared website navigation"
+  "name": "public/research",
+  "purpose": "Public static research or licensing pages using the shared website navigation",
+  "schema_version": "1.0.0"
 }

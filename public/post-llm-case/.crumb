@@ -1,6 +1,20 @@
 {
-  "schema_version": "1.0.0",
-  "name": "public/post-llm-case",
+  "extensions": {
+    "generated": {
+      "children": [],
+      "children_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compiled_at": "2026-10-04T18:14:55Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:6969f661d644dc4a876002e56d616df878f81bbedc6a196c6d6d554220c806d4",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 1,
+      "generated_at_commit": "37e78cf4d7664459d749a213da65377d999f53be",
+      "source_tree": "sha256:9626612accc48545a79ff144ced5762007b9a24d83c2365c9ba84059ee69945a"
+    }
+  },
   "layer": "website",
-  "purpose": "Public static research or licensing pages using the shared website navigation"
+  "name": "public/post-llm-case",
+  "purpose": "Public static research or licensing pages using the shared website navigation",
+  "schema_version": "1.0.0"
 }

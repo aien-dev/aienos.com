@@ -1,17 +1,31 @@
 {
-  "schema_version": "1.0.0",
-  "name": "public/data",
-  "layer": "website",
-  "purpose": "Published generated project measurements with pinned sources",
   "above": {
     "name": "public",
     "path": ".."
+  },
+  "exports": [
+    "/data/project-progress.json: schemaVersion 2, collection timestamp, daily snapshots, pinned Git heads"
+  ],
+  "extensions": {
+    "generated": {
+      "children": [],
+      "children_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compiled_at": "2026-10-04T18:14:55Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:6c14d2c48445f65c1071773efc60b4bad747f2edc799d58ca4d318d22965d747",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 1,
+      "generated_at_commit": "37e78cf4d7664459d749a213da65377d999f53be",
+      "source_tree": "sha256:7326276efafe67d54b7db76ba1ea2062eb99aa96e75f5c6ee7bb5ebddd6151d0"
+    }
   },
   "invariants": [
     "Never commit .crumb.local or credentials.",
     "Report retained public repository evidence; do not equate code size, test files or CI runs with verified capability."
   ],
-  "exports": [
-    "/data/project-progress.json: schemaVersion 2, collection timestamp, daily snapshots, pinned Git heads"
-  ]
+  "layer": "website",
+  "name": "public/data",
+  "purpose": "Published generated project measurements with pinned sources",
+  "schema_version": "1.0.0"
 }

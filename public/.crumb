@@ -1,14 +1,65 @@
 {
-  "schema_version": "1.0.0",
-  "name": "public",
-  "layer": "website",
-  "purpose": "Static public website assets",
   "above": {
     "name": "aienos.com",
     "path": ".."
   },
+  "extensions": {
+    "generated": {
+      "children": [
+        {
+          "digest": "db50fb973b07ff0647368f45e5322703cab1f9b29094c0a519cc33d26213ee75",
+          "last_commit": "f153e12",
+          "name": "assets",
+          "purpose": "Website styles including the project dashboard"
+        },
+        {
+          "digest": "6c14d2c48445f65c1071773efc60b4bad747f2edc799d58ca4d318d22965d747",
+          "last_commit": "18872cf",
+          "name": "data",
+          "purpose": "Published generated project measurements with pinned sources"
+        },
+        {
+          "digest": "00f76de45d62889b638a4db9410ce9bcd41c0e5cc9a8ebc6cbacb819f1464186",
+          "last_commit": "18872cf",
+          "name": "js",
+          "purpose": "Browser interactions using public data only"
+        },
+        {
+          "digest": "d422ea4dc693a0776b49a1d6d1f1ac0b30d2e4f8196f761bd0e47578bb1e8097",
+          "last_commit": "18872cf",
+          "name": "licensing",
+          "purpose": "Public static research or licensing pages using the shared website navigation"
+        },
+        {
+          "digest": "6969f661d644dc4a876002e56d616df878f81bbedc6a196c6d6d554220c806d4",
+          "last_commit": "18872cf",
+          "name": "post-llm-case",
+          "purpose": "Public static research or licensing pages using the shared website navigation"
+        },
+        {
+          "digest": "754c9d9040c7a85f9a08d898d164a2cab81c61a841ea5bfd9c7cffa72fb15f82",
+          "last_commit": "37e78cf",
+          "name": "research",
+          "purpose": "Public static research or licensing pages using the shared website navigation"
+        }
+      ],
+      "children_root": "sha256:02a8de3581d1bdd2d775b66f8a5508d5c3bf906cbd06164df08eaae0c9a4fd30",
+      "compiled_at": "2026-10-04T18:14:55Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:e5b97bfadc251f2e56b9b03b8189e3239ab525ab436e2129a4ec4c83707ca640",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 70,
+      "generated_at_commit": "37e78cf4d7664459d749a213da65377d999f53be",
+      "source_tree": "sha256:78ada3a9e989a04985302fe9cfc2963fb247453d15e948a3ad94a81ee88814c8"
+    }
+  },
   "invariants": [
     "Never commit .crumb.local or credentials.",
     "Report retained public repository evidence; do not equate code size, test files or CI runs with verified capability."
-  ]
+  ],
+  "layer": "website",
+  "name": "public",
+  "purpose": "Static public website assets",
+  "schema_version": "1.0.0"
 }

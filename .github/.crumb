@@ -1,14 +1,35 @@
 {
-  "schema_version": "1.0.0",
-  "name": ".github",
-  "layer": "website",
-  "purpose": "GitHub automation configuration",
   "above": {
     "name": "aienos.com",
     "path": ".."
   },
+  "extensions": {
+    "generated": {
+      "children": [
+        {
+          "digest": "61c851642226f52c926e51e626015fd3e45b31fcdecca8b05c8d239c7e9dea88",
+          "last_commit": "18872cf",
+          "name": "workflows",
+          "purpose": "Test, collect public project metrics and deploy the GitHub Pages site"
+        }
+      ],
+      "children_root": "sha256:0b3d4df43511d58259cf7d16050d9780532e58192af9b9898060b63976428c36",
+      "compiled_at": "2026-10-04T18:14:55Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:915e0d919d283a9f8d1518534d74d4f1ee428326ffbd362e2e0f55de92eb64d3",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 2,
+      "generated_at_commit": "37e78cf4d7664459d749a213da65377d999f53be",
+      "source_tree": "sha256:4a767118fc1c33b31932568659ed6588aeb6144cbfecb0902d8c4229df87852a"
+    }
+  },
   "invariants": [
     "Never commit .crumb.local or credentials.",
     "Report retained public repository evidence; do not equate code size, test files or CI runs with verified capability."
-  ]
+  ],
+  "layer": "website",
+  "name": ".github",
+  "purpose": "GitHub automation configuration",
+  "schema_version": "1.0.0"
 }
