@@ -1,14 +1,28 @@
 {
-  "schema_version": "1.0.0",
-  "name": "crates/site-builder/templates",
-  "layer": "website",
-  "purpose": "Reviewed HTML templates for source-backed pages",
   "above": {
     "name": "crates/site-builder",
     "path": ".."
   },
+  "extensions": {
+    "generated": {
+      "children": [],
+      "children_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compiled_at": "2026-10-04T18:14:55Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:3dbbf1e80f576db76add933f8b323a3f6981bbe9d5dbd5a231ba2e68bcac6cdc",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 1,
+      "generated_at_commit": "37e78cf4d7664459d749a213da65377d999f53be",
+      "source_tree": "sha256:6ed68038fd848288b49af2dfb82cc4d47184e33e439dbce3718c811f66b35e24"
+    }
+  },
   "invariants": [
     "Never commit .crumb.local or credentials.",
     "Report retained public repository evidence; do not equate code size, test files or CI runs with verified capability."
-  ]
+  ],
+  "layer": "website",
+  "name": "crates/site-builder/templates",
+  "purpose": "Reviewed HTML templates for source-backed pages",
+  "schema_version": "1.0.0"
 }

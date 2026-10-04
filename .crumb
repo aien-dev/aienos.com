@@ -1,24 +1,4 @@
 {
-  "schema_version": "1.0.0",
-  "name": "aienos.com",
-  "layer": "website",
-  "purpose": "Public AIEN website built with Rust; publishes source-backed research and project progress",
-  "invariants": [
-    "Build the existing website with Rust and deploy through GitHub Pages.",
-    "Public measurement collection must validate completely before deployment; failed refreshes preserve the last live site.",
-    "RFC-0001 directory coordination: sniff, claim, execute, close; .crumb.local stays ephemeral."
-  ],
-  "extensions": {
-    "protocol": {
-      "spec": "https://github.com/aien-dev/crumb-spec/blob/10b8251/SPEC.md",
-      "version": "1.0.0"
-    },
-    "progress": {
-      "refresh": "hourly GitHub Actions collection; browser checks every five minutes",
-      "scope": "public aien-dev project repositories, retained history",
-      "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded."
-    }
-  },
   "below": [
     {
       "name": "crates/site-builder",
@@ -36,5 +16,56 @@
       "name": ".github/workflows",
       "role": "Verify and deploy the site on pushes and hourly collection"
     }
-  ]
+  ],
+  "extensions": {
+    "generated": {
+      "children": [
+        {
+          "digest": "bcf35afcdd3605a179fce48df881a80ae124f64bacf98bf924a0ca9ca49eed5d",
+          "last_commit": "f153e12",
+          "name": "crates",
+          "purpose": "Native Rust website crates"
+        },
+        {
+          "digest": "88e6eaf6a9f73eeaa0732247de8973f3f1a5605e4213ded09228430f146793ac",
+          "last_commit": "81799d0",
+          "name": "public",
+          "purpose": "Static public website assets"
+        },
+        {
+          "digest": "e7e0d0e0f876a67aba52bfa09ae0a43fd3de37ea859de10a14af9bfbc829933c",
+          "last_commit": "18872cf",
+          "name": "scripts",
+          "purpose": "Dependency-free public GitHub measurement collection and validation"
+        }
+      ],
+      "children_root": "sha256:8cb7f8ef9579d870c5e796e53f0e068be2af99e95b9e95dd1db9ca6b406dd577",
+      "compiled_at": "2026-10-04T18:17:49Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:600b1d304f545f9e2639e32b1ec654d8280b74dd4efcef9c59bf419e328e0bed",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 114,
+      "generated_at_commit": "81799d091d92850a4107359cdb3887b1eba59fbf",
+      "source_tree": "sha256:be74baae4bd9f0a5796805dc328f82c9118be2d91a8928d8651222812bd9078a"
+    },
+    "progress": {
+      "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",
+      "refresh": "hourly GitHub Actions collection; browser checks every five minutes",
+      "scope": "public aien-dev project repositories, retained history"
+    },
+    "protocol": {
+      "spec": "https://github.com/aien-dev/crumb-spec/blob/10b8251/SPEC.md",
+      "version": "1.0.0"
+    }
+  },
+  "invariants": [
+    "Build the existing website with Rust and deploy through GitHub Pages.",
+    "Public measurement collection must validate completely before deployment; failed refreshes preserve the last live site.",
+    "RFC-0001 directory coordination: sniff, claim, execute, close; .crumb.local stays ephemeral."
+  ],
+  "layer": "website",
+  "name": "aienos.com",
+  "purpose": "Public AIEN website built with Rust; publishes source-backed research and project progress",
+  "schema_version": "1.0.0"
 }

@@ -1,6 +1,6 @@
 # AIENOS Web Platform (aienos.com)
 
-[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+[![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL--3.0--or--later-blue.svg)](LICENSE)
 [![GitHub Pages](https://github.com/aien-dev/aienos.com/actions/workflows/pages.yml/badge.svg)](https://github.com/aien-dev/aienos.com/actions/workflows/pages.yml)
 
 The official web platform and documentation portal for **AIENOS**, the GPU-Native Neural Operating Environment.
@@ -73,7 +73,7 @@ Funnel route must forward `/aienos-waitlist` to the local listener.
 
 ## License
 
-Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE). The runtime itself, aien-sovereign-core, is Apache-2.0 with LLVM Exception. Project values live in the nonbinding [COVENANT.md](https://github.com/aien-dev/aien-sovereign-core/blob/main/COVENANT.md), which grants and restricts no legal rights.
+Licensed under the GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later). See [LICENSE](LICENSE). The runtime itself, aien-sovereign-core, is also AGPL-3.0-or-later. Project values live in the nonbinding [COVENANT.md](https://github.com/aien-dev/aien-sovereign-core/blob/main/COVENANT.md), which grants and restricts no legal rights.
 
 ## Project progress dashboard
 

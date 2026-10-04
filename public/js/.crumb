@@ -1,14 +1,28 @@
 {
-  "schema_version": "1.0.0",
-  "name": "public/js",
-  "layer": "website",
-  "purpose": "Browser interactions using public data only",
   "above": {
     "name": "public",
     "path": ".."
   },
+  "extensions": {
+    "generated": {
+      "children": [],
+      "children_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compiled_at": "2026-10-04T18:14:55Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:00f76de45d62889b638a4db9410ce9bcd41c0e5cc9a8ebc6cbacb819f1464186",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 3,
+      "generated_at_commit": "37e78cf4d7664459d749a213da65377d999f53be",
+      "source_tree": "sha256:2a4beb807625d3cd7c2dd9151411c82e91477fa2b5eaefacd87dd0ebf44b3cad"
+    }
+  },
   "invariants": [
     "Never commit .crumb.local or credentials.",
     "Report retained public repository evidence; do not equate code size, test files or CI runs with verified capability."
-  ]
+  ],
+  "layer": "website",
+  "name": "public/js",
+  "purpose": "Browser interactions using public data only",
+  "schema_version": "1.0.0"
 }

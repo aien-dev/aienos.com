@@ -212,7 +212,7 @@ pub fn llms_txt() -> String {
     out.push_str("- Evidence: https://www.aienos.com/#evidence\n");
     out.push_str("- Research index: https://www.aienos.com/research/\n");
     out.push_str("- The Turing, a unit of net held-out explanatory compression (one operational component of machine understanding): https://www.aienos.com/turing/\n");
-    out.push_str("- Licensing (Apache-2.0 WITH LLVM-exception): https://www.aienos.com/licensing/\n");
+    out.push_str("- Licensing (AGPL-3.0-or-later): https://www.aienos.com/licensing/\n");
     out.push_str("- GitHub organization: https://github.com/aien-dev\n");
     out
 }

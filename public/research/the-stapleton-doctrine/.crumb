@@ -1,6 +1,20 @@
 {
-  "schema_version": "1.0.0",
-  "name": "public/research/the-stapleton-doctrine",
+  "extensions": {
+    "generated": {
+      "children": [],
+      "children_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compiled_at": "2026-10-04T18:14:55Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:5b9c2659511754311f59c2bd72e1f69846ae7e3101958657b11f732152d809da",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 8,
+      "generated_at_commit": "37e78cf4d7664459d749a213da65377d999f53be",
+      "source_tree": "sha256:97fa3d9c7873ebcdb782297d2a8149794923d3236a3f9e7edead09452b3cd690"
+    }
+  },
   "layer": "website",
-  "purpose": "Public static research or licensing pages using the shared website navigation"
+  "name": "public/research/the-stapleton-doctrine",
+  "purpose": "Public static research or licensing pages using the shared website navigation",
+  "schema_version": "1.0.0"
 }

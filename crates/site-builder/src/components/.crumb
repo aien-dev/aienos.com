@@ -1,17 +1,31 @@
 {
-  "schema_version": "1.0.0",
-  "name": "crates/site-builder/src/components",
-  "layer": "website",
-  "purpose": "Reusable page content and navigation",
   "above": {
     "name": "crates/site-builder/src",
     "path": ".."
+  },
+  "exports": [
+    "progress::render_progress_page: source-backed project history page"
+  ],
+  "extensions": {
+    "generated": {
+      "children": [],
+      "children_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compiled_at": "2026-10-04T18:17:49Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:0492b15405c36be1bf95408cf5cb8c889260d559db13b77cf03e3c5f724874ec",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 21,
+      "generated_at_commit": "81799d091d92850a4107359cdb3887b1eba59fbf",
+      "source_tree": "sha256:eaf9571ac7732f210ac86f1b556407a69f8444e1ae0179aabef2263ee144faa7"
+    }
   },
   "invariants": [
     "Never commit .crumb.local or credentials.",
     "Report retained public repository evidence; do not equate code size, test files or CI runs with verified capability."
   ],
-  "exports": [
-    "progress::render_progress_page: source-backed project history page"
-  ]
+  "layer": "website",
+  "name": "crates/site-builder/src/components",
+  "purpose": "Reusable page content and navigation",
+  "schema_version": "1.0.0"
 }

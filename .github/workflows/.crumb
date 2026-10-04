@@ -1,14 +1,28 @@
 {
-  "schema_version": "1.0.0",
-  "name": ".github/workflows",
-  "layer": "website",
-  "purpose": "Test, collect public project metrics and deploy the GitHub Pages site",
   "above": {
     "name": ".github",
     "path": ".."
   },
+  "extensions": {
+    "generated": {
+      "children": [],
+      "children_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compiled_at": "2026-10-04T18:14:55Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:61c851642226f52c926e51e626015fd3e45b31fcdecca8b05c8d239c7e9dea88",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 2,
+      "generated_at_commit": "37e78cf4d7664459d749a213da65377d999f53be",
+      "source_tree": "sha256:4a767118fc1c33b31932568659ed6588aeb6144cbfecb0902d8c4229df87852a"
+    }
+  },
   "invariants": [
     "Never commit .crumb.local or credentials.",
     "Report retained public repository evidence; do not equate code size, test files or CI runs with verified capability."
-  ]
+  ],
+  "layer": "website",
+  "name": ".github/workflows",
+  "purpose": "Test, collect public project metrics and deploy the GitHub Pages site",
+  "schema_version": "1.0.0"
 }

@@ -1,14 +1,41 @@
 {
-  "schema_version": "1.0.0",
-  "name": "crates/site-builder",
-  "layer": "website",
-  "purpose": "Rust static site generator",
   "above": {
     "name": "crates",
     "path": ".."
   },
+  "extensions": {
+    "generated": {
+      "children": [
+        {
+          "digest": "a305fd424f408af40d07a85ca7ed57c860d08e3f71d1797a43f787bfc26a3ad0",
+          "last_commit": "f153e12",
+          "name": "src",
+          "purpose": "Page assembly and site build verification"
+        },
+        {
+          "digest": "3dbbf1e80f576db76add933f8b323a3f6981bbe9d5dbd5a231ba2e68bcac6cdc",
+          "last_commit": "18872cf",
+          "name": "templates",
+          "purpose": "Reviewed HTML templates for source-backed pages"
+        }
+      ],
+      "children_root": "sha256:254506743da7d51fcb8f98673cb5224f6ef58df50d5d5dcae142fb1d7b23c98c",
+      "compiled_at": "2026-10-04T18:17:49Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:cf902ad3b38a05cf8a6e23bdb2d115082fd27835fda1910fd645fada215b114e",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 27,
+      "generated_at_commit": "81799d091d92850a4107359cdb3887b1eba59fbf",
+      "source_tree": "sha256:d0ff224e78ae46a780bb70eb3ea4a0c27fb1226f47a4a83cbe7fee400fe743be"
+    }
+  },
   "invariants": [
     "Never commit .crumb.local or credentials.",
     "Report retained public repository evidence; do not equate code size, test files or CI runs with verified capability."
-  ]
+  ],
+  "layer": "website",
+  "name": "crates/site-builder",
+  "purpose": "Rust static site generator",
+  "schema_version": "1.0.0"
 }

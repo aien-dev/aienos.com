@@ -1,14 +1,35 @@
 {
-  "schema_version": "1.0.0",
-  "name": "crates/site-builder/src",
-  "layer": "website",
-  "purpose": "Page assembly and site build verification",
   "above": {
     "name": "crates/site-builder",
     "path": ".."
   },
+  "extensions": {
+    "generated": {
+      "children": [
+        {
+          "digest": "0492b15405c36be1bf95408cf5cb8c889260d559db13b77cf03e3c5f724874ec",
+          "last_commit": "f153e12",
+          "name": "components",
+          "purpose": "Reusable page content and navigation"
+        }
+      ],
+      "children_root": "sha256:5416b14f88b0274da76f507edd993289ce0d430cb5dff013ab87b3b441b4add5",
+      "compiled_at": "2026-10-04T18:17:49Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:a305fd424f408af40d07a85ca7ed57c860d08e3f71d1797a43f787bfc26a3ad0",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 24,
+      "generated_at_commit": "81799d091d92850a4107359cdb3887b1eba59fbf",
+      "source_tree": "sha256:b249b7ca58efb97996575ea29a9e3158937e8f8f3fd9a47a17862e57208ccc54"
+    }
+  },
   "invariants": [
     "Never commit .crumb.local or credentials.",
     "Report retained public repository evidence; do not equate code size, test files or CI runs with verified capability."
-  ]
+  ],
+  "layer": "website",
+  "name": "crates/site-builder/src",
+  "purpose": "Page assembly and site build verification",
+  "schema_version": "1.0.0"
 }

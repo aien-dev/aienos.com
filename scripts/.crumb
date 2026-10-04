@@ -1,17 +1,31 @@
 {
-  "schema_version": "1.0.0",
-  "name": "scripts",
-  "layer": "website",
-  "purpose": "Dependency-free public GitHub measurement collection and validation",
   "above": {
     "name": "aienos.com",
     "path": ".."
+  },
+  "exports": [
+    "collect-progress.mjs: collect, validateSnapshot, paginate, classify, physicalLines"
+  ],
+  "extensions": {
+    "generated": {
+      "children": [],
+      "children_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compiled_at": "2026-10-04T18:14:55Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:e7e0d0e0f876a67aba52bfa09ae0a43fd3de37ea859de10a14af9bfbc829933c",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 2,
+      "generated_at_commit": "37e78cf4d7664459d749a213da65377d999f53be",
+      "source_tree": "sha256:34e4d316769441209431cbc5ddbf7212701ed7d53a5b772f663dbb89fe52ba95"
+    }
   },
   "invariants": [
     "Never commit .crumb.local or credentials.",
     "Report retained public repository evidence; do not equate code size, test files or CI runs with verified capability."
   ],
-  "exports": [
-    "collect-progress.mjs: collect, validateSnapshot, paginate, classify, physicalLines"
-  ]
+  "layer": "website",
+  "name": "scripts",
+  "purpose": "Dependency-free public GitHub measurement collection and validation",
+  "schema_version": "1.0.0"
 }

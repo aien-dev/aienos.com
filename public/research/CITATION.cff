@@ -12,7 +12,7 @@ version: "1.9"
 date-released: 2026-09-30
 url: "https://aienos.com/research/computing-machinery-and-understanding"
 repository-code: "https://github.com/aien-dev/omega"
-license: "Apache-2.0"
+license: "AGPL-3.0-or-later"
 keywords:
   - turing-gain
   - explanatory-compression
