@@ -1530,6 +1530,10 @@ p {
 .home-q-meaning {
   margin-top: 10px;
   font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
 /* ==========================================================================
    NARR-NAV: six-section footer and section hub pages
    (/experiments/, /evidence/, /philosophy/). Self-contained block; the

@@ -21,14 +21,14 @@
     "generated": {
       "children": [
         {
-          "digest": "bcf35afcdd3605a179fce48df881a80ae124f64bacf98bf924a0ca9ca49eed5d",
-          "last_commit": "f153e12",
+          "digest": "90fc918eae1633a7f20116f7c5fc2014887fe65197409f36de71583c520e1067",
+          "last_commit": "2cbf276",
           "name": "crates",
           "purpose": "Native Rust website crates"
         },
         {
-          "digest": "88e6eaf6a9f73eeaa0732247de8973f3f1a5605e4213ded09228430f146793ac",
-          "last_commit": "81799d0",
+          "digest": "a5907fb83c89b640ed1e05bd39b42d746b6e708f0ff0d0e7f5ffe7b4379c6da3",
+          "last_commit": "2cbf276",
           "name": "public",
           "purpose": "Static public website assets"
         },
@@ -39,15 +39,15 @@
           "purpose": "Dependency-free public GitHub measurement collection and validation"
         }
       ],
-      "children_root": "sha256:8cb7f8ef9579d870c5e796e53f0e068be2af99e95b9e95dd1db9ca6b406dd577",
-      "compiled_at": "2026-10-04T18:17:49Z",
+      "children_root": "sha256:47f7045548ee3780fd27583587547d7d6eb40623228be9f59f87a782097b0980",
+      "compiled_at": "2026-10-04T18:36:18Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:600b1d304f545f9e2639e32b1ec654d8280b74dd4efcef9c59bf419e328e0bed",
+      "digest": "sha256:687a29b42729aea99f3689cadd92b6731324f0fa01a85d7f8c7ad17001490989",
       "evidence_files": 0,
       "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "files": 114,
-      "generated_at_commit": "81799d091d92850a4107359cdb3887b1eba59fbf",
-      "source_tree": "sha256:be74baae4bd9f0a5796805dc328f82c9118be2d91a8928d8651222812bd9078a"
+      "generated_at_commit": "2cbf276ee7e6164b0cdb68af68566415d509da1d",
+      "source_tree": "sha256:f672cf61aa77b9725c6b02b71afe703838ca332a9a0d9ea87b0fff887798887b"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",
