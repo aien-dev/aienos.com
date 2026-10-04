@@ -25,7 +25,7 @@
           "purpose": "Browser interactions using public data only"
         },
         {
-          "digest": "d422ea4dc693a0776b49a1d6d1f1ac0b30d2e4f8196f761bd0e47578bb1e8097",
+          "digest": "55028dbc099d621b39eda8f111a3588c461590ffda0739f5c1cf285d77199592",
           "last_commit": "18872cf",
           "name": "licensing",
           "purpose": "Public static research or licensing pages using the shared website navigation"
@@ -38,20 +38,20 @@
         },
         {
           "digest": "754c9d9040c7a85f9a08d898d164a2cab81c61a841ea5bfd9c7cffa72fb15f82",
-          "last_commit": "37e78cf",
+          "last_commit": "81799d0",
           "name": "research",
           "purpose": "Public static research or licensing pages using the shared website navigation"
         }
       ],
-      "children_root": "sha256:02a8de3581d1bdd2d775b66f8a5508d5c3bf906cbd06164df08eaae0c9a4fd30",
-      "compiled_at": "2026-10-04T18:14:55Z",
+      "children_root": "sha256:65180de45c932232292e3f700392741a1c982330c9078b5a9537308b56444cd0",
+      "compiled_at": "2026-10-04T18:17:49Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:e5b97bfadc251f2e56b9b03b8189e3239ab525ab436e2129a4ec4c83707ca640",
+      "digest": "sha256:88e6eaf6a9f73eeaa0732247de8973f3f1a5605e4213ded09228430f146793ac",
       "evidence_files": 0,
       "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "files": 70,
-      "generated_at_commit": "37e78cf4d7664459d749a213da65377d999f53be",
-      "source_tree": "sha256:78ada3a9e989a04985302fe9cfc2963fb247453d15e948a3ad94a81ee88814c8"
+      "generated_at_commit": "81799d091d92850a4107359cdb3887b1eba59fbf",
+      "source_tree": "sha256:3fda754e7adc054b450efb264858ecbb6f8bd75493034ab85c95580a7364d147"
     }
   },
   "invariants": [
