@@ -7,7 +7,7 @@
     "generated": {
       "children": [
         {
-          "digest": "db50fb973b07ff0647368f45e5322703cab1f9b29094c0a519cc33d26213ee75",
+          "digest": "2f846fba07d5110a84a64b153de858cf5712fe2d287919a1ed17f4b7c4b3a4f7",
           "last_commit": "f153e12",
           "name": "assets",
           "purpose": "Website styles including the project dashboard"
@@ -26,7 +26,7 @@
         },
         {
           "digest": "55028dbc099d621b39eda8f111a3588c461590ffda0739f5c1cf285d77199592",
-          "last_commit": "18872cf",
+          "last_commit": "2cbf276",
           "name": "licensing",
           "purpose": "Public static research or licensing pages using the shared website navigation"
         },
@@ -38,20 +38,20 @@
         },
         {
           "digest": "754c9d9040c7a85f9a08d898d164a2cab81c61a841ea5bfd9c7cffa72fb15f82",
-          "last_commit": "81799d0",
+          "last_commit": "2cbf276",
           "name": "research",
           "purpose": "Public static research or licensing pages using the shared website navigation"
         }
       ],
-      "children_root": "sha256:65180de45c932232292e3f700392741a1c982330c9078b5a9537308b56444cd0",
-      "compiled_at": "2026-10-04T18:17:49Z",
+      "children_root": "sha256:5091ae143ae24e13a1d83dc1680dd705e5564d8e26b44b3dc3e24b5ff175eee5",
+      "compiled_at": "2026-10-04T18:36:18Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:88e6eaf6a9f73eeaa0732247de8973f3f1a5605e4213ded09228430f146793ac",
+      "digest": "sha256:a5907fb83c89b640ed1e05bd39b42d746b6e708f0ff0d0e7f5ffe7b4379c6da3",
       "evidence_files": 0,
       "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "files": 70,
-      "generated_at_commit": "81799d091d92850a4107359cdb3887b1eba59fbf",
-      "source_tree": "sha256:3fda754e7adc054b450efb264858ecbb6f8bd75493034ab85c95580a7364d147"
+      "generated_at_commit": "2cbf276ee7e6164b0cdb68af68566415d509da1d",
+      "source_tree": "sha256:11713db0e1a7532f4d79c2aad9de758d902ecca91a0b36938f09d8e671b93b3e"
     }
   },
   "invariants": [

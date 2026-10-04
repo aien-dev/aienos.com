@@ -217,6 +217,23 @@ fn verify_site(dist: &Path) {
     assert!(dist.join("assets/style.css").exists(), "Missing assets/style.css");
     assert!(dist.join("js/terminal.js").exists(), "Missing js/terminal.js");
 
+    // A stray or missing brace silently nests every later rule inside an
+    // earlier one (this left the footer unstyled), so refuse unbalanced CSS.
+    let css = fs::read_to_string(dist.join("assets/style.css")).expect("read assets/style.css");
+    let mut depth: i64 = 0;
+    for ch in css.chars() {
+        match ch {
+            '{' => depth += 1,
+            '}' => depth -= 1,
+            _ => {}
+        }
+        assert!(depth >= 0, "assets/style.css has an unmatched closing brace");
+    }
+    assert_eq!(depth, 0, "assets/style.css has an unclosed rule; later rules would be nested");
+    for class in ["aien-footer", "aien-footer-sections", "aien-footer-heading", "aien-footer-group", "aien-footer-legal", "aien-footer-mottos"] {
+        assert!(css.contains(&format!(".{class}")), "assets/style.css missing footer rule .{class}");
+    }
+
     // Verify Unslop standard
     assert!(!content.contains('\u{2014}'), "Forbidden em dash detected in index.html");
     assert!(!content.contains('\u{2013}'), "Forbidden en dash detected in index.html");
