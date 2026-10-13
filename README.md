@@ -3,7 +3,7 @@
 [![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL--3.0--or--later-blue.svg)](LICENSE)
 [![GitHub Pages](https://github.com/aien-dev/aienos.com/actions/workflows/pages.yml/badge.svg)](https://github.com/aien-dev/aienos.com/actions/workflows/pages.yml)
 
-The official web platform and documentation portal for **AIENOS**, the GPU-Native Neural Operating Environment.
+The source of the AIENOS website. It is a static site built by a Rust program and served by GitHub Pages.
 
 Live: [https://www.aienos.com](https://www.aienos.com)
 
@@ -11,7 +11,7 @@ Live: [https://www.aienos.com](https://www.aienos.com)
 
 ## What the site covers
 
-The site presents [aien-sovereign-core](https://github.com/aien-dev/aien-sovereign-core), a sovereign agent and inference runtime in native Rust with Modular MAX bridges, built on NVIDIA DGX Spark (Grace Blackwell GB10). Site copy tracks the core README: the architecture section lists what is implemented today, and the results section follows the evidence standard, where withdrawn figures stay off the page until their artifact bundles are regenerated.
+The homepage opens with "AIENOS is an owned experimental machine for turning search into verified understanding" (`crates/site-builder/src/components/home_loop.rs`) and goes on to the loop, the story, the receipts behind each claim, how the pieces fit together, the research, an interactive terminal, the current status of each layer, and the waitlist. Other pages: `/progress/`, `/blog/`, `/research/status/`, `/machine/`, `/discovery/` and the hubs `/experiments/`, `/evidence/` and `/philosophy/`. The build also writes `status.json`, `research-status.json` and `llms.txt`; `status.json` and `llms.txt` come from the same code as the homepage status section, and `research-status.json` is `crates/site-builder/data/research_status.json`. The homepage status section says "Public release" is PLANNED: pre-alpha, no supported release or installer yet.
 
 ---
 
@@ -33,7 +33,9 @@ To bind `aienos.com` on Gandi.net to GitHub Pages:
 
 ---
 
-## Universal Developer Installer
+## Installer script
+
+`public/install.sh` is published at `https://aienos.com/install.sh`. It needs `git`, clones [aien-sovereign-core](https://github.com/aien-dev/aien-sovereign-core) (the earlier Linux-hosted Rust runtime) into a temporary directory and runs that repository's own `install.sh`. The website itself says there is no supported release or installer yet, and no page links to this script.
 
 ```bash
 curl -fsSL https://aienos.com/install.sh | bash
@@ -43,12 +45,15 @@ curl -fsSL https://aienos.com/install.sh | bash
 
 ## Local Development & Build
 
+There is no Node build and no `package.json`. The site is rendered by the Rust program in `crates/site-builder`, which copies `public/` into the output directory. Run these from the repository root:
+
 ```bash
-npm install
-npm run dev
-npm run build
-npm run preview
+cargo test --manifest-path crates/site-builder/Cargo.toml
+cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist
+cargo run --release --manifest-path crates/site-builder/Cargo.toml -- verify dist
 ```
+
+`build dist` writes the site to `dist/` and then verifies it; `verify dist` re-checks an existing output directory. There is no dev server or preview command. `.github/workflows/pages.yml` runs the same steps (plus the Node progress collection described below) and deploys `dist/` to GitHub Pages on pushes to `main`.
 
 ## Rust waitlist API
 
@@ -64,10 +69,11 @@ bash server/deploy-local.sh
 
 The deployment script builds a Rust release binary and starts a container on
 `127.0.0.1:18171` with persistent data in
-`~/.local/share/aienos-waitlist`. The GitHub Pages form uses
-`https://spark.tail987627.ts.net/aienos-waitlist/api/signup` by default;
-`VITE_WAITLIST_ENDPOINT` can override it at build time. The public Tailscale
-Funnel route must forward `/aienos-waitlist` to the local listener.
+`~/.local/share/aienos-waitlist` (override with `AIENOS_WAITLIST_DATA_DIR`).
+The GitHub Pages form posts to
+`https://spark.tail987627.ts.net/aienos-waitlist/api/signup`, which is fixed in
+`crates/site-builder/src/components/waitlist.rs` (there is no build-time override).
+The public Tailscale Funnel route must forward `/aienos-waitlist` to the local listener.
 
 ---
 
