@@ -5,18 +5,10 @@ pub fn render_ecosystem() -> Markup {
         (
             "aien-sovereign-core",
             "AIEN Sovereign Core",
-            "Core native agent runtime, fail-closed safety engine, Axum web gateway, and custom Modular MAX model architectures.",
-            "Rust 1.85+ / MAX 26.5",
+            "Core native agent runtime, fail-closed safety engine, Axum web gateway, and an inference ABI whose GPU path runs AIEN's own Omega kernels.",
+            "Rust / Omega",
             "Core Engine",
             "https://github.com/aien-dev/aien-sovereign-core"
-        ),
-        (
-            "spark-neural-os",
-            "Spark Neural OS",
-            "GPU-native neural operating system, resident cognitive kernel, and pure Mojo 1.0 SIMD vector kernels.",
-            "Mojo 1.0 / MLIR",
-            "Kernel Stack",
-            "https://github.com/aien-dev"
         ),
         (
             "spark-cockpit",
@@ -71,7 +63,7 @@ pub fn render_ecosystem() -> Markup {
                         "The AIEN Sovereign Ecosystem"
                     }
                     p style="color: var(--text-secondary); margin-top: 8px; max-width: 680px;" {
-                        "A unified network of pure compiled Rust and Mojo repositories operating under the Sovereign Reciprocal Commons License."
+                        "A unified network of pure compiled Rust repositories operating under the Sovereign Reciprocal Commons License."
                     }
                 }
 
