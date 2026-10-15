@@ -24,15 +24,6 @@
       fragmentation_ratio: 0.000,
       page_table_mapping: "coherent_unified_sm_121a"
     },
-    sys_bench: {
-      syscall: "sys_simd_benchmark",
-      compiler: "Mojo 1.0 (MLIR LLVM)",
-      target: "aarch64-unknown-linux-gnu",
-      scalar_throughput_gflops: 12.8,
-      simd_32wide_throughput_gflops: 124.2,
-      speedup_multiplier: "9.70x",
-      coherent_memory_bandwidth_gbps: 81.6
-    },
     sys_vault: {
       subsystem: "atlas-vault",
       hardware_key_substrate: "/dev/tpmrm0",
@@ -43,7 +34,7 @@
     }
   };
 
-  const HELP_TEXT = "Supported Neural Syscalls:\n  sys_telemetry - Inspect GB10 thermals, power, and unified VRAM\n  sys_alloc_kv   - Allocate PagedAttention neural memory blocks\n  sys_bench      - Run Mojo 1.0 32-wide SIMD kernel benchmark\n  sys_vault      - Validate hardware TPM 2.0 key vault security\n  clear          - Clear terminal display";
+  const HELP_TEXT = "Supported Neural Syscalls:\n  sys_telemetry - Inspect GB10 thermals, power, and unified VRAM\n  sys_alloc_kv   - Allocate PagedAttention neural memory blocks\n  sys_vault      - Validate hardware TPM 2.0 key vault security\n  clear          - Clear terminal display";
 
   function initTerminal() {
     const output = document.getElementById("terminal-output");
@@ -89,8 +80,6 @@
         respKey = "sys_telemetry";
       } else if (normalized === "sys_alloc_kv" || normalized === "alloc_kv") {
         respKey = "sys_alloc_kv";
-      } else if (normalized === "sys_bench" || normalized === "bench" || normalized === "simd") {
-        respKey = "sys_bench";
       } else if (normalized === "sys_vault" || normalized === "vault") {
         respKey = "sys_vault";
       }

@@ -42,9 +42,6 @@ pub fn render_terminal() -> Markup {
                         button type="button" data-cmd="sys_alloc_kv" style="background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 4px 10px; font-family: var(--font-mono); font-size: 12px; cursor: pointer;" {
                             "sys_alloc_kv"
                         }
-                        button type="button" data-cmd="sys_bench" style="background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 4px 10px; font-family: var(--font-mono); font-size: 12px; cursor: pointer;" {
-                            "sys_bench"
-                        }
                         button type="button" data-cmd="sys_vault" style="background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 4px 10px; font-family: var(--font-mono); font-size: 12px; cursor: pointer;" {
                             "sys_vault"
                         }
@@ -78,7 +75,7 @@ pub fn render_terminal() -> Markup {
 
                     form id="terminal-form" style="padding: 12px 16px; background: rgba(14, 18, 25, 0.95); border-top: 1px solid var(--border-subtle); display: flex; align-items: center; gap: 8px;" {
                         span style="color: var(--accent-green); font-family: var(--font-mono); font-size: 14px; font-weight: 700;" { "$" }
-                        input id="terminal-input" type="text" placeholder="Type a syscall (sys_telemetry, sys_alloc_kv, sys_bench, sys_vault, help)..." autocomplete="off" style="flex: 1; background: transparent; border: none; outline: none; color: var(--text-primary); font-family: var(--font-mono); font-size: 13px;" {}
+                        input id="terminal-input" type="text" placeholder="Type a syscall (sys_telemetry, sys_alloc_kv, sys_vault, help)..." autocomplete="off" style="flex: 1; background: transparent; border: none; outline: none; color: var(--text-primary); font-family: var(--font-mono); font-size: 13px;" {}
                         button type="submit" style="background: var(--accent-green); color: var(--bg-base); border: none; border-radius: 4px; padding: 6px 14px; font-family: var(--font-mono); font-size: 12px; font-weight: 700; cursor: pointer;" {
                             "RUN"
                         }
