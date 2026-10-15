@@ -6,6 +6,16 @@ import {execFileSync, spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 
 export const OWNER='aien-dev';
+// Repositories that live under another GitHub account. Everything else is read from OWNER.
+// A transfer is a one-line edit here.
+export const OWNER_OVERRIDES={
+  'aien-sovereign-core':'aien-spark','omega':'aien-spark','aien-architecture':'aien-spark','aien-protocols':'aien-spark',
+  'aienos':'aien-spark','aegis-runtime':'aien-spark','synapse':'aien-spark','physics':'aien-spark','interplane':'aien-spark',
+  'spark-rsi':'aien-spark','benchmarks':'aien-spark','open-humanity':'aien-spark','aien-dev':'aien-spark','crumb-spec':'aien-spark',
+  'drakestapleton.com':'aien-spark','spark-crumbs':'aien-spark',
+};
+export const ownerOf=name=>OWNER_OVERRIDES[name]||OWNER;
+const owners=[...new Set([OWNER,...Object.values(OWNER_OVERRIDES)])];
 export const TIMEZONE='America/Chicago';
 export const extensions=new Map(Object.entries({'.rs':'Rust','.c':'C','.h':'C','.inc':'C','.mojo':'Mojo','.py':'Python','.sh':'Shell','.bash':'Shell','.js':'Web','.mjs':'Web','.cjs':'Web','.jsx':'Web','.ts':'Web','.tsx':'Web','.html':'Web','.css':'Web','.S':'Assembly','.s':'Assembly','.asm':'Assembly','.cu':'CUDA','.cuh':'CUDA','.cc':'C++','.cpp':'C++','.hpp':'C++','.zig':'Zig'}));
 const excluded=/(^|\/)(vendor|vendored|third_party|third-party|node_modules|target|dist|build|generated|evidence|receipts|artifacts|data|results|fixtures)(\/|$)/i;
@@ -120,15 +130,21 @@ export async function collect({metadata=null,cacheDir='.progress-cache',output='
   const existing=JSON.parse(fs.readFileSync(output,'utf8'));
   let repositoryInfo,offline;
   if(metadata){offline=JSON.parse(fs.readFileSync(metadata,'utf8'));repositoryInfo=offline.repositories;}
-  else repositoryInfo=await paginate('/users/'+OWNER+'/repos?type=owner&sort=full_name');
-  repositoryInfo=repositoryInfo.filter(r=>!r.private&&!r.fork&&(seedNames.includes(r.name)||/^(aien(?:-|os)|aegis-|spark-|omega(?:-|$)|forge(?:-|$)|physics(?:-|$)|atlas(?:-|$)|cortex-|crumb-)/.test(r.name)));
-  for(const name of seedNames)if(!repositoryInfo.some(r=>r.name===name))throw Error('Expected public project repository missing: '+name);
+  else{
+    repositoryInfo=[];
+    for(const owner of owners){
+      try{repositoryInfo.push(...await paginate('/users/'+owner+'/repos?type=owner&sort=full_name'));}
+      catch(error){console.warn('Warning: skipping repositories of '+owner+': '+error.message);}
+    }
+  }
+  repositoryInfo=repositoryInfo.filter(r=>!r.private&&!r.fork&&(!r.owner||r.owner.login===ownerOf(r.name))&&(seedNames.includes(r.name)||/^(aien(?:-|os)|aegis-|spark-|omega(?:-|$)|forge(?:-|$)|physics(?:-|$)|atlas(?:-|$)|cortex-|crumb-)/.test(r.name)));
+  for(const name of seedNames)if(!repositoryInfo.some(r=>r.name===name))console.warn('Warning: expected public project repository missing, skipping: '+ownerOf(name)+'/'+name);
   const repos=await limited(repositoryInfo,4,async info=>{
     if(!/^[.a-zA-Z0-9_-]+$/.test(info.name)||!info.default_branch)throw Error('Invalid repository identity');
     const dir=path.resolve(cacheDir,info.name+'.git');fs.mkdirSync(path.dirname(dir),{recursive:true});
     if(!metadata){
       if(fs.existsSync(dir))await command('git',['--git-dir='+dir,'fetch','--prune','origin']);
-      else await command('git',['clone','--mirror',`https://github.com/${OWNER}/${info.name}.git`,dir]);
+      else await command('git',['clone','--mirror',`https://github.com/${ownerOf(info.name)}/${info.name}.git`,dir]);
     }
     const head=metadata&&info.head?info.head:git(dir,['rev-parse','refs/heads/'+info.default_branch]).trim();
     const commits=commitsAt(dir,head),fp=commitsAt(dir,head,true);
@@ -137,8 +153,8 @@ export async function collect({metadata=null,cacheDir='.progress-cache',output='
     let prs,runs;
     if(metadata){prs=offline.metadata.find(r=>r.name===info.name).prs;runs=offline.ci.find(r=>r.name===info.name).rows;}
     else{
-      prs=await paginate(`/repos/${OWNER}/${info.name}/pulls?state=all`);
-      runs=await paginate(`/repos/${OWNER}/${info.name}/actions/runs`,'workflow_runs');
+      prs=await paginate(`/repos/${ownerOf(info.name)}/${info.name}/pulls?state=all`);
+      runs=await paginate(`/repos/${ownerOf(info.name)}/${info.name}/actions/runs`,'workflow_runs');
     }
     prs=prs.filter(p=>Date.parse(p.created_at??p.created)<=cutoff).map(p=>({number:p.number,title:p.title,created:p.created_at??p.created,merged:p.merged_at??p.merged,closed:p.closed_at??p.closed,state:p.state,draft:p.draft,url:p.html_url??p.url,createdDay:day(p.created_at??p.created),mergedDay:(p.merged_at??p.merged)?day(p.merged_at??p.merged):null}));
     const uniqueRuns=new Map(runs.map(r=>[r.html_url??r.url,r]));
