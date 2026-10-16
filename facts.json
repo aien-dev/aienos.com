@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-16T16:17:55Z",
+  "generated_at": "2026-10-16T16:29:47Z",
   "components": [
     {
       "key": "aienos",
@@ -124,9 +124,9 @@
     "sha": "bdd58a2b8fc873deecc06871809817801ac8b1e2",
     "commit_title": "aien-kv-cache: document KV memory ownership and concurrency at the source (PERF-DOC P1) (#588)",
     "committed_at": "2026-10-16T11:23:08Z",
-    "state": "success",
-    "description": "Published Spark verification bundle matches this commit.",
-    "target_url": "https://github.com/aien-dev/aien-sovereign-core-mv/actions/runs/38893423544/job/116948128626",
-    "updated_at": "2026-10-16T11:24:18Z"
+    "state": "failure",
+    "description": "BLOCKED FAIL PREFILL-E2E-2:rc_nonzero",
+    "target_url": "https://github.com/aien-dev/aien-sovereign-core/commit/bdd58a2b8fc873deecc06871809817801ac8b1e2",
+    "updated_at": "2026-10-16T12:49:38Z"
   }
 }
