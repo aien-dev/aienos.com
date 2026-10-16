@@ -25,10 +25,14 @@ jobs:
         with:
           ref: ${{ github.ref_name }}
           fetch-depth: 0
+      - name: Refresh facts from the public GitHub record
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: cargo run --release --manifest-path crates/site-builder/Cargo.toml -- facts facts.json
       - name: Run verification test suite
         run: cargo test --verbose --manifest-path crates/site-builder/Cargo.toml
       - name: Build static site with pure Rust engine
-        run: cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist
+        run: cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist facts.json
       - name: Open PR and merge into main
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

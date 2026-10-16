@@ -1,7 +1,5 @@
-node_modules
+target
 dist
-dist-ssr
-server/target
-server/*.sqlite3*
+dist-rust
 *.local
 .DS_Store

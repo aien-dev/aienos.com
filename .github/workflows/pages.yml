@@ -1,6 +1,9 @@
 name: pages
 on:
   workflow_dispatch:
+  schedule:
+    # Once a day, so the facts on the page stay current without anyone touching the site.
+    - cron: "17 6 * * *"
   push:
     branches: [main]
   pull_request:
@@ -17,10 +20,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Run verification test suite
-        run: cargo test --verbose --manifest-path crates/site-builder/Cargo.toml
-      - name: Build static site with pure Rust engine
-        run: cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist
+      - name: Refresh facts from the public GitHub record
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: cargo run --release --manifest-path crates/site-builder/Cargo.toml -- facts facts.json
+      - name: Run the builder's tests
+        run: cargo test --manifest-path crates/site-builder/Cargo.toml
+      - name: Build and verify the page
+        run: cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist facts.json
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3

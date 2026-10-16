@@ -1,76 +1,44 @@
-# AIENOS Web Platform (aienos.com)
+# aienos.com
 
-[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
-[![GitHub Pages](https://github.com/aien-dev/aienos.com/actions/workflows/pages.yml/badge.svg)](https://github.com/aien-dev/aienos.com/actions/workflows/pages.yml)
+The public front door of AIEN. Live at [www.aienos.com](https://www.aienos.com).
 
-The official web platform and documentation portal for **AIENOS**, the GPU-Native Neural Operating Environment.
+One static page, built from Rust source. It loads no fonts, scripts or trackers from anyone, and every figure on it that can change is read from the public GitHub record at build time and links back to it.
 
-Live: [https://www.aienos.com](https://www.aienos.com)
+## How it stays current
 
----
+The page has two kinds of content:
 
-## What the site covers
+- **Editorial copy** (what AIEN is, principles, how a change gets in) lives in `crates/site-builder/src/components/` and changes only through a pull request.
+- **Facts** (the latest verification receipt, each component's last merged change and open changes, the newest decision records) live in `facts.json`, written by the builder's `facts` subcommand from the GitHub API. The workflow refreshes them once a day and on every push, so nobody has to edit the site to keep it true.
 
-The site presents [aien-sovereign-core](https://github.com/aien-dev/aien-sovereign-core), a sovereign agent and inference runtime in native Rust with Modular MAX bridges, built on NVIDIA DGX Spark (Grace Blackwell GB10). Site copy tracks the core README: the architecture section lists what is implemented today, and the results section follows the evidence standard, where withdrawn figures stay off the page until their artifact bundles are regenerated.
+If a figure cannot be resolved to a public record, it does not go on the page.
 
----
+## Build
 
-## Gandi.net DNS Record Configuration Reference
-
-To bind `aienos.com` on Gandi.net to GitHub Pages:
-
-| Type | Name | Target Value | TTL |
-| :--- | :--- | :--- | :--- |
-| `A` | `@` | `185.199.108.153` | 1800 |
-| `A` | `@` | `185.199.109.153` | 1800 |
-| `A` | `@` | `185.199.110.153` | 1800 |
-| `A` | `@` | `185.199.111.153` | 1800 |
-| `AAAA` | `@` | `2606:50c0:8000::153` | 1800 |
-| `AAAA` | `@` | `2606:50c0:8001::153` | 1800 |
-| `AAAA` | `@` | `2606:50c0:8002::153` | 1800 |
-| `AAAA` | `@` | `2606:50c0:8003::153` | 1800 |
-| `CNAME` | `www` | `aien-dev.github.io.` | 1800 |
-
----
-
-## Universal Developer Installer
-
-```bash
-curl -fsSL https://aienos.com/install.sh | bash
+```sh
+cargo run --release --manifest-path crates/site-builder/Cargo.toml -- facts facts.json   # needs gh, read-only
+cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist facts.json
+cargo test --manifest-path crates/site-builder/Cargo.toml
 ```
 
----
+`build` also verifies the output: no scripts, no outside fonts, no comparisons with other systems, no em or en dashes, and the receipt, components table and licence line present. A build that breaks an invariant does not deploy.
 
-## Local Development & Build
+## Layout
 
-```bash
-npm install
-npm run dev
-npm run build
-npm run preview
+```text
+crates/site-builder/   the builder (Rust, maud)
+  src/facts.rs         gathers facts.json from GitHub
+  src/components/      hero + receipt, what, status table, how a change gets in, principles, run it, footer
+  src/layouts/base.rs  the document shell and metadata
+public/                static files copied as-is: stylesheet, favicon, install.sh, CNAME, og.png
+facts.json             the latest gathered facts (committed so the build works offline)
+.github/workflows/     pages.yml builds, verifies and deploys; runs daily
 ```
 
-## Rust waitlist API
+## Deploy
 
-The waitlist form posts to the Rust API in [`server/`](server/). It stores
-unique email addresses, a consent version, and signup time in SQLite. The API
-accepts browser requests only from `aienos.com` and `www.aienos.com`; the
-database is never exposed by the static website.
+GitHub Pages from the `pages` workflow on `main`, custom domain `www.aienos.com`, HTTPS enforced. DNS is at the registrar: `www` is a CNAME to `aien-dev.github.io`, and the apex points at the GitHub Pages addresses.
 
-```bash
-cargo test --manifest-path server/Cargo.toml
-bash server/deploy-local.sh
-```
+## Licence
 
-The deployment script builds a Rust release binary and starts a container on
-`127.0.0.1:18171` with persistent data in
-`~/.local/share/aienos-waitlist`. The GitHub Pages form uses
-`https://spark.tail987627.ts.net/aienos-waitlist/api/signup` by default;
-`VITE_WAITLIST_ENDPOINT` can override it at build time. The public Tailscale
-Funnel route must forward `/aienos-waitlist` to the local listener.
-
----
-
-## License
-
-Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE). The runtime itself, aien-sovereign-core, is Apache-2.0 with LLVM Exception. Project values live in the nonbinding [COVENANT.md](https://github.com/aien-dev/aien-sovereign-core/blob/main/COVENANT.md), which grants and restricts no legal rights.
+AGPL-3.0-or-later, like everything in AIEN. See [LICENSE](LICENSE).

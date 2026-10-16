@@ -1,0 +1,132 @@
+{
+  "generated_at": "2026-10-16T16:09:01Z",
+  "components": [
+    {
+      "key": "aienos",
+      "name": "AIENOS",
+      "repo": "aien-dev/aienos",
+      "role": "The operating system. Agent-first; the model is never the kernel.",
+      "url": "https://github.com/aien-dev/aienos",
+      "pushed_at": "2026-10-16T11:20:41Z",
+      "open_prs": 4,
+      "last_merge": {
+        "number": 401,
+        "title": "docs: native KV ownership status and one resolved GB10 unknown (PERF-DOC P1)",
+        "merged_at": "2026-10-16T11:20:40Z",
+        "url": "https://github.com/aien-dev/aienos-mv/pull/401"
+      }
+    },
+    {
+      "key": "omega",
+      "name": "Omega",
+      "repo": "aien-dev/omega",
+      "role": "The language and GPU engine the stack is being rewritten into.",
+      "url": "https://github.com/aien-dev/omega",
+      "pushed_at": "2026-10-16T15:25:49Z",
+      "open_prs": 18,
+      "last_merge": {
+        "number": 504,
+        "title": "docs: record the required checks after the Spark flip",
+        "merged_at": "2026-10-16T09:13:26Z",
+        "url": "https://github.com/aien-dev/omega-mv/pull/504"
+      }
+    },
+    {
+      "key": "sovereign-core",
+      "name": "Sovereign core",
+      "repo": "aien-dev/aien-sovereign-core",
+      "role": "Host runtime, inference ABI, and the pipeline that judges every change.",
+      "url": "https://github.com/aien-dev/aien-sovereign-core",
+      "pushed_at": "2026-10-16T15:26:33Z",
+      "open_prs": 22,
+      "last_merge": {
+        "number": 588,
+        "title": "aien-kv-cache: document KV memory ownership and concurrency at the source (PERF-DOC P1)",
+        "merged_at": "2026-10-16T11:23:08Z",
+        "url": "https://github.com/aien-dev/aien-sovereign-core-mv/pull/588"
+      }
+    },
+    {
+      "key": "architecture",
+      "name": "Architecture",
+      "repo": "aien-dev/aien-architecture",
+      "role": "Flows, boundaries, decision records, execution plan.",
+      "url": "https://github.com/aien-dev/aien-architecture",
+      "pushed_at": "2026-10-16T15:46:45Z",
+      "open_prs": 1,
+      "last_merge": {
+        "number": 238,
+        "title": "docs/research: repository topology (Unix-style, monorepo, hybrid)",
+        "merged_at": "2026-10-16T15:46:42Z",
+        "url": "https://github.com/aien-dev/aien-architecture-mv/pull/238"
+      }
+    },
+    {
+      "key": "protocols",
+      "name": "Protocols",
+      "repo": "aien-dev/aien-protocols",
+      "role": "Specifications, wire protocols, schemas.",
+      "url": "https://github.com/aien-dev/aien-protocols",
+      "pushed_at": "2026-10-16T09:14:36Z",
+      "open_prs": 0,
+      "last_merge": {
+        "number": 26,
+        "title": "docs: record the required checks after the Spark flip",
+        "merged_at": "2026-10-16T09:14:34Z",
+        "url": "https://github.com/aien-dev/aien-protocols-mv/pull/26"
+      }
+    },
+    {
+      "key": "physics",
+      "name": "Physics",
+      "repo": "aien-dev/physics",
+      "role": "The FORGE realization layer and the boot artefacts for the GB10.",
+      "url": "https://github.com/aien-dev/physics",
+      "pushed_at": "2026-10-16T09:07:46Z",
+      "open_prs": 1,
+      "last_merge": {
+        "number": 62,
+        "title": "docs: record the required checks after the Spark flip",
+        "merged_at": "2026-10-16T09:07:43Z",
+        "url": "https://github.com/aien-dev/physics-mv/pull/62"
+      }
+    }
+  ],
+  "decisions": [
+    {
+      "id": "0037",
+      "title": "Who signs native slot images: Owner Root directly, or a Release Signer...",
+      "url": "https://github.com/aien-dev/aien-architecture-mv/blob/main/docs/adr/0037-native-image-slot-signing-roles.md"
+    },
+    {
+      "id": "0036",
+      "title": "Release v1 memory owner (lane L3 of the release-readiness program)",
+      "url": "https://github.com/aien-dev/aien-architecture-mv/blob/main/docs/adr/0036-release-v1-memory-owner.md"
+    },
+    {
+      "id": "0035",
+      "title": "Persistent Cognitive Entity Boundary (ALLEN)",
+      "url": "https://github.com/aien-dev/aien-architecture-mv/blob/main/docs/adr/0035-persistent-cognitive-entity-boundary-allen.md"
+    },
+    {
+      "id": "0034",
+      "title": "Physical-Form Realization IR",
+      "url": "https://github.com/aien-dev/aien-architecture-mv/blob/main/docs/adr/0034-physical-form-realization-ir.md"
+    },
+    {
+      "id": "0033",
+      "title": "AIEN Verification: Check IR (manifest v2), exactness classes, Spark...",
+      "url": "https://github.com/aien-dev/aien-architecture-mv/blob/main/docs/adr/0033-aien-verification-pipeline.md"
+    }
+  ],
+  "receipt": {
+    "repo": "aien-dev/aien-sovereign-core",
+    "sha": "bdd58a2b8fc873deecc06871809817801ac8b1e2",
+    "commit_title": "aien-kv-cache: document KV memory ownership and concurrency at the source (PERF-DOC P1) (#588)",
+    "committed_at": "2026-10-16T11:23:08Z",
+    "state": "success",
+    "description": "Published Spark verification bundle matches this commit.",
+    "target_url": "https://github.com/aien-dev/aien-sovereign-core-mv/actions/runs/38893423544/job/116948128626",
+    "updated_at": "2026-10-16T11:24:18Z"
+  }
+}

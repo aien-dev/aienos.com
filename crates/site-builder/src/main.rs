@@ -1,11 +1,21 @@
+//! aienos.com: one static page, built from Rust, with its changing facts read from a JSON file
+//! that the `facts` subcommand gathers from the public GitHub record.
+//!
+//!   site-builder facts [facts.json]        gather live facts (needs `gh`, read-only)
+//!   site-builder build [dist] [facts.json] render the page from the facts file
+//!   site-builder verify [dist]             check an existing output directory
+
 mod components;
+mod facts;
 mod layouts;
 
 use std::fs;
 use std::path::Path;
+use std::process::exit;
 use std::time::Instant;
 
-use layouts::base::render_base_layout;
+use facts::Facts;
+use layouts::base::{render_base_layout, SITE_URL};
 use maud::html;
 
 fn copy_dir_all(src: &Path, dst: &Path) -> std::io::Result<()> {
@@ -15,10 +25,9 @@ fn copy_dir_all(src: &Path, dst: &Path) -> std::io::Result<()> {
     fs::create_dir_all(dst)?;
     for entry in fs::read_dir(src)? {
         let entry = entry?;
-        let ty = entry.file_type()?;
         let from = entry.path();
         let to = dst.join(entry.file_name());
-        if ty.is_dir() {
+        if entry.file_type()?.is_dir() {
             copy_dir_all(&from, &to)?;
         } else {
             fs::copy(&from, &to)?;
@@ -27,138 +36,139 @@ fn copy_dir_all(src: &Path, dst: &Path) -> std::io::Result<()> {
     Ok(())
 }
 
-fn generate_sitemap_and_robots(dist: &Path) {
-    let sitemap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n  <url><loc>https://aienos.com/</loc><priority>1.0</priority></url>\n</urlset>\n";
-    let sitemap_path = dist.join("sitemap.xml");
-    fs::write(&sitemap_path, sitemap).expect("Failed to write sitemap.xml");
-
-    let robots = "User-agent: *\nAllow: /\nSitemap: https://aienos.com/sitemap.xml\n";
-    let robots_path = dist.join("robots.txt");
-    fs::write(&robots_path, robots).expect("Failed to write robots.txt");
-
-    println!("  [GEN] Emitted native sitemap.xml and robots.txt in: {}", dist.display());
+fn write_sitemap_and_robots(dist: &Path) -> std::io::Result<()> {
+    let sitemap = format!(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n  <url><loc>{SITE_URL}</loc><priority>1.0</priority></url>\n</urlset>\n"
+    );
+    fs::write(dist.join("sitemap.xml"), sitemap)?;
+    fs::write(dist.join("robots.txt"), format!("User-agent: *\nAllow: /\nSitemap: {SITE_URL}sitemap.xml\n"))
 }
 
-fn build_pure_rust_site(dist: &Path) {
-    println!("  [BUILD] Compiling pure Rust Maud static site into: {}", dist.display());
-    fs::create_dir_all(dist.join("assets")).expect("Failed to create assets dir");
-    fs::create_dir_all(dist.join("js")).expect("Failed to create js dir");
-
-    // Copy public assets
-    let public_dir = Path::new("public");
-    if public_dir.exists() {
-        for entry in fs::read_dir(public_dir).expect("Failed to read public dir") {
-            let entry = entry.expect("Valid entry");
-            let path = entry.path();
-            let name = entry.file_name();
-            let dest = dist.join(&name);
-            if path.is_dir() {
-                copy_dir_all(&path, &dest).expect("Failed to copy public subfolder");
-            } else {
-                fs::copy(&path, &dest).expect("Failed to copy public file");
-            }
-        }
-        println!("  [ASSETS] Synced public/ assets into {}", dist.display());
-    }
-
-    // Render landing page in Maud
-    let page_content = html! {
-        (components::hero::render_hero())
-        (components::terminal::render_terminal())
-        (components::benchmarks::render_benchmarks())
-        (components::matrix::render_matrix())
-        (components::ecosystem::render_ecosystem())
+pub fn render_page(facts: &Facts) -> String {
+    let body = html! {
+        (components::hero::render_hero(facts))
+        (components::what::render_what())
+        (components::status::render_status(facts))
+        (components::how::render_how(facts))
+        (components::principles::render_principles())
         (components::install::render_install())
-        (components::waitlist::render_waitlist())
     };
-
-    let full_document = render_base_layout(page_content);
-    let output_file = dist.join("index.html");
-    fs::write(&output_file, full_document.into_string()).expect("Failed to write index.html");
-    println!("  [PAGE] Emitted / (index.html)");
-
-    generate_sitemap_and_robots(dist);
+    render_base_layout(body).into_string()
 }
 
-fn verify_site(dist: &Path) {
-    let index_file = dist.join("index.html");
-    assert!(index_file.exists(), "Required index.html missing in {}", dist.display());
+fn build(dist: &Path, facts_path: &Path) -> Result<(), String> {
+    let facts = Facts::load(facts_path)?;
+    fs::create_dir_all(dist).map_err(|e| e.to_string())?;
+    copy_dir_all(Path::new("public"), dist).map_err(|e| format!("copying public/: {e}"))?;
+    fs::write(dist.join("index.html"), render_page(&facts)).map_err(|e| e.to_string())?;
+    fs::copy(facts_path, dist.join("facts.json")).map_err(|e| format!("copying facts: {e}"))?;
+    write_sitemap_and_robots(dist).map_err(|e| e.to_string())?;
+    println!("  built {} from {} ({} components, receipt {})", dist.display(), facts_path.display(), facts.components.len(), facts.receipt.state);
+    Ok(())
+}
 
-    let content = fs::read_to_string(&index_file).expect("Failed to read index.html");
+/// The page's invariants. A build that breaks one of these does not deploy.
+pub fn verify_html(content: &str) -> Vec<String> {
+    let mut problems = Vec::new();
+    let mut need = |cond: bool, what: &str| {
+        if !cond {
+            problems.push(what.to_string());
+        }
+    };
+    need(content.contains("<main id=\"main-content\""), "main container missing");
+    need(content.contains("id=\"receipt\""), "verification receipt missing");
+    need(content.contains("id=\"components\""), "components table missing");
+    need(content.contains("id=\"verification\""), "verification section missing");
+    need(content.contains("AGPL-3.0-or-later"), "licence line missing");
+    need(!content.contains("<script"), "page must not carry scripts");
+    need(!content.contains("fonts.googleapis.com") && !content.contains("fonts.gstatic.com"), "page must not load outside fonts");
+    need(!content.contains("waitlist"), "stale waitlist copy");
+    need(!content.contains('\u{2014}') && !content.contains('\u{2013}'), "em or en dash in page");
+    // Nothing on the page compares AIEN with somebody else's system.
+    for word in ["FastAPI", "vLLM", "llama.cpp", "faster than", "x faster"] {
+        need(!content.contains(word), &format!("outside comparison or forbidden word: {word}"));
+    }
+    problems
+}
 
-    // Verify DOM structure
-    assert!(content.contains("<div id=\"root\""), "Missing #root element in index.html");
-    assert!(content.contains("<main id=\"main-content\""), "Missing main container in index.html");
-    assert!(content.contains("id=\"terminal-output\""), "Missing interactive terminal output in index.html");
-    assert!(content.contains("id=\"waitlist\""), "Missing waitlist section in index.html");
-
-    // Verify asset output
-    assert!(dist.join("assets/style.css").exists(), "Missing assets/style.css");
-    assert!(dist.join("js/terminal.js").exists(), "Missing js/terminal.js");
-
-    // Verify Unslop standard
-    assert!(!content.contains('\u{2014}'), "Forbidden em dash detected in index.html");
-    assert!(!content.contains('\u{2013}'), "Forbidden en dash detected in index.html");
-
-    // Verify sitemap and robots
-    assert!(dist.join("sitemap.xml").exists(), "Missing sitemap.xml");
-    assert!(dist.join("robots.txt").exists(), "Missing robots.txt");
-
-    println!("------------------------------------------------------------");
-    println!("  Verified index.html ({} bytes)", content.len());
-    println!("  Integrity & Unslop Invariants: PASS");
+fn verify(dist: &Path) -> Result<(), String> {
+    let index = dist.join("index.html");
+    let content = fs::read_to_string(&index).map_err(|e| format!("cannot read {}: {e}", index.display()))?;
+    let mut problems = verify_html(&content);
+    for f in ["assets/style.css", "facts.json", "sitemap.xml", "robots.txt", "favicon.svg", "install.sh", "CNAME"] {
+        if !dist.join(f).exists() {
+            problems.push(format!("missing {f}"));
+        }
+    }
+    if problems.is_empty() {
+        println!("  verified {} ({} bytes): all invariants hold", index.display(), content.len());
+        Ok(())
+    } else {
+        Err(problems.join("; "))
+    }
 }
 
 fn main() {
     let start = Instant::now();
-    let first_arg = std::env::args().nth(1).unwrap_or_else(|| "build".to_string());
-    let (mode, target_dir) = if first_arg == "build" || first_arg == "verify" {
-        (first_arg, std::env::args().nth(2).unwrap_or_else(|| "dist-rust".to_string()))
-    } else {
-        ("verify".to_string(), first_arg)
-    };
-
-    let dist = Path::new(&target_dir);
-
-    println!("============================================================");
-    println!("  AIEN OS Native Static Site Builder & Integrity Verifier   ");
-    println!("  Engine: Pure Rust & Maud | Target: {}", dist.display());
-    println!("  Mode: {}", mode);
-    println!("============================================================");
-
-    if mode == "build" {
-        build_pure_rust_site(dist);
-        verify_site(dist);
-    } else {
-        if !dist.exists() {
-            eprintln!("Error: Target directory '{}' does not exist.", dist.display());
-            std::process::exit(1);
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    let mode = args.first().map(String::as_str).unwrap_or("build");
+    let result = match mode {
+        "facts" => {
+            let out = Path::new(args.get(1).map(String::as_str).unwrap_or("facts.json"));
+            facts::gather().and_then(|f| {
+                let n = f.components.len();
+                f.save(out).map(|_| println!("  wrote {} ({n} components, receipt {} for {})", out.display(), f.receipt.state, &f.receipt.sha[..f.receipt.sha.len().min(12)]))
+            })
         }
-        verify_site(dist);
+        "build" => {
+            let dist = Path::new(args.get(1).map(String::as_str).unwrap_or("dist"));
+            let facts_path = Path::new(args.get(2).map(String::as_str).unwrap_or("facts.json"));
+            build(dist, facts_path).and_then(|_| verify(dist))
+        }
+        "verify" => verify(Path::new(args.get(1).map(String::as_str).unwrap_or("dist"))),
+        other => Err(format!("unknown mode {other}; use facts | build | verify")),
+    };
+    match result {
+        Ok(()) => println!("  done in {:.2?}", start.elapsed()),
+        Err(e) => {
+            eprintln!("error: {e}");
+            exit(1);
+        }
     }
-
-    let elapsed = start.elapsed();
-    println!("  Build and Verification Completed in: {:.2?}", elapsed);
-    println!("============================================================");
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_unslop_punctuation_invariants() {
-        let sample = "AIEN OS: The GPU-Native Neural Operating Environment.";
-        assert!(!sample.contains('\u{2014}'), "Must not contain em dash");
-        assert!(!sample.contains('\u{2013}'), "Must not contain en dash");
+    fn sample_facts() -> Facts {
+        let text = include_str!("../../../facts.json");
+        serde_json::from_str(text).expect("facts.json in the repository root parses")
     }
 
     #[test]
-    fn test_layout_rendering() {
-        let markup = render_base_layout(html! { p { "Test" } });
-        let s = markup.into_string();
-        assert!(s.contains("<!DOCTYPE html>"));
-        assert!(s.contains("<div id=\"root\""));
-        assert!(s.contains("AIEN OS"));
+    fn page_renders_and_holds_invariants() {
+        let page = render_page(&sample_facts());
+        assert!(page.starts_with("<!DOCTYPE html>"));
+        let problems = verify_html(&page);
+        assert!(problems.is_empty(), "{problems:?}");
+    }
+
+    #[test]
+    fn page_carries_every_component_and_the_receipt_commit() {
+        let facts = sample_facts();
+        let page = render_page(&facts);
+        for c in &facts.components {
+            assert!(page.contains(&c.url), "missing link to {}", c.repo);
+        }
+        assert!(page.contains(&facts.receipt.sha[..12]));
+        assert!(page.contains(&facts.generated_at));
+    }
+
+    #[test]
+    fn verify_rejects_scripts_fonts_and_comparisons() {
+        assert!(verify_html("<main id=\"main-content\"><script></script>").iter().any(|p| p.contains("scripts")));
+        assert!(verify_html("3x faster than FastAPI").iter().any(|p| p.contains("comparison")));
+        assert!(verify_html("fonts.googleapis.com").iter().any(|p| p.contains("fonts")));
     }
 }
