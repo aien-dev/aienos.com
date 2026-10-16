@@ -5,10 +5,6 @@
       "role": "Build the website with Rust and Maud"
     },
     {
-      "name": "scripts",
-      "role": "Collect and validate retained public GitHub history"
-    },
-    {
       "name": "public",
       "role": "Serve static browser assets and measured JSON"
     },
@@ -21,39 +17,33 @@
     "generated": {
       "children": [
         {
-          "digest": "1edee9310c52d0de083418290f39d513318c314225c551218a271b85eb057f3d",
-          "last_commit": "bafcae8",
+          "digest": "dcd866cb3324e65b9f3fe06a0b9c8f8d66afac2047d7dadfe8b5ae24c1604fb9",
+          "last_commit": "76bed61",
           "name": ".github",
           "purpose": "GitHub automation configuration"
         },
         {
-          "digest": "b9d7368701d7b8e10ae7d852a92703cee73cd818718257d175ecd644d959ca92",
-          "last_commit": "4025655",
+          "digest": "82701deff3cda7d59357842abe2ffbd44bd308a394dddc38a0d47425be955ff1",
+          "last_commit": "76bed61",
           "name": "crates",
           "purpose": "Native Rust website crates"
         },
         {
-          "digest": "05d3e7f8a8deacbfeb457d6ed281854c5b84ee5c781de1f6393d5b0c4d890deb",
-          "last_commit": "bafcae8",
+          "digest": "e0b4dff98c0dc1e40508cfeba2cb433eca4242bd885328a41503b1ebc84513d8",
+          "last_commit": "76bed61",
           "name": "public",
           "purpose": "Static public website assets"
-        },
-        {
-          "digest": "93532339fbd7029f6b17cedbc0a8373903ba1d8c67e7cd930ea1d59e704be20f",
-          "last_commit": "6146c17",
-          "name": "scripts",
-          "purpose": "Dependency-free public GitHub measurement collection and validation"
         }
       ],
-      "children_root": "sha256:698464a7167f4e3426404f1960c99f99ae71a04201cefdd297d4cfccd633bed5",
-      "compiled_at": "2026-10-16T16:30:31Z",
+      "children_root": "sha256:3c5d933b7e2f248c65eddc99f5586a580c85ba71aa43c54e8466e91e8736f227",
+      "compiled_at": "2026-10-16T18:15:51Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:b29565621b1b22cb6239da3d5f0bc808b381cc4fcde4e4bcd75b79d132033efd",
+      "digest": "sha256:6ef95afcc7dfc802fcc9e3dae64d647e46f7813eca46a36d52841141d99f7dfc",
       "evidence_files": 0,
       "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "files": 108,
-      "generated_at_commit": "402565517cf6bff2b376547a6ade4d06b1ecfa3c",
-      "source_tree": "sha256:0b5a62a329ef9ff07579ac6820ab026896dc98b5e4ed60de1cbd27a1483fe36e"
+      "files": 107,
+      "generated_at_commit": "76bed617ef3625a7e36370f22a65260a58550286",
+      "source_tree": "sha256:145d7e3eb81fcd4f8e5d514815dd14aa78264833392f97f6bfc4782abc77976c"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",

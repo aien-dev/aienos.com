@@ -1,3 +1,4 @@
+mod collector;
 mod components;
 mod facts;
 mod layouts;
@@ -336,6 +337,55 @@ fn main() {
             &gathered.receipt.sha[..gathered.receipt.sha.len().min(12)],
             start.elapsed()
         );
+        return;
+    }
+
+    // `progress [out.json] [--asof T] [--cache DIR] [--no-fetch]`: read the retained public
+    // history of every public project repository and write the /progress/ dataset. Needs `gh`
+    // and `git`. The existing file supplies the curated events and policy text; a snapshot that
+    // does not reconcile is refused and the existing file is left as it was.
+    if first_arg == "progress" {
+        let args: Vec<String> = std::env::args().skip(2).collect();
+        let mut out = None;
+        let mut opts = collector::Options {
+            output: "public/data/project-progress.json".into(),
+            cache_dir: ".progress-cache".into(),
+            asof: None,
+            fetch: true,
+        };
+        let mut i = 0;
+        while i < args.len() {
+            let value = |i: usize| {
+                args.get(i + 1).cloned().unwrap_or_else(|| {
+                    eprintln!("progress: {} needs a value", args[i]);
+                    std::process::exit(2);
+                })
+            };
+            match args[i].as_str() {
+                "--asof" => { opts.asof = Some(value(i)); i += 1; }
+                "--cache" => { opts.cache_dir = value(i).into(); i += 1; }
+                "--no-fetch" => opts.fetch = false,
+                other if !other.starts_with("--") && out.is_none() => out = Some(other.to_string()),
+                other => {
+                    eprintln!("progress: unknown argument {other}");
+                    std::process::exit(2);
+                }
+            }
+            i += 1;
+        }
+        if let Some(out) = out {
+            opts.output = out.into();
+        }
+        match collector::collect(&opts) {
+            Ok(r) => println!(
+                "  [PROGRESS] {}: {} public repositories: {} source lines, {} revisions, {} PRs, {} CI runs. Cutoff {} ({} GitHub API calls, {:.2?})",
+                opts.output.display(), r.repos, r.loc, r.commits, r.prs, r.ci, r.asof, r.api_calls, start.elapsed()
+            ),
+            Err(e) => {
+                eprintln!("Progress refresh failed: {e}");
+                std::process::exit(1);
+            }
+        }
         return;
     }
 

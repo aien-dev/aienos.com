@@ -139,7 +139,7 @@ function renderProgress(data,previousDate){
     const last=next.series.at(-1);
     for(const key of ['loc','commits','ci','testfiles'])if(!Number.isSafeInteger(last[key])||last[key]<0||next.summary[key]!==last[key])throw Error('Invalid metric');
     const urls=[...(next.events||[]),...(next.activity||[])].map(p=>p.url);
-    for(const url of urls)if(!/^https:\/\/github\.com\/aien-dev\/[A-Za-z0-9_.\/-]+$/.test(url))throw Error('Invalid source URL');
+    for(const url of urls)if(!/^https:\/\/github\.com\/aien-(?:dev|spark)\/[A-Za-z0-9_.\/-]+$/.test(url))throw Error('Invalid source URL');
     for(const repo of next.repos)if(!/^[.A-Za-z0-9_-]+$/.test(repo.name)||!/^[a-f0-9]{40}$/.test(repo.head))throw Error('Invalid source pin');
     return next;
   }

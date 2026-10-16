@@ -8,7 +8,7 @@
       "children": [
         {
           "digest": "79d679e81de004cbb0c948710d04e34275615e612d8ba40b765a9c1e7926f6c8",
-          "last_commit": "f90f086",
+          "last_commit": "bafcae8",
           "name": "assets",
           "purpose": "Website styles including the project dashboard"
         },
@@ -19,39 +19,39 @@
           "purpose": "Published generated project measurements with pinned sources"
         },
         {
-          "digest": "85a112a4a74584209819377b24e1167a5b3cbe02de35b3989d274a144c2ce443",
-          "last_commit": "e638db9",
+          "digest": "dd5d5022d459f8435beff87aab1d01a8e89a336aa8f05dbe74035923e6089a7b",
+          "last_commit": "76bed61",
           "name": "js",
           "purpose": "Browser interactions using public data only"
         },
         {
           "digest": "7927a39d7a81b6a5294f31b5016998147563f470eea363a44d5653969d815f7b",
-          "last_commit": "f90f086",
+          "last_commit": "bafcae8",
           "name": "licensing",
           "purpose": "Public static research or licensing pages using the shared website navigation"
         },
         {
           "digest": "4787f21943f47eacf4ab7d2b7633e3b2df672e2f499b3ea4211bdc66f3104e63",
-          "last_commit": "f90f086",
+          "last_commit": "bafcae8",
           "name": "post-llm-case",
           "purpose": "Public static research or licensing pages using the shared website navigation"
         },
         {
           "digest": "063657a070fa33bb15a15038858218d36849bfa5f3dfed63629ddd63d7bb4f2b",
-          "last_commit": "f90f086",
+          "last_commit": "bafcae8",
           "name": "research",
           "purpose": "Public static research or licensing pages using the shared website navigation"
         }
       ],
-      "children_root": "sha256:ed8f6f122ff8fb920e0ae0076cebca34cb3dc2df1f497776cdd4ac6abfb0ae85",
-      "compiled_at": "2026-10-16T16:25:19Z",
+      "children_root": "sha256:3d7a57aab3dcd0bdf60c885b4dba06f42378bb0bf1c7968e04a1f3ca56d99ee5",
+      "compiled_at": "2026-10-16T18:15:51Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:05d3e7f8a8deacbfeb457d6ed281854c5b84ee5c781de1f6393d5b0c4d890deb",
+      "digest": "sha256:e0b4dff98c0dc1e40508cfeba2cb433eca4242bd885328a41503b1ebc84513d8",
       "evidence_files": 0,
       "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "files": 70,
-      "generated_at_commit": "f90f0869ad964b3ad4b6da41a6c4f9ec1eb649e3",
-      "source_tree": "sha256:edc8cef23470a56d80d83d7283facb9bd49c565c62304207868b8242d7f06669"
+      "generated_at_commit": "76bed617ef3625a7e36370f22a65260a58550286",
+      "source_tree": "sha256:7afc094195e004a46a6d4e446ca45455a901b902fbe1a7a48efb3ef102000cef"
     }
   },
   "invariants": [

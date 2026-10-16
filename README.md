@@ -53,7 +53,7 @@ cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist
 cargo run --release --manifest-path crates/site-builder/Cargo.toml -- verify dist
 ```
 
-`build dist` writes the site to `dist/` and then verifies it; `verify dist` re-checks an existing output directory. There is no dev server or preview command. `.github/workflows/pages.yml` runs the same steps (plus the Node progress collection described below) and deploys `dist/` to GitHub Pages on pushes to `main`.
+`build dist` writes the site to `dist/` and then verifies it; `verify dist` re-checks an existing output directory. There is no dev server or preview command. `.github/workflows/pages.yml` runs the same steps (plus the progress collection described below) and deploys `dist/` to GitHub Pages on pushes to `main`.
 
 ## License
 
@@ -66,13 +66,12 @@ Licensed under the GNU Affero General Public License v3.0 or later (AGPL-3.0-or-
 The Pages workflow collects on pushes to main, manual runs, and hourly at minute 17 (UTC). GitHub can delay scheduled runs. The browser checks the published JSON every five minutes, preserves a selected historical day and marks snapshots older than three hours. Collection and reconciliation must succeed before deployment; a failed refresh retains the last good live page. Collection uses the built-in read-only Actions token against public endpoints; no token is shipped to browsers and no generated hourly commits are made. PR builds use the committed snapshot.
 
 ```bash
-node --test scripts/collect-progress.test.mjs
-node scripts/collect-progress.mjs
+cargo run --release --manifest-path crates/site-builder/Cargo.toml -- progress public/data/project-progress.json
 cargo test --manifest-path crates/site-builder/Cargo.toml
 cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist
 ```
 
-Source boundaries, exclusions and the initial public repository allowlist are in scripts/collect-progress.mjs. Newly discovered project-named public repositories are included automatically; forks/private repositories are excluded. The JSON includes the collection timestamp and every measured default-branch head. Deleted CI records cannot be reconstructed. Historical milestones and experiment examples are curated and linked to evidence; recent PR activity is collected automatically. D3 7.9.0 is self-hosted with its ISC license in public/vendor/.
+Source boundaries, exclusions and the initial public repository allowlist are in crates/site-builder/src/collector.rs (`site-builder progress [out.json] [--asof T] [--cache DIR] [--no-fetch]`; it reads public data through `gh api` and mirror clones made with `git`, and keeps the curated events and policy text of the existing file). Daily boundaries are America/Chicago with US daylight saving rules written out in the same file. Newly discovered project-named public repositories are included automatically; forks/private repositories are excluded. The JSON includes the collection timestamp and every measured default-branch head. Deleted CI records cannot be reconstructed. Historical milestones and experiment examples are curated and linked to evidence; recent PR activity is collected automatically. D3 7.9.0 is self-hosted with its ISC license in public/vendor/.
 
 ### Crumb coordination
 
