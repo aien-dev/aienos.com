@@ -17,7 +17,7 @@ pub const NAV_PRIMARY: [(&str, &str); 6] = [
 pub const NAV_SECONDARY: [(&str, &str); 4] = [
     ("Progress", "/progress/"),
     ("Blog", "/blog"),
-    ("Waitlist", "/#waitlist"),
+    ("Follow", "/#follow"),
     ("GitHub", "https://github.com/aien-dev"),
 ];
 

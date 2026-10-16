@@ -1,5 +1,7 @@
 use maud::{html, Markup};
 
+use crate::facts::Facts;
+
 use super::research_status as rs;
 
 /// The canonical public state of the project. This list is the single
@@ -89,7 +91,7 @@ fn chip_style(status: &str) -> &'static str {
     }
 }
 
-pub fn render_status() -> Markup {
+pub fn render_status(facts: &Facts) -> Markup {
     let layers = layer_states();
 
     html! {
@@ -136,6 +138,8 @@ pub fn render_status() -> Markup {
                     }
                 }
 
+                (super::live::render_live(facts))
+
                 div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 32px;" {
                     a href="https://github.com/aien-dev" target="_blank" rel="noopener noreferrer" style="background: var(--accent-green); color: var(--bg-base); border-radius: 4px; padding: 10px 20px; font-family: var(--font-mono); font-size: 13px; font-weight: 700;" {
                         "Follow the work on GitHub"
@@ -143,8 +147,8 @@ pub fn render_status() -> Markup {
                     a href="#research" style="background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 10px 20px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;" {
                         "Read the research"
                     }
-                    a href="#waitlist" style="background: transparent; color: var(--text-secondary); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 10px 20px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;" {
-                        "Join the waitlist"
+                    a href="#follow" style="background: transparent; color: var(--text-secondary); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 10px 20px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;" {
+                        "Follow the work"
                     }
                 }
             }

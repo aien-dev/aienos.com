@@ -63,7 +63,7 @@ pub fn render_terminal() -> Markup {
                         }
                         div class="terminal-log-line sys" {
                             span class="sys-msg" style="color: var(--accent-blue);" {
-                                "[*] Hardware TPM 2.0 vault locked. Zero disk secrets invariant active."
+                                "[*] Capability vault sealed. Zero disk secrets invariant active."
                             }
                         }
                         div class="terminal-log-line sys" {
