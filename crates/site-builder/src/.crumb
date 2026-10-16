@@ -3,6 +3,9 @@
     "name": "crates/site-builder",
     "path": ".."
   },
+  "exports": [
+    "collector.rs: collect, validate_snapshot, paginate, classify, physical_lines (site-builder progress)"
+  ],
   "extensions": {
     "generated": {
       "children": [
@@ -14,14 +17,14 @@
         }
       ],
       "children_root": "sha256:68722655c9bfba6793e3a9353736e181c35dc12e166b501b303438e5124c9973",
-      "compiled_at": "2026-10-16T16:30:31Z",
+      "compiled_at": "2026-10-16T18:15:51Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:3d2904f008a0f6b217aa157cf72605d8f9e0495a6e91b09ee3e8be6f44cd6e09",
+      "digest": "sha256:9df94c7e3b2353cd92d91dddadb5cda0bee68810e3e5bd3b36695b4cd0ef7e03",
       "evidence_files": 0,
       "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "files": 23,
-      "generated_at_commit": "402565517cf6bff2b376547a6ade4d06b1ecfa3c",
-      "source_tree": "sha256:ac16d2516421e49caa07aafd595d0e1e0090cf4e41f3dbebbccc7796666188bf"
+      "files": 24,
+      "generated_at_commit": "76bed617ef3625a7e36370f22a65260a58550286",
+      "source_tree": "sha256:3f51992136abeab6c9f04e3f5c4ee0ed7fc2590d149797d2f8daad86b9c1bd73"
     }
   },
   "invariants": [
@@ -31,8 +34,5 @@
   "layer": "website",
   "name": "crates/site-builder/src",
   "purpose": "Page assembly and site build verification",
-  "schema_version": "1.0.0",
-  "exports": [
-    "collector.rs: collect, validate_snapshot, paginate, classify, physical_lines (site-builder progress)"
-  ]
+  "schema_version": "1.0.0"
 }
