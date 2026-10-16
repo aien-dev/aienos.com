@@ -5,10 +5,6 @@
       "role": "Build the website with Rust and Maud"
     },
     {
-      "name": "scripts",
-      "role": "Collect and validate retained public GitHub history"
-    },
-    {
       "name": "public",
       "role": "Serve static browser assets and measured JSON"
     },

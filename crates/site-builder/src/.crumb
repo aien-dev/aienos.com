@@ -31,5 +31,8 @@
   "layer": "website",
   "name": "crates/site-builder/src",
   "purpose": "Page assembly and site build verification",
-  "schema_version": "1.0.0"
+  "schema_version": "1.0.0",
+  "exports": [
+    "collector.rs: collect, validate_snapshot, paginate, classify, physical_lines (site-builder progress)"
+  ]
 }
