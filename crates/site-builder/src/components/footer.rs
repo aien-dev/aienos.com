@@ -61,7 +61,7 @@ pub const FOOTER_GROUPS: [(&str, &[FooterLink]); 6] = [
 const FOOTER_MORE: [FooterLink; 6] = [
     ("Progress", "/progress/", false),
     ("Blog", "/blog", false),
-    ("Waitlist", "/#waitlist", false),
+    ("Follow", "/#follow", false),
     ("Licensing", "/licensing/", false),
     ("GitHub", "https://github.com/aien-dev", true),
     ("Drake Stapleton", "https://www.drakestapleton.com", true),

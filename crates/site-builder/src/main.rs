@@ -1,4 +1,5 @@
 mod components;
+mod facts;
 mod layouts;
 
 use std::fs;
@@ -43,7 +44,10 @@ fn generate_sitemap_and_robots(dist: &Path) {
     println!("  [GEN] Emitted native sitemap.xml and robots.txt in: {}", dist.display());
 }
 
-fn build_pure_rust_site(dist: &Path) {
+fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
+    let facts = facts::Facts::load(facts_path)
+        .unwrap_or_else(|e| panic!("Cannot build without facts: {e}. Run `site-builder facts {}` first.", facts_path.display()));
+    println!("  [FACTS] Using facts gathered at {} from {}", facts.generated_at, facts_path.display());
     println!("  [BUILD] Compiling pure Rust Maud static site into: {}", dist.display());
     fs::create_dir_all(dist.join("assets")).expect("Failed to create assets dir");
     fs::create_dir_all(dist.join("js")).expect("Failed to create js dir");
@@ -86,14 +90,16 @@ fn build_pure_rust_site(dist: &Path) {
         (components::matrix::render_matrix())
         (components::research::render_research())
         (components::terminal::render_terminal())
-        (components::status::render_status())
-        (components::waitlist::render_waitlist())
+        (components::status::render_status(&facts))
+        (components::follow::render_follow())
     };
 
     let full_document = render_base_layout(page_content);
     let output_file = dist.join("index.html");
     fs::write(&output_file, full_document.into_string()).expect("Failed to write index.html");
     println!("  [PAGE] Emitted / (index.html)");
+    fs::copy(facts_path, dist.join("facts.json")).expect("Failed to copy facts.json");
+    println!("  [FACTS] Published /facts.json");
 
     // Public project measurements, collected before compilation in CI.
     let progress = render_page_layout(
@@ -198,7 +204,11 @@ fn verify_site(dist: &Path) {
     assert!(content.contains("<div id=\"root\""), "Missing #root element in index.html");
     assert!(content.contains("<main id=\"main-content\""), "Missing main container in index.html");
     assert!(content.contains("id=\"terminal-output\""), "Missing interactive terminal output in index.html");
-    assert!(content.contains("id=\"waitlist\""), "Missing waitlist section in index.html");
+    assert!(content.contains("id=\"follow\""), "Missing follow section in index.html");
+    assert!(content.contains("id=\"receipt\""), "Missing verification receipt in index.html");
+    assert!(content.contains("id=\"live\""), "Missing live components block in index.html");
+    assert!(!content.contains("fonts.googleapis.com"), "Outside font loaded in index.html");
+    assert!(dist.join("facts.json").exists(), "Missing facts.json");
 
     // Homepage top (NARR-HOME): literal phrases, so a wording change in the
     // component cannot pass by accident.
@@ -305,11 +315,36 @@ fn verify_site(dist: &Path) {
 fn main() {
     let start = Instant::now();
     let first_arg = std::env::args().nth(1).unwrap_or_else(|| "build".to_string());
+
+    // `facts [facts.json]`: read the public GitHub record and write the facts file. Read-only,
+    // needs `gh`. Run by the workflow before every build so the page never goes stale by hand.
+    if first_arg == "facts" {
+        let out = std::env::args().nth(2).unwrap_or_else(|| "facts.json".to_string());
+        let gathered = facts::gather().unwrap_or_else(|e| {
+            eprintln!("facts: {e}");
+            std::process::exit(1);
+        });
+        gathered.save(Path::new(&out)).unwrap_or_else(|e| {
+            eprintln!("facts: cannot write {out}: {e}");
+            std::process::exit(1);
+        });
+        println!(
+            "  [FACTS] {out}: {} components, {} decisions, receipt {} for {} ({:.2?})",
+            gathered.components.len(),
+            gathered.decisions.len(),
+            gathered.receipt.state,
+            &gathered.receipt.sha[..gathered.receipt.sha.len().min(12)],
+            start.elapsed()
+        );
+        return;
+    }
+
     let (mode, target_dir) = if first_arg == "build" || first_arg == "verify" {
         (first_arg, std::env::args().nth(2).unwrap_or_else(|| "dist-rust".to_string()))
     } else {
         ("verify".to_string(), first_arg)
     };
+    let facts_file = std::env::args().nth(3).unwrap_or_else(|| "facts.json".to_string());
 
     let dist = Path::new(&target_dir);
 
@@ -320,7 +355,7 @@ fn main() {
     println!("============================================================");
 
     if mode == "build" {
-        build_pure_rust_site(dist);
+        build_pure_rust_site(dist, Path::new(&facts_file));
         verify_site(dist);
     } else {
         if !dist.exists() {

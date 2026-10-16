@@ -11,7 +11,7 @@ Live: [https://www.aienos.com](https://www.aienos.com)
 
 ## What the site covers
 
-The homepage opens with "AIENOS is an owned experimental machine for turning search into verified understanding" (`crates/site-builder/src/components/home_loop.rs`) and goes on to the loop, the story, the receipts behind each claim, how the pieces fit together, the research, an interactive terminal, the current status of each layer, and the waitlist. Other pages: `/progress/`, `/blog/`, `/research/status/`, `/machine/`, `/discovery/` and the hubs `/experiments/`, `/evidence/` and `/philosophy/`. The build also writes `status.json`, `research-status.json` and `llms.txt`; `status.json` and `llms.txt` come from the same code as the homepage status section, and `research-status.json` is `crates/site-builder/data/research_status.json`. The homepage status section says "Public release" is PLANNED: pre-alpha, no supported release or installer yet.
+The homepage opens with "AIENOS is an owned experimental machine for turning search into verified understanding" (`crates/site-builder/src/components/home_loop.rs`) and goes on to the loop, the story, the receipts behind each claim, how the pieces fit together, the research, an interactive terminal, the current status of each layer, and where to follow the work. Other pages: `/progress/`, `/blog/`, `/research/status/`, `/machine/`, `/discovery/` and the hubs `/experiments/`, `/evidence/` and `/philosophy/`. The build also writes `status.json`, `research-status.json` and `llms.txt`; `status.json` and `llms.txt` come from the same code as the homepage status section, and `research-status.json` is `crates/site-builder/data/research_status.json`. The homepage status section says "Public release" is PLANNED: pre-alpha, no supported release or installer yet.
 
 ---
 
@@ -54,28 +54,6 @@ cargo run --release --manifest-path crates/site-builder/Cargo.toml -- verify dis
 ```
 
 `build dist` writes the site to `dist/` and then verifies it; `verify dist` re-checks an existing output directory. There is no dev server or preview command. `.github/workflows/pages.yml` runs the same steps (plus the Node progress collection described below) and deploys `dist/` to GitHub Pages on pushes to `main`.
-
-## Rust waitlist API
-
-The waitlist form posts to the Rust API in [`server/`](server/). It stores
-unique email addresses, a consent version, and signup time in SQLite. The API
-accepts browser requests only from `aienos.com` and `www.aienos.com`; the
-database is never exposed by the static website.
-
-```bash
-cargo test --manifest-path server/Cargo.toml
-bash server/deploy-local.sh
-```
-
-The deployment script builds a Rust release binary and starts a container on
-`127.0.0.1:18171` with persistent data in
-`~/.local/share/aienos-waitlist` (override with `AIENOS_WAITLIST_DATA_DIR`).
-The GitHub Pages form posts to
-`https://spark.tail987627.ts.net/aienos-waitlist/api/signup`, which is fixed in
-`crates/site-builder/src/components/waitlist.rs` (there is no build-time override).
-The public Tailscale Funnel route must forward `/aienos-waitlist` to the local listener.
-
----
 
 ## License
 

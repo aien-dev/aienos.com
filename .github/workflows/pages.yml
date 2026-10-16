@@ -29,6 +29,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/collect-progress.mjs
+      - name: Refresh facts from the public GitHub record
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: cargo run --release --manifest-path crates/site-builder/Cargo.toml -- facts facts.json
       - name: Run verification test suite
         run: cargo test --verbose --manifest-path crates/site-builder/Cargo.toml
       - name: Build static site with pure Rust engine

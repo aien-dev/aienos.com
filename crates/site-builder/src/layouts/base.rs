@@ -53,10 +53,6 @@ pub fn render_page_layout(
                 meta name="twitter:description" content=(description);
                 meta name="twitter:image" content="https://aienos.com/og.png";
 
-                // Fonts
-                link rel="preconnect" href="https://fonts.googleapis.com";
-                link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous";
-                link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&display=swap";
 
                 // Stylesheet
                 link rel="stylesheet" href="/assets/style.css";
