@@ -214,19 +214,25 @@ pub fn gather() -> Result<Facts, String> {
         .unwrap_or("")
         .to_string();
     let committed_at = commit.pointer("/commit/committer/date").and_then(|d| d.as_str()).unwrap_or("").to_string();
-    // The judge's verdict is published as a check run named "AIEN Verification".
-    let runs = gh(&[&format!("repos/{repo}/commits/{sha}/check-runs?per_page=100")])?;
-    let verification = runs
-        .get("check_runs")
+    // The judge is the Spark. Its verdict is posted as the commit status whose context is
+    // "AIEN Verification (Spark)". The hosted check run that is also named "AIEN Verification"
+    // is only the bridge job and finishes in a minute whatever the Spark later finds, so it
+    // is never read here: it said success on a commit the Spark had marked FAIL.
+    let combined = gh(&[&format!("repos/{repo}/commits/{sha}/status")])?;
+    let verification = combined
+        .get("statuses")
         .and_then(|a| a.as_array())
-        .and_then(|a| a.iter().filter(|r| s(r, "name") == "AIEN Verification").max_by(|a, b| s(a, "completed_at").cmp(&s(b, "completed_at"))));
+        .and_then(|a| a.iter().filter(|r| s(r, "context") == SPARK_STATUS_CONTEXT).max_by(|a, b| s(a, "updated_at").cmp(&s(b, "updated_at"))));
     let receipt = match verification {
-        Some(run) => {
-            let (state, description) = match (s(run, "status").as_str(), s(run, "conclusion").as_str()) {
-                ("completed", "success") => ("success", "Published Spark verification bundle matches this commit."),
-                ("completed", "failure") | ("completed", "timed_out") => ("failure", "Verification failed for this commit."),
-                ("completed", other) => ("pending", if other.is_empty() { "Verification finished without a verdict." } else { "Verification finished without a pass or fail verdict." }),
-                _ => ("pending", "Verification is still running for this commit."),
+        Some(status) => {
+            let state = match s(status, "state").as_str() {
+                "success" => "success",
+                "failure" | "error" => "failure",
+                _ => "pending",
+            };
+            let target_url = {
+                let t = s(status, "target_url");
+                if t.is_empty() { format!("https://github.com/{repo}/commit/{sha}") } else { t }
             };
             Receipt {
                 repo: repo.to_string(),
@@ -234,9 +240,9 @@ pub fn gather() -> Result<Facts, String> {
                 commit_title,
                 committed_at,
                 state: state.to_string(),
-                description: description.to_string(),
-                target_url: s(run, "html_url"),
-                updated_at: s(run, "completed_at"),
+                description: public_description(&s(status, "description")),
+                target_url,
+                updated_at: s(status, "updated_at"),
             }
         }
         None => Receipt {
@@ -245,13 +251,23 @@ pub fn gather() -> Result<Facts, String> {
             commit_title,
             committed_at,
             state: "none".to_string(),
-            description: "No verification status published for this commit yet.".to_string(),
+            description: "The Spark has not published a verdict for this commit yet.".to_string(),
             target_url: String::new(),
             updated_at: String::new(),
         },
     };
 
     Ok(Facts { generated_at: now_utc(), components, decisions, receipt })
+}
+
+/// The commit status context the Spark judge posts its verdict under.
+pub const SPARK_STATUS_CONTEXT: &str = "AIEN Verification (Spark)";
+
+/// The Spark writes its verdict line followed by the bundle path on its own disk. The
+/// verdict is public; the path is not useful to anyone else, so it is cut off here.
+pub fn public_description(raw: &str) -> String {
+    let cut = raw.find(": bundle ").or_else(|| raw.find(" bundle /")).unwrap_or(raw.len());
+    raw[..cut].trim().to_string()
 }
 
 /// Cut a long title at a word boundary so it reads as a title, not a sentence.
@@ -283,6 +299,16 @@ pub fn short_date(ts: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn public_description_drops_the_bundle_path() {
+        assert_eq!(
+            public_description("BLOCKED FAIL PREFILL-E2E-2:rc_nonzero: bundle /home/x/.local/state/bundles/a/b"),
+            "BLOCKED FAIL PREFILL-E2E-2:rc_nonzero"
+        );
+        assert_eq!(public_description("PASS 19 gates"), "PASS 19 gates");
+        assert_eq!(public_description(""), "");
+    }
 
     #[test]
     fn short_date_reads_rfc3339() {

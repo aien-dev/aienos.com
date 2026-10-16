@@ -22,19 +22,19 @@
       "children": [
         {
           "digest": "1edee9310c52d0de083418290f39d513318c314225c551218a271b85eb057f3d",
-          "last_commit": "f90f086",
+          "last_commit": "bafcae8",
           "name": ".github",
           "purpose": "GitHub automation configuration"
         },
         {
-          "digest": "20715fe1c40fe0476f015d9b1f4b61331a1c6aa32700e94459980902ad9aab0d",
-          "last_commit": "f90f086",
+          "digest": "b9d7368701d7b8e10ae7d852a92703cee73cd818718257d175ecd644d959ca92",
+          "last_commit": "4025655",
           "name": "crates",
           "purpose": "Native Rust website crates"
         },
         {
           "digest": "05d3e7f8a8deacbfeb457d6ed281854c5b84ee5c781de1f6393d5b0c4d890deb",
-          "last_commit": "f90f086",
+          "last_commit": "bafcae8",
           "name": "public",
           "purpose": "Static public website assets"
         },
@@ -45,15 +45,15 @@
           "purpose": "Dependency-free public GitHub measurement collection and validation"
         }
       ],
-      "children_root": "sha256:8c1e0d9dfffd94506980acfa466a76473d31d59f0fe0235017fa33f4f88485a4",
-      "compiled_at": "2026-10-16T16:25:19Z",
+      "children_root": "sha256:698464a7167f4e3426404f1960c99f99ae71a04201cefdd297d4cfccd633bed5",
+      "compiled_at": "2026-10-16T16:30:31Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:d3ec57a5e2e4e614922bb737052a5da720bd2b7f848cede5c2aa130508db1fbc",
+      "digest": "sha256:b29565621b1b22cb6239da3d5f0bc808b381cc4fcde4e4bcd75b79d132033efd",
       "evidence_files": 0,
       "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "files": 108,
-      "generated_at_commit": "f90f0869ad964b3ad4b6da41a6c4f9ec1eb649e3",
-      "source_tree": "sha256:2f2b53dfc2215853c81fd2b1cfcf3cd960292431a9c6886f7de7b743e0438f05"
+      "generated_at_commit": "402565517cf6bff2b376547a6ade4d06b1ecfa3c",
+      "source_tree": "sha256:0b5a62a329ef9ff07579ac6820ab026896dc98b5e4ed60de1cbd27a1483fe36e"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",
