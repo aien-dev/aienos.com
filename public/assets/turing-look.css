@@ -4,8 +4,8 @@
  * blue capital kickers, large heavy headings, roomy sections, rounded
  * cards that lift on hover, pill badges, a blue-to-green reading bar).
  * Loaded last on every page so it wins over older page styles.
- * No script: the reading bar and the fade-in use CSS scroll timelines
- * where the browser supports them and are simply absent elsewhere.
+ * Motion (reading bar, glide-in) comes from /js/turing-look.js, the same
+ * effects the Turing page runs; without it every element simply shows.
  * The /turing/ page itself does not load this file.
  */
 :root {
@@ -43,27 +43,27 @@ body {
   background-image: none !important;
 }
 
-/* Reading bar across the top, blue to green, as on /turing/. */
-@supports (animation-timeline: scroll()) {
-  body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    z-index: 200;
-    background: linear-gradient(90deg, var(--tl-blue), var(--tl-green));
-    transform-origin: 0 50%;
-    transform: scaleX(0);
-    animation: tl-read linear both;
-    animation-timeline: scroll(root);
-    pointer-events: none;
-  }
+/* Reading bar across the top, blue to green, as on /turing/.
+   The bar element is added by /js/turing-look.js. */
+.tl-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 3px;
+  z-index: 200;
+  background: linear-gradient(90deg, var(--tl-blue), var(--tl-green));
+  pointer-events: none;
 }
 
-@keyframes tl-read {
-  to { transform: scaleX(1); }
+/* A soft cross-fade when moving from one page to the next. */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.35s;
 }
 
 /* ---------- header ---------- */
@@ -327,27 +327,31 @@ pre,
   background: transparent;
 }
 
-/* ---------- fade up as sections enter, like the Turing page ---------- */
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .section-head,
-    .hub-card,
-    .narr-card,
-    .rs-card,
-    .blog-card,
-    .home-q,
-    .entry,
-    .card {
-      animation: tl-rise linear both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 40%;
-    }
-  }
+/* ---------- glide up and fade in once, as on /turing/ ----------
+   The script adds .tl-reveal only to things below the first screen and
+   .tl-in when they come into view. "translate" is used so the hover lift
+   ("transform") still works on revealed cards. */
+:root .tl-reveal {
+  opacity: 0;
+  translate: 0 34px;
+  transition: opacity 0.8s ease, translate 0.8s ease, border-color 0.3s ease,
+    transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-@keyframes tl-rise {
-  from { opacity: 0; translate: 0 34px; }
-  to { opacity: 1; translate: none; }
+:root .tl-reveal.tl-in {
+  opacity: 1;
+  translate: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root .tl-reveal {
+    opacity: 1;
+    translate: none;
+    transition: none;
+  }
+  @view-transition {
+    navigation: none;
+  }
 }
 
 /* ---------- research and paper pages ---------- */
