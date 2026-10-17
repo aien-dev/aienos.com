@@ -349,3 +349,43 @@ pre,
   from { opacity: 0; translate: 0 34px; }
   to { opacity: 1; translate: none; }
 }
+
+/* ---------- research and paper pages ---------- */
+/* Their sections set their own margin; the site-wide .section padding
+   stacked on top of it and left large empty gaps. */
+.research-wrap .section {
+  padding: 0;
+  margin: 64px 0;
+}
+
+.research-wrap {
+  padding-top: 72px;
+}
+
+.research-wrap .section > h2 {
+  font-size: clamp(24px, 3vw, 30px);
+  margin-bottom: 16px;
+}
+
+.research-wrap .paper-sub {
+  font-size: 19px;
+  line-height: 1.6;
+  color: var(--tl-ink-2);
+}
+
+.research-wrap .artifact {
+  border-radius: 14px;
+  background: var(--tl-card);
+  border-color: var(--tl-line);
+  transition: border-color 0.3s ease;
+}
+
+.research-wrap .artifact:hover {
+  border-color: var(--tl-blue);
+}
+
+.research-wrap .btn.forthcoming:hover {
+  transform: none;
+  border-color: var(--tl-line);
+  color: var(--tl-ink-2);
+}
