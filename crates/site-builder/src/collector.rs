@@ -20,25 +20,42 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Mutex;
 
 pub const OWNER: &str = "aien-dev";
-/// Repositories that live under another GitHub account. Everything else is read from OWNER.
-/// A transfer is a one-line edit here.
-pub const OWNER_OVERRIDES: &[(&str, &str)] = &[
-    ("aien-sovereign-core", "aien-spark"),
-    ("omega", "aien-spark"),
-    ("aien-architecture", "aien-spark"),
-    ("aien-protocols", "aien-spark"),
-    ("aienos", "aien-spark"),
-    ("aegis-runtime", "aien-spark"),
-    ("synapse", "aien-spark"),
-    ("physics", "aien-spark"),
-    ("interplane", "aien-spark"),
-    ("spark-rsi", "aien-spark"),
-    ("benchmarks", "aien-spark"),
-    ("open-humanity", "aien-spark"),
-    ("aien-dev", "aien-spark"),
-    ("crumb-spec", "aien-spark"),
-    ("drakestapleton.com", "aien-spark"),
-    ("spark-crumbs", "aien-spark"),
+/// Every named project repository, in one place: the project name the page shows (and the
+/// Core and Sites groups match on), then where GitHub keeps it now (owner, repository name).
+/// Since 2026-10-16 the AIEN repositories live in aien-dev; twelve carry a temporary `-mv`
+/// suffix while GitHub's retired-name block holds. When a suffix goes away or a repository
+/// moves, that is a one-line edit here. Other public repositories in OWNER that match the name
+/// rule are read as well, under their GitHub name.
+pub const REPOS: &[(&str, &str, &str)] = &[
+    ("aien-sovereign-core", "aien-dev", "aien-sovereign-core-mv"),
+    ("aienos", "aien-dev", "aienos-mv"),
+    ("omega", "aien-dev", "omega-mv"),
+    ("physics", "aien-dev", "physics-mv"),
+    ("atlas", "aien-dev", "atlas"),
+    ("aien-protocols", "aien-dev", "aien-protocols-mv"),
+    ("aien-architecture", "aien-dev", "aien-architecture-mv"),
+    ("benchmarks", "aien-dev", "benchmarks-mv"),
+    ("aegis-runtime", "aien-dev", "aegis-runtime-mv"),
+    ("spark-rsi", "aien-dev", "spark-rsi-mv"),
+    ("open-humanity", "aien-dev", "open-humanity"),
+    ("aien-edge", "aien-dev", "aien-edge"),
+    ("aienos.com", "aien-dev", "aienos.com"),
+    (".github", "aien-dev", ".github"),
+    ("drakestapleton.com", "aien-spark", "drakestapleton.com"),
+    ("aien-dev", "aien-spark", "aien-dev"),
+    ("crumb-spec", "aien-dev", "crumb-spec-mv"),
+    ("spark-crumbs", "aien-dev", "spark-crumbs-mv"),
+    ("spark-hive", "aien-dev", "spark-hive"),
+    ("aien-harness", "aien-dev", "aien-harness"),
+    ("spark-dream", "aien-dev", "spark-dream"),
+    ("cortex-rs", "aien-dev", "cortex-rs"),
+    ("spark-supervisor", "aien-dev", "spark-supervisor"),
+    ("spark-debugger", "aien-dev", "spark-debugger"),
+    ("rad-id-sync", "aien-dev", "rad-id-sync"),
+    ("spark-adapters", "aien-dev", "spark-adapters"),
+    ("harvester", "aien-dev", "harvester"),
+    ("spark-inquisitor", "aien-dev", "spark-inquisitor"),
+    ("aien-local-stack", "aien-dev", "aien-local-stack"),
 ];
 pub const TIMEZONE: &str = "America/Chicago";
 
@@ -54,28 +71,79 @@ const EXCLUDED_DIRS: &[&str] = &[
     "vendor", "vendored", "third_party", "third-party", "node_modules", "target", "dist", "build", "generated",
     "evidence", "receipts", "artifacts", "data", "results", "fixtures",
 ];
-const SEED_NAMES: &[&str] = &[
-    "aien-sovereign-core", "spark-hive", "aien-harness", "spark-dream", "cortex-rs", "spark-supervisor",
-    "spark-debugger", "rad-id-sync", "spark-adapters", "spark-crumbs", "crumb-spec", "spark-rsi", "open-humanity",
-    "harvester", "aegis-runtime", ".github", "spark-inquisitor", "aien-dev", "benchmarks", "drakestapleton.com",
-    "aienos.com", "aien-protocols", "aien-local-stack", "aien-architecture", "aien-edge", "aienos", "atlas",
-    "physics", "omega",
-];
 const CORE_NAMES: &[&str] = &["aien-sovereign-core", "aienos", "omega", "physics", "forge", "atlas", "aien-protocols", "aien-architecture", "benchmarks"];
 const SITE_NAMES: &[&str] = &["aienos.com", "drakestapleton.com", ".github", "aien-dev"];
 
-pub fn owner_of(name: &str) -> &'static str {
-    OWNER_OVERRIDES.iter().find(|(n, _)| *n == name).map(|(_, o)| *o).unwrap_or(OWNER)
-}
-
+/// The accounts whose public repository listings are read: OWNER, then every owner in REPOS.
 fn owners() -> Vec<&'static str> {
     let mut list = vec![OWNER];
-    for (_, o) in OWNER_OVERRIDES {
+    for (_, o, _) in REPOS {
         if !list.contains(o) {
             list.push(o);
         }
     }
     list
+}
+
+/// A repository the collector reads.
+#[derive(Debug)]
+struct Target {
+    /// The project name the page shows.
+    name: String,
+    /// Where GitHub keeps it now.
+    owner: String,
+    github_name: String,
+    /// GitHub's own address for it, from the listing.
+    url: String,
+    info: Value,
+}
+
+/// Pick the repositories to read from GitHub's public listings. A repository in REPOS is
+/// matched by its current owner and GitHub name and read under its project name. Any other
+/// public, non-fork repository of OWNER that matches the name rule is read under its GitHub
+/// name, unless a REPOS entry was found under that project name. Returns the targets in listing
+/// order and the REPOS entries that GitHub did not list.
+fn select_repos(listing: &[Value]) -> (Vec<Target>, Vec<String>) {
+    let public = |r: &&Value| {
+        let flag = |k: &str| r.get(k).and_then(Value::as_bool).unwrap_or(false);
+        !flag("private") && !flag("fork")
+    };
+    let identity = |r: &Value| -> Option<(String, String)> {
+        Some((r.pointer("/owner/login")?.as_str()?.to_string(), r.get("name")?.as_str()?.to_string()))
+    };
+    let mapped = |owner: &str, name: &str| REPOS.iter().find(|(_, o, g)| *o == owner && *g == name);
+    let found: HashSet<&str> = listing
+        .iter()
+        .filter(public)
+        .filter_map(identity)
+        .filter_map(|(owner, name)| mapped(&owner, &name).map(|(p, _, _)| *p))
+        .collect();
+    let mut targets = Vec::new();
+    for r in listing.iter().filter(public) {
+        let Some((owner, github_name)) = identity(r) else { continue };
+        let name = match mapped(&owner, &github_name) {
+            Some((project, _, _)) => project.to_string(),
+            None if owner == OWNER && project_named(&github_name) && !found.contains(github_name.as_str()) => github_name.clone(),
+            None => continue,
+        };
+        let url = s(r, "html_url").unwrap_or_else(|| format!("https://github.com/{owner}/{github_name}"));
+        targets.push(Target { name, owner, github_name, url, info: r.clone() });
+    }
+    let missing = REPOS.iter().filter(|(p, _, _)| !found.contains(p)).map(|(p, o, g)| format!("{o}/{g} ({p})")).collect();
+    (targets, missing)
+}
+
+/// The group the page files a repository under, by project name.
+fn group_of(name: &str, archived: bool) -> &'static str {
+    if archived {
+        "Archived"
+    } else if CORE_NAMES.contains(&name) {
+        "Core"
+    } else if SITE_NAMES.contains(&name) {
+        "Sites"
+    } else {
+        "Experimental"
+    }
 }
 
 /// The name rule for automatically discovered project repositories.
@@ -467,6 +535,15 @@ pub fn validate_snapshot(data: &Value) -> Result<(), String> {
         if head.len() != 40 || !head.bytes().all(|c| matches!(c, b'0'..=b'9' | b'a'..=b'f')) {
             return Err("Missing pinned head".into());
         }
+        // Snapshots written before 2026-10-17 carry no link; a link that is present must be a
+        // GitHub repository address.
+        if let Some(url) = repo.get("url") {
+            let path = url.as_str().and_then(|u| u.strip_prefix("https://github.com/")).unwrap_or("");
+            let parts: Vec<&str> = path.split('/').collect();
+            if parts.len() != 2 || !parts.iter().all(|p| valid_repo_name(p) && !p.bytes().all(|c| c == b'.')) {
+                return Err("Invalid repository link".into());
+            }
+        }
     }
     Ok(())
 }
@@ -707,6 +784,7 @@ struct Run {
 #[derive(Debug, Clone)]
 struct Repo {
     name: String,
+    url: String,
     dir: PathBuf,
     head: String,
     branch: String,
@@ -758,6 +836,7 @@ struct Summary {
 #[serde(rename_all = "camelCase")]
 struct PublicRepo {
     name: String,
+    url: String,
     head: String,
     branch: String,
     first: String,
@@ -868,24 +947,27 @@ fn valid_repo_name(name: &str) -> bool {
     !name.is_empty() && name.bytes().all(|c| c.is_ascii_alphanumeric() || matches!(c, b'.' | b'_' | b'-'))
 }
 
-fn collect_repo(info: &Value, opts: &Options, cutoff: i64) -> Result<Repo, String> {
-    let name = s(info, "name").unwrap_or_default();
+fn collect_repo(target: &Target, opts: &Options, cutoff: i64) -> Result<Repo, String> {
+    let Target { name, owner, github_name, url, info } = target;
+    let name = name.clone();
     let branch = s(info, "default_branch").unwrap_or_default();
-    if !valid_repo_name(&name) || branch.is_empty() {
+    if ![&name, owner, github_name].iter().all(|n| valid_repo_name(n)) || branch.is_empty() {
         return Err("Invalid repository identity".into());
     }
-    let owner = owner_of(&name);
     std::fs::create_dir_all(&opts.cache_dir).map_err(|e| format!("cannot create {}: {e}", opts.cache_dir.display()))?;
     let cache = std::fs::canonicalize(&opts.cache_dir).map_err(|e| e.to_string())?;
-    let dir = cache.join(format!("{name}.git"));
+    let dir = cache.join(format!("{github_name}.git"));
+    let remote = format!("https://github.com/{owner}/{github_name}.git");
     if opts.fetch {
         if dir.exists() {
+            // A mirror made before a move still points at the old address; read from the current one.
+            git(&dir, &["remote", "set-url", "origin", &remote])?;
             git_network(&[format!("--git-dir={}", dir.display()), "fetch".into(), "--prune".into(), "origin".into()])?;
         } else {
-            git_network(&["clone".into(), "--mirror".into(), format!("https://github.com/{owner}/{name}.git"), dir.display().to_string()])?;
+            git_network(&["clone".into(), "--mirror".into(), remote, dir.display().to_string()])?;
         }
     } else if !dir.exists() {
-        return Err(format!("No mirror for {name} in {} (run without --no-fetch first)", cache.display()));
+        return Err(format!("No mirror for {owner}/{github_name} in {} (run without --no-fetch first)", cache.display()));
     }
     let head = String::from_utf8_lossy(&git(&dir, &["rev-parse", &format!("refs/heads/{branch}")])?).trim().to_string();
     let commits = commits_at(&dir, &head, false)?;
@@ -894,8 +976,8 @@ fn collect_repo(info: &Value, opts: &Options, cutoff: i64) -> Result<Repo, Strin
     if commits.iter().any(|c| c.ts.saturating_mul(1000) > cutoff) {
         return Err(format!("Pinned repository contains a future-dated commit: {name}"));
     }
-    let raw_prs = paginate(&format!("/repos/{owner}/{name}/pulls?state=all"), None, github_get)?;
-    let raw_runs = paginate(&format!("/repos/{owner}/{name}/actions/runs"), Some("workflow_runs"), github_get)?;
+    let raw_prs = paginate(&format!("/repos/{owner}/{github_name}/pulls?state=all"), None, github_get)?;
+    let raw_runs = paginate(&format!("/repos/{owner}/{github_name}/actions/runs"), Some("workflow_runs"), github_get)?;
     let mut prs = Vec::new();
     for p in &raw_prs {
         let Some(created) = s(p, "created_at") else { continue };
@@ -940,18 +1022,10 @@ fn collect_repo(info: &Value, opts: &Options, cutoff: i64) -> Result<Repo, Strin
         });
     }
     let archived = info.get("archived").and_then(Value::as_bool).unwrap_or(false);
-    let group = if archived {
-        "Archived"
-    } else if CORE_NAMES.contains(&name.as_str()) {
-        "Core"
-    } else if SITE_NAMES.contains(&name.as_str()) {
-        "Sites"
-    } else {
-        "Experimental"
-    };
+    let group = group_of(&name, archived);
     let first = commits.iter().map(|c| c.date.as_str()).fold("9999-12-31", |a, b| if b < a { b } else { a }).to_string();
     let last = commits.iter().map(|c| c.date.as_str()).fold("0000-01-01", |a, b| if b > a { b } else { a }).to_string();
-    Ok(Repo { name, dir, head, branch, commits, fp, prs, runs, archived, group, first, last })
+    Ok(Repo { name, url: url.clone(), dir, head, branch, commits, fp, prs, runs, archived, group, first, last })
 }
 
 pub fn collect(opts: &Options) -> Result<Report, String> {
@@ -971,25 +1045,12 @@ pub fn collect(opts: &Options) -> Result<Report, String> {
             Err(e) => eprintln!("Warning: skipping repositories of {owner}: {e}"),
         }
     }
-    let infos: Vec<Value> = listing
-        .into_iter()
-        .filter(|r| {
-            let name = r.get("name").and_then(Value::as_str).unwrap_or("");
-            let flag = |k: &str| r.get(k).and_then(Value::as_bool).unwrap_or(false);
-            let owner_ok = match r.pointer("/owner/login").and_then(Value::as_str) {
-                Some(login) => login == owner_of(name),
-                None => r.get("owner").is_none_or(Value::is_null),
-            };
-            !flag("private") && !flag("fork") && owner_ok && (SEED_NAMES.contains(&name) || project_named(name))
-        })
-        .collect();
-    for name in SEED_NAMES {
-        if !infos.iter().any(|r| r.get("name").and_then(Value::as_str) == Some(name)) {
-            eprintln!("Warning: expected public project repository missing, skipping: {}/{name}", owner_of(name));
-        }
+    let (targets, missing) = select_repos(&listing);
+    for m in &missing {
+        eprintln!("Warning: expected public project repository missing, skipping: {m}");
     }
     let started = std::time::Instant::now();
-    let repos = limited(&infos, 4, |info| collect_repo(info, opts, cutoff))?;
+    let repos = limited(&targets, 4, |target| collect_repo(target, opts, cutoff))?;
     println!("  [PROGRESS] read {} repositories (git history, PRs, runs) in {:.2?}", repos.len(), started.elapsed());
 
     let asof = match &opts.asof {
@@ -1075,6 +1136,7 @@ pub fn collect(opts: &Options) -> Result<Report, String> {
         let counts = count_entries(&entries, &blobs, &mut HashSet::new())?;
         public_repos.push(PublicRepo {
             name: r.name.clone(),
+            url: r.url.clone(),
             head: r.head.clone(),
             branch: r.branch.clone(),
             first: r.first.clone(),
@@ -1311,9 +1373,148 @@ mod tests {
         for n in ["omegaman", "aien", "forgery", "physicsx", "cortex", "sparky"] {
             assert!(!project_named(n), "{n}");
         }
-        assert_eq!(owner_of("omega"), "aien-spark");
-        assert_eq!(owner_of("aienos.com"), OWNER);
         assert_eq!(owners(), vec!["aien-dev", "aien-spark"]);
+    }
+
+    /// The public repository listing of aien-dev and aien-spark as GitHub returned it on
+    /// 2026-10-17 (`/users/{owner}/repos?type=owner`): owner, name, fork, archived.
+    const LISTING_2026_10_17: &[&str] = &[
+        "aien-dev .github - -",
+        "aien-dev aegis-runtime-mv - -",
+        "aien-dev agent-archive - -",
+        "aien-dev aien-architecture-mv - -",
+        "aien-dev aien-edge - -",
+        "aien-dev aien-harness - archived",
+        "aien-dev aien-local-stack - archived",
+        "aien-dev aien-protocols-mv - -",
+        "aien-dev aien-receipts - -",
+        "aien-dev aien-sovereign-core-mv - -",
+        "aien-dev aien-yardsticks - archived",
+        "aien-dev aienix - -",
+        "aien-dev aienos-mv - -",
+        "aien-dev aienos.com - -",
+        "aien-dev arm-trusted-firmware fork archived",
+        "aien-dev atlas - -",
+        "aien-dev benchmarks-mv - -",
+        "aien-dev cortex-rs - archived",
+        "aien-dev crumb-spec-mv - archived",
+        "aien-dev edk2 fork archived",
+        "aien-dev edk2-non-osi fork -",
+        "aien-dev edk2-platforms fork archived",
+        "aien-dev encounter - archived",
+        "aien-dev harvester - archived",
+        "aien-dev interplane-mv - -",
+        "aien-dev interplane.io - -",
+        "aien-dev mobhub - -",
+        "aien-dev MojoLlama - archived",
+        "aien-dev odysseus fork archived",
+        "aien-dev omega-mv - -",
+        "aien-dev open-humanity - -",
+        "aien-dev physics-mv - -",
+        "aien-dev physics0 - archived",
+        "aien-dev pi-register - -",
+        "aien-dev rad-id-sync - archived",
+        "aien-dev readings-window - -",
+        "aien-dev rpi5-uefi fork -",
+        "aien-dev spark-adapters - archived",
+        "aien-dev spark-crumbs-mv - archived",
+        "aien-dev spark-debugger - archived",
+        "aien-dev spark-dream - archived",
+        "aien-dev spark-hive - archived",
+        "aien-dev spark-inquisitor - archived",
+        "aien-dev spark-rsi-mv - -",
+        "aien-dev spark-supervisor - archived",
+        "aien-dev synapse - -",
+        "aien-dev t3code fork -",
+        "aien-spark aien-dev - -",
+        "aien-spark drakestapleton.com - -",
+        "aien-spark jan fork archived",
+        "aien-spark NightDriverStrip fork archived",
+        "aien-spark waldo fork archived",
+    ];
+
+    fn listing(rows: &[&str]) -> Vec<Value> {
+        rows.iter()
+            .map(|row| {
+                let f: Vec<&str> = row.split(' ').collect();
+                serde_json::json!({
+                    "owner": { "login": f[0] }, "name": f[1], "fork": f[2] == "fork", "archived": f[3] == "archived",
+                    "private": f[2] == "private", "html_url": format!("https://github.com/{}/{}", f[0], f[1]),
+                })
+            })
+            .collect()
+    }
+
+    fn find<'a>(targets: &'a [Target], name: &str) -> &'a Target {
+        targets.iter().find(|t| t.name == name).unwrap_or_else(|| panic!("{name} not selected"))
+    }
+
+    #[test]
+    fn the_repository_map_follows_the_move_to_aien_dev() {
+        let mut rows = LISTING_2026_10_17.to_vec();
+        rows.push("aien-dev aien-hidden private -");
+        let (targets, missing) = select_repos(&listing(&rows));
+        assert!(missing.is_empty(), "missing: {missing:?}");
+        // Every named repository is read from where GitHub keeps it now, under its project name.
+        for (project, owner, github_name) in REPOS {
+            let t = find(&targets, project);
+            assert_eq!((t.owner.as_str(), t.github_name.as_str()), (*owner, *github_name), "{project}");
+            assert_eq!(t.url, format!("https://github.com/{owner}/{github_name}"), "{project}");
+        }
+        // The -mv core repositories stay Core; the two the old map lost are counted again.
+        for core in ["aien-sovereign-core", "aienos", "omega", "physics", "aien-protocols", "aien-architecture", "benchmarks", "atlas"] {
+            let t = find(&targets, core);
+            assert_eq!(group_of(&t.name, t.info["archived"].as_bool().unwrap()), "Core", "{core}");
+        }
+        assert_eq!(find(&targets, "benchmarks").github_name, "benchmarks-mv");
+        assert_eq!(find(&targets, "open-humanity").owner, "aien-dev");
+        // Links point at the real owner: still aien-spark for these two, aien-dev for the archived spark-crumbs.
+        assert_eq!(find(&targets, "drakestapleton.com").url, "https://github.com/aien-spark/drakestapleton.com");
+        assert_eq!(find(&targets, "aien-dev").url, "https://github.com/aien-spark/aien-dev");
+        assert_eq!(find(&targets, "spark-crumbs").url, "https://github.com/aien-dev/spark-crumbs-mv");
+        assert_eq!(group_of("spark-crumbs", true), "Archived");
+        assert_eq!(group_of("drakestapleton.com", false), "Sites");
+        // The name rule still finds new repositories; forks, private and unrelated names stay out.
+        let mut names: Vec<&str> = targets.iter().map(|t| t.name.as_str()).collect();
+        names.sort_unstable();
+        let mut expected: Vec<&str> = REPOS.iter().map(|(p, _, _)| *p).chain(["aien-receipts", "aien-yardsticks"]).collect();
+        expected.sort_unstable();
+        assert_eq!(names, expected);
+        assert_eq!(targets.len(), 31);
+    }
+
+    #[test]
+    fn a_lifted_suffix_is_still_read_as_the_same_project() {
+        // GitHub lifts the block and omega-mv becomes omega before the map is edited.
+        let rows: Vec<String> = LISTING_2026_10_17.iter().map(|r| r.replace(" omega-mv ", " omega ")).collect();
+        let rows: Vec<&str> = rows.iter().map(String::as_str).collect();
+        let (targets, missing) = select_repos(&listing(&rows));
+        assert_eq!(missing, vec!["aien-dev/omega-mv (omega)".to_string()]);
+        let t = find(&targets, "omega");
+        assert_eq!((t.github_name.as_str(), t.url.as_str(), group_of(&t.name, false)), ("omega", "https://github.com/aien-dev/omega", "Core"));
+        // Both names listed at once: the map wins and the project is read once.
+        let mut both = LISTING_2026_10_17.to_vec();
+        both.push("aien-dev omega - -");
+        let (targets, _) = select_repos(&listing(&both));
+        assert_eq!(targets.iter().filter(|t| t.name == "omega").count(), 1);
+        assert_eq!(find(&targets, "omega").github_name, "omega-mv");
+    }
+
+    #[test]
+    fn repository_links_must_be_github_addresses() {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../public/data/project-progress.json");
+        let data: Value = serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
+        let with = |url: Value| {
+            let mut d = data.clone();
+            d["repos"][0]["url"] = url;
+            validate_snapshot(&d)
+        };
+        assert!(with(Value::from("https://github.com/aien-dev/omega-mv")).is_ok());
+        assert!(with(Value::from("https://github.com/aien-spark/.github")).is_ok());
+        for bad in ["https://example.com/aien-dev/omega", "https://github.com/aien-dev", "https://github.com/aien-dev/omega/tree/x", "https://github.com/../..", "javascript:alert(1)"] {
+            assert!(with(Value::from(bad)).is_err(), "{bad}");
+        }
+        assert!(with(Value::from(3)).is_err());
     }
 
     #[test]
