@@ -58,6 +58,8 @@ pub fn render_page_layout(
                 link rel="stylesheet" href="/assets/style.css";
                 // Shared six-section header (also linked by hand-written pages)
                 link rel="stylesheet" href="/assets/site-nav.css";
+                // The Turing look, shared by every page (loaded last)
+                link rel="stylesheet" href="/assets/turing-look.css";
 
                 (extra_head)
             }

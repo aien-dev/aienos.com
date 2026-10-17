@@ -1,0 +1,351 @@
+/*
+ * The Turing look: one shared layer that gives every page the feel of
+ * /turing/ (cinematic near-black page, soft blue and green glow, small
+ * blue capital kickers, large heavy headings, roomy sections, rounded
+ * cards that lift on hover, pill badges, a blue-to-green reading bar).
+ * Loaded last on every page so it wins over older page styles.
+ * No script: the reading bar and the fade-in use CSS scroll timelines
+ * where the browser supports them and are simply absent elsewhere.
+ * The /turing/ page itself does not load this file.
+ */
+:root {
+  --tl-bg: #08090c;
+  --tl-card: #0e1219;
+  --tl-card-2: #131822;
+  --tl-line: #1c2536;
+  --tl-line-2: #2a3648;
+  --tl-ink: #f1f5f9;
+  --tl-ink-2: #94a3b8;
+  --tl-ink-3: #8ea0b5;
+  --tl-blue: #2d7ff9;
+  --tl-blue-soft: #7db4ff;
+  --tl-green: #00e599;
+  --tl-amber: #f59e0b;
+  --tl-violet: #a78bfa;
+  --tl-radius: 18px;
+}
+
+/* ---------- page ---------- */
+html, body {
+  background-color: var(--tl-bg);
+  color: var(--tl-ink);
+}
+
+body {
+  background-image:
+    radial-gradient(ellipse 70% 42rem at 50% -8rem, rgba(45, 127, 249, 0.13), transparent 70%),
+    radial-gradient(ellipse 40% 30rem at 88% 10rem, rgba(0, 229, 153, 0.05), transparent 70%);
+  background-repeat: no-repeat;
+}
+
+/* The old technical grid gives way to the Turing page's clean field. */
+.bg-grid {
+  background-image: none !important;
+}
+
+/* Reading bar across the top, blue to green, as on /turing/. */
+@supports (animation-timeline: scroll()) {
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    z-index: 200;
+    background: linear-gradient(90deg, var(--tl-blue), var(--tl-green));
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+    animation: tl-read linear both;
+    animation-timeline: scroll(root);
+    pointer-events: none;
+  }
+}
+
+@keyframes tl-read {
+  to { transform: scaleX(1); }
+}
+
+/* ---------- header ---------- */
+.aien-header {
+  position: sticky;
+  top: 0;
+  background: rgba(8, 9, 12, 0.72);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+/* ---------- sections ---------- */
+.hub-section,
+.narr-section,
+.rs-section {
+  padding-top: 96px;
+  padding-bottom: 96px;
+}
+
+@media (max-width: 640px) {
+  .hub-section,
+  .narr-section,
+  .rs-section {
+    padding-top: 56px;
+    padding-bottom: 56px;
+  }
+}
+
+.section-alt {
+  background: transparent;
+  border-color: var(--tl-line);
+}
+
+/* ---------- kickers: small blue capitals above a heading ---------- */
+.kicker,
+.blog-kicker,
+.rs-kicker,
+.hub-kicker,
+.narr-kicker,
+.section-head .badge,
+.theory-fig .fig-kicker {
+  display: inline-block;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--tl-blue);
+  background: none;
+  border: 0;
+  padding: 0;
+  margin-bottom: 18px;
+}
+
+/* ---------- headings ---------- */
+h1,
+.blog-title,
+.rs-page-title,
+.hub-title,
+.narr-title {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.04;
+  color: var(--tl-ink);
+}
+
+.blog-title,
+.rs-page-title,
+.hub-title,
+.narr-title,
+.wrap > header h1,
+.page-head h1 {
+  font-size: clamp(38px, 6vw, 68px);
+}
+
+h2,
+.section-head h2,
+.hub-h2,
+.rs-h2,
+.narr-section h2,
+.blog-wrap article h2,
+.loop-title,
+.home-questions-title {
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  color: var(--tl-ink);
+}
+
+.section-head h2,
+.hub-h2,
+.rs-h2,
+.narr-section h2,
+.loop-title,
+.home-questions-title {
+  font-size: clamp(30px, 4.4vw, 46px);
+  margin-bottom: 18px;
+}
+
+h3 {
+  letter-spacing: -0.01em;
+}
+
+/* Lead paragraphs: larger, calm grey, white for emphasis. */
+.section-head p,
+.blog-standfirst,
+.rs-standfirst,
+.hub-standfirst,
+.narr-mission p,
+.loop-intro,
+.rs-section-lede,
+p.lead,
+.lead {
+  font-size: 18px;
+  line-height: 1.65;
+  color: var(--tl-ink-2);
+}
+
+.section-head p strong,
+.lead strong,
+.hub-standfirst strong {
+  color: var(--tl-ink);
+}
+
+/* ---------- cards: dark, rounded, lift on hover ---------- */
+.glow-box,
+.blog-card,
+.hub-card,
+.narr-card,
+.rs-card,
+.rs-attempt,
+.rs-impl-item,
+.home-q,
+.receipt,
+.pdf-callout,
+.hub-callout,
+.hub-data,
+.theory-fig,
+.entry,
+.card,
+.step-card,
+.doc {
+  background: var(--tl-card);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius);
+  transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glow-box:hover,
+.blog-card:hover,
+.hub-card:hover,
+.narr-card:hover,
+.rs-card:hover,
+.home-q:hover,
+.entry:hover,
+.card:hover {
+  border-color: var(--tl-blue);
+  transform: translateY(-4px);
+  box-shadow: 0 18px 50px rgba(45, 127, 249, 0.14);
+}
+
+/* Status cards keep their verdict colour on the border. */
+.rs-card--fail:hover { border-color: var(--rs-fail, #f87171); }
+
+/* Feature panels: the Turing "big stat" gradient. */
+.pdf-callout,
+.hub-callout,
+.receipt {
+  background: linear-gradient(135deg, rgba(45, 127, 249, 0.1), rgba(0, 229, 153, 0.06)), var(--tl-card);
+}
+
+/* Code and formula blocks sit on the page colour, as on /turing/. */
+pre,
+.narr-formula,
+.narr-formula pre,
+.data-table-wrap {
+  border-radius: 14px;
+}
+
+pre,
+.narr-formula pre {
+  background: var(--tl-bg);
+  border: 1px solid var(--tl-line);
+}
+
+/* ---------- badges: pills ---------- */
+.badge,
+.rs-badge,
+.home-q-badge,
+.source-tag {
+  border-radius: 999px;
+  letter-spacing: 0.06em;
+}
+
+/* ---------- buttons: the Turing page's two button styles ---------- */
+.home-cta,
+.hub-button,
+.pdf-button,
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 15px;
+  text-decoration: none;
+  border: 1px solid var(--tl-line);
+  background: transparent;
+  color: var(--tl-ink-2);
+  transition: 0.25s;
+}
+
+.home-cta-primary,
+.hub-button,
+.pdf-button,
+.btn:not(.ghost):not(.secondary) {
+  border-color: var(--tl-blue);
+  background: rgba(45, 127, 249, 0.14);
+  color: var(--tl-blue-soft);
+}
+
+.home-cta:hover,
+.hub-button:hover,
+.pdf-button:hover,
+.btn:hover {
+  border-color: var(--tl-blue);
+  color: var(--tl-ink);
+  transform: translateY(-2px);
+}
+
+.home-cta-primary:hover,
+.hub-button:hover,
+.pdf-button:hover,
+.btn:not(.ghost):not(.secondary):hover {
+  background: rgba(45, 127, 249, 0.28);
+  color: var(--tl-blue-soft);
+  box-shadow: 0 12px 40px rgba(45, 127, 249, 0.25);
+}
+
+/* Inline "read more" links in the Turing blue. */
+.readmore,
+.blog-read-more,
+.prose-link {
+  color: var(--tl-blue-soft);
+}
+
+/* ---------- tables ---------- */
+.data-table th,
+.status-table th {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tl-ink-3);
+}
+
+/* ---------- footer ---------- */
+.aien-footer {
+  border-top: 1px solid var(--tl-line);
+  background: transparent;
+}
+
+/* ---------- fade up as sections enter, like the Turing page ---------- */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .section-head,
+    .hub-card,
+    .narr-card,
+    .rs-card,
+    .blog-card,
+    .home-q,
+    .entry,
+    .card {
+      animation: tl-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+  }
+}
+
+@keyframes tl-rise {
+  from { opacity: 0; translate: 0 34px; }
+  to { opacity: 1; translate: none; }
+}
