@@ -1,21 +1,62 @@
-# AIENOS Web Platform (aienos.com)
+# aienos.com
 
 [![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL--3.0--or--later-blue.svg)](LICENSE)
 [![GitHub Pages](https://github.com/aien-dev/aienos.com/actions/workflows/pages.yml/badge.svg)](https://github.com/aien-dev/aienos.com/actions/workflows/pages.yml)
 
-The source of the AIENOS website. It is a static site built by a Rust program and served by GitHub Pages.
+The source of the AIENOS website. A Rust program reads the public GitHub record, renders the pages, checks them, and GitHub Pages serves the result.
 
-Live: [https://www.aienos.com](https://www.aienos.com)
+Part of [Aienix](https://github.com/aien-dev/aienix), the core tree of AIEN. Start there to see what the project is and how the pieces fit.
+
+**Status (2026-10-18):** live at [www.aienos.com](https://www.aienos.com) and rebuilt every hour. The site describes a pre-alpha project: its own status section says there is no supported release or installer yet.
 
 ---
 
 ## What the site covers
 
-The homepage opens with "AIENOS is an owned experimental machine for turning search into verified understanding" (`crates/site-builder/src/components/home_loop.rs`) and goes on to the loop, the story, the receipts behind each claim, how the pieces fit together, the research, an interactive terminal, the current status of each layer, and where to follow the work. Other pages: `/progress/`, `/blog/`, `/research/status/`, `/machine/`, `/discovery/` and the hubs `/experiments/`, `/evidence/` and `/philosophy/`. The build also writes `status.json`, `research-status.json` and `llms.txt`; `status.json` and `llms.txt` come from the same code as the homepage status section, and `research-status.json` is `crates/site-builder/data/research_status.json`. The homepage status section says "Public release" is PLANNED: pre-alpha, no supported release or installer yet.
+The homepage opens with "AIENOS is an owned experimental machine for turning search into verified understanding" (`crates/site-builder/src/components/home_loop.rs`) and goes on to the loop, the story, the receipts behind each claim, how the pieces fit together, the research, an interactive terminal, the live status of each core component, and where to follow the work.
 
----
+Pages the generator writes: `/`, `/progress/`, `/blog/`, `/research/status/`, `/machine/`, `/discovery/` and the hubs `/experiments/`, `/evidence/` and `/philosophy/`. Hand-kept pages under `public/` are copied as they are: `/turing/`, `/research/` (papers), `/post-llm-case/` and `/licensing/`.
 
-## Gandi.net DNS Record Configuration Reference
+The build also writes `facts.json`, `status.json`, `research-status.json` and `llms.txt`.
+
+## How the site is built
+
+There is no Node build and no `package.json`. Everything is the Rust program in `crates/site-builder`. Run these from the repository root:
+
+```bash
+cargo test --manifest-path crates/site-builder/Cargo.toml
+cargo run --release --manifest-path crates/site-builder/Cargo.toml -- facts facts.json
+cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist
+cargo run --release --manifest-path crates/site-builder/Cargo.toml -- verify dist
+```
+
+- `facts` reads the public GitHub record through the `gh` command line tool and writes `facts.json`: each core component's repository, open pull requests and last merge, recent decision records, and the latest verdict the Spark judge posted as a commit status. Nothing on the page that can change is typed by hand (`crates/site-builder/src/facts.rs`).
+- `build dist` renders the site into `dist/` from `facts.json` and `public/`, then verifies it.
+- `verify dist` re-checks an existing output directory.
+
+There is no dev server or preview command.
+
+## How it is deployed
+
+`.github/workflows/pages.yml` runs on pushes to `main`, on manual runs, and hourly at minute 17 (UTC). It collects project progress, refreshes `facts.json`, runs the tests, builds `dist/` and deploys it to GitHub Pages. The refreshed files are published with the site; no hourly commits are made to the repository. Pull request builds use the committed snapshot.
+
+`.github/workflows/automerge.yml` only runs when started by hand for a named branch.
+
+## Project progress dashboard
+
+[Progress](https://www.aienos.com/progress/) plots daily default-branch snapshots from the beginning of the retained public project history: exact-content-deduplicated physical source lines, named test-file footprint, distinct reachable commit SHAs, all pull requests and available GitHub Actions runs. These metrics measure repository activity, not qualification or individual executed tests.
+
+```bash
+cargo run --release --manifest-path crates/site-builder/Cargo.toml -- progress public/data/project-progress.json
+```
+
+Source boundaries, exclusions and the public repository list are in `crates/site-builder/src/collector.rs` (`site-builder progress [out.json] [--asof T] [--cache DIR] [--no-fetch]`). It reads public data through `gh api` and mirror clones made with `git`, and keeps the curated events and policy text of the existing file. Daily boundaries are America/Chicago with US daylight saving rules written out in the same file. Forks and private repositories are excluded. The JSON includes the collection timestamp and every measured default-branch head. Deleted CI records cannot be reconstructed. The browser checks the published JSON every five minutes and marks snapshots older than three hours. Collection uses the built-in read-only Actions token against public endpoints; no token is shipped to browsers. D3 7.9.0 is self-hosted with its ISC license in `public/vendor/`.
+
+## Installer script
+
+`public/install.sh` is published at `https://aienos.com/install.sh`. It needs `git`, clones [aien-sovereign-core](https://github.com/aien-dev/aien-sovereign-core) (the Linux-hosted Rust runtime) into a temporary directory and runs that repository's own `install.sh`. The website says there is no supported release or installer yet, and no page links to this script.
+
+## DNS records
 
 To bind `aienos.com` on Gandi.net to GitHub Pages:
 
@@ -31,48 +72,10 @@ To bind `aienos.com` on Gandi.net to GitHub Pages:
 | `AAAA` | `@` | `2606:50c0:8003::153` | 1800 |
 | `CNAME` | `www` | `aien-dev.github.io.` | 1800 |
 
----
+## Crumb coordination
 
-## Installer script
-
-`public/install.sh` is published at `https://aienos.com/install.sh`. It needs `git`, clones [aien-sovereign-core](https://github.com/aien-dev/aien-sovereign-core) (the earlier Linux-hosted Rust runtime) into a temporary directory and runs that repository's own `install.sh`. The website itself says there is no supported release or installer yet, and no page links to this script.
-
-```bash
-curl -fsSL https://aienos.com/install.sh | bash
-```
-
----
-
-## Local Development & Build
-
-There is no Node build and no `package.json`. The site is rendered by the Rust program in `crates/site-builder`, which copies `public/` into the output directory. Run these from the repository root:
-
-```bash
-cargo test --manifest-path crates/site-builder/Cargo.toml
-cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist
-cargo run --release --manifest-path crates/site-builder/Cargo.toml -- verify dist
-```
-
-`build dist` writes the site to `dist/` and then verifies it; `verify dist` re-checks an existing output directory. There is no dev server or preview command. `.github/workflows/pages.yml` runs the same steps (plus the progress collection described below) and deploys `dist/` to GitHub Pages on pushes to `main`.
+The repository follows the Crumb Protocol ([RFC-0001](https://github.com/aien-dev/crumb-spec/blob/10b8251/SPEC.md), [current protocol pointer](https://github.com/aien-dev/aien-architecture/blob/main/docs/CRUMB_PROTOCOL.md)). Each directory's `.crumb` file says what that directory is for. `.crumb.local` is temporary coordination state, ignored by git and excluded from the public site.
 
 ## License
 
-Licensed under the GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later). See [LICENSE](LICENSE). The runtime itself, aien-sovereign-core, is also AGPL-3.0-or-later. Project values live in the nonbinding [COVENANT.md](https://github.com/aien-dev/aien-sovereign-core/blob/main/COVENANT.md), which grants and restricts no legal rights.
-
-## Project progress dashboard
-
-[Progress](https://www.aienos.com/progress/) is built by the existing Rust generator. It plots daily default-branch snapshots from the beginning of the retained public project history, exact-content-deduplicated physical source lines, named test-file footprint, distinct reachable commit SHAs, all PRs and available GitHub Actions runs. These metrics measure repository activity, not qualification or individual executed tests.
-
-The Pages workflow collects on pushes to main, manual runs, and hourly at minute 17 (UTC). GitHub can delay scheduled runs. The browser checks the published JSON every five minutes, preserves a selected historical day and marks snapshots older than three hours. Collection and reconciliation must succeed before deployment; a failed refresh retains the last good live page. Collection uses the built-in read-only Actions token against public endpoints; no token is shipped to browsers and no generated hourly commits are made. PR builds use the committed snapshot.
-
-```bash
-cargo run --release --manifest-path crates/site-builder/Cargo.toml -- progress public/data/project-progress.json
-cargo test --manifest-path crates/site-builder/Cargo.toml
-cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist
-```
-
-Source boundaries, exclusions and the initial public repository allowlist are in crates/site-builder/src/collector.rs (`site-builder progress [out.json] [--asof T] [--cache DIR] [--no-fetch]`; it reads public data through `gh api` and mirror clones made with `git`, and keeps the curated events and policy text of the existing file). Daily boundaries are America/Chicago with US daylight saving rules written out in the same file. Newly discovered project-named public repositories are included automatically; forks/private repositories are excluded. The JSON includes the collection timestamp and every measured default-branch head. Deleted CI records cannot be reconstructed. Historical milestones and experiment examples are curated and linked to evidence; recent PR activity is collected automatically. D3 7.9.0 is self-hosted with its ISC license in public/vendor/.
-
-### Crumb coordination
-
-This integration adopts [RFC-0001](https://github.com/aien-dev/crumb-spec/blob/10b8251/SPEC.md), following the [current protocol pointer](https://github.com/aien-dev/aien-architecture/blob/main/docs/CRUMB_PROTOCOL.md). Durable .crumb files describe the changed directory boundaries. Using the canonical aien-architecture/tools/crumb tool: sniff before edits, respect unexpired locks, claim multi-step work, then close with the result. .crumb.local is ephemeral, ignored and excluded from the public site. Adoption started after the initial dashboard draft; the coordination record does not claim earlier edits were locked.
+GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later). See [LICENSE](LICENSE). Project values live in the nonbinding [COVENANT.md](https://github.com/aien-dev/aien-sovereign-core/blob/main/COVENANT.md), which grants and restricts no legal rights.
