@@ -1,11 +1,11 @@
 name: pages
+# Builds and deploys www.aienos.com. No tests run on GitHub-hosted runners (2026-10-18):
+# site-builder tests run on the Spark, and pull requests get no hosted build.
 on:
   schedule:
     - cron: "17 * * * *"
   workflow_dispatch:
   push:
-    branches: [main]
-  pull_request:
     branches: [main]
 permissions:
   contents: read
@@ -20,7 +20,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Collect public project history
-        if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         run: cargo run --release --manifest-path crates/site-builder/Cargo.toml -- progress public/data/project-progress.json
@@ -28,8 +27,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: cargo run --release --manifest-path crates/site-builder/Cargo.toml -- facts facts.json
-      - name: Run verification test suite
-        run: cargo test --verbose --manifest-path crates/site-builder/Cargo.toml
       - name: Build static site with pure Rust engine
         run: cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist
       - name: Upload Pages artifact
