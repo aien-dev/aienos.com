@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>计算机械与理解：图灵作为从AIEN中涌现的度量 | AIEN研究</title>
+<meta content="图灵背后的工程历史：如何从构建 AIEN、Omega 和主权谱系架构中，涌现出一种协议约束的解释性压缩度量。配套论文。" name="description"/>
+
+<link href="/favicon.svg" rel="icon" type="image/svg+xml"/>
+<meta content="计算机械与理解：图灵作为从 AIEN 中涌现的度量。" property="og:title"/>
+<meta content="图灵背后的工程历史：从构建可验证机器到测量理解。配套论文，未经同行评审。" property="og:description"/>
+<meta content="https://aienos.com/research/computing-machinery-and-understanding-emergence" property="og:url"/>
+<meta content="article" property="og:type"/>
+<meta content="https://aienos.com/og.png" property="og:image"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<link href="/assets/style.css" rel="stylesheet"/>
+<style>
+.research-wrap{max-width:880px;margin:0 auto;padding:48px 24px 96px}
+.kicker{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;color:var(--accent-blue);text-transform:uppercase;margin-bottom:16px}
+.paper-title{font-size:clamp(30px,4.5vw,46px);font-weight:800;letter-spacing:-.02em;line-height:1.12;color:var(--text-primary);margin:0 0 12px}
+.paper-sub{font-size:18px;color:var(--text-secondary);margin:0 0 24px;line-height:1.5}
+.byline{font-size:15px;color:var(--text-secondary);margin-bottom:6px}
+.byline strong{color:var(--text-primary)}
+.version-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0 28px}
+.badge{font-family:var(--font-mono);font-size:12px;padding:5px 12px;border-radius:999px;border:1px solid var(--border-subtle);color:var(--text-secondary)}
+.badge.preprint{border-color:var(--accent-amber);color:var(--accent-amber)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 40px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none;border:1px solid var(--accent-blue);background:rgba(45,127,249,.12);color:var(--accent-blue);font-family:var(--font-sans)}
+.btn.secondary{border-color:var(--border-subtle);background:transparent;color:var(--text-primary)}
+.btn.forthcoming{opacity:.55;cursor:default}
+.section{margin:44px 0}
+.section h2{font-size:20px;font-weight:700;color:var(--text-primary);margin:0 0 16px;letter-spacing:-.01em}
+.section p{color:var(--text-secondary);line-height:1.7;font-size:15.5px;margin:0 0 14px}
+.artifact{border:1px solid var(--border-subtle);border-radius:10px;padding:16px 18px;margin:10px 0;background:var(--bg-card);display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.artifact .name{font-weight:700;color:var(--text-primary);font-size:15px}
+.artifact .desc{font-size:13.5px;color:var(--text-secondary);margin-top:4px;line-height:1.55}
+.artifact a{font-family:var(--font-mono);font-size:13px;color:var(--accent-blue);text-decoration:none;white-space:nowrap}
+.hash{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);word-break:break-all;margin-top:6px}
+table.versions{width:100%;border-collapse:collapse;font-size:14px}
+table.versions th{text-align:left;font-family:var(--font-mono);font-size:12px;color:var(--text-muted);padding:8px 10px;border-bottom:1px solid var(--border-subtle)}
+table.versions td{padding:10px;border-bottom:1px solid var(--border-subtle);color:var(--text-secondary);vertical-align:top}
+table.versions td:first-child{font-family:var(--font-mono);color:var(--text-primary);white-space:nowrap}
+pre.cite{background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:10px;padding:18px;font-family:var(--font-mono);font-size:13px;color:var(--text-secondary);overflow-x:auto;line-height:1.6}
+.topnav{border-bottom:1px solid var(--border-subtle);background:rgba(8,9,12,.85);backdrop-filter:blur(12px);position:sticky;top:0;z-index:50;padding:14px 0}
+.topnav .inner{max-width:1180px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.topnav a.brand{font-weight:700;color:var(--text-primary);text-decoration:none;font-size:17px;letter-spacing:-.02em}
+.topnav nav{display:flex;gap:22px;font-size:14px}
+.topnav nav a{color:var(--text-secondary);text-decoration:none}
+.topnav nav a.active{color:var(--accent-blue)}
+.footer-note{margin-top:56px;padding-top:24px;border-top:1px solid var(--border-subtle);font-size:13px;color:var(--text-muted);line-height:1.6}
+.footer-note a{color:var(--accent-blue);text-decoration:none}
+</style>
+<link href="/assets/site-nav.css" rel="stylesheet"/>
+<link href="/assets/turing-look.css" rel="stylesheet"/>
+<script defer="" src="/js/turing-look.js"></script>
+<link href="https://www.aienos.com/zh-CN/research/computing-machinery-and-understanding-emergence/" rel="canonical"/><link href="https://www.aienos.com/research/computing-machinery-and-understanding-emergence/" hreflang="en" rel="alternate"/><link href="https://www.aienos.com/zh-CN/research/computing-machinery-and-understanding-emergence/" hreflang="zh-CN" rel="alternate"/></head>
+<body>
+<header class="aien-header"><div class="aien-header-inner"><a aria-label="AIENOS 主页" class="aien-brand" href="/zh-CN/"><span aria-hidden="true" class="aien-brand-mark"><svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" x2="20" y1="19" y2="19"></line></svg></span><span class="aien-brand-copy"><span class="aien-brand-name">AIENOS</span><span class="aien-brand-tag">持久的机器智能</span></span></a><nav aria-label="主要导航" class="aien-nav"><ul class="aien-nav-primary"><li><a class="aien-nav-link" href="/zh-CN/machine/">机器</a></li><li><a class="aien-nav-link" href="/zh-CN/turing/">图灵</a></li><li><a class="aien-nav-link" href="/zh-CN/experiments/">实验</a></li><li><a class="aien-nav-link" href="/zh-CN/discovery/">科学发现</a></li><li><a class="aien-nav-link" href="/zh-CN/evidence/">证据</a></li><li><a class="aien-nav-link" href="/zh-CN/philosophy/">哲学</a></li></ul><ul aria-label="更多" class="aien-nav-secondary"><li><a class="aien-nav-minor" href="/zh-CN/progress/">进展</a></li><li><a class="aien-nav-minor" href="/zh-CN/blog">博客</a></li><li><a class="aien-nav-minor" href="/zh-CN/#follow">关注</a></li><li><a class="aien-nav-minor" href="https://github.com/aien-dev">GitHub</a></li></ul></nav></div></header>
+<main class="research-wrap">
+<div class="kicker">AIEN研究，配套论文</div>
+<h1 class="paper-title">计算机械与理解</h1>
+<p class="paper-sub">图灵作为从AIEN中涌现的度量</p>
+<div class="byline"><strong>M. Drake Stapleton</strong> · 2026年9月30日</div>
+<div class="version-row"><span class="badge">v1.7</span> <span class="badge preprint">未经同行评审</span></div>
+<div class="actions"><a class="btn" href="./paper.pdf">阅读PDF</a> <a class="btn secondary" href="./paper.tex">LaTeX源码</a> <a class="btn secondary" href="https://doi.org/10.5281/zenodo.23437568" rel="noopener" target="_blank">DOI: 10.5281/zenodo.23437568</a> <a class="btn secondary" href="https://github.com/aien-dev/omega" rel="noopener" target="_blank">代码与证据</a> <a class="btn secondary" href="#cite">引用</a></div>
+<div class="section">
+<h2>摘要</h2>
+<p>我开始这项工作时，并非试图发明一种新的智能单位。</p>
+<p>我最初的目标是构建一台机器，其内部主张可与证据分离，其思想可与物理实现分离，其失败可保留在历史中，而其改进可在成为权威之前经受现实检验。</p>
+<p>这项工作最终演变为AIEN、Omega、PHYSICS、FORGE、AEGIS、ARGUS、Cortex，以及如今在AIEN仓库中实现的本地反应架构。</p>
+<p>在该抽象层内部工作时，我遇到了一个度量问题：系统能够生成备选方案、验证它们、在真实硬件上测量它们、保留失败的假设、发现重复出现的抽象、推广经验证的改进，并在注入故障后依然存活，但没有一种原则性方法来判断其中任何部分究竟蕴含了多少理解。图灵正是这项工程工作所迫出的答案。</p>
+</div>
+<div class="section">
+<h2>本文内容</h2>
+<p>这是正式预印本 <a href="/zh-CN/research/computing-machinery-and-understanding" style="color:var(--accent-blue);text-decoration:none">“从模仿游戏到图灵”</a> 的工程配套论文。它记录了架构与证据程序，AIEN、Omega、主权谱系仓库、公开执行凭证，这些构成了该度量的来源。本文不提出独立的正式主张：定义、证明、度量协议与可证伪标准均存在于正式论文中，该论文为参考文档。</p>
+</div>
+<div class="section">
+<h2>一图看懂架构</h2>
+<p>该度量所源自的架构栈遵循一种分离的纪律：提出部分与验证部分分离，验证部分与授权部分分离，每一步都留下证据。下图重新呈现了配套论文中的架构图，以适应网页展示。</p>
+<figure class="theory-fig">
+<div class="fig-kicker"><span>图 · 架构</span><span class="fig-kind">概念示意图</span></div>
+<svg aria-label="Architecture map: AIEN proposes, Omega defines synthesizes and verifies, FORGE realizes, AEGIS and ARGUS verify and observe from outside the path, and Evidence records everything" role="img" viewbox="0 0 960 496">
+<defs>
+<marker id="f4-ah" markerheight="6.5" markerwidth="6.5" orient="auto-start-reverse" refx="8" refy="5" viewbox="0 0 10 10"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"></path></marker>
+<marker id="f4-ahg" markerheight="6.5" markerwidth="6.5" orient="auto-start-reverse" refx="8" refy="5" viewbox="0 0 10 10"><path d="M0,0 L10,5 L0,10 z" fill="#00e599"></path></marker>
+</defs>
+<rect fill="#0e1219" height="52" rx="12" stroke="#1c2536" stroke-width="1.5" width="912" x="24" y="20"></rect>
+<text font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" text-anchor="middle" x="480" y="53"><tspan fill="#7db4ff">MEANING</tspan><tspan fill="#64748b" font-weight="400"> ≠ </tspan><tspan fill="#f59e0b">REALIZATION</tspan><tspan fill="#64748b" font-weight="400"> ≠ </tspan><tspan fill="#a78bfa">AUTHORITY</tspan><tspan fill="#64748b" font-weight="400"> ≠ </tspan><tspan fill="#00e599">EVIDENCE</tspan></text>
+<path d="M 14 432 V 170 H 20" fill="none" marker-end="url(#f4-ahg)" stroke="#00e599" stroke-dasharray="5 4" stroke-width="1.5"></path>
+<g>
+<rect fill="#0e1219" height="132" rx="14" stroke="#2d7ff9" stroke-width="1.5" width="272" x="24" y="104"></rect>
+<text fill="#f1f5f9" font-size="21" font-weight="700" x="46" y="142">AIEN</text>
+<text fill="#64748b" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="1.5" x="46" y="164">PROPOSES</text>
+<text fill="#94a3b8" font-size="12.5" x="46" y="190">Generates candidate programs</text>
+<text fill="#94a3b8" font-size="12.5" x="46" y="207">and explanations. It suggests;</text>
+<text fill="#94a3b8" font-size="12.5" x="46" y="224">it never decides.</text>
+</g>
+<g>
+<rect fill="#0e1219" height="132" rx="14" stroke="#00e599" stroke-width="1.5" width="272" x="344" y="104"></rect>
+<text fill="#f1f5f9" font-size="21" font-weight="700" x="366" y="142">OMEGA</text>
+<text fill="#64748b" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="1" x="366" y="164">DEFINES, SYNTHESIZES, VERIFIES</text>
+<text fill="#94a3b8" font-size="12.5" x="366" y="190">Fixes what programs mean,</text>
+<text fill="#94a3b8" font-size="12.5" x="366" y="207">builds the candidate, and</text>
+<text fill="#94a3b8" font-size="12.5" x="366" y="224">checks it against the rules.</text>
+</g>
+<g>
+<rect fill="#0e1219" height="132" rx="14" stroke="#f59e0b" stroke-width="1.5" width="272" x="664" y="104"></rect>
+<text fill="#f1f5f9" font-size="21" font-weight="700" x="686" y="142">FORGE</text>
+<text fill="#64748b" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="1.5" x="686" y="164">REALIZES</text>
+<text fill="#94a3b8" font-size="12.5" x="686" y="190">Turns verified programs into</text>
+<text fill="#94a3b8" font-size="12.5" x="686" y="207">running systems on hardware,</text>
+<text fill="#94a3b8" font-size="12.5" x="686" y="224">at real physical cost.</text>
+</g>
+<g stroke="#64748b" stroke-width="2">
+<line marker-end="url(#f4-ah)" x1="300" x2="340" y1="170" y2="170"></line>
+<line marker-end="url(#f4-ah)" x1="620" x2="660" y1="170" y2="170"></line>
+</g>
+<text fill="#64748b" font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="1.5" text-anchor="middle" x="480" y="262">OUTSIDE THE PATH: THEY CHECK AND WATCH. THEY NEVER DECIDE.</text>
+<g>
+<rect fill="#0b0e14" height="92" rx="14" stroke="#a78bfa" stroke-dasharray="6 4" stroke-width="1.5" width="440" x="24" y="276"></rect>
+<text fill="#f1f5f9" font-size="16" font-weight="700" x="44" y="308">AEGIS</text>
+<text fill="#a78bfa" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="1.5" x="110" y="308">VERIFY ONLY</text>
+<text fill="#94a3b8" font-size="12" x="44" y="336">Checks generated code. Changes nothing.</text>
+<text fill="#94a3b8" font-size="12" x="44" y="354">Decides nothing.</text>
+</g>
+<g>
+<rect fill="#0b0e14" height="92" rx="14" stroke="#64748b" stroke-dasharray="6 4" stroke-width="1.5" width="440" x="496" y="276"></rect>
+<text fill="#f1f5f9" font-size="16" font-weight="700" x="516" y="308">ARGUS</text>
+<text fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="1.5" x="582" y="308">OBSERVE ONLY</text>
+<text fill="#94a3b8" font-size="12" x="516" y="336">Watches the running system and reports</text>
+<text fill="#94a3b8" font-size="12" x="516" y="354">what it sees. Authorizes nothing.</text>
+</g>
+<rect fill="rgba(0,229,153,.05)" height="80" rx="14" stroke="rgba(0,229,153,.45)" stroke-width="1.5" width="912" x="24" y="392"></rect>
+<text fill="#00e599" font-size="18" font-weight="700" x="48" y="428">EVIDENCE</text>
+<text fill="#64748b" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="1.5" x="48" y="450">RECORDS</text>
+<text fill="#94a3b8" font-size="13.5" x="210" y="424">Every score, receipt, and failure is written down in public.</text>
+<text fill="#94a3b8" font-size="13.5" x="210" y="446">Those records feed the next round of proposals.</text>
+</svg>
+<figcaption><strong>该度量所源自的架构。</strong> 生成流程单向进行：AIEN提出，Omega定义、合成并验证，FORGE实现。AEGIS与ARGUS位于该路径之外，进行验证与观察，但不决策或授权。证据记录一切，左侧的虚线为反馈回路：凭证输入下一轮。概念示意图，源自配套论文的架构图。</figcaption>
+</figure>
+</div>
+<div class="section">
+<h2>该架构运行的循环</h2>
+<p>在这一分离之中，每一个主张都经历相同的循环。权重仅提出候选方案。程序以可验证的形式承载意义。Omega 进行验证。物理法则授权实际在真实硬件上以真实成本运行的内容。而留下的证据则教会下一轮。</p>
+<figure class="theory-fig">
+<div class="fig-kicker"><span>图 · 教义循环</span><span class="fig-kind">概念示意图</span></div>
+<svg aria-label="Cycle diagram: weights suggest, programs explain, Omega verifies, physics authorizes, evidence teaches, and back to weights" role="img" viewbox="0 0 960 520">
+<defs>
+<marker id="f5-ah" markerheight="6.5" markerwidth="6.5" orient="auto-start-reverse" refx="8" refy="5" viewbox="0 0 10 10"><path d="M0,0 L10,5 L0,10 z" fill="#475569"></path></marker>
+</defs>
+<g fill="none" stroke="#475569" stroke-width="2">
+<path d="M 540 134 L 600 176" marker-end="url(#f5-ah)"></path>
+<path d="M 650 272 L 612 394" marker-end="url(#f5-ah)"></path>
+<path d="M 488 443 L 472 443" marker-end="url(#f5-ah)"></path>
+<path d="M 350 394 L 312 274" marker-end="url(#f5-ah)"></path>
+<path d="M 356 178 L 418 138" marker-end="url(#f5-ah)"></path>
+</g>
+<text fill="#64748b" font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="3" text-anchor="middle" x="480" y="264">THE DOCTRINE LOOP</text>
+<text fill="#f1f5f9" font-size="17" font-weight="700" text-anchor="middle" x="480" y="294">No step can be skipped.</text>
+<text fill="#94a3b8" font-size="12.5" text-anchor="middle" x="480" y="318">Every claim travels the full circle.</text>
+<g>
+<rect fill="#0e1219" height="84" rx="14" stroke="#a78bfa" stroke-width="1.5" width="204" x="378" y="48"></rect>
+<text fill="#a78bfa" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="2" text-anchor="middle" x="480" y="73">STEP 1</text>
+<text fill="#f1f5f9" font-size="16" font-weight="700" text-anchor="middle" x="480" y="97">WEIGHTS SUGGEST</text>
+<text fill="#94a3b8" font-size="11.5" text-anchor="middle" x="480" y="117">the model proposes candidates</text>
+</g>
+<g>
+<rect fill="#0e1219" height="84" rx="14" stroke="#2d7ff9" stroke-width="1.5" width="204" x="563" y="183"></rect>
+<text fill="#2d7ff9" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="2" text-anchor="middle" x="665" y="208">STEP 2</text>
+<text fill="#f1f5f9" font-size="16" font-weight="700" text-anchor="middle" x="665" y="232">PROGRAMS EXPLAIN</text>
+<text fill="#94a3b8" font-size="11.5" text-anchor="middle" x="665" y="252">crumbs carry the meaning</text>
+</g>
+<g>
+<rect fill="#0e1219" height="84" rx="14" stroke="#00e599" stroke-width="1.5" width="204" x="493" y="401"></rect>
+<text fill="#00e599" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="2" text-anchor="middle" x="595" y="426">STEP 3</text>
+<text fill="#f1f5f9" font-size="16" font-weight="700" text-anchor="middle" x="595" y="450">OMEGA VERIFIES</text>
+<text fill="#94a3b8" font-size="11.5" text-anchor="middle" x="595" y="470">receipts, or it did not happen</text>
+</g>
+<g>
+<rect fill="#0e1219" height="84" rx="14" stroke="#f59e0b" stroke-width="1.5" width="204" x="263" y="401"></rect>
+<text fill="#f59e0b" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="2" text-anchor="middle" x="365" y="426">STEP 4</text>
+<text fill="#f1f5f9" font-size="16" font-weight="700" text-anchor="middle" x="365" y="450">PHYSICS AUTHORIZES</text>
+<text fill="#94a3b8" font-size="11.5" text-anchor="middle" x="365" y="470">real hardware, real cost</text>
+</g>
+<g>
+<rect fill="#0e1219" height="84" rx="14" stroke="#7db4ff" stroke-width="1.5" width="204" x="193" y="183"></rect>
+<text fill="#7db4ff" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="2" text-anchor="middle" x="295" y="208">STEP 5</text>
+<text fill="#f1f5f9" font-size="16" font-weight="700" text-anchor="middle" x="295" y="232">EVIDENCE TEACHES</text>
+<text fill="#94a3b8" font-size="11.5" text-anchor="middle" x="295" y="252">receipts become the lessons</text>
+</g>
+</svg>
+<figcaption><strong>教义循环。</strong> 模型权重仅提出建议。意义存在于程序中，Omega 验证它们，物理法则授权实际运行的内容，记录的证据则教会下一轮。任何一步都不能跳过，也不能替代其他步骤。概念示意图。</figcaption>
+</figure>
+</div>
+<div class="section">
+<h2>研究资料</h2>
+<div class="artifact">
+<div><div class="name">配套论文（PDF）</div><div class="desc">28页。工程历史：AIEN/Omega架构、公开的证据凭证以及最初的实验性提案。</div><div class="hash">SHA-256: eea5837d21b6788587d72be2ad99ade1f6ec6c2fa5b07178e10e8ab8ae0c4cae</div></div>
+<a href="./paper.pdf">paper.pdf</a>
+</div>
+<div class="artifact">
+<div><div class="name">LaTeX源码</div><div class="desc">配套论文的完整可编译源代码。</div><div class="hash">SHA-256: 59f528c2cd376ca8bc1f69ecc4757766126e9c8837b56812acbab2963151543f</div></div>
+<a href="./paper.tex">paper.tex</a>
+</div>
+<div class="artifact">
+<div><div class="name">摘要清单</div><div class="desc">涵盖两篇论文所有发布版本的 SHA-256 清单。</div></div>
+<a href="./SHA256SUMS">SHA256SUMS</a>
+</div>
+<div class="artifact">
+<div><div class="name">Omega 证据凭证</div><div class="desc">AIEN/Omega架构的公开执行凭证：R13、R14、R15资格认证，TURING W0提案。</div></div>
+<a href="https://github.com/aien-dev/omega" rel="noopener" target="_blank">github.com/aien-dev/omega</a>
+</div>
+<div class="artifact">
+<div><div class="name">正式论文</div><div class="desc">《从模仿游戏到图灵》（版本 1.13），参考文档：定义、证明、协议、相关工作、可证伪性标准。</div><div class="hash">SHA-256（PDF）: 4f42885ce5373a200f4f36ac3d7ca78fa3cbcc99362b2f1c7f7de6b63c6f389b</div><div class="hash">SHA-256（LaTeX）: dfac1a5d3e683c8db4b85a11b19a1a0087ae766272540c3b83fc521364e4e894</div></div>
+<a href="/zh-CN/research/computing-machinery-and-understanding">正式论文页</a>
+</div>
+</div>
+<div class="section" id="cite">
+<h2>引用</h2>
+<pre class="cite">@misc{stapleton2026turingemergence,
+  author = {M. Drake Stapleton},
+  title = {Computing Machinery and Understanding:
+           The Turing as a Measure Emerging from AIEN},
+  year = {2026},
+  month = {September},
+  version = {1.7},
+  note = {Preprint, not peer reviewed.
+          Companion to "From the Imitation Game to the Turing"},
+  url = {https://aienos.com/research/computing-machinery-and-understanding-emergence}
+}</pre>
+</div>
+<div class="footer-note">这是预印本，尚未经过同行评审。所有定义、证明和测量协议的正式引用请参考 <a href="/zh-CN/research/computing-machinery-and-understanding">正式论文</a>（版本 1.13）。问题： <a href="https://github.com/aien-dev" rel="noopener" target="_blank">AIEN 在 GitHub</a>。</div>
+</main>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>计算机械与理解：从模仿游戏到图灵 | AIEN研究</title>
+<meta content="一份正式预印本，提出图灵（T）：一种协议约束的净保留解释压缩度量。包含定义、证明、测量协议和可证伪标准。" name="description"/>
+
+<link href="/favicon.svg" rel="icon" type="image/svg+xml"/>
+<meta content="计算机械与理解：从模仿游戏到图灵" property="og:title"/>
+<meta content="图灵（T）：一种基于协议的、衡量网络保留解释性压缩程度的指标。正式预印本，未经同行评审。" property="og:description"/>
+<meta content="https://aienos.com/research/computing-machinery-and-understanding" property="og:url"/>
+<meta content="article" property="og:type"/>
+<meta content="https://aienos.com/og.png" property="og:image"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<link href="/assets/style.css" rel="stylesheet"/>
+<style>
+.research-wrap{max-width:880px;margin:0 auto;padding:48px 24px 96px}
+.kicker{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;color:var(--accent-blue);text-transform:uppercase;margin-bottom:16px}
+.paper-title{font-size:clamp(30px,4.5vw,46px);font-weight:800;letter-spacing:-.02em;line-height:1.12;color:var(--text-primary);margin:0 0 12px}
+.paper-sub{font-size:18px;color:var(--text-secondary);margin:0 0 24px;line-height:1.5}
+.byline{font-size:15px;color:var(--text-secondary);margin-bottom:6px}
+.byline strong{color:var(--text-primary)}
+.version-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0 28px}
+.badge{font-family:var(--font-mono);font-size:12px;padding:5px 12px;border-radius:999px;border:1px solid var(--border-subtle);color:var(--text-secondary)}
+.badge.preprint{border-color:var(--accent-amber);color:var(--accent-amber)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 40px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none;border:1px solid var(--accent-blue);background:rgba(45,127,249,.12);color:var(--accent-blue);font-family:var(--font-sans)}
+.btn.secondary{border-color:var(--border-subtle);background:transparent;color:var(--text-primary)}
+.btn.forthcoming{opacity:.55;cursor:default}
+.section{margin:44px 0}
+.section h2{font-size:20px;font-weight:700;color:var(--text-primary);margin:0 0 16px;letter-spacing:-.01em}
+.section p{color:var(--text-secondary);line-height:1.7;font-size:15.5px;margin:0 0 14px}
+.artifact{border:1px solid var(--border-subtle);border-radius:10px;padding:16px 18px;margin:10px 0;background:var(--bg-card);display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.artifact .name{font-weight:700;color:var(--text-primary);font-size:15px}
+.artifact .desc{font-size:13.5px;color:var(--text-secondary);margin-top:4px;line-height:1.55}
+.artifact a{font-family:var(--font-mono);font-size:13px;color:var(--accent-blue);text-decoration:none;white-space:nowrap}
+.hash{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);word-break:break-all;margin-top:6px}
+table.versions{width:100%;border-collapse:collapse;font-size:14px}
+table.versions th{text-align:left;font-family:var(--font-mono);font-size:12px;color:var(--text-muted);padding:8px 10px;border-bottom:1px solid var(--border-subtle)}
+table.versions td{padding:10px;border-bottom:1px solid var(--border-subtle);color:var(--text-secondary);vertical-align:top}
+table.versions td:first-child{font-family:var(--font-mono);color:var(--text-primary);white-space:nowrap}
+pre.cite{background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:10px;padding:18px;font-family:var(--font-mono);font-size:13px;color:var(--text-secondary);overflow-x:auto;line-height:1.6}
+.exp{border-left:3px solid var(--accent-blue);padding:2px 0 2px 16px;margin:16px 0}
+.exp h3{margin:0 0 6px;font-size:16px;color:var(--text-primary)}
+.exp p{margin:0;font-size:14.5px}
+.status{font-family:var(--font-mono);font-size:11.5px;padding:3px 10px;border-radius:999px;border:1px solid var(--accent-green);color:var(--accent-green);display:inline-block;margin-bottom:8px}
+.status.future{border-color:var(--text-muted);color:var(--text-muted)}
+.topnav{border-bottom:1px solid var(--border-subtle);background:rgba(8,9,12,.85);backdrop-filter:blur(12px);position:sticky;top:0;z-index:50;padding:14px 0}
+.topnav .inner{max-width:1180px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.topnav a.brand{font-weight:700;color:var(--text-primary);text-decoration:none;font-size:17px;letter-spacing:-.02em}
+.topnav nav{display:flex;gap:22px;font-size:14px}
+.topnav nav a{color:var(--text-secondary);text-decoration:none}
+.topnav nav a.active{color:var(--accent-blue)}
+.footer-note{margin-top:56px;padding-top:24px;border-top:1px solid var(--border-subtle);font-size:13px;color:var(--text-muted);line-height:1.6}
+.footer-note a{color:var(--accent-blue);text-decoration:none}
+</style>
+<link href="/assets/site-nav.css" rel="stylesheet"/>
+<link href="/assets/turing-look.css" rel="stylesheet"/>
+<script defer="" src="/js/turing-look.js"></script>
+<link href="https://www.aienos.com/zh-CN/research/computing-machinery-and-understanding/" rel="canonical"/><link href="https://www.aienos.com/research/computing-machinery-and-understanding/" hreflang="en" rel="alternate"/><link href="https://www.aienos.com/zh-CN/research/computing-machinery-and-understanding/" hreflang="zh-CN" rel="alternate"/></head>
+<body>
+<header class="aien-header"><div class="aien-header-inner"><a aria-label="AIENOS 主页" class="aien-brand" href="/zh-CN/"><span aria-hidden="true" class="aien-brand-mark"><svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" x2="20" y1="19" y2="19"></line></svg></span><span class="aien-brand-copy"><span class="aien-brand-name">AIENOS</span><span class="aien-brand-tag">持久的机器智能</span></span></a><nav aria-label="主要导航" class="aien-nav"><ul class="aien-nav-primary"><li><a class="aien-nav-link" href="/zh-CN/machine/">机器</a></li><li><a class="aien-nav-link" href="/zh-CN/turing/">图灵</a></li><li><a class="aien-nav-link" href="/zh-CN/experiments/">实验</a></li><li><a class="aien-nav-link" href="/zh-CN/discovery/">科学发现</a></li><li><a class="aien-nav-link" href="/zh-CN/evidence/">证据</a></li><li><a class="aien-nav-link" href="/zh-CN/philosophy/">哲学</a></li></ul><ul aria-label="更多" class="aien-nav-secondary"><li><a class="aien-nav-minor" href="/zh-CN/progress/">进展</a></li><li><a class="aien-nav-minor" href="/zh-CN/blog">博客</a></li><li><a class="aien-nav-minor" href="/zh-CN/#follow">关注</a></li><li><a class="aien-nav-minor" href="https://github.com/aien-dev">GitHub</a></li></ul></nav></div></header>
+<main class="research-wrap">
+<div class="kicker">AIEN研究，形式预印本</div>
+<h1 class="paper-title">计算机械与理解</h1>
+<p class="paper-sub">从模仿游戏到图灵：广义解释压缩的操作性度量</p>
+<div class="byline"><strong>M. Drake Stapleton</strong> · 2026年9月30日</div>
+<div class="version-row"><span class="badge">v1.14</span> <span class="badge badge-result">首次测量记录</span> <span class="badge preprint">未经同行评审</span></div>
+<div class="actions"><a class="btn" href="./paper.pdf">阅读PDF</a> <a class="btn secondary" href="./paper.tex">LaTeX源码</a> <a class="btn secondary" href="https://doi.org/10.5281/zenodo.23437498" rel="noopener" target="_blank">DOI: 10.5281/zenodo.23437498</a> <a class="btn secondary" href="https://github.com/aien-dev/omega" rel="noopener" target="_blank">代码与证据</a> <a class="btn secondary" href="#cite">引用</a></div>
+<div class="section">
+<h2>摘要</h2>
+<p>1950年，艾伦·图灵并未试图直接定义思维，而是将问题替换为一项操作性实验：模仿游戏。这一方法论转变将一个定义不清的哲学争论转化为一项实证研究计划。</p>
+<p>本文提出了一种对当代问题的类比重构：<strong style="color:var(--text-primary)">机器是否理解？</strong> 理解的一个可测量组成部分被定义为发现能够持续预测先前未见观测结果的紧凑结构。该提案结合了香农信息、预测编码、最小描述长度、实证验证以及物理资源核算。</p>
+<p>定义了一种新的导出量：<strong style="color:var(--text-primary)">图灵增益</strong>。1个图灵（1 T）是指在支付解释自身描述成本后，相对于声明的基准，在版本化测量配置和密封数据下，保留总描述长度的净减少量。<strong style="color:var(--text-primary)">图灵产出</strong>（T/J）则通过实现该增益所消耗的能量对这一增益进行归一化。</p>
+</div>
+<div class="section">
+<h2>本文所主张的内容</h2>
+<p>本文定义了该度量标准，说明了其有意义的前提假设，给出了测量协议（声明的基准、密封的保留数据、可复现的证据），并明确了该提案将被证伪的条件。本文命名了一个预先注册的实验阶梯，并明确区分了预先注册的未来实验与设备校准运行，后者的结果从不作为测量结果报告。</p>
+<p>实证结果部分记录了首次标准测量：TY-1+TY-2 PASS，+2,559,679.825 T，测量配置为V0（omega PR #85，2026-09-29）。本文未主张的内容：图灵产出（T/J）尚未测量；将能量测量与图灵增益记录关联是下一步工作。</p>
+</div>
+<div class="section">
+<h2>增益，以及尚待测量的产出</h2>
+<p>本文区分了两个问题。图灵增益询问的是解释在保留数据上获得的净压缩量。图灵产出则询问这一增益在能量上消耗了多少。首次标准测量仅回答了第一个问题：该运行中未测量能量，因此尚未报告任何产出。下方图表重新呈现了本文关于增益与产出的图示，适用于网页展示。</p>
+<figure class="theory-fig">
+<div class="fig-kicker"><span>图 · 增益 vs 产出</span><span class="fig-kind">概念示意图</span></div>
+<svg aria-label="Diagram: two machines earn the same Turings, but the one spending fewer joules has the higher Turing yield, drawn as a steeper slope from the origin" role="img" viewbox="0 0 960 440">
+<defs>
+<marker id="f2-ah" markerheight="6.5" markerwidth="6.5" orient="auto-start-reverse" refx="8" refy="5" viewbox="0 0 10 10"><path d="M0,0 L10,5 L0,10 z" fill="#475569"></path></marker>
+</defs>
+<line stroke="#64748b" stroke-dasharray="6 5" stroke-width="1.5" x1="120" x2="880" y1="140" y2="140"></line>
+<text fill="#94a3b8" font-size="13" text-anchor="middle" x="600" y="122">the same understanding: the same T</text>
+<line opacity=".6" stroke="#00e599" stroke-dasharray="5 5" stroke-width="1.5" x1="370" x2="370" y1="140" y2="356"></line>
+<line opacity=".6" stroke="#2d7ff9" stroke-dasharray="5 5" stroke-width="1.5" x1="790" x2="790" y1="140" y2="356"></line>
+<line stroke="#00e599" stroke-width="3" x1="120" x2="370" y1="356" y2="140"></line>
+<line stroke="#2d7ff9" stroke-width="3" x1="120" x2="790" y1="356" y2="140"></line>
+<line marker-end="url(#f2-ah)" stroke="#475569" stroke-width="2" x1="120" x2="912" y1="356" y2="356"></line>
+<line marker-end="url(#f2-ah)" stroke="#475569" stroke-width="2" x1="120" x2="120" y1="356" y2="48"></line>
+<circle cx="370" cy="140" fill="#00e599" r="7" stroke="#08090c" stroke-width="2"></circle>
+<circle cx="790" cy="140" fill="#2d7ff9" r="7" stroke="#08090c" stroke-width="2"></circle>
+<text fill="#64748b" font-family="JetBrains Mono, monospace" font-size="11" text-anchor="end" x="104" y="376">0</text>
+<text fill="#00e599" font-size="15" font-weight="700" x="160" y="176">HIGH YIELD</text>
+<text fill="#94a3b8" font-size="12.5" x="160" y="198">steep slope:</text>
+<text fill="#94a3b8" font-size="12.5" x="160" y="216">more Turings</text>
+<text fill="#94a3b8" font-size="12.5" x="160" y="234">per joule</text>
+<text fill="#7db4ff" font-size="15" font-weight="700" x="560" y="286">LOW YIELD</text>
+<text fill="#94a3b8" font-size="12.5" x="560" y="308">shallow slope: the same Turings,</text>
+<text fill="#94a3b8" font-size="12.5" x="560" y="326">bought with far more energy</text>
+<rect fill="#0e1219" height="52" rx="10" stroke="#1c2536" stroke-width="1.5" width="264" x="648" y="52"></rect>
+<text fill="#f1f5f9" font-family="JetBrains Mono, monospace" font-size="16" text-anchor="middle" x="780" y="85">yield = T / J</text>
+<text fill="#00e599" font-family="JetBrains Mono, monospace" font-size="12" text-anchor="middle" x="370" y="382">FEW JOULES</text>
+<text fill="#7db4ff" font-family="JetBrains Mono, monospace" font-size="12" text-anchor="middle" x="790" y="382">MANY JOULES</text>
+<text fill="#64748b" font-family="JetBrains Mono, monospace" font-size="12" letter-spacing="2" text-anchor="middle" x="516" y="410">ENERGY SPENT (JOULES)</text>
+<text fill="#64748b" font-family="JetBrains Mono, monospace" font-size="12" letter-spacing="2" text-anchor="middle" transform="rotate(-90 42 202)" x="42" y="202">TURINGS EARNED (T)</text>
+</svg>
+<figcaption><strong>增益不等于产出。</strong> 两台机器可能获得相同的图灵数，但消耗的能量却大相径庭。图灵产出（T/J）将增益除以所耗焦耳数，此处以从原点出发的斜率表示：斜率越陡越好。概念示意图。图灵产出尚未测量，因此本网站任何位置均未报告T/J数值。</figcaption>
+</figure>
+</div>
+<div class="section">
+<h2>实验阶梯</h2>
+<ul class="exp-ladder">
+<li>CAL-0：EXP-001R PASS</li>
+<li>EXP-001：FAIL，作为记录保留（在评分前因重叠审计门失败）</li>
+<li>EXP-001R：PASS（EXP-001的新继任实验，采用v1.1配置，重叠门在EXP-001失败后已修正）</li>
+<li>EXP-002 A/B/C：PASS，限于布朗运动仪器认证范围</li>
+<li>EXP-002D：INCOMPLETE</li>
+<li>EXP-003：BLOCKED，合同未冻结</li>
+<li>图灵产出（每焦耳比特数）：未开始（能量归属部分完成）</li>
+<li>当前主张上限：第2级（仅限布朗运动仪器认证范围；其他地方为第1级）。尚未确立通用科学发现。</li>
+</ul>
+<div class="exp">
+<span class="status">FAIL，作为记录保留</span>
+<h3>EXP-001，Omega-trace 仪器验证</h3>
+<p>图灵测量在真实的 Omega 执行轨迹上是否可重复？</p>
+</div>
+<div class="exp">
+<span class="status">A/B/C：通过，限于布朗运动仪器认证范围；D：未完成</span>
+<h3>EXP-002，随机定律发现</h3>
+<p>一个隐藏的评估器从一个未公开的随机定律生成量化轨迹，纯扩散、带漂移的扩散或均值回归。候选者必须在密封的保留轨迹上获得复杂度，而不能在噪声中发明结构。</p>
+</div>
+<div class="exp">
+<span class="status future">被阻塞，合同未冻结</span>
+<h3>EXP-003，主动实验选择</h3>
+<p>机器提出最具区分性的干预措施。</p>
+</div>
+</div>
+<div class="section">
+<h2>研究资料</h2>
+<div class="artifact">
+<div><div class="name">正式预印本（PDF）</div><div class="desc">30页。参考文档：定义、证明、协议、相关工作、可证伪标准。</div><div class="hash">SHA-256: 4c51e3585c146326cf23108f3a9b9adf4e9d840b405f6e7b35b5c102b13c9a5f</div></div>
+<a href="./paper.pdf">paper.pdf</a>
+</div>
+<div class="artifact">
+<div><div class="name">LaTeX源码</div><div class="desc">预印本的完整可编译源代码。</div><div class="hash">SHA-256: 8376faa31bea089b5adb53098e4aa6332e0a685f0d1fa0450f7be828142951f3</div></div>
+<a href="./paper.tex">paper.tex</a>
+</div>
+<div class="artifact">
+<div><div class="name">摘要清单</div><div class="desc">涵盖两篇论文所有发布版本的 SHA-256 清单。</div></div>
+<a href="./SHA256SUMS">SHA256SUMS</a>
+</div>
+<div class="artifact">
+<div><div class="name">测量配置文件（预先注册）</div><div class="desc">EXP-001/002/003 的冻结配置文件 JSON：基线、候选编码、量化器、盲化、种子、裁决规则。在冻结后发布。</div><div class="hash">状态：EXP-001（配置文件 v1.0）和 EXP-001R（配置文件 v1.1）配置文件已冻结。EXP-002 的配置文件承诺 v1.0 至 v1.3 已发布；配置文件将在密封的布朗运动运行（BRN-10）结束后发布。EXP-003 无冻结合同。</div></div>
+<a href="./profiles/">profiles/</a>
+</div>
+<div class="artifact">
+<div><div class="name">Omega 证据凭证</div><div class="desc">来自 AIEN/Omega 架构的公开执行凭证，该度量由此产生：R13、R14、R15 资格认证，TURING W0 提案。</div></div>
+<a href="https://github.com/aien-dev/omega" rel="noopener" target="_blank">github.com/aien-dev/omega</a>
+</div>
+<div class="artifact">
+<div><div class="artifact">
+<div><div class="name">校准协议（PDF）</div><div class="desc">图灵仪器校准与验证计划 v1.0（27 页）：有序的资格门控 CAL-0、EXP-001、EXP-002A/B/C/D、EXP-003、H3/H4/H5，包含预先注册、盲化和声明阶梯规则。</div></div>
+<a href="https://github.com/aien-dev/omega/blob/main/docs/turing/protocols/turing-instrument-calibration-validation-protocol-v1-0.pdf" rel="noopener" target="_blank">校准协议</a>
+</div>
+<div class="artifact">
+<div><div class="name">实验室执行协议（PDF）</div><div class="desc">图灵实验室执行协议 v1.0（42 页）：使校准计划可执行的工程规范，仓库布局、工件模式、turing CLI、统计程序、运行手册和接受门控。编写方式使得独立实验室仅凭工件即可复现所有结果。</div></div>
+<a href="https://github.com/aien-dev/omega/blob/main/docs/turing/protocols/turing-laboratory-execution-protocol-v1-0.pdf" rel="noopener" target="_blank">执行协议</a>
+</div>
+<div class="name">配套论文</div><div class="desc">《图灵作为从 AIEN 中涌现的度量》，工程历史：该提案如何从 AIEN/Omega 架构中产生。</div></div>
+<a href="/zh-CN/research/computing-machinery-and-understanding-emergence">配套页面</a>
+</div>
+</div>
+<div class="section" id="cite">
+<h2>引用</h2>
+<pre class="cite">@misc{stapleton2026turing,
+  author = {M. Drake Stapleton},
+  title = {Computing Machinery and Understanding:
+           From the Imitation Game to the Turing:
+           An Operational Measure of Generalized
+           Explanatory Compression},
+  year = {2026},
+  month = {September},
+  version = {1.14},
+  note = {Preprint, not peer reviewed},
+  url = {https://aienos.com/research/computing-machinery-and-understanding}
+}</pre>
+</div>
+<div class="footer-note">这是预印本，尚未经过同行评审。版本 1.0 报告了首个规范的图灵测量：TY-1+TY-2 通过，+2,559,679.825 T，测量配置文件 V0（omega PR #85，2026-09-29）。图灵产出（T/J）尚未报告；将能量测量与图灵收益凭证关联是下一步。问题：<a href="https://github.com/aien-dev" rel="noopener" target="_blank">AIEN 在 GitHub</a>。</div>
+</main>
+</body>
+</html>
