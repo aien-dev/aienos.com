@@ -5,3 +5,5 @@ pub mod mind;
 pub mod night;
 pub mod paint;
 pub mod ui;
+#[cfg(target_arch = "wasm32")]
+pub mod wasm;
