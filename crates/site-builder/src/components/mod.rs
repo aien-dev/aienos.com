@@ -5,6 +5,7 @@ pub mod footer;
 pub mod home_loop;
 pub mod hubs;
 pub mod machine;
+pub mod machines;
 pub mod matrix;
 pub mod narrative;
 pub mod navbar;

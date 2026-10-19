@@ -8,6 +8,7 @@
 
 use maud::{html, Markup};
 
+use super::machines::render_real_machines;
 use super::narrative::{class_badge, status_badge, SLOGAN, TURING_FORMULA};
 use super::research_status::{
     data, render_implementation, render_research_status_summary, ty2_headline, ImplementationRow,
@@ -15,7 +16,7 @@ use super::research_status::{
 };
 
 pub const TITLE: &str = "The Machine | AIENOS";
-pub const DESCRIPTION: &str = "AIENOS is an owned experimental machine for turning search into verified understanding. The closed epistemic loop, the Turing as its accounting layer, and an honest list of what exists today.";
+pub const DESCRIPTION: &str = "AIENOS is an owned experimental machine for turning search into verified understanding. The real machines it runs on today, the closed epistemic loop, the Turing as its accounting layer, and an honest list of what exists.";
 pub const URL: &str = "https://aienos.com/machine/";
 
 /// Anchor of the homepage loop diagram (NARR-HOME, components/home_loop.rs).
@@ -306,6 +307,7 @@ pub fn render_machine() -> Markup {
         article class="narr-page" {
             div class="narr-column" {
                 (section_lead())
+                (render_real_machines())
                 (section_loop())
                 (section_turing())
                 (section_quantities())
@@ -337,6 +339,8 @@ mod tests {
         let mut v = vec![
             render_research_status_summary().into_string(),
             render_implementation(d).into_string(),
+            // The real-machines section is rendered from data/machines.json.
+            render_real_machines().into_string(),
         ];
         for r in &d.turing_rows {
             v.push(status_badge(r).into_string());

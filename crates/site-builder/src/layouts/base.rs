@@ -60,6 +60,8 @@ pub fn render_page_layout(
                 link rel="stylesheet" href="/assets/site-nav.css";
                 // The Turing look, shared by every page (loaded last)
                 link rel="stylesheet" href="/assets/turing-look.css";
+                // The machines and the speeds (homepage and /machine/)
+                link rel="stylesheet" href="/assets/machines.css";
                 script defer src="/js/turing-look.js" {}
 
                 (extra_head)
