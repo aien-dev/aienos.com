@@ -15,6 +15,8 @@ use std::sync::OnceLock;
 use maud::{html, Markup};
 use serde::Deserialize;
 
+use super::boxlink::{foot, Target};
+
 /// The raw data file, compiled into the binary.
 pub const RAW: &str = include_str!("../../data/machines.json");
 
@@ -250,7 +252,6 @@ fn machine_card(m: &Machine) -> Markup {
                 }
             }
             footer class="mx-card-foot" {
-                a class="mx-receipt" href=(m.link) target="_blank" rel="noopener noreferrer" { "Receipt" }
                 (where_badge(m.on_main, &m.branch))
                 @if !m.more.is_empty() {
                     span class="mx-more" {
@@ -261,6 +262,7 @@ fn machine_card(m: &Machine) -> Markup {
                     }
                 }
             }
+            (foot(&m.link, Target::Evidence))
         }
     }
 }
@@ -353,9 +355,10 @@ fn speed_row(d: &Data, s: &Speed) -> Markup {
             }
             td class="mx-td-date mono" data-label="Date" { (s.date) }
             td class="mx-td-receipt" data-label="Receipt" {
-                a class="mx-receipt" href=(s.link) target="_blank" rel="noopener noreferrer" { (s.receipt) }
+                span class="mx-receipt" { (s.receipt) }
                 (where_badge(s.on_main, &s.branch))
                 @if !s.note.is_empty() { span class="mx-sub" { (s.note) } }
+                (foot(&s.link, Target::Evidence))
             }
         }
     }
@@ -510,6 +513,9 @@ mod tests {
         for id in ["machine-spark", "machine-imac", "machine-pi5", "machine-qemu", "machine-rig"] {
             assert!(machines.contains(&format!("id=\"{id}\"")), "{id} missing");
         }
-        assert_eq!(machines.matches("class=\"mx-receipt\"").count(), 5, "one receipt link per machine");
+        assert_eq!(machines.matches("class=\"box-link\"").count(), 5, "one evidence link per machine");
+        assert_eq!(crate::components::boxlink::check_boxes(&machines), Ok(5), "every machine card links to GitHub");
+        let rows = data().speeds.len();
+        assert_eq!(crate::components::boxlink::check_boxes(&speeds), Ok(rows), "every speed row links to GitHub");
     }
 }

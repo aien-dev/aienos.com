@@ -1,5 +1,7 @@
 use maud::{html, Markup};
 
+use super::boxlink::{foot, source_href, Target};
+
 pub const POST_SLUG: &str = "aien-v3-research-plan";
 pub const POST_TITLE: &str = "The AIEN V3 Research Plan";
 pub const POST_DATE: &str = "September 27, 2026";
@@ -25,6 +27,7 @@ pub fn render_blog_index() -> Markup {
                 }
                 p class="blog-excerpt" { (CASE_DESCRIPTION) }
                 a class="blog-read-more" href=(format!("/{CASE_SLUG}/")) { "Read the case" }
+                (foot(&source_href(&format!("public/{CASE_SLUG}/index.html")), Target::Source))
             }
             article class="blog-card" {
                 p class="blog-date" { (POST_DATE) }
@@ -33,6 +36,7 @@ pub fn render_blog_index() -> Markup {
                 }
                 p class="blog-excerpt" { (POST_DESCRIPTION) }
                 a class="blog-read-more" href=(format!("/blog/{POST_SLUG}")) { "Read the post" }
+                (foot(&source_href("crates/site-builder/src/components/blog.rs"), Target::Source))
             }
         }
     }

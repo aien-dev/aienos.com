@@ -1,5 +1,24 @@
 use maud::{html, Markup, PreEscaped};
 
+use super::boxlink::{foot, Target};
+
+/// Where each role lives on GitHub: the repository or the file that is
+/// the role, from the site inventory of 2026-10-19.
+const ROLE_LINKS: [(&str, &str); 8] = [
+    ("ATLAS", "https://github.com/aien-dev/atlas"),
+    ("AIENOS", "https://github.com/aien-dev/aienos-mv"),
+    ("OMEGA", "https://github.com/aien-dev/omega-mv"),
+    ("AIEN", "https://github.com/aien-dev/aien-sovereign-core-mv"),
+    ("AEGIS", "https://github.com/aien-dev/omega-mv/blob/main/spec/r8-aegis-resident.md"),
+    ("FORGE", "https://github.com/aien-dev/physics-mv"),
+    ("ARGUS", "https://github.com/aien-dev/aienos-mv/tree/main/native/argus"),
+    ("CORTEX", "https://github.com/aien-dev/omega-mv/blob/main/src/runtime/rx_cortex.h"),
+];
+
+fn role_link(name: &str) -> &'static str {
+    ROLE_LINKS.iter().find(|(n, _)| *n == name).map(|(_, l)| *l).unwrap_or_else(|| panic!("no GitHub link for role {name}"))
+}
+
 pub fn render_matrix() -> Markup {
     // The lineage is a pipeline of four roles. AEGIS, FORGE, ARGUS, and
     // CORTEX are NOT further stages in it: they stand around the loop,
@@ -53,7 +72,7 @@ pub fn render_matrix() -> Markup {
 
                 div style="display: flex; align-items: stretch; gap: 10px; flex-wrap: wrap; margin-bottom: 14px;" {
                     @for (i, (name, verb, desc)) in roles.iter().enumerate() {
-                        div class="glow-box" style="flex: 1 1 210px; padding: 26px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px;" {
+                        div class="glow-box lineage-card" style="flex: 1 1 210px; padding: 26px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px;" {
                             div style="font-family: var(--font-mono); font-size: 19px; font-weight: 700; color: var(--text-primary); letter-spacing: 0.06em;" {
                                 (name)
                             }
@@ -63,6 +82,7 @@ pub fn render_matrix() -> Markup {
                             p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin: 0;" {
                                 (desc)
                             }
+                            (foot(role_link(name), Target::Evidence))
                         }
                         @if i + 1 < roles.len() {
                             div aria-hidden="true" style="display: flex; align-items: center; color: var(--accent-blue); font-family: var(--font-mono); font-size: 18px;" {
@@ -84,7 +104,7 @@ pub fn render_matrix() -> Markup {
                     }
                     div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;" {
                         @for (name, verb, desc) in &support {
-                            div {
+                            div class="lineage-role" {
                                 div {
                                     span style="font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--text-primary); letter-spacing: 0.05em;" {
                                         (name)
@@ -96,11 +116,26 @@ pub fn render_matrix() -> Markup {
                                 p style="color: var(--text-secondary); font-size: 13px; line-height: 1.55; margin: 4px 0 0 0;" {
                                     (desc)
                                 }
+                                (foot(role_link(name), Target::Evidence))
                             }
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn every_role_links_to_its_home_on_github() {
+        let page = render_matrix().into_string();
+        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(8), "four roles and four supporting roles");
+        for (_, link) in ROLE_LINKS {
+            assert!(page.contains(link), "missing {link}");
         }
     }
 }

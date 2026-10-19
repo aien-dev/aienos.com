@@ -2,7 +2,11 @@ use maud::{html, Markup};
 
 use crate::facts::Facts;
 
+use super::boxlink::{foot, source_href, Target};
 use super::research_status as rs;
+
+/// The file that holds a layer's words, for a layer with no receipt yet.
+const THIS_FILE: &str = "crates/site-builder/src/components/status.rs";
 
 /// The canonical public state of the project. This list is the single
 /// source of truth: the homepage status section, /status.json, and
@@ -115,7 +119,7 @@ pub fn render_status(facts: &Facts) -> Markup {
 
                 div style="display: flex; flex-direction: column;" {
                     @for layer in &layers {
-                        div style="display: flex; gap: 20px; padding: 18px 0; border-top: 1px solid var(--border-subtle); align-items: flex-start; flex-wrap: wrap;" {
+                        div class="status-row" style="display: flex; gap: 20px; padding: 18px 0; border-top: 1px solid var(--border-subtle); align-items: flex-start; flex-wrap: wrap;" {
                             span class="badge" style=(format!("font-size: 10px; min-width: 118px; justify-content: center; {}", chip_style(layer.status))) {
                                 (layer.status)
                             }
@@ -127,11 +131,15 @@ pub fn render_status(facts: &Facts) -> Markup {
                                     (layer.note)
                                 }
                                 @if let (Some(label), Some(url)) = (layer.receipt_label, layer.receipt_url) {
-                                    div style="margin-top: 6px; font-family: var(--font-mono); font-size: 12px;" {
-                                        a href=(url) target="_blank" rel="noopener noreferrer" style="color: var(--accent-green); font-weight: 600;" {
-                                            "RECEIPT: " (label) " →"
-                                        }
+                                    div style="margin-top: 6px; font-family: var(--font-mono); font-size: 12px; color: var(--text-muted);" {
+                                        "RECEIPT " (label)
                                     }
+                                    (foot(url, Target::Evidence))
+                                } @else {
+                                    div style="margin-top: 6px; font-family: var(--font-mono); font-size: 12px; color: var(--text-muted);" {
+                                        "No receipt yet: there is nothing to show until a release exists."
+                                    }
+                                    (foot(&source_href(THIS_FILE), Target::Source))
                                 }
                             }
                         }
@@ -247,6 +255,18 @@ mod wording_tests {
         for want in ["EXP-001 FAIL", "EXP-001R PASS", "EXP-002D INCOMPLETE", "EXP-003 BLOCKED", "Failures stay on the record"] {
             assert!(l.note.contains(want), "missing: {want}");
         }
+    }
+
+    #[test]
+    fn every_layer_row_links_to_github() {
+        let facts = Facts::default();
+        let page = render_status(&facts).into_string();
+        let rows = page.matches("class=\"status-row\"").count();
+        assert_eq!(rows, layer_states().len());
+        // The receipt aside and the live rows render too; count only up to the live block.
+        let before_live = page.split("id=\"live\"").next().unwrap();
+        assert_eq!(crate::components::boxlink::check_boxes(before_live), Ok(rows), "every layer row links to GitHub");
+        assert_eq!(before_live.matches("box-link-source").count(), 1, "only the release row, which has no receipt, is a source link");
     }
 
     #[test]

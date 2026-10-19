@@ -11,8 +11,16 @@ use std::path::Path;
 
 use maud::{html, Markup};
 
+use crate::components::boxlink::{foot, source_dir_href, source_href, Target};
 use crate::components::research_status as rs;
 use crate::layouts::base::render_page_layout;
+
+/// The paper's folder in this repository, where its artifacts live.
+const PAPER_SOURCE: &str = "public/research/computing-machinery-and-understanding";
+/// The data file behind the research status record.
+const STATUS_DATA_FILE: &str = "crates/site-builder/data/research_status.json";
+/// This file, for a card whose text has no other home on GitHub.
+const THIS_FILE: &str = "crates/site-builder/src/components/hubs.rs";
 
 const PAPER: &str = "/research/computing-machinery-and-understanding/";
 const QUALIFICATION_RECORD: &str =
@@ -125,12 +133,12 @@ pub fn render_evidence_hub() -> Markup {
         ("Current docs", "Design notes and plans. They describe intent."),
         ("Website prose", "Including this page. The weakest source on the list."),
     ];
-    let artifacts: [(&str, &str, String); 5] = [
-        ("SHA256SUMS", "Checksums for every published artifact of the Turing paper.", format!("{PAPER}SHA256SUMS")),
-        ("EXP-001 frozen profile", "The protocol for EXP-001, as frozen before scoring.", format!("{PAPER}profiles/EXP-001.json")),
-        ("EXP-002 frozen profile", "The protocol for EXP-002, as frozen before scoring.", format!("{PAPER}profiles/EXP-002.json")),
-        ("EXP-003 frozen profile", "The protocol for EXP-003, as published.", format!("{PAPER}profiles/EXP-003.json")),
-        ("The Turing paper (PDF)", "Definitions, proofs, measurement protocol, and falsification criteria.", format!("{PAPER}paper.pdf")),
+    let artifacts: [(&str, &str, String, String); 5] = [
+        ("SHA256SUMS", "Checksums for every published artifact of the Turing paper.", format!("{PAPER}SHA256SUMS"), source_href(&format!("{PAPER_SOURCE}/SHA256SUMS"))),
+        ("EXP-001 frozen profile", "The protocol for EXP-001, as frozen before scoring.", format!("{PAPER}profiles/EXP-001.json"), source_href(&format!("{PAPER_SOURCE}/profiles/EXP-001.json"))),
+        ("EXP-002 frozen profile", "The protocol for EXP-002, as frozen before scoring.", format!("{PAPER}profiles/EXP-002.json"), source_href(&format!("{PAPER_SOURCE}/profiles/EXP-002.json"))),
+        ("EXP-003 frozen profile", "The protocol for EXP-003, as published.", format!("{PAPER}profiles/EXP-003.json"), source_href(&format!("{PAPER_SOURCE}/profiles/EXP-003.json"))),
+        ("The Turing paper (PDF)", "Definitions, proofs, measurement protocol, and falsification criteria.", format!("{PAPER}paper.pdf"), source_href(&format!("{PAPER_SOURCE}/paper.pdf"))),
     ];
     html! {
         div class="container hub-wrap" {
@@ -157,20 +165,24 @@ pub fn render_evidence_hub() -> Markup {
                     li class="hub-card" {
                         a href=(STATUS_PAGE) { "Research status record" }
                         p { "Every experiment with its verdict, receipt, scope and limits, plus the research ladder. Rendered from one data file." }
+                        (foot(&source_href(STATUS_DATA_FILE), Target::Source))
                     }
                     li class="hub-card" {
                         a href=(STATUS_JSON) { "Research status data (JSON)" }
                         p { "The same record in machine-readable form: the file the status pages are built from." }
+                        (foot(&source_href(STATUS_DATA_FILE), Target::Source))
                     }
-                    @for (name, what, href) in &artifacts {
+                    @for (name, what, href, github) in &artifacts {
                         li class="hub-card" {
                             a href=(href) { (name) }
                             p { (what) }
+                            (foot(github, Target::Evidence))
                         }
                     }
                     li class="hub-card" {
                         a href=(QUALIFICATION_RECORD) target="_blank" rel="noopener noreferrer" { "Omega qualification record" }
                         p { "The canonical record of what has qualified and in what scope, kept in the Omega repository on GitHub." }
+                        (foot(QUALIFICATION_RECORD, Target::Evidence))
                     }
                 }
             }
@@ -185,24 +197,29 @@ pub fn render_evidence_hub() -> Markup {
 }
 
 pub fn render_philosophy_hub() -> Markup {
-    let cards: [(&str, &str, &str, bool); 3] = [
+    // Position papers have no evidence; each card links to the source of
+    // its text on GitHub and says so.
+    let cards: [(&str, &str, &str, bool, String); 3] = [
         (
             "The Stapleton Doctrine",
             "/research/the-stapleton-doctrine/",
             "English is the conversation, not the language. The universal artifact is the verified program.",
             false,
+            source_dir_href("public/research/the-stapleton-doctrine"),
         ),
         (
             "The Post-LLM Case",
             "/post-llm-case/",
             "Why scaling centralized language prediction cannot be the only route to machine intelligence, and what a different learning machine would look like.",
             false,
+            source_dir_href("public/post-llm-case"),
         ),
         (
             "Drake Stapleton on philosophy",
             "https://www.drakestapleton.com/philosophy",
             "Longer essays on ownership, sovereignty, and how machines should earn trust, on drakestapleton.com.",
             true,
+            source_href(THIS_FILE),
         ),
     ];
     html! {
@@ -215,7 +232,7 @@ pub fn render_philosophy_hub() -> Markup {
                 "."
             }
             ul class="hub-cards" {
-                @for (name, href, what, external) in cards {
+                @for (name, href, what, external, github) in cards {
                     li class="hub-card" {
                         @if external {
                             a href=(href) target="_blank" rel="noopener noreferrer" { (name) }
@@ -223,6 +240,7 @@ pub fn render_philosophy_hub() -> Markup {
                             a href=(href) { (name) }
                         }
                         p { (what) }
+                        (foot(&github, Target::Source))
                     }
                 }
             }
@@ -287,6 +305,7 @@ fn check_hub_document(hub: &Hub, page: &str) -> Result<(), String> {
     if page.contains('\u{2014}') || page.contains('\u{2013}') {
         return Err("forbidden em or en dash".to_string());
     }
+    crate::components::boxlink::check_boxes(page)?;
     for (label, href) in crate::components::navbar::NAV_PRIMARY {
         if !page.contains(&crate::components::navbar::primary_link_markup(label, href)) {
             return Err(format!("nav item {label} missing"));
@@ -407,6 +426,17 @@ mod tests {
             let page = render_hub_document(hub);
             check_hub_document(hub, &page).unwrap_or_else(|e| panic!("/{}/: {e}", hub.slug));
         }
+    }
+
+    #[test]
+    fn every_hub_card_links_to_github() {
+        assert_eq!(crate::components::boxlink::check_boxes(&doc("evidence")), Ok(8), "two record cards, five artifacts, the qualification record");
+        assert_eq!(crate::components::boxlink::check_boxes(&doc("philosophy")), Ok(3));
+        let d = rs::data();
+        assert_eq!(crate::components::boxlink::check_boxes(&doc("experiments")), Ok(d.ladder.len() + d.turing_rows.len()));
+        let philosophy = doc("philosophy");
+        assert_eq!(philosophy.matches("box-link-source").count(), 3, "position papers are source links, not evidence");
+        assert!(check_hub_document(&HUBS[2], &philosophy.replacen("class=\"box-link box-link-source\"", "class=\"x\"", 1)).is_err());
     }
 
     #[test]

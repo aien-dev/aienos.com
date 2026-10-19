@@ -152,26 +152,24 @@
   font-size: 12.5px;
 }
 
+/* The receipt's name (folder, file or PR). The link is the box itself. */
 .mx-receipt {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  display: inline;
   font-family: var(--font-mono);
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--tl-green);
-  text-decoration: none;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--tl-ink);
   overflow-wrap: anywhere;
 }
 
-.mx-receipt::after {
-  content: "\2197";
-  font-size: 11px;
+.mx-card .box-link {
+  margin-top: 14px;
 }
 
-.mx-receipt:hover {
-  text-decoration: underline;
+.mx-td-receipt .box-link {
+  display: inline-flex;
+  margin-top: 8px;
 }
 
 .mx-where {

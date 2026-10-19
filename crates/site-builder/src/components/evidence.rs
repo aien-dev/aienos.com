@@ -1,5 +1,6 @@
 use maud::{html, Markup};
 
+use super::boxlink::{foot, Target};
 use super::research_status as rs;
 
 /// One receipt card. Every field is written from the site inventory of
@@ -159,10 +160,9 @@ pub fn render_evidence() -> Markup {
                                 span { "DATE " (c.date) }
                                 span { "ENVIRONMENT " (c.environment) }
                                 span { "GATE " (c.gate) }
-                                a href=(c.url) target="_blank" rel="noopener noreferrer" style="color: var(--accent-green); font-weight: 600;" {
-                                    "RECEIPT: " (c.source) " →"
-                                }
+                                span { "RECEIPT " (c.source) }
                             }
+                            (foot(c.url, Target::Evidence))
                         }
                     }
                 }
@@ -195,5 +195,6 @@ mod tests {
         for w in crate::components::machines::FORBIDDEN {
             assert!(!lower.contains(w), "forbidden word {w}");
         }
+        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(6), "every receipt card links to GitHub");
     }
 }

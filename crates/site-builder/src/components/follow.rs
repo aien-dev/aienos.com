@@ -1,5 +1,7 @@
 use maud::{html, Markup};
 
+use super::boxlink::{foot, Target};
+
 /// Replaces the waitlist. There is no release to wait for; there is work to follow.
 pub fn render_follow() -> Markup {
     html! {
@@ -34,6 +36,9 @@ pub fn render_follow() -> Markup {
                         a href="/facts.json" style="color: var(--text-secondary);" { "facts.json" }
                         " · "
                         a href="/llms.txt" style="color: var(--text-secondary);" { "llms.txt" }
+                    }
+                    div style="margin-top: 22px; display: flex; justify-content: center;" {
+                        (foot("https://github.com/aien-dev", Target::Evidence))
                     }
                 }
             }

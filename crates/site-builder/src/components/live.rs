@@ -5,8 +5,22 @@ use maud::{html, Markup};
 
 use crate::facts::{short_date, Facts};
 
+use super::boxlink::{foot, Target};
+
 fn short_sha(sha: &str) -> &str {
     if sha.len() >= 12 { &sha[..12] } else { sha }
+}
+
+/// The receipt on GitHub: the check run itself when GitHub hosts it, else
+/// the commit it judged.
+fn receipt_link(r: &crate::facts::Receipt) -> String {
+    if r.target_url.starts_with("https://github.com/") {
+        r.target_url.clone()
+    } else if !r.sha.is_empty() {
+        format!("https://github.com/{}/commit/{}", r.repo, r.sha)
+    } else {
+        format!("https://github.com/{}/commits/main", r.repo)
+    }
 }
 
 /// A real verification receipt for the latest commit on the sovereign core's main branch,
@@ -43,10 +57,13 @@ pub fn render_receipt(facts: &Facts) -> Markup {
             div class="foot" {
                 @if !r.target_url.is_empty() {
                     @if !r.updated_at.is_empty() { "Published " (short_date(&r.updated_at)) ". " }
-                    a href=(r.target_url) rel="noopener" { "Open the receipt" }
+                    @if !r.target_url.starts_with("https://github.com/") {
+                        a href=(r.target_url) rel="noopener" { "Open the receipt" } " "
+                    }
                 } @else {
-                    "No verification has been published for this commit."
+                    "No verification has been published for this commit. "
                 }
+                (foot(&receipt_link(r), Target::Evidence))
             }
         }
     }
@@ -78,10 +95,11 @@ pub fn render_live(facts: &Facts) -> Markup {
                     }
                     tbody {
                         @for c in &facts.components {
-                            tr {
+                            tr class="live-row" {
                                 td class="name" {
                                     a href=(c.url) rel="noopener" { (c.name) }
                                     small { (c.repo.rsplit('/').next().unwrap_or(&c.repo)) }
+                                    (foot(&c.url, Target::Evidence))
                                 }
                                 td { (c.role) }
                                 td {
@@ -121,5 +139,26 @@ pub fn render_live(facts: &Facts) -> Markup {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn receipt_and_component_rows_link_to_github() {
+        let facts: Facts = serde_json::from_str(include_str!("../../../../facts.json")).expect("facts.json parses");
+        let page = render_live(&facts).into_string();
+        let rows = facts.components.len();
+        assert!(rows >= 1);
+        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(rows + 1), "every component row and the receipt link to GitHub");
+        let mut r = facts.receipt.clone();
+        r.target_url = "https://spark.example/receipt".into();
+        r.sha = "abc123".into();
+        assert_eq!(receipt_link(&r), format!("https://github.com/{}/commit/abc123", r.repo));
+        r.target_url.clear();
+        r.sha.clear();
+        assert!(receipt_link(&r).ends_with("/commits/main"));
     }
 }

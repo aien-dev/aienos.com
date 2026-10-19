@@ -1,6 +1,10 @@
 use maud::{html, Markup, PreEscaped};
 
+use super::boxlink::{foot, source_dir_href, Target};
 use super::research_status as rs;
+
+/// The Turing's qualification record in the Omega repository.
+pub const TURING_RECORD: &str = "https://github.com/aien-dev/omega-mv/blob/main/docs/turing/TURING_SCIENTIFIC_QUALIFICATION_STATE.md";
 
 pub fn render_research() -> Markup {
     let papers = [
@@ -10,6 +14,7 @@ pub fn render_research() -> Markup {
             "Formal paper",
             "/research/computing-machinery-and-understanding",
             "Read the paper",
+            "public/research/computing-machinery-and-understanding",
         ),
         (
             "Computing Machinery and Understanding: Emergence",
@@ -17,6 +22,7 @@ pub fn render_research() -> Markup {
             "Companion paper",
             "/research/computing-machinery-and-understanding-emergence",
             "Read the companion",
+            "public/research/computing-machinery-and-understanding-emergence",
         ),
         (
             "The Stapleton Doctrine",
@@ -24,6 +30,7 @@ pub fn render_research() -> Markup {
             "Position paper",
             "/research/the-stapleton-doctrine",
             "Read the doctrine",
+            "public/research/the-stapleton-doctrine",
         ),
         (
             "The Post-LLM Case",
@@ -31,6 +38,7 @@ pub fn render_research() -> Markup {
             "Essay",
             "/post-llm-case/",
             "Read the essay",
+            "public/post-llm-case",
         ),
     ];
 
@@ -75,6 +83,7 @@ pub fn render_research() -> Markup {
                                     "Read the formal paper"
                                 }
                             }
+                            div style="margin-top: 22px;" { (foot(TURING_RECORD, Target::Evidence)) }
                         }
 
                         // The game: guess the next bit, earn Turings.
@@ -119,7 +128,7 @@ pub fn render_research() -> Markup {
 
                 // The papers.
                 div class="responsive-card-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px;" {
-                    @for (title, desc, badge, url, cta) in &papers {
+                    @for (title, desc, badge, url, cta, src) in &papers {
                         div class="glow-box" style="padding: 28px; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; gap: 20px;" {
                             div {
                                 div style="margin-bottom: 12px;" {
@@ -136,10 +145,11 @@ pub fn render_research() -> Markup {
                                     (desc)
                                 }
                             }
-                            div style="padding-top: 16px; border-top: 1px solid var(--border-subtle); font-family: var(--font-mono); font-size: 12px;" {
+                            div style="padding-top: 16px; border-top: 1px solid var(--border-subtle); font-family: var(--font-mono); font-size: 12px; display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; justify-content: space-between;" {
                                 a href=(url) style="color: var(--accent-green); font-weight: 600;" {
-                                    (cta) " →"
+                                    (cta) " \u{2192}"
                                 }
+                                (foot(&source_dir_href(src), Target::Source))
                             }
                         }
                     }
@@ -157,5 +167,19 @@ pub fn render_research() -> Markup {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_turing_card_and_every_paper_card_link_to_github() {
+        let page = render_research().into_string();
+        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(5), "the Turing card and four papers");
+        assert!(page.contains(TURING_RECORD));
+        assert!(page.contains("https://github.com/aien-dev/aienos.com/tree/main/public/research/the-stapleton-doctrine"));
+        assert_eq!(page.matches("box-link-source").count(), 4, "papers are source links, the Turing card is evidence");
     }
 }

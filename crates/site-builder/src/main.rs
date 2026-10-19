@@ -354,10 +354,44 @@ fn verify_site(dist: &Path) {
     assert!(machine.contains("class=\"rs-ladder\""), "Missing research ladder markup in machine/index.html");
     assert!(machine.contains("class=\"rs-impl\""), "Missing implementation list in machine/index.html");
 
+    // Every box on every generated page links to its evidence on GitHub
+    // (components::boxlink). A page listed here with a floor below it must
+    // carry at least that many boxes, so a component that stops rendering
+    // its cards is caught as well as one that renders them without a link.
+    let mut boxes_total = 0;
+    for (page, floor) in GENERATED_PAGES {
+        let path = dist.join(page);
+        let html = fs::read_to_string(&path).unwrap_or_else(|_| panic!("Failed to read {}", path.display()));
+        let n = components::boxlink::check_boxes(&html).unwrap_or_else(|e| panic!("/{page}: {e}"));
+        assert!(n >= *floor, "/{page}: expected at least {floor} boxes, found {n}");
+        boxes_total += n;
+    }
+    assert!(
+        fs::read_to_string(dist.join("assets/turing-look.css")).expect("read turing-look.css").contains(".box-link::after"),
+        "assets/turing-look.css must stretch .box-link over its box"
+    );
+
     println!("------------------------------------------------------------");
     println!("  Verified index.html ({} bytes)", content.len());
+    println!("  Every box links to GitHub: {boxes_total} boxes across {} pages", GENERATED_PAGES.len());
     println!("  Integrity & Unslop Invariants: PASS");
 }
+
+/// Every page this builder generates, with the least number of boxes it
+/// must carry. /now/ has no floor because the ledger may be absent.
+const GENERATED_PAGES: &[(&str, usize)] = &[
+    ("index.html", 30),
+    ("machine/index.html", 15),
+    ("discovery/index.html", 0),
+    ("experiments/index.html", 15),
+    ("evidence/index.html", 7),
+    ("philosophy/index.html", 3),
+    ("research/status/index.html", 40),
+    ("now/index.html", 0),
+    ("progress/index.html", 0),
+    ("blog/index.html", 2),
+    ("blog/aien-v3-research-plan/index.html", 0),
+];
 
 fn main() {
     let start = Instant::now();

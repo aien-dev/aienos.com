@@ -1,4 +1,5 @@
 pub mod blog;
+pub mod boxlink;
 pub mod discovery;
 pub mod evidence;
 pub mod footer;

@@ -223,7 +223,7 @@
 
 .now-card:hover {
   transform: translateY(-3px);
-  border-color: var(--tl-line-2);
+  border-color: var(--tl-blue);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
 }
 
@@ -468,4 +468,20 @@
 @media (prefers-reduced-motion: reduce) {
   .now-hot .now-dot { animation: none; }
   .now-card, .now-stat, .now-seg { transition: none; }
+}
+
+/* References inside a note (a commit, a pull request, an evidence folder)
+   are links; they read as such and stay clickable above the card's own link. */
+.now-ref {
+  color: var(--tl-blue-soft);
+  text-decoration: underline;
+  text-decoration-color: rgba(125, 180, 255, 0.35);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: color 0.3s ease, text-decoration-color 0.3s ease;
+}
+
+.now-ref:hover {
+  color: var(--tl-green);
+  text-decoration-color: var(--tl-green);
 }

@@ -63,7 +63,8 @@
       "date": "2026-09-30",
       "limitations": "Frozen by receipt not git tag (D7); receipts unsigned (D6); candidate and evaluator share one OS user in separate jails (D8); PROTOCOL_CONFORMANCE.md item 50 stale (\"open O3\")",
       "next_dependency": "none",
-      "evidence": "freeze_receipt.json lines 2-4; QS section 2 row CAL-0"
+      "evidence": "freeze_receipt.json lines 2-4; QS section 2 row CAL-0",
+      "link": "https://github.com/aien-dev/omega-mv/blob/main/calibration/experiments/EXP-001R/freeze_receipt.json"
     },
     {
       "id": "EXP-001",
@@ -78,7 +79,8 @@
       "date": "2026-09-30",
       "limitations": "Gate crumb_digest failed, \"1 shared\". Kept, not deleted",
       "next_dependency": "superseded by EXP-001R",
-      "evidence": "final_receipt.json: verdict FAIL, criterion S2, code OVERLAP"
+      "evidence": "final_receipt.json: verdict FAIL, criterion S2, code OVERLAP",
+      "link": "https://github.com/aien-dev/omega-mv/blob/main/calibration/experiments/EXP-001/final_receipt.json"
     },
     {
       "id": "EXP-001R",
@@ -93,7 +95,8 @@
       "date": "run 2026-09-30 04:08Z",
       "limitations": "Used an AMENDED overlap gate G6 (Turing-profile-v1.1.toml:145) declared before data but written after EXP-001 failed on the old gate. Independent scorer matched 312 of 312 values, but it is a second scorer, not independent replication. Per-crumb bootstrap (D4). Unsigned",
       "next_dependency": "L8 replication (not attempted)",
-      "evidence": "final_receipt.json criteria and notes; QS section 2"
+      "evidence": "final_receipt.json criteria and notes; QS section 2",
+      "link": "https://github.com/aien-dev/omega-mv/blob/main/calibration/experiments/EXP-001R/final_receipt.json"
     },
     {
       "id": "TY-2",
@@ -110,7 +113,8 @@
       "date": "run 2026-09-29",
       "limitations": "Ideal code length only, no decodable bitstream. Verify uses the same tool (self re-derivation, not independent). Not a scientific discovery measure. No energy. Post hoc op+prev1..5 scored higher (+2,722,851.799), not counted. Check: dl_b_ub 7484024867446 minus dl_c_ub 4924345042631 = 2559679824815",
       "next_dependency": "H4 then TY-7",
-      "evidence": "receipt fields t_microbits, dl_b_ub, dl_c_ub, verdict; tools/turing_yield.c:319; src/turing/ty_qrecord.c:343"
+      "evidence": "receipt fields t_microbits, dl_b_ub, dl_c_ub, verdict; tools/turing_yield.c:319; src/turing/ty_qrecord.c:343",
+      "link": "https://github.com/aien-dev/omega-mv/blob/main/evidence/TURING_YIELD/ty2_heldout_receipt.txt"
     },
     {
       "id": "EXP-002A",
@@ -125,7 +129,8 @@
       "date": "2026-09-30",
       "limitations": "Not publicly reproducible until BRN-10 seals; erratum changed record text, no verdict; first profile BLOCKED; an intermediate v1.1 attempt ended INCOMPLETE (results failed to save) and is kept on record",
       "next_dependency": "BRN-10 seal",
-      "evidence": "QS:26, QS:45; architecture explainer:27,47-48"
+      "evidence": "QS:26, QS:45; architecture explainer:27,47-48",
+      "link": "https://github.com/aien-dev/omega-mv/pull/104"
     },
     {
       "id": "EXP-002B",
@@ -140,7 +145,8 @@
       "date": "2026-09-30",
       "limitations": "Not publicly reproducible until BRN-10 seals; erratum changed record text, no verdict",
       "next_dependency": "BRN-10 seal",
-      "evidence": "QS:26; explainer:28-29"
+      "evidence": "QS:26; explainer:28-29",
+      "link": "https://github.com/aien-dev/omega-mv/pull/104"
     },
     {
       "id": "EXP-002C",
@@ -155,7 +161,8 @@
       "date": "2026-09-30",
       "limitations": "Not publicly reproducible until BRN-10 seals; erratum changed record text, no verdict",
       "next_dependency": "BRN-10 seal",
-      "evidence": "QS:26; explainer:30"
+      "evidence": "QS:26; explainer:30",
+      "link": "https://github.com/aien-dev/omega-mv/pull/104"
     },
     {
       "id": "EXP-002D",
@@ -200,7 +207,8 @@
       "date": "2026-09-29",
       "limitations": "TURING_YIELD_ENERGY_PROTOCOL_V0.md:5 \"PRE-REGISTERED ... before any timed run\"; tests/turing/test_ty_energy*.c are fixtures. Evidence is thinner than \"partial\" suggests",
       "next_dependency": "silicon timed run",
-      "evidence": "QS H4 row; tools/ty_energy_run.sh, tools/ty_energy_reduce.c"
+      "evidence": "QS H4 row; tools/ty_energy_run.sh, tools/ty_energy_reduce.c",
+      "link": "https://github.com/aien-dev/omega-mv/pull/86"
     },
     {
       "id": "TURING-YIELD-TJ",
