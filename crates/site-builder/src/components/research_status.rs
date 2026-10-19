@@ -13,6 +13,14 @@ use std::sync::OnceLock;
 use maud::{html, Markup};
 use serde::Deserialize;
 
+use super::boxlink::{foot, source_href, Target};
+
+/// The qualification state record in the Omega repository, which the
+/// data file cites as "QS:<line>".
+pub const QS_RECORD: &str = "https://github.com/aien-dev/omega-mv/blob/main/docs/turing/TURING_SCIENTIFIC_QUALIFICATION_STATE.md";
+/// The data file itself, for a row whose evidence has no home on GitHub.
+pub const DATA_FILE: &str = "crates/site-builder/data/research_status.json";
+
 /// The raw data file, compiled into the binary.
 pub const RAW: &str = include_str!("../../data/research_status.json");
 
@@ -99,6 +107,10 @@ pub struct LadderStep {
     pub state: String,
     pub detail: String,
     pub basis: String,
+    /// The evidence on GitHub, when the basis names something more exact
+    /// than a line of the qualification record.
+    #[serde(default)]
+    pub link: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -131,6 +143,9 @@ pub struct TuringRow {
     pub limitations: String,
     pub next_dependency: String,
     pub evidence: String,
+    /// The receipt on GitHub. Absent, the link is derived from `evidence`.
+    #[serde(default)]
+    pub link: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -147,6 +162,57 @@ pub struct ImplementationRow {
     pub limitations: String,
     pub next_dependency: String,
     pub evidence: String,
+    /// The receipt on GitHub. Absent, the link is derived from `evidence`.
+    #[serde(default)]
+    pub link: Option<String>,
+}
+
+/// Where a row's box links. An explicit `link` wins; otherwise the first
+/// thing the evidence names is resolved: a "QS:<line>" citation goes to
+/// that line of the qualification record, a repository path (with an
+/// optional ":<line>") goes to that file on main, with "aienos",
+/// "aien-architecture" or "atlas" in front naming the repository and
+/// Omega the default. Anything else ("omega grep", "none") has no home on
+/// GitHub, so the box links to the data file and says so.
+pub fn evidence_box(link: &Option<String>, evidence: &str) -> (String, Target) {
+    if let Some(l) = link {
+        return (l.clone(), Target::Evidence);
+    }
+    match github_for_evidence(evidence) {
+        Some(url) => (url, Target::Evidence),
+        None => (source_href(DATA_FILE), Target::Source),
+    }
+}
+
+fn github_for_evidence(evidence: &str) -> Option<String> {
+    let mut text = evidence.trim();
+    let mut repo = "omega-mv";
+    for (prefix, r) in [("aienos ", "aienos-mv"), ("aien-architecture ", "aien-architecture-mv"), ("atlas ", "atlas"), ("omega ", "omega-mv")] {
+        if let Some(rest) = text.strip_prefix(prefix) {
+            repo = r;
+            text = rest;
+            break;
+        }
+    }
+    let token = text.split_whitespace().next()?.trim_end_matches([',', ';', ':']);
+    if let Some(n) = token.strip_prefix("QS:") {
+        let digits: String = n.chars().take_while(|c| c.is_ascii_digit()).collect();
+        return Some(if digits.is_empty() { QS_RECORD.to_string() } else { format!("{QS_RECORD}#L{digits}") });
+    }
+    if token == "QS" {
+        return Some(QS_RECORD.to_string());
+    }
+    let (path, line) = match token.split_once(':') {
+        Some((p, l)) => (p, l.chars().take_while(|c| c.is_ascii_digit()).collect::<String>()),
+        None => (token, String::new()),
+    };
+    let path = if path == "TURING_CURRENT_STATE.md" { "docs/turing/TURING_CURRENT_STATE.md" } else { path };
+    let is_file = path.contains('/') && path.rsplit('.').next().map_or(false, |e| ["h", "c", "md", "sh", "json", "mk", "txt", "tsv"].contains(&e));
+    if !is_file || path.contains("..") || path.starts_with('/') {
+        return None;
+    }
+    let anchor = if line.is_empty() { String::new() } else { format!("#L{line}") };
+    Some(format!("https://github.com/aien-dev/{repo}/blob/main/{path}{anchor}"))
 }
 
 impl StatusData {
@@ -194,6 +260,16 @@ pub fn validate(d: &StatusData) -> Result<(), String> {
     for s in &d.ladder {
         if !ALLOWED_LADDER_STATES.contains(&s.state.as_str()) {
             return Err(format!("ladder step {} has unknown state {:?}", s.level, s.state));
+        }
+    }
+    let links = d.ladder.iter().map(|s| (&s.level, &s.link))
+        .chain(d.turing_rows.iter().map(|r| (&r.id, &r.link)))
+        .chain(d.implementation_rows.iter().map(|r| (&r.id, &r.link)));
+    for (id, link) in links {
+        if let Some(l) = link {
+            if !l.starts_with("https://github.com/aien-dev/") {
+                return Err(format!("{id}: link must be on github.com/aien-dev, got {l:?}"));
+            }
         }
     }
 
@@ -449,6 +525,8 @@ pub fn render_ladder(d: &StatusData) -> Markup {
                             p class="rs-step-state" { (step.state) }
                             p class="rs-step-detail" { (step.detail) }
                             p class="rs-step-basis" { "Evidence: " (step.basis) }
+                            @let (href, target) = evidence_box(&step.link, &step.basis);
+                            (foot(&href, target))
                             @for a in d.attempts.iter().filter(|a| a.beside == step.level) {
                                 div class="rs-attempt" data-attempt=(a.id) {
                                     div class="rs-attempt-head" {
@@ -496,6 +574,8 @@ pub fn render_cards(d: &StatusData) -> Markup {
                         div { dt { "Commit" } dd class="rs-mono" { (r.commit) } }
                         div { dt { "Date" } dd { (r.date) } }
                     }
+                    @let (href, target) = evidence_box(&r.link, &r.evidence);
+                    (foot(&href, target))
                 }
             }
         }
@@ -544,6 +624,8 @@ pub fn render_implementation(d: &StatusData) -> Markup {
                                             div { dt { "Date" } dd { (r.date) } }
                                         }
                                     }
+                                    @let (href, target) = evidence_box(&r.link, &r.evidence);
+                                    (foot(&href, target))
                                 }
                             }
                         }
@@ -1067,5 +1149,69 @@ mod tests {
                 "PRIVATE aien-sealed R3-49 (not read)".into();
             assert!(check_sealed_pointers(&bad).is_err(), "{id} without commit passed");
         }
+    }
+}
+
+#[cfg(test)]
+mod box_tests {
+    use super::*;
+
+    #[test]
+    fn evidence_resolves_to_github_or_honestly_to_the_data_file() {
+        let qs = |n: &str| format!("{QS_RECORD}#L{n}");
+        assert_eq!(github_for_evidence("QS:101 \"met\"; definition only"), Some(qs("101")));
+        assert_eq!(github_for_evidence("QS:108-110"), Some(qs("108")));
+        assert_eq!(github_for_evidence("QS section 6; explainer:7"), Some(QS_RECORD.to_string()));
+        assert_eq!(
+            github_for_evidence("src/runtime/rx_world.h:2-8,73"),
+            Some("https://github.com/aien-dev/omega-mv/blob/main/src/runtime/rx_world.h#L2".into())
+        );
+        assert_eq!(
+            github_for_evidence("aienos native/argus/docs/ARGUS0_GATES.md:3; ARGUS1_GATES.md:6"),
+            Some("https://github.com/aien-dev/aienos-mv/blob/main/native/argus/docs/ARGUS0_GATES.md#L3".into())
+        );
+        assert_eq!(
+            github_for_evidence("aien-architecture doctrine/ROADMAP.md rows M0-M40"),
+            Some("https://github.com/aien-dev/aien-architecture-mv/blob/main/doctrine/ROADMAP.md".into())
+        );
+        assert_eq!(
+            github_for_evidence("omega src/runtime/rx_contract.c, rx_contract.h"),
+            Some("https://github.com/aien-dev/omega-mv/blob/main/src/runtime/rx_contract.c".into())
+        );
+        assert_eq!(
+            github_for_evidence("TURING_CURRENT_STATE.md:56; spec/x.md"),
+            Some("https://github.com/aien-dev/omega-mv/blob/main/docs/turing/TURING_CURRENT_STATE.md#L56".into())
+        );
+        for none in ["omega grep", "grep hits in those two files", "none", "rx_cortex.h:1-14", "../etc/passwd.md", ""] {
+            assert_eq!(github_for_evidence(none), None, "{none:?}");
+        }
+        let (href, target) = evidence_box(&None, "omega grep");
+        assert_eq!(target, Target::Source);
+        assert!(href.ends_with(DATA_FILE));
+        let (href, target) = evidence_box(&Some("https://github.com/aien-dev/omega-mv/pull/86".into()), "none");
+        assert_eq!((href.as_str(), target), ("https://github.com/aien-dev/omega-mv/pull/86", Target::Evidence));
+    }
+
+    #[test]
+    fn every_step_card_and_item_links_to_github() {
+        let d = data();
+        let ladder = render_ladder(d).into_string();
+        assert_eq!(crate::components::boxlink::check_boxes(&ladder), Ok(d.ladder.len()));
+        assert!(!ladder.contains("box-link-source"), "every ladder step cites a line of the qualification record");
+        let cards = render_cards(d).into_string();
+        assert_eq!(crate::components::boxlink::check_boxes(&cards), Ok(d.turing_rows.len()));
+        assert!(!cards.contains("box-link-source"), "every experiment row has evidence on GitHub");
+        let imp = render_implementation(d).into_string();
+        assert_eq!(crate::components::boxlink::check_boxes(&imp), Ok(d.implementation_rows.len()));
+        let page = render_research_status_page().into_string();
+        let n = crate::components::boxlink::check_boxes(&page).unwrap();
+        assert_eq!(n, d.ladder.len() + d.turing_rows.len() + d.implementation_rows.len());
+    }
+
+    #[test]
+    fn a_link_off_aien_dev_is_refused() {
+        let bad = RAW.replacen("\"link\": \"https://github.com/aien-dev/omega-mv/pull/86\"", "\"link\": \"https://example.com/x\"", 1);
+        assert!(bad != RAW);
+        assert!(parse(&bad).unwrap_err().contains("github.com/aien-dev"));
     }
 }

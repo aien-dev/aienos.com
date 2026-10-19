@@ -394,3 +394,204 @@ pre,
   border-color: var(--tl-line);
   color: var(--tl-ink-2);
 }
+
+/* ---------- every box is a link to its evidence on GitHub ----------
+   Each box carries one a.box-link in its footer. The anchor's ::after is
+   stretched over the whole box, so the box is the click target; links
+   inside the box sit above it (z-index 2) and keep working. */
+.mx-card,
+.mx-row,
+.glow-box,
+.lineage-card,
+.lineage-role,
+.status-row,
+.live-row,
+.receipt,
+.rs-card,
+.rs-step,
+.rs-impl-item,
+.hub-card,
+.narr-card,
+.blog-card,
+.now-card,
+.now-queue-row,
+.now-tl {
+  position: relative;
+}
+
+.box-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: auto;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--tl-blue-soft);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.3s ease;
+}
+
+.box-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.box-link .box-arrow {
+  display: inline-block;
+  font-size: 13px;
+  line-height: 1;
+  transition: transform 0.3s cubic-bezier(.22,.61,.36,1);
+}
+
+.box-link-source {
+  color: var(--tl-ink-3);
+}
+
+/* Inline links and controls inside a box stay above the stretched link. */
+.mx-card a:not(.box-link),
+.mx-row a:not(.box-link),
+.glow-box a:not(.box-link),
+.glow-box button,
+.glow-box #turing-game,
+.status-row a:not(.box-link),
+.live-row a:not(.box-link),
+.receipt a:not(.box-link),
+.rs-card a:not(.box-link),
+.rs-step a:not(.box-link),
+.rs-impl-item a:not(.box-link),
+.rs-impl-item details,
+.hub-card a:not(.box-link),
+.narr-card a:not(.box-link),
+.blog-card a:not(.box-link),
+.now-card a:not(.box-link),
+.now-queue-row a:not(.box-link),
+.now-tl a:not(.box-link) {
+  position: relative;
+  z-index: 2;
+}
+
+/* Hover: the existing lift, and the border goes to the blue accent. */
+.mx-card:hover,
+.mx-row:hover,
+.lineage-card:hover,
+.lineage-role:hover,
+.status-row:hover,
+.live-row:hover,
+.receipt:hover,
+.rs-step:hover .rs-step-body,
+.rs-impl-item:hover,
+.now-card:hover,
+.now-queue-row:hover,
+.now-tl:hover {
+  border-color: var(--tl-blue);
+}
+
+.lineage-role,
+.status-row,
+.rs-impl-item,
+.now-queue-row,
+.now-tl {
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.mx-row:hover td,
+.live-row:hover td {
+  background: rgba(45, 127, 249, 0.05);
+}
+
+.mx-card:hover .box-link,
+.mx-row:hover .box-link,
+.glow-box:hover .box-link,
+.lineage-card:hover .box-link,
+.lineage-role:hover .box-link,
+.status-row:hover .box-link,
+.live-row:hover .box-link,
+.receipt:hover .box-link,
+.rs-card:hover .box-link,
+.rs-step:hover .box-link,
+.rs-impl-item:hover .box-link,
+.hub-card:hover .box-link,
+.narr-card:hover .box-link,
+.blog-card:hover .box-link,
+.now-card:hover .box-link,
+.now-queue-row:hover .box-link,
+.now-tl:hover .box-link {
+  color: var(--tl-green);
+}
+
+.mx-card:hover .box-arrow,
+.glow-box:hover .box-arrow,
+.rs-card:hover .box-arrow,
+.hub-card:hover .box-arrow,
+.now-card:hover .box-arrow {
+  transform: translate(2px, -2px);
+}
+
+.box-link:focus-visible {
+  outline: none;
+}
+
+.box-link:focus-visible::after {
+  outline: 2px solid var(--tl-blue);
+  outline-offset: 2px;
+}
+
+/* Where the footer sits in each kind of box. */
+.mx-card .box-link,
+.rs-card .box-link,
+.hub-card .box-link,
+.narr-card .box-link,
+.blog-card .box-link,
+.now-card .box-link {
+  display: flex;
+  width: fit-content;
+  margin-top: 14px;
+}
+
+.narr-card .box-link {
+  margin-bottom: 16px;
+}
+
+.lineage-card .box-link,
+.lineage-role .box-link {
+  margin-top: 10px;
+}
+
+.status-row .box-link,
+.rs-impl-item .box-link,
+.rs-step .box-link {
+  margin-top: 8px;
+}
+
+.rs-step .box-link {
+  display: inline-flex;
+}
+
+.mx-row .box-link,
+.live-row .box-link {
+  margin-top: 6px;
+  display: inline-flex;
+}
+
+.now-queue-row .box-link {
+  grid-column: 2 / -1;
+  margin-top: 2px;
+}
+
+.now-tl .box-link {
+  margin-top: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .box-link,
+  .box-link .box-arrow {
+    transition: none;
+  }
+}

@@ -8,11 +8,12 @@
 
 use maud::{html, Markup};
 
+use super::boxlink;
 use super::machines::render_real_machines;
 use super::narrative::{class_badge, status_badge, SLOGAN, TURING_FORMULA};
 use super::research_status::{
-    data, render_implementation, render_research_status_summary, ty2_headline, ImplementationRow,
-    TuringRow,
+    data, evidence_box, render_implementation, render_research_status_summary, ty2_headline,
+    ImplementationRow, TuringRow,
 };
 
 pub const TITLE: &str = "The Machine | AIENOS";
@@ -44,12 +45,19 @@ const TY2: &str = "TY-2";
 const YIELD_TJ: &str = "TURING-YIELD-TJ";
 const ENERGY: &str = "ENERGY-ATTRIBUTION";
 const EXP_003: &str = "EXP-003";
+const GENERAL_DISCOVERY: &str = "GENERAL-DISCOVERY";
 const CEGIS: &str = "CEGIS";
 const BAYES: &str = "Bayesian cost prediction (belief/estimation)";
 const EGRAPH: &str = "Equality saturation";
 
 fn trow(id: &str) -> &'static TuringRow {
     data().turing_row(id).unwrap_or_else(|| panic!("research status row {id} missing"))
+}
+
+/// The quantity card's link: the row's evidence on GitHub.
+fn card_foot(row: &TuringRow) -> Markup {
+    let (href, target) = evidence_box(&row.link, &row.evidence);
+    boxlink::foot(&href, target)
 }
 
 fn irow(id: &str) -> &'static ImplementationRow {
@@ -151,6 +159,7 @@ fn section_quantities() -> Markup {
                     p {
                         "The re-check used the same tool, so it is a self re-derivation and still awaits an independent one. This result certifies the instrument; it does not show that AIEN discovered anything."
                     }
+                    (card_foot(ty2))
                 }
                 li class="narr-card" {
                     h3 { "Turing yield (T/J) " (status_badge(yield_tj)) }
@@ -162,6 +171,7 @@ fn section_quantities() -> Markup {
                     p {
                         "No yield figure exists, and none will be claimed until energy attribution and the Turing receipt are joined under the qualifying protocol."
                     }
+                    (card_foot(yield_tj))
                 }
                 li class="narr-card" {
                     h3 { "Search and verification gap" }
@@ -169,6 +179,7 @@ fn section_quantities() -> Markup {
                         "How hard was the explanation to discover compared with verifying it once found? The idea to test: discovered explanatory structure reduces the cost of future search, through prediction, compression, abstraction, reusable procedure, reduced search and faster discovery."
                     }
                     p { "This is a research direction. No result on it exists yet." }
+                    (card_foot(trow(GENERAL_DISCOVERY)))
                 }
             }
         }
