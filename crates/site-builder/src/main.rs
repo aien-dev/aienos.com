@@ -185,6 +185,13 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
             components::discovery::URL,
             components::discovery::render_discovery(),
         ),
+        (
+            "owned",
+            components::owned::TITLE,
+            components::owned::DESCRIPTION,
+            components::owned::URL,
+            components::owned::render_owned(),
+        ),
     ] {
         let page = render_page_layout(title, description, url, "article", html! {}, body);
         let page_dir = dist.join(slug);
@@ -347,6 +354,13 @@ fn verify_site(dist: &Path) {
         assert!(page_content.contains("rs-badge"), "Missing data-driven status badges in {}", page.display());
         assert!(!page_content.contains("status-badge"), "Old hand-kept status badge markup in {}", page.display());
     }
+    // /owned/ is a position page: no status badges, the thesis and signature present, no dashes.
+    let owned = fs::read_to_string(dist.join("owned/index.html")).expect("Missing owned/index.html");
+    assert!(owned.contains(components::owned::THESIS), "Missing thesis in owned/index.html");
+    assert!(owned.contains(components::owned::SIGNATURE_LINE), "Missing signature in owned/index.html");
+    assert!(owned.contains("og:title"), "Missing og:title in owned/index.html");
+    assert!(!owned.contains('\u{2014}') && !owned.contains('\u{2013}'), "Forbidden dash in owned/index.html");
+    assert!(!owned.contains("rs-badge"), "Status badge on the position page owned/index.html");
     let machine = fs::read_to_string(dist.join("machine/index.html")).expect("Failed to read machine page");
     assert!(machine.contains(components::narrative::SLOGAN), "Missing slogan in machine/index.html");
     assert!(machine.contains(components::narrative::TURING_FORMULA), "Missing Turing formula in machine/index.html");
@@ -387,7 +401,8 @@ const GENERATED_PAGES: &[(&str, usize)] = &[
     ("discovery/index.html", 0),
     ("experiments/index.html", 15),
     ("evidence/index.html", 7),
-    ("philosophy/index.html", 3),
+    ("philosophy/index.html", 4),
+    ("owned/index.html", 7),
     ("research/status/index.html", 40),
     ("now/index.html", 0),
     ("progress/index.html", 0),
