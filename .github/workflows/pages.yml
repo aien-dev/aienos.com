@@ -6,19 +6,32 @@ on:
     - cron: "17 * * * *"
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, data/now]
 permissions:
   contents: read
   pages: write
   id-token: write
 concurrency:
-  group: pages-${{ github.ref }}
+  group: pages
   cancel-in-progress: true
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Lay in the live ledger from the data/now branch
+        run: |
+          set -euo pipefail
+          mkdir -p public/data
+          if git fetch --depth 1 origin data/now 2>/dev/null; then
+            git show FETCH_HEAD:now.tsv > public/data/now.tsv
+            git show FETCH_HEAD:now-pulse.tsv > public/data/now-pulse.tsv || true
+            echo "ledger: $(wc -l < public/data/now.tsv) lines"
+          else
+            echo "no data/now branch yet; /now/ renders empty"
+          fi
       - name: Collect public project history
         env:
           GH_TOKEN: ${{ github.token }}
@@ -30,14 +43,14 @@ jobs:
       - name: Build static site with pure Rust engine
         run: cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist
       - name: Upload Pages artifact
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/data/now'
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
   deploy:
     needs: build
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/data/now'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

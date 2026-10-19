@@ -31,7 +31,7 @@ fn copy_dir_all(src: &Path, dst: &Path) -> std::io::Result<()> {
 }
 
 fn generate_sitemap_and_robots(dist: &Path) {
-    let sitemap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n  <url><loc>https://aienos.com/</loc><priority>1.0</priority></url>\n  <url><loc>https://aienos.com/progress/</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/blog</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/blog/aien-v3-research-plan</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/post-llm-case/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/status/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/computing-machinery-and-understanding</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/computing-machinery-and-understanding-emergence</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/research/the-stapleton-doctrine</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/machine/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/turing/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/experiments/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/discovery/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/evidence/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/philosophy/</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/licensing/</loc><priority>0.5</priority></url>\n</urlset>\n";
+    let sitemap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n  <url><loc>https://aienos.com/</loc><priority>1.0</priority></url>\n  <url><loc>https://aienos.com/progress/</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/blog</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/blog/aien-v3-research-plan</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/post-llm-case/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/status/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/now/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/computing-machinery-and-understanding</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/computing-machinery-and-understanding-emergence</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/research/the-stapleton-doctrine</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/machine/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/turing/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/experiments/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/discovery/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/evidence/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/philosophy/</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/licensing/</loc><priority>0.5</priority></url>\n</urlset>\n";
     let sitemap_path = dist.join("sitemap.xml");
     fs::write(&sitemap_path, sitemap).expect("Failed to write sitemap.xml");
 
@@ -164,6 +164,22 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     fs::write(dist.join("research-status.json"), components::research_status::RAW)
         .expect("Failed to write research-status.json");
     println!("  [PAGE] Emitted /research/status (index.html) and /research-status.json");
+
+    // /now/: the live coordination ledger, laid into public/data/now.tsv by
+    // the pages workflow from the data/now branch (components::now).
+    let now = components::now::load();
+    let now_page = render_page_layout(
+        components::now::TITLE,
+        components::now::DESCRIPTION,
+        components::now::URL,
+        "website",
+        html! { link rel="stylesheet" href="/assets/now.css"; },
+        components::now::render_now_page(&now),
+    );
+    fs::create_dir_all(dist.join("now")).expect("Failed to create now dir");
+    fs::write(dist.join("now/index.html"), now_page.into_string()).expect("Failed to write now/index.html");
+    fs::write(dist.join("now.json"), components::now::to_json(&now)).expect("Failed to write now.json");
+    println!("  [PAGE] Emitted /now/ ({} ledger lines) and /now.json", now.items.len());
     // Research narrative pages (NARR-RESEARCH): The Machine and Scientific Discovery
     for (slug, title, description, url, body) in [
         (
@@ -264,8 +280,12 @@ fn verify_site(dist: &Path) {
     assert!(blog_post.exists(), "Missing blog/aien-v3-research-plan/index.html");
     let research_status = dist.join("research/status/index.html");
     assert!(research_status.exists(), "Missing research/status/index.html");
+    let now_page = dist.join("now/index.html");
+    assert!(now_page.exists(), "Missing now/index.html");
+    assert!(dist.join("now.json").exists(), "Missing now.json");
+    assert!(dist.join("assets/now.css").exists(), "Missing assets/now.css");
     assert!(dist.join("research-status.json").exists(), "Missing research-status.json");
-    for page in [&blog_index, &blog_post, &research_status] {
+    for page in [&blog_index, &blog_post, &research_status, &now_page] {
         let page_content = fs::read_to_string(page)
             .unwrap_or_else(|_| panic!("Failed to read {}", page.display()));
         assert!(

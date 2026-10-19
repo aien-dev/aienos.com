@@ -14,7 +14,8 @@ pub const NAV_PRIMARY: [(&str, &str); 6] = [
 ];
 
 /// Secondary links: smaller, after a divider.
-pub const NAV_SECONDARY: [(&str, &str); 4] = [
+pub const NAV_SECONDARY: [(&str, &str); 5] = [
+    ("Now", "/now/"),
     ("Progress", "/progress/"),
     ("Blog", "/blog"),
     ("Follow", "/#follow"),
