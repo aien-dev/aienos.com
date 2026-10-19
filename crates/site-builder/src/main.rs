@@ -81,12 +81,17 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     .expect("Failed to write status.json");
     fs::write(dist.join("llms.txt"), components::status::llms_txt())
         .expect("Failed to write llms.txt");
+    // The machines and speeds data, published next to the page that renders it.
+    fs::write(dist.join("machines.json"), components::machines::RAW)
+        .expect("Failed to write machines.json");
     println!("  [STATE] Wrote status.json and llms.txt from the canonical layer states");
 
     // Render landing page in Maud
     let page_content = html! {
         (components::home_loop::render_home_loop())
         (components::story::render_story())
+        (components::machines::render_machines_section())
+        (components::machines::render_speeds_section())
         (components::evidence::render_evidence())
         (components::matrix::render_matrix())
         (components::research::render_research())
@@ -222,6 +227,7 @@ fn verify_site(dist: &Path) {
     assert!(content.contains("<main id=\"main-content\""), "Missing main container in index.html");
     assert!(content.contains("id=\"terminal-output\""), "Missing interactive terminal output in index.html");
     assert!(content.contains("id=\"follow\""), "Missing follow section in index.html");
+    assert!(content.contains("href=\"/now/\""), "Missing the Now link in the homepage follow section");
     assert!(content.contains("id=\"receipt\""), "Missing verification receipt in index.html");
     assert!(content.contains("id=\"live\""), "Missing live components block in index.html");
     assert!(!content.contains("fonts.googleapis.com"), "Outside font loaded in index.html");
@@ -239,6 +245,24 @@ fn verify_site(dist: &Path) {
         assert!(content.contains(phrase), "Missing homepage phrase in index.html: {phrase}");
     }
     assert!(content.contains("<ol class=\"loop-stages\""), "Missing loop stage list in index.html");
+
+    // The machines and the speeds (components::machines): five machines,
+    // the 27B on Omega first, every number beside its receipt, and no
+    // comparison with anyone else's system anywhere on the homepage.
+    assert!(content.contains("id=\"machines\""), "Missing machines section in index.html");
+    assert!(content.contains("id=\"speed\""), "Missing speed section in index.html");
+    for id in ["machine-spark", "machine-imac", "machine-pi5", "machine-qemu", "machine-rig", "speed-27b-live"] {
+        assert!(content.contains(&format!("id=\"{id}\"")), "Missing {id} in index.html");
+    }
+    assert!(content.contains("7.63 tok/s"), "Missing the live 27B speed in index.html");
+    {
+        let lower = content.to_ascii_lowercase();
+        for w in components::machines::FORBIDDEN {
+            assert!(!lower.contains(w), "Comparison with another system on the homepage: {w:?}");
+        }
+    }
+    assert!(dist.join("assets/machines.css").exists(), "Missing assets/machines.css");
+    assert!(dist.join("machines.json").exists(), "Missing machines.json");
 
     // Verify asset output
     assert!(dist.join("assets/style.css").exists(), "Missing assets/style.css");
@@ -324,6 +348,8 @@ fn verify_site(dist: &Path) {
     let machine = fs::read_to_string(dist.join("machine/index.html")).expect("Failed to read machine page");
     assert!(machine.contains(components::narrative::SLOGAN), "Missing slogan in machine/index.html");
     assert!(machine.contains(components::narrative::TURING_FORMULA), "Missing Turing formula in machine/index.html");
+    assert!(machine.contains("id=\"real-machines\""), "Missing real-machines section in machine/index.html");
+    assert!(machine.find("id=\"real-machines\"") < machine.find("id=\"loop\""), "Real machines must come before the loop in machine/index.html");
     assert!(machine.contains("id=\"research-ladder\""), "Missing research-ladder section in machine/index.html");
     assert!(machine.contains("class=\"rs-ladder\""), "Missing research ladder markup in machine/index.html");
     assert!(machine.contains("class=\"rs-impl\""), "Missing implementation list in machine/index.html");

@@ -1,0 +1,502 @@
+/*
+ * The machines and the speeds (components/machines.rs). Sits inside the
+ * Turing look (turing-look.css): near-black field, blue and green glow,
+ * mono kickers, heavy headings, rounded cards that lift. Green marks a
+ * number that is on main; blue marks a branch. Nothing here is compared
+ * with anything but the machine's ceiling and our own previous run.
+ */
+.mx-section {
+  padding: 96px 0;
+  border-bottom: 1px solid var(--tl-line);
+}
+
+.mx-section .container {
+  max-width: 1200px;
+}
+
+.mx-head {
+  max-width: 820px;
+  margin-bottom: 40px;
+}
+
+.mx-h2 {
+  font-size: clamp(30px, 4.4vw, 46px);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  color: var(--tl-ink);
+}
+
+.mx-lead {
+  margin-top: 16px;
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--tl-ink-2);
+}
+
+.mx-stamp,
+.mx-judging {
+  margin-top: 24px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--tl-ink-3);
+  max-width: 920px;
+}
+
+.mx-judging {
+  margin-top: 28px;
+  font-size: 15.5px;
+  color: var(--tl-ink-2);
+  padding-left: 16px;
+  border-left: 2px solid var(--tl-green);
+}
+
+.mx-stamp .mono,
+.mx-judging .mono {
+  color: var(--tl-ink-2);
+}
+
+.mx-stamp a,
+.mx-judging a,
+.mx-td-ceiling a,
+.mx-hero-l a {
+  color: var(--tl-blue-soft);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(125, 180, 255, 0.35);
+}
+
+/* ---------- machine cards ---------- */
+.mx-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 18px;
+}
+
+.mx-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 26px 26px 22px;
+  background: var(--tl-card);
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius);
+  transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.mx-card:hover {
+  border-color: var(--tl-blue);
+  transform: translateY(-4px);
+  box-shadow: 0 18px 50px rgba(45, 127, 249, 0.14);
+}
+
+.mx-name {
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--tl-ink);
+}
+
+.mx-detail {
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--tl-ink-3);
+  line-height: 1.5;
+}
+
+.mx-role {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--tl-ink);
+}
+
+.mx-facts {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 14px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--tl-ink-2);
+}
+
+.mx-facts dt {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tl-blue);
+  padding-top: 3px;
+  white-space: nowrap;
+}
+
+.mx-facts dd {
+  margin: 0;
+}
+
+.mx-date {
+  color: var(--tl-ink);
+  font-weight: 600;
+}
+
+.mx-card-foot {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--tl-line);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  font-size: 12.5px;
+}
+
+.mx-receipt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--tl-green);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.mx-receipt::after {
+  content: "\2197";
+  font-size: 11px;
+}
+
+.mx-receipt:hover {
+  text-decoration: underline;
+}
+
+.mx-where {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mx-where-main {
+  color: var(--tl-green);
+  border: 1px solid rgba(0, 229, 153, 0.4);
+}
+
+.mx-where-branch {
+  color: var(--tl-blue-soft);
+  border: 1px solid rgba(125, 180, 255, 0.4);
+  text-transform: none;
+  letter-spacing: 0.03em;
+}
+
+.mx-more {
+  flex-basis: 100%;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--tl-ink-3);
+}
+
+.mx-more a {
+  color: var(--tl-ink-2);
+  text-decoration: none;
+  border-bottom: 1px solid var(--tl-line-2);
+}
+
+.mx-more a:hover {
+  color: var(--tl-ink);
+  border-color: var(--tl-blue);
+}
+
+/* The same cards at the top of /machine/, inside the narrow column. */
+.mx-on-narr .mx-grid {
+  grid-template-columns: 1fr;
+  margin-top: 28px;
+}
+
+.mx-on-narr .mx-card {
+  padding: 22px 24px 20px;
+}
+
+/* ---------- speed hero ---------- */
+.mx-speed {
+  background:
+    radial-gradient(ellipse 50% 28rem at 15% 20%, rgba(0, 229, 153, 0.06), transparent 70%);
+}
+
+.mx-hero {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  padding: 30px 32px;
+  margin-bottom: 28px;
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius);
+  background: linear-gradient(135deg, rgba(45, 127, 249, 0.1), rgba(0, 229, 153, 0.06)), var(--tl-card);
+}
+
+.mx-hero-n,
+.mx-hero-c,
+.mx-hero-p {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mx-hero-value {
+  display: block;
+  white-space: nowrap;
+  font-size: clamp(34px, 4.2vw, 52px);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--tl-green);
+  text-shadow: 0 0 28px rgba(0, 229, 153, 0.35);
+}
+
+.mx-hero-frac {
+  color: var(--tl-blue-soft);
+  text-shadow: 0 0 28px rgba(45, 127, 249, 0.35);
+}
+
+.mx-hero-prev .mx-hero-value {
+  color: var(--tl-ink-2);
+  text-shadow: none;
+}
+
+.mx-unit {
+  font-size: 0.42em;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--tl-ink-3);
+  text-shadow: none;
+}
+
+.mx-hero-l {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--tl-ink-3);
+}
+
+.mx-hero-r {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--tl-line);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--tl-green);
+  text-decoration: none;
+}
+
+.mx-hero-r:hover {
+  text-decoration: underline;
+}
+
+/* ---------- speed table ---------- */
+.mx-table-wrap {
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius);
+  background: var(--tl-card);
+  overflow-x: auto;
+}
+
+.mx-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--tl-ink-2);
+}
+
+.mx-table th {
+  text-align: left;
+  padding: 14px 14px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tl-ink-3);
+  border-bottom: 1px solid var(--tl-line);
+  background: rgba(8, 9, 12, 0.5);
+}
+
+.mx-table td {
+  padding: 16px 14px;
+  vertical-align: top;
+  border-bottom: 1px solid var(--tl-line);
+}
+
+.mx-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.mx-table tbody tr:hover td {
+  background: rgba(45, 127, 249, 0.05);
+}
+
+.mx-row:first-child td {
+  background: rgba(0, 229, 153, 0.04);
+}
+
+.mx-what {
+  display: block;
+  font-weight: 700;
+  color: var(--tl-ink);
+}
+
+.mx-model {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--tl-ink-3);
+}
+
+.mx-value {
+  display: block;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--tl-ink);
+}
+
+.mx-row:first-child .mx-value {
+  color: var(--tl-green);
+}
+
+.mx-sub {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--tl-ink-3);
+}
+
+.mx-none {
+  font-style: italic;
+}
+
+.mx-verdict {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--tl-amber);
+}
+
+.mx-td-ceiling .mono {
+  font-size: 16px;
+  color: var(--tl-blue-soft);
+}
+
+.mx-td-date {
+  white-space: nowrap;
+  color: var(--tl-ink-2);
+}
+
+.mx-td-receipt .mx-receipt {
+  display: inline;
+  overflow-wrap: anywhere;
+}
+
+.mx-td-receipt .mx-where {
+  display: inline-block;
+  margin-top: 8px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.mx-table th:nth-child(1) { width: 17%; }
+.mx-table th:nth-child(2) { width: 16%; }
+.mx-table th:nth-child(3) { width: 21%; }
+.mx-table th:nth-child(4) { width: 10%; }
+.mx-table th:nth-child(5) { width: 13%; }
+.mx-table th:nth-child(6) { width: 8%; }
+.mx-table th:nth-child(7) { width: 15%; }
+
+/* On a phone the table becomes a stack of cards, one per row, each cell
+   labelled by its column name. */
+@media (max-width: 900px) {
+  .mx-table thead {
+    display: none;
+  }
+
+  .mx-table,
+  .mx-table tbody,
+  .mx-table tr,
+  .mx-table td {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .mx-table tr {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--tl-line);
+  }
+
+  .mx-table tr:last-child {
+    border-bottom: 0;
+  }
+
+  .mx-table td {
+    padding: 8px 18px;
+    border-bottom: 0;
+  }
+
+  .mx-table td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 3px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--tl-blue);
+  }
+
+  .mx-td-what::before {
+    display: none;
+  }
+
+  .mx-td-what {
+    padding-top: 14px;
+  }
+
+  .mx-td-receipt {
+    padding-bottom: 14px;
+  }
+
+  .mx-table tbody tr:hover td,
+  .mx-row:first-child td {
+    background: transparent;
+  }
+
+  .mx-hero {
+    padding: 24px 20px;
+  }
+
+  .mx-section {
+    padding: 56px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mx-card {
+    transition: none;
+  }
+}
