@@ -73,18 +73,18 @@ pub const STREAMS: [&str; 8] = [
 
 fn classify(item: &str, owner: &str) -> &'static str {
     let t = item.to_ascii_lowercase();
-    if t.starts_with("agent:") || t.contains("cascade") || t.contains("decode") || t.contains("tok/s") || t.contains("flashnext") || t.contains("omega#") {
+    if t.starts_with("research") || t.contains("symposium") || t.contains("#583") || t.contains("#584") || t.contains("inventory for site") {
+        "Research"
+    } else if t.starts_with("agent:") || t.contains("cascade") || t.contains("decode") || t.contains("tok/s") || t.contains("flashnext") || t.contains("omega#") {
         "Engine speed"
     } else if t.starts_with("rig") {
         "AIEN Rig"
-    } else if t.starts_with("research") || t.contains("symposium") || t.contains("#583") || t.contains("#584") {
-        "Research"
+    } else if t.contains("aienos.com") || t.contains("org profile") || t.contains("readme") || t.contains("dashboard") {
+        "Public record"
     } else if t.contains("alpha") || t.contains("install") || t.contains("serve-27b") || t.contains("27b server") {
         "Alpha release"
     } else if t.contains("imac") || t.contains("horizon") || t.contains("allen") || t.contains("aienos") || t.contains("bundle") {
         "AIENOS on the iMac"
-    } else if t.contains("aienos.com") || t.contains("org profile") || t.contains("readme") || t.contains("dashboard") || t.contains("inventory for site") {
-        "Public record"
     } else if owner == "desk" || t.starts_with("merge") || t.starts_with("queue") || t.contains("label") || t.contains("squash") {
         "PR desk"
     } else {
