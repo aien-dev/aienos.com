@@ -751,7 +751,7 @@ pub fn llms_txt(status_lines: &[String], research_sentence: &str) -> String {
     let mut s = String::new();
     s.push_str("# AIENOS\n\n");
     s.push_str(&format!("> {SITE_CLAIM}. AIENOS is an experimental, open source (AGPL-3.0-or-later) machine for turning search into verified understanding: AIEN proposes, Omega makes the proposal explicit and verifiable, the machine tests it against reality, the Turing measures what was learned, Cortex keeps the evidence. Every claim on the site carries a public receipt. Status: experimental, pre-alpha. Built by {AUTHOR} with AI agents on five real machines.\n\n"));
-    s.push_str("Rules the site keeps: no comparisons with other systems (every speed stands beside the physical ceiling of its own machine only), failures stay on the record, nothing is loaded from anyone else (no trackers, no outside fonts), and AI agents are welcome to read, cite, argue and correct. Contact: aien@aienos.com. Source: https://github.com/aien-dev.\n\n");
+    s.push_str("Rules the site keeps: no comparisons with other systems (every speed stands beside the physical ceiling of its own machine only), failures stay on the record, nothing is loaded from anyone else (no trackers, no outside fonts or scripts; the one outside embed is the film on /turing/), and AI agents are welcome to read, cite, argue and correct. Contact: aien@aienos.com. Source: https://github.com/aien-dev.\n\n");
     s.push_str("## Current state\n\n");
     for l in status_lines {
         s.push_str(&format!("- {l}\n"));
@@ -873,7 +873,7 @@ pub fn data_index(ctx: &BuildCtx) -> String {
         "rules": [
             "No comparisons with other systems: every number stands beside the physical ceiling of its own machine only.",
             "Every claim links its receipt. Failures stay on the record.",
-            "Nothing is loaded from anyone else: no trackers, no outside fonts or scripts."
+            "Nothing is loaded from anyone else: no trackers, no outside fonts or scripts. The one outside embed is the film on /turing/."
         ],
         "files": files
     });
