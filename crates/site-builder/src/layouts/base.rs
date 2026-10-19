@@ -41,7 +41,7 @@ pub fn render_page_layout(
                 meta name="viewport" content="width=device-width, initial-scale=1";
                 title { (title) }
                 meta name="description" content=(description);
-                link rel="canonical" href=(og_url);
+                @if !og_url.is_empty() { link rel="canonical" href=(og_url); }
                 link rel="icon" type="image/svg+xml" href="/favicon.svg";
                 meta property="og:type" content=(og_type);
 

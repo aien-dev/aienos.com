@@ -201,7 +201,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     let not_found = render_page_layout(
         "Page not found | AIENOS",
         "There is nothing at this address. Every page of AIENOS is listed in llms.txt and the sitemap; the front page, the machine and the research are one link away.",
-        "https://www.aienos.com/404.html",
+        "",
         "website",
         seo::head_404(),
         seo::render_404(),
