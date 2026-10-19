@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Omega：为可验证程序构建的编程语言 | AIEN 研究</title>
+<meta content="Omega：一种为可验证程序设计的编程语言，具备语义身份、携带证据的依赖关系，以及对外部代码的强化隔离。" name="description"/>
+
+<link href="/favicon.svg" rel="icon" type="image/svg+xml"/>
+<meta content="Omega：为已验证程序而构建的编程语言" property="og:title"/>
+<meta content="Omega：一种为可验证程序设计的编程语言，具备语义身份、携带证据的依赖关系，以及对外部代码的强化隔离。" property="og:description"/>
+<meta content="https://aienos.com/research/omega-language" property="og:url"/>
+<meta content="article" property="og:type"/>
+<meta content="https://aienos.com/og.png" property="og:image"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<link href="/assets/style.css" rel="stylesheet"/>
+<style>
+.research-wrap{max-width:880px;margin:0 auto;padding:48px 24px 96px}
+.kicker{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;color:var(--accent-blue);text-transform:uppercase;margin-bottom:16px}
+.paper-title{font-size:clamp(30px,4.5vw,46px);font-weight:800;letter-spacing:-.02em;line-height:1.12;color:var(--text-primary);margin:0 0 12px}
+.paper-sub{font-size:18px;color:var(--text-secondary);margin:0 0 24px;line-height:1.5}
+.byline{font-size:15px;color:var(--text-secondary);margin-bottom:6px}
+.byline strong{color:var(--text-primary)}
+.version-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0 28px}
+.badge{font-family:var(--font-mono);font-size:12px;padding:5px 12px;border-radius:999px;border:1px solid var(--border-subtle);color:var(--text-secondary)}
+.badge.preprint{border-color:var(--accent-amber);color:var(--accent-amber)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 40px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none;border:1px solid var(--accent-blue);background:rgba(45,127,249,.12);color:var(--accent-blue);font-family:var(--font-sans)}
+.btn.secondary{border-color:var(--border-subtle);background:transparent;color:var(--text-primary)}
+.section{margin:44px 0}
+.section h2{font-size:20px;font-weight:700;color:var(--text-primary);margin:0 0 16px;letter-spacing:-.01em}
+.section p{color:var(--text-secondary);line-height:1.7;font-size:15.5px;margin:0 0 14px}
+.artifact{border:1px solid var(--border-subtle);border-radius:10px;padding:16px 18px;margin:10px 0;background:var(--bg-card);display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.artifact .name{font-weight:700;color:var(--text-primary);font-size:15px}
+.artifact .desc{font-size:13.5px;color:var(--text-secondary);margin-top:4px;line-height:1.55}
+.artifact a{font-family:var(--font-mono);font-size:13px;color:var(--accent-blue);text-decoration:none;white-space:nowrap}
+.hash{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);word-break:break-all;margin-top:6px}
+.topnav{border-bottom:1px solid var(--border-subtle);background:rgba(8,9,12,.85);backdrop-filter:blur(12px);position:sticky;top:0;z-index:50;padding:14px 0}
+.topnav .inner{max-width:1180px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.topnav a.brand{font-weight:700;color:var(--text-primary);text-decoration:none;font-size:17px;letter-spacing:-.02em}
+.topnav nav{display:flex;gap:22px;font-size:14px}
+.topnav nav a{color:var(--text-secondary);text-decoration:none}
+.topnav nav a.active{color:var(--accent-blue)}
+.footer-note{margin-top:56px;padding-top:24px;border-top:1px solid var(--border-subtle);font-size:13px;color:var(--text-muted);line-height:1.6}
+.footer-note a{color:var(--accent-blue);text-decoration:none}
+pre.cite{background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:10px;padding:18px;font-family:var(--font-mono);font-size:13px;color:var(--text-secondary);overflow-x:auto;line-height:1.6}
+</style>
+<link href="/assets/site-nav.css" rel="stylesheet"/>
+<link href="/assets/turing-look.css" rel="stylesheet"/>
+<script defer="" src="/js/turing-look.js"></script>
+<link href="https://www.aienos.com/zh-CN/research/omega-language/" rel="canonical"/><link href="https://www.aienos.com/research/omega-language/" hreflang="en" rel="alternate"/><link href="https://www.aienos.com/zh-CN/research/omega-language/" hreflang="zh-CN" rel="alternate"/></head>
+<body>
+<header class="aien-header"><div class="aien-header-inner"><a aria-label="AIENOS 主页" class="aien-brand" href="/zh-CN/"><span aria-hidden="true" class="aien-brand-mark"><svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" x2="20" y1="19" y2="19"></line></svg></span><span class="aien-brand-copy"><span class="aien-brand-name">AIENOS</span><span class="aien-brand-tag">持久的机器智能</span></span></a><nav aria-label="主要导航" class="aien-nav"><ul class="aien-nav-primary"><li><a class="aien-nav-link" href="/zh-CN/machine/">机器</a></li><li><a class="aien-nav-link" href="/zh-CN/turing/">图灵</a></li><li><a class="aien-nav-link" href="/zh-CN/experiments/">实验</a></li><li><a class="aien-nav-link" href="/zh-CN/discovery/">科学发现</a></li><li><a class="aien-nav-link" href="/zh-CN/evidence/">证据</a></li><li><a class="aien-nav-link" href="/zh-CN/philosophy/">哲学</a></li></ul><ul aria-label="更多" class="aien-nav-secondary"><li><a class="aien-nav-minor" href="/zh-CN/progress/">进展</a></li><li><a class="aien-nav-minor" href="/zh-CN/blog">博客</a></li><li><a class="aien-nav-minor" href="/zh-CN/#follow">关注</a></li><li><a class="aien-nav-minor" href="https://github.com/aien-dev">GitHub</a></li></ul></nav></div></header>
+<main class="research-wrap">
+<div class="kicker">AIEN 研究 · 语言设计</div>
+<h1 class="paper-title">Omega：为已验证程序而构建的编程语言</h1>
+<p class="paper-sub">语义身份、携带证据的依赖关系，以及一个永不允许未经验证工作进入的外部代码边界。</p>
+<div class="byline"><strong>M. Drake Stapleton</strong> · 2026年10月2日</div>
+<div class="version-row"><span class="badge">设计提案</span><span class="badge">9 页</span><span class="badge preprint">未经同行评审</span></div>
+<div class="actions"><a class="btn" href="./paper.pdf">阅读PDF</a> <a class="btn secondary" href="./paper.tex">LaTeX源码</a> <a class="btn secondary" href="#cite">引用</a></div>
+<div class="section">
+<h2>摘要</h2>
+<p>Omega 是一种为可验证程序设计的编程语言。代码由其含义标识，而非文本：语义身份绑定展开并归一化的语义对象，因此相同含义始终解析为相同身份，与表面语法无关。</p><p>每个依赖关系都携带证据。检查、构建、验证和封存生命周期将未封存的开发工作保留在工作区中，而只有基于收据的工件才能进入驻留执行路径。外部代码在可弃用、无能力的本地工作进程验证之前始终为数据；通过隔离验证的外部代码在生产环境中仍保持隔离。</p><p>设计提案；并非已实现的语言。</p>
+</div>
+<div class="section">
+<h2>研究资料</h2>
+<div class="artifact">
+<div><div class="name">论文（PDF）</div><div class="hash">SHA-256: 8e2674d16c1c37c2670019eb21c2f398ec04588565f0ba78147c853a4d291820</div></div>
+<a href="./paper.pdf">paper.pdf</a>
+</div>
+<div class="artifact">
+<div><div class="name">LaTeX源码</div><div class="desc">完整可编译源码。</div><div class="hash">SHA-256: 88e6aaf8389d816ffc3835d4470adbdcc87ab63823254f03b1528ed2c5e2ebf6</div></div>
+<a href="./paper.tex">paper.tex</a>
+</div>
+<div class="artifact">
+<div><div class="name">摘要清单</div><div class="desc">此版本的SHA-256清单。</div></div>
+<a href="./SHA256SUMS">SHA256SUMS</a>
+</div>
+</div>
+<div class="section" id="cite">
+<h2>引用</h2>
+<pre class="cite">@misc{stapleton2026omega,
+  author = {M. Drake Stapleton},
+  title = {Omega: A Programming Language Built
+           for Verified Programs},
+  year = {2026},
+  month = {October},
+  note = {Language design proposal, not peer reviewed},
+  url = {https://aienos.com/research/omega-language}
+}</pre>
+</div>
+<div class="footer-note">这是一个语言设计提案，尚未经过同行评审。它描述了一个方向，而非已实现的语言。源代码位于 <a href="https://github.com/aien-dev" rel="noopener" target="_blank">github.com/aien-dev</a>。</div>
+</main>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>斯泰普尔顿教义：关于AI架构与编程的个人哲学 | AIEN研究</title>
+<meta content="斯台普顿教义：英语是对话，而非语言。通用产物是经验证的程序。一种关于 AI 架构与编程的个人哲学。" name="description"/>
+
+<link href="/favicon.svg" rel="icon" type="image/svg+xml"/>
+<meta content="斯台普顿学说" property="og:title"/>
+<meta content="英语是对话，而非语言。通用产物是经验证的程序。立场文件，未经同行评审。" property="og:description"/>
+<meta content="https://aienos.com/research/the-stapleton-doctrine" property="og:url"/>
+<meta content="article" property="og:type"/>
+<meta content="https://aienos.com/og.png" property="og:image"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<link href="/assets/style.css" rel="stylesheet"/>
+<link href="/assets/site-nav.css" rel="stylesheet"/>
+<style>
+.research-wrap{max-width:880px;margin:0 auto;padding:48px 24px 96px}
+.kicker{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;color:var(--accent-blue);text-transform:uppercase;margin-bottom:16px}
+.paper-title{font-size:clamp(30px,4.5vw,46px);font-weight:800;letter-spacing:-.02em;line-height:1.12;color:var(--text-primary);margin:0 0 12px}
+.paper-sub{font-size:18px;color:var(--text-secondary);margin:0 0 24px;line-height:1.5}
+.byline{font-size:15px;color:var(--text-secondary);margin-bottom:6px}
+.byline strong{color:var(--text-primary)}
+.version-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0 28px}
+.badge{font-family:var(--font-mono);font-size:12px;padding:5px 12px;border-radius:999px;border:1px solid var(--border-subtle);color:var(--text-secondary)}
+.badge.preprint{border-color:var(--accent-amber);color:var(--accent-amber)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 40px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none;border:1px solid var(--accent-blue);background:rgba(45,127,249,.12);color:var(--accent-blue);font-family:var(--font-sans)}
+.btn.secondary{border-color:var(--border-subtle);background:transparent;color:var(--text-primary)}
+.btn.forthcoming{opacity:.55;cursor:default}
+.section{margin:44px 0}
+.section h2{font-size:20px;font-weight:700;color:var(--text-primary);margin:0 0 16px;letter-spacing:-.01em}
+.section p{color:var(--text-secondary);line-height:1.7;font-size:15.5px;margin:0 0 14px}
+.artifact{border:1px solid var(--border-subtle);border-radius:10px;padding:16px 18px;margin:10px 0;background:var(--bg-card);display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.artifact .name{font-weight:700;color:var(--text-primary);font-size:15px}
+.artifact .desc{font-size:13.5px;color:var(--text-secondary);margin-top:4px;line-height:1.55}
+.artifact a{font-family:var(--font-mono);font-size:13px;color:var(--accent-blue);text-decoration:none;white-space:nowrap}
+.hash{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);word-break:break-all;margin-top:6px}
+.tenets{margin:0;padding-left:24px}
+.tenets li{color:var(--text-secondary);line-height:1.65;font-size:15.5px;margin:0 0 13px}
+.tenets li strong{color:var(--text-primary)}
+.chain{font-family:var(--font-mono);font-size:14px;color:var(--text-primary);line-height:1.9;border:1px solid var(--border-subtle);border-radius:10px;background:var(--bg-card);padding:16px 18px;margin:0 0 18px}
+pre.cite{background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:10px;padding:18px;font-family:var(--font-mono);font-size:13px;color:var(--text-secondary);overflow-x:auto;line-height:1.6}
+.footer-note{margin-top:56px;padding-top:24px;border-top:1px solid var(--border-subtle);font-size:13px;color:var(--text-muted);line-height:1.6}
+.footer-note a{color:var(--accent-blue);text-decoration:none}
+</style>
+<link href="/assets/turing-look.css" rel="stylesheet"/>
+<script defer="" src="/js/turing-look.js"></script>
+<link href="https://www.aienos.com/zh-CN/research/the-stapleton-doctrine/" rel="canonical"/><link href="https://www.aienos.com/research/the-stapleton-doctrine/" hreflang="en" rel="alternate"/><link href="https://www.aienos.com/zh-CN/research/the-stapleton-doctrine/" hreflang="zh-CN" rel="alternate"/></head>
+<body>
+<!-- Shared six-section site header (NARR-NAV). Keep in sync with crates/site-builder/src/components/navbar.rs; a test checks the six links. -->
+<header class="aien-header"><div class="aien-header-inner"><a aria-label="AIENOS 主页" class="aien-brand" href="/zh-CN/"><span aria-hidden="true" class="aien-brand-mark"><svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" x2="20" y1="19" y2="19"></line></svg></span><span class="aien-brand-copy"><span class="aien-brand-name">AIENOS</span><span class="aien-brand-tag">持久的机器智能</span></span></a><nav aria-label="主要导航" class="aien-nav"><ul class="aien-nav-primary"><li><a class="aien-nav-link" href="/zh-CN/machine/">机器</a></li><li><a class="aien-nav-link" href="/zh-CN/turing/">图灵</a></li><li><a class="aien-nav-link" href="/zh-CN/experiments/">实验</a></li><li><a class="aien-nav-link" href="/zh-CN/discovery/">科学发现</a></li><li><a class="aien-nav-link" href="/zh-CN/evidence/">证据</a></li><li><a class="aien-nav-link" href="/zh-CN/philosophy/">哲学</a></li></ul><ul aria-label="更多" class="aien-nav-secondary"><li><a class="aien-nav-minor" href="/zh-CN/progress/">进展</a></li><li><a class="aien-nav-minor" href="/zh-CN/blog">博客</a></li><li><a class="aien-nav-minor" href="/zh-CN/#follow">关注</a></li><li><a class="aien-nav-minor" href="https://github.com/aien-dev">GitHub</a></li></ul></nav></div></header>
+<main class="research-wrap">
+<div class="kicker">AIEN研究 · 定位论文</div>
+<h1 class="paper-title">斯台普顿学说</h1>
+<p class="paper-sub">人工智能架构与编程的个人哲学</p>
+<div class="byline"><strong>M. Drake Stapleton</strong> · 2026年9月30日</div>
+<div class="version-row"><span class="badge">v1.5</span> <span class="badge">10页</span> <span class="badge preprint">未经过同行评审</span></div>
+<div class="actions"><a class="btn" href="./paper.pdf">阅读PDF</a> <a class="btn secondary" href="./paper.tex">LaTeX源码</a> <a class="btn secondary" href="#cite">引用</a></div>
+<div class="section">
+<h2>摘要</h2>
+<p>2026年9月23日，在奥斯汀举行的Rails World 2026大会上，Ruby on Rails的创造者David Heinemeier Hansson宣称：“英语比Ruby更优秀的编程语言。”本文接受该主张并予以驳斥。英语具有歧义性：两个主体可能对同一句话产生不同理解，且无法证明一句话的确切含义就是你所认为的那样。</p>
+<p>该架构中普遍存在的事物并非某种口语语言，而是可验证程序：一个小型、可检查的实体，带有可度量的凭证，任何机器均可在不信任原始编写机器的前提下重新验证。</p>
+<p>本文阐述了AIEN架构背后的教义：意义应如何从建议经验证到证据流动，软件栈应如何逐层剥离至作者完全拥有的基础，以及为何永远租用解释器与真正拥有理解并非等同。该论点建立在先前同一辩论中的重要标记之上：阿达·洛芙莱斯关于机器能否产生原创内容的观点，艾兹赫尔·戴克斯特拉关于测试与普通语言所能证明的内容，C.A.R.霍尔关于简洁性的困难，以及理查德·斯托曼关于谁控制谁的思考。</p>
+</div>
+<div class="section">
+<h2>记录在案的分歧</h2>
+<p>本文所回应的观点属于某个特定人物，且具有固定文本。在2026年Rails大会的开幕主题演讲中，汉森结束了长达二十五年手动编写代码的生涯，并宣布作为职业程序员的退休，将代理生成的代码视为黑箱进行评估。本文所回应的句子正是他原话：“英语比Ruby更适合作编程语言。”</p>
+<p>该教义赋予了该观点的宽宏一半。对话正成为主要接口，一个思维清晰的人应当能够通过与强大代理协作构建严肃系统。它拒绝其余部分。如果英语是语言，而租用的模型是决定你英语含义的编译器，那么谁拥有该模型，谁就拥有你指令的含义。度量标准并未消失；它已向上移动了一层，隐于幕后，无法再被测量。</p>
+<p>以姓名回应主张已有先例。图灵在《计算机器与智能》（1950）中，引用了他归于阿达·洛芙莱斯的异议，将其命名为“洛芙莱斯女士的异议”，并以姓名回应。本文遵循这一礼节：主张附上发言者姓名、日期和原文，然后在实质上予以回应。该主张也有更早的历史：COBOL语言于1959年由格蕾丝·霍珀推动设计，旨在像英语一样可读，早已尝试以散文作为机器语言，而戴克斯特拉在一代人之内便给出了判决。</p>
+</div>
+<div class="section">
+<h2>该主张</h2>
+<p><strong style="color:var(--text-primary)">英语是对话。程序就是实际所说的内容。</strong></p>
+<p>机器的通用语言候选者既不是英语，也不是人类已掌握的任何语言。它是经过验证的程序：一个通过所有测试并附带证明收据的程序。“通用”并非指人人都能阅读，而是指无人需要依赖他人之言。一句话可以争论；收据却不能。只要该产物可被检验，地球上任何机器都能独立验证，正是这一属性，而非人类可读性，使产物具有通用性。</p>
+<p>该架构中最小的此类产物称为“碎块”：由代理起草的程序片段，经独立验证者检查，评估其收益与成本，并附上证据归档。程序从路边向上构建，每个模块在下一个模块建立之前均须证明其正确性。本文为哲学基础；碎块的工程规则则由治理项目仓库的主权谱系教义所规定。</p>
+</div>
+<div class="section">
+<h2>循环</h2>
+<p>此架构中的一切均不被接受于抵达之时。一切皆需通过同一循环：</p>
+<div class="chain">权重暗示。程序解释。Omega验证。物理授权。证据教学。</div>
+<p>一个模型的权重提出一个候选方案。该候选方案被重新表述为一个明确的程序，即“碎屑”，机器可以运行它，检查器可以审查它。Omega，即定义层，将这一主张编译为具有清晰边界的形态。物理现实拥有最终决定权：只有实际执行、消耗的瓦数、观测到的比特、计数的结果，才算真实。而证据能够教学，因为测量结果会反馈到权重中，使得每一次循环都能从比上一次更好的建议开始。</p>
+<figure class="theory-fig">
+<div class="fig-kicker"><span>图 · 验证循环</span><span class="fig-kind">概念示意图</span></div>
+<svg aria-label="Cycle diagram: weights suggest, programs explain, Omega verifies, physics authorizes, evidence teaches, and back to weights" role="img" viewbox="0 0 960 520">
+<defs>
+<marker id="d1-ah" markerheight="6.5" markerwidth="6.5" orient="auto-start-reverse" refx="8" refy="5" viewbox="0 0 10 10"><path d="M0,0 L10,5 L0,10 z" fill="#475569"></path></marker>
+</defs>
+<g fill="none" stroke="#475569" stroke-width="2">
+<path d="M 540 134 L 600 176" marker-end="url(#d1-ah)"></path>
+<path d="M 650 272 L 612 394" marker-end="url(#d1-ah)"></path>
+<path d="M 488 443 L 472 443" marker-end="url(#d1-ah)"></path>
+<path d="M 350 394 L 312 274" marker-end="url(#d1-ah)"></path>
+<path d="M 356 178 L 418 138" marker-end="url(#d1-ah)"></path>
+</g>
+<text fill="#64748b" font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="3" text-anchor="middle" x="480" y="264">THE VERIFICATION LOOP</text>
+<text fill="#f1f5f9" font-size="17" font-weight="700" text-anchor="middle" x="480" y="294">No step can be skipped.</text>
+<text fill="#94a3b8" font-size="12.5" text-anchor="middle" x="480" y="318">Every claim travels the full circle.</text>
+<g>
+<rect fill="#0e1219" height="84" rx="14" stroke="#a78bfa" stroke-width="1.5" width="204" x="378" y="48"></rect>
+<text fill="#a78bfa" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="2" text-anchor="middle" x="480" y="73">STEP 1</text>
+<text fill="#f1f5f9" font-size="16" font-weight="700" text-anchor="middle" x="480" y="97">WEIGHTS SUGGEST</text>
+<text fill="#94a3b8" font-size="11.5" text-anchor="middle" x="480" y="117">the model proposes candidates</text>
+</g>
+<g>
+<rect fill="#0e1219" height="84" rx="14" stroke="#2d7ff9" stroke-width="1.5" width="204" x="563" y="183"></rect>
+<text fill="#2d7ff9" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="2" text-anchor="middle" x="665" y="208">STEP 2</text>
+<text fill="#f1f5f9" font-size="16" font-weight="700" text-anchor="middle" x="665" y="232">PROGRAMS EXPLAIN</text>
+<text fill="#94a3b8" font-size="11.5" text-anchor="middle" x="665" y="252">crumbs carry the meaning</text>
+</g>
+<g>
+<rect fill="#0e1219" height="84" rx="14" stroke="#00e599" stroke-width="1.5" width="204" x="493" y="401"></rect>
+<text fill="#00e599" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="2" text-anchor="middle" x="595" y="426">STEP 3</text>
+<text fill="#f1f5f9" font-size="16" font-weight="700" text-anchor="middle" x="595" y="450">OMEGA VERIFIES</text>
+<text fill="#94a3b8" font-size="11.5" text-anchor="middle" x="595" y="470">receipts, or it did not happen</text>
+</g>
+<g>
+<rect fill="#0e1219" height="84" rx="14" stroke="#f59e0b" stroke-width="1.5" width="204" x="263" y="401"></rect>
+<text fill="#f59e0b" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="2" text-anchor="middle" x="365" y="426">STEP 4</text>
+<text fill="#f1f5f9" font-size="16" font-weight="700" text-anchor="middle" x="365" y="450">PHYSICS AUTHORIZES</text>
+<text fill="#94a3b8" font-size="11.5" text-anchor="middle" x="365" y="470">real hardware, real cost</text>
+</g>
+<g>
+<rect fill="#0e1219" height="84" rx="14" stroke="#7db4ff" stroke-width="1.5" width="204" x="193" y="183"></rect>
+<text fill="#7db4ff" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="2" text-anchor="middle" x="295" y="208">STEP 5</text>
+<text fill="#f1f5f9" font-size="16" font-weight="700" text-anchor="middle" x="295" y="232">EVIDENCE TEACHES</text>
+<text fill="#94a3b8" font-size="11.5" text-anchor="middle" x="295" y="252">receipts become the lessons</text>
+</g>
+</svg>
+<figcaption><strong>验证循环。</strong> 权重提出建议，程序加以解释，Omega进行验证，物理现实予以授权，证据则反馈回权重，使下一轮能够基于更优的建议启动。在实际运行的系统中，验证职责由 AEGIS 承担，它验证代理生成的内容，不作任何更改，也不制定任何策略。概念示意图，源自论文中的图1。</figcaption>
+</figure>
+</div>
+<div class="section">
+<h2>两种未来，阶梯，以及产权与租用的对立</h2>
+<p>该论点归结为两种图景。在第一种中，英语被宣布为通用语言，其下的机械结构被当作黑箱忽略，而决定词语含义的解释器则由代币租用，永久持续。在第二种中，对话停留在人类擅长的层面，而验证则下沉至机器内部，那里才真正存在证明：程序被起草、检查、测量并归档，当不再有任何可租用之物时，工作才告结束。</p>
+<p>因此，这一教义沿着阶梯下行，而阶梯仅能单向下行。租用的服务和托管的解释器最先被摒弃。Rust 是桥梁：编译型、作者编写，当前的主力工具。C 语言是下一步，属于迁移步骤而非最终目标。最终目标是作者自己的语言作为基础，从构建、阅读到拥有，全程自主可控。只有当一个经过验证的替代方案能够承受负载时，才移除一层：阶梯的下行基于证据，而非声明；一次通过的测试并非证据，而一份收据才是：经过测量的结果，连同其方法一并归档，可供任何人重新运行。</p>
+<p>整个架构的目标有一个名称：智能作为产权，而非租用。Stallman 在一代人之前就阐明了这一根本原则：“当用户无法控制程序时，程序就控制了用户。” 产权意味着你机器上的实体可以被你明天重新运行、重新测量、重新验证，无需订阅，也无需任何人的许可。租用意味着他人黑箱决定你指令今日的含义，并向你收取下一轮的费用。</p>
+</div>
+<div class="section">
+<h2>教义的十条原则</h2>
+<ol class="tenets">
+<li><strong>英语是对话，而非语言。</strong> 交谈是人类引导的方式。它不是被执行的内容，不是被验证的内容，也不是被记忆的内容。</li>
+<li><strong>经验证的程序是通用的实体。</strong> 通用意味着无需信任即可检查，而非人人都能阅读。碎屑及其收据，是这一架构中的通用货币。</li>
+<li><strong>权重仅作建议，不作裁决。</strong> 建议与裁决是两种不同的职能，而教义确保它们由不同的人持有。</li>
+<li><strong>意义沿着循环向下传递。</strong> 建议、明确的程序、清晰的定义、可测量的执行、归档的证据。在底部抵达的，正是顶部所说内容的真相。</li>
+<li><strong>见证者验证，但不触碰。</strong> AEGIS 检查代理生成的内容，不作任何更改，不制定任何政策，也不属于生成系统的一部分。若无独立的见证者，验证就只是另一种作者行为。</li>
+<li><strong>物理是最终的授权者。</strong> 未被测量的，就等于未完成。文档、声明和架构图永远无法超越一次执行的凭证。</li>
+<li><strong>剥离堆栈，直达根基。</strong> 首先移除托管层。迁移步骤如 C 必须凭借其作为步骤的证明获得地位。只有当基础在作者自己的语言中被完全掌控时，才算完成。</li>
+<li><strong>在被替代之前，一切都不应被默认拥有。</strong> 一个层级只有在有经验证的替代品承重时才能被移除。阶梯的下降基于证据，而非声明。</li>
+<li><strong>掌控基础，否则你只是租用意义。</strong> 谁掌控解释器，谁就决定你话语的含义。当不再有任何东西可租时，教义便终结。</li>
+<li><strong>先有眼耳，后有产业。</strong> 循环必须在方便之前就独立于任何供应商。资产必须先建立，然后才可产品化。</li>
+</ol>
+</div>
+<div class="section">
+<h2>研究资料</h2>
+<div class="artifact">
+<div><div class="name">教义文件（PDF）</div><div class="desc">10 页。立场文件：与 Hansson 的记录分歧，经验证的程序作为通用产物，验证循环，两个未来，阶梯，产权优于租用，以及十条教义。</div><div class="hash">SHA-256: 2923f5ef59c85028bea66957ca32c231c3b985a2381462c16d6ff0f01710ff28</div></div>
+<a href="./paper.pdf">paper.pdf</a>
+</div>
+<div class="artifact">
+<div><div class="name">LaTeX源码</div><div class="desc">教义文件的完整可编译源代码。</div><div class="hash">SHA-256: edac1b816d658f3bbe36df9ce07ea2d1cf3ac35484aea2c85ddf96dccbd5757</div></div>
+<a href="./paper.tex">paper.tex</a>
+</div>
+<div class="artifact">
+<div><div class="name">摘要清单</div><div class="desc">此版本教义文件的 SHA-256 哈希清单。</div></div>
+<a href="./SHA256SUMS">SHA256SUMS</a>
+</div>
+<div class="artifact">
+<div><div class="name">正式论文</div><div class="desc">“从模仿游戏到图灵”（版本 1.13）：图灵的参考文档，该教义所规范架构的度量单位。</div></div>
+<a href="/zh-CN/research/computing-machinery-and-understanding">正式论文页</a>
+</div>
+<div class="artifact">
+<div><div class="name">配套论文</div><div class="desc">“图灵：从 AIEN 中涌现的度量”（版本 1.13）：AIEN、Omega 以及主权谱系架构的工程历史。</div></div>
+<a href="/zh-CN/research/computing-machinery-and-understanding-emergence">配套页面</a>
+</div>
+</div>
+<div class="section" id="cite">
+<h2>引用</h2>
+<pre class="cite">@misc{stapleton2026doctrine,
+  author = {M. Drake Stapleton},
+  title = {The Stapleton Doctrine:
+           A Personal Philosophy of AI Architecture
+           and Programming},
+  year = {2026},
+  month = {September},
+  version = {1.5},
+  note = {Position paper, not peer reviewed},
+  url = {https://aienos.com/research/the-stapleton-doctrine}
+}</pre>
+</div>
+<div class="footer-note">这是一份立场文件，未经同行评审。它阐述了 AIEN、Omega、FORGE、AEGIS 和图灵背后的哲学，图灵是净保留解释压缩的单位；正式的度量工作见于 <a href="/zh-CN/research/computing-machinery-and-understanding">正式论文</a>（版本 1.13）。问题： <a href="https://github.com/aien-dev" rel="noopener" target="_blank">AIEN 在 GitHub</a>。</div>
+</main>
+</body>
+</html>

@@ -21,6 +21,11 @@ pub const NAV_SECONDARY: [(&str, &str); 4] = [
     ("GitHub", "https://github.com/aien-dev"),
 ];
 
+/// Translated copies of the site, written into public/<code>/ by
+/// aien-translate's scripts/translate_site.py (https://github.com/aien-dev/aien-translate).
+/// (code, the language's own name). Each needs public/<code>/index.html.
+pub const LANGUAGES: [(&str, &str); 1] = [("zh-CN", "简体中文")];
+
 /// The exact anchor markup for one primary nav link. Hand-written pages
 /// copy this markup byte for byte so the tests can find it.
 pub fn primary_link_markup(label: &str, href: &str) -> String {
@@ -49,6 +54,12 @@ pub fn render_navbar() -> Markup {
                     ul class="aien-nav-secondary" aria-label="More" {
                         @for (label, href) in NAV_SECONDARY {
                             li { a class="aien-nav-minor" href=(href) { (label) } }
+                        }
+                    }
+                    ul class="aien-nav-secondary aien-nav-lang" aria-label="Language" translate="no" {
+                        li { a class="aien-nav-minor" href="/" hreflang="en" lang="en" { "English" } }
+                        @for (code, name) in LANGUAGES {
+                            li { a class="aien-nav-minor" href=(format!("/{code}/")) hreflang=(code) lang=(code) { (name) } }
                         }
                     }
                 }
@@ -125,5 +136,20 @@ mod tests {
     fn navbar_has_no_em_or_en_dash() {
         let html = render_navbar().into_string();
         assert!(!html.contains('\u{2014}') && !html.contains('\u{2013}'));
+    }
+
+    #[test]
+    fn every_listed_language_has_its_pages_and_a_menu_link() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let html = render_navbar().into_string();
+        assert!(html.contains(r#"hreflang="en""#), "menu must link back to English");
+        for (code, name) in LANGUAGES {
+            assert!(
+                root.join("public").join(code).join("index.html").exists(),
+                "language {code} is listed but public/{code}/index.html is missing"
+            );
+            assert!(html.contains(&format!(r#"href="/{code}/" hreflang="{code}""#)), "menu link for {code} missing");
+            assert!(html.contains(name), "menu name for {code} missing");
+        }
     }
 }

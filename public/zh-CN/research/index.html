@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>AIEN 研究</title>
+<meta content="AIEN 研究：来自 AIEN 项目的预印本、实验和公开证据。图灵（T）：一种协议绑定的净保留解释压缩度量。" name="description"/>
+
+<link href="/favicon.svg" rel="icon" type="image/svg+xml"/>
+<meta content="AIEN 研究" property="og:title"/>
+<meta content="来自 AIEN 项目的预印本和公开证据：图灵（T），一种协议绑定的解释压缩度量。" property="og:description"/>
+<meta content="https://aienos.com/research" property="og:url"/>
+<meta content="website" property="og:type"/>
+<meta content="https://aienos.com/og.png" property="og:image"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<link href="/assets/style.css" rel="stylesheet"/>
+<style>
+.research-wrap{max-width:880px;margin:0 auto;padding:48px 24px 96px}
+.kicker{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;color:var(--accent-blue);text-transform:uppercase;margin-bottom:16px}
+.page-title{font-size:clamp(32px,5vw,50px);font-weight:800;letter-spacing:-.02em;line-height:1.1;color:var(--text-primary);margin:0 0 14px}
+.lede{font-size:16.5px;color:var(--text-secondary);line-height:1.7;margin:0 0 44px;max-width:640px}
+.entry{display:block;border:1px solid var(--border-subtle);border-radius:12px;padding:26px 28px;margin:18px 0;background:var(--bg-card);text-decoration:none;transition:border-color .15s ease}
+a.entry:hover{border-color:var(--accent-blue)}
+.entry .kind{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-blue);margin-bottom:10px}
+.entry .title{font-size:22px;font-weight:700;color:var(--text-primary);letter-spacing:-.01em;margin:0 0 6px;line-height:1.3}
+.entry .sub{font-size:15px;color:var(--text-secondary);margin:0 0 12px;line-height:1.5}
+.entry .meta{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.badge{font-family:var(--font-mono);font-size:12px;padding:5px 12px;border-radius:999px;border:1px solid var(--border-subtle);color:var(--text-secondary)}
+.badge.preprint{border-color:var(--accent-amber);color:var(--accent-amber)}
+.badge.future{border-color:var(--text-muted);color:var(--text-muted)}
+.entry .desc{font-size:14px;color:var(--text-muted);line-height:1.65;margin:14px 0 0}
+.entry .readmore{font-family:var(--font-mono);font-size:13px;color:var(--accent-blue);margin-top:14px}
+div.entry.future{cursor:default}
+.topnav{border-bottom:1px solid var(--border-subtle);background:rgba(8,9,12,.85);backdrop-filter:blur(12px);position:sticky;top:0;z-index:50;padding:14px 0}
+.topnav .inner{max-width:1180px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.topnav a.brand{font-weight:700;color:var(--text-primary);text-decoration:none;font-size:17px;letter-spacing:-.02em}
+.topnav nav{display:flex;gap:22px;font-size:14px}
+.topnav nav a{color:var(--text-secondary);text-decoration:none}
+.topnav nav a.active{color:var(--accent-blue)}
+.footer-note{margin-top:56px;padding-top:24px;border-top:1px solid var(--border-subtle);font-size:13px;color:var(--text-muted);line-height:1.6}
+.footer-note a{color:var(--accent-blue);text-decoration:none}
+</style>
+<link href="/assets/site-nav.css" rel="stylesheet"/>
+<link href="/assets/turing-look.css" rel="stylesheet"/>
+<script defer="" src="/js/turing-look.js"></script>
+<link href="https://www.aienos.com/zh-CN/research/" rel="canonical"/><link href="https://www.aienos.com/research/" hreflang="en" rel="alternate"/><link href="https://www.aienos.com/zh-CN/research/" hreflang="zh-CN" rel="alternate"/></head>
+<body>
+<header class="aien-header"><div class="aien-header-inner"><a aria-label="AIENOS 主页" class="aien-brand" href="/zh-CN/"><span aria-hidden="true" class="aien-brand-mark"><svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" x2="20" y1="19" y2="19"></line></svg></span><span class="aien-brand-copy"><span class="aien-brand-name">AIENOS</span><span class="aien-brand-tag">持久的机器智能</span></span></a><nav aria-label="主要导航" class="aien-nav"><ul class="aien-nav-primary"><li><a class="aien-nav-link" href="/zh-CN/machine/">机器</a></li><li><a class="aien-nav-link" href="/zh-CN/turing/">图灵</a></li><li><a class="aien-nav-link" href="/zh-CN/experiments/">实验</a></li><li><a class="aien-nav-link" href="/zh-CN/discovery/">科学发现</a></li><li><a class="aien-nav-link" href="/zh-CN/evidence/">证据</a></li><li><a class="aien-nav-link" href="/zh-CN/philosophy/">哲学</a></li></ul><ul aria-label="更多" class="aien-nav-secondary"><li><a class="aien-nav-minor" href="/zh-CN/progress/">进展</a></li><li><a class="aien-nav-minor" href="/zh-CN/blog">博客</a></li><li><a class="aien-nav-minor" href="/zh-CN/#follow">关注</a></li><li><a class="aien-nav-minor" href="https://github.com/aien-dev">GitHub</a></li></ul></nav></div></header>
+<main class="research-wrap">
+<div class="kicker">AIEN 项目</div>
+<h1 class="page-title">AIEN 研究</h1>
+<p class="lede">AIEN项目中的预印本、实验和公开证据。核心线索：图灵（T），一种协议绑定的网络保留解释压缩度量，理解的一个可测量组成部分，图灵产出（T/J）通过能量对其实现归一化。所有预印本；尚未经过同行评审。</p>
+<a class="entry" href="/zh-CN/turing/">
+<div class="kind">交互式</div>
+<div class="title">图灵：实地指南</div>
+<div class="sub">体验该单位。游戏、实时计算以及其背后的理论。</div>
+<div class="meta"><span class="badge">M. Drake Stapleton · 2026年9月29日</span><span class="badge">交互式</span></div>
+<p class="desc">破解代码，运行规则实验室，与记忆器对战，见证首个真实测量结果，理解与搜索的研究方向，以及自然为何发明循环。</p>
+<div class="readmore">进入指南 →</div>
+</a>
+<a class="entry" href="/zh-CN/research/the-aien-papers">
+<div class="kind">完整合集</div>
+<div class="title">AIEN论文</div>
+<div class="sub">图灵单位、证据学说、语言设计与哲学。八份文件，一个研究计划。</div>
+<div class="meta"><span class="badge">M. Drake Stapleton · 2026年10月2日</span><span class="badge">120页</span><span class="badge preprint">未经过同行评审</span></div>
+<p class="desc">一卷本完整合集：正式图灵论文（v1.14）、配套工程史（v1.7）、通俗图灵简报（v1.4）、图灵发现缺口猜想（第9版）、Crumb学说（v1.4）、Omega语言设计、Stapleton学说（v1.5）以及Atemporal AIEN假说（v1.1）。包含首个基于配置的理想化图灵结果的完整TY-1+TY-2证据账本。</p>
+<div class="readmore">阅读合集 →</div>
+</a>
+<a class="entry" href="/zh-CN/research/computing-machinery-and-understanding">
+<div class="kind">正式预印本</div>
+<div class="title">计算机械与理解</div>
+<div class="sub">从模仿游戏到图灵：广义解释压缩的操作性度量</div>
+<div class="meta"><span class="badge">M. Drake Stapleton · 2026年10月2日</span><span class="badge">v1.14</span><span class="badge">首次记录测量结果</span><span class="badge preprint">未经过同行评审</span></div>
+<p class="desc">参考文档：图灵增益定义（1 T = 对声明基线的保留描述长度改进1比特），假设、使用密封数据与可复现证据的测量协议、相关工作及可证伪标准。首个基于配置的理想化结果于2026-09-29记录：TY-1+TY-2，在配置V0下获得+2,559,679.825 T_ideal，附完整证据账本。预注册实验阶梯EXP-001至EXP-003仍待进行。</p>
+<div class="readmore">阅读论文 →</div>
+</a>
+<a class="entry" href="/zh-CN/research/computing-machinery-and-understanding-emergence">
+<div class="kind">配套论文</div>
+<div class="title">计算机械与理解</div>
+<div class="sub">图灵作为从AIEN中涌现的度量</div>
+<div class="meta"><span class="badge">M. Drake Stapleton · 2026年10月2日</span><span class="badge">v1.7</span><span class="badge preprint">未经过同行评审</span></div>
+<p class="desc">该度量诞生的工程史：AIEN、Omega、PHYSICS、FORGE、AEGIS、ARGUS、Cortex，以及本地反应架构，附公开证据凭证（R13、R14、R15、TURING W0）及首个实验提案。</p>
+<div class="readmore">阅读论文 →</div>
+</a>
+<a class="entry" href="/zh-CN/research/the-stapleton-doctrine">
+<div class="kind">立场论文</div>
+<div class="title">斯台普顿学说</div>
+<div class="sub">人工智能架构与编程的个人哲学</div>
+<div class="meta"><span class="badge">M. Drake Stapleton · 2026年10月2日</span><span class="badge">v1.5</span><span class="badge">10页</span><span class="badge preprint">未经过同行评审</span></div>
+<p class="desc">架构背后的哲学，以一份立场文件的形式陈述。它提出了并回应了“英语比Ruby更适合编程”这一主张（David Heinemeier Hansson，Rails World 2026）：英语是对话，而非语言，而通用的成果是经过验证的程序。权重暗示，程序解释，Omega验证，物理授权，证据教学。该栈被逐层剥离，直至一个完全属于自己的基础，因为谁拥有解释器，谁就决定了你的语言意味着什么。</p>
+<div class="readmore">阅读论文 →</div>
+</a>
+<a class="entry" href="/zh-CN/research/the-turing-brief">
+<div class="kind">简述</div>
+<div class="title">图灵：已验证解释性增益的单位</div>
+<div class="sub">关于图灵单位的三页通俗语言简述</div>
+<div class="meta"><span class="badge">M. Drake Stapleton · 2026年10月2日</span><span class="badge">v1.4</span><span class="badge">3页</span><span class="badge preprint">未经同行评审</span></div>
+<p class="desc">图灵衡量什么，明确不衡量什么，以及什么将证明该解释错误，用通俗语言说明。完整的定义、证明和可证伪标准均存在于正式论文中。</p>
+<div class="readmore">阅读简述 →</div>
+</a>
+<a class="entry" href="/zh-CN/research/turing-discovery-gap-conjecture">
+<div class="kind">猜想</div>
+<div class="title">图灵发现差距猜想</div>
+<div class="sub">可用解释价值与可访问解释价值之间的差距</div>
+<div class="meta"><span class="badge">M. Drake Stapleton · 2026年10月2日</span><span class="badge">修订版 9</span><span class="badge">10页</span><span class="badge preprint">未经同行评审</span></div>
+<p class="desc">存在生成程序为 O(n) 紧凑形式，但可用图灵值为 Omega(n^2) 的世界，其中没有高效学习者能捕获固定比例的增益。命题 A 在单向函数假设下已证明；命题 B 已提出；命题 C 作为预注册草案（CEXP-1）提出。</p>
+<div class="readmore">阅读论文 →</div>
+</a>
+<a class="entry" href="/zh-CN/research/crumb-doctrine">
+<div class="kind">教义</div>
+<div class="title">碎屑法则</div>
+<div class="sub">无凭证，无 crumbs：机器的认识论构成</div>
+<div class="meta"><span class="badge">M. Drake Stapleton · 2026年10月2日</span><span class="badge">v1.4</span><span class="badge">5页</span><span class="badge preprint">未经同行评审</span></div>
+<p class="desc">主张通过验证被接纳，而非通过文字。语义定义行为，规范识别主张，凭证在明确假设下记录证据。检查、构建、验证、封存的生命周期，采用闭合失败的准入机制。</p>
+<div class="readmore">阅读论文 →</div>
+</a>
+<a class="entry" href="/zh-CN/research/omega-language">
+<div class="kind">语言设计</div>
+<div class="title">Omega：为已验证程序而构建的编程语言</div>
+<div class="sub">语义身份、承载证据的依赖关系，以及一个永不放任未经验证工作进入的外部代码边界</div>
+<div class="meta"><span class="badge">M. Drake Stapleton · 2026年10月2日</span><span class="badge">设计提案</span><span class="badge">9页</span><span class="badge preprint">未经同行评审</span></div>
+<p class="desc">一种语言设计，其中代码由其含义标识，每个依赖关系都携带证据，外部代码在可丢弃、无能力的本地工作者验证之前始终被视为数据。仅为设计提案，尚未实现。</p>
+<div class="readmore">阅读论文 →</div>
+</a>
+<a class="entry" href="/zh-CN/research/atemporal-aien-postulate">
+<div class="kind">公设</div>
+<div class="title">《无时态AIEN假说》</div>
+<div class="sub">无时钟的因果语义：AIEN 计算由因果依赖关系定义，而非事件发生的时间</div>
+<div class="meta"><span class="badge">M. Drake Stapleton · 2026年10月2日</span><span class="badge">v1.1</span><span class="badge">13页</span><span class="badge preprint">未经同行评审</span></div>
+<p class="desc">五个公设：无时间语义、因果顺序、不可变的因果过去、因果锥可接受性，以及调度不变性。Crumbline 不是时间线，而是因果记录。规定了调度不变性实验；该实验尚未运行。</p>
+<div class="readmore">阅读论文 →</div>
+</a>
+<div class="entry future">
+<div class="kind" style="color:var(--text-muted)">概念说明</div>
+<div class="title">因果整合区</div>
+<div class="sub">一个介于刚性与不稳定性之间的候选区域，整合可能存在于其中</div>
+<div class="meta"><span class="badge future">v2.3 版论文</span><span class="badge future">尚未在此网站发布</span></div>
+<p class="desc">一份配套概念论文。它提出整合度在有限带宽内达到峰值，该候选整合区（CIZ）定义了伽马（Gamma）、R、D、P 和 H 等量，并提出了 CIZ-000 至 CIZ-011 的实验来验证这一想法。这是一个带有命名实验的假设，而非结果。</p>
+<figure class="theory-fig">
+<div class="fig-kicker"><span>图 · CIZ 带</span><span class="fig-kind">概念示意图</span></div>
+<svg aria-label="Diagram: a gradient bar from rigidity to instability, with a bracket over the middle band marking the candidate integration zone" role="img" viewbox="0 0 880 284">
+<defs>
+<lineargradient id="f6-grad" x1="0" x2="1" y1="0" y2="0">
+<stop offset="0" stop-color="#2d7ff9"></stop><stop offset=".5" stop-color="#00e599"></stop><stop offset="1" stop-color="#f59e0b"></stop>
+</lineargradient>
+</defs>
+<text fill="#00e599" font-family="JetBrains Mono, monospace" font-size="12" letter-spacing="1.5" text-anchor="middle" x="348" y="26">CANDIDATE INTEGRATION ZONE (CIZ)</text>
+<path d="M 348 38 V 50 H 532 V 38" fill="none" stroke="#00e599" stroke-width="2"></path>
+<rect fill="url(#f6-grad)" height="44" opacity=".85" rx="10" width="800" x="40" y="56"></rect>
+<rect fill="#08090c" height="44" opacity=".45" width="293" x="40" y="56"></rect>
+<rect fill="#08090c" height="44" opacity=".45" width="293" x="547" y="56"></rect>
+<rect fill="none" height="44" stroke="#00e599" stroke-width="2" width="214" x="333" y="56"></rect>
+<text fill="#dbe5f5" font-size="13" font-weight="700" text-anchor="middle" x="186" y="82">TOO ORDERED</text>
+<text fill="#06110b" font-size="13" font-weight="700" text-anchor="middle" x="440" y="82">INTEGRATION ZONE</text>
+<text fill="#dbe5f5" font-size="13" font-weight="700" text-anchor="middle" x="693" y="82">TOO UNSTABLE</text>
+<text fill="#7db4ff" font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="2" x="40" y="132">RIGIDITY</text>
+<text fill="#f59e0b" font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="2" text-anchor="end" x="840" y="132">INSTABILITY</text>
+<text fill="#94a3b8" font-size="12.5" text-anchor="middle" x="440" y="152">Too ordered to integrate on the left; too unstable to hold on the right.</text>
+<text fill="#94a3b8" font-size="12.5" text-anchor="middle" x="440" y="172">Between them, a candidate zone where integration may live.</text>
+<line stroke="#1c2536" stroke-width="1.5" x1="40" x2="840" y1="196" y2="196"></line>
+<text fill="#64748b" font-size="12" x="40" y="226">A hypothesis with defined measures and named experiments, not a result.</text>
+<text fill="#64748b" font-size="12" x="40" y="246">The paper refuses easy shortcuts: incompleteness theorems say nothing about consciousness.</text>
+</svg>
+<figcaption><strong>因果整合区（Causal Integration Zone）</strong>。在刚性与不稳定性之间，概念论文将一个候选带定位为整合度被假设上升的区域。概念示意图。CIZ 论文是一份假设性文档，而非测量结果，且尚未在此网站发布。</figcaption>
+</figure>
+</div>
+<div class="entry future">
+<div class="kind" style="color:var(--text-muted)">即将发布</div>
+<div class="title">随机规律发现</div>
+<div class="sub">在不可约噪声下测试解释压缩</div>
+<div class="meta"><span class="badge future">EXP-002 A/B/C 通过（仅布朗运动仪器认证）</span><span class="badge future">EXP-002D 未完成</span></div>
+<p class="desc">实验阶梯中的 EXP-002：一个隐藏评估器从一个未公开的随机规律生成量化轨迹：纯扩散、带漂移的扩散或均值回归。候选者必须在密封的保留轨迹上获得复杂度，而不能在噪声中发明结构。EXP-002 A、B 和 C 在已知布朗运动情况下通过了仪器认证；EXP-002D 未完成。完整的实验阶梯（包含失败运行）可在论文页面上找到。</p>
+</div>
+<div class="footer-note">版本永不覆盖：每次发布均保留其 PDF、LaTeX 源文件和 SHA-256 摘要。源代码、证据和可复现材料公开于 <a href="https://github.com/aien-dev" rel="noopener" target="_blank">github.com/aien-dev</a>。</div>
+</main>
+</body>
+</html>

@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport"/>
+<meta content="light dark" name="color-scheme"/>
+<link href="data:," rel="icon"/>
+<title>后大语言模型时代案例</title>
+<link href="/assets/site-nav.css" rel="stylesheet"/>
+<style>
+    :root {
+      color-scheme: light dark;
+      --paper: #f3f6f4;
+      --ink: #10211f;
+      --muted: #52625e;
+      --line: #bac7c2;
+      --line-strong: #7f918b;
+      --surface: #ffffff;
+      --surface-2: #e7eeeb;
+      --deep: #0d2925;
+      --deep-ink: #f0f7f3;
+      --green: #087f62;
+      --green-2: #32bd8a;
+      --coral: #ed5d48;
+      --gold: #c58212;
+      --shadow: 0 22px 60px rgba(13, 41, 37, .10);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --paper: #0c1211;
+        --ink: #e8f0ed;
+        --muted: #a9b8b3;
+        --line: #34433f;
+        --line-strong: #697a74;
+        --surface: #121c1a;
+        --surface-2: #172421;
+        --deep: #071d19;
+        --deep-ink: #eef8f3;
+        --green: #4bd3a1;
+        --green-2: #70e1b8;
+        --coral: #ff7864;
+        --gold: #e3ae50;
+        --shadow: 0 22px 60px rgba(0, 0, 0, .32);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Public Sans", sans-serif;
+      line-height: 1.55;
+      text-rendering: optimizeLegibility;
+    }
+    a { color: inherit; text-underline-offset: 3px; }
+    a:hover { color: var(--green); }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    .mono, .kicker, .stat .label, .source-tag, .pipeline-label, .eyebrow, .chart-note {
+      font-family: "IBM Plex Mono", monospace;
+    }
+    .wrap { width: min(1180px, calc(100% - 48px)); margin: 0 auto; }
+    .rule { border-top: 1px solid var(--line); }
+    .top-index {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: color-mix(in srgb, var(--paper) 92%, transparent);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--line);
+    }
+    .top-index .wrap {
+      min-height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+    .index-mark { font: 600 12px/1 "IBM Plex Mono", monospace; letter-spacing: .08em; }
+    .index-links { display: flex; gap: 20px; font: 500 12px/1 "IBM Plex Mono", monospace; }
+    .index-links a { text-decoration: none; color: var(--muted); }
+    .index-links a:hover { color: var(--ink); }
+
+    .hero {
+      min-height: 82vh;
+      display: grid;
+      align-items: end;
+      background: var(--deep);
+      color: var(--deep-ink);
+      position: relative;
+      overflow: hidden;
+      padding: 72px 0 54px;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      width: 720px;
+      height: 720px;
+      right: -210px;
+      top: -280px;
+      border: 1px solid rgba(112, 225, 184, .28);
+      border-radius: 50%;
+      box-shadow: 0 0 0 70px rgba(112, 225, 184, .035), 0 0 0 150px rgba(112, 225, 184, .025);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: .13;
+      background-image: linear-gradient(rgba(255,255,255,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.3) 1px, transparent 1px);
+      background-size: 52px 52px;
+      mask-image: linear-gradient(to bottom, black, transparent 78%);
+      pointer-events: none;
+    }
+    .hero-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1.5fr .7fr;
+      gap: 56px;
+      align-items: end;
+    }
+    .eyebrow { color: var(--green-2); font-size: 12px; letter-spacing: .12em; margin-bottom: 26px; }
+    h1 {
+      margin: 0;
+      max-width: 900px;
+      font-size: clamp(54px, 8.8vw, 126px);
+      line-height: .88;
+      letter-spacing: -.072em;
+      font-weight: 800;
+    }
+    .hero-copy { max-width: 680px; margin: 34px 0 0; font-size: clamp(18px, 2vw, 25px); line-height: 1.35; color: #c9d9d3; }
+    .hero-side { border-left: 1px solid rgba(255,255,255,.25); padding-left: 24px; }
+    .hero-side p { margin: 0 0 22px; color: #c9d9d3; font-size: 15px; }
+    .hero-side strong { display: block; color: white; font-size: 16px; margin-bottom: 4px; }
+    .hero-side .date { font: 500 12px/1.5 "IBM Plex Mono", monospace; color: var(--green-2); }
+
+    section { padding: 96px 0; scroll-margin-top: 70px; }
+    .section-head {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 36px;
+      align-items: start;
+      margin-bottom: 56px;
+    }
+    .kicker { font-size: 12px; letter-spacing: .1em; color: var(--green); padding-top: 11px; }
+    h2 {
+      margin: 0;
+      max-width: 820px;
+      font-size: clamp(36px, 5vw, 70px);
+      line-height: 1.01;
+      letter-spacing: -.055em;
+    }
+    .lede { max-width: 720px; margin: 24px 0 0 196px; font-size: 19px; color: var(--muted); }
+    .note { font-size: 13px; color: var(--muted); }
+
+    .thesis {
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      margin-top: -1px;
+    }
+    .thesis-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid var(--line-strong);
+      border-bottom: 1px solid var(--line-strong);
+    }
+    .thesis-item { padding: 34px 30px 38px 0; }
+    .thesis-item + .thesis-item { border-left: 1px solid var(--line); padding-left: 30px; }
+    .thesis-num { font: 600 12px/1 "IBM Plex Mono", monospace; color: var(--coral); }
+    .thesis-item h3 { font-size: 24px; line-height: 1.12; margin: 28px 0 14px; letter-spacing: -.035em; }
+    .thesis-item p { margin: 0; color: var(--muted); }
+
+    .signal-band { background: var(--deep); color: var(--deep-ink); }
+    .signal-band .kicker { color: var(--green-2); }
+    .signal-band .section-head { margin-bottom: 66px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid rgba(255,255,255,.28); }
+    .stat { padding: 32px 24px 24px 0; min-height: 230px; }
+    .stat + .stat { border-left: 1px solid rgba(255,255,255,.18); padding-left: 24px; }
+    .stat .label { color: #86d9ba; font-size: 11px; letter-spacing: .08em; }
+    .stat .value { font-size: clamp(42px, 5.2vw, 72px); line-height: 1; letter-spacing: -.06em; font-weight: 800; margin: 24px 0 12px; white-space: nowrap; }
+    .stat p { margin: 0; color: #bed0c9; font-size: 14px; }
+    .source-tag { font-size: 10px; color: #86d9ba; text-decoration: none; display: inline-block; margin-top: 16px; }
+
+    .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 56px; }
+    .chart-card { border-top: 1px solid rgba(255,255,255,.28); padding-top: 24px; }
+    .chart-card h3 { margin: 0 0 6px; font-size: 21px; }
+    .chart-note { margin: 0 0 20px; color: #9eb5ad; font-size: 11px; }
+    .chart { width: 100%; min-height: 270px; }
+    .chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+
+    .impact-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: 64px; align-items: start; }
+    .impact-callout { position: sticky; top: 90px; }
+    .impact-callout .big { font-size: clamp(70px, 10vw, 132px); line-height: .8; letter-spacing: -.08em; font-weight: 800; color: var(--coral); }
+    .impact-callout h3 { font-size: 28px; line-height: 1.1; margin: 24px 0 12px; }
+    .impact-callout p { color: var(--muted); margin: 0; }
+    .cases { border-top: 1px solid var(--line-strong); }
+    .case { display: grid; grid-template-columns: 118px 1fr; gap: 24px; padding: 28px 0; border-bottom: 1px solid var(--line); }
+    .case-place { font: 600 12px/1.5 "IBM Plex Mono", monospace; color: var(--green); }
+    .case h3 { margin: 0 0 10px; font-size: 22px; letter-spacing: -.025em; }
+    .case p { margin: 0; color: var(--muted); }
+    .case .qualifier { display: inline-block; margin-top: 12px; font: 500 10px/1.4 "IBM Plex Mono", monospace; color: var(--coral); }
+
+    .idle { background: var(--surface-2); }
+    .proof-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 24px; }
+    .proof-main {
+      background: var(--surface);
+      padding: 42px;
+      border-top: 7px solid var(--green);
+      box-shadow: var(--shadow);
+    }
+    .proof-main .massive { font-size: clamp(72px, 12vw, 148px); line-height: .9; letter-spacing: -.08em; font-weight: 800; }
+    .proof-main h3 { font-size: 28px; margin: 26px 0 12px; }
+    .proof-main p { color: var(--muted); max-width: 640px; }
+    .proof-stack { display: grid; gap: 18px; }
+    .proof-mini { padding: 28px; background: var(--deep); color: var(--deep-ink); }
+    .proof-mini.alt { background: var(--coral); color: #1e100c; }
+    .proof-mini .n { font-size: 42px; line-height: 1; letter-spacing: -.055em; font-weight: 800; }
+    .proof-mini h3 { margin: 18px 0 8px; font-size: 19px; }
+    .proof-mini p { margin: 0; opacity: .82; font-size: 14px; }
+    .honesty {
+      margin-top: 34px;
+      padding: 24px 0;
+      border-top: 1px solid var(--line-strong);
+      border-bottom: 1px solid var(--line-strong);
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 36px;
+    }
+    .honesty strong { font: 600 12px/1.5 "IBM Plex Mono", monospace; color: var(--coral); }
+    .honesty p { margin: 0; max-width: 790px; }
+
+    .voices { background: var(--surface); }
+    .quote-stage { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--line-strong); }
+    blockquote { margin: 0; padding: 42px 42px 42px 0; }
+    blockquote + blockquote { border-left: 1px solid var(--line); padding-left: 42px; }
+    blockquote p { margin: 0; font-size: clamp(25px, 3.2vw, 39px); line-height: 1.16; letter-spacing: -.04em; font-weight: 600; }
+    blockquote footer { margin-top: 26px; color: var(--muted); font-size: 13px; }
+    blockquote footer a { color: var(--green); }
+    .convergence { margin-top: 44px; display: grid; grid-template-columns: 160px 1fr; gap: 36px; }
+    .convergence .arrow { font-size: 56px; line-height: 1; color: var(--coral); }
+    .convergence p { margin: 0; max-width: 780px; font-size: 23px; line-height: 1.35; }
+
+    .definition { background: var(--deep); color: var(--deep-ink); }
+    .definition .kicker { color: var(--green-2); }
+    .nameplate { border-top: 1px solid rgba(255,255,255,.28); border-bottom: 1px solid rgba(255,255,255,.28); padding: 34px 0 38px; margin-bottom: 62px; }
+    .nameplate .label { font: 500 11px/1.4 "IBM Plex Mono", monospace; color: var(--green-2); letter-spacing: .1em; }
+    .nameplate h3 { margin: 14px 0 10px; font-size: clamp(36px, 6vw, 76px); line-height: .98; letter-spacing: -.055em; }
+    .nameplate p { color: #bed0c9; max-width: 760px; font-size: 18px; margin: 0; }
+    .model-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: 48px; }
+    .model-card { background: #123830; padding: 34px; }
+    .model-card .model-class { font: 600 12px/1.4 "IBM Plex Mono", monospace; color: var(--green-2); }
+    .model-card h3 { margin: 18px 0 14px; font-size: 34px; letter-spacing: -.04em; }
+    .model-card p { margin: 0; color: #c8d9d3; }
+    .two-learnings { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: rgba(255,255,255,.2); }
+    .learning { background: var(--deep); padding: 8px 26px 28px; }
+    .learning .num { font-size: 48px; font-weight: 800; color: var(--coral); }
+    .learning h3 { margin: 4px 0 10px; font-size: 22px; }
+    .learning p { margin: 0; color: #b9ccc5; font-size: 14px; }
+    .not-rl { margin-top: 36px; padding: 24px 28px; border: 1px solid rgba(255,255,255,.24); display: grid; grid-template-columns: 150px 1fr; gap: 24px; }
+    .not-rl strong { font: 600 12px/1.5 "IBM Plex Mono", monospace; color: var(--coral); }
+    .not-rl p { margin: 0; color: #ccdad5; }
+
+    .machine { background: var(--surface); }
+    .machine .section-head { margin-bottom: 34px; }
+    .machine-intro {
+      margin: 0 0 42px 196px;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+    .machine-key {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 22px;
+      margin-bottom: 22px;
+      font: 600 10px/1.4 "IBM Plex Mono", monospace;
+      letter-spacing: .08em;
+      color: var(--muted);
+    }
+    .machine-key span { display: inline-flex; align-items: center; gap: 9px; }
+    .machine-key i { width: 22px; height: 4px; background: var(--green); display: inline-block; }
+    .machine-key .planned-key i { background: var(--gold); }
+    .machine-read {
+      margin: 0 0 12px;
+      text-align: center;
+      font: 500 10px/1.4 "IBM Plex Mono", monospace;
+      letter-spacing: .1em;
+      color: var(--green);
+    }
+    .machine-stack { display: grid; gap: 10px; }
+    .machine-layer {
+      width: var(--layer-width);
+      margin-inline: auto;
+      padding: 24px 26px;
+      background: var(--paper);
+      box-shadow: inset 0 4px 0 var(--green);
+      display: grid;
+      grid-template-columns: 160px minmax(0, 1fr) 172px;
+      gap: 24px;
+      align-items: center;
+    }
+    .machine-layer.planned-edge { box-shadow: inset 0 4px 0 var(--gold); }
+    .machine-layer h3 {
+      margin: 0;
+      font-size: clamp(24px, 3vw, 38px);
+      line-height: 1;
+      letter-spacing: -.045em;
+    }
+    .machine-layer p { margin: 0; color: var(--muted); }
+    .machine-layer .machine-line {
+      margin-top: 7px;
+      font: 600 11px/1.5 "IBM Plex Mono", monospace;
+      color: var(--green);
+    }
+    .machine-status {
+      justify-self: end;
+      text-align: right;
+      font: 600 10px/1.45 "IBM Plex Mono", monospace;
+      letter-spacing: .06em;
+      color: var(--green);
+    }
+    .machine-status.planned { color: var(--gold); }
+    .roadmap { margin-top: 70px; }
+    .roadmap-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: end;
+      margin-bottom: 20px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line-strong);
+    }
+    .roadmap-head h3 { margin: 0; font-size: 30px; letter-spacing: -.035em; }
+    .roadmap-head p { margin: 0; max-width: 590px; color: var(--muted); font-size: 14px; }
+    .era-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
+    .era {
+      min-height: 174px;
+      padding: 18px 14px 20px;
+      background: var(--surface-2);
+      border-top: 5px solid var(--green);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .era.planned {
+      border-top-color: var(--gold);
+      background: color-mix(in srgb, var(--surface-2) 72%, var(--paper));
+    }
+    .era-range { font: 600 11px/1 "IBM Plex Mono", monospace; color: var(--green); }
+    .era.planned .era-range { color: var(--gold); }
+    .era h4 { margin: 0; font-size: 15px; line-height: 1.25; letter-spacing: -.018em; }
+    .era-state { font: 500 9px/1.3 "IBM Plex Mono", monospace; letter-spacing: .07em; color: var(--muted); }
+    .succession {
+      margin-top: 2px;
+      background: var(--deep);
+      color: var(--deep-ink);
+      padding: 25px 28px;
+      display: grid;
+      grid-template-columns: 210px 1fr;
+      gap: 28px;
+      align-items: center;
+    }
+    .succession strong { font: 600 12px/1.5 "IBM Plex Mono", monospace; color: var(--gold); }
+    .succession p { margin: 0; color: #ccdad5; font-size: 17px; }
+
+    .pipelines { background: var(--paper); }
+    .pipeline-compare { display: grid; gap: 34px; }
+    .pipeline { border-top: 1px solid var(--line-strong); padding-top: 22px; }
+    .pipeline-label { font-size: 11px; letter-spacing: .1em; color: var(--green); margin-bottom: 18px; }
+    .flow { display: flex; align-items: stretch; gap: 0; }
+    .step { flex: 1 1 0; padding: 17px 13px; background: var(--surface); border: 1px solid var(--line); min-width: 0; font-size: 12px; font-weight: 700; display: grid; place-items: center; text-align: center; line-height: 1.25; }
+    .step + .step { border-left: 0; }
+    .arrow-step { flex: 0 0 26px; display: grid; place-items: center; color: var(--coral); }
+    .flow.aien .step:nth-child(4), .flow.aien .step:nth-child(12) { background: var(--deep); color: var(--deep-ink); }
+    .flow.llm { max-width: 720px; }
+    .flow.llm .step { color: var(--muted); }
+    .analogy { margin-top: 38px; padding: 28px 34px; background: var(--surface-2); display: grid; grid-template-columns: 160px 1fr; gap: 30px; }
+    .analogy strong { font: 600 12px/1.5 "IBM Plex Mono", monospace; color: var(--green); }
+    .analogy p { margin: 0; font-size: 18px; }
+
+    .memory { background: var(--surface); }
+    .memory-grid { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong); }
+    .memory-item { padding: 26px 22px 30px 0; }
+    .memory-item + .memory-item { border-left: 1px solid var(--line); padding-left: 22px; }
+    .memory-item .mnum { font: 600 11px/1 "IBM Plex Mono", monospace; color: var(--coral); }
+    .memory-item h3 { margin: 22px 0 10px; font-size: 18px; }
+    .memory-item p { margin: 0; font-size: 13px; color: var(--muted); }
+    .authority { margin-top: 34px; font-size: 26px; line-height: 1.25; max-width: 820px; font-weight: 700; letter-spacing: -.03em; }
+    .authority span { color: var(--coral); }
+
+    .tests { background: var(--surface-2); }
+    .test-list { border-top: 1px solid var(--line-strong); }
+    .test { display: grid; grid-template-columns: 70px 1.2fr 1fr; gap: 28px; padding: 26px 0; border-bottom: 1px solid var(--line); }
+    .test .tn { font: 600 12px/1.5 "IBM Plex Mono", monospace; color: var(--coral); }
+    .test h3 { margin: 0; font-size: 21px; }
+    .test p { margin: 0; color: var(--muted); }
+
+    .sources { padding-bottom: 72px; }
+    .sources h2 { font-size: 34px; }
+    .source-list { columns: 2; column-gap: 54px; margin: 36px 0 0; padding: 0; list-style: none; counter-reset: sources; }
+    .source-list li { counter-increment: sources; break-inside: avoid; padding: 15px 0 15px 34px; border-top: 1px solid var(--line); position: relative; font-size: 13px; color: var(--muted); }
+    .source-list li::before { content: counter(sources, decimal-leading-zero); position: absolute; left: 0; top: 16px; font: 500 10px/1 "IBM Plex Mono", monospace; color: var(--green); }
+    .source-list a { color: var(--ink); font-weight: 700; }
+    .closing { margin-top: 58px; padding-top: 28px; border-top: 4px solid var(--ink); display: flex; justify-content: space-between; gap: 24px; align-items: baseline; }
+    .closing strong { font-size: 23px; letter-spacing: -.02em; }
+    .closing span { font: 500 11px/1.5 "IBM Plex Mono", monospace; color: var(--muted); }
+
+    @media (max-width: 900px) {
+      .wrap { width: min(100% - 32px, 760px); }
+      .hero { min-height: auto; padding: 88px 0 46px; }
+      .hero-grid, .impact-grid, .model-grid, .proof-grid { grid-template-columns: 1fr; }
+      .hero-side { margin-top: 20px; }
+      .section-head { grid-template-columns: 105px 1fr; gap: 18px; }
+      .lede, .machine-intro { margin-left: 123px; }
+      .machine-layer { grid-template-columns: 126px minmax(0, 1fr) 150px; }
+      .era-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .era { min-height: 150px; }
+      .stat-grid { grid-template-columns: 1fr 1fr; }
+      .stat:nth-child(3) { border-left: 0; padding-left: 0; border-top: 1px solid rgba(255,255,255,.18); }
+      .stat:nth-child(4) { border-top: 1px solid rgba(255,255,255,.18); }
+      .impact-callout { position: static; }
+      .memory-grid { grid-template-columns: 1fr 1fr; }
+      .memory-item:nth-child(3), .memory-item:nth-child(5) { border-left: 0; padding-left: 0; }
+      .memory-item:nth-child(n+3) { border-top: 1px solid var(--line); }
+      .flow { flex-wrap: wrap; gap: 8px; }
+      .step { flex: 1 1 27%; border: 1px solid var(--line) !important; min-height: 58px; }
+      .arrow-step { display: none; }
+    }
+    @media (max-width: 640px) {
+      .wrap { width: min(100% - 28px, 560px); }
+      .top-index .wrap { min-height: 48px; }
+      .index-links { gap: 12px; overflow: hidden; }
+      .index-links a:nth-child(2), .index-links a:nth-child(4) { display: none; }
+      h1 { font-size: clamp(52px, 18vw, 82px); }
+      .hero-copy { font-size: 18px; }
+      section { padding: 68px 0; }
+      .section-head { display: block; margin-bottom: 36px; }
+      .section-head .kicker { margin-bottom: 18px; }
+      .lede, .machine-intro { margin: 18px 0 0; font-size: 17px; }
+      .machine-intro { margin-bottom: 34px; }
+      .machine-key { gap: 14px; }
+      .machine-layer { width: 100%; grid-template-columns: 1fr; gap: 12px; padding: 22px 20px; }
+      .machine-status { justify-self: start; text-align: left; }
+      .roadmap { margin-top: 52px; }
+      .roadmap-head { display: block; }
+      .roadmap-head p { margin-top: 10px; }
+      .era-grid { grid-template-columns: 1fr; gap: 8px; }
+      .era { min-height: 0; padding: 18px 20px; gap: 10px; }
+      .succession { grid-template-columns: 1fr; gap: 10px; padding: 22px 20px; }
+      .thesis-grid, .stat-grid, .chart-row, .quote-stage, .two-learnings, .memory-grid { grid-template-columns: 1fr; }
+      .thesis-item { padding: 27px 0; }
+      .thesis-item + .thesis-item { border-left: 0; border-top: 1px solid var(--line); padding-left: 0; }
+      .stat { min-height: 0; padding: 25px 0; }
+      .stat + .stat, .stat:nth-child(4) { border-left: 0; border-top: 1px solid rgba(255,255,255,.18); padding-left: 0; }
+      .chart-row { gap: 40px; }
+      .case { grid-template-columns: 1fr; gap: 8px; }
+      .proof-main { padding: 28px; }
+      .honesty, .convergence, .not-rl, .analogy { grid-template-columns: 1fr; gap: 12px; }
+      blockquote { padding: 30px 0; }
+      blockquote + blockquote { border-left: 0; border-top: 1px solid var(--line); padding-left: 0; }
+      .model-card { padding: 26px; }
+      .learning { padding: 22px 0; }
+      .learning + .learning { border-top: 1px solid rgba(255,255,255,.2); }
+      .flow { display: grid; grid-template-columns: 1fr 1fr; }
+      .step { min-height: 64px; }
+      .memory-item, .memory-item + .memory-item, .memory-item:nth-child(3), .memory-item:nth-child(5) { border-left: 0; border-top: 1px solid var(--line); padding: 24px 0; }
+      .memory-item:first-child { border-top: 0; }
+      .test { grid-template-columns: 44px 1fr; gap: 14px; }
+      .test p { grid-column: 2; }
+      .source-list { columns: 1; }
+      .closing { display: block; }
+      .closing span { display: block; margin-top: 10px; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  </style>
+<link href="/assets/turing-look.css" rel="stylesheet"/>
+<script defer="" src="/js/turing-look.js"></script>
+<link href="https://www.aienos.com/zh-CN/post-llm-case/" rel="canonical"/><link href="https://www.aienos.com/post-llm-case/" hreflang="en" rel="alternate"/><link href="https://www.aienos.com/zh-CN/post-llm-case/" hreflang="zh-CN" rel="alternate"/></head>
+<body>
+<!-- Shared six-section site header (NARR-NAV). Keep in sync with crates/site-builder/src/components/navbar.rs; a test checks the six links. -->
+<header class="aien-header" data-sticky="off">
+<div class="aien-header-inner">
+<a aria-label="AIENOS 主页" class="aien-brand" href="/zh-CN/"><span aria-hidden="true" class="aien-brand-mark"><svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" x2="20" y1="19" y2="19"></line></svg></span> <span class="aien-brand-copy"><span class="aien-brand-name">AIENOS</span><span class="aien-brand-tag">持久机器智能</span></span></a>
+<nav aria-label="主要导航" class="aien-nav">
+<ul class="aien-nav-primary">
+<li><a class="aien-nav-link" href="/zh-CN/machine/">机器</a></li>
+<li><a class="aien-nav-link" href="/zh-CN/turing/">图灵</a></li>
+<li><a class="aien-nav-link" href="/zh-CN/experiments/">实验</a></li>
+<li><a class="aien-nav-link" href="/zh-CN/discovery/">科学发现</a></li>
+<li><a class="aien-nav-link" href="/zh-CN/evidence/">证据</a></li>
+<li><a class="aien-nav-link" href="/zh-CN/philosophy/">哲学</a></li>
+</ul>
+<ul aria-label="更多" class="aien-nav-secondary">
+<li><a class="aien-nav-minor" href="/zh-CN/progress/">进展</a></li>
+<li><a class="aien-nav-minor" href="/zh-CN/blog">博客</a></li>
+<li><a class="aien-nav-minor" href="/zh-CN/#follow">关注</a></li>
+<li><a class="aien-nav-minor" href="https://github.com/aien-dev">GitHub</a></li>
+</ul>
+</nav>
+</div>
+</header>
+<nav aria-label="页面章节" class="top-index">
+<div class="wrap">
+<span class="index-mark">研究 / 2026</span>
+<div class="index-links"><a href="#cost">成本</a> <a href="#idle">闲置算力</a> <a href="#critique">批判</a> <a href="#model">模型</a> <a href="#machine">机器</a> <a href="#sources">来源</a></div>
+</div>
+</nav>
+<header class="hero">
+<div class="wrap hero-grid">
+<div>
+<div class="eyebrow">下一个案例：超越下一个词预测</div>
+<h1>机器比房子还要大。</h1>
+<p class="hero-copy">集中式人工智能正在消耗越来越多的电力、水资源、资本和公众耐心。另一条路径始于一个不同的问题：不是“下一个词是什么？”，而是“下一个值得尝试的操作是什么？”</p>
+</div>
+<aside class="hero-side">
+<p><strong>研究快照</strong>证据与来源审查于 2026 年 9 月 27 日。</p>
+<p><strong>核心主张</strong>该论点并非认为每个数据中心都无用。而是指出，集中式语言预测的扩展不能被视为机器智能的唯一路径。</p>
+<div class="date">固定快照 · 非实时数据</div>
+</aside>
+</div>
+</header>
+<section class="thesis" id="case">
+<div class="wrap">
+<div class="section-head">
+<div class="kicker">00 / 论点</div>
+<h2>三个失败指向同一方向。</h2>
+</div>
+<div class="thesis-grid">
+<article class="thesis-item">
+<div class="thesis-num">01</div>
+<h3>集中式扩展正遭遇基础设施限制。</h3>
+<p>电力供应正成为关键约束，而水资源使用、污染、传输成本以及当地反对意见已超出数据中心围墙。</p>
+</article>
+<article class="thesis-item">
+<div class="thesis-num">02</div>
+<h3>有用的算力早已存在于集群之外。</h3>
+<p>消费级硬件和企业设备群中存在闲置容量。Folding@home 证明了协调的志愿者机器可以实现非凡的分布式计算规模。</p>
+</article>
+<article class="thesis-item">
+<div class="thesis-num">03</div>
+<h3>仅靠下一个词预测可能不足以实现对世界的理解。</h3>
+<p>理查德·萨顿和杨·勒昆认为，智能需要目标、经验、世界模型和后果，而不仅仅是更大的文本预测系统。</p>
+</article>
+</div>
+</div>
+</section>
+<section class="signal-band" id="cost">
+<div class="wrap">
+<div class="section-head">
+<div class="kicker">01 / 扩展</div>
+<h2>账单已不再抽象。</h2>
+</div>
+<div class="stat-grid">
+<article class="stat">
+<div class="label">全球数据中心 · 2026</div>
+<div class="value" id="energyValue">565 太瓦时</div>
+<p>Gartner 的估计，高于 2025 年的 447 太瓦时。</p>
+<a class="source-tag" href="https://www.gartner.com/en/newsroom/press-releases/2026-06-10-gartner-says-data-center-electricity-demand-to-grow-26-percent-in-2026" rel="noopener" target="_blank">GARTNER ↗</a>
+</article>
+<article class="stat">
+<div class="label">冷却水 · 2025</div>
+<div class="value">222B L</div>
+<p>Rystad Energy 对直接冷却水的估计。若不采取适应性措施，其风险中心情景到 2030 年将接近 6440 亿升。</p>
+<a class="source-tag" href="https://www.rystadenergy.com/news/data-center-water-consumption-could-triple-by-2030" rel="noopener" target="_blank">RYSTAD ENERGY ↗</a>
+</article>
+<article class="stat">
+<div class="label">PJM 批发容量清算价格</div>
+<div class="value">+1,053%</div>
+<p>从 2024/25 年的每兆瓦日 28.92 美元上升至 2027/28 年的每兆瓦日 333.44 美元。</p>
+<a class="source-tag" href="https://pjm.com/-/media/DotCom/markets-ops/rpm/rpm-auction-info/2027-2028/2027-2028-bra-report.pdf?_sp=656a1595-d27e-4e09-9309-eb3bba2e7dc2" rel="noopener" target="_blank">PJM ↗</a>
+</article>
+<article class="stat">
+<div class="label">预计 AI 建设规模 · 2025，32</div>
+<div class="value">$10.3T</div>
+<p>布鲁金斯经济活动论文预测，建筑、电力、网络和芯片领域的平均投资将占美国 GDP 的 3.63%。这是某篇论文的模型预测，而非已承诺支出或机构预测。</p>
+<a class="source-tag" href="https://www.brookings.edu/articles/financing-the-ai-buildout/" rel="noopener" target="_blank">BROOKINGS ↗</a>
+</article>
+</div>
+<div class="chart-row">
+<article class="chart-card">
+<h3>全球数据中心电力</h3>
+<p class="chart-note">太瓦时 · 零基准 · 2025 至 2026</p>
+<div aria-label="柱状图对比2025年全球数据中心用电量447太瓦时与2026年565太瓦时" class="chart" id="chartGlobal" role="img"></div>
+</article>
+<article class="chart-card">
+<h3>AI 优化服务器电力</h3>
+<p class="chart-note">太瓦时 · 零基准 · 2025 至 2027</p>
+<div aria-label="柱状图显示AI优化服务器用电量从2025年的95太瓦时上升至2026年的175太瓦时，再到2027年的258太瓦时" class="chart" id="chartAI" role="img"></div>
+</article>
+</div>
+<p class="note">这两组数据均为 Gartner 在 2026 年 6 月报告的估计值。2027 年的 AI 服务器数值为预测值。</p>
+</div>
+</section>
+<section id="communities">
+<div class="wrap">
+<div class="section-head">
+<div class="kicker">02 / 影响</div>
+<h2>社区承受外部性。</h2>
+</div>
+<div class="impact-grid">
+<aside class="impact-callout">
+<div class="big">75%</div>
+<h3>在 Heatmap Pro/Embold 调查中反对在其社区建设数据中心的注册选民比例</h3>
+<p>该调查包含 2,045 名注册选民，于 2026 年 8 月 8 日至 13 日进行，误差范围为正负 2.3 个百分点。在问题不变的情况下，2025 年反对率为 42%，支持率为 43%；2026 年反对率上升至 75%，支持率降至 15%。</p>
+<a class="source-tag" href="https://heatmap.news/daily/data-center-opposition-poll-collapse" rel="noopener" target="_blank">HEATMAP ↗</a>
+</aside>
+<div class="cases">
+<article class="case">
+<div class="case-place">MEMPHIS</div>
+<div>
+<h3>污染成为法律问题。</h3>
+<p>在 2026 年 4 月的一起诉讼中，原告指控位于密西西比州南文市、为孟菲斯 Colossus 2 供电的 27 台未获许可的甲烷燃气涡轮机，每年可能排放超过 1,700 吨氮氧化物、180 吨细颗粒物和 19 吨甲醛。</p>
+<span class="qualifier">原告在诉讼中的指控</span><br/>
+<a class="source-tag" href="https://earthjustice.org/press/2026/xai-sued-for-illegal-power-plant" rel="noopener" target="_blank">NAACP / EARTHJUSTICE ↗</a>
+</div>
+</article>
+<article class="case">
+<div class="case-place">乌拉圭</div>
+<div>
+<h3>设计随水资源评估而调整。</h3>
+<p>早期提出的方案据称每日需水量达 760 万升，相当于约 5.5 万人的每日家庭用水量。当前设计改为空气冷却。谷歌表示其流域评估未达到负责任使用标准，乌拉圭政府确认了修订后的风冷设计方案。这一证据并不能证明公众反对导致了设计变更。</p>
+<a class="source-tag" href="https://storage.googleapis.com/gweb-mobius-cdn/sustainability/uploads/21455428735c7305f2cb5c0038fc14bb0803abb8.pdf" rel="noopener" target="_blank">GOOGLE ↗</a>
+<a class="source-tag" href="https://documentos.diputados.gub.uy/docs/L50/Original/02242.pdf" rel="noopener" target="_blank">乌拉圭政府 ↗</a>
+</div>
+</article>
+<article class="case">
+<div class="case-place">PJM 电网</div>
+<div>
+<h3>建模容量成本影响家庭。</h3>
+<p>在 2025/26 年拍卖中，Monitoring Analytics 通过反事实分析估算数据中心负荷的贡献。这些是建模敏感性估计值，而非直接计量的因果费用。IEEFA 报告称，建模贡献约为 63%，即 93 亿美元，俄亥俄州平均家庭每月影响约 16 美元，西马里兰州约 18 美元。</p>
+<a class="source-tag" href="http://www.monitoringanalytics.com/reports/reports/2026/IMM_Analysis_of_the_20272028_RPM_Base_Residual_Auction_Part_A_20260105.pdf" rel="noopener" target="_blank">MONITORING ANALYTICS ↗</a>
+<a class="source-tag" href="https://ieefa.org/resources/projected-data-center-growth-spurs-pjm-capacity-prices-factor-10" rel="noopener" target="_blank">IEEFA ↗</a>
+</div>
+</article>
+</div>
+</div>
+</div>
+</section>
+<section class="idle" id="idle">
+<div class="wrap">
+<div class="section-head">
+<div class="kicker">03 / 容量</div>
+<h2>反例早已存在二十六年。</h2>
+</div>
+<div class="proof-grid">
+<article class="proof-main">
+<div class="massive">2.43</div>
+<h3>Folding@home 在 2020 年 4 月报告的艾克萨弗洛普斯值</h3>
+<p>Folding@home 在 2020 年 4 月报告了 2.43 exaflops 的算力，并将其志愿者网络描述为比全球前 500 台超级计算机的总和还要庞大。463 万个 CPU 核心和约 43 万个 GPU 的独立数据来自 2020 年 3 月下旬，当时该项目的算力约为 1.5 exaflops。分布式 x86 等效吞吐量与 TOP500 HPL 基准测试分数无法直接比较。这证明了分布式规模的存在，而非在基准测试中胜过超级计算机。</p>
+<a class="source-tag" href="https://foldingathome.org/?p=12797" rel="noopener" target="_blank">FOLDING@HOME ↗</a>
+<a class="source-tag" href="https://www.techspot.com/news/84561-foldinghome-exceeds-15-exaflops-battle-against-covid-19.html" rel="noopener" target="_blank">2020 年 3 月统计 ↗</a>
+</article>
+<div class="proof-stack">
+<article class="proof-mini">
+<div class="n">30%</div>
+<h3>2015 年研究：物理服务器处于“昏迷”状态</h3>
+<p>对约 4,000 台服务器的五个设施样本发现，30% 的服务器在六个月或更长时间内未提供任何计算服务。全球约 1,000 万台服务器和至少 300 亿美元闲置资本的估算为推断结果，而非 2026 年的实测数据。</p>
+<a class="source-tag" href="https://storageconsortium.de/files/Case-Study_DataSupports30PercentComatoseEstimate-FINAL_06032015.pdf" rel="noopener" target="_blank">ANTHESIS / KOOMEY ↗</a>
+</article>
+<article class="proof-mini alt">
+<div class="n">12–18%</div>
+<h3>2014 年 NRDC 估算：12，18% 的利用率</h3>
+<p>NRDC 报告称，2006 年至 2012 年间，服务器平均利用率一直维持在 12% 到 18% 之间。这是历史证据，而非当前利用率的估算。</p>
+<a class="source-tag" href="https://www.nrdc.org/energy/files/data-center-efficiency-assessment-ip.pdf" rel="noopener" target="_blank">NRDC ↗</a>
+</article>
+</div>
+</div>
+<div class="honesty">
+<strong>证据无法证明的内容</strong>
+<p>本研究未发现可用于所有家用电脑、手机和游戏机的可信赖的总体利用率度量。分布式家庭硬件也并非紧密耦合 AI 集群的即插即用替代品：互连、延迟、内存、安全、能源结构以及异构设备均至关重要。Folding@home 证明了可能性，而非等价性。</p>
+</div>
+</div>
+</section>
+<section class="voices" id="critique">
+<div class="wrap">
+<div class="section-head">
+<div class="kicker">04 / 批评</div>
+<h2>预测语音并不等于预测现实</h2>
+</div>
+<div class="quote-stage">
+<blockquote>
+<p>“一个世界模型将使你能够预测会发生什么。他们有能力预测一个人会说什么。”</p>
+<footer><strong>理查德·萨顿</strong>，2024 年图灵奖得主，现代强化学习的奠基人之一。<a href="https://podscripts.co/podcasts/dwarkesh-podcast/richard-sutton-father-of-rl-thinks-llms-are-a-dead-end" rel="noopener" target="_blank">演讲稿 ↗</a></footer>
+</blockquote>
+<blockquote>
+<p>“我们永远无法通过训练大型语言模型或仅基于文本训练来实现人类级别的智能。我们需要真实世界。”</p>
+<footer><strong>杨立昆</strong>，图灵奖得主，2026 年 1 月在达沃斯发表讲话。<a href="https://web.archive.org/web/20260124085042/https://fortune.com/2026/01/23/deepmind-demis-hassabis-anthropic-dario-amodei-yann-lecun-ai-davos/" rel="noopener" target="_blank">福布斯档案 ↗</a></footer>
+</blockquote>
+</div>
+<div class="convergence">
+<div class="arrow">↘</div>
+<p>他们的替代方案在实现方式上有所不同，但在经验、目标、后果和世界模型上趋于一致。两者均未声称更大的下一个词预测器就足够了。</p>
+</div>
+</div>
+</section>
+<section class="definition" id="model">
+<div class="wrap">
+<div class="section-head">
+<div class="kicker">05 / 定义</div>
+<h2>AIEN 不是语言模型。</h2>
+</div>
+<div class="nameplate">
+<div class="label">AIEN 提出的范式：</div>
+<h3>基于证据的神经符号过程学习</h3>
+<p>AIEN 使用这一描述性术语来指代一种提议的系统，该系统将积累可检查的程序，并利用学习到的搜索引导，同时外部验证和机器证据保持对正确性的权威。这并非一个既定的科学分类体系。</p>
+</div>
+<div class="model-grid">
+<article class="model-card">
+<div class="model-class">工作模型类别标签：</div>
+<h3>合成策略模型</h3>
+<p>AIEN_0 计划作为基于验证引导的合成模型，更具体地说，是程序合成的已学习搜索策略。“合成策略模型”是 AIEN 自己的工作描述标签，并非既定的科学分类。该计划中的模型将观察当前问题状态、剩余目标以及可能的下一步操作语义，然后对 OMEGA 应该尝试的下一个动作进行排序。它计划从 OMEGA 生成的追踪记录中学习，而非语言预测。验证将保留在模型之外。</p>
+</article>
+<div class="two-learnings">
+<article class="learning">
+<div class="num">1</div>
+<h3>过程式学习</h3>
+<p>Omega 搜索程序，执行它们，验证它们，测量它们，并将成功的程序和抽象存入受控库中。能力通过可检查的程序积累，而非隐藏的权重。</p>
+</article>
+<article class="learning">
+<div class="num">2</div>
+<h3>搜索策略学习</h3>
+<p>AIEN_0 计划从合成追踪中学习：候选转换、验证器结果、机器结果、成本、成功、失败以及剪枝决策。</p>
+</article>
+</div>
+</div>
+<div class="not-rl">
+<strong>非纯强化学习</strong>
+<p>计划中的监督来自合成追踪。最终目标尚未确定；候选方法包括监督/成对排序、模仿学习、价值学习，以及可能的离线强化学习。</p>
+</div>
+</div>
+</section>
+<section class="machine" id="machine">
+<div class="wrap">
+<div class="section-head">
+<div class="kicker">06 / 机器</div>
+<h2>架构是一个逐级获得权威的链条。</h2>
+</div>
+<p class="machine-intro">从底部向上阅读堆栈。每一层都有独立的职责。机器如今已存在。计划中的 AIEN_0，位于顶层的已学习引导，尚未经过训练。</p>
+<div aria-label="架构状态说明" class="machine-key"><span><i aria-hidden="true"></i> 已构建机器</span> <span class="planned-key"><i aria-hidden="true"></i> 计划中的学习</span></div>
+<p class="machine-read">顶层：智能与搜索</p>
+<div aria-label="AIEN架构，从顶部的AIEN到底部的ATLAS" class="machine-stack">
+<article class="machine-layer planned-edge" style="--layer-width: 76%">
+<h3>AIEN</h3>
+<div>
+<p>思考、搜索并创造。计划中的 AIEN_0 由 AIEN 以工作标签“合成策略模型”描述：一个小型神经搜索引导，计划从 OMEGA 追踪中学习，而非语言模型。</p>
+</div>
+<div class="machine-status planned">已构建机器层<br/>AIEN_0 未训练</div>
+</article>
+<article class="machine-layer" style="--layer-width: 84%">
+<h3>OMEGA</h3>
+<div>
+<p>定义、合成、验证并实现程序。工作中的程序成为受控库的一部分。</p>
+</div>
+<div class="machine-status">已构建</div>
+</article>
+<article class="machine-layer" style="--layer-width: 92%">
+<h3>物理层</h3>
+<div>
+<p>可信的基础。它授权允许在裸金属上运行的内容。</p>
+</div>
+<div class="machine-status">已构建</div>
+</article>
+<article class="machine-layer" style="--layer-width: 100%">
+<h3>ATLAS</h3>
+<div>
+<p>种子。它通过验证启动唤醒机器。</p>
+<div class="machine-line">“ATLAS 已苏醒。”</div>
+</div>
+<div class="machine-status">已构建</div>
+</article>
+</div>
+<p class="machine-read" style="margin-top: 12px; margin-bottom: 0">底层：验证启动</p>
+<div class="roadmap">
+<div class="roadmap-head">
+<h3>继承之路</h3>
+<p>实心绿色轨迹是机器及其早期工作。黄金轨迹始于 M20，此时路线图仍处于规划阶段。计划中的 AIEN_0 属于那个未来的训练时代。</p>
+</div>
+<div aria-label="AIEN路线图的M0至M40时代" class="era-grid">
+<article class="era">
+<div class="era-range">M0–M3</div>
+<h4>基础</h4>
+<div class="era-state">已构建</div>
+</article>
+<article class="era">
+<div class="era-range">M4–M7</div>
+<h4>Omega 核心</h4>
+<div class="era-state">已构建</div>
+</article>
+<article class="era">
+<div class="era-range">M8–M14</div>
+<h4>程序合成与库学习</h4>
+<div class="era-state">已构建 / 早期机器</div>
+</article>
+<article class="era">
+<div class="era-range">M15–M19</div>
+<h4>加速认知</h4>
+<div class="era-state">已构建 / 早期机器</div>
+</article>
+<article class="era planned">
+<div class="era-range">M20–M26</div>
+<h4>主权训练</h4>
+<div class="era-state">计划中</div>
+</article>
+<article class="era planned">
+<div class="era-range">M27–M35</div>
+<h4>物理零发现</h4>
+<div class="era-state">计划中</div>
+</article>
+<article class="era planned">
+<div class="era-range">M36–M40</div>
+<h4>通用 AIEN</h4>
+<div class="era-state">计划中</div>
+</article>
+</div>
+<div class="succession">
+<strong>M40 / AIEN 继承</strong>
+<p>系统能够设计、构建并验证其自身继任者的时刻。</p>
+</div>
+</div>
+</div>
+</section>
+<section class="pipelines" id="pipeline">
+<div class="wrap">
+<div class="section-head">
+<div class="kicker">07 / 机制</div>
+<h2>差异在流水线中可见。</h2>
+</div>
+<div class="pipeline-compare">
+<div class="pipeline">
+<div class="pipeline-label">目标流水线 / AIEN 合成路径</div>
+<div aria-label="计划中的AIEN_0合成系统的目标流程" class="flow aien">
+<div class="step">任务</div><div class="arrow-step">→</div>
+<div class="step">形式化状态</div><div class="arrow-step">→</div>
+<div class="step">可能的操作</div><div class="arrow-step">→</div>
+<div class="step">计划中的 AIEN_0 进行排序</div><div class="arrow-step">→</div>
+<div class="step">Omega 搜索</div><div class="arrow-step">→</div>
+<div class="step">验证器</div><div class="arrow-step">→</div>
+<div class="step">机器执行</div><div class="arrow-step">→</div>
+<div class="step">证据</div><div class="arrow-step">→</div>
+<div class="step">程序库 + 跟踪记录</div>
+</div>
+</div>
+<div class="pipeline">
+<div class="pipeline-label">LLM / 语言路径</div>
+<div aria-label="大型语言模型流程" class="flow llm">
+<div class="step">文本</div><div class="arrow-step">→</div>
+<div class="step">Transformer</div><div class="arrow-step">→</div>
+<div class="step">下一个词的概率分布</div><div class="arrow-step">→</div>
+<div class="step">更多文本</div>
+</div>
+</div>
+</div>
+<div class="analogy">
+<strong>有用的类比</strong>
+<p>类似 AlphaZero 的学习搜索引导，但针对程序构建而非棋盘走法。计划中的神经部分无需知道答案，只需识别最有希望的下一步操作。OMEGA 的外部验证器将决定正确性。</p>
+</div>
+</div>
+</section>
+<section class="memory" id="memory">
+<div class="wrap">
+<div class="section-head">
+<div class="kicker">08 / 内存</div>
+<h2>系统所知并非存储于单一位置。</h2>
+</div>
+<div class="memory-grid">
+<article class="memory-item"><div class="mnum">01</div><h3>权重</h3><p>关于搜索方向的直觉。</p></article>
+<article class="memory-item"><div class="mnum">02</div><h3>已验证的程序</h3><p>持久的程序性知识。</p></article>
+<article class="memory-item"><div class="mnum">03</div><h3>Cortex 证据</h3><p>记住的经验事实和结果。</p></article>
+<article class="memory-item"><div class="mnum">04</div><h3>Omega 语义</h3><p>计算的实际含义。</p></article>
+<article class="memory-item"><div class="mnum">05</div><h3>物理 证据</h3><p>在机器上实际有效的内容。</p></article>
+</div>
+<p class="authority">学习到的权重可引导搜索。<span>它们永远无法获得正确性的最终决定权。</span></p>
+</div>
+</section>
+<section class="tests" id="questions">
+<div class="wrap">
+<div class="section-head">
+<div class="kicker">09 / 测试</div>
+<h2>LLM 之后的情况仍需自我证明。</h2>
+</div>
+<div class="test-list">
+<article class="test"><div class="tn">01</div><h3>分布式效率</h3><p>协调、冗余、网络化和设备冷却后，每焦耳能量所做的有用功是否仍然有利？</p></article>
+<article class="test"><div class="tn">02</div><h3>异构执行</h3><p>不同CPU、GPU、内存限制和网络条件下，程序能否可重复且安全地运行？</p></article>
+<article class="test"><div class="tn">03</div><h3>泛化能力</h3><p>受控程序库是否能产生超越其创建任务的可复用抽象？</p></article>
+<article class="test"><div class="tn">04</div><h3>搜索优势</h3><p>在相同的验证预算下，计划中的AIEN_0是否比无引导或人工设计的启发式方法在合成搜索方面表现更优？</p></article>
+<article class="test"><div class="tn">05</div><h3>社区权衡</h3><p>分布式系统能否避免将电力、水资源、噪音、污染和财务风险转嫁给它声称要帮助的同一社区？</p></article>
+</div>
+</div>
+</section>
+<section class="sources" id="sources">
+<div class="wrap">
+<div class="section-head">
+<div class="kicker">10 / 来源</div>
+<h2>阅读证据，而不仅仅是论点。</h2>
+</div>
+<ol class="source-list">
+<li><a href="https://www.gartner.com/en/newsroom/press-releases/2026-06-10-gartner-says-data-center-electricity-demand-to-grow-26-percent-in-2026" rel="noopener" target="_blank">数据中心电力预测</a>，Gartner，2026年6月10日。</li>
+<li><a href="https://www.rystadenergy.com/news/data-center-water-consumption-could-triple-by-2030" rel="noopener" target="_blank">直接冷却用水估算</a>，Rystad Energy。</li>
+<li><a href="https://pjm.com/-/media/DotCom/markets-ops/rpm/rpm-auction-info/2027-2028/2027-2028-bra-report.pdf?_sp=656a1595-d27e-4e09-9309-eb3bba2e7dc2" rel="noopener" target="_blank">2027/2028 基础剩余拍卖报告</a>，PJM，2025年12月17日。</li>
+<li><a href="http://www.monitoringanalytics.com/reports/reports/2026/IMM_Analysis_of_the_20272028_RPM_Base_Residual_Auction_Part_A_20260105.pdf" rel="noopener" target="_blank">数据中心负载的反事实分析</a>，Monitoring Analytics，2026年1月5日。</li>
+<li><a href="https://ieefa.org/resources/projected-data-center-growth-spurs-pjm-capacity-prices-factor-10" rel="noopener" target="_blank">PJM容量价格与家庭用电估算</a>，IEEFA。</li>
+<li><a href="https://earthjustice.org/press/2026/xai-sued-for-illegal-power-plant" rel="noopener" target="_blank">NAACP针对xAI涡轮机提起的诉讼</a>，Earthjustice，2026年4月。</li>
+<li><a href="https://storage.googleapis.com/gweb-mobius-cdn/sustainability/uploads/21455428735c7305f2cb5c0038fc14bb0803abb8.pdf" rel="noopener" target="_blank">环境报告与水资源风险框架</a>，Google，2026年。</li>
+<li><a href="https://documentos.diputados.gub.uy/docs/L50/Original/02242.pdf" rel="noopener" target="_blank">乌拉圭政府对修订后的卡内洛内斯项目官方回应</a>，乌拉圭政府，2025年7月30日。</li>
+<li><a href="https://heatmap.news/daily/data-center-opposition-poll-collapse" rel="noopener" target="_blank">本地数据中心反对意见调查</a>，Heatmap Pro 与 Embold，2026年8月。</li>
+<li><a href="https://foldingathome.org/?p=12797" rel="noopener" target="_blank">Folding@home 2020年4月规模报告</a>，Folding@home。</li>
+<li><a href="https://www.techspot.com/news/84561-foldinghome-exceeds-15-exaflops-battle-against-covid-19.html" rel="noopener" target="_blank">2020年3月下旬CPU、GPU及吞吐量统计</a>，TechSpot 引用 Folding@home。</li>
+<li><a href="https://storageconsortium.de/files/Case-Study_DataSupports30PercentComatoseEstimate-FINAL_06032015.pdf" rel="noopener" target="_blank">数据支持30%休眠服务器估算</a>，Jonathan Koomey 与 Jon Taylor，2015年6月3日。</li>
+<li><a href="https://info.anthesisgroup.com/hubfs/Website%20PDFs/Comatose-Servers-Redux.pdf" rel="noopener" target="_blank">休眠服务器再探</a>，Anthesis Group，2017年。</li>
+<li><a href="https://www.nrdc.org/energy/files/data-center-efficiency-assessment-ip.pdf" rel="noopener" target="_blank">数据中心能效评估</a>，NRDC，2014年8月。</li>
+<li><a href="https://www.brookings.edu/articles/financing-the-ai-buildout/" rel="noopener" target="_blank">人工智能建设的融资</a>，布鲁金斯经济活动论文，2026年9月25日。</li>
+<li><a href="https://podscripts.co/podcasts/dwarkesh-podcast/richard-sutton-father-of-rl-thinks-llms-are-a-dead-end" rel="noopener" target="_blank">Richard Sutton访谈记录</a>，Dwarkesh Podcast。</li>
+<li><a href="https://web.archive.org/web/20260124085042/https://fortune.com/2026/01/23/deepmind-demis-hassabis-anthropic-dario-amodei-yann-lecun-ai-davos/" rel="noopener" target="_blank">Yann LeCun在达沃斯的演讲</a>，Fortune档案，2026年1月。</li>
+<li><a href="https://www.ibm.com/think/news/world-models-smarter-ai" rel="noopener" target="_blank">世界模型与文本训练的局限</a>，IBM Think。</li>
+</ol>
+<div class="closing"><strong>这是一项提案，而非胜利宣言。</strong> <span>研究快照 · 2026年9月27日</span></div>
+</div>
+</section>
+<script>
+    (function () {
+      var datasets = {
+        global: {
+          values: [{ label: "2025", value: 447 }, { label: "2026", value: 565 }],
+          max: 600,
+          ticks: [0, 200, 400, 600],
+          suffix: " TWh",
+          color: "#4bd3a1"
+        },
+        ai: {
+          values: [{ label: "2025", value: 95 }, { label: "2026", value: 175 }, { label: "2027*", value: 258 }],
+          max: 300,
+          ticks: [0, 100, 200, 300],
+          suffix: " TWh",
+          color: "#ff7864"
+        }
+      };
+      var NS = "http://www.w3.org/2000/svg";
+      function node(name, attrs, text) {
+        var el = document.createElementNS(NS, name);
+        Object.keys(attrs || {}).forEach(function (key) { el.setAttribute(key, attrs[key]); });
+        if (text !== undefined) el.textContent = text;
+        return el;
+      }
+      function renderChart(id, data) {
+        var host = document.getElementById(id);
+        var width = 560, height = 270, left = 52, right = 18, top = 22, bottom = 46;
+        var plotW = width - left - right, plotH = height - top - bottom;
+        var svg = node("svg", { viewBox: "0 0 " + width + " " + height, "aria-hidden": "true", focusable: "false" });
+        data.ticks.forEach(function (tick) {
+          var y = top + plotH - (tick / data.max) * plotH;
+          svg.appendChild(node("line", { x1: left, y1: y, x2: width - right, y2: y, stroke: "currentColor", "stroke-opacity": ".20", "stroke-width": "1" }));
+          svg.appendChild(node("text", { x: left - 10, y: y + 4, "text-anchor": "end", fill: "currentColor", "fill-opacity": ".66", "font-size": "11", "font-family": "IBM Plex Mono, monospace" }, String(tick)));
+        });
+        var slot = plotW / data.values.length;
+        var barW = Math.min(96, slot * .48);
+        data.values.forEach(function (d, i) {
+          var h = (d.value / data.max) * plotH;
+          var x = left + slot * i + (slot - barW) / 2;
+          var y = top + plotH - h;
+          svg.appendChild(node("rect", { x: x, y: y, width: barW, height: h, fill: data.color }));
+          svg.appendChild(node("text", { x: x + barW / 2, y: y - 9, "text-anchor": "middle", fill: "currentColor", "font-size": "13", "font-weight": "700", "font-family": "IBM Plex Mono, monospace" }, d.value + data.suffix));
+          svg.appendChild(node("text", { x: x + barW / 2, y: height - 17, "text-anchor": "middle", fill: "currentColor", "fill-opacity": ".75", "font-size": "12", "font-family": "IBM Plex Mono, monospace" }, d.label));
+        });
+        host.appendChild(svg);
+      }
+      renderChart("chartGlobal", datasets.global);
+      renderChart("chartAI", datasets.ai);
+      var growth = ((datasets.global.values[1].value / datasets.global.values[0].value - 1) * 100).toFixed(1);
+      document.getElementById("energyValue").setAttribute("title", growth + "% increase from 2025");
+    }());
+  </script>
+</body>
+</html>
