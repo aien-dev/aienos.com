@@ -72,6 +72,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
 
     // Render landing page in Maud
     let page_content = html! {
+        (components::allen::render_home_hero())
         (components::home_loop::render_home_loop())
         (components::story::render_story())
         (components::machines::render_machines_section())
@@ -104,6 +105,23 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     );
     fs::create_dir_all(dist.join("progress")).expect("Create progress directory");
     fs::write(dist.join("progress/index.html"), progress.into_string()).expect("Write progress page");
+
+    // /allen/: Allen's live window, the recording, how it is made, where he runs.
+    let allen_page = render_page_layout(
+        components::allen::TITLE,
+        components::allen::DESCRIPTION,
+        components::allen::URL,
+        "website",
+        html! {
+            link rel="stylesheet" href="/assets/allen.css";
+            script defer src="/allen/brain.js" {}
+            script defer src="/allen/allen.js" {}
+        },
+        components::allen::render_allen_page(),
+    );
+    fs::create_dir_all(dist.join("allen")).expect("Create allen directory");
+    fs::write(dist.join("allen/index.html"), allen_page.into_string()).expect("Write allen page");
+    println!("  [PAGE] Emitted /allen/ (index.html)");
 
     // Blog index page
     let blog_index = render_page_layout(
@@ -264,6 +282,33 @@ fn verify_site(dist: &Path) {
     assert!(dist.join("assets/machines.css").exists(), "Missing assets/machines.css");
     assert!(dist.join("machines.json").exists(), "Missing machines.json");
 
+    // Allen (components::allen): the live window on the front page and /allen/, first party files
+    // only, every place with its receipt, no comparison words, no dashes.
+    assert!(content.contains("id=\"allen\"") && content.contains("data-allen-canvas"), "Missing Allen's window on the homepage");
+    assert!(content.find("id=\"allen\"") < content.find("id=\"top\""), "Allen must come first on the homepage");
+    for asset in ["assets/allen.css", "allen/allen.wasm", "allen/allen.js", "allen/brain.js", "allen/allen-window.mp4", "allen/allen-window-poster.jpg"] {
+        assert!(dist.join(asset).exists(), "Missing {asset}");
+    }
+    let allen = fs::read_to_string(dist.join("allen/index.html")).expect("Failed to read allen/index.html");
+    for id in ["watching", "made", "recording", "where", "read", "allen-imac", "allen-pi5", "allen-rig", "allen-qemu", "allen-spark"] {
+        assert!(allen.contains(&format!("id=\"{id}\"")), "Missing {id} in allen/index.html");
+    }
+    assert!(allen.contains("data-allen-canvas") && allen.contains("data-allen-input"), "Missing the live window in allen/index.html");
+    assert!(allen.contains("Not yet"), "Every place must say what is not yet true");
+    assert!(!allen.contains('\u{2014}') && !allen.contains('\u{2013}'), "Dash in allen/index.html");
+    for attr in ["src=\"", "<link rel=\"stylesheet\" href=\""] {
+        for part in allen.split(attr).skip(1) {
+            let value = part.split('"').next().unwrap_or("");
+            assert!(value.starts_with('/'), "Allen's page asks for an outside file: {value}");
+        }
+    }
+    {
+        let lower = allen.to_ascii_lowercase();
+        for w in components::machines::FORBIDDEN {
+            assert!(!lower.contains(w), "Comparison with another system on /allen/: {w:?}");
+        }
+    }
+
     // Verify asset output
     assert!(dist.join("assets/style.css").exists(), "Missing assets/style.css");
     assert!(dist.join("js/terminal.js").exists(), "Missing js/terminal.js");
@@ -383,6 +428,7 @@ fn verify_site(dist: &Path) {
 /// must carry. /now/ has no floor because the ledger may be absent.
 const GENERATED_PAGES: &[(&str, usize)] = &[
     ("index.html", 30),
+    ("allen/index.html", 5),
     ("machine/index.html", 15),
     ("discovery/index.html", 0),
     ("experiments/index.html", 15),

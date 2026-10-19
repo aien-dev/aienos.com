@@ -43,6 +43,16 @@ curl -fsSL https://aienos.com/install.sh | bash
 
 ---
 
+## Allen on the front page and `/allen/`
+
+The homepage opens with Allen's window, and `/allen/` is Allen's own page (`crates/site-builder/src/components/allen.rs`, style in `public/assets/allen.css`). The window is a copy of the AIENOS kernel's drawing code (night sky, water, orb, stroke typeface, typing, answer, black-hole dusk and dawn, the chirp) rewritten in Rust (`crates/allen-sim`) and built to WebAssembly at `public/allen/allen.wasm`. `public/allen/allen.js` and `public/allen/brain.js` are the small first-party scripts that draw it and give the replies. `public/allen/allen-window.mp4` is a video of the kernel's own code run on the Spark, not a recording of the iMac. The page says plainly where Allen runs and what has and has not been measured.
+
+This is the one exception to the site's no-scripts rule: first-party JavaScript and WebAssembly only, no outside requests. Without scripts the page shows a still image of the window.
+
+Rebuild the WebAssembly with `crates/allen-sim/build-wasm.sh`. Evidence that the port draws the same pixels as the C code, and the page checks, are in `evidence/allen-sim/`.
+
+---
+
 ## Local Development & Build
 
 There is no Node build and no `package.json`. The site is rendered by the Rust program in `crates/site-builder`, which copies `public/` into the output directory. Run these from the repository root:

@@ -9,6 +9,7 @@
   var FORMED_MS = 15300;          // Allen has formed (from the kernel's own timeline)
   var WAKE_AT_MS = 13000;         // the bar may come up once he has formed
   var MERGE_MS = 12000;
+  var PREROLL_MS = 3008;          // where the very first look begins (the sky is already fading in)
   var wasmPromise = null;
 
   function loadWasm() {
@@ -248,6 +249,8 @@
 
     function restart() {
       if (!open()) return;
+      root.classList.add("allen-live");
+      if (replayBtn) replayBtn.textContent = "Replay";
       if (popBtn) popBtn.hidden = false;
       say("The night sky. Two black holes are circling.");
       x.allen_tick(0);
@@ -295,23 +298,19 @@
       x = exports;
       if (!open()) return;
       stage.setAttribute("data-allen-state", "ready");
-      root.classList.add("allen-live");
+      if (!reduced) root.classList.add("allen-live");
       if (reduced) {
-        // no motion by itself: jump to Allen formed and let the visitor start the rest
-        target = -1;
-        clock = FORMED_MS + 800;
-        x.allen_tick(0);
-        for (var t = 16; t <= clock; t += 16) x.allen_tick(t);
-        woke = true;
-        x.allen_wake(putText("Press Enter to send. Everything runs in this page."));
-        x.allen_tick(clock + 16);
-        paint();
-        greeted = true; touched = true;
-        say("Allen is awake. Type to talk to him.");
-        run();
+        // no motion by itself: the recorded still stays until the visitor presses Play
+        stage.setAttribute("data-allen-state", "paused");
+        root.classList.remove("allen-live");
+        say("Motion is reduced on this device. Press Play to start Allen's window.");
+        if (replayBtn) replayBtn.textContent = "Play";
       } else {
         say("The night sky. Two black holes are circling.");
         x.allen_tick(0);
+        // the sky fades in from black over the first seconds; the first look starts a little way in
+        for (var pre = 16; pre <= PREROLL_MS; pre += 16) x.allen_tick(pre);
+        clock = PREROLL_MS;
         paint();
         run();
       }

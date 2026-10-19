@@ -7,6 +7,9 @@ pub fn render_base_layout(content: Markup) -> Markup {
         "https://www.aienos.com/",
         "website",
         html! {
+            link rel="stylesheet" href="/assets/allen.css";
+            script defer src="/allen/brain.js" {}
+            script defer src="/allen/allen.js" {}
             // Zero-dependency terminal micro-script
             script defer src="/js/terminal.js" {}
             script defer src="/js/turing-game.js" {}
