@@ -2308,3 +2308,12 @@ p {
   .status-table td.num { text-align: left; }
   .status-table td.num::before { content: "Open changes: "; color: var(--text-muted); font-family: var(--font-sans); }
 }
+
+.narr-byline {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--narr-text);
+  margin: 20px 0 0;
+}

@@ -199,7 +199,14 @@ pub fn render_evidence_hub() -> Markup {
 pub fn render_philosophy_hub() -> Markup {
     // Position papers have no evidence; each card links to the source of
     // its text on GitHub and says so.
-    let cards: [(&str, &str, &str, bool, String); 3] = [
+    let cards: [(&str, &str, &str, bool, String); 4] = [
+        (
+            "Intelligence should be owned",
+            "/owned/",
+            "Why a language model is a common inheritance, why running one yourself is a right and a responsibility, and what AIEN does about it.",
+            false,
+            source_href("crates/site-builder/src/components/owned.rs"),
+        ),
         (
             "The Stapleton Doctrine",
             "/research/the-stapleton-doctrine/",
@@ -431,11 +438,11 @@ mod tests {
     #[test]
     fn every_hub_card_links_to_github() {
         assert_eq!(crate::components::boxlink::check_boxes(&doc("evidence")), Ok(8), "two record cards, five artifacts, the qualification record");
-        assert_eq!(crate::components::boxlink::check_boxes(&doc("philosophy")), Ok(3));
+        assert_eq!(crate::components::boxlink::check_boxes(&doc("philosophy")), Ok(4));
         let d = rs::data();
         assert_eq!(crate::components::boxlink::check_boxes(&doc("experiments")), Ok(d.ladder.len() + d.turing_rows.len()));
         let philosophy = doc("philosophy");
-        assert_eq!(philosophy.matches("box-link-source").count(), 3, "position papers are source links, not evidence");
+        assert_eq!(philosophy.matches("box-link-source").count(), 4, "position papers are source links, not evidence");
         assert!(check_hub_document(&HUBS[2], &philosophy.replacen("class=\"box-link box-link-source\"", "class=\"x\"", 1)).is_err());
     }
 
