@@ -200,33 +200,11 @@ pub fn status_json() -> String {
     out
 }
 
-/// /llms.txt: the project in plain text for AI readers and crawlers.
+/// /llms.txt: the project in plain text for AI readers and crawlers, in
+/// the llms.txt convention (see `seo::llms_txt`), with the layer states.
 pub fn llms_txt() -> String {
-    let mut out = String::new();
-    out.push_str("# AIENOS\n\n");
-    out.push_str("> AIENOS is an experimental sovereign machine for persistent machine intelligence: Atlas awakens it on hardware you own, Omega turns intent into verified programs, and AIEN learns from verified experience. Intelligence should be owned, not rented. Every claim carries a public receipt.\n\n");
-    out.push_str("AIENOS is more than an operating system. It is a substrate where a persistent intelligence lives on the owner's hardware, keeps its memory and identity on the owner's side of the line, and treats hardware as capability, not identity. Status: experimental, pre-alpha.\n\n");
-    out.push_str("## The lineage\n\n");
-    out.push_str("- Atlas: awakens. The seed that wakes AIENOS on a machine.\n");
-    out.push_str("- AIENOS: persists. The sovereign substrate that owns the hardware and keeps the agent alive and continuous.\n");
-    out.push_str("- Omega: defines, synthesizes, verifies. Turns intent into programs and proves them against reality before they are trusted.\n");
-    out.push_str("- AIEN: learns. The persistent intelligence. Weights suggest, programs explain, evidence teaches.\n");
-    out.push_str("- Around the loop, not in the pipeline: Aegis verifies generated code and changes nothing; Forge realizes what Omega verified; Argus watches capability enforcement; Cortex is the canonical memory.\n\n");
-    out.push_str("## Current state\n\n");
-    for layer in layer_states() {
-        out.push_str(&format!("- {}: {}. {}\n", layer.name, layer.status, layer.note));
-    }
-    out.push_str("\nMachine-readable state: https://www.aienos.com/status.json\n\n");
-    out.push_str(&format!("Research status: {} Full ladder and experiment cards: https://www.aienos.com/research/status/ (data: https://www.aienos.com/research-status.json)\n\n", rs::current_level_sentence()));
-    out.push_str("## Links\n\n");
-    out.push_str("- Homepage: https://www.aienos.com/\n");
-    out.push_str("- Current status: https://www.aienos.com/#status\n");
-    out.push_str("- Evidence: https://www.aienos.com/#evidence\n");
-    out.push_str("- Research index: https://www.aienos.com/research/\n");
-    out.push_str("- The Turing, a unit of net held-out explanatory compression (one operational component of machine understanding): https://www.aienos.com/turing/\n");
-    out.push_str("- Licensing (AGPL-3.0-or-later): https://www.aienos.com/licensing/\n");
-    out.push_str("- GitHub organization: https://github.com/aien-dev\n");
-    out
+    let lines: Vec<String> = layer_states().iter().map(|l| format!("{}: {}. {}", l.name, l.status, l.note)).collect();
+    crate::seo::llms_txt(&lines, &rs::current_level_sentence())
 }
 
 #[cfg(test)]

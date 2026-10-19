@@ -2,6 +2,7 @@ mod collector;
 mod components;
 mod facts;
 mod layouts;
+mod seo;
 
 use std::fs;
 use std::path::Path;
@@ -28,21 +29,6 @@ fn copy_dir_all(src: &Path, dst: &Path) -> std::io::Result<()> {
         }
     }
     Ok(())
-}
-
-fn generate_sitemap_and_robots(dist: &Path) {
-    let sitemap = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n  <url><loc>https://aienos.com/</loc><priority>1.0</priority></url>\n  <url><loc>https://aienos.com/progress/</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/blog</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/blog/aien-v3-research-plan</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/post-llm-case/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/status/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/now/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/computing-machinery-and-understanding</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/research/computing-machinery-and-understanding-emergence</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/research/the-stapleton-doctrine</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/machine/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/turing/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/experiments/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/discovery/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/evidence/</loc><priority>0.9</priority></url>\n  <url><loc>https://aienos.com/philosophy/</loc><priority>0.8</priority></url>\n  <url><loc>https://aienos.com/licensing/</loc><priority>0.5</priority></url>\n</urlset>\n";
-    let sitemap_path = dist.join("sitemap.xml");
-    fs::write(&sitemap_path, sitemap).expect("Failed to write sitemap.xml");
-
-    // Bot-friendly: the site is open to all agents and humans alike.
-    // AI crawlers are explicitly allowed; there are no CAPTCHAs and no
-    // bot blocking at the gate.
-    let robots = "User-agent: *\nAllow: /\n\nUser-agent: GPTBot\nAllow: /\n\nUser-agent: ChatGPT-User\nAllow: /\n\nUser-agent: ClaudeBot\nAllow: /\n\nUser-agent: anthropic-ai\nAllow: /\n\nUser-agent: CCBot\nAllow: /\n\nUser-agent: Bytespider\nAllow: /\n\nSitemap: https://aienos.com/sitemap.xml\n";
-    let robots_path = dist.join("robots.txt");
-    fs::write(&robots_path, robots).expect("Failed to write robots.txt");
-
-    println!("  [GEN] Emitted native sitemap.xml and robots.txt in: {}", dist.display());
 }
 
 fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
@@ -79,12 +65,10 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
         components::status::status_json(),
     )
     .expect("Failed to write status.json");
-    fs::write(dist.join("llms.txt"), components::status::llms_txt())
-        .expect("Failed to write llms.txt");
     // The machines and speeds data, published next to the page that renders it.
     fs::write(dist.join("machines.json"), components::machines::RAW)
         .expect("Failed to write machines.json");
-    println!("  [STATE] Wrote status.json and llms.txt from the canonical layer states");
+    println!("  [STATE] Wrote status.json from the canonical layer states");
 
     // Render landing page in Maud
     let page_content = html! {
@@ -111,7 +95,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     let progress = render_page_layout(
         "Project progress | AIEN OS",
         "Explore the retained AIEN project history: codebase growth, revisions, test footprint and verification activity, refreshed hourly from public GitHub sources.",
-        "https://aienos.com/progress/", "website",
+        "https://www.aienos.com/progress/", "website",
         html! {
             link rel="stylesheet" href="/assets/progress.css";
             script defer src="/vendor/d3-7.9.0.min.js" {}
@@ -125,7 +109,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     let blog_index = render_page_layout(
         "Blog | AIEN OS",
         "Research notes on building AIEN V2: what shipped, what the evidence says, and what remains an open question.",
-        "https://aienos.com/blog",
+        "https://www.aienos.com/blog/",
         "website",
         html! {},
         components::blog::render_blog_index(),
@@ -140,7 +124,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     let blog_post = render_page_layout(
         &format!("{} | AIEN OS Blog", components::blog::POST_TITLE),
         components::blog::POST_DESCRIPTION,
-        &format!("https://aienos.com/blog/{}", components::blog::POST_SLUG),
+        &format!("https://www.aienos.com/blog/{}/", components::blog::POST_SLUG),
         "article",
         html! {},
         components::blog::render_blog_post(),
@@ -157,7 +141,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     let research_status = render_page_layout(
         "Research status | AIEN OS",
         "Where the AIEN research stands: the qualification ladder, every experiment with its verdict, receipt and limits, and what is built versus still a hypothesis.",
-        "https://aienos.com/research/status/",
+        "https://www.aienos.com/research/status/",
         "website",
         html! {},
         components::research_status::render_research_status_page(),
@@ -213,7 +197,23 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     // Section hubs: /experiments/, /evidence/, /philosophy/ (NARR-NAV)
     components::hubs::emit_hub_pages(dist);
 
-    generate_sitemap_and_robots(dist);
+    // The 404 page, served by GitHub Pages for any address that has no file.
+    let not_found = render_page_layout(
+        "Page not found | AIENOS",
+        "There is nothing at this address. Every page of AIENOS is listed in llms.txt and the sitemap; the front page, the machine and the research are one link away.",
+        "https://www.aienos.com/404.html",
+        "website",
+        seo::head_404(),
+        seo::render_404(),
+    );
+    fs::write(dist.join("404.html"), not_found.into_string()).expect("Failed to write 404.html");
+
+    // Every page written above (generated or copied from public/) gets the same
+    // head: www canonical, cards, hreflang, feeds, JSON-LD. Then the machine
+    // surface is written from the pages that actually exist.
+    let ctx = seo::BuildCtx::gather(&now, &facts.generated_at);
+    let pages = seo::enrich(dist, &ctx);
+    seo::write_machine_surface(dist, &pages, &now, &ctx, &components::status::llms_txt());
 }
 
 fn verify_site(dist: &Path) {
@@ -296,6 +296,8 @@ fn verify_site(dist: &Path) {
     // Verify sitemap and robots
     assert!(dist.join("sitemap.xml").exists(), "Missing sitemap.xml");
     assert!(dist.join("robots.txt").exists(), "Missing robots.txt");
+    // The whole machine surface: canonical host, JSON-LD, feeds, llms files, data index.
+    seo::verify(dist);
 
     // Verify blog pages
     let blog_index = dist.join("blog/index.html");
