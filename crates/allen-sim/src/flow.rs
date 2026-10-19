@@ -328,9 +328,10 @@ impl Flow {
             }
         }
         if (wi != 0 || wl != 0) && (self.rnd() & 15) == 0 {
-            // The two random draws sit in one argument list in the C code (order not defined there).
-            let ry = self.rnd();
+            // The two draws sit in one argument list in the C code, where the order is not defined; the
+            // reference build (gcc) takes the x draw first, and the port matches it bit for bit.
             let rx = self.rnd();
+            let ry = self.rnd();
             let gx = Q + (rx % (W as u32 * Q as u32)) as i32;
             let gy = Q + (ry % (H as u32 * Q as u32)) as i32;
             self.push(gx, gy, 0, 0, Q / 40, rr / 2);

@@ -1,3 +1,4 @@
+pub mod chirp;
 pub mod flow;
 pub mod font;
 pub mod mind;
