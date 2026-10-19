@@ -1,0 +1,11 @@
+[package]
+name = "allen-sim"
+version = "0.1.0"
+edition = "2021"
+description = "Allen's window, ported from the AIENOS kernel's integer drawing code, built to WebAssembly"
+license = "AGPL-3.0-only"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]

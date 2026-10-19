@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "crates/site-builder",
+    "crates/allen-sim",
 ]
 resolver = "2"
 
