@@ -419,7 +419,7 @@ pre,
   position: relative;
 }
 
-.box-link {
+a.box-link {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -450,8 +450,17 @@ pre,
   transition: transform 0.3s cubic-bezier(.22,.61,.36,1);
 }
 
-.box-link-source {
+a.box-link-source {
   color: var(--tl-ink-3);
+}
+
+/* Narrow cards let the words wrap rather than clip. */
+.hub-card a.box-link,
+.rs-card a.box-link,
+.lineage-card a.box-link,
+.lineage-role a.box-link {
+  white-space: normal;
+  line-height: 1.5;
 }
 
 /* Inline links and controls inside a box stay above the stretched link. */
@@ -570,14 +579,27 @@ pre,
   margin-top: 8px;
 }
 
+/* Implementation items are cards in this look; give the words room. */
+.rs-impl-item {
+  padding: 16px 20px;
+}
+
+.rs-impl-list {
+  gap: 10px;
+}
+
 .rs-step .box-link {
   display: inline-flex;
 }
 
 .mx-row .box-link,
-.live-row .box-link {
+.live-row .box-link,
+.status-table td.name .box-link {
   margin-top: 6px;
   display: inline-flex;
+  color: var(--tl-blue-soft);
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .now-queue-row .box-link {
