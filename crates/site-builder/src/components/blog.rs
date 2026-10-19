@@ -5,7 +5,7 @@ use super::boxlink::{foot, source_href, Target};
 pub const POST_SLUG: &str = "aien-v3-research-plan";
 pub const POST_TITLE: &str = "The AIEN V3 Research Plan";
 pub const POST_DATE: &str = "September 27, 2026";
-pub const POST_DESCRIPTION: &str = "The ratified V3 of the AIEN research plan, the Substrate Edition. It adds the whole-box continuity thesis and six falsifiable hypotheses (H5-H10): a shared CPU/GPU object pool, a cross-engine object ABI, a resident cooperation protocol, an epoch checkpoint barrier, movement-first synthesis cost, and the first fully closed propose/prove/realize/execute/measure loop.";
+pub const POST_DESCRIPTION: &str = "The ratified V3 of the AIEN research plan, the Substrate Edition: the whole-box continuity thesis and six falsifiable hypotheses, H5 to H10.";
 
 pub const CASE_SLUG: &str = "post-llm-case";
 pub const CASE_TITLE: &str = "The Post-LLM Case";

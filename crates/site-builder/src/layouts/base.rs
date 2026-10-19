@@ -2,9 +2,9 @@ use maud::{html, Markup, PreEscaped, DOCTYPE};
 
 pub fn render_base_layout(content: Markup) -> Markup {
     render_page_layout(
-        "AIENOS | Persistent Machine Intelligence on a Machine You Own",
-        "AIENOS is an experimental sovereign machine for persistent machine intelligence: Atlas awakens it on hardware you own, Omega turns intent into verified programs, and AIEN learns from verified experience. Every claim carries a public receipt.",
-        "https://aienos.com/",
+        "AIENOS | Persistent machine intelligence you own",
+        "An experimental, open source machine for turning search into verified understanding, running on five real machines. Every claim carries a public receipt.",
+        "https://www.aienos.com/",
         "website",
         html! {
             // Zero-dependency terminal micro-script
@@ -23,6 +23,8 @@ pub fn render_base_layout(content: Markup) -> Markup {
 /// Parameterized page layout for non-homepage pages (blog, posts).
 /// Title, description, and canonical URL are set per page. `extra_head`
 /// carries page-specific scripts (e.g. the comments loader on post pages).
+/// Social cards, hreflang alternates, feed links and JSON-LD are added to
+/// every written page by `seo::enrich`, so they are not repeated here.
 pub fn render_page_layout(
     title: &str,
     description: &str,
@@ -39,20 +41,9 @@ pub fn render_page_layout(
                 meta name="viewport" content="width=device-width, initial-scale=1";
                 title { (title) }
                 meta name="description" content=(description);
-                link rel="canonical" href=(og_url);
+                @if !og_url.is_empty() { link rel="canonical" href=(og_url); }
                 link rel="icon" type="image/svg+xml" href="/favicon.svg";
-
-                // Open Graph / Twitter Meta
-                meta property="og:title" content=(title);
-                meta property="og:description" content=(description);
-                meta property="og:url" content=(og_url);
                 meta property="og:type" content=(og_type);
-                meta property="og:image" content="https://aienos.com/og.png";
-                meta name="twitter:card" content="summary_large_image";
-                meta name="twitter:title" content=(title);
-                meta name="twitter:description" content=(description);
-                meta name="twitter:image" content="https://aienos.com/og.png";
-
 
                 // Stylesheet
                 link rel="stylesheet" href="/assets/style.css";

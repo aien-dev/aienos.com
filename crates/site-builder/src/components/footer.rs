@@ -93,6 +93,18 @@ pub fn render_footer() -> Markup {
                         p {
                             "Persistent machine intelligence on hardware you own. Experimental, open source, and verified in public, receipts and all."
                         }
+                        p class="aien-footer-machines" {
+                            span class="aien-footer-machines-k" { "For machines: " }
+                            a href="/data/index.json" { "data index" }
+                            " · "
+                            a href="/llms.txt" { "llms.txt" }
+                            " · "
+                            a href="/llms-full.txt" { "full text" }
+                            " · "
+                            a href="/feed.xml" { "feed" }
+                            " · "
+                            a href="/now/feed.xml" { "ledger feed" }
+                        }
                     }
                     nav class="aien-footer-sections" aria-label="Site sections" {
                         @for (heading, links) in FOOTER_GROUPS {

@@ -146,7 +146,8 @@ p {
 
 .badge-blue {
   background: rgba(45, 127, 249, 0.12);
-  color: var(--accent-blue);
+  /* lighter than the accent so 10px badge text clears 4.5:1 on the card ground */
+  color: #6aa7ff;
   border: 1px solid rgba(45, 127, 249, 0.3);
 }
 
@@ -1570,6 +1571,22 @@ p {
   line-height: 1.6;
   color: var(--text-secondary);
   margin: 0;
+}
+
+/* For machines: the data index, llms.txt and the feeds, one line under the blurb. */
+.aien-footer-machines {
+  margin-top: 12px !important;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.aien-footer-machines a {
+  color: var(--text-secondary);
+}
+
+.aien-footer-machines a:hover {
+  color: var(--text-primary);
 }
 
 .aien-footer-sections {
