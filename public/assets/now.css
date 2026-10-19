@@ -1,0 +1,471 @@
+/*
+ * /now/: the live ledger. Sits inside the Turing look (turing-look.css):
+ * near-black field, blue and green glow, mono kickers, heavy headings,
+ * rounded cards. What is new here is warmth: every line is coloured by
+ * how recently it was written, never by opinion. Hot is the last half
+ * hour (green), warm the last two hours (blue), cool today (soft), cold
+ * older (ink).
+ */
+:root {
+  --now-hot: #00e599;
+  --now-warm: #7db4ff;
+  --now-cool: #5b6b85;
+  --now-cold: #2a3648;
+  --now-op: #f59e0b;
+  --now-drop: #f87171;
+}
+
+.now-hero {
+  padding: 120px 0 56px;
+  position: relative;
+}
+
+.now-hero .container,
+.now-section .container {
+  max-width: 1200px;
+}
+
+.now-title {
+  font-size: clamp(38px, 6vw, 68px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.04;
+  max-width: 18ch;
+}
+
+.now-lead,
+.now-sub {
+  margin-top: 18px;
+  max-width: 68ch;
+  color: var(--tl-ink-2);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.now-sub {
+  font-size: 15.5px;
+  margin-top: 12px;
+}
+
+.now-empty {
+  margin-top: 28px;
+  color: var(--tl-ink-3);
+  font-style: italic;
+}
+
+/* ---------- the pulse row ---------- */
+.now-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-top: 40px;
+}
+
+.now-stat {
+  padding: 18px 20px 16px;
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius);
+  background: linear-gradient(180deg, rgba(19, 24, 34, 0.9), rgba(14, 18, 25, 0.9));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 0.3s ease, transform 0.3s ease;
+}
+
+.now-stat:hover {
+  transform: translateY(-2px);
+  border-color: var(--tl-line-2);
+}
+
+.now-stat-n {
+  font-family: var(--font-mono);
+  font-size: 34px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--tl-ink);
+}
+
+.now-stat-l {
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+  color: var(--tl-ink-3);
+  line-height: 1.35;
+}
+
+.now-stat-hot .now-stat-n { color: var(--now-hot); text-shadow: 0 0 24px rgba(0, 229, 153, 0.35); }
+.now-stat-done .now-stat-n { color: var(--now-warm); }
+.now-stat-op .now-stat-n { color: var(--now-op); }
+
+.now-stamp {
+  margin-top: 22px;
+  font-size: 13px;
+  color: var(--tl-ink-3);
+}
+
+.now-stamp .mono { color: var(--tl-ink-2); }
+
+.now-pulse {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin-top: 14px;
+  padding: 0;
+}
+
+.now-pulse li {
+  display: inline-flex;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--tl-ink-3);
+}
+
+.now-pulse-v { color: var(--tl-ink-2); }
+
+/* ---------- sections ---------- */
+.now-section {
+  padding: 72px 0;
+  border-top: 1px solid var(--tl-line);
+}
+
+.now-h2 {
+  font-size: clamp(26px, 3.4vw, 36px);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+.now-op-section {
+  background:
+    radial-gradient(ellipse 60% 24rem at 20% 0%, rgba(245, 158, 11, 0.07), transparent 70%);
+}
+
+/* ---------- streams and their rivers ---------- */
+.now-stream {
+  margin-top: 48px;
+}
+
+.now-stream-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.now-stream-name {
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.now-stream-n {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tl-ink-3);
+}
+
+.now-river {
+  display: flex;
+  gap: 3px;
+  height: 6px;
+  margin: 12px 0 20px;
+}
+
+.now-seg {
+  flex: 1 1 0;
+  min-width: 6px;
+  max-width: 72px;
+  border-radius: 3px;
+  background: var(--now-cold);
+  transition: transform 0.3s ease;
+}
+
+.now-seg:hover { transform: scaleY(1.6); }
+.now-seg.now-hot { background: var(--now-hot); box-shadow: 0 0 14px rgba(0, 229, 153, 0.55); }
+.now-seg.now-warm { background: var(--now-warm); box-shadow: 0 0 10px rgba(125, 180, 255, 0.35); }
+.now-seg.now-cool { background: var(--now-cool); }
+
+/* ---------- cards ---------- */
+.now-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 16px;
+}
+
+.now-card {
+  position: relative;
+  padding: 20px 22px 18px 24px;
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius);
+  background: var(--tl-card);
+  overflow: hidden;
+  transition: transform 0.35s cubic-bezier(.22,.61,.36,1), border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+.now-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 14px;
+  bottom: 14px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--now-cold);
+}
+
+.now-card.now-hot::before { background: var(--now-hot); box-shadow: 0 0 16px rgba(0, 229, 153, 0.6); }
+.now-card.now-warm::before { background: var(--now-warm); }
+.now-card.now-cool::before { background: var(--now-cool); }
+.now-card.now-k-operator::before { background: var(--now-op); box-shadow: 0 0 16px rgba(245, 158, 11, 0.45); }
+
+.now-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--tl-line-2);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+.now-card.now-hot:hover { box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 229, 153, 0.18); }
+
+.now-card-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+}
+
+.now-id {
+  color: var(--tl-ink-3);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+}
+
+.now-owner {
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--tl-line-2);
+  color: var(--tl-ink-2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.now-owner-operator { color: var(--now-op); border-color: rgba(245, 158, 11, 0.45); }
+.now-owner-desk { color: var(--tl-violet); border-color: rgba(167, 139, 250, 0.4); }
+.now-owner-coordinator { color: var(--now-warm); border-color: rgba(125, 180, 255, 0.4); }
+.now-owner-unassigned { color: var(--tl-ink-3); border-style: dashed; }
+
+.now-age {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--tl-ink-3);
+  white-space: nowrap;
+}
+
+.now-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--now-cold);
+}
+
+.now-hot .now-dot {
+  background: var(--now-hot);
+  box-shadow: 0 0 0 0 rgba(0, 229, 153, 0.6);
+  animation: now-beat 2.4s cubic-bezier(.22,.61,.36,1) infinite;
+}
+
+.now-warm .now-dot { background: var(--now-warm); }
+.now-cool .now-dot { background: var(--now-cool); }
+
+@keyframes now-beat {
+  0% { box-shadow: 0 0 0 0 rgba(0, 229, 153, 0.55); }
+  70% { box-shadow: 0 0 0 9px rgba(0, 229, 153, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 229, 153, 0); }
+}
+
+.now-item {
+  margin-top: 12px;
+  font-size: 16.5px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  color: var(--tl-ink);
+  overflow-wrap: anywhere;
+}
+
+.now-note {
+  margin-top: 10px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--tl-ink-2);
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.now-card:hover .now-note { -webkit-line-clamp: unset; }
+
+.now-done {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--tl-line);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--tl-ink-3);
+  overflow-wrap: anywhere;
+}
+
+.now-done-k {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tl-blue);
+  margin-right: 4px;
+}
+
+/* ---------- queue ---------- */
+.now-queue {
+  list-style: none;
+  padding: 0;
+  margin-top: 28px;
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius);
+  overflow: hidden;
+}
+
+.now-queue-row {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  gap: 8px 16px;
+  align-items: baseline;
+  padding: 14px 20px;
+  border-top: 1px solid var(--tl-line);
+  background: var(--tl-card);
+}
+
+.now-queue-row:first-child { border-top: 0; }
+.now-queue-row:nth-child(even) { background: rgba(14, 18, 25, 0.6); }
+
+.now-queue-item {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--tl-ink);
+  overflow-wrap: anywhere;
+}
+
+.now-queue-done {
+  grid-column: 2 / -1;
+  font-size: 12.5px;
+  color: var(--tl-ink-3);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .now-queue-row { grid-template-columns: 1fr; }
+  .now-queue-row .now-owner { justify-self: start; }
+}
+
+/* ---------- settled timeline ---------- */
+.now-timeline {
+  list-style: none;
+  padding: 0;
+  margin-top: 36px;
+  position: relative;
+}
+
+.now-timeline::before {
+  content: "";
+  position: absolute;
+  left: 118px;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  background: linear-gradient(180deg, var(--tl-green), var(--tl-blue) 40%, var(--tl-line));
+}
+
+.now-tl {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 36px;
+  padding: 14px 0 22px;
+  position: relative;
+}
+
+.now-tl::after {
+  content: "";
+  position: absolute;
+  left: 114px;
+  top: 21px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--tl-bg);
+  border: 2px solid var(--now-warm);
+}
+
+.now-tl-done::after { border-color: var(--now-hot); }
+.now-tl-dropped::after { border-color: var(--now-drop); }
+
+.now-tl-when {
+  text-align: right;
+  font-size: 12px;
+  color: var(--tl-ink-3);
+  padding-top: 3px;
+}
+
+.now-verdict {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-right: 10px;
+}
+
+.now-verdict-done { color: var(--now-hot); border: 1px solid rgba(0, 229, 153, 0.4); }
+.now-verdict-dropped { color: var(--now-drop); border: 1px solid rgba(248, 113, 113, 0.4); }
+
+.now-tl-item {
+  margin-top: 8px;
+  font-size: 15.5px;
+  font-weight: 600;
+  color: var(--tl-ink);
+  overflow-wrap: anywhere;
+}
+
+.now-tl-evidence {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--tl-ink-2);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .now-timeline::before { left: 4px; }
+  .now-tl { grid-template-columns: 1fr; gap: 6px; padding-left: 22px; }
+  .now-tl::after { left: 0; top: 20px; }
+  .now-tl-when { text-align: left; }
+}
+
+.now-how { padding-bottom: 110px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .now-hot .now-dot { animation: none; }
+  .now-card, .now-stat, .now-seg { transition: none; }
+}
