@@ -527,17 +527,23 @@ fn graph(page: &Emitted, info: &PageInfo, facts: &HeadFacts, has_mirror: bool, c
         "description": description,
         "inLanguage": page.lang,
         "isPartOf": {"@id": format!("{HOST}/#website")},
-        "primaryImageOfPage": {"@type": "ImageObject", "url": image, "width": 1200, "height": 630},
-        "image": image,
+        "image": {"@type": "ImageObject", "url": image, "width": 1200, "height": 630},
         "datePublished": info.published,
         "dateModified": page.lastmod,
         "license": LICENSE_URL,
         "isAccessibleForFree": true,
-        "publisher": {"@id": format!("{HOST}/#organization")},
-        "breadcrumb": {"@id": format!("{url}#breadcrumb")}
+        "publisher": {"@id": format!("{HOST}/#organization")}
     });
-    if matches!(info.kind, Kind::Article | Kind::Paper) {
+    let is_web_page = matches!(info.kind, Kind::Home | Kind::Page | Kind::Live | Kind::Collection);
+    if is_web_page {
+        // WebPage-only properties; the validator warns when they sit on an Article.
+        node["primaryImageOfPage"] = json!({"@type": "ImageObject", "url": image, "width": 1200, "height": 630});
+        if page.path != "/" && page.path != "/zh-CN/" {
+            node["breadcrumb"] = json!({"@id": format!("{url}#breadcrumb")});
+        }
+    } else {
         node["author"] = json!({"@id": format!("{HOST}/#drake")});
+        node["mainEntityOfPage"] = json!(url);
     }
     if info.kind == Kind::Paper {
         node["creativeWorkStatus"] = json!("Preprint, not peer reviewed");
