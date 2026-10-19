@@ -144,7 +144,7 @@ pub fn parse(raw: &str) -> Result<Data, String> {
         for s in [&c.model, &c.machine, &c.how, &c.receipt, &c.branch] {
             check_text(&what, s, &mut errors);
         }
-        if !(c.tok_s > 0.0) {
+        if c.tok_s.is_nan() || c.tok_s <= 0.0 {
             errors.push(format!("{what}: ceiling must be positive"));
         }
     }
