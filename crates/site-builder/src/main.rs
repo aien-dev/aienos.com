@@ -227,6 +227,7 @@ fn verify_site(dist: &Path) {
     assert!(content.contains("<main id=\"main-content\""), "Missing main container in index.html");
     assert!(content.contains("id=\"terminal-output\""), "Missing interactive terminal output in index.html");
     assert!(content.contains("id=\"follow\""), "Missing follow section in index.html");
+    assert!(content.contains("href=\"/now/\""), "Missing the Now link in the homepage follow section");
     assert!(content.contains("id=\"receipt\""), "Missing verification receipt in index.html");
     assert!(content.contains("id=\"live\""), "Missing live components block in index.html");
     assert!(!content.contains("fonts.googleapis.com"), "Outside font loaded in index.html");
