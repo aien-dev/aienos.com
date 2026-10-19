@@ -9,8 +9,8 @@ use super::narrative::class_badge;
 use super::research_status::{data, ImplementationRow};
 
 pub const TITLE: &str = "Scientific Discovery | AIENOS";
-pub const DESCRIPTION: &str = "Physics Zero, Dirac, Zeta and supersymmetry as examinations of representation discovery. AIEN is never given the named answer; it gets generic machinery and must earn the structure.";
-pub const URL: &str = "https://aienos.com/discovery/";
+pub const DESCRIPTION: &str = "Physics Zero, Dirac, Zeta and supersymmetry as examinations of representation discovery. AIEN is never given the named answer; it must earn the structure.";
+pub const URL: &str = "https://www.aienos.com/discovery/";
 
 pub const NAMED_ANSWER_RULE: &str =
     "Never give AIEN the named answer when the experiment is intended to test discovery.";

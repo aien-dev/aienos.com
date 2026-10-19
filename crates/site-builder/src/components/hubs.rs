@@ -61,7 +61,7 @@ pub static HUBS: [Hub; 3] = [
     Hub {
         slug: "evidence",
         title: "Evidence | AIENOS",
-        description: "What counts as evidence for AIEN, which source wins when two disagree, and where to inspect the receipts, frozen profiles, research status record, and qualification record.",
+        description: "What counts as evidence for AIEN, which source wins when two disagree, and where to inspect the receipts, frozen profiles and status records.",
         required: &[EVIDENCE_PHRASE, STATUS_PAGE_LINK, STATUS_JSON_LINK],
         status: StatusSource::Absent,
         render: render_evidence_hub,
@@ -234,7 +234,7 @@ fn render_hub_document(hub: &Hub) -> String {
     render_page_layout(
         hub.title,
         hub.description,
-        &format!("https://aienos.com/{}/", hub.slug),
+        &format!("https://www.aienos.com/{}/", hub.slug),
         "website",
         html! {},
         (hub.render)(),

@@ -16,8 +16,8 @@ use super::research_status::{
 };
 
 pub const TITLE: &str = "The Machine | AIENOS";
-pub const DESCRIPTION: &str = "AIENOS is an owned experimental machine for turning search into verified understanding. The real machines it runs on today, the closed epistemic loop, the Turing as its accounting layer, and an honest list of what exists.";
-pub const URL: &str = "https://aienos.com/machine/";
+pub const DESCRIPTION: &str = "The five real machines AIENOS runs on today, the closed loop from search to verified understanding, the Turing as its accounting layer, and what exists.";
+pub const URL: &str = "https://www.aienos.com/machine/";
 
 /// Anchor of the homepage loop diagram (NARR-HOME, components/home_loop.rs).
 pub const HOME_LOOP_HREF: &str = "/#loop-title";

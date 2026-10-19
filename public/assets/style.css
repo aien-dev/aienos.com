@@ -1572,6 +1572,22 @@ p {
   margin: 0;
 }
 
+/* For machines: the data index, llms.txt and the feeds, one line under the blurb. */
+.aien-footer-machines {
+  margin-top: 12px !important;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.aien-footer-machines a {
+  color: var(--text-secondary);
+}
+
+.aien-footer-machines a:hover {
+  color: var(--text-primary);
+}
+
 .aien-footer-sections {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));

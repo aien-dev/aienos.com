@@ -20,8 +20,8 @@ use maud::{html, Markup};
 use serde::Serialize;
 
 pub const TITLE: &str = "Now | AIEN OS";
-pub const DESCRIPTION: &str = "The live coordination ledger of AIEN: what every agent is doing right now, what comes next, what has been settled with evidence, and what is waiting on an operator decision.";
-pub const URL: &str = "https://aienos.com/now/";
+pub const DESCRIPTION: &str = "The live coordination ledger of AIEN: what every agent is doing right now, what is settled with evidence, and what waits on an operator decision.";
+pub const URL: &str = "https://www.aienos.com/now/";
 
 /// Where the pages workflow lays the published ledger before a build.
 pub const LEDGER_PATH: &str = "public/data/now.tsv";
