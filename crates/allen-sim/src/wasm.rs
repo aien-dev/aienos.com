@@ -156,3 +156,9 @@ pub extern "C" fn allen_map(n: u32, ne: u32, lit: i32, label_len: u32, total: u3
         }
     })
 }
+
+/// The first sound frame that is not silence (the sound comes in here, before the sweep).
+#[no_mangle]
+pub extern "C" fn allen_chirp_start() -> u32 {
+    chirp::RATE / 1000 * (chirp::START_MS - chirp::IN_MS)
+}
