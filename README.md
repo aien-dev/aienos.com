@@ -1,9 +1,9 @@
-# AIENOS Web Platform (aienos.com)
+# AienOS Web Platform (aienos.com)
 
 [![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL--3.0--or--later-blue.svg)](LICENSE)
 [![GitHub Pages](https://github.com/aien-dev/aienos.com/actions/workflows/pages.yml/badge.svg)](https://github.com/aien-dev/aienos.com/actions/workflows/pages.yml)
 
-The source of the AIENOS website. It is a static site built by a Rust program and served by GitHub Pages.
+The source of the AienOS website. It is a static site built by a Rust program and served by GitHub Pages.
 
 Live: [https://www.aienos.com](https://www.aienos.com)
 
@@ -11,7 +11,7 @@ Live: [https://www.aienos.com](https://www.aienos.com)
 
 ## What the site covers
 
-The homepage opens with "AIENOS is an owned experimental machine for turning search into verified understanding" (`crates/site-builder/src/components/home_loop.rs`) and goes on to the loop, the story, the receipts behind each claim, how the pieces fit together, the research, an interactive terminal, the current status of each layer, and where to follow the work. Other pages: `/progress/`, `/blog/`, `/research/status/`, `/machine/`, `/discovery/` and the hubs `/experiments/`, `/evidence/` and `/philosophy/`. The build also writes `status.json`, `research-status.json` and `llms.txt`; `status.json` and `llms.txt` come from the same code as the homepage status section, and `research-status.json` is `crates/site-builder/data/research_status.json`. The homepage status section says "Public release" is PLANNED: pre-alpha, no supported release or installer yet.
+The homepage opens with "AienOS is an owned experimental machine for turning search into verified understanding" (`crates/site-builder/src/components/home_loop.rs`) and goes on to the loop, the story, the receipts behind each claim, how the pieces fit together, the research, an interactive terminal, the current status of each layer, and where to follow the work. Other pages: `/progress/`, `/blog/`, `/research/status/`, `/machine/`, `/discovery/` and the hubs `/experiments/`, `/evidence/` and `/philosophy/`. The build also writes `status.json`, `research-status.json` and `llms.txt`; `status.json` and `llms.txt` come from the same code as the homepage status section, and `research-status.json` is `crates/site-builder/data/research_status.json`. The homepage status section says "Public release" is PLANNED: pre-alpha, no supported release or installer yet.
 
 ---
 

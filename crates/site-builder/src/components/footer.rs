@@ -10,7 +10,7 @@ pub const FOOTER_GROUPS: [(&str, &[FooterLink]); 6] = [
         "The Machine",
         &[
             ("The Machine", "/machine/", false),
-            ("AIENOS source", "https://github.com/aien-dev/aienos", true),
+            ("AienOS source", "https://github.com/aien-dev/aienos", true),
             ("Omega source", "https://github.com/aien-dev/omega", true),
             ("Architecture", "https://github.com/aien-dev/aien-architecture", true),
             ("Physics", "https://github.com/aien-dev/physics", true),
@@ -88,7 +88,7 @@ pub fn render_footer() -> Markup {
                     div class="aien-footer-about" {
                         div class="aien-footer-brand" {
                             (PreEscaped(r#"<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>"#))
-                            span { "AIENOS" }
+                            span { "AienOS" }
                         }
                         p {
                             "Persistent machine intelligence on hardware you own. Experimental, open source, and verified in public, receipts and all."

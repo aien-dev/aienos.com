@@ -18,7 +18,7 @@ use serde_json::{json, Value};
 use crate::components::now::{self, Now};
 
 pub const HOST: &str = "https://www.aienos.com";
-pub const SITE_NAME: &str = "AIENOS";
+pub const SITE_NAME: &str = "AienOS";
 pub const SITE_CLAIM: &str = "Persistent machine intelligence on a machine you own";
 pub const ORG_NAME: &str = "AIEN (aien-dev)";
 pub const ORG_URL: &str = "https://github.com/aien-dev";
@@ -76,8 +76,8 @@ pub struct PageInfo {
 /// Every English page of the site. The build fails if dist holds a page
 /// that is not here, or if a page here was not written.
 pub const PAGES: &[PageInfo] = &[
-    PageInfo { path: "/", name: "AIENOS", what: "The front page: the loop, the five real machines and their measured speeds beside the physical ceiling, the evidence cards, the current status of every layer.", section: Section::Machine, kind: Kind::Home, image: "/og.png", published: "2026-09-23", doi: None },
-    PageInfo { path: "/machine/", name: "The Machine", what: "What AIENOS is: the real machines it runs on today, the closed epistemic loop, the Turing as its accounting layer, and an honest list of what exists.", section: Section::Machine, kind: Kind::Article, image: "/og-machine.png", published: "2026-10-01", doi: None },
+    PageInfo { path: "/", name: "AienOS", what: "The front page: the loop, the five real machines and their measured speeds beside the physical ceiling, the evidence cards, the current status of every layer.", section: Section::Machine, kind: Kind::Home, image: "/og.png", published: "2026-09-23", doi: None },
+    PageInfo { path: "/machine/", name: "The Machine", what: "What AienOS is: the real machines it runs on today, the closed epistemic loop, the Turing as its accounting layer, and an honest list of what exists.", section: Section::Machine, kind: Kind::Article, image: "/og-machine.png", published: "2026-10-01", doi: None },
     PageInfo { path: "/now/", name: "Now", what: "The live coordination ledger: what every agent is doing right now, what is settled with evidence, what waits on the operator. Rebuilt whenever the ledger changes.", section: Section::Machine, kind: Kind::Live, image: "/og-now.png", published: "2026-10-19", doi: None },
     PageInfo { path: "/progress/", name: "Project progress", what: "Source lines, revisions, test footprint and verification activity across the public repositories, refreshed hourly from GitHub.", section: Section::Machine, kind: Kind::Live, image: "/og.png", published: "2026-10-01", doi: None },
     PageInfo { path: "/turing/", name: "The Turing: an interactive field guide", what: "What the Turing measures (net held-out explanatory compression), with games, live calculations and the theories behind it.", section: Section::Turing, kind: Kind::Article, image: "/og-turing.png", published: "2026-09-30", doi: None },
@@ -602,8 +602,8 @@ fn head_block(page: &Emitted, info: &PageInfo, facts: &HeadFacts, has_mirror: bo
         let zh = format!("{HOST}{}", page.zh_path());
         b.push_str(&format!("<link rel=\"alternate\" hreflang=\"en\" href=\"{en}\">\n<link rel=\"alternate\" hreflang=\"zh-CN\" href=\"{zh}\">\n<link rel=\"alternate\" hreflang=\"x-default\" href=\"{en}\">\n"));
     }
-    b.push_str(&format!("<link rel=\"alternate\" type=\"application/atom+xml\" title=\"AIENOS: blog and research\" href=\"{HOST}/feed.xml\">\n"));
-    b.push_str(&format!("<link rel=\"alternate\" type=\"application/atom+xml\" title=\"AIENOS: settled work from the live ledger\" href=\"{HOST}/now/feed.xml\">\n"));
+    b.push_str(&format!("<link rel=\"alternate\" type=\"application/atom+xml\" title=\"AienOS: blog and research\" href=\"{HOST}/feed.xml\">\n"));
+    b.push_str(&format!("<link rel=\"alternate\" type=\"application/atom+xml\" title=\"AienOS: settled work from the live ledger\" href=\"{HOST}/now/feed.xml\">\n"));
     b.push_str(&format!("<meta property=\"og:site_name\" content=\"{SITE_NAME}\">\n<meta property=\"og:locale\" content=\"{locale}\">\n"));
     b.push_str(&format!("<meta property=\"og:title\" content=\"{title}\">\n<meta property=\"og:description\" content=\"{description}\">\n<meta property=\"og:url\" content=\"{url}\">\n<meta property=\"og:type\" content=\"{og_type}\">\n"));
     b.push_str(&format!("<meta property=\"og:image\" content=\"{image}\">\n<meta property=\"og:image:width\" content=\"1200\">\n<meta property=\"og:image:height\" content=\"630\">\n<meta property=\"og:image:alt\" content=\"{image_alt}\">\n"));
@@ -694,7 +694,7 @@ pub fn site_feed(pages: &[Emitted]) -> String {
         .collect();
     entries.sort_by(|a, b| b.0.lastmod.cmp(&a.0.lastmod).then(b.1.published.cmp(a.1.published)));
     let updated = entries.first().map(|e| e.0.lastmod.clone()).unwrap_or_else(|| rfc3339(now_secs()));
-    let mut s = atom_head("AIENOS: blog and research", "Research notes and preprints from the AIEN project, with receipts.", "/feed.xml", &updated);
+    let mut s = atom_head("AienOS: blog and research", "Research notes and preprints from the AIEN project, with receipts.", "/feed.xml", &updated);
     for (p, i) in entries {
         s.push_str(&format!(
             "  <entry>\n    <title>{}</title>\n    <link href=\"{}\" rel=\"alternate\" type=\"text/html\"/>\n    <id>{}</id>\n    <published>{}T00:00:00Z</published>\n    <updated>{}</updated>\n    <summary>{}</summary>\n    <category term=\"{}\"/>\n  </entry>\n",
@@ -709,7 +709,7 @@ pub fn site_feed(pages: &[Emitted]) -> String {
 pub fn now_feed(now: &Now, ctx: &BuildCtx) -> String {
     let mut settled: Vec<&now::Item> = now.items.iter().filter(|i| i.status == "done" || i.status == "dropped").collect();
     settled.sort_by(|a, b| now::parse_utc(&b.updated_utc).cmp(&now::parse_utc(&a.updated_utc)).then(b.id.cmp(&a.id)));
-    let mut s = atom_head("AIENOS: settled work from the live ledger", "Every coordination ledger line that reached done or dropped, with the evidence that settled it.", "/now/feed.xml", &ctx.ledger_written);
+    let mut s = atom_head("AienOS: settled work from the live ledger", "Every coordination ledger line that reached done or dropped, with the evidence that settled it.", "/now/feed.xml", &ctx.ledger_written);
     for it in settled {
         let updated = now::parse_utc(&it.updated_utc).map(rfc3339).unwrap_or_else(|| ctx.ledger_written.clone());
         let published = now::parse_utc(&it.opened_utc).map(rfc3339).unwrap_or_else(|| updated.clone());
@@ -749,8 +749,8 @@ fn section_title(s: Section) -> &'static str {
 /// sections of links with one-line descriptions, an Optional section last.
 pub fn llms_txt(status_lines: &[String], research_sentence: &str) -> String {
     let mut s = String::new();
-    s.push_str("# AIENOS\n\n");
-    s.push_str(&format!("> {SITE_CLAIM}. AIENOS is an experimental, open source (AGPL-3.0-or-later) machine for turning search into verified understanding: AIEN proposes, Omega makes the proposal explicit and verifiable, the machine tests it against reality, the Turing measures what was learned, Cortex keeps the evidence. Every claim on the site carries a public receipt. Status: experimental, pre-alpha. Built by {AUTHOR} with AI agents on five real machines.\n\n"));
+    s.push_str("# AienOS\n\n");
+    s.push_str(&format!("> {SITE_CLAIM}. AienOS is an experimental, open source (AGPL-3.0-or-later) machine for turning search into verified understanding: AIEN proposes, Omega makes the proposal explicit and verifiable, the machine tests it against reality, the Turing measures what was learned, Cortex keeps the evidence. Every claim on the site carries a public receipt. Status: experimental, pre-alpha. Built by {AUTHOR} with AI agents on five real machines.\n\n"));
     s.push_str("Rules the site keeps: no comparisons with other systems (every speed stands beside the physical ceiling of its own machine only), failures stay on the record, nothing is loaded from anyone else (no trackers, no outside fonts or scripts; the one outside embed is the film on /turing/), and AI agents are welcome to read, cite, argue and correct. Contact: aien@aienos.com. Source: https://github.com/aien-dev.\n\n");
     s.push_str("## Current state\n\n");
     for l in status_lines {
@@ -849,7 +849,7 @@ pub fn html_to_text(html: &str) -> String {
 
 /// /llms-full.txt: every English page as text, in llms.txt order, from the files just written.
 pub fn llms_full(pages: &[Emitted]) -> String {
-    let mut s = format!("# AIENOS: every page in one file\n\nGenerated with the site from the same sources as the HTML. Page list and summaries: {HOST}/llms.txt. Machine-readable data: {HOST}/data/index.json.\n\n");
+    let mut s = format!("# AienOS: every page in one file\n\nGenerated with the site from the same sources as the HTML. Page list and summaries: {HOST}/llms.txt. Machine-readable data: {HOST}/data/index.json.\n\n");
     for info in PAGES {
         let Some(p) = pages.iter().find(|p| p.path == info.path) else { continue };
         let html = fs::read_to_string(&p.file).unwrap_or_default();
@@ -882,7 +882,7 @@ pub fn data_index(ctx: &BuildCtx) -> String {
 
 pub fn humans_txt(ctx: &BuildCtx) -> String {
     format!(
-        "/* TEAM */\n\tBuilder and owner: {AUTHOR}\n\tSite: {AUTHOR_URL}\n\tX: {X_HANDLE}\n\tGitHub: {AUTHOR_GITHUB}\n\tContact: {ORG_EMAIL}\n\n/* AGENTS */\n\tThe code is written with AI coding agents working in parallel under one human conductor.\n\tEvery change is judged by the Spark itself before it merges; the receipts are public.\n\tAgents are first-class readers here: read, cite, argue, correct. {HOST}/llms.txt\n\n/* MACHINES */\n\tNVIDIA DGX Spark (Grace Blackwell GB10, 128 GB unified memory): the development machine and the judge.\n\tIntel iMac 2017: bare metal AIENOS, the x86_64 port of the C kernel.\n\tRaspberry Pi 5: the small machine.\n\tQEMU: the laboratory where every kernel boots first.\n\tThe rig: the owned inference box.\n\tDetails and receipts: {HOST}/machine/ and {HOST}/machines.json\n\n/* SITE */\n\tLast build: {}\n\tLanguages: English, Simplified Chinese\n\tBuilt with: Rust, maud. No frameworks, no trackers, no outside fonts.\n\tSource: https://github.com/aien-dev/aienos.com\n\tLicense: {LICENSE_NAME}\n",
+        "/* TEAM */\n\tBuilder and owner: {AUTHOR}\n\tSite: {AUTHOR_URL}\n\tX: {X_HANDLE}\n\tGitHub: {AUTHOR_GITHUB}\n\tContact: {ORG_EMAIL}\n\n/* AGENTS */\n\tThe code is written with AI coding agents working in parallel under one human conductor.\n\tEvery change is judged by the Spark itself before it merges; the receipts are public.\n\tAgents are first-class readers here: read, cite, argue, correct. {HOST}/llms.txt\n\n/* MACHINES */\n\tNVIDIA DGX Spark (Grace Blackwell GB10, 128 GB unified memory): the development machine and the judge.\n\tIntel iMac 2017: bare metal AienOS, the x86_64 port of the C kernel.\n\tRaspberry Pi 5: the small machine.\n\tQEMU: the laboratory where every kernel boots first.\n\tThe rig: the owned inference box.\n\tDetails and receipts: {HOST}/machine/ and {HOST}/machines.json\n\n/* SITE */\n\tLast build: {}\n\tLanguages: English, Simplified Chinese\n\tBuilt with: Rust, maud. No frameworks, no trackers, no outside fonts.\n\tSource: https://github.com/aien-dev/aienos.com\n\tLicense: {LICENSE_NAME}\n",
         ctx.built
     )
 }
@@ -904,7 +904,7 @@ pub fn render_404() -> Markup {
                 }
                 ul style="margin: 28px 0 0 0; padding: 0; list-style: none; display: grid; gap: 10px;" {
                     li { a href="/" { "The front page" } ": the loop, the machines, the evidence." }
-                    li { a href="/machine/" { "The Machine" } ": what AIENOS is and what runs today." }
+                    li { a href="/machine/" { "The Machine" } ": what AienOS is and what runs today." }
                     li { a href="/now/" { "Now" } ": what every agent is doing right now." }
                     li { a href="/research/" { "Research" } ": the preprints and the papers." }
                     li { a href="/evidence/" { "Evidence" } ": receipts over claims." }
@@ -1043,7 +1043,7 @@ mod tests {
     #[test]
     fn llms_txt_follows_the_convention() {
         let t = llms_txt(&["Layer: STATE. note".into()], "ladder sentence");
-        assert!(t.starts_with("# AIENOS\n\n> "));
+        assert!(t.starts_with("# AienOS\n\n> "));
         assert!(t.contains("\n## Optional\n"));
         assert_eq!(t.matches("\n# ").count(), 0, "exactly one H1");
         for p in PAGES {

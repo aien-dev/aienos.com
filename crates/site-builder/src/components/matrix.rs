@@ -6,7 +6,7 @@ use super::boxlink::{foot, Target};
 /// the role, from the site inventory of 2026-10-19.
 const ROLE_LINKS: [(&str, &str); 8] = [
     ("ATLAS", "https://github.com/aien-dev/atlas"),
-    ("AIENOS", "https://github.com/aien-dev/aienos-mv"),
+    ("AienOS", "https://github.com/aien-dev/aienos-mv"),
     ("OMEGA", "https://github.com/aien-dev/omega-mv"),
     ("AIEN", "https://github.com/aien-dev/aien-sovereign-core-mv"),
     ("AEGIS", "https://github.com/aien-dev/omega-mv/blob/main/spec/r8-aegis-resident.md"),
@@ -29,10 +29,10 @@ pub fn render_matrix() -> Markup {
         (
             "ATLAS",
             "awakens",
-            "The seed that wakes AIENOS on a machine. Atlas carries the lineage to new hardware and brings the sovereign stack to life on it.",
+            "The seed that wakes AienOS on a machine. Atlas carries the lineage to new hardware and brings the sovereign stack to life on it.",
         ),
         (
-            "AIENOS",
+            "AienOS",
             "persists",
             "The sovereign substrate, and more than an operating system: it owns the hardware, keeps the agent alive and continuous, and holds memory, keys, and receipts on the owner's side of the line.",
         ),

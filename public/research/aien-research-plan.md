@@ -226,7 +226,7 @@ the system and must never accidentally collapse into one:
 - Omega SemanticId = identity of meaning.
 - Resident ObjectId + Generation (+ Rights) = identity of a live logical
   object incarnation.
-- AIENOS Store ObjectId = identity of durable stored bytes.
+- AienOS Store ObjectId = identity of durable stored bytes.
 - Physical address / GPU VA = disposable realization.
 
 The complete ladder:
@@ -240,7 +240,7 @@ Wherever H5, H6, or H8 says "ObjectId" without qualification, it means the
 resident live-object identifier. Builders must not substitute the Omega
 SemanticId or the Store ObjectId.
 
-**Maps to:** redefines M37 (AIEN_RESIDENT); touches the AIENOS trust lane
+**Maps to:** redefines M37 (AIEN_RESIDENT); touches the Aienux trust lane
 (power-cycle continuity for one agent identity).
 
 ### H9. Physical Cost Calculus
@@ -372,7 +372,7 @@ violations (must be zero; any violation fails the turn, not the hypothesis).
 | The fragmentation dragon | Shared-everything plus intended infinite lifetime is one of the hardest memory-management problems there is. Systems famous for long uptime isolate heaps; this architecture shares everything. | Name it as the central research risk. Generational addressing is the mitigation bet; the soak gates are the detectors, not the cure. A soak test detects fragmentation; it does not solve it. |
 | Contention mispricing | On a shared 273 GB/s pipe, the cost of moving bytes depends on what else is moving. A static machine graph misprices under contention. | Price movement against live contention; contention conditions are part of every measurement contract; predicted vs measured cost split with the empirical ledger correcting the predictor. |
 | Device frontier | Epoch barriers tag memory, not packets. External effects escape the consistent cut. | Name it now. Devices reach the barrier as participants or journal effects as intents. Forge owns this problem. |
-| Live substrate update | "Remain resident" has no story for patching ATLAS, AIENOS, or Omega semantics beneath a running world. The first security patch ends "never shuts off" without one. | Named as an open problem. Candidate direction: dual-world handoff (build new world beside old, migrate generations, cut over). Not claimed, not scheduled. |
+| Live substrate update | "Remain resident" has no story for patching ATLAS, AienOS, or Omega semantics beneath a running world. The first security patch ends "never shuts off" without one. | Named as an open problem. Candidate direction: dual-world handoff (build new world beside old, migrate generations, cut over). Not claimed, not scheduled. |
 | Capacity budget | 128 GB is the hard ceiling: weights, KV, semantic graph, branch worlds, Cortex hot set, sealed generations. A resident intelligence that does not fit in RAM is not resident. | Working-set discipline and a capacity budget are required before M37 can be claimed. "Save the minimum information necessary to recreate the same logical intelligence" is the principle; the budget makes it testable. |
 | Closed-loop theater | A loop that runs but never improves, or that AEGIS waves through, is process theater. | The keystone milestone is a *closed* loop, honestly measured. Improvement is milestone 2. Any invariant violation fails the turn. |
 
@@ -401,7 +401,7 @@ violations (must be zero; any violation fails the turn, not the hypothesis).
 |---|---|---|
 | H5, H6 | M15-M19 era extension | Embryonic in current Omega accelerator work |
 | H7 | Proposed era extension, M19-M20 | Head-to-head vs dispatch/wait |
-| H8 | Redefines M37; AIENOS trust lane | Epoch barrier; power-cycle continuity |
+| H8 | Redefines M37; Aienux trust lane | Epoch barrier; power-cycle continuity |
 | H9 | Extends M8, M13, M14 | OmegaPhysicalCost; measured contention facts |
 | H10 | Mechanism for M38; shape of M40 | Keystone: first closed loop |
 | Copy engines (cost-selected, not doctrinally assigned) | Forge duties | Omega's physical cost calculus decides per task; candidate uses include checkpoint staging, compaction, snapshots |

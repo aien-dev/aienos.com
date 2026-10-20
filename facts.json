@@ -3,7 +3,7 @@
   "components": [
     {
       "key": "aienos",
-      "name": "AIENOS",
+      "name": "AienOS",
       "repo": "aien-dev/aienos",
       "role": "The operating system. Agent-first; the model is never the kernel.",
       "url": "https://github.com/aien-dev/aienos",

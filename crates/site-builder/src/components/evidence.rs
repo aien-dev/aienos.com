@@ -58,7 +58,7 @@ fn cards() -> Vec<Card> {
             badge: "badge-green",
             figure: "24 of 24 emulator gates",
             title: "Every kernel gate, in QEMU, on main",
-            desc: "The AIENOS C kernel passes all 24 emulator gates at commit 7f0de7e, each one a script anyone can rerun, with the receipt on main. The gate script now lists 26, so a newer receipt is owed.",
+            desc: "The Aienux C kernel passes all 24 emulator gates at commit 7f0de7e, each one a script anyone can rerun, with the receipt on main. The gate script now lists 26, so a newer receipt is owed.",
             date: "2026-10-09",
             environment: "QEMU, AArch64 virt and x86_64 q35, on main",
             gate: "ck_gates.sh, 24 gates",

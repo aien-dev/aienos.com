@@ -71,7 +71,7 @@ pub fn layer_states() -> Vec<LayerState> {
         LayerState {
             name: "Atlas, the awakening layer",
             status: "PLANNED",
-            note: "The seed that wakes AIENOS on new hardware. Doctrine published in the architecture repository; implementation ahead.",
+            note: "The seed that wakes AienOS on new hardware. Doctrine published in the architecture repository; implementation ahead.",
             receipt_label: Some("aien-dev/aien-architecture"),
             receipt_url: Some("https://github.com/aien-dev/aien-architecture"),
         },
@@ -176,7 +176,7 @@ pub fn status_json() -> String {
     let layers = layer_states();
     let mut out = String::new();
     out.push_str("{\n");
-    out.push_str("  \"project\": \"AIENOS\",\n");
+    out.push_str("  \"project\": \"AienOS\",\n");
     out.push_str(&format!("  \"updated\": \"{}\",\n", UPDATED));
     out.push_str("  \"canonical\": \"https://www.aienos.com/#status\",\n");
     out.push_str("  \"statuses\": [\"IMPLEMENTED\", \"QUALIFIED\", \"EXPERIMENTAL\", \"BLOCKED\", \"PLANNED\"],\n");

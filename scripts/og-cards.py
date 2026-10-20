@@ -26,7 +26,7 @@ DIM = (100, 116, 139)
 
 CARDS = [
     # file, kicker, claim (two lines max), sub line, address
-    ("og.png", "AIENOS",
+    ("og.png", "AienOS",
      "Persistent machine intelligence\non a machine you own",
      "Search turned into verified understanding. Every claim carries a public receipt.",
      "www.aienos.com"),

@@ -10,14 +10,14 @@ use super::research_status;
 
 /// Central statement, first sentence (the page h1).
 pub const LEAD: &str =
-    "AIENOS is an owned experimental machine for turning search into verified understanding.";
+    "AienOS is an owned experimental machine for turning search into verified understanding.";
 
 /// Central statement, the sentences after the lead.
 pub const LEAD_REST: &str = "AIEN proposes structure. Omega makes that structure explicit and checkable. The machine tests it against reality under authority. The Turing measures what was actually learned. Cortex keeps the evidence. Then the next search begins from what survived.";
 
 /// The short public thesis, split into readable paragraphs.
 pub const THESIS: [&str; 3] = [
-    "AIENOS is an attempt to build persistent machine intelligence as a scientific process rather than a model invocation. Neural machinery may propose, but proposals have no authority.",
+    "AienOS is an attempt to build persistent machine intelligence as a scientific process rather than a model invocation. Neural machinery may propose, but proposals have no authority.",
     "Omega turns them into explicit programs and theories; verification determines whether they are internally valid; the owned machine tests them against physical reality; the Turing measures whether they explain unseen observations after paying for their own complexity; Cortex preserves the evidence; and that verified experience changes the next search.",
     "Atlas carries the lineage across hardware. The goal is not a machine that sounds as though it understands, but a machine whose growth in explanatory power can be measured, falsified, reproduced, and owned.",
 ];
@@ -56,7 +56,7 @@ impl Band {
 /// The canonical loop (handoff section 14), in order.
 pub const STAGES: [(&str, &str, Band); 8] = [
     ("ATLAS", "awakens / lineage", Band::Generation),
-    ("AIENOS", "persistent owned substrate", Band::Generation),
+    ("AienOS", "persistent owned substrate", Band::Generation),
     ("AIEN", "proposes / guides search", Band::Generation),
     ("OMEGA", "formalizes / searches / verifies meaning", Band::Generation),
     ("FORGE", "realizes", Band::Generation),
@@ -224,7 +224,7 @@ pub fn render_home_loop() -> Markup {
                         (perimeter_band(&PERIMETER_BOTTOM, "Perimeter, capabilities and receipts"))
                     }
                     figcaption class="loop-caption" {
-                        "ATLAS, AIENOS, AIEN, OMEGA, FORGE, REALITY, TURING and CORTEX are the stages. AEGIS, ARGUS, the capability system and evidence receipts form the perimeter around them."
+                        "ATLAS, AienOS, AIEN, OMEGA, FORGE, REALITY, TURING and CORTEX are the stages. AEGIS, ARGUS, the capability system and evidence receipts form the perimeter around them."
                     }
                 }
 
@@ -291,13 +291,13 @@ mod tests {
     fn central_statement_leads_and_thesis_follows() {
         let s = page();
         let lead = s
-            .find("AIENOS is an owned experimental machine for turning search into verified understanding.")
+            .find("AienOS is an owned experimental machine for turning search into verified understanding.")
             .expect("central statement missing");
         assert!(s[..lead].contains("<h1"), "central statement must be the h1 lead");
         assert_eq!(s.matches("<h1").count(), 1, "exactly one h1");
         for needle in [
             "Then the next search begins from what survived.",
-            "AIENOS is an attempt to build persistent machine intelligence as a scientific process rather than a model invocation.",
+            "AienOS is an attempt to build persistent machine intelligence as a scientific process rather than a model invocation.",
             "Neural machinery may propose, but proposals have no authority.",
             "Atlas carries the lineage across hardware.",
         ] {
@@ -323,7 +323,7 @@ mod tests {
         let ol = stage_list(&s);
         let expected = [
             ("ATLAS", "awakens / lineage"),
-            ("AIENOS", "persistent owned substrate"),
+            ("AienOS", "persistent owned substrate"),
             ("AIEN", "proposes / guides search"),
             ("OMEGA", "formalizes / searches / verifies meaning"),
             ("FORGE", "realizes"),
