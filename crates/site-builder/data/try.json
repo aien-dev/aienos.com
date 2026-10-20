@@ -1,0 +1,9 @@
+{
+  "as_of": "2026-10-20",
+  "note": "One row per number the /try/ page may show. A null value renders as NOT MEASURED. A value needs a receipt link on GitHub; the tests refuse a value without one.",
+  "measured": [
+    { "id": "boot-windows", "target": "windows", "what": "Time from starting aienos-run.exe to the AienOS console", "value": null, "receipt": null },
+    { "id": "boot-macos", "target": "macos", "what": "Time from starting the runner to the AienOS console", "value": null, "receipt": null },
+    { "id": "boot-linux", "target": "linux", "what": "Time from starting the runner to the AienOS console", "value": null, "receipt": null }
+  ]
+}

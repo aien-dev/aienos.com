@@ -33,6 +33,14 @@ To bind `aienos.com` on Gandi.net to GitHub Pages:
 
 ---
 
+## Try page and try script
+
+`/try/` (`crates/site-builder/src/components/try_page.rs`) has one box per system (Windows, macOS, Linux) for `aienos-run`, the program that starts AienOS in a virtual machine: the command, the sha256, what happens next, what is not there yet, and how to remove it. A reader can run `curl -fsSL https://www.aienos.com/try.sh | sh` on macOS or Linux; `public/try.sh` finds the newest release of aien-dev/aienos that carries `aienos-run-SHA256SUMS`, checks the runner's sha256 and refuses on a mismatch. Its tests are `scripts/test-try.sh` (fake release folder, tampered download refused), also run by `cargo test`.
+
+Nothing here has run on real hardware or in an emulator for this page: no `aienos-run` release exists yet (checked 2026-10-20), so the page says "Not published yet" and shows no download link. `site-builder try-release` (hourly in the pages workflow) writes `public/data/try-release.json` from the release; the page and its sha256 values come from that file. Speed numbers live in `crates/site-builder/data/try.json`, all NOT MEASURED, and a value without a GitHub receipt fails the tests.
+
+---
+
 ## Installer script
 
 `public/install.sh` is published at `https://aienos.com/install.sh`. It needs `git`, clones [aien-sovereign-core](https://github.com/aien-dev/aien-sovereign-core) (the earlier Linux-hosted Rust runtime) into a temporary directory and runs that repository's own `install.sh`. The website itself says there is no supported release or installer yet, and no page links to this script.

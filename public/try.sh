@@ -3,8 +3,9 @@
 #
 # What this does, in order, and nothing else:
 #   1. Works out your system (Linux or macOS, x86_64 or aarch64).
-#   2. Downloads aienos-run-SHA256SUMS from the latest release at
-#      https://github.com/aien-dev/aienos/releases and reads the line for your system.
+#   2. Finds the newest release at https://github.com/aien-dev/aienos/releases that
+#      carries aienos-run-SHA256SUMS (other releases there, such as disk images,
+#      do not count), downloads that file and reads the line for your system.
 #   3. Downloads that one runner and checks its sha256 against the line.
 #      A mismatch deletes the download and stops. Nothing runs.
 #   4. Runs it. The runner fetches and verifies the AienOS image itself and opens
@@ -23,7 +24,7 @@
 main() {
   set -eu
 
-  BASE="${AIENOS_RELEASE_BASE:-https://github.com/aien-dev/aienos/releases/latest/download}"
+  REPO="aien-dev/aienos"
   SUMS="aienos-run-SHA256SUMS"
 
   say() { printf '%s\n' "$*"; }
@@ -73,11 +74,24 @@ main() {
     die "need sha256sum, shasum or openssl to check the download." 2
   fi
 
+  API="${AIENOS_RELEASES_API:-https://api.github.com/repos/$REPO/releases?per_page=30}"
   mkdir -p "$cache/bin"
   work="$(mktemp -d "${TMPDIR:-/tmp}/aienos-try.XXXXXX")"
   trap 'rm -rf -- "$work"' EXIT INT TERM
 
-  # 2. The signed-off list of runners for the latest release.
+  # 2. The list of runners. AIENOS_RELEASE_BASE (a folder URL) and AIENOS_RUN_TAG
+  # (a release tag) pin the source; otherwise ask GitHub for the newest release
+  # that carries the list. The API answer is plain JSON; grep reads one field.
+  if [ -n "${AIENOS_RELEASE_BASE:-}" ]; then
+    BASE="$AIENOS_RELEASE_BASE"
+  elif [ -n "${AIENOS_RUN_TAG:-}" ]; then
+    BASE="https://github.com/$REPO/releases/download/$AIENOS_RUN_TAG"
+  else
+    fetch "$API" "$work/releases" || die "could not read the release list at $API. Releases: https://github.com/$REPO/releases" 3
+    found="$(grep -o '"browser_download_url": *"[^"]*/'"$SUMS"'"' "$work/releases" | head -n 1 | sed 's/.*"\([a-z]*:\/\/[^"]*\)"$/\1/')"
+    [ -n "$found" ] || die "no AienOS runner is published yet (no release carries $SUMS). Releases: https://github.com/$REPO/releases" 3
+    BASE="${found%/$SUMS}"
+  fi
   say "AienOS: reading $BASE/$SUMS"
   if ! fetch "$BASE/$SUMS" "$work/sums"; then
     die "no AienOS runner is published yet (could not read $BASE/$SUMS). Releases: https://github.com/aien-dev/aienos/releases" 3

@@ -56,6 +56,30 @@ run "no line for this system is refused" 3 "no runner for linux-x86_64" "RUNNER-
 rm -f "$rel/aienos-run-SHA256SUMS"
 run "no release yet says so" 3 "no AienOS runner is published yet" "RUNNER-RAN" env
 
+# Finding the release through the GitHub API listing: the newest release that
+# carries the runner list wins; an image-only release in front of it is skipped.
+rm -rf "$root/cache"
+printf '%s  aienos-run-linux-x86_64\n' "$good" > "$rel/aienos-run-SHA256SUMS"
+printf '#!/bin/sh\necho "RUNNER-RAN $*"\n' > "$rel/aienos-run-linux-x86_64"
+cat > "$root/releases.json" <<JSON
+[
+  {"tag_name": "aienos-pc-v0.1.0", "assets": [
+    {"name": "SHA256SUMS", "browser_download_url": "file://$root/elsewhere/SHA256SUMS"},
+    {"name": "aienos-pc-0.1.0-vm.qcow2", "browser_download_url": "file://$root/elsewhere/aienos-pc-0.1.0-vm.qcow2"}]},
+  {"tag_name": "aienos-run-v0.1.0", "assets": [
+    {"name": "aienos-run-SHA256SUMS", "browser_download_url": "file://$rel/aienos-run-SHA256SUMS"},
+    {"name": "aienos-run-linux-x86_64", "browser_download_url": "file://$rel/aienos-run-linux-x86_64"}]}
+]
+JSON
+out="$(env AIENOS_RELEASES_API="file://$root/releases.json" AIENOS_CACHE="$root/cache" AIENOS_TRY_TARGET=linux-x86_64 sh "$script" </dev/null 2>&1)"; code=$?
+{ [ "$code" -eq 0 ] && case "$out" in *"RUNNER-RAN"*) true ;; *) false ;; esac; } && ok "release list: skips the image release, finds the runner release" || bad "release list: exit $code: $out"
+printf '[{"tag_name": "aienos-pc-v0.1.0", "assets": [{"name": "SHA256SUMS", "browser_download_url": "file://x/SHA256SUMS"}]}]\n' > "$root/releases.json"
+out="$(env AIENOS_RELEASES_API="file://$root/releases.json" AIENOS_CACHE="$root/cache2" AIENOS_TRY_TARGET=linux-x86_64 sh "$script" </dev/null 2>&1)"; code=$?
+{ [ "$code" -eq 3 ] && case "$out" in *"no AienOS runner is published yet"*) true ;; *) false ;; esac; } && ok "release list: only an image release means not published yet" || bad "image-only list: exit $code: $out"
+printf '[]\n' > "$root/releases.json"
+out="$(env AIENOS_RELEASES_API="file://$root/releases.json" AIENOS_CACHE="$root/cache2" AIENOS_TRY_TARGET=linux-x86_64 sh "$script" </dev/null 2>&1)"; code=$?
+[ "$code" -eq 3 ] && ok "release list: no releases at all" || bad "empty list: exit $code: $out"
+
 # Unsupported systems: a fake uname on PATH.
 shim="$root/shim"; mkdir -p "$shim"
 unsupported() { # name, uname -s, uname -m, expected text

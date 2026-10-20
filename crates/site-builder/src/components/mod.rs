@@ -16,6 +16,7 @@ pub mod research_status;
 pub mod status;
 pub mod story;
 pub mod terminal;
+pub mod try_page;
 pub mod live;
 pub mod follow;
 pub mod now;

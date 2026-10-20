@@ -169,6 +169,20 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     fs::write(dist.join("now/index.html"), now_page.into_string()).expect("Failed to write now/index.html");
     fs::write(dist.join("now.json"), components::now::to_json(&now)).expect("Failed to write now.json");
     println!("  [PAGE] Emitted /now/ ({} ledger lines) and /now.json", now.items.len());
+    // /try/: one box per system, fed by public/data/try-release.json (the latest
+    // release as the collector read it) and data/try.json (measured numbers).
+    let release = components::try_page::load();
+    let try_page = render_page_layout(
+        components::try_page::TITLE,
+        components::try_page::DESCRIPTION,
+        components::try_page::URL,
+        "website",
+        html! { link rel="stylesheet" href="/assets/try.css"; },
+        components::try_page::render_try_page(&release),
+    );
+    fs::create_dir_all(dist.join("try")).expect("Failed to create try dir");
+    fs::write(dist.join("try/index.html"), try_page.into_string()).expect("Failed to write try/index.html");
+    println!("  [PAGE] Emitted /try/ (published: {}, {} runners)", release.published, release.artifacts.len());
     // Research narrative pages (NARR-RESEARCH): The Machine and Scientific Discovery
     for (slug, title, description, url, body) in [
         (
@@ -304,6 +318,27 @@ fn verify_site(dist: &Path) {
     assert!(blog_index.exists(), "Missing blog/index.html");
     let blog_post = dist.join("blog/aien-v3-research-plan/index.html");
     assert!(blog_post.exists(), "Missing blog/aien-v3-research-plan/index.html");
+
+    // /try/: three system boxes, the script it points at, and the release record.
+    let try_page = fs::read_to_string(dist.join("try/index.html")).expect("Missing try/index.html");
+    for id in ["try-windows", "try-macos", "try-linux"] {
+        assert!(try_page.contains(&format!("id=\"{id}\"")), "Missing {id} box in try/index.html");
+    }
+    assert!(try_page.contains(components::try_page::COMMAND), "try/index.html must show the one-line command");
+    assert!(try_page.contains("NOT MEASURED") || try_page.contains("receipt"), "try/index.html must label unmeasured numbers");
+    assert!(dist.join("assets/try.css").exists(), "Missing assets/try.css");
+    let try_sh = fs::read_to_string(dist.join("try.sh")).expect("Missing try.sh");
+    assert!(try_sh.starts_with("#!/bin/sh\n"), "try.sh must start with the sh shebang");
+    assert!(try_sh.trim_end().ends_with("main \"$@\""), "try.sh must end with its single call");
+    let release: components::try_page::Release = serde_json::from_str(&fs::read_to_string(dist.join("data/try-release.json")).expect("Missing data/try-release.json")).expect("data/try-release.json parses");
+    if release.published {
+        for a in &release.artifacts {
+            assert!(try_page.contains(&a.sha256), "published sha256 of {} missing from try/index.html", a.asset);
+        }
+    } else {
+        assert!(try_page.contains(components::try_page::NOT_PUBLISHED), "an unpublished release must say so on try/index.html");
+        assert!(!try_page.contains("releases/download"), "no download link before a release exists");
+    }
     let research_status = dist.join("research/status/index.html");
     assert!(research_status.exists(), "Missing research/status/index.html");
     let now_page = dist.join("now/index.html");
@@ -390,6 +425,7 @@ const GENERATED_PAGES: &[(&str, usize)] = &[
     ("philosophy/index.html", 3),
     ("research/status/index.html", 40),
     ("now/index.html", 0),
+    ("try/index.html", 3),
     ("progress/index.html", 0),
     ("blog/index.html", 2),
     ("blog/aien-v3-research-plan/index.html", 0),
@@ -419,6 +455,24 @@ fn main() {
             &gathered.receipt.sha[..gathered.receipt.sha.len().min(12)],
             start.elapsed()
         );
+        return;
+    }
+
+    // `try-release [out.json]`: read the latest release of aien-dev/aienos and write the record
+    // /try/ renders (tag, date, the sha256 of every runner), or the "not published yet" record.
+    // Needs `gh`. A failed read exits non-zero and leaves the existing file as it was.
+    if first_arg == "try-release" {
+        let out = std::env::args().nth(2).unwrap_or_else(|| components::try_page::RELEASE_PATH.to_string());
+        match components::try_page::collect(Path::new(&out)) {
+            Ok(r) => println!(
+                "  [TRY] {out}: published={}, {} runners, tag {}, checked {} ({:.2?})",
+                r.published, r.artifacts.len(), r.tag.as_deref().unwrap_or("none"), r.checked_utc, start.elapsed()
+            ),
+            Err(e) => {
+                eprintln!("try-release: {e}");
+                std::process::exit(1);
+            }
+        }
         return;
     }
 

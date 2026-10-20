@@ -38,6 +38,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: cargo run --release --manifest-path crates/site-builder/Cargo.toml -- progress public/data/project-progress.json
+      - name: Read the latest aienos-run release for /try/
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: cargo run --release --manifest-path crates/site-builder/Cargo.toml -- try-release public/data/try-release.json
       - name: Refresh facts from the public GitHub record
         env:
           GH_TOKEN: ${{ github.token }}

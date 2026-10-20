@@ -100,7 +100,7 @@ fn s(v: &serde_json::Value, key: &str) -> String {
     v.get(key).and_then(|x| x.as_str()).unwrap_or("").to_string()
 }
 
-fn now_utc() -> String {
+pub fn now_utc() -> String {
     // RFC 3339 to the second, without pulling in a time crate.
     let secs = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)

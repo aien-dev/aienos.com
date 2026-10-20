@@ -16,6 +16,9 @@ pub fn render_follow() -> Markup {
                         "There is no release to wait for and no list to join. Everything happens in public repositories, every change is judged on the machine itself, and this page reads the record every hour. Watch the repositories, read the receipts, open an issue."
                     }
                     div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;" {
+                        a href="/try/" style="background: var(--accent-blue, #2d7ff9); color: #fff; border-radius: 4px; padding: 12px 22px; font-family: var(--font-mono); font-size: 13px; font-weight: 700;" {
+                            "Try AienOS on your computer"
+                        }
                         a href="https://github.com/aien-dev" target="_blank" rel="noopener noreferrer" style="background: var(--accent-green); color: var(--bg-base); border-radius: 4px; padding: 12px 22px; font-family: var(--font-mono); font-size: 13px; font-weight: 700;" {
                             "GitHub: aien-dev"
                         }

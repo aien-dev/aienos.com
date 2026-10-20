@@ -39,6 +39,7 @@ pub const BOX_CLASSES: &[&str] = &[
     "now-card",
     "now-queue-row",
     "now-tl",
+    "try-card",
 ];
 
 /// Where the box link points.
