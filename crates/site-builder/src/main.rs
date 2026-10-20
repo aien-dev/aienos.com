@@ -185,6 +185,13 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
             components::discovery::URL,
             components::discovery::render_discovery(),
         ),
+        (
+            "proof",
+            components::proof::TITLE,
+            components::proof::DESCRIPTION,
+            components::proof::URL,
+            components::proof::render_proof(),
+        ),
     ] {
         let page = render_page_layout(title, description, url, "article", html! {}, body);
         let page_dir = dist.join(slug);
@@ -347,6 +354,13 @@ fn verify_site(dist: &Path) {
         assert!(page_content.contains("rs-badge"), "Missing data-driven status badges in {}", page.display());
         assert!(!page_content.contains("status-badge"), "Old hand-kept status badge markup in {}", page.display());
     }
+    // /proof/ (L182): no dashes, the one command, and no unfilled demo figure.
+    let proof = fs::read_to_string(dist.join("proof/index.html")).expect("Failed to read proof page");
+    assert!(!proof.contains('\u{2014}') && !proof.contains('\u{2013}'), "Forbidden dash in proof/index.html");
+    assert!(proof.contains("og:title"), "Missing og:title in proof/index.html");
+    assert!(proof.contains("https://aienos.com/run"), "proof/index.html must show the one command");
+    assert!(!proof.contains("__DEMO_"), "proof/index.html still carries an unfilled demo figure");
+    assert!(dist.join("run").is_file(), "the demo script /run is missing");
     let machine = fs::read_to_string(dist.join("machine/index.html")).expect("Failed to read machine page");
     assert!(machine.contains(components::narrative::SLOGAN), "Missing slogan in machine/index.html");
     assert!(machine.contains(components::narrative::TURING_FORMULA), "Missing Turing formula in machine/index.html");
@@ -385,6 +399,7 @@ const GENERATED_PAGES: &[(&str, usize)] = &[
     ("index.html", 30),
     ("machine/index.html", 15),
     ("discovery/index.html", 0),
+    ("proof/index.html", 0),
     ("experiments/index.html", 15),
     ("evidence/index.html", 7),
     ("philosophy/index.html", 3),

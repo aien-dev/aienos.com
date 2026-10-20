@@ -11,7 +11,7 @@ Live: [https://www.aienos.com](https://www.aienos.com)
 
 ## What the site covers
 
-The homepage opens with "AIENOS is an owned experimental machine for turning search into verified understanding" (`crates/site-builder/src/components/home_loop.rs`) and goes on to the loop, the story, the receipts behind each claim, how the pieces fit together, the research, an interactive terminal, the current status of each layer, and where to follow the work. Other pages: `/progress/`, `/blog/`, `/research/status/`, `/machine/`, `/discovery/` and the hubs `/experiments/`, `/evidence/` and `/philosophy/`. The build also writes `status.json`, `research-status.json` and `llms.txt`; `status.json` and `llms.txt` come from the same code as the homepage status section, and `research-status.json` is `crates/site-builder/data/research_status.json`. The homepage status section says "Public release" is PLANNED: pre-alpha, no supported release or installer yet.
+The homepage opens with "AIENOS is an owned experimental machine for turning search into verified understanding" (`crates/site-builder/src/components/home_loop.rs`) and goes on to the loop, the story, the receipts behind each claim, how the pieces fit together, the research, an interactive terminal, the current status of each layer, and where to follow the work. Other pages: `/progress/`, `/blog/`, `/research/status/`, `/machine/`, `/discovery/`, `/proof/` (the one-command 27B demo and its receipts, `crates/site-builder/src/components/proof.rs`) and the hubs `/experiments/`, `/evidence/` and `/philosophy/`. The build also writes `status.json`, `research-status.json` and `llms.txt`; `status.json` and `llms.txt` come from the same code as the homepage status section, and `research-status.json` is `crates/site-builder/data/research_status.json`. The homepage status section says "Public release" is PLANNED: pre-alpha, no supported release or installer yet.
 
 ---
 
@@ -40,6 +40,18 @@ To bind `aienos.com` on Gandi.net to GitHub Pages:
 ```bash
 curl -fsSL https://aienos.com/install.sh | bash
 ```
+
+---
+
+## One-command demo script
+
+`public/run` is published at `https://aienos.com/run`. On an NVIDIA DGX Spark it builds the Omega engine from public sources at commits pinned by the tag `demo-l182-v1`, downloads the official Qwen3.8-27B-FP8 weights (Apache 2.0) at a pinned revision, converts them once to 4 bits, answers one prompt and prints the speed. Everything stays in one folder; no sudo. The `/proof/` page carries the measured clean run and links its receipt in aien-receipts.
+
+```bash
+curl -sSLO https://aienos.com/run && less run && sh run
+```
+
+`threads/` holds post drafts for Drake to publish himself; nothing in it is posted by the build.
 
 ---
 
