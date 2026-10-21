@@ -177,11 +177,11 @@ pub fn render_home_loop() -> Markup {
                     }
 
                     h1 id="home-lead" class="home-lead" { (LEAD) }
-                    p class="home-lead-rest" { (LEAD_REST) }
+                    p class="home-lead-rest" { (super::omega::link_first(LEAD_REST)) }
 
                     div class="home-thesis" {
                         @for para in THESIS.iter() {
-                            p { (para) }
+                            p { (super::omega::link_first(para)) }
                         }
                     }
                 }
@@ -224,7 +224,9 @@ pub fn render_home_loop() -> Markup {
                         (perimeter_band(&PERIMETER_BOTTOM, "Perimeter, capabilities and receipts"))
                     }
                     figcaption class="loop-caption" {
-                        "ATLAS, AIENOS, AIEN, OMEGA, FORGE, REALITY, TURING and CORTEX are the stages. AEGIS, ARGUS, the capability system and evidence receipts form the perimeter around them."
+                        "ATLAS, AIENOS, AIEN, OMEGA, FORGE, REALITY, TURING and CORTEX are the stages. AEGIS, ARGUS, the capability system and evidence receipts form the perimeter around them. "
+                        a class="omega-link" href="/omega/" { "What Omega is" }
+                        ", in plain words."
                     }
                 }
 

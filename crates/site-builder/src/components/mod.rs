@@ -19,3 +19,4 @@ pub mod terminal;
 pub mod live;
 pub mod follow;
 pub mod now;
+pub mod omega;

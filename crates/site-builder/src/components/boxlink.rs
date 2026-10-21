@@ -39,6 +39,12 @@ pub const BOX_CLASSES: &[&str] = &[
     "now-card",
     "now-queue-row",
     "now-tl",
+    "om-part",
+    "om-layer",
+    "om-receipt",
+    "om-gap",
+    "om-bar-row",
+    "om-beyond",
 ];
 
 /// Where the box link points.

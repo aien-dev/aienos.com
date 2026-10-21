@@ -169,6 +169,21 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     fs::write(dist.join("now/index.html"), now_page.into_string()).expect("Failed to write now/index.html");
     fs::write(dist.join("now.json"), components::now::to_json(&now)).expect("Failed to write now.json");
     println!("  [PAGE] Emitted /now/ ({} ledger lines) and /now.json", now.items.len());
+    // /omega/: what Omega is, from data/omega.json (the omega repository's
+    // docs/OMEGA.md), published next to it as /omega.json.
+    let omega_page = render_page_layout(
+        components::omega::TITLE,
+        components::omega::DESCRIPTION,
+        components::omega::URL,
+        "website",
+        html! { link rel="stylesheet" href="/assets/omega.css"; },
+        components::omega::render_omega_page(),
+    );
+    fs::create_dir_all(dist.join("omega")).expect("Failed to create omega dir");
+    fs::write(dist.join("omega/index.html"), omega_page.into_string()).expect("Failed to write omega/index.html");
+    fs::write(dist.join("omega.json"), components::omega::RAW).expect("Failed to write omega.json");
+    println!("  [PAGE] Emitted /omega/ and /omega.json");
+
     // Research narrative pages (NARR-RESEARCH): The Machine and Scientific Discovery
     for (slug, title, description, url, body) in [
         (
@@ -311,7 +326,29 @@ fn verify_site(dist: &Path) {
     assert!(dist.join("now.json").exists(), "Missing now.json");
     assert!(dist.join("assets/now.css").exists(), "Missing assets/now.css");
     assert!(dist.join("research-status.json").exists(), "Missing research-status.json");
-    for page in [&blog_index, &blog_post, &research_status, &now_page] {
+    // /omega/ (components::omega): says what Omega is first, carries the
+    // CUDA map, the live receipt and the bar, and is linked from the nav
+    // and from the front page wherever Omega is named.
+    let omega_page = dist.join("omega/index.html");
+    assert!(omega_page.exists(), "Missing omega/index.html");
+    assert!(dist.join("omega.json").exists(), "Missing omega.json");
+    assert!(dist.join("assets/omega.css").exists(), "Missing assets/omega.css");
+    {
+        let o = fs::read_to_string(&omega_page).expect("read omega page");
+        for phrase in [
+            "Omega is AIEN&#39;s language for all computing, GPU to CPU.",
+            "On the GPU, that makes Omega the replacement for CUDA.",
+            "id=\"cuda-map\"",
+            "id=\"today\"",
+            "id=\"not-yet\"",
+            "id=\"bar\"",
+            "evidence/WHAT-OMEGA-IS-20261021/live-serve-no-cuda.txt",
+        ] {
+            assert!(o.contains(phrase) || o.contains(&phrase.replace("&#39;", "'")), "Missing on /omega/: {phrase}");
+        }
+        assert!(content.contains("href=\"/omega/\""), "The front page must link /omega/ where it names Omega");
+    }
+    for page in [&blog_index, &blog_post, &research_status, &now_page, &omega_page] {
         let page_content = fs::read_to_string(page)
             .unwrap_or_else(|_| panic!("Failed to read {}", page.display()));
         assert!(
@@ -390,6 +427,7 @@ const GENERATED_PAGES: &[(&str, usize)] = &[
     ("philosophy/index.html", 3),
     ("research/status/index.html", 40),
     ("now/index.html", 0),
+    ("omega/index.html", 30),
     ("progress/index.html", 0),
     ("blog/index.html", 2),
     ("blog/aien-v3-research-plan/index.html", 0),

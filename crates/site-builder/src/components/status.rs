@@ -125,7 +125,7 @@ pub fn render_status(facts: &Facts) -> Markup {
                             }
                             div style="flex: 1; min-width: 260px;" {
                                 div style="font-weight: 700; color: var(--text-primary); font-size: 16px;" {
-                                    (layer.name)
+                                    (super::omega::link_first(layer.name))
                                 }
                                 p style="color: var(--text-secondary); font-size: 14.5px; line-height: 1.6; margin: 4px 0 0 0;" {
                                     (layer.note)
