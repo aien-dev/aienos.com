@@ -51,6 +51,18 @@ pub struct OmegaData {
     pub not_yet: Vec<Gap>,
     pub bar: Vec<Bar>,
     pub beyond: Vec<Gap>,
+    pub performance: Performance,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Performance {
+    pub stand: String,
+    pub how: String,
+    #[serde(rename = "box")]
+    pub box_: String,
+    pub rule: String,
+    pub bar: Vec<Bar>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -190,7 +202,12 @@ pub fn validate(d: &OmegaData) -> Result<(), String> {
     if ids != ["C1", "C2", "C3", "C4", "C5", "C6"] {
         return Err(format!("the bar must be C1 to C6 in order, found {ids:?}"));
     }
-    for b in &d.bar {
+    let pids: Vec<&str> = d.performance.bar.iter().map(|b| b.id.as_str()).collect();
+    if pids != ["P0", "P1", "P2", "P3", "P4"] {
+        return Err(format!("the performance bar must be P0 to P4 in order, found {pids:?}"));
+    }
+    boxes.push(&d.performance.box_);
+    for b in d.bar.iter().chain(d.performance.bar.iter()) {
         if !STATUSES[..3].contains(&b.status.as_str()) {
             return Err(format!("{}: unknown status {:?}", b.id, b.status));
         }
@@ -299,6 +316,7 @@ pub fn render_omega_page() -> Markup {
     let doc = gh(&d.source.doc);
     let counts = layer_counts(d);
     let met = bar_met(d);
+    let pmet = d.performance.bar.iter().filter(|b| b.status == "PASS").count();
     html! {
         div class="om-page" {
             header class="om-hero" {
@@ -339,6 +357,7 @@ pub fn render_omega_page() -> Markup {
                         a href="#not-yet" { "Not true yet" }
                         a href="#bar" { "The bar, C1 to C6" }
                         a href="#beyond" { "Beyond CUDA" }
+                        a href="#performance" { "Performance" }
                     }
                 }
             }
@@ -454,28 +473,7 @@ pub fn render_omega_page() -> Markup {
                     p class="om-sub" {
                         "We say it when every row is PASS, each with a receipt pushed on the exact commit. No row is waived. A row is ticked here only when its receipt is in the data file; until then it shows where it stands on the CUDA map above."
                     }
-                    ol class="om-bar" {
-                        @for b in &d.bar {
-                            @let done = b.status == "PASS";
-                            li class=(format!("om-bar-row {}", if done { "om-done" } else { "om-open" })) id=(b.id.to_ascii_lowercase()) {
-                                span class="om-check" aria-hidden="true" { @if done { "\u{2713}" } }
-                                div class="om-bar-body" {
-                                    h3 class="om-bar-title" {
-                                        span class="om-bar-id mono" { (b.id) }
-                                        " " (b.title)
-                                        span class=(format!("om-pill {}", status_class(&b.status))) { @if done { "MET" } @else { "OPEN \u{00B7} " (b.status) } }
-                                    }
-                                    p class="om-bar-when" { strong { "Done when: " } (b.done_when) }
-                                    p class="om-bar-now" { strong { "Now: " } (b.now) }
-                                    (inline_links(&b.links))
-                                    @match &b.receipt {
-                                        Some(r) => { (box_foot(r)) }
-                                        None => { (box_foot("o:docs/OMEGA.md#3-the-bar-for-omega-replaces-cuda")) }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    (bar_list(&d.bar, "o:docs/OMEGA.md#3-the-bar-for-omega-replaces-cuda"))
                 }
             }
 
@@ -492,6 +490,50 @@ pub fn render_omega_page() -> Markup {
                                 (inline_links(&g.links))
                                 (box_foot(&g.box_))
                             }
+                        }
+                    }
+                }
+
+            section id="performance" class="om-section" {
+                div class="container" {
+                    p class="om-kicker" { "5 \u{00B7} Performance: matching and then beating CUDA" }
+                    h2 class="om-h2" { (pmet) " of " (d.performance.bar.len()) " met" }
+                    article class="om-gap om-perf" {
+                        p { (d.performance.stand) }
+                        p { (d.performance.how) }
+                        (box_foot(&d.performance.box_))
+                    }
+                    p class="om-sub om-perf-rule" { (d.performance.rule) }
+                    (bar_list(&d.performance.bar, &d.performance.box_))
+                }
+            }
+            }
+        }
+    }
+}
+
+/// A bar as a checklist: a row is ticked only when its receipt is in the data file.
+fn bar_list(bar: &[Bar], fallback: &str) -> Markup {
+    html! {
+        ol class="om-bar" {
+            @for b in bar {
+                @let done = b.status == "PASS";
+                li class=(format!("om-bar-row {}", if done { "om-done" } else { "om-open" })) id=(b.id.to_ascii_lowercase()) {
+                    span class="om-check" aria-hidden="true" { @if done { "\u{2713}" } }
+                    div class="om-bar-body" {
+                        h3 class="om-bar-title" {
+                            span class="om-bar-id mono" { (b.id) }
+                            " " (b.title)
+                            span class=(format!("om-pill {}", status_class(&b.status))) { @if done { "MET" } @else { "OPEN \u{00B7} " (b.status) } }
+                        }
+                        p class="om-bar-when" { strong { "Done when: " } (b.done_when) }
+                        @if !b.now.is_empty() {
+                            p class="om-bar-now" { strong { "Now: " } (b.now) }
+                        }
+                        (inline_links(&b.links))
+                        @match &b.receipt {
+                            Some(r) => { (box_foot(r)) }
+                            None => { (box_foot(fallback)) }
                         }
                     }
                 }
@@ -564,7 +606,7 @@ mod tests {
         let s = render_omega_page().into_string();
         let n = check_boxes(&s).unwrap();
         let d = data();
-        assert_eq!(n, d.parts.len() + 1 + d.layers.len() + 1 + d.not_yet.len() + d.bar.len() + d.beyond.len());
+        assert_eq!(n, d.parts.len() + 1 + d.layers.len() + 1 + d.not_yet.len() + d.bar.len() + d.beyond.len() + 1 + d.performance.bar.len());
         assert!(s.contains("https://github.com/aien-dev/omega/blob/main/evidence/WHAT-OMEGA-IS-20261021/live-serve-no-cuda.txt"));
         assert!(s.contains("https://github.com/aien-dev/omega/blob/main/docs/OMEGA.md"));
     }
@@ -574,20 +616,25 @@ mod tests {
         let s = render_omega_page().into_string();
         let d = data();
         let met = bar_met(d);
-        assert_eq!(s.matches("om-bar-row om-done").count(), met);
-        assert_eq!(s.matches("om-bar-row om-open").count(), 6 - met);
+        let pmet = d.performance.bar.iter().filter(|b| b.status == "PASS").count();
+        assert_eq!(s.matches("om-bar-row om-done").count(), met + pmet);
+        assert_eq!(s.matches("om-bar-row om-open").count(), 6 - met + 5 - pmet);
         assert!(s.contains(&format!("{met} of 6 met")));
-        for id in ["c1", "c2", "c3", "c4", "c5", "c6"] {
+        for id in ["c1", "c2", "c3", "c4", "c5", "c6", "p0", "p1", "p2", "p3", "p4"] {
             assert!(s.contains(&format!("id=\"{id}\"")), "{id}");
         }
     }
 
     #[test]
     fn a_pass_without_receipt_is_refused() {
-        let raw = RAW.replacen("\"status\": \"MISSING\",\n      \"now\": \"No Omegese", "\"status\": \"PASS\",\n      \"now\": \"No Omegese", 1);
-        assert_ne!(raw, RAW);
-        let d = parse(&raw).unwrap();
+        let mut d = parse(RAW).unwrap();
+        d.bar[0].status = "PASS".into();
         assert!(validate(&d).unwrap_err().contains("PASS without a receipt"));
+        d.bar[0].receipt = Some("o:docs/OMEGA.md".into());
+        assert!(validate(&d).unwrap_err().contains("under omega evidence/"));
+        let mut d = parse(RAW).unwrap();
+        d.performance.bar[0].receipt = Some("o:evidence/x".into());
+        assert!(validate(&d).unwrap_err().contains("has a receipt but is MISSING"));
     }
 
     #[test]
