@@ -36,6 +36,8 @@ pub const STATUSES: [&str; 4] = ["PASS", "PARTIAL", "IN PROGRESS", "NVIDIA"];
 pub struct Data {
     pub source: Source,
     pub claim: String,
+    pub tagline: String,
+    pub tagline_link: String,
     pub claim_rest: Vec<String>,
     pub purpose_title: String,
     pub purpose: String,
@@ -183,7 +185,7 @@ pub fn validate(d: &Data) -> Result<(), String> {
         return Err("data/cudaplusplus.json has an em or en dash".into());
     }
     let mut boxes: Vec<&str> = vec![&d.source.readme, &d.source.how, &d.source.omega_doc, &d.purpose_link, &d.audit_link, &d.did_not_box];
-    let mut links: Vec<&str> = Vec::new();
+    let mut links: Vec<&str> = vec![&d.tagline_link];
     if d.hops.len() < 8 {
         return Err(format!("the path has {} hops; it runs from the program to the firmware (8)", d.hops.len()));
     }
@@ -319,6 +321,11 @@ pub fn render_cudaplusplus_page() -> Markup {
                 div class="container" {
                     p class="om-kicker" { "CUDA++ \u{00B7} open source, MIT" }
                     h1 class="om-title" { (d.claim) }
+                    p class="om-lead" {
+                        (d.tagline)
+                        " "
+                        a href=(gh(&d.tagline_link)) target="_blank" rel="noopener noreferrer" { "Receipt on GitHub" }
+                    }
                     @for p in &d.claim_rest {
                         p class="om-lead" { (p) }
                     }
@@ -449,6 +456,8 @@ mod tests {
         let d = parse(RAW).unwrap();
         validate(&d).unwrap();
         assert!(d.claim.starts_with("CUDA++ is the GPU half of the Omega runtime"));
+        assert_eq!(d.tagline, "Bringing CUDA performance to other hardware.");
+        assert!(expand(&d.tagline_link).unwrap().contains("c1a35914b2099f040494fba215576dd136a9d02f"));
         assert_eq!(d.steps.len(), 4);
     }
 
@@ -457,7 +466,8 @@ mod tests {
         let s = render_cudaplusplus_page().into_string();
         assert!(s.contains("<h1 class=\"om-title\">CUDA++ is the GPU half of the Omega runtime, under the MIT licence so anyone can use it.</h1>"));
         assert_eq!(s.matches("<h1").count(), 1);
-        assert!(s.contains("Less computation, out of the big data centers."));
+        assert!(s.contains("Bringing CUDA performance to other hardware."));
+        assert!(s.contains("c1a35914b2099f040494fba215576dd136a9d02f/evidence/targets/wolfram.txt"));
         for id in ["path", "how", "pain-points", "swap"] {
             assert!(s.contains(&format!("id=\"{id}\"")), "{id}");
         }

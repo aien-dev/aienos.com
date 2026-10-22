@@ -15,9 +15,12 @@
     "owner_ledger": "L395"
   },
   "claim": "CUDA++ is the GPU half of the Omega runtime, under the MIT licence so anyone can use it.",
+  "tagline": "Bringing CUDA performance to other hardware.",
+  "tagline_link": "cp@:c1a35914b2099f040494fba215576dd136a9d02f/evidence/targets/wolfram.txt",
   "claim_rest": [
-    "You write a GPU program, CUDA++ turns it into the GPU's own machine code and runs it on an NVIDIA GPU, with no NVIDIA user-space software: no CUDA toolkit, no nvcc, no PTX, no libcuda, no cuBLAS. The repository is aien-dev/CUDApp.",
-    "It runs on the NVIDIA GB10 in the DGX Spark today. On 2026-10-21 the 35 billion parameter model AIEN serves on the Spark was running on this code with zero CUDA libraries loaded."
+    "You write a program, CUDA++ runs it. Where a GPU is qualified, it writes that GPU's own machine code, with no vendor user-space stack: no CUDA toolkit, no nvcc, no PTX, no libcuda, no cuBLAS, and no ROCm, oneAPI or Metal in their place. The repository is aien-dev/CUDApp.",
+    "The qualified GPU today is the NVIDIA GB10 in the DGX Spark. On 2026-10-21 the 35 billion parameter model AIEN serves on the Spark was running on this code with zero CUDA libraries loaded.",
+    "The same program also runs in my own host code on Apple M and on x86_64, the CPU architecture AMD and Intel share, on branch feat/other-hardware. That path is not GPU machine code, and it is not a measured CUDA speed on those machines. AMD, Intel, and Apple GPUs are named and not qualified."
   ],
   "purpose_title": "Less computation, out of the big data centers.",
   "purpose": "The goal is not a faster way to rent a data center. It is to need less of one: the same work with fewer bytes moved, fewer operations and fewer joules per answer, so it runs on a machine a person owns (a DGX Spark, a PC with one graphics card, a laptop). Every result is reported as work per answer, against the machine's own ceiling.",
@@ -130,9 +133,9 @@
     "I used no NVIDIA source code other than the open kernel module headers, and no NVIDIA binary. There is no libcuda, cubin, PTX or firmware in this repository or its history.",
     "I did not take apart libcuda, nvcc or any other NVIDIA program. I ran NVIDIA's compiler and disassembler on my own small kernels and read what they printed.",
     "I did not touch the GPU's firmware. It is still NVIDIA's, and the chip checks its signature.",
-    "I did not translate CUDA programs to run on other hardware. CUDA++ runs on NVIDIA GPUs, the ones people already paid for."
+    "I did not translate CUDA programs onto other chips. Other hardware runs my own code, and only where a receipt exists. Host execution has that receipt. GPU machine code on an AMD, Intel, or Apple GPU does not."
   ],
-  "did_not_box": "cp@:232332422bfdc31c8918085b50f13c1e18ab702e/docs/HOW_I_DID_IT.md#what-i-did-not-do",
+  "did_not_box": "cp@:c1a35914b2099f040494fba215576dd136a9d02f/docs/HOW_I_DID_IT.md#what-i-did-not-do",
   "pain_lead": "What makes CUDA hard to use and hard to leave, how CUDA++ fixes each one, and the command that shows it. A row is marked fixed only with its receipt.",
   "pains": [
     {

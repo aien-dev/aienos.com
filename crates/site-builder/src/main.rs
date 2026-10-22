@@ -374,6 +374,8 @@ fn verify_site(dist: &Path) {
         for phrase in [
             "CUDA++ is the GPU half of the Omega runtime",
             "Less computation, out of the big data centers.",
+            "Bringing CUDA performance to other hardware.",
+            "c1a35914b2099f040494fba215576dd136a9d02f/evidence/targets/wolfram.txt",
             "id=\"path\"",
             "id=\"how\"",
             "id=\"pain-points\"",
