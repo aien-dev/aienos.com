@@ -207,7 +207,7 @@ pub fn llms_txt() -> String {
         .iter()
         .map(|l| format!("{}: {}. {}", l.name, l.status, l.note))
         .collect();
-    crate::seo::llms_txt(&lines, &rs::current_level_sentence())
+    crate::seo::llms_txt(&lines, rs::current_level_sentence())
 }
 
 #[cfg(test)]
@@ -361,7 +361,7 @@ mod wording_tests {
                     continue;
                 }
                 scan_tree(&p, skip, hits, scanned)?;
-            } else if p.extension().map_or(false, |x| x == "tex") {
+            } else if p.extension().is_some_and(|x| x == "tex") {
                 continue;
             } else if skip.iter().any(|s| same_file(s, &p)) {
                 continue;
@@ -445,14 +445,14 @@ mod wording_tests {
         std::fs::write(&src, "const A: &str = \"first unit written down\";\n").unwrap();
         let mut hits = Vec::new();
         let mut scanned = Vec::new();
-        scan_tree(&d, &[src.clone()], &mut hits, &mut scanned).unwrap();
+        scan_tree(&d, std::slice::from_ref(&src), &mut hits, &mut scanned).unwrap();
         // Same tree through a ".." root, as the repo test uses: the exclusion
         // must still hold and the page must still be caught.
         let mut hits2 = Vec::new();
         let mut scanned2 = Vec::new();
         scan_tree(
             &public.join(".."),
-            &[src.clone()],
+            std::slice::from_ref(&src),
             &mut hits2,
             &mut scanned2,
         )

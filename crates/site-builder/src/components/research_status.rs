@@ -229,9 +229,10 @@ fn github_for_evidence(evidence: &str) -> Option<String> {
         path
     };
     let is_file = path.contains('/')
-        && path.rsplit('.').next().map_or(false, |e| {
-            ["h", "c", "md", "sh", "json", "mk", "txt", "tsv"].contains(&e)
-        });
+        && path
+            .rsplit('.')
+            .next()
+            .is_some_and(|e| ["h", "c", "md", "sh", "json", "mk", "txt", "tsv"].contains(&e));
     if !is_file || path.contains("..") || path.starts_with('/') {
         return None;
     }

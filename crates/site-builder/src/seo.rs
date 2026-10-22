@@ -366,7 +366,7 @@ struct HeadFacts {
     og_type: String,
 }
 
-fn attr<'a>(tag: &'a str, name: &str) -> Option<String> {
+fn attr(tag: &str, name: &str) -> Option<String> {
     // name="value" or name='value', any attribute order, any spacing.
     let mut i = 0;
     let bytes = tag.as_bytes();
@@ -1446,7 +1446,8 @@ pub fn verify(dist: &Path) {
         ] {
             assert!(dist.join(f).exists(), "missing {f}");
         }
-        for text in [page.as_str()] {
+        {
+            let text = page.as_str();
             assert!(
                 !text.contains('\u{2014}') && !text.contains('\u{2013}'),
                 "dash in {}",
