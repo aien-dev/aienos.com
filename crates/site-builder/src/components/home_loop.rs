@@ -226,7 +226,9 @@ pub fn render_home_loop() -> Markup {
                     figcaption class="loop-caption" {
                         "ATLAS, AIENOS, AIEN, OMEGA, FORGE, REALITY, TURING and CORTEX are the stages. AEGIS, ARGUS, the capability system and evidence receipts form the perimeter around them. "
                         a class="omega-link" href="/omega/" { "What Omega is" }
-                        ", in plain words."
+                        ", in plain words, and its GPU half, "
+                        a class="omega-link" href="/cudaplusplus/" { "CUDA++" }
+                        "."
                     }
                 }
 

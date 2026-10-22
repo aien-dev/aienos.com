@@ -359,6 +359,11 @@ pub fn render_omega_page() -> Markup {
                         a href="#beyond" { "Beyond CUDA" }
                         a href="#performance" { "Performance" }
                     }
+                    p class="om-source" {
+                        "CUDA++, the GPU half of Omega, has its own page: "
+                        a href="/cudaplusplus/" { "CUDA++" }
+                        "."
+                    }
                 }
             }
 

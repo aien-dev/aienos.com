@@ -45,6 +45,9 @@ pub const BOX_CLASSES: &[&str] = &[
     "om-gap",
     "om-bar-row",
     "om-beyond",
+    "cp-hop",
+    "cp-card",
+    "cp-row",
 ];
 
 /// Where the box link points.

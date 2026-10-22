@@ -1,0 +1,194 @@
+/*
+ * /cudaplusplus/: CUDA++. Loaded after omega.css and built inside the
+ * Turing look (turing-look.css). The one idea of this page is the path a
+ * GPU program takes from the program to the chip, drawn as a wire down the
+ * left: each step's node and segment is lit by whose code runs there.
+ * Green: ours, with a receipt. Blue: ours in part. Amber, dashed: ours,
+ * being built. Grey: NVIDIA's, for a physical reason.
+ */
+:root {
+  --cp-pass: #00e599;
+  --cp-partial: #7db4ff;
+  --cp-building: #f59e0b;
+  --cp-nvidia: #5b6b85;
+}
+
+.cp-purpose {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--tl-ink-2);
+  margin: 8px 0 12px;
+}
+
+/* ---------- the path ---------- */
+.cp-path {
+  list-style: none;
+  margin: 28px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.cp-hop {
+  --c: var(--cp-nvidia);
+  position: relative;
+  display: grid;
+  grid-template-columns: 44px 1fr 220px;
+  gap: 0 18px;
+  padding: 18px 20px 18px 0;
+  border-radius: var(--tl-radius, 18px);
+  transition: background 0.35s cubic-bezier(.22,.61,.36,1);
+}
+.cp-hop:hover { background: var(--tl-card, #0e1219); }
+.cp-hop.cp-pass { --c: var(--cp-pass); }
+.cp-hop.cp-partial { --c: var(--cp-partial); }
+.cp-hop.cp-building { --c: var(--cp-building); }
+/* the wire: one segment per step, joined into a line */
+.cp-hop::before {
+  content: "";
+  position: absolute;
+  left: 21px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--c);
+  opacity: 0.55;
+}
+.cp-hop:first-child::before { top: 30px; }
+.cp-hop:last-child::before { bottom: calc(100% - 30px); }
+.cp-hop.cp-building::before {
+  background: repeating-linear-gradient(to bottom, var(--c) 0 6px, transparent 6px 12px);
+  opacity: 0.8;
+}
+.cp-node {
+  position: relative;
+  z-index: 1;
+  grid-column: 1;
+  justify-self: center;
+  margin-top: 6px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 0 4px var(--tl-bg, #08090c), 0 0 18px var(--c);
+}
+.cp-hop.cp-building .cp-node { background: var(--tl-bg, #08090c); border: 2px solid var(--c); }
+.cp-hop.cp-nvidia .cp-node { box-shadow: 0 0 0 4px var(--tl-bg, #08090c); }
+.cp-hop-body { grid-column: 2; min-width: 0; }
+.cp-step {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 6px;
+  line-height: 1.3;
+}
+.cp-cuda, .cp-ours { margin: 0 0 4px; font-size: 14.5px; line-height: 1.55; }
+.cp-cuda { color: var(--tl-ink-3, #8ea0b5); }
+.cp-ours { color: var(--tl-ink, #f1f5f9); }
+.cp-lane {
+  display: inline-block;
+  min-width: 58px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--tl-ink-3, #8ea0b5);
+}
+.cp-lane-ours { color: var(--c); }
+.cp-hop-status {
+  grid-column: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding-top: 2px;
+}
+.cp-note { font-size: 13px; line-height: 1.45; color: var(--tl-ink-2); }
+.cp-pill {
+  display: inline-block;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--c, var(--cp-nvidia));
+  color: var(--c, var(--cp-nvidia));
+  white-space: nowrap;
+}
+.cp-hop .box-link {
+  grid-column: 2 / 4;
+  justify-self: start;
+  margin-top: 8px;
+  opacity: 0.7;
+}
+.cp-hop:hover .box-link { opacity: 1; }
+
+/* ---------- cards and rows ---------- */
+.cp-steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+.cp-card, .cp-row {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 24px;
+  background: var(--tl-card, #0e1219);
+  border: 1px solid var(--tl-line, #1c2536);
+  border-radius: var(--tl-radius, 18px);
+  transition: border-color 0.35s cubic-bezier(.22,.61,.36,1), transform 0.35s cubic-bezier(.22,.61,.36,1);
+}
+.cp-card:hover, .cp-row:hover { border-color: var(--tl-blue, #2d7ff9); transform: translateY(-2px); }
+.cp-card p, .cp-row p { font-size: 14.5px; line-height: 1.6; color: var(--tl-ink-2); margin: 0; }
+.cp-didnot { margin-top: 16px; }
+.cp-list { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+.cp-list li { font-size: 14.5px; line-height: 1.6; color: var(--tl-ink-2); }
+
+.cp-rows { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-top: 24px; }
+.cp-row { --c: var(--cp-nvidia); padding-left: 30px; }
+.cp-row.cp-pass { --c: var(--cp-pass); }
+.cp-row.cp-building { --c: var(--cp-building); }
+/* the same wire as the path, one short segment per row */
+.cp-row::before {
+  content: "";
+  position: absolute;
+  left: 14px;
+  top: 26px;
+  bottom: 26px;
+  width: 2px;
+  background: var(--c);
+  opacity: 0.7;
+}
+.cp-row.cp-building::before { background: repeating-linear-gradient(to bottom, var(--c) 0 6px, transparent 6px 12px); }
+.cp-row .box-link { margin-top: auto; }
+.cp-card .box-link { margin-top: auto; }
+.cp-row-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.cp-row-title { font-size: 18px; font-weight: 700; margin: 0; line-height: 1.3; }
+.cp-cmd {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--tl-bg, #08090c);
+  border: 1px solid var(--tl-line, #1c2536);
+  font-size: 13px;
+  overflow-x: auto;
+}
+.cp-page .om-links li + li::before { content: "\00B7"; color: var(--tl-ink-3, #8ea0b5); margin-right: 14px; }
+.cp-page .om-links { gap: 4px 14px; }
+.cp-card a:not(.box-link), .cp-row a:not(.box-link), .cp-hop a:not(.box-link) { position: relative; z-index: 2; }
+
+@media (max-width: 760px) {
+  .cp-steps { grid-template-columns: 1fr; }
+  .cp-hop { grid-template-columns: 32px 1fr; padding-right: 12px; }
+  .cp-hop::before { left: 15px; }
+  .cp-hop-status { grid-column: 2; flex-direction: row; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+  .cp-hop .box-link { grid-column: 2; }
+  .cp-lane { min-width: 0; margin-right: 4px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-hop, .cp-card, .cp-row { transition: none; }
+  .cp-card:hover, .cp-row:hover { transform: none; }
+}

@@ -84,6 +84,7 @@ pub fn render_matrix() -> Markup {
                             }
                             @if *name == "OMEGA" {
                                 a class="omega-link" href="/omega/" style="font-size: 13px;" { "What Omega is today \u{2192}" }
+                                a class="omega-link" href="/cudaplusplus/" style="font-size: 13px;" { "CUDA++, its GPU half \u{2192}" }
                             }
                             (foot(role_link(name), Target::Evidence))
                         }

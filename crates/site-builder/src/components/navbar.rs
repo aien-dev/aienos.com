@@ -14,8 +14,9 @@ pub const NAV_PRIMARY: [(&str, &str); 6] = [
 ];
 
 /// Secondary links: smaller, after a divider.
-pub const NAV_SECONDARY: [(&str, &str); 6] = [
+pub const NAV_SECONDARY: [(&str, &str); 7] = [
     ("Omega", "/omega/"),
+    ("CUDA++", "/cudaplusplus/"),
     ("Now", "/now/"),
     ("Progress", "/progress/"),
     ("Blog", "/blog"),

@@ -184,6 +184,21 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     fs::write(dist.join("omega.json"), components::omega::RAW).expect("Failed to write omega.json");
     println!("  [PAGE] Emitted /omega/ and /omega.json");
 
+    // /cudaplusplus/: CUDA++, the GPU half of Omega, from
+    // data/cudaplusplus.json, published next to it as /cudaplusplus.json.
+    let cudapp_page = render_page_layout(
+        components::cudaplusplus::TITLE,
+        components::cudaplusplus::DESCRIPTION,
+        components::cudaplusplus::URL,
+        "website",
+        html! { link rel="stylesheet" href="/assets/omega.css"; link rel="stylesheet" href="/assets/cudaplusplus.css"; },
+        components::cudaplusplus::render_cudaplusplus_page(),
+    );
+    fs::create_dir_all(dist.join("cudaplusplus")).expect("Failed to create cudaplusplus dir");
+    fs::write(dist.join("cudaplusplus/index.html"), cudapp_page.into_string()).expect("Failed to write cudaplusplus/index.html");
+    fs::write(dist.join("cudaplusplus.json"), components::cudaplusplus::RAW).expect("Failed to write cudaplusplus.json");
+    println!("  [PAGE] Emitted /cudaplusplus/ and /cudaplusplus.json");
+
     // Research narrative pages (NARR-RESEARCH): The Machine and Scientific Discovery
     for (slug, title, description, url, body) in [
         (
@@ -348,7 +363,30 @@ fn verify_site(dist: &Path) {
         }
         assert!(content.contains("href=\"/omega/\""), "The front page must link /omega/ where it names Omega");
     }
-    for page in [&blog_index, &blog_post, &research_status, &now_page, &omega_page] {
+    // /cudaplusplus/ (components::cudaplusplus): CUDA++ with the plus
+    // signs, its four sections, linked from the nav, the front page and /omega/.
+    let cudapp_page = dist.join("cudaplusplus/index.html");
+    assert!(cudapp_page.exists(), "Missing cudaplusplus/index.html");
+    assert!(dist.join("cudaplusplus.json").exists(), "Missing cudaplusplus.json");
+    assert!(dist.join("assets/cudaplusplus.css").exists(), "Missing assets/cudaplusplus.css");
+    {
+        let c = fs::read_to_string(&cudapp_page).expect("read cudaplusplus page");
+        for phrase in [
+            "CUDA++ is the GPU half of Omega",
+            "Less computation, out of the big data centers.",
+            "id=\"path\"",
+            "id=\"how\"",
+            "id=\"pain-points\"",
+            "id=\"swap\"",
+            "https://github.com/aien-dev/CUDAplusplus",
+        ] {
+            assert!(c.contains(phrase), "Missing on /cudaplusplus/: {phrase}");
+        }
+        assert!(content.contains("href=\"/cudaplusplus/\""), "The front page must link /cudaplusplus/");
+        let o = fs::read_to_string(&omega_page).expect("read omega page");
+        assert!(o.contains("href=\"/cudaplusplus/\""), "/omega/ must link /cudaplusplus/");
+    }
+    for page in [&blog_index, &blog_post, &research_status, &now_page, &omega_page, &cudapp_page] {
         let page_content = fs::read_to_string(page)
             .unwrap_or_else(|_| panic!("Failed to read {}", page.display()));
         assert!(
@@ -428,6 +466,7 @@ const GENERATED_PAGES: &[(&str, usize)] = &[
     ("research/status/index.html", 40),
     ("now/index.html", 0),
     ("omega/index.html", 30),
+    ("cudaplusplus/index.html", 12),
     ("progress/index.html", 0),
     ("blog/index.html", 2),
     ("blog/aien-v3-research-plan/index.html", 0),
