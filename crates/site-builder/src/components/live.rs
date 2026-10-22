@@ -101,7 +101,12 @@ pub fn render_live(facts: &Facts) -> Markup {
                                     small { (c.repo.rsplit('/').next().unwrap_or(&c.repo)) }
                                     (foot(&c.url, Target::Evidence))
                                 }
-                                td { (c.role) }
+                                td {
+                                    (c.role)
+                                    @if c.name == "Omega" {
+                                        " " a class="omega-link" href="/omega/" { "What Omega is" }
+                                    }
+                                }
                                 td {
                                     @if let Some(m) = &c.last_merge {
                                         a class="merge" href=(m.url) rel="noopener" { (m.title) }

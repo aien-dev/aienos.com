@@ -39,7 +39,7 @@ pub fn render_matrix() -> Markup {
         (
             "OMEGA",
             "defines · synthesizes · verifies",
-            "Turns intent into programs, then proves them against reality before they are trusted. Nothing runs on a claim; everything runs on a check.",
+            "AIEN's language for all computing, GPU to CPU. Its own tools check every program and compile it to the machine code of the chip that runs it; on the GPU it is the replacement for CUDA. Nothing runs on a claim; everything runs on a check.",
         ),
         (
             "AIEN",
@@ -80,7 +80,11 @@ pub fn render_matrix() -> Markup {
                                 (verb)
                             }
                             p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin: 0;" {
-                                (desc)
+                                (super::omega::link_first(desc))
+                            }
+                            @if *name == "OMEGA" {
+                                a class="omega-link" href="/omega/" style="font-size: 13px;" { "What Omega is today \u{2192}" }
+                                a class="omega-link" href="/cudaplusplus/" style="font-size: 13px;" { "CUDA++, its GPU half \u{2192}" }
                             }
                             (foot(role_link(name), Target::Evidence))
                         }
@@ -114,7 +118,7 @@ pub fn render_matrix() -> Markup {
                                     }
                                 }
                                 p style="color: var(--text-secondary); font-size: 13px; line-height: 1.55; margin: 4px 0 0 0;" {
-                                    (desc)
+                                    (super::omega::link_first(desc))
                                 }
                                 (foot(role_link(name), Target::Evidence))
                             }

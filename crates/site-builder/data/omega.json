@@ -1,0 +1,557 @@
+{
+  "source": {
+    "doc": "o:docs/OMEGA.md",
+    "branch": "docs/what-omega-is",
+    "commit": "237c2095",
+    "checked": "2026-10-21",
+    "ledger": "L386",
+    "issue": "issue:593"
+  },
+  "claim": "Omega is AIEN's language for all computing, GPU to CPU.",
+  "claim_rest": [
+    "You write a program once. Omega's own tools check it and compile it straight to the machine code of the processor that runs it, GPU or CPU. No vendor compiler, toolkit or runtime library is involved anywhere.",
+    "On the GPU, that makes Omega the replacement for CUDA. On the CPU, it replaces C and its toolchain. This page says how far each of those has got, and the checks that have to pass before we can claim each one."
+  ],
+  "true_today": "Omega runs AIEN's models on the GB10 with no CUDA software: no libcuda, no cuBLAS, no nvcc.",
+  "not_true_yet": "Omega replaces CUDA.",
+  "parts": [
+    {
+      "name": "The language",
+      "what": "Omegese (the language the AI writer uses) and OSC (the text language). Both compile to one binary IR. checker2 checks the IR and issues a receipt. A backend then turns the IR into machine code.",
+      "links": [
+        [
+          "Omegese spec",
+          "o:docs/one_layer/OMEGESE.md"
+        ],
+        [
+          "OSC docs",
+          "o/:docs/osc"
+        ],
+        [
+          "tools/omegese",
+          "o/:tools/omegese"
+        ],
+        [
+          "src/compiler",
+          "o/:src/compiler"
+        ],
+        [
+          "src/checker2",
+          "o/:src/checker2"
+        ]
+      ],
+      "box": "o/:src/checker2"
+    },
+    {
+      "name": "The GPU toolchain",
+      "what": "Omega writes the GPU's own machine code (sm_121 SASS on the GB10). There is no PTX, no nvcc and no ptxas. A kernel builder with 59 instruction kinds, a register allocator and an encoder produce every kernel Omega runs.",
+      "links": [
+        [
+          "omega_blackwell_codegen.c",
+          "o:src/omega_blackwell_codegen.c"
+        ],
+        [
+          "omega_blackwell_encoder.c",
+          "o:src/omega_blackwell_encoder.c"
+        ]
+      ],
+      "box": "o:src/omega_blackwell_encoder.c"
+    },
+    {
+      "name": "The GPU runtime",
+      "what": "Opens the device, allocates memory, launches kernels, records command lists and runs jobs. It does the job of CUDA's runtime and driver API (libcudart, libcuda).",
+      "links": [
+        [
+          "omega_gpu_session.h",
+          "o:src/omega_gpu_session.h"
+        ],
+        [
+          "omega_gpu_cmdlist.h",
+          "o:src/omega_gpu_cmdlist.h"
+        ],
+        [
+          "omega_gpu_engine.h",
+          "o:src/omega_gpu_engine.h"
+        ],
+        [
+          "omega_gpu_platform.h",
+          "o:src/omega_gpu_platform.h"
+        ]
+      ],
+      "box": "o:src/omega_gpu_session.h"
+    },
+    {
+      "name": "The libraries",
+      "what": "Matrix multiply, matrix-vector (BF16, FP8, 4-bit, ternary), attention (decode and prefill), reductions, elementwise. They do the job of cuBLAS and cuDNN.",
+      "links": [
+        [
+          "omega_gpu_matmul_api.h",
+          "o:src/omega_gpu_matmul_api.h"
+        ],
+        [
+          "omega_gpu_tcgemm_api.h",
+          "o:src/omega_gpu_tcgemm_api.h"
+        ],
+        [
+          "omega_gpu_decode_attn_api.h",
+          "o:src/omega_gpu_decode_attn_api.h"
+        ],
+        [
+          "omega_gpu_prefill_attn_api.h",
+          "o:src/omega_gpu_prefill_attn_api.h"
+        ]
+      ],
+      "box": "o:src/omega_gpu_matmul_api.h"
+    }
+  ],
+  "below": {
+    "name": "Below Omega, and not part of it: the driver",
+    "what": "Omega reaches the GPU through the physics repository's driver client (nvrm/nvrm.c, m16/m16_native.c). The client talks to NVIDIA's open-source kernel module (nvidia.ko, nvidia-uvm.ko, version 580.173.02) and the module boots NVIDIA's signed GSP firmware. Replacing the kernel module with our own driver is a separate job, L332. The firmware stays NVIDIA's for a physical reason: the GPU checks its signature and will not boot anything else.",
+    "links": [
+      [
+        "nvrm/nvrm.c",
+        "p:nvrm/nvrm.c"
+      ],
+      [
+        "m16/m16_native.c",
+        "p:m16/m16_native.c"
+      ],
+      [
+        "L332 on the ledger",
+        "/now/#L332"
+      ]
+    ],
+    "box": "p:nvrm/nvrm.c"
+  },
+  "layers": [
+    {
+      "cuda": "CUDA C++ language",
+      "job": "How you write a kernel",
+      "omega": "The kernel builder (C calls). Omegese and OSC do not compile to the GPU yet.",
+      "status": "MISSING",
+      "note": "bar C1",
+      "links": [
+        [
+          "omega_blackwell_codegen.c",
+          "o:src/omega_blackwell_codegen.c"
+        ]
+      ],
+      "box": "o:docs/OMEGA.md#3-the-bar-for-omega-replaces-cuda"
+    },
+    {
+      "cuda": "nvcc, NVVM, PTX, ptxas",
+      "job": "Compile the kernel to machine code",
+      "omega": "Omega's own sm_121 encoder and register allocator",
+      "status": "PASS",
+      "note": "every kernel Omega runs is encoded by it",
+      "links": [
+        [
+          "live receipt: no nvrtc or PTX JIT mapped",
+          "o:evidence/WHAT-OMEGA-IS-20261021/live-serve-no-cuda.txt"
+        ]
+      ],
+      "box": "o:src/omega_blackwell_encoder.c"
+    },
+    {
+      "cuda": "libcuda (driver API)",
+      "job": "Talk to the kernel driver",
+      "omega": "physics nvrm client, ioctls straight to the open kernel module",
+      "status": "PASS",
+      "note": "requalification receipt in physics",
+      "links": [
+        [
+          "nvrm/nvrm.c",
+          "p:nvrm/nvrm.c"
+        ]
+      ],
+      "box": "p:evidence/m16-blackwell-native-path-requalification-receipt.json"
+    },
+    {
+      "cuda": "libcudart (runtime API)",
+      "job": "Device, memory, launch, streams",
+      "omega": "Omega GPU session, command lists, job engine",
+      "status": "PARTIAL",
+      "note": "one device, one process; no streams or events; a timeout ends GPU use for the process",
+      "links": [
+        [
+          "omega_gpu_cmdlist.h",
+          "o:src/omega_gpu_cmdlist.h"
+        ],
+        [
+          "omega_gpu_engine.h",
+          "o:src/omega_gpu_engine.h"
+        ]
+      ],
+      "box": "o:src/omega_gpu_session.h"
+    },
+    {
+      "cuda": "cuBLAS",
+      "job": "Matrix multiply",
+      "omega": "Omega matmul, tensor-core GEMM, FP8 and BF16 APIs",
+      "status": "PARTIAL",
+      "note": "shaped for the models we run; no any-shape GEMM",
+      "links": [
+        [
+          "omega_gpu_tcgemm_api.h",
+          "o:src/omega_gpu_tcgemm_api.h"
+        ],
+        [
+          "omega_gpu_fp8gemm_api.h",
+          "o:src/omega_gpu_fp8gemm_api.h"
+        ],
+        [
+          "omega_gpu_bf16_gemv_api.h",
+          "o:src/omega_gpu_bf16_gemv_api.h"
+        ]
+      ],
+      "box": "o:src/omega_gpu_matmul_api.h"
+    },
+    {
+      "cuda": "cuDNN, FlashAttention",
+      "job": "Attention and network layers",
+      "omega": "Omega decode and prefill attention",
+      "status": "PARTIAL",
+      "note": "model-shaped",
+      "links": [
+        [
+          "omega_gpu_prefill_attn_api.h",
+          "o:src/omega_gpu_prefill_attn_api.h"
+        ]
+      ],
+      "box": "o:src/omega_gpu_decode_attn_api.h"
+    },
+    {
+      "cuda": "CUB, Thrust",
+      "job": "Reductions, scans, sorts",
+      "omega": "Omega frozen-order reductions",
+      "status": "PARTIAL",
+      "note": "no general scan or sort",
+      "links": [],
+      "box": "o/:evidence/E1-CLOSURE"
+    },
+    {
+      "cuda": "cuFFT, cuRAND",
+      "job": "FFT, random numbers",
+      "omega": "none",
+      "status": "MISSING",
+      "note": "",
+      "links": [],
+      "box": "o:docs/OMEGA.md#2-cuda-piece-by-piece"
+    },
+    {
+      "cuda": "cuobjdump, nvdisasm",
+      "job": "Read machine code back",
+      "omega": "none: the tests still call NVIDIA's nvdisasm when it is installed",
+      "status": "MISSING",
+      "note": "bar C6",
+      "links": [],
+      "box": "o:docs/OMEGA.md#2-cuda-piece-by-piece"
+    },
+    {
+      "cuda": "Nsight",
+      "job": "Measure",
+      "omega": "Omega's own ceiling probes (115.14 TFLOPS tensor-core peak, 195.1 GB/s reads)",
+      "status": "PARTIAL",
+      "note": "probes exist, no single tool",
+      "links": [],
+      "box": "o/:evidence/OWN30B-T3-TC-PEAK-BW-5faa0f70-20261013T2236Z"
+    },
+    {
+      "cuda": "CUDA samples, docs",
+      "job": "Your first kernel",
+      "omega": "none yet: runtime/r2-hello and runtime/r1-api are unmerged branches",
+      "status": "MISSING",
+      "note": "bar C2",
+      "links": [
+        [
+          "runtime/r2-hello",
+          "ob:runtime/r2-hello"
+        ],
+        [
+          "runtime/r1-api",
+          "ob:runtime/r1-api"
+        ]
+      ],
+      "box": "o:docs/OMEGA.md#2-cuda-piece-by-piece"
+    },
+    {
+      "cuda": "nvidia.ko, nvidia-uvm.ko",
+      "job": "Kernel driver",
+      "omega": "not Omega: AIEN's own GB10 driver, L332",
+      "status": "MISSING",
+      "note": "",
+      "links": [
+        [
+          "L332 on the ledger",
+          "/now/#L332"
+        ]
+      ],
+      "box": "o:docs/OMEGA.md#1-the-parts"
+    },
+    {
+      "cuda": "GSP firmware",
+      "job": "Runs inside the GPU",
+      "omega": "stays NVIDIA's (signature-checked by the chip)",
+      "status": "NOT REPLACEABLE",
+      "note": "",
+      "links": [],
+      "box": "o:docs/OMEGA.md#1-the-parts"
+    }
+  ],
+  "receipt": {
+    "title": "The live 35B server ran with zero CUDA libraries",
+    "taken": "2026-10-21T21:50:23Z on spark-b87b",
+    "what": "The 35B model AIEN serves on the Spark runs on Omega with no NVIDIA user-space software at all. On 2026-10-21 the live server (port 18091, --engine omega) had only libc, libm, libgcc_s and the loader mapped: zero CUDA libraries. It held /dev/nvidia0, /dev/nvidiactl and /dev/nvidia-uvm open, which is the open kernel module and nothing above it.",
+    "facts": [
+      [
+        "CUDA libraries mapped",
+        "0"
+      ],
+      [
+        "Searched for",
+        "libcuda, libcudart, cublas, cudnn, nvrtc, libnvidia-ptxjitcompiler"
+      ],
+      [
+        "Process",
+        "aien-serve-http --engine omega --port 18091, pid 2587647"
+      ],
+      [
+        "Binary sha256",
+        "f4677d87750adbdcbe894e70d692d1b011bcc30296a5f550438b5ed5e442361b"
+      ],
+      [
+        "Mapped libraries",
+        "ld-linux-aarch64.so.1, libc.so.6, libgcc_s.so.1, libm.so.6"
+      ],
+      [
+        "Kernel driver",
+        "NVIDIA open kernel module 580.173.02"
+      ],
+      [
+        "Device files held open",
+        "/dev/nvidia0, /dev/nvidiactl, /dev/nvidia-uvm"
+      ]
+    ],
+    "box": "o:evidence/WHAT-OMEGA-IS-20261021/live-serve-no-cuda.txt"
+  },
+  "not_yet": [
+    {
+      "title": "The language does not reach the GPU",
+      "text": "Omegese and OSC compile to one IR and checker2 checks it, but no Omegese kernel has run on the GB10 yet. Every GPU kernel Omega runs is still built by C calls to the kernel builder. This is bar C1.",
+      "links": [
+        [
+          "Omegese spec",
+          "o:docs/one_layer/OMEGESE.md"
+        ],
+        [
+          "omega_blackwell_codegen.c",
+          "o:src/omega_blackwell_codegen.c"
+        ]
+      ],
+      "box": "o:docs/OMEGA.md#3-the-bar-for-omega-replaces-cuda"
+    },
+    {
+      "title": "The toolkit has gaps a stranger would hit on day one",
+      "text": "No FFT or random numbers, no disassembler of our own, no samples and no written runtime API, no streams or events, one process per GPU, and GEMM shaped for the models we run. These are bars C2 to C6.",
+      "links": [
+        [
+          "the CUDA map",
+          "#cuda-map"
+        ]
+      ],
+      "box": "o:docs/OMEGA.md#2-cuda-piece-by-piece"
+    },
+    {
+      "title": "The kernel driver is still NVIDIA's open module",
+      "text": "Omega reaches the GPU through the physics driver client, which talks to nvidia.ko and nvidia-uvm.ko, version 580.173.02. AIEN's own GB10 driver that replaces them is a separate job, L332.",
+      "links": [
+        [
+          "nvrm/nvrm.c",
+          "p:nvrm/nvrm.c"
+        ],
+        [
+          "L332 on the ledger",
+          "/now/#L332"
+        ]
+      ],
+      "box": "o:evidence/WHAT-OMEGA-IS-20261021/live-serve-no-cuda.txt"
+    },
+    {
+      "title": "The GSP firmware stays NVIDIA's",
+      "text": "The kernel module boots NVIDIA's signed GSP firmware, which runs inside the GPU. It stays for a physical reason: the chip checks its signature and will not boot anything else.",
+      "links": [],
+      "box": "o:docs/OMEGA.md#1-the-parts"
+    }
+  ],
+  "bar": [
+    {
+      "id": "C1",
+      "title": "The language reaches the GPU.",
+      "done_when": "Kernels written in Omegese compile through the IR and checker2 to sm_121 machine code and run on the GB10: vector add, a tiled GEMM and one decode-attention kernel. Their output matches a host reference bit for bit (or within a tolerance stated before the run), checker2 accepts every one, and a deliberately broken kernel is refused. At least one kernel of the live 35B decode path is then replaced by its Omegese version with identical golden tokens.",
+      "status": "MISSING",
+      "now": "No Omegese kernel has run on the GPU (map row: CUDA C++ language).",
+      "receipt": null,
+      "links": [
+        [
+          "Omegese spec",
+          "o:docs/one_layer/OMEGESE.md"
+        ]
+      ]
+    },
+    {
+      "id": "C2",
+      "title": "A stranger can run a kernel.",
+      "done_when": "From an empty folder, only the README commands build and run hello-GPU on the GB10, and the zero-CUDA gate (aien-sovereign-core scripts/zero-cuda-gate.sh) passes on the binary. The runtime API is written down and versioned (docs/runtime/API.md, manifest check with negative controls).",
+      "status": "MISSING",
+      "now": "hello-GPU and the runtime API are on unmerged branches (map row: CUDA samples, docs).",
+      "receipt": null,
+      "links": [
+        [
+          "zero-cuda-gate.sh",
+          "c:scripts/zero-cuda-gate.sh"
+        ],
+        [
+          "runtime/r2-hello",
+          "ob:runtime/r2-hello"
+        ],
+        [
+          "runtime/r1-api",
+          "ob:runtime/r1-api"
+        ]
+      ]
+    },
+    {
+      "id": "C3",
+      "title": "General libraries.",
+      "done_when": "Any-shape GEMM in BF16 and FP8, both layouts, at least 200 shapes from 1 to 8192, every shape correct against a host reference, speed given as a fraction of the measured tensor-core ceiling. Reductions and prefix sums over lengths 1 to 2^28, bit-exact against the frozen-order host reference.",
+      "status": "PARTIAL",
+      "now": "GEMM is shaped for the models we run; no general scan or sort (map rows: cuBLAS, CUB).",
+      "receipt": null,
+      "links": [
+        [
+          "omega_gpu_tcgemm_api.h",
+          "o:src/omega_gpu_tcgemm_api.h"
+        ],
+        [
+          "E1-CLOSURE",
+          "o/:evidence/E1-CLOSURE"
+        ]
+      ]
+    },
+    {
+      "id": "C4",
+      "title": "Streams and events.",
+      "done_when": "Two independent queues of the same work finish in under 0.75 of the sum of their solo times; an event wait orders two dependent jobs, checked by data, on the chip.",
+      "status": "MISSING",
+      "now": "The runtime has no streams or events (map row: libcudart).",
+      "receipt": null,
+      "links": [
+        [
+          "omega_gpu_cmdlist.h",
+          "o:src/omega_gpu_cmdlist.h"
+        ]
+      ]
+    },
+    {
+      "id": "C5",
+      "title": "Sharing and recovery.",
+      "done_when": "Two processes on one GPU both get correct results, or the second gets a named refusal and the first is unharmed. A kernel that never ends is timed out and a correct launch then succeeds in the same process.",
+      "status": "MISSING",
+      "now": "One device, one process; a timeout ends GPU use for the process (map row: libcudart).",
+      "receipt": null,
+      "links": [
+        [
+          "omega_gpu_session.h",
+          "o:src/omega_gpu_session.h"
+        ]
+      ]
+    },
+    {
+      "id": "C6",
+      "title": "No NVIDIA tool in the loop.",
+      "done_when": "Omega's own sm_121 disassembler agrees with nvdisasm on every library kernel in src/, and every check that called nvdisasm calls ours.",
+      "status": "MISSING",
+      "now": "The tests still call NVIDIA's nvdisasm when it is installed (map row: cuobjdump, nvdisasm).",
+      "receipt": null,
+      "links": []
+    }
+  ],
+  "beyond": [
+    {
+      "title": "No NVIDIA software at all",
+      "text": "Our own GB10 driver replaces nvidia.ko and nvidia-uvm.ko (L332): Omega's golden tokens identical on our driver and on NVIDIA's, with per-word timing. The GSP firmware stays, as above.",
+      "links": [
+        [
+          "L332 on the ledger",
+          "/now/#L332"
+        ]
+      ],
+      "box": "o:docs/OMEGA.md#4-the-rest-of-omega-replaces-everything"
+    },
+    {
+      "title": "The runtime written in Omega",
+      "text": "The GPU runtime and libraries are C today. The language rule (aien-architecture ADR 0024) keeps C only where hardware, boot, ABI or measurement justifies it, so the runtime moves into Omega once C1 makes that possible.",
+      "links": [],
+      "box": "a:docs/adr/0024-rust-scaffolding-omega-destination.md"
+    },
+    {
+      "title": "The CPU",
+      "text": "The OSC and Omegese backends emit AArch64 machine code today (src/compiler/osc_a64.c). The live server is still a gcc and Rust build linked against glibc; it moves to Omega-compiled code as the language grows.",
+      "links": [],
+      "box": "o:src/compiler/osc_a64.c"
+    }
+  ],
+  "performance": {
+    "stand": "Where we stand: at FP8 with one conversation we are level with or ahead of the published CUDA numbers. We are behind on three things: prompt reading (7 to 30 times), many conversations at once (5 to 15 times), and 4-bit weights (not yet live). All three are work, not physics: the ceilings are far from reached.",
+    "how": "Same machine (one DGX Spark GB10), same kind of model (a ~30B mixture-of-experts with about 3B active per word). Our numbers are measured by us, with receipts. Everyone else's are published by others and labelled that way, with their source; none of them has been re-measured here yet (bar P0). The table of numbers, with every source, is section 5 of docs/OMEGA.md.",
+    "box": "o:docs/OMEGA.md#5-performance-matching-and-then-beating-cuda",
+    "rule": "Each row PASS needs our receipt and the other system measured by us on this Spark, same model, same prompts, same output length, in the same quiet window.",
+    "bar": [
+      {
+        "id": "P0",
+        "title": "Measure them ourselves.",
+        "done_when": "llama.cpp and vLLM (their own current releases, built for sm_121) run Qwen3.6-35B-A3B at FP8 and at 4-bit on this Spark, one and eight conversations, 512 and 8k prompts, three runs each; table and logs pushed, labelled measured-by-us. Benchmark only: nothing of theirs enters the Omega path.",
+        "status": "MISSING",
+        "now": "None of the other systems' numbers has been re-measured here yet.",
+        "receipt": null,
+        "links": []
+      },
+      {
+        "id": "P1",
+        "title": "One conversation.",
+        "done_when": "Omega's best format beats the best measured CUDA number at one conversation, with golden tokens identical to our host reference.",
+        "status": "MISSING",
+        "now": "",
+        "receipt": null,
+        "links": []
+      },
+      {
+        "id": "P2",
+        "title": "Prompt reading.",
+        "done_when": "Omega prefill beats the best measured CUDA number at 512 and 8k.",
+        "status": "MISSING",
+        "now": "",
+        "receipt": null,
+        "links": []
+      },
+      {
+        "id": "P3",
+        "title": "Many conversations.",
+        "done_when": "Omega total words per second beats the best measured CUDA number at 8 and 32 conversations.",
+        "status": "MISSING",
+        "now": "",
+        "receipt": null,
+        "links": []
+      },
+      {
+        "id": "P4",
+        "title": "What CUDA stacks do not do.",
+        "done_when": "At least one measured win that comes from owning the whole path: one submission per word or a resident whole-model kernel, zero-copy use of the shared memory, our own driver's launch path (L332).",
+        "status": "MISSING",
+        "now": "",
+        "receipt": null,
+        "links": []
+      }
+    ]
+  }
+}

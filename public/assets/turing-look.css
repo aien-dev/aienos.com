@@ -617,3 +617,12 @@ a.box-link-source {
     transition: none;
   }
 }
+
+/* Links to /omega/ wherever the site names Omega in running text. */
+a.omega-link {
+  color: var(--tl-blue-soft);
+  text-decoration: underline;
+  text-decoration-color: rgba(125, 180, 255, 0.4);
+  text-underline-offset: 3px;
+}
+a.omega-link:hover { text-decoration-color: var(--tl-blue-soft); }

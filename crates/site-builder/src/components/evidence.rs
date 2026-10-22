@@ -144,7 +144,7 @@ pub fn render_evidence() -> Markup {
                                 (c.title)
                             }
                             p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin: 0;" {
-                                (c.desc)
+                                (super::omega::link_first(c.desc))
                             }
                             div style="font-size: 13.5px; line-height: 1.6; display: flex; flex-direction: column; gap: 6px;" {
                                 p style="margin: 0; color: var(--text-secondary);" {

@@ -72,7 +72,7 @@ fn section_lead() -> Markup {
             p class="narr-kicker" { "The Machine" }
             h1 class="narr-title" { "Turning search into verified understanding" }
             blockquote class="narr-mission" {
-                p { (MISSION) }
+                p { (super::omega::link_first(MISSION)) }
             }
             p class="narr-slogan" { (SLOGAN) }
             p {
