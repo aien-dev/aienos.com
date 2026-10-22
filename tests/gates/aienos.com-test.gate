@@ -1,0 +1,23 @@
+gate: AIENOS_COM-TEST
+manifest_version: 2
+owner: aienos.com
+requires:
+  - host
+inputs:
+  - Cargo.toml
+  - Cargo.lock
+  - src/
+  - crates/
+  - tests/
+  - tests/gates/
+  - crates/
+  - scripts/
+run:
+  exec: tests/gates/run.sh
+  args: ["test"]
+expects:
+  exit: 0
+  verdict: PASS
+timeout: 30m
+exactness: EXACT
+cache_scope: machine
