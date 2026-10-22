@@ -127,18 +127,58 @@ pub fn render_evidence_hub() -> Markup {
     let ladder: [(&str, &str); 7] = [
         ("Code", "The source that actually runs."),
         ("Tests", "Checks that run the code and are able to fail."),
-        ("Receipts", "Hashed records of a specific run and what it produced."),
-        ("Frozen profiles", "Experiment protocols fixed before any scoring happens."),
-        ("Qualification records", "The running ledger of what has qualified, and in what scope."),
-        ("Current docs", "Design notes and plans. They describe intent."),
-        ("Website prose", "Including this page. The weakest source on the list."),
+        (
+            "Receipts",
+            "Hashed records of a specific run and what it produced.",
+        ),
+        (
+            "Frozen profiles",
+            "Experiment protocols fixed before any scoring happens.",
+        ),
+        (
+            "Qualification records",
+            "The running ledger of what has qualified, and in what scope.",
+        ),
+        (
+            "Current docs",
+            "Design notes and plans. They describe intent.",
+        ),
+        (
+            "Website prose",
+            "Including this page. The weakest source on the list.",
+        ),
     ];
     let artifacts: [(&str, &str, String, String); 5] = [
-        ("SHA256SUMS", "Checksums for every published artifact of the Turing paper.", format!("{PAPER}SHA256SUMS"), source_href(&format!("{PAPER_SOURCE}/SHA256SUMS"))),
-        ("EXP-001 frozen profile", "The protocol for EXP-001, as frozen before scoring.", format!("{PAPER}profiles/EXP-001.json"), source_href(&format!("{PAPER_SOURCE}/profiles/EXP-001.json"))),
-        ("EXP-002 frozen profile", "The protocol for EXP-002, as frozen before scoring.", format!("{PAPER}profiles/EXP-002.json"), source_href(&format!("{PAPER_SOURCE}/profiles/EXP-002.json"))),
-        ("EXP-003 frozen profile", "The protocol for EXP-003, as published.", format!("{PAPER}profiles/EXP-003.json"), source_href(&format!("{PAPER_SOURCE}/profiles/EXP-003.json"))),
-        ("The Turing paper (PDF)", "Definitions, proofs, measurement protocol, and falsification criteria.", format!("{PAPER}paper.pdf"), source_href(&format!("{PAPER_SOURCE}/paper.pdf"))),
+        (
+            "SHA256SUMS",
+            "Checksums for every published artifact of the Turing paper.",
+            format!("{PAPER}SHA256SUMS"),
+            source_href(&format!("{PAPER_SOURCE}/SHA256SUMS")),
+        ),
+        (
+            "EXP-001 frozen profile",
+            "The protocol for EXP-001, as frozen before scoring.",
+            format!("{PAPER}profiles/EXP-001.json"),
+            source_href(&format!("{PAPER_SOURCE}/profiles/EXP-001.json")),
+        ),
+        (
+            "EXP-002 frozen profile",
+            "The protocol for EXP-002, as frozen before scoring.",
+            format!("{PAPER}profiles/EXP-002.json"),
+            source_href(&format!("{PAPER_SOURCE}/profiles/EXP-002.json")),
+        ),
+        (
+            "EXP-003 frozen profile",
+            "The protocol for EXP-003, as published.",
+            format!("{PAPER}profiles/EXP-003.json"),
+            source_href(&format!("{PAPER_SOURCE}/profiles/EXP-003.json")),
+        ),
+        (
+            "The Turing paper (PDF)",
+            "Definitions, proofs, measurement protocol, and falsification criteria.",
+            format!("{PAPER}paper.pdf"),
+            source_href(&format!("{PAPER_SOURCE}/paper.pdf")),
+        ),
     ];
     html! {
         div class="container hub-wrap" {
@@ -315,7 +355,9 @@ fn check_hub_document(hub: &Hub, page: &str) -> Result<(), String> {
         StatusSource::Absent => {
             for status in rs::ALLOWED_STATUSES {
                 if page.contains(status) {
-                    return Err(format!("status value {status} on a hub that must carry none"));
+                    return Err(format!(
+                        "status value {status} on a hub that must carry none"
+                    ));
                 }
             }
         }
@@ -336,7 +378,10 @@ mod tests {
     use super::*;
 
     fn doc(slug: &str) -> String {
-        let hub = HUBS.iter().find(|h| h.slug == slug).expect("hub registered");
+        let hub = HUBS
+            .iter()
+            .find(|h| h.slug == slug)
+            .expect("hub registered");
         render_hub_document(hub)
     }
 
@@ -354,12 +399,21 @@ mod tests {
     #[test]
     fn experiments_hub_renders_the_cards_from_data() {
         let page = doc("experiments");
-        assert!(page.contains(EXPERIMENTS_SLOT), "experiment-cards section missing");
+        assert!(
+            page.contains(EXPERIMENTS_SLOT),
+            "experiment-cards section missing"
+        );
         assert!(page.contains(CARDS_MARKUP), "render_cards markup missing");
-        assert!(page.contains("data-row=\"EXP-001\""), "EXP-001 card missing");
+        assert!(
+            page.contains("data-row=\"EXP-001\""),
+            "EXP-001 card missing"
+        );
         let d = rs::data();
         let cards = rs::render_cards(d).into_string();
-        assert!(page.contains(&cards), "cards differ from research_status::render_cards");
+        assert!(
+            page.contains(&cards),
+            "cards differ from research_status::render_cards"
+        );
         for row in &d.turing_rows {
             let card = format!("data-row=\"{}\" data-status=\"{}\"", row.id, row.status);
             assert!(page.contains(&card), "card for {} missing", row.id);
@@ -370,9 +424,15 @@ mod tests {
     fn experiments_hub_embeds_the_ladder_and_links_the_full_record() {
         let page = doc("experiments");
         let body = hub_body(&page);
-        assert!(body.contains(&rs::render_research_status_summary().into_string()), "ladder summary missing");
+        assert!(
+            body.contains(&rs::render_research_status_summary().into_string()),
+            "ladder summary missing"
+        );
         assert!(body.contains(STATUS_BUTTON), "full record button missing");
-        assert!(body.contains(STATUS_JSON_LINK), "data file link missing outside the footer");
+        assert!(
+            body.contains(STATUS_JSON_LINK),
+            "data file link missing outside the footer"
+        );
         let ladder = page.find("experiments-ladder").expect("ladder section");
         let cards = page.find(EXPERIMENTS_SLOT).expect("cards section");
         assert!(ladder < cards, "ladder comes before the cards");
@@ -381,25 +441,48 @@ mod tests {
     #[test]
     fn evidence_hub_says_failure_is_evidence() {
         let page = doc("evidence");
-        assert!(page.contains("Failure is evidence."), "required phrase missing");
+        assert!(
+            page.contains("Failure is evidence."),
+            "required phrase missing"
+        );
         assert!(page.contains("Failed and incomplete experiments stay on the record."));
-        assert!(page.contains(QUALIFICATION_RECORD), "qualification record link missing");
+        assert!(
+            page.contains(QUALIFICATION_RECORD),
+            "qualification record link missing"
+        );
         assert!(page.contains("SHA256SUMS"), "checksum link missing");
     }
 
     #[test]
     fn evidence_hub_links_the_status_record_and_its_data() {
         let page = doc("evidence");
-        assert!(page.contains(FOOTER_START), "footer missing, so the body check would be vacuous");
+        assert!(
+            page.contains(FOOTER_START),
+            "footer missing, so the body check would be vacuous"
+        );
         let body = hub_body(&page);
-        assert!(body.contains(STATUS_PAGE_LINK), "/research/status/ link missing outside the footer");
-        assert!(body.contains(STATUS_JSON_LINK), "/research-status.json link missing outside the footer");
+        assert!(
+            body.contains(STATUS_PAGE_LINK),
+            "/research/status/ link missing outside the footer"
+        );
+        assert!(
+            body.contains(STATUS_JSON_LINK),
+            "/research-status.json link missing outside the footer"
+        );
     }
 
     #[test]
     fn evidence_hierarchy_is_in_order() {
         let page = doc("evidence");
-        let order = ["Code", "Tests", "Receipts", "Frozen profiles", "Qualification records", "Current docs", "Website prose"];
+        let order = [
+            "Code",
+            "Tests",
+            "Receipts",
+            "Frozen profiles",
+            "Qualification records",
+            "Current docs",
+            "Website prose",
+        ];
         let mut last = 0usize;
         for name in order {
             let needle = format!("<strong>{name}</strong>");
@@ -413,10 +496,23 @@ mod tests {
     #[test]
     fn philosophy_hub_is_labelled_position_not_evidence() {
         let page = doc("philosophy");
-        assert!(page.contains("Position, not evidence"), "required label missing");
-        assert!(page.contains("are not experimental results"), "stance sentence missing");
-        for href in ["/research/the-stapleton-doctrine/", "/post-llm-case/", "https://www.drakestapleton.com/philosophy"] {
-            assert!(page.contains(&format!("href=\"{href}\"")), "philosophy card {href} missing");
+        assert!(
+            page.contains("Position, not evidence"),
+            "required label missing"
+        );
+        assert!(
+            page.contains("are not experimental results"),
+            "stance sentence missing"
+        );
+        for href in [
+            "/research/the-stapleton-doctrine/",
+            "/post-llm-case/",
+            "https://www.drakestapleton.com/philosophy",
+        ] {
+            assert!(
+                page.contains(&format!("href=\"{href}\"")),
+                "philosophy card {href} missing"
+            );
         }
     }
 
@@ -430,21 +526,47 @@ mod tests {
 
     #[test]
     fn every_hub_card_links_to_github() {
-        assert_eq!(crate::components::boxlink::check_boxes(&doc("evidence")), Ok(8), "two record cards, five artifacts, the qualification record");
-        assert_eq!(crate::components::boxlink::check_boxes(&doc("philosophy")), Ok(3));
+        assert_eq!(
+            crate::components::boxlink::check_boxes(&doc("evidence")),
+            Ok(8),
+            "two record cards, five artifacts, the qualification record"
+        );
+        assert_eq!(
+            crate::components::boxlink::check_boxes(&doc("philosophy")),
+            Ok(3)
+        );
         let d = rs::data();
-        assert_eq!(crate::components::boxlink::check_boxes(&doc("experiments")), Ok(d.ladder.len() + d.turing_rows.len()));
+        assert_eq!(
+            crate::components::boxlink::check_boxes(&doc("experiments")),
+            Ok(d.ladder.len() + d.turing_rows.len())
+        );
         let philosophy = doc("philosophy");
-        assert_eq!(philosophy.matches("box-link-source").count(), 3, "position papers are source links, not evidence");
-        assert!(check_hub_document(&HUBS[2], &philosophy.replacen("class=\"box-link box-link-source\"", "class=\"x\"", 1)).is_err());
+        assert_eq!(
+            philosophy.matches("box-link-source").count(),
+            3,
+            "position papers are source links, not evidence"
+        );
+        assert!(check_hub_document(
+            &HUBS[2],
+            &philosophy.replacen("class=\"box-link box-link-source\"", "class=\"x\"", 1)
+        )
+        .is_err());
     }
 
     #[test]
     fn hubs_contain_no_em_or_en_dash() {
         for hub in &HUBS {
             let page = render_hub_document(hub);
-            assert!(!page.contains('\u{2014}'), "/{}/ contains an em dash", hub.slug);
-            assert!(!page.contains('\u{2013}'), "/{}/ contains an en dash", hub.slug);
+            assert!(
+                !page.contains('\u{2014}'),
+                "/{}/ contains an em dash",
+                hub.slug
+            );
+            assert!(
+                !page.contains('\u{2013}'),
+                "/{}/ contains an en dash",
+                hub.slug
+            );
         }
     }
 
@@ -458,7 +580,10 @@ mod tests {
         for (name, src) in sources {
             let body = non_test_source(src);
             for status in rs::ALLOWED_STATUSES {
-                assert!(!body.contains(status), "{name} hand-writes the status word {status}");
+                assert!(
+                    !body.contains(status),
+                    "{name} hand-writes the status word {status}"
+                );
             }
         }
     }
@@ -472,13 +597,20 @@ mod tests {
         let footer = page.find(FOOTER_START).expect("footer present");
         let (head, foot) = page.split_at(footer);
         let unlinked = format!("{}{foot}", head.replace(STATUS_JSON_LINK, "href=\"/x\""));
-        assert!(foot.contains(STATUS_JSON_LINK), "footer still links the data");
+        assert!(
+            foot.contains(STATUS_JSON_LINK),
+            "footer still links the data"
+        );
         assert!(check_hub_document(evidence, &unlinked).is_err());
         assert!(check_hub_document(evidence, &format!("{page}\u{2014}")).is_err());
         let status = rs::ALLOWED_STATUSES[0];
         assert!(check_hub_document(evidence, &format!("{page}{status}")).is_err());
         let experiments = &HUBS[0];
         let page = render_hub_document(experiments);
-        assert!(check_hub_document(experiments, &page.replace("data-row=\"EXP-001\"", "data-row=\"X\"")).is_err());
+        assert!(check_hub_document(
+            experiments,
+            &page.replace("data-row=\"EXP-001\"", "data-row=\"X\"")
+        )
+        .is_err());
     }
 }

@@ -180,21 +180,51 @@ mod tests {
         let cs = cards();
         assert_eq!(cs.len(), 6);
         for c in &cs {
-            assert!(c.url.starts_with("https://github.com/aien-dev/"), "{}: {}", c.title, c.url);
-            for s in [c.figure, c.title, c.desc, c.proves, c.not_proves, c.environment, c.gate] {
-                assert!(!s.contains('\u{2014}') && !s.contains('\u{2013}'), "dash in {s:?}");
+            assert!(
+                c.url.starts_with("https://github.com/aien-dev/"),
+                "{}: {}",
+                c.title,
+                c.url
+            );
+            for s in [
+                c.figure,
+                c.title,
+                c.desc,
+                c.proves,
+                c.not_proves,
+                c.environment,
+                c.gate,
+            ] {
+                assert!(
+                    !s.contains('\u{2014}') && !s.contains('\u{2013}'),
+                    "dash in {s:?}"
+                );
             }
         }
         let dates: Vec<&str> = cs.iter().map(|c| c.date).collect();
-        assert!(dates.iter().any(|d| d.starts_with("2026-10-19")), "newest evidence must be on the cards");
+        assert!(
+            dates.iter().any(|d| d.starts_with("2026-10-19")),
+            "newest evidence must be on the cards"
+        );
         let page = render_evidence().into_string();
-        for must in ["7.63 tok/s", "FAIL AS WRITTEN", "24 of 24", "Raspberry Pi 5", "iMac", "install.sh exits 101"] {
+        for must in [
+            "7.63 tok/s",
+            "FAIL AS WRITTEN",
+            "24 of 24",
+            "Raspberry Pi 5",
+            "iMac",
+            "install.sh exits 101",
+        ] {
             assert!(page.contains(must), "missing {must}");
         }
         let lower = page.to_ascii_lowercase();
         for w in crate::components::machines::FORBIDDEN {
             assert!(!lower.contains(w), "forbidden word {w}");
         }
-        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(6), "every receipt card links to GitHub");
+        assert_eq!(
+            crate::components::boxlink::check_boxes(&page),
+            Ok(6),
+            "every receipt card links to GitHub"
+        );
     }
 }

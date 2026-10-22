@@ -121,13 +121,33 @@ pub struct Row {
 /// on this site. Files on branches are always pinned to a full commit.
 pub fn expand(link: &str) -> Result<String, String> {
     const MAP: [(&str, &str, bool); 7] = [
-        ("cp/:", "https://github.com/aien-dev/CUDAplusplus/tree/main/", false),
-        ("cp@:", "https://github.com/aien-dev/CUDAplusplus/blob/", true),
-        ("cp:", "https://github.com/aien-dev/CUDAplusplus/blob/main/", false),
+        (
+            "cp/:",
+            "https://github.com/aien-dev/CUDAplusplus/tree/main/",
+            false,
+        ),
+        (
+            "cp@:",
+            "https://github.com/aien-dev/CUDAplusplus/blob/",
+            true,
+        ),
+        (
+            "cp:",
+            "https://github.com/aien-dev/CUDAplusplus/blob/main/",
+            false,
+        ),
         ("om@:", "https://github.com/aien-dev/omega-mv/blob/", true),
         ("ax@:", "https://github.com/aien-dev/aienux/blob/", true),
-        ("sc@/:", "https://github.com/aien-dev/aien-sovereign-core-mv/tree/", true),
-        ("s:", "https://github.com/aien-dev/aienos.com/blob/main/", false),
+        (
+            "sc@/:",
+            "https://github.com/aien-dev/aien-sovereign-core-mv/tree/",
+            true,
+        ),
+        (
+            "s:",
+            "https://github.com/aien-dev/aienos.com/blob/main/",
+            false,
+        ),
     ];
     if link.starts_with('/') || link.starts_with('#') {
         return Ok(link.to_string());
@@ -139,8 +159,13 @@ pub fn expand(link: &str) -> Result<String, String> {
             }
             if pinned {
                 let sha = rest.split('/').next().unwrap_or("");
-                if sha.len() != 40 || !sha.bytes().all(|b| b.is_ascii_hexdigit()) || !rest[40..].starts_with('/') {
-                    return Err(format!("a file on a branch must be pinned to a full commit: {link:?}"));
+                if sha.len() != 40
+                    || !sha.bytes().all(|b| b.is_ascii_hexdigit())
+                    || !rest[40..].starts_with('/')
+                {
+                    return Err(format!(
+                        "a file on a branch must be pinned to a full commit: {link:?}"
+                    ));
                 }
             }
             return Ok(format!("{base}{rest}"));
@@ -151,7 +176,10 @@ pub fn expand(link: &str) -> Result<String, String> {
 
 fn gh(link: &str) -> String {
     let h = expand(link).unwrap_or_else(|e| panic!("data/cudaplusplus.json: {e}"));
-    assert!(h.starts_with("https://github.com/"), "data/cudaplusplus.json: box link must be on GitHub: {link}");
+    assert!(
+        h.starts_with("https://github.com/"),
+        "data/cudaplusplus.json: box link must be on GitHub: {link}"
+    );
     h
 }
 
@@ -159,13 +187,21 @@ pub fn parse(raw: &str) -> Result<Data, String> {
     serde_json::from_str(raw).map_err(|e| format!("data/cudaplusplus.json does not parse: {e}"))
 }
 
-fn check_status(what: &str, status: &str, ledger: &Option<String>, receipt: Option<&str>) -> Result<(), String> {
+fn check_status(
+    what: &str,
+    status: &str,
+    ledger: &Option<String>,
+    receipt: Option<&str>,
+) -> Result<(), String> {
     if !STATUSES.contains(&status) {
         return Err(format!("{what}: unknown status {status:?}"));
     }
     if status == "IN PROGRESS" {
         match ledger {
-            Some(l) if l.starts_with('L') && l[1..].bytes().all(|b| b.is_ascii_digit()) && l.len() > 1 => {}
+            Some(l)
+                if l.starts_with('L')
+                    && l[1..].bytes().all(|b| b.is_ascii_digit())
+                    && l.len() > 1 => {}
             _ => return Err(format!("{what}: IN PROGRESS needs its ledger id")),
         }
     }
@@ -182,10 +218,20 @@ pub fn validate(d: &Data) -> Result<(), String> {
     if RAW.contains('\u{2014}') || RAW.contains('\u{2013}') {
         return Err("data/cudaplusplus.json has an em or en dash".into());
     }
-    let mut boxes: Vec<&str> = vec![&d.source.readme, &d.source.how, &d.source.omega_doc, &d.purpose_link, &d.audit_link, &d.did_not_box];
+    let mut boxes: Vec<&str> = vec![
+        &d.source.readme,
+        &d.source.how,
+        &d.source.omega_doc,
+        &d.purpose_link,
+        &d.audit_link,
+        &d.did_not_box,
+    ];
     let mut links: Vec<&str> = Vec::new();
     if d.hops.len() < 8 {
-        return Err(format!("the path has {} hops; it runs from the program to the firmware (8)", d.hops.len()));
+        return Err(format!(
+            "the path has {} hops; it runs from the program to the firmware (8)",
+            d.hops.len()
+        ));
     }
     for h in &d.hops {
         check_status(&h.step, &h.status, &h.ledger, Some(&h.box_))?;
@@ -198,11 +244,17 @@ pub fn validate(d: &Data) -> Result<(), String> {
     }
     for r in d.pains.iter().chain(d.swaps.iter()) {
         if r.status == "NVIDIA" || r.status == "PARTIAL" {
-            return Err(format!("{}: a pain or swap row is PASS or IN PROGRESS", r.title));
+            return Err(format!(
+                "{}: a pain or swap row is PASS or IN PROGRESS",
+                r.title
+            ));
         }
         check_status(&r.title, &r.status, &r.ledger, r.receipt.as_deref())?;
         if r.status == "PASS" && r.command.is_none() {
-            return Err(format!("{}: a fixed row shows the command that proves it", r.title));
+            return Err(format!(
+                "{}: a fixed row shows the command that proves it",
+                r.title
+            ));
         }
         boxes.push(&r.box_);
         if let Some(rc) = &r.receipt {
@@ -463,7 +515,10 @@ mod tests {
         let s = render_cudaplusplus_page().into_string();
         let n = check_boxes(&s).unwrap();
         let d = data();
-        assert_eq!(n, d.hops.len() + d.steps.len() + 1 + d.pains.len() + d.swaps.len());
+        assert_eq!(
+            n,
+            d.hops.len() + d.steps.len() + 1 + d.pains.len() + d.swaps.len()
+        );
         assert!(s.contains("https://github.com/aien-dev/CUDAplusplus/blob/62ea5a214d46f36e88cb7b892cecebf1f3e8a172/docs/HOW_WE_DID_IT.md"));
     }
 
@@ -473,17 +528,25 @@ mod tests {
         let s = render_cudaplusplus_page().into_string();
         for r in d.pains.iter().chain(d.swaps.iter()) {
             if r.status == "IN PROGRESS" {
-                assert!(s.contains(&format!("IN PROGRESS \u{00B7} {}", r.ledger.as_ref().unwrap())));
+                assert!(s.contains(&format!(
+                    "IN PROGRESS \u{00B7} {}",
+                    r.ledger.as_ref().unwrap()
+                )));
             }
         }
-        let driver = d.hops.iter().find(|h| h.cuda.contains("nvidia.ko")).unwrap();
+        let driver = d
+            .hops
+            .iter()
+            .find(|h| h.cuda.contains("nvidia.ko"))
+            .unwrap();
         assert_eq!(driver.status, "IN PROGRESS");
         assert_eq!(driver.ledger.as_deref(), Some("L332"));
     }
 
     #[test]
     fn refusals() {
-        let d = parse(&RAW.replacen("\"status\": \"PARTIAL\"", "\"status\": \"ALMOST\"", 1)).unwrap();
+        let d =
+            parse(&RAW.replacen("\"status\": \"PARTIAL\"", "\"status\": \"ALMOST\"", 1)).unwrap();
         assert!(validate(&d).unwrap_err().contains("unknown status"));
         let mut d = parse(RAW).unwrap();
         d.pains[0].status = "PASS".into();
@@ -495,7 +558,9 @@ mod tests {
         d.pains[0].status = "PASS".into();
         d.pains[0].receipt = Some("cp/:evidence/X".into());
         assert!(validate(&d).unwrap_err().contains("command"));
-        assert!(expand("cp@:docs/how-we-did-it/docs/HOW_WE_DID_IT.md").unwrap_err().contains("pinned"));
+        assert!(expand("cp@:docs/how-we-did-it/docs/HOW_WE_DID_IT.md")
+            .unwrap_err()
+            .contains("pinned"));
         assert!(expand("om@:89aad7c/docs/OMEGA.md").is_err());
         assert!(expand("x:foo").is_err());
         assert!(expand("cp:../x").is_err());
@@ -506,7 +571,16 @@ mod tests {
         let s = render_cudaplusplus_page().into_string();
         assert!(!s.contains('\u{2014}') && !s.contains('\u{2013}'));
         let lower = s.to_ascii_lowercase();
-        for w in ["revolutionary", "blazing", "cutting-edge", "seamless", "world-class", "powerful", "aienix", "game-chang"] {
+        for w in [
+            "revolutionary",
+            "blazing",
+            "cutting-edge",
+            "seamless",
+            "world-class",
+            "powerful",
+            "aienix",
+            "game-chang",
+        ] {
             assert!(!lower.contains(w), "{w}");
         }
         assert!(!s.contains("cudaplusplus is") && !s.contains("CUDA plus plus"));

@@ -20,7 +20,9 @@ fn copy_dir_all(src: &Path, dst: &Path) -> std::io::Result<()> {
         let entry = entry?;
         let ty = entry.file_type()?;
         let from = entry.path();
-        if entry.file_name() == ".crumb" || entry.file_name() == ".crumb.local" { continue; }
+        if entry.file_name() == ".crumb" || entry.file_name() == ".crumb.local" {
+            continue;
+        }
         let to = dst.join(entry.file_name());
         if ty.is_dir() {
             copy_dir_all(&from, &to)?;
@@ -32,10 +34,21 @@ fn copy_dir_all(src: &Path, dst: &Path) -> std::io::Result<()> {
 }
 
 fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
-    let facts = facts::Facts::load(facts_path)
-        .unwrap_or_else(|e| panic!("Cannot build without facts: {e}. Run `site-builder facts {}` first.", facts_path.display()));
-    println!("  [FACTS] Using facts gathered at {} from {}", facts.generated_at, facts_path.display());
-    println!("  [BUILD] Compiling pure Rust Maud static site into: {}", dist.display());
+    let facts = facts::Facts::load(facts_path).unwrap_or_else(|e| {
+        panic!(
+            "Cannot build without facts: {e}. Run `site-builder facts {}` first.",
+            facts_path.display()
+        )
+    });
+    println!(
+        "  [FACTS] Using facts gathered at {} from {}",
+        facts.generated_at,
+        facts_path.display()
+    );
+    println!(
+        "  [BUILD] Compiling pure Rust Maud static site into: {}",
+        dist.display()
+    );
     fs::create_dir_all(dist.join("assets")).expect("Failed to create assets dir");
     fs::create_dir_all(dist.join("js")).expect("Failed to create js dir");
 
@@ -46,7 +59,9 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
             let entry = entry.expect("Valid entry");
             let path = entry.path();
             let name = entry.file_name();
-            if name == ".crumb" || name == ".crumb.local" { continue; }
+            if name == ".crumb" || name == ".crumb.local" {
+                continue;
+            }
             let dest = dist.join(&name);
             if path.is_dir() {
                 copy_dir_all(&path, &dest).expect("Failed to copy public subfolder");
@@ -60,11 +75,8 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     // Canonical project state for machines: rendered from the same
     // source as the homepage status section (components::status), so
     // the page, the JSON, and llms.txt can never drift apart.
-    fs::write(
-        dist.join("status.json"),
-        components::status::status_json(),
-    )
-    .expect("Failed to write status.json");
+    fs::write(dist.join("status.json"), components::status::status_json())
+        .expect("Failed to write status.json");
     // The machines and speeds data, published next to the page that renders it.
     fs::write(dist.join("machines.json"), components::machines::RAW)
         .expect("Failed to write machines.json");
@@ -103,7 +115,8 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
         }, components::progress::render_progress_page(),
     );
     fs::create_dir_all(dist.join("progress")).expect("Create progress directory");
-    fs::write(dist.join("progress/index.html"), progress.into_string()).expect("Write progress page");
+    fs::write(dist.join("progress/index.html"), progress.into_string())
+        .expect("Write progress page");
 
     // Blog index page
     let blog_index = render_page_layout(
@@ -124,7 +137,10 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     let blog_post = render_page_layout(
         &format!("{} | AIEN OS Blog", components::blog::POST_TITLE),
         components::blog::POST_DESCRIPTION,
-        &format!("https://www.aienos.com/blog/{}/", components::blog::POST_SLUG),
+        &format!(
+            "https://www.aienos.com/blog/{}/",
+            components::blog::POST_SLUG
+        ),
         "article",
         html! {},
         components::blog::render_blog_post(),
@@ -133,7 +149,10 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     fs::create_dir_all(&post_dir).expect("Failed to create post dir");
     fs::write(post_dir.join("index.html"), blog_post.into_string())
         .expect("Failed to write post index.html");
-    println!("  [PAGE] Emitted /blog/{} (index.html)", components::blog::POST_SLUG);
+    println!(
+        "  [PAGE] Emitted /blog/{} (index.html)",
+        components::blog::POST_SLUG
+    );
 
     // Research status: ladder, experiment cards, and implementation list,
     // all rendered from data/research_status.json. The data file itself is
@@ -148,10 +167,16 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     );
     let research_status_dir = dist.join("research/status");
     fs::create_dir_all(&research_status_dir).expect("Failed to create research/status dir");
-    fs::write(research_status_dir.join("index.html"), research_status.into_string())
-        .expect("Failed to write research/status/index.html");
-    fs::write(dist.join("research-status.json"), components::research_status::RAW)
-        .expect("Failed to write research-status.json");
+    fs::write(
+        research_status_dir.join("index.html"),
+        research_status.into_string(),
+    )
+    .expect("Failed to write research/status/index.html");
+    fs::write(
+        dist.join("research-status.json"),
+        components::research_status::RAW,
+    )
+    .expect("Failed to write research-status.json");
     println!("  [PAGE] Emitted /research/status (index.html) and /research-status.json");
 
     // /now/: the live coordination ledger, laid into public/data/now.tsv by
@@ -166,9 +191,14 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
         components::now::render_now_page(&now),
     );
     fs::create_dir_all(dist.join("now")).expect("Failed to create now dir");
-    fs::write(dist.join("now/index.html"), now_page.into_string()).expect("Failed to write now/index.html");
-    fs::write(dist.join("now.json"), components::now::to_json(&now)).expect("Failed to write now.json");
-    println!("  [PAGE] Emitted /now/ ({} ledger lines) and /now.json", now.items.len());
+    fs::write(dist.join("now/index.html"), now_page.into_string())
+        .expect("Failed to write now/index.html");
+    fs::write(dist.join("now.json"), components::now::to_json(&now))
+        .expect("Failed to write now.json");
+    println!(
+        "  [PAGE] Emitted /now/ ({} ledger lines) and /now.json",
+        now.items.len()
+    );
     // /omega/: what Omega is, from data/omega.json (the omega repository's
     // docs/OMEGA.md), published next to it as /omega.json.
     let omega_page = render_page_layout(
@@ -180,7 +210,8 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
         components::omega::render_omega_page(),
     );
     fs::create_dir_all(dist.join("omega")).expect("Failed to create omega dir");
-    fs::write(dist.join("omega/index.html"), omega_page.into_string()).expect("Failed to write omega/index.html");
+    fs::write(dist.join("omega/index.html"), omega_page.into_string())
+        .expect("Failed to write omega/index.html");
     fs::write(dist.join("omega.json"), components::omega::RAW).expect("Failed to write omega.json");
     println!("  [PAGE] Emitted /omega/ and /omega.json");
 
@@ -195,8 +226,16 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
         components::cudaplusplus::render_cudaplusplus_page(),
     );
     fs::create_dir_all(dist.join("cudaplusplus")).expect("Failed to create cudaplusplus dir");
-    fs::write(dist.join("cudaplusplus/index.html"), cudapp_page.into_string()).expect("Failed to write cudaplusplus/index.html");
-    fs::write(dist.join("cudaplusplus.json"), components::cudaplusplus::RAW).expect("Failed to write cudaplusplus.json");
+    fs::write(
+        dist.join("cudaplusplus/index.html"),
+        cudapp_page.into_string(),
+    )
+    .expect("Failed to write cudaplusplus/index.html");
+    fs::write(
+        dist.join("cudaplusplus.json"),
+        components::cudaplusplus::RAW,
+    )
+    .expect("Failed to write cudaplusplus.json");
     println!("  [PAGE] Emitted /cudaplusplus/ and /cudaplusplus.json");
 
     // Research narrative pages (NARR-RESEARCH): The Machine and Scientific Discovery
@@ -248,19 +287,47 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
 
 fn verify_site(dist: &Path) {
     let index_file = dist.join("index.html");
-    assert!(index_file.exists(), "Required index.html missing in {}", dist.display());
+    assert!(
+        index_file.exists(),
+        "Required index.html missing in {}",
+        dist.display()
+    );
 
     let content = fs::read_to_string(&index_file).expect("Failed to read index.html");
 
     // Verify DOM structure
-    assert!(content.contains("<div id=\"root\""), "Missing #root element in index.html");
-    assert!(content.contains("<main id=\"main-content\""), "Missing main container in index.html");
-    assert!(content.contains("id=\"terminal-output\""), "Missing interactive terminal output in index.html");
-    assert!(content.contains("id=\"follow\""), "Missing follow section in index.html");
-    assert!(content.contains("href=\"/now/\""), "Missing the Now link in the homepage follow section");
-    assert!(content.contains("id=\"receipt\""), "Missing verification receipt in index.html");
-    assert!(content.contains("id=\"live\""), "Missing live components block in index.html");
-    assert!(!content.contains("fonts.googleapis.com"), "Outside font loaded in index.html");
+    assert!(
+        content.contains("<div id=\"root\""),
+        "Missing #root element in index.html"
+    );
+    assert!(
+        content.contains("<main id=\"main-content\""),
+        "Missing main container in index.html"
+    );
+    assert!(
+        content.contains("id=\"terminal-output\""),
+        "Missing interactive terminal output in index.html"
+    );
+    assert!(
+        content.contains("id=\"follow\""),
+        "Missing follow section in index.html"
+    );
+    assert!(
+        content.contains("href=\"/now/\""),
+        "Missing the Now link in the homepage follow section"
+    );
+    assert!(
+        content.contains("id=\"receipt\""),
+        "Missing verification receipt in index.html"
+    );
+    assert!(
+        content.contains("id=\"live\""),
+        "Missing live components block in index.html"
+    );
+    assert!(
+        !content.contains("fonts.googleapis.com"),
+        "Outside font loaded in index.html"
+    );
     assert!(dist.join("facts.json").exists(), "Missing facts.json");
 
     // Homepage top (NARR-HOME): literal phrases, so a wording change in the
@@ -274,29 +341,63 @@ fn verify_site(dist: &Path) {
     ] {
         assert!(content.contains(phrase), "Missing homepage phrase in index.html: {phrase}");
     }
-    assert!(content.contains("<ol class=\"loop-stages\""), "Missing loop stage list in index.html");
+    assert!(
+        content.contains("<ol class=\"loop-stages\""),
+        "Missing loop stage list in index.html"
+    );
 
     // The machines and the speeds (components::machines): five machines,
     // the 27B on Omega first, every number beside its receipt, and no
     // comparison with anyone else's system anywhere on the homepage.
-    assert!(content.contains("id=\"machines\""), "Missing machines section in index.html");
-    assert!(content.contains("id=\"speed\""), "Missing speed section in index.html");
-    for id in ["machine-spark", "machine-imac", "machine-pi5", "machine-qemu", "machine-rig", "speed-27b-live"] {
-        assert!(content.contains(&format!("id=\"{id}\"")), "Missing {id} in index.html");
+    assert!(
+        content.contains("id=\"machines\""),
+        "Missing machines section in index.html"
+    );
+    assert!(
+        content.contains("id=\"speed\""),
+        "Missing speed section in index.html"
+    );
+    for id in [
+        "machine-spark",
+        "machine-imac",
+        "machine-pi5",
+        "machine-qemu",
+        "machine-rig",
+        "speed-27b-live",
+    ] {
+        assert!(
+            content.contains(&format!("id=\"{id}\"")),
+            "Missing {id} in index.html"
+        );
     }
-    assert!(content.contains("7.63 tok/s"), "Missing the live 27B speed in index.html");
+    assert!(
+        content.contains("7.63 tok/s"),
+        "Missing the live 27B speed in index.html"
+    );
     {
         let lower = content.to_ascii_lowercase();
         for w in components::machines::FORBIDDEN {
-            assert!(!lower.contains(w), "Comparison with another system on the homepage: {w:?}");
+            assert!(
+                !lower.contains(w),
+                "Comparison with another system on the homepage: {w:?}"
+            );
         }
     }
-    assert!(dist.join("assets/machines.css").exists(), "Missing assets/machines.css");
+    assert!(
+        dist.join("assets/machines.css").exists(),
+        "Missing assets/machines.css"
+    );
     assert!(dist.join("machines.json").exists(), "Missing machines.json");
 
     // Verify asset output
-    assert!(dist.join("assets/style.css").exists(), "Missing assets/style.css");
-    assert!(dist.join("js/terminal.js").exists(), "Missing js/terminal.js");
+    assert!(
+        dist.join("assets/style.css").exists(),
+        "Missing assets/style.css"
+    );
+    assert!(
+        dist.join("js/terminal.js").exists(),
+        "Missing js/terminal.js"
+    );
 
     // A stray or missing brace silently nests every later rule inside an
     // earlier one (this left the footer unstyled), so refuse unbalanced CSS.
@@ -308,20 +409,51 @@ fn verify_site(dist: &Path) {
             '}' => depth -= 1,
             _ => {}
         }
-        assert!(depth >= 0, "assets/style.css has an unmatched closing brace");
+        assert!(
+            depth >= 0,
+            "assets/style.css has an unmatched closing brace"
+        );
     }
-    assert_eq!(depth, 0, "assets/style.css has an unclosed rule; later rules would be nested");
-    for class in ["aien-footer", "aien-footer-sections", "aien-footer-heading", "aien-footer-group", "aien-footer-legal", "aien-footer-mottos"] {
-        assert!(css.contains(&format!(".{class}")), "assets/style.css missing footer rule .{class}");
+    assert_eq!(
+        depth, 0,
+        "assets/style.css has an unclosed rule; later rules would be nested"
+    );
+    for class in [
+        "aien-footer",
+        "aien-footer-sections",
+        "aien-footer-heading",
+        "aien-footer-group",
+        "aien-footer-legal",
+        "aien-footer-mottos",
+    ] {
+        assert!(
+            css.contains(&format!(".{class}")),
+            "assets/style.css missing footer rule .{class}"
+        );
     }
 
     // Verify Unslop standard
-    assert!(!content.contains('\u{2014}'), "Forbidden em dash detected in index.html");
-    assert!(!content.contains('\u{2013}'), "Forbidden en dash detected in index.html");
+    assert!(
+        !content.contains('\u{2014}'),
+        "Forbidden em dash detected in index.html"
+    );
+    assert!(
+        !content.contains('\u{2013}'),
+        "Forbidden en dash detected in index.html"
+    );
 
-    assert!(dist.join("progress/index.html").exists(), "Missing progress page");
-    assert!(dist.join("data/project-progress.json").exists(), "Missing progress dataset");
-    assert!(!dist.join("data/.crumb.local").exists(), "Local coordination must not be published");
+    assert!(
+        dist.join("progress/index.html").exists(),
+        "Missing progress page"
+    );
+    assert!(
+        dist.join("data/project-progress.json").exists(),
+        "Missing progress dataset"
+    );
+    assert!(
+        !dist.join("data/.crumb.local").exists(),
+        "Local coordination must not be published"
+    );
 
     // Verify sitemap and robots
     assert!(dist.join("sitemap.xml").exists(), "Missing sitemap.xml");
@@ -333,21 +465,36 @@ fn verify_site(dist: &Path) {
     let blog_index = dist.join("blog/index.html");
     assert!(blog_index.exists(), "Missing blog/index.html");
     let blog_post = dist.join("blog/aien-v3-research-plan/index.html");
-    assert!(blog_post.exists(), "Missing blog/aien-v3-research-plan/index.html");
+    assert!(
+        blog_post.exists(),
+        "Missing blog/aien-v3-research-plan/index.html"
+    );
     let research_status = dist.join("research/status/index.html");
-    assert!(research_status.exists(), "Missing research/status/index.html");
+    assert!(
+        research_status.exists(),
+        "Missing research/status/index.html"
+    );
     let now_page = dist.join("now/index.html");
     assert!(now_page.exists(), "Missing now/index.html");
     assert!(dist.join("now.json").exists(), "Missing now.json");
-    assert!(dist.join("assets/now.css").exists(), "Missing assets/now.css");
-    assert!(dist.join("research-status.json").exists(), "Missing research-status.json");
+    assert!(
+        dist.join("assets/now.css").exists(),
+        "Missing assets/now.css"
+    );
+    assert!(
+        dist.join("research-status.json").exists(),
+        "Missing research-status.json"
+    );
     // /omega/ (components::omega): says what Omega is first, carries the
     // CUDA map, the live receipt and the bar, and is linked from the nav
     // and from the front page wherever Omega is named.
     let omega_page = dist.join("omega/index.html");
     assert!(omega_page.exists(), "Missing omega/index.html");
     assert!(dist.join("omega.json").exists(), "Missing omega.json");
-    assert!(dist.join("assets/omega.css").exists(), "Missing assets/omega.css");
+    assert!(
+        dist.join("assets/omega.css").exists(),
+        "Missing assets/omega.css"
+    );
     {
         let o = fs::read_to_string(&omega_page).expect("read omega page");
         for phrase in [
@@ -359,16 +506,28 @@ fn verify_site(dist: &Path) {
             "id=\"bar\"",
             "evidence/WHAT-OMEGA-IS-20261021/live-serve-no-cuda.txt",
         ] {
-            assert!(o.contains(phrase) || o.contains(&phrase.replace("&#39;", "'")), "Missing on /omega/: {phrase}");
+            assert!(
+                o.contains(phrase) || o.contains(&phrase.replace("&#39;", "'")),
+                "Missing on /omega/: {phrase}"
+            );
         }
-        assert!(content.contains("href=\"/omega/\""), "The front page must link /omega/ where it names Omega");
+        assert!(
+            content.contains("href=\"/omega/\""),
+            "The front page must link /omega/ where it names Omega"
+        );
     }
     // /cudaplusplus/ (components::cudaplusplus): CUDA++ with the plus
     // signs, its four sections, linked from the nav, the front page and /omega/.
     let cudapp_page = dist.join("cudaplusplus/index.html");
     assert!(cudapp_page.exists(), "Missing cudaplusplus/index.html");
-    assert!(dist.join("cudaplusplus.json").exists(), "Missing cudaplusplus.json");
-    assert!(dist.join("assets/cudaplusplus.css").exists(), "Missing assets/cudaplusplus.css");
+    assert!(
+        dist.join("cudaplusplus.json").exists(),
+        "Missing cudaplusplus.json"
+    );
+    assert!(
+        dist.join("assets/cudaplusplus.css").exists(),
+        "Missing assets/cudaplusplus.css"
+    );
     {
         let c = fs::read_to_string(&cudapp_page).expect("read cudaplusplus page");
         for phrase in [
@@ -382,11 +541,24 @@ fn verify_site(dist: &Path) {
         ] {
             assert!(c.contains(phrase), "Missing on /cudaplusplus/: {phrase}");
         }
-        assert!(content.contains("href=\"/cudaplusplus/\""), "The front page must link /cudaplusplus/");
+        assert!(
+            content.contains("href=\"/cudaplusplus/\""),
+            "The front page must link /cudaplusplus/"
+        );
         let o = fs::read_to_string(&omega_page).expect("read omega page");
-        assert!(o.contains("href=\"/cudaplusplus/\""), "/omega/ must link /cudaplusplus/");
+        assert!(
+            o.contains("href=\"/cudaplusplus/\""),
+            "/omega/ must link /cudaplusplus/"
+        );
     }
-    for page in [&blog_index, &blog_post, &research_status, &now_page, &omega_page, &cudapp_page] {
+    for page in [
+        &blog_index,
+        &blog_post,
+        &research_status,
+        &now_page,
+        &omega_page,
+        &cudapp_page,
+    ] {
         let page_content = fs::read_to_string(page)
             .unwrap_or_else(|_| panic!("Failed to read {}", page.display()));
         assert!(
@@ -416,20 +588,62 @@ fn verify_site(dist: &Path) {
         assert!(page.exists(), "Missing {}", page.display());
         let page_content = fs::read_to_string(&page)
             .unwrap_or_else(|_| panic!("Failed to read {}", page.display()));
-        assert!(!page_content.contains('\u{2014}'), "Forbidden em dash detected in {}", page.display());
-        assert!(!page_content.contains('\u{2013}'), "Forbidden en dash detected in {}", page.display());
-        assert!(page_content.contains("og:title"), "Missing og:title in {}", page.display());
-        assert!(page_content.contains("rs-badge"), "Missing data-driven status badges in {}", page.display());
-        assert!(!page_content.contains("status-badge"), "Old hand-kept status badge markup in {}", page.display());
+        assert!(
+            !page_content.contains('\u{2014}'),
+            "Forbidden em dash detected in {}",
+            page.display()
+        );
+        assert!(
+            !page_content.contains('\u{2013}'),
+            "Forbidden en dash detected in {}",
+            page.display()
+        );
+        assert!(
+            page_content.contains("og:title"),
+            "Missing og:title in {}",
+            page.display()
+        );
+        assert!(
+            page_content.contains("rs-badge"),
+            "Missing data-driven status badges in {}",
+            page.display()
+        );
+        assert!(
+            !page_content.contains("status-badge"),
+            "Old hand-kept status badge markup in {}",
+            page.display()
+        );
     }
-    let machine = fs::read_to_string(dist.join("machine/index.html")).expect("Failed to read machine page");
-    assert!(machine.contains(components::narrative::SLOGAN), "Missing slogan in machine/index.html");
-    assert!(machine.contains(components::narrative::TURING_FORMULA), "Missing Turing formula in machine/index.html");
-    assert!(machine.contains("id=\"real-machines\""), "Missing real-machines section in machine/index.html");
-    assert!(machine.find("id=\"real-machines\"") < machine.find("id=\"loop\""), "Real machines must come before the loop in machine/index.html");
-    assert!(machine.contains("id=\"research-ladder\""), "Missing research-ladder section in machine/index.html");
-    assert!(machine.contains("class=\"rs-ladder\""), "Missing research ladder markup in machine/index.html");
-    assert!(machine.contains("class=\"rs-impl\""), "Missing implementation list in machine/index.html");
+    let machine =
+        fs::read_to_string(dist.join("machine/index.html")).expect("Failed to read machine page");
+    assert!(
+        machine.contains(components::narrative::SLOGAN),
+        "Missing slogan in machine/index.html"
+    );
+    assert!(
+        machine.contains(components::narrative::TURING_FORMULA),
+        "Missing Turing formula in machine/index.html"
+    );
+    assert!(
+        machine.contains("id=\"real-machines\""),
+        "Missing real-machines section in machine/index.html"
+    );
+    assert!(
+        machine.find("id=\"real-machines\"") < machine.find("id=\"loop\""),
+        "Real machines must come before the loop in machine/index.html"
+    );
+    assert!(
+        machine.contains("id=\"research-ladder\""),
+        "Missing research-ladder section in machine/index.html"
+    );
+    assert!(
+        machine.contains("class=\"rs-ladder\""),
+        "Missing research ladder markup in machine/index.html"
+    );
+    assert!(
+        machine.contains("class=\"rs-impl\""),
+        "Missing implementation list in machine/index.html"
+    );
 
     // Every box on every generated page links to its evidence on GitHub
     // (components::boxlink). A page listed here with a floor below it must
@@ -438,19 +652,28 @@ fn verify_site(dist: &Path) {
     let mut boxes_total = 0;
     for (page, floor) in GENERATED_PAGES {
         let path = dist.join(page);
-        let html = fs::read_to_string(&path).unwrap_or_else(|_| panic!("Failed to read {}", path.display()));
+        let html = fs::read_to_string(&path)
+            .unwrap_or_else(|_| panic!("Failed to read {}", path.display()));
         let n = components::boxlink::check_boxes(&html).unwrap_or_else(|e| panic!("/{page}: {e}"));
-        assert!(n >= *floor, "/{page}: expected at least {floor} boxes, found {n}");
+        assert!(
+            n >= *floor,
+            "/{page}: expected at least {floor} boxes, found {n}"
+        );
         boxes_total += n;
     }
     assert!(
-        fs::read_to_string(dist.join("assets/turing-look.css")).expect("read turing-look.css").contains(".box-link::after"),
+        fs::read_to_string(dist.join("assets/turing-look.css"))
+            .expect("read turing-look.css")
+            .contains(".box-link::after"),
         "assets/turing-look.css must stretch .box-link over its box"
     );
 
     println!("------------------------------------------------------------");
     println!("  Verified index.html ({} bytes)", content.len());
-    println!("  Every box links to GitHub: {boxes_total} boxes across {} pages", GENERATED_PAGES.len());
+    println!(
+        "  Every box links to GitHub: {boxes_total} boxes across {} pages",
+        GENERATED_PAGES.len()
+    );
     println!("  Integrity & Unslop Invariants: PASS");
 }
 
@@ -474,12 +697,16 @@ const GENERATED_PAGES: &[(&str, usize)] = &[
 
 fn main() {
     let start = Instant::now();
-    let first_arg = std::env::args().nth(1).unwrap_or_else(|| "build".to_string());
+    let first_arg = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| "build".to_string());
 
     // `facts [facts.json]`: read the public GitHub record and write the facts file. Read-only,
     // needs `gh`. Run by the workflow before every build so the page never goes stale by hand.
     if first_arg == "facts" {
-        let out = std::env::args().nth(2).unwrap_or_else(|| "facts.json".to_string());
+        let out = std::env::args()
+            .nth(2)
+            .unwrap_or_else(|| "facts.json".to_string());
         let gathered = facts::gather().unwrap_or_else(|e| {
             eprintln!("facts: {e}");
             std::process::exit(1);
@@ -521,8 +748,14 @@ fn main() {
                 })
             };
             match args[i].as_str() {
-                "--asof" => { opts.asof = Some(value(i)); i += 1; }
-                "--cache" => { opts.cache_dir = value(i).into(); i += 1; }
+                "--asof" => {
+                    opts.asof = Some(value(i));
+                    i += 1;
+                }
+                "--cache" => {
+                    opts.cache_dir = value(i).into();
+                    i += 1;
+                }
                 "--no-fetch" => opts.fetch = false,
                 other if !other.starts_with("--") && out.is_none() => out = Some(other.to_string()),
                 other => {
@@ -549,11 +782,18 @@ fn main() {
     }
 
     let (mode, target_dir) = if first_arg == "build" || first_arg == "verify" {
-        (first_arg, std::env::args().nth(2).unwrap_or_else(|| "dist-rust".to_string()))
+        (
+            first_arg,
+            std::env::args()
+                .nth(2)
+                .unwrap_or_else(|| "dist-rust".to_string()),
+        )
     } else {
         ("verify".to_string(), first_arg)
     };
-    let facts_file = std::env::args().nth(3).unwrap_or_else(|| "facts.json".to_string());
+    let facts_file = std::env::args()
+        .nth(3)
+        .unwrap_or_else(|| "facts.json".to_string());
 
     let dist = Path::new(&target_dir);
 
@@ -568,7 +808,10 @@ fn main() {
         verify_site(dist);
     } else {
         if !dist.exists() {
-            eprintln!("Error: Target directory '{}' does not exist.", dist.display());
+            eprintln!(
+                "Error: Target directory '{}' does not exist.",
+                dist.display()
+            );
             std::process::exit(1);
         }
         verify_site(dist);

@@ -175,9 +175,19 @@ mod tests {
 
     #[test]
     fn each_footer_group_links_its_hub_first() {
-        let hubs = ["/machine/", "/turing/", "/experiments/", "/discovery/", "/evidence/", "/philosophy/"];
+        let hubs = [
+            "/machine/",
+            "/turing/",
+            "/experiments/",
+            "/discovery/",
+            "/evidence/",
+            "/philosophy/",
+        ];
         for ((heading, links), hub) in FOOTER_GROUPS.iter().zip(hubs) {
-            assert_eq!(links[0].1, hub, "footer group {heading} must link {hub} first");
+            assert_eq!(
+                links[0].1, hub,
+                "footer group {heading} must link {hub} first"
+            );
         }
     }
 
@@ -188,8 +198,14 @@ mod tests {
             .find(|(heading, _)| *heading == "Evidence")
             .expect("Evidence group present");
         let hrefs: Vec<&str> = links.iter().map(|l| l.1).collect();
-        assert!(hrefs.contains(&"/research/status/"), "Evidence group must link /research/status/");
-        assert!(hrefs.contains(&"/research-status.json"), "Evidence group must link /research-status.json");
+        assert!(
+            hrefs.contains(&"/research/status/"),
+            "Evidence group must link /research/status/"
+        );
+        assert!(
+            hrefs.contains(&"/research-status.json"),
+            "Evidence group must link /research-status.json"
+        );
     }
 
     #[test]

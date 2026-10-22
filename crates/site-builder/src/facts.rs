@@ -9,12 +9,42 @@ use std::process::Command;
 /// Editorial part: what each component is. Live part is filled in by `gather`.
 pub const COMPONENTS: &[(&str, &str, &str, &str)] = &[
     // key, display name, repository, role (one line, ours)
-    ("aienos", "AIENOS", "aien-dev/aienos", "The operating system. Agent-first; the model is never the kernel."),
-    ("omega", "Omega", "aien-dev/omega", "AIEN's language for all computing, GPU to CPU. On the GPU it is the replacement for CUDA."),
-    ("sovereign-core", "Sovereign core", "aien-dev/aien-sovereign-core", "Host runtime, inference ABI, and the pipeline that judges every change."),
-    ("architecture", "Architecture", "aien-dev/aien-architecture", "Flows, boundaries, decision records, execution plan."),
-    ("protocols", "Protocols", "aien-dev/aien-protocols", "Specifications, wire protocols, schemas."),
-    ("physics", "Physics", "aien-dev/physics", "The FORGE realization layer and the boot artefacts for the GB10."),
+    (
+        "aienos",
+        "AIENOS",
+        "aien-dev/aienos",
+        "The operating system. Agent-first; the model is never the kernel.",
+    ),
+    (
+        "omega",
+        "Omega",
+        "aien-dev/omega",
+        "AIEN's language for all computing, GPU to CPU. On the GPU it is the replacement for CUDA.",
+    ),
+    (
+        "sovereign-core",
+        "Sovereign core",
+        "aien-dev/aien-sovereign-core",
+        "Host runtime, inference ABI, and the pipeline that judges every change.",
+    ),
+    (
+        "architecture",
+        "Architecture",
+        "aien-dev/aien-architecture",
+        "Flows, boundaries, decision records, execution plan.",
+    ),
+    (
+        "protocols",
+        "Protocols",
+        "aien-dev/aien-protocols",
+        "Specifications, wire protocols, schemas.",
+    ),
+    (
+        "physics",
+        "Physics",
+        "aien-dev/physics",
+        "The FORGE realization layer and the boot artefacts for the GB10.",
+    ),
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -69,14 +99,21 @@ pub struct Facts {
 
 impl Facts {
     pub fn load(path: &Path) -> Result<Facts, String> {
-        let text = std::fs::read_to_string(path)
-            .map_err(|e| format!("cannot read {}: {e} (run `site-builder facts {}` first)", path.display(), path.display()))?;
-        serde_json::from_str(&text).map_err(|e| format!("{} is not a facts file: {e}", path.display()))
+        let text = std::fs::read_to_string(path).map_err(|e| {
+            format!(
+                "cannot read {}: {e} (run `site-builder facts {}` first)",
+                path.display(),
+                path.display()
+            )
+        })?;
+        serde_json::from_str(&text)
+            .map_err(|e| format!("{} is not a facts file: {e}", path.display()))
     }
 
     pub fn save(&self, path: &Path) -> Result<(), String> {
         let text = serde_json::to_string_pretty(self).map_err(|e| e.to_string())?;
-        std::fs::write(path, text + "\n").map_err(|e| format!("cannot write {}: {e}", path.display()))
+        std::fs::write(path, text + "\n")
+            .map_err(|e| format!("cannot write {}: {e}", path.display()))
     }
 }
 
@@ -93,11 +130,15 @@ fn gh(args: &[&str]) -> Result<serde_json::Value, String> {
             String::from_utf8_lossy(&out.stderr).trim()
         ));
     }
-    serde_json::from_slice(&out.stdout).map_err(|e| format!("gh api {}: bad JSON: {e}", args.join(" ")))
+    serde_json::from_slice(&out.stdout)
+        .map_err(|e| format!("gh api {}: bad JSON: {e}", args.join(" ")))
 }
 
 fn s(v: &serde_json::Value, key: &str) -> String {
-    v.get(key).and_then(|x| x.as_str()).unwrap_or("").to_string()
+    v.get(key)
+        .and_then(|x| x.as_str())
+        .unwrap_or("")
+        .to_string()
 }
 
 fn now_utc() -> String {
@@ -129,10 +170,21 @@ pub fn gather() -> Result<Facts, String> {
     for (key, name, repo, role) in COMPONENTS {
         let meta = gh(&[&format!("repos/{repo}")])?;
         let full = s(&meta, "full_name");
-        let full = if full.is_empty() { repo.to_string() } else { full };
-        let open = gh(&[&format!("search/issues?q=repo:{full}+is:pr+is:open&per_page=1")])?;
-        let open_prs = open.get("total_count").and_then(|x| x.as_u64()).unwrap_or(0);
-        let pulls = gh(&[&format!("repos/{full}/pulls?state=closed&sort=updated&direction=desc&per_page=30")])?;
+        let full = if full.is_empty() {
+            repo.to_string()
+        } else {
+            full
+        };
+        let open = gh(&[&format!(
+            "search/issues?q=repo:{full}+is:pr+is:open&per_page=1"
+        )])?;
+        let open_prs = open
+            .get("total_count")
+            .and_then(|x| x.as_u64())
+            .unwrap_or(0);
+        let pulls = gh(&[&format!(
+            "repos/{full}/pulls?state=closed&sort=updated&direction=desc&per_page=30"
+        )])?;
         let last_merge = pulls
             .as_array()
             .map(|a| {
@@ -176,7 +228,11 @@ pub fn gather() -> Result<Facts, String> {
                     if let Some(first) = title.get_mut(0..1) {
                         first.make_ascii_uppercase();
                     }
-                    Some(Decision { id: id.to_string(), title, url: s(f, "html_url") })
+                    Some(Decision {
+                        id: id.to_string(),
+                        title,
+                        url: s(f, "html_url"),
+                    })
                 })
                 .collect()
         })
@@ -187,14 +243,21 @@ pub fn gather() -> Result<Facts, String> {
     for d in &mut decisions {
         let raw = Command::new("gh")
             .args(["api", "-H", "Accept: application/vnd.github.raw"])
-            .arg(format!("repos/aien-dev/aien-architecture/contents/docs/adr/{}", d.url.rsplit('/').next().unwrap_or("")))
+            .arg(format!(
+                "repos/aien-dev/aien-architecture/contents/docs/adr/{}",
+                d.url.rsplit('/').next().unwrap_or("")
+            ))
             .output();
         if let Ok(out) = raw {
             if out.status.success() {
                 let text = String::from_utf8_lossy(&out.stdout);
                 if let Some(h) = text.lines().find_map(|l| l.strip_prefix("# ")) {
                     let h = h.trim();
-                    let h = h.split_once(':').filter(|(a, _)| a.trim().eq_ignore_ascii_case(&format!("ADR {}", d.id))).map(|(_, t)| t.trim()).unwrap_or(h);
+                    let h = h
+                        .split_once(':')
+                        .filter(|(a, _)| a.trim().eq_ignore_ascii_case(&format!("ADR {}", d.id)))
+                        .map(|(_, t)| t.trim())
+                        .unwrap_or(h);
                     if !h.is_empty() {
                         d.title = clip(h, 72);
                     }
@@ -213,7 +276,11 @@ pub fn gather() -> Result<Facts, String> {
         .and_then(|m| m.lines().next())
         .unwrap_or("")
         .to_string();
-    let committed_at = commit.pointer("/commit/committer/date").and_then(|d| d.as_str()).unwrap_or("").to_string();
+    let committed_at = commit
+        .pointer("/commit/committer/date")
+        .and_then(|d| d.as_str())
+        .unwrap_or("")
+        .to_string();
     // The judge is the Spark. Its verdict is posted as the commit status whose context is
     // "AIEN Verification (Spark)". The hosted check run that is also named "AIEN Verification"
     // is only the bridge job and finishes in a minute whatever the Spark later finds, so it
@@ -222,7 +289,11 @@ pub fn gather() -> Result<Facts, String> {
     let verification = combined
         .get("statuses")
         .and_then(|a| a.as_array())
-        .and_then(|a| a.iter().filter(|r| s(r, "context") == SPARK_STATUS_CONTEXT).max_by(|a, b| s(a, "updated_at").cmp(&s(b, "updated_at"))));
+        .and_then(|a| {
+            a.iter()
+                .filter(|r| s(r, "context") == SPARK_STATUS_CONTEXT)
+                .max_by(|a, b| s(a, "updated_at").cmp(&s(b, "updated_at")))
+        });
     let receipt = match verification {
         Some(status) => {
             let state = match s(status, "state").as_str() {
@@ -232,7 +303,11 @@ pub fn gather() -> Result<Facts, String> {
             };
             let target_url = {
                 let t = s(status, "target_url");
-                if t.is_empty() { format!("https://github.com/{repo}/commit/{sha}") } else { t }
+                if t.is_empty() {
+                    format!("https://github.com/{repo}/commit/{sha}")
+                } else {
+                    t
+                }
             };
             Receipt {
                 repo: repo.to_string(),
@@ -257,7 +332,12 @@ pub fn gather() -> Result<Facts, String> {
         },
     };
 
-    Ok(Facts { generated_at: now_utc(), components, decisions, receipt })
+    Ok(Facts {
+        generated_at: now_utc(),
+        components,
+        decisions,
+        receipt,
+    })
 }
 
 /// The commit status context the Spark judge posts its verdict under.
@@ -266,7 +346,10 @@ pub const SPARK_STATUS_CONTEXT: &str = "AIEN Verification (Spark)";
 /// The Spark writes its verdict line followed by the bundle path on its own disk. The
 /// verdict is public; the path is not useful to anyone else, so it is cut off here.
 pub fn public_description(raw: &str) -> String {
-    let cut = raw.find(": bundle ").or_else(|| raw.find(" bundle /")).unwrap_or(raw.len());
+    let cut = raw
+        .find(": bundle ")
+        .or_else(|| raw.find(" bundle /"))
+        .unwrap_or(raw.len());
     raw[..cut].trim().to_string()
 }
 
@@ -282,13 +365,18 @@ pub fn clip(text: &str, max: usize) -> String {
 
 /// "2026-10-16T15:48:43Z" -> "16 Oct 2026". Anything else is returned unchanged.
 pub fn short_date(ts: &str) -> String {
-    const MONTHS: [&str; 12] = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const MONTHS: [&str; 12] = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    ];
     let date = ts.split('T').next().unwrap_or(ts);
     let parts: Vec<&str> = date.split('-').collect();
     if parts.len() != 3 {
         return ts.to_string();
     }
-    let month = parts[1].parse::<usize>().ok().filter(|m| (1..=12).contains(m));
+    let month = parts[1]
+        .parse::<usize>()
+        .ok()
+        .filter(|m| (1..=12).contains(m));
     let day = parts[2].trim_start_matches('0');
     match month {
         Some(m) => format!("{day} {} {}", MONTHS[m - 1], parts[0]),
@@ -303,7 +391,9 @@ mod tests {
     #[test]
     fn public_description_drops_the_bundle_path() {
         assert_eq!(
-            public_description("BLOCKED FAIL PREFILL-E2E-2:rc_nonzero: bundle /home/x/.local/state/bundles/a/b"),
+            public_description(
+                "BLOCKED FAIL PREFILL-E2E-2:rc_nonzero: bundle /home/x/.local/state/bundles/a/b"
+            ),
             "BLOCKED FAIL PREFILL-E2E-2:rc_nonzero"
         );
         assert_eq!(public_description("PASS 19 gates"), "PASS 19 gates");
@@ -320,7 +410,13 @@ mod tests {
     #[test]
     fn clip_cuts_at_a_word() {
         assert_eq!(clip("short", 72), "short");
-        assert_eq!(clip("AIEN Verification: Check IR (manifest v2), exactness classes", 30), "AIEN Verification: Check IR...");
+        assert_eq!(
+            clip(
+                "AIEN Verification: Check IR (manifest v2), exactness classes",
+                30
+            ),
+            "AIEN Verification: Check IR..."
+        );
     }
 
     #[test]
@@ -334,7 +430,10 @@ mod tests {
 
     #[test]
     fn facts_round_trip() {
-        let f = Facts { generated_at: "2026-10-16T00:00:00Z".into(), ..Default::default() };
+        let f = Facts {
+            generated_at: "2026-10-16T00:00:00Z".into(),
+            ..Default::default()
+        };
         let text = serde_json::to_string(&f).unwrap();
         let back: Facts = serde_json::from_str(&text).unwrap();
         assert_eq!(back.generated_at, f.generated_at);

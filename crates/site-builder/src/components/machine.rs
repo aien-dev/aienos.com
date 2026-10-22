@@ -51,7 +51,9 @@ const BAYES: &str = "Bayesian cost prediction (belief/estimation)";
 const EGRAPH: &str = "Equality saturation";
 
 fn trow(id: &str) -> &'static TuringRow {
-    data().turing_row(id).unwrap_or_else(|| panic!("research status row {id} missing"))
+    data()
+        .turing_row(id)
+        .unwrap_or_else(|| panic!("research status row {id} missing"))
 }
 
 /// The quantity card's link: the row's evidence on GitHub.
@@ -340,7 +342,15 @@ mod tests {
     use crate::layouts::base::render_page_layout;
 
     fn page() -> String {
-        render_page_layout(TITLE, DESCRIPTION, URL, "article", html! {}, render_machine()).into_string()
+        render_page_layout(
+            TITLE,
+            DESCRIPTION,
+            URL,
+            "article",
+            html! {},
+            render_machine(),
+        )
+        .into_string()
     }
 
     /// Every piece of markup on /machine/ that is allowed to carry a status
@@ -396,14 +406,21 @@ mod tests {
         while let Some(rel) = p[from..].find(fig) {
             found = true;
             let at = from + rel;
-            let start = ["<p", "<li"].iter().filter_map(|t| p[..at].rfind(*t)).max().unwrap_or(0);
+            let start = ["<p", "<li"]
+                .iter()
+                .filter_map(|t| p[..at].rfind(*t))
+                .max()
+                .unwrap_or(0);
             let end = ["</p>", "</li>"]
                 .iter()
                 .filter_map(|t| p[at..].find(*t).map(|e| at + e))
                 .min()
                 .unwrap_or(p.len());
             let block = p[start..end].to_lowercase();
-            assert!(!block.contains("yield"), "TY-2 gain figure sits next to the word yield: {block}");
+            assert!(
+                !block.contains("yield"),
+                "TY-2 gain figure sits next to the word yield: {block}"
+            );
             from = at + fig.len();
         }
         assert!(found, "TY-2 gain figure missing from /machine/");
@@ -415,13 +432,31 @@ mod tests {
     #[test]
     fn research_ladder_section_renders_the_canonical_ladder() {
         let p = page();
-        let start = p.find("id=\"research-ladder\"").expect("research-ladder section missing");
-        let end = start + p[start..].find("</section>").expect("research-ladder section not closed");
+        let start = p
+            .find("id=\"research-ladder\"")
+            .expect("research-ladder section missing");
+        let end = start
+            + p[start..]
+                .find("</section>")
+                .expect("research-ladder section not closed");
         let section = &p[start..end];
-        assert!(section.contains(&render_research_status_summary().into_string()), "ladder markup differs from render_research_status_summary");
-        assert!(section.contains("class=\"rs-ladder\""), "rs-ladder markup missing from research-ladder");
-        assert_eq!(section.matches("class=\"rs-step ").count(), data().ladder.len(), "ladder steps missing");
-        assert!(section.contains("href=\"/research/status/\""), "link to the full status page missing");
+        assert!(
+            section.contains(&render_research_status_summary().into_string()),
+            "ladder markup differs from render_research_status_summary"
+        );
+        assert!(
+            section.contains("class=\"rs-ladder\""),
+            "rs-ladder markup missing from research-ladder"
+        );
+        assert_eq!(
+            section.matches("class=\"rs-step ").count(),
+            data().ladder.len(),
+            "ladder steps missing"
+        );
+        assert!(
+            section.contains("href=\"/research/status/\""),
+            "link to the full status page missing"
+        );
     }
 
     /// What exists today is the canonical implementation list, verbatim.
@@ -429,7 +464,10 @@ mod tests {
     fn today_section_renders_the_canonical_implementation_list() {
         let p = page();
         assert!(p.contains(&render_implementation(data()).into_string()));
-        assert!(!p.contains("status-badge"), "old hand-kept badge markup is back");
+        assert!(
+            !p.contains("status-badge"),
+            "old hand-kept badge markup is back"
+        );
     }
 
     /// No status word on /machine/ may come from anywhere but the data.
@@ -437,7 +475,10 @@ mod tests {
     fn no_hand_written_status_words() {
         let body = render_machine().into_string();
         let stray = stray_status_words(&body, &data_renderings());
-        assert!(stray.is_empty(), "hand-written status words on /machine/: {stray:?}");
+        assert!(
+            stray.is_empty(),
+            "hand-written status words on /machine/: {stray:?}"
+        );
     }
 
     #[test]

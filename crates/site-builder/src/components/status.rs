@@ -203,7 +203,10 @@ pub fn status_json() -> String {
 /// /llms.txt: the project in plain text for AI readers and crawlers, in
 /// the llms.txt convention (see `seo::llms_txt`), with the layer states.
 pub fn llms_txt() -> String {
-    let lines: Vec<String> = layer_states().iter().map(|l| format!("{}: {}. {}", l.name, l.status, l.note)).collect();
+    let lines: Vec<String> = layer_states()
+        .iter()
+        .map(|l| format!("{}: {}. {}", l.name, l.status, l.note))
+        .collect();
     crate::seo::llms_txt(&lines, &rs::current_level_sentence())
 }
 
@@ -230,7 +233,13 @@ mod wording_tests {
             .iter()
             .find(|l| l.name.starts_with("Turing experiments"))
             .expect("experiments layer present");
-        for want in ["EXP-001 FAIL", "EXP-001R PASS", "EXP-002D INCOMPLETE", "EXP-003 BLOCKED", "Failures stay on the record"] {
+        for want in [
+            "EXP-001 FAIL",
+            "EXP-001R PASS",
+            "EXP-002D INCOMPLETE",
+            "EXP-003 BLOCKED",
+            "Failures stay on the record",
+        ] {
             assert!(l.note.contains(want), "missing: {want}");
         }
     }
@@ -243,8 +252,16 @@ mod wording_tests {
         assert_eq!(rows, layer_states().len());
         // The receipt aside and the live rows render too; count only up to the live block.
         let before_live = page.split("id=\"live\"").next().unwrap();
-        assert_eq!(crate::components::boxlink::check_boxes(before_live), Ok(rows), "every layer row links to GitHub");
-        assert_eq!(before_live.matches("box-link-source").count(), 1, "only the release row, which has no receipt, is a source link");
+        assert_eq!(
+            crate::components::boxlink::check_boxes(before_live),
+            Ok(rows),
+            "every layer row links to GitHub"
+        );
+        assert_eq!(
+            before_live.matches("box-link-source").count(),
+            1,
+            "only the release row, which has no receipt, is a source link"
+        );
     }
 
     #[test]
@@ -254,8 +271,14 @@ mod wording_tests {
 
     #[test]
     fn counterexample_stale_wording_is_caught() {
-        assert_eq!(stale_hit("how much a machine actually understood"), Some("actually understood"));
-        assert_eq!(stale_hit("Measurement profiles in preparation"), Some("in preparation"));
+        assert_eq!(
+            stale_hit("how much a machine actually understood"),
+            Some("actually understood")
+        );
+        assert_eq!(
+            stale_hit("Measurement profiles in preparation"),
+            Some("in preparation")
+        );
     }
 
     // Repo-wide stale scan. Mirrors the receipt grep (phrases below, skips
@@ -294,7 +317,11 @@ mod wording_tests {
             "Turing yield: +2,559,679.825 T/J under profile V0.",
             "Gain recorded. The Turing yield was 2,559,679.825 T.",
         ] {
-            assert_eq!(line_is_stale(bad), vec!["Turing yield.*2,559,679".to_string()], "{bad}");
+            assert_eq!(
+                line_is_stale(bad),
+                vec!["Turing yield.*2,559,679".to_string()],
+                "{bad}"
+            );
         }
         // Honest wording from the research page (lines 95 and 218): gain
         // figure and the "yield not yet measured" note are separate sentences.
@@ -362,7 +389,8 @@ mod wording_tests {
         let me = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/components/status.rs");
         let mut hits = Vec::new();
         let mut scanned = Vec::new();
-        scan_tree(&root, &[me], &mut hits, &mut scanned).expect("scan must read every directory and file");
+        scan_tree(&root, &[me], &mut hits, &mut scanned)
+            .expect("scan must read every directory and file");
         check_floor(&root, &scanned).expect("scan floor");
         assert!(hits.is_empty(), "stale wording: {hits:?}");
     }
@@ -371,7 +399,11 @@ mod wording_tests {
         if scanned.is_empty() {
             return Err("scan read zero files".into());
         }
-        for must in ["index.html", "public/turing/index.html", "public/research/index.html"] {
+        for must in [
+            "index.html",
+            "public/turing/index.html",
+            "public/research/index.html",
+        ] {
             let want = root.join(must).canonicalize().ok();
             if !scanned.iter().any(|p| p.canonicalize().ok() == want) {
                 return Err(format!("required page not scanned: {must}"));
@@ -382,7 +414,8 @@ mod wording_tests {
 
     #[test]
     fn counterexample_empty_or_missing_directory_fails() {
-        let missing = std::env::temp_dir().join(format!("stalegrep-missing-{}", std::process::id()));
+        let missing =
+            std::env::temp_dir().join(format!("stalegrep-missing-{}", std::process::id()));
         let mut hits = Vec::new();
         let mut scanned = Vec::new();
         assert!(scan_tree(&missing, &[], &mut hits, &mut scanned).is_err());
@@ -391,7 +424,10 @@ mod wording_tests {
         let r = scan_tree(&empty, &[], &mut hits, &mut scanned);
         let _ = std::fs::remove_dir_all(&empty);
         assert!(r.is_ok());
-        assert!(check_floor(&empty, &scanned).is_err(), "empty scan must fail the floor");
+        assert!(
+            check_floor(&empty, &scanned).is_err(),
+            "empty scan must fail the floor"
+        );
     }
 
     #[test]
@@ -401,7 +437,11 @@ mod wording_tests {
         std::fs::create_dir_all(&public).unwrap();
         let page = public.join("x.html");
         let src = d.join("status.rs");
-        std::fs::write(&page, "<p>\"Turing yield of 2,559,679\" and \"actually understood\"</p>\n").unwrap();
+        std::fs::write(
+            &page,
+            "<p>\"Turing yield of 2,559,679\" and \"actually understood\"</p>\n",
+        )
+        .unwrap();
         std::fs::write(&src, "const A: &str = \"first unit written down\";\n").unwrap();
         let mut hits = Vec::new();
         let mut scanned = Vec::new();
@@ -410,7 +450,13 @@ mod wording_tests {
         // must still hold and the page must still be caught.
         let mut hits2 = Vec::new();
         let mut scanned2 = Vec::new();
-        scan_tree(&public.join(".."), &[src.clone()], &mut hits2, &mut scanned2).unwrap();
+        scan_tree(
+            &public.join(".."),
+            &[src.clone()],
+            &mut hits2,
+            &mut scanned2,
+        )
+        .unwrap();
         // Without the exclusion the source file is caught as well.
         let mut hits3 = Vec::new();
         let mut scanned3 = Vec::new();

@@ -64,19 +64,69 @@ pub const REPOS: &[(&str, &str, &str)] = &[
 pub const TIMEZONE: &str = "America/Chicago";
 
 const EXTENSIONS: &[(&str, &str)] = &[
-    (".rs", "Rust"), (".c", "C"), (".h", "C"), (".inc", "C"), (".mojo", "Mojo"), (".py", "Python"),
-    (".sh", "Shell"), (".bash", "Shell"), (".js", "Web"), (".mjs", "Web"), (".cjs", "Web"), (".jsx", "Web"),
-    (".ts", "Web"), (".tsx", "Web"), (".html", "Web"), (".css", "Web"), (".S", "Assembly"), (".s", "Assembly"),
-    (".asm", "Assembly"), (".cu", "CUDA"), (".cuh", "CUDA"), (".cc", "C++"), (".cpp", "C++"), (".hpp", "C++"),
+    (".rs", "Rust"),
+    (".c", "C"),
+    (".h", "C"),
+    (".inc", "C"),
+    (".mojo", "Mojo"),
+    (".py", "Python"),
+    (".sh", "Shell"),
+    (".bash", "Shell"),
+    (".js", "Web"),
+    (".mjs", "Web"),
+    (".cjs", "Web"),
+    (".jsx", "Web"),
+    (".ts", "Web"),
+    (".tsx", "Web"),
+    (".html", "Web"),
+    (".css", "Web"),
+    (".S", "Assembly"),
+    (".s", "Assembly"),
+    (".asm", "Assembly"),
+    (".cu", "CUDA"),
+    (".cuh", "CUDA"),
+    (".cc", "C++"),
+    (".cpp", "C++"),
+    (".hpp", "C++"),
     (".zig", "Zig"),
 ];
 /// A path with any of these directory names (any case) is not measured.
 const EXCLUDED_DIRS: &[&str] = &[
-    "vendor", "vendored", "third_party", "third-party", "node_modules", "target", "dist", "build", "generated",
-    "evidence", "receipts", "artifacts", "data", "results", "fixtures",
+    "vendor",
+    "vendored",
+    "third_party",
+    "third-party",
+    "node_modules",
+    "target",
+    "dist",
+    "build",
+    "generated",
+    "evidence",
+    "receipts",
+    "artifacts",
+    "data",
+    "results",
+    "fixtures",
 ];
-const CORE_NAMES: &[&str] = &["aien-sovereign-core", "aienix", "aienos", "omega", "physics", "forge", "atlas", "aien-protocols", "aien-architecture", "benchmarks"];
-const SITE_NAMES: &[&str] = &["aienos.com", "drakestapleton.com", "interplane.io", ".github", "aien-dev"];
+const CORE_NAMES: &[&str] = &[
+    "aien-sovereign-core",
+    "aienix",
+    "aienos",
+    "omega",
+    "physics",
+    "forge",
+    "atlas",
+    "aien-protocols",
+    "aien-architecture",
+    "benchmarks",
+];
+const SITE_NAMES: &[&str] = &[
+    "aienos.com",
+    "drakestapleton.com",
+    "interplane.io",
+    ".github",
+    "aien-dev",
+];
 
 /// The accounts whose public repository listings are read: OWNER, then every owner in REPOS.
 fn owners() -> Vec<&'static str> {
@@ -113,7 +163,10 @@ fn select_repos(listing: &[Value]) -> (Vec<Target>, Vec<String>) {
         !flag("private") && !flag("fork")
     };
     let identity = |r: &Value| -> Option<(String, String)> {
-        Some((r.pointer("/owner/login")?.as_str()?.to_string(), r.get("name")?.as_str()?.to_string()))
+        Some((
+            r.pointer("/owner/login")?.as_str()?.to_string(),
+            r.get("name")?.as_str()?.to_string(),
+        ))
     };
     let mapped = |owner: &str, name: &str| REPOS.iter().find(|(_, o, g)| *o == owner && *g == name);
     let found: HashSet<&str> = listing
@@ -124,16 +177,34 @@ fn select_repos(listing: &[Value]) -> (Vec<Target>, Vec<String>) {
         .collect();
     let mut targets = Vec::new();
     for r in listing.iter().filter(public) {
-        let Some((owner, github_name)) = identity(r) else { continue };
+        let Some((owner, github_name)) = identity(r) else {
+            continue;
+        };
         let name = match mapped(&owner, &github_name) {
             Some((project, _, _)) => project.to_string(),
-            None if owner == OWNER && project_named(&github_name) && !found.contains(github_name.as_str()) => github_name.clone(),
+            None if owner == OWNER
+                && project_named(&github_name)
+                && !found.contains(github_name.as_str()) =>
+            {
+                github_name.clone()
+            }
             None => continue,
         };
-        let url = s(r, "html_url").unwrap_or_else(|| format!("https://github.com/{owner}/{github_name}"));
-        targets.push(Target { name, owner, github_name, url, info: r.clone() });
+        let url =
+            s(r, "html_url").unwrap_or_else(|| format!("https://github.com/{owner}/{github_name}"));
+        targets.push(Target {
+            name,
+            owner,
+            github_name,
+            url,
+            info: r.clone(),
+        });
     }
-    let missing = REPOS.iter().filter(|(p, _, _)| !found.contains(p)).map(|(p, o, g)| format!("{o}/{g} ({p})")).collect();
+    let missing = REPOS
+        .iter()
+        .filter(|(p, _, _)| !found.contains(p))
+        .map(|(p, o, g)| format!("{o}/{g} ({p})"))
+        .collect();
     (targets, missing)
 }
 
@@ -155,8 +226,12 @@ fn project_named(name: &str) -> bool {
     let word = |w: &str| name == w || name.starts_with(&format!("{w}-"));
     name.starts_with("aien-")
         || name.starts_with("aienos")
-        || ["aegis-", "spark-", "cortex-", "crumb-"].iter().any(|p| name.starts_with(p))
-        || ["omega", "forge", "physics", "atlas"].iter().any(|w| word(w))
+        || ["aegis-", "spark-", "cortex-", "crumb-"]
+            .iter()
+            .any(|p| name.starts_with(p))
+        || ["omega", "forge", "physics", "atlas"]
+            .iter()
+            .any(|w| word(w))
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -184,11 +259,23 @@ fn civil_from_days(days: i64) -> (i64, i64, i64) {
     let mp = (5 * doy + 2) / 153;
     let d = doy - (153 * mp + 2) / 5 + 1;
     let m = if mp < 10 { mp + 3 } else { mp - 9 };
-    (if m <= 2 { yoe + era * 400 + 1 } else { yoe + era * 400 }, m, d)
+    (
+        if m <= 2 {
+            yoe + era * 400 + 1
+        } else {
+            yoe + era * 400
+        },
+        m,
+        d,
+    )
 }
 
 fn days_in_month(y: i64, m: i64) -> i64 {
-    days_from_civil(if m == 12 { y + 1 } else { y }, if m == 12 { 1 } else { m + 1 }, 1) - days_from_civil(y, m, 1)
+    days_from_civil(
+        if m == 12 { y + 1 } else { y },
+        if m == 12 { 1 } else { m + 1 },
+        1,
+    ) - days_from_civil(y, m, 1)
 }
 
 /// 0 = Sunday. 1970-01-01 was a Thursday.
@@ -224,7 +311,11 @@ pub fn chicago_offset(unix_secs: i64) -> i64 {
         return -6 * 3600;
     };
     let (start, end) = (start * 86_400 + 8 * 3600, end * 86_400 + 7 * 3600);
-    if unix_secs >= start && unix_secs < end { -5 * 3600 } else { -6 * 3600 }
+    if unix_secs >= start && unix_secs < end {
+        -5 * 3600
+    } else {
+        -6 * 3600
+    }
 }
 
 fn ymd(days: i64) -> String {
@@ -240,7 +331,9 @@ pub fn day_ms(ms: i64) -> String {
 
 /// The America/Chicago calendar day of an RFC 3339 timestamp.
 pub fn day(timestamp: &str) -> Result<String, String> {
-    parse_time_ms(timestamp).map(day_ms).ok_or_else(|| format!("Invalid timestamp: {timestamp}"))
+    parse_time_ms(timestamp)
+        .map(day_ms)
+        .ok_or_else(|| format!("Invalid timestamp: {timestamp}"))
 }
 
 /// Milliseconds since the epoch for `YYYY-MM-DD` (midnight UTC) or
@@ -249,10 +342,19 @@ pub fn parse_time_ms(s: &str) -> Option<i64> {
     let b = s.as_bytes();
     let num = |from: usize, to: usize| -> Option<i64> {
         let part = b.get(from..to)?;
-        if part.iter().all(u8::is_ascii_digit) { std::str::from_utf8(part).ok()?.parse().ok() } else { None }
+        if part.iter().all(u8::is_ascii_digit) {
+            std::str::from_utf8(part).ok()?.parse().ok()
+        } else {
+            None
+        }
     };
     let (y, m, d) = (num(0, 4)?, num(5, 7)?, num(8, 10)?);
-    if b.get(4) != Some(&b'-') || b.get(7) != Some(&b'-') || !(1..=12).contains(&m) || d < 1 || d > days_in_month(y, m) {
+    if b.get(4) != Some(&b'-')
+        || b.get(7) != Some(&b'-')
+        || !(1..=12).contains(&m)
+        || d < 1
+        || d > days_in_month(y, m)
+    {
         return None;
     }
     let date_ms = days_from_civil(y, m, d) * 86_400_000;
@@ -286,7 +388,13 @@ pub fn parse_time_ms(s: &str) -> Option<i64> {
             }
             let oh: i64 = rest[1..3].parse().ok()?;
             let om: i64 = rest[4..6].parse().ok()?;
-            if !rest[1..3].bytes().chain(rest[4..6].bytes()).all(|c| c.is_ascii_digit()) || oh > 23 || om > 59 {
+            if !rest[1..3]
+                .bytes()
+                .chain(rest[4..6].bytes())
+                .all(|c| c.is_ascii_digit())
+                || oh > 23
+                || om > 59
+            {
                 return None;
             }
             (oh * 3600 + om * 60) * if rb[0] == b'-' { -1 } else { 1 }
@@ -345,7 +453,8 @@ fn extname(file: &str) -> &str {
 }
 
 fn excluded(file: &str) -> bool {
-    file.split('/').any(|part| EXCLUDED_DIRS.iter().any(|d| part.eq_ignore_ascii_case(d)))
+    file.split('/')
+        .any(|part| EXCLUDED_DIRS.iter().any(|d| part.eq_ignore_ascii_case(d)))
 }
 
 /// Test footprint by file-path naming: a `test`/`tests` directory or name, `test_*`, `*_test(s)`,
@@ -362,7 +471,11 @@ fn test_path(file: &str) -> bool {
             .chain(std::iter::once(part.len()))
             .any(|cut| {
                 let p = &part[..cut];
-                p == "test" || p == "tests" || p.starts_with("test_") || p.ends_with("_test") || p.ends_with("_tests")
+                p == "test"
+                    || p == "tests"
+                    || p.starts_with("test_")
+                    || p.ends_with("_test")
+                    || p.ends_with("_tests")
             })
     })
 }
@@ -373,11 +486,25 @@ pub fn classify(file: &str, mode: &str) -> Option<Spec> {
     }
     let ext = extname(file);
     if let Some((_, lang)) = EXTENSIONS.iter().find(|(e, _)| *e == ext) {
-        return Some(Spec { kind: if test_path(file) { Kind::Test } else { Kind::Source }, lang });
+        return Some(Spec {
+            kind: if test_path(file) {
+                Kind::Test
+            } else {
+                Kind::Source
+            },
+            lang,
+        });
     }
     let lower = ext.to_ascii_lowercase();
-    if [".md", ".rst", ".txt"].contains(&lower.as_str()) && !["LICENSE", "NOTICE", "COPYING"].iter().any(|w| file.contains(w)) {
-        return Some(Spec { kind: Kind::Docs, lang: "Docs" });
+    if [".md", ".rst", ".txt"].contains(&lower.as_str())
+        && !["LICENSE", "NOTICE", "COPYING"]
+            .iter()
+            .any(|w| file.contains(w))
+    {
+        return Some(Spec {
+            kind: Kind::Docs,
+            lang: "Docs",
+        });
     }
     None
 }
@@ -432,7 +559,11 @@ impl Counts {
 
 /// Sum a tree's measured blobs. `seen` is shared across every repository of one snapshot, so
 /// a blob with identical content in two repositories (or twice in one) is counted once.
-pub fn count_entries(entries: &[Entry], blob_lines: &HashMap<String, u64>, seen: &mut HashSet<String>) -> Result<Counts, String> {
+pub fn count_entries(
+    entries: &[Entry],
+    blob_lines: &HashMap<String, u64>,
+    seen: &mut HashSet<String>,
+) -> Result<Counts, String> {
     let mut c = Counts::default();
     for e in entries {
         if !seen.insert(e.oid.clone()) {
@@ -461,7 +592,20 @@ pub fn count_entries(entries: &[Entry], blob_lines: &HashMap<String, u64>, seen:
 // Snapshot validation: refuse before writing.
 // ---------------------------------------------------------------------------------------------
 
-const REQUIRED: &[&str] = &["source", "test", "docs", "loc", "files", "testfiles", "docfiles", "repos", "commits", "prs", "merged", "ci"];
+const REQUIRED: &[&str] = &[
+    "source",
+    "test",
+    "docs",
+    "loc",
+    "files",
+    "testfiles",
+    "docfiles",
+    "repos",
+    "commits",
+    "prs",
+    "merged",
+    "ci",
+];
 
 /// JavaScript's `Number.isSafeInteger(x) && x >= 0`.
 fn safe_count(v: Option<&Value>) -> Option<u64> {
@@ -476,13 +620,29 @@ fn safe_count(v: Option<&Value>) -> Option<u64> {
 fn is_day(s: &str) -> bool {
     let b = s.as_bytes();
     b.len() == 10
-        && b.iter().enumerate().all(|(i, c)| if i == 4 || i == 7 { *c == b'-' } else { c.is_ascii_digit() })
+        && b.iter().enumerate().all(|(i, c)| {
+            if i == 4 || i == 7 {
+                *c == b'-'
+            } else {
+                c.is_ascii_digit()
+            }
+        })
 }
 
 pub fn validate_snapshot(data: &Value) -> Result<(), String> {
-    let series = data.get("series").and_then(Value::as_array).filter(|a| !a.is_empty());
-    let repos = data.get("repos").and_then(Value::as_array).filter(|a| !a.is_empty());
-    let asof_ok = data.get("asof").and_then(Value::as_str).and_then(parse_time_ms).is_some();
+    let series = data
+        .get("series")
+        .and_then(Value::as_array)
+        .filter(|a| !a.is_empty());
+    let repos = data
+        .get("repos")
+        .and_then(Value::as_array)
+        .filter(|a| !a.is_empty());
+    let asof_ok = data
+        .get("asof")
+        .and_then(Value::as_str)
+        .and_then(parse_time_ms)
+        .is_some();
     let (Some(series), Some(repos), true) = (series, repos, asof_ok) else {
         return Err("Empty or invalid snapshot".into());
     };
@@ -495,30 +655,47 @@ pub fn validate_snapshot(data: &Value) -> Result<(), String> {
         prev = date.to_string();
         let mut m = HashMap::new();
         for key in REQUIRED {
-            let n = safe_count(row.get(*key)).ok_or_else(|| format!("Missing or invalid metric: {key}"))?;
+            let n = safe_count(row.get(*key))
+                .ok_or_else(|| format!("Missing or invalid metric: {key}"))?;
             m.insert(*key, n);
         }
-        if m["loc"] != m["source"] + m["test"] || m["merged"] > m["prs"] || m["testfiles"] > m["files"] {
+        if m["loc"] != m["source"] + m["test"]
+            || m["merged"] > m["prs"]
+            || m["testfiles"] > m["files"]
+        {
             return Err("Snapshot totals do not reconcile".into());
         }
-        let langs = row.get("langs").and_then(Value::as_object).ok_or("Language total mismatch")?;
+        let langs = row
+            .get("langs")
+            .and_then(Value::as_object)
+            .ok_or("Language total mismatch")?;
         let total: f64 = langs.values().map(|v| v.as_f64().unwrap_or(f64::NAN)).sum();
         if total != m["loc"] as f64 {
             return Err("Language total mismatch".into());
         }
     }
     let latest = series.last().expect("non-empty");
-    let summary = data.get("summary").ok_or("Summary differs from the latest snapshot: source")?;
+    let summary = data
+        .get("summary")
+        .ok_or("Summary differs from the latest snapshot: source")?;
     for key in REQUIRED {
         if summary.get(*key) != latest.get(*key) {
             return Err(format!("Summary differs from the latest snapshot: {key}"));
         }
     }
-    let names: HashSet<&str> = repos.iter().filter_map(|r| r.get("name").and_then(Value::as_str)).collect();
+    let names: HashSet<&str> = repos
+        .iter()
+        .filter_map(|r| r.get("name").and_then(Value::as_str))
+        .collect();
     if names.len() != repos.len() {
         return Err("Duplicate repositories".into());
     }
-    let sum = |key: &str| -> f64 { repos.iter().map(|r| r.get(key).and_then(Value::as_f64).unwrap_or(f64::NAN)).sum() };
+    let sum = |key: &str| -> f64 {
+        repos
+            .iter()
+            .map(|r| r.get(key).and_then(Value::as_f64).unwrap_or(f64::NAN))
+            .sum()
+    };
     let summary_n = |key: &str| summary.get(key).and_then(Value::as_f64).unwrap_or(f64::NAN);
     if summary_n("prs") != sum("prCount") {
         return Err("PR totals do not reconcile".into());
@@ -542,9 +719,16 @@ pub fn validate_snapshot(data: &Value) -> Result<(), String> {
         // Snapshots written before 2026-10-17 carry no link; a link that is present must be a
         // GitHub repository address.
         if let Some(url) = repo.get("url") {
-            let path = url.as_str().and_then(|u| u.strip_prefix("https://github.com/")).unwrap_or("");
+            let path = url
+                .as_str()
+                .and_then(|u| u.strip_prefix("https://github.com/"))
+                .unwrap_or("");
             let parts: Vec<&str> = path.split('/').collect();
-            if parts.len() != 2 || !parts.iter().all(|p| valid_repo_name(p) && !p.bytes().all(|c| c == b'.')) {
+            if parts.len() != 2
+                || !parts
+                    .iter()
+                    .all(|p| valid_repo_name(p) && !p.bytes().all(|c| c == b'.'))
+            {
                 return Err("Invalid repository link".into());
             }
         }
@@ -584,7 +768,10 @@ where
             }
         }
         if rows.len() < 100 {
-            return Ok(order.into_iter().map(|id| records.remove(&id).expect("recorded")).collect());
+            return Ok(order
+                .into_iter()
+                .map(|id| records.remove(&id).expect("recorded"))
+                .collect());
         }
     }
     Err("Pagination exceeded the supported limit".into())
@@ -598,14 +785,23 @@ fn github_get(endpoint: &str) -> Result<Value, String> {
     for attempt in 0..4u64 {
         API_CALLS.fetch_add(1, Ordering::Relaxed);
         let out = Command::new("gh")
-            .args(["api", "-H", "Accept: application/vnd.github+json", "-H", "X-GitHub-Api-Version: 2022-11-28", path])
+            .args([
+                "api",
+                "-H",
+                "Accept: application/vnd.github+json",
+                "-H",
+                "X-GitHub-Api-Version: 2022-11-28",
+                path,
+            ])
             .output()
             .map_err(|e| format!("cannot run gh: {e}"))?;
         if out.status.success() {
-            return serde_json::from_slice(&out.stdout).map_err(|e| format!("GitHub sent bad JSON for {endpoint}: {e}"));
+            return serde_json::from_slice(&out.stdout)
+                .map_err(|e| format!("GitHub sent bad JSON for {endpoint}: {e}"));
         }
         let err = String::from_utf8_lossy(&out.stderr).trim().to_string();
-        let retry = err.contains("HTTP 429") || err.contains("HTTP 5") || err.contains("rate limit");
+        let retry =
+            err.contains("HTTP 429") || err.contains("HTTP 5") || err.contains("rate limit");
         if retry && attempt < 3 {
             std::thread::sleep(std::time::Duration::from_secs(2 * (attempt + 1)));
             continue;
@@ -626,7 +822,12 @@ fn git(dir: &Path, args: &[&str]) -> Result<Vec<u8>, String> {
         .output()
         .map_err(|e| format!("cannot run git: {e}"))?;
     if !out.status.success() {
-        return Err(format!("git {} failed in {}: {}", args.join(" "), dir.display(), String::from_utf8_lossy(&out.stderr).trim()));
+        return Err(format!(
+            "git {} failed in {}: {}",
+            args.join(" "),
+            dir.display(),
+            String::from_utf8_lossy(&out.stderr).trim()
+        ));
     }
     Ok(out.stdout)
 }
@@ -643,7 +844,14 @@ fn git_network(args: &[String]) -> Result<(), String> {
         return Ok(());
     }
     let err = String::from_utf8_lossy(&out.stderr);
-    let tail: String = err.chars().rev().take(3000).collect::<Vec<_>>().into_iter().rev().collect();
+    let tail: String = err
+        .chars()
+        .rev()
+        .take(3000)
+        .collect::<Vec<_>>()
+        .into_iter()
+        .rev()
+        .collect();
     Err(format!("git failed: {tail}"))
 }
 
@@ -666,29 +874,42 @@ fn commits_at(dir: &Path, head: &str, first_parent: bool) -> Result<Vec<Commit>,
         .map(|line| {
             let (sha, ts) = line.split_once('\t').ok_or("Malformed git log line")?;
             let ts: i64 = ts.parse().map_err(|_| "Malformed git log time")?;
-            Ok(Commit { sha: sha.to_string(), ts, date: day_ms(ts * 1000) })
+            Ok(Commit {
+                sha: sha.to_string(),
+                ts,
+                date: day_ms(ts * 1000),
+            })
         })
         .collect()
 }
 
 /// Parse `git cat-file --batch` output for `oids`, in order, storing each blob's line count.
-pub fn read_blob_batch<R: BufRead>(mut out: R, oids: &[String], cache: &mut HashMap<String, u64>) -> Result<(), String> {
+pub fn read_blob_batch<R: BufRead>(
+    mut out: R,
+    oids: &[String],
+    cache: &mut HashMap<String, u64>,
+) -> Result<(), String> {
     let mut header = Vec::new();
     let mut body = Vec::new();
     for oid in oids {
         header.clear();
-        out.read_until(b'\n', &mut header).map_err(|e| e.to_string())?;
+        out.read_until(b'\n', &mut header)
+            .map_err(|e| e.to_string())?;
         if header.last() != Some(&b'\n') {
             return Err("Truncated Git blob batch".into());
         }
         let text = String::from_utf8_lossy(&header[..header.len() - 1]).to_string();
         let parts: Vec<&str> = text.split(' ').collect();
         let size = parts.get(2).and_then(|s| s.parse::<usize>().ok());
-        let (Some(size), true) = (size, parts.len() == 3 && parts[0] == oid && parts[1] == "blob") else {
+        let (Some(size), true) = (
+            size,
+            parts.len() == 3 && parts[0] == oid && parts[1] == "blob",
+        ) else {
             return Err("Malformed Git blob batch".into());
         };
         body.resize(size + 1, 0);
-        out.read_exact(&mut body).map_err(|_| "Malformed Git blob batch")?;
+        out.read_exact(&mut body)
+            .map_err(|_| "Malformed Git blob batch")?;
         cache.insert(oid.clone(), physical_lines(&body[..size]));
     }
     Ok(())
@@ -706,7 +927,11 @@ fn cat_blobs(dir: &Path, oids: &[String], cache: &mut HashMap<String, u64>) -> R
     let mut stdin = child.stdin.take().expect("piped");
     let input: String = oids.iter().map(|o| format!("{o}\n")).collect();
     let writer = std::thread::spawn(move || stdin.write_all(input.as_bytes()));
-    let parsed = read_blob_batch(BufReader::with_capacity(1 << 20, child.stdout.take().expect("piped")), oids, cache);
+    let parsed = read_blob_batch(
+        BufReader::with_capacity(1 << 20, child.stdout.take().expect("piped")),
+        oids,
+        cache,
+    );
     let wrote = writer.join().map_err(|_| "git cat-file writer panicked")?;
     let status = child.wait().map_err(|e| e.to_string())?;
     parsed?;
@@ -738,10 +963,18 @@ fn read_entries(
         let row = String::from_utf8_lossy(row);
         let (meta, file) = row.split_once('\t').ok_or("Malformed git ls-tree row")?;
         let mut it = meta.split(' ');
-        let (mode, kind, oid) = (it.next().unwrap_or(""), it.next().unwrap_or(""), it.next().unwrap_or(""));
+        let (mode, kind, oid) = (
+            it.next().unwrap_or(""),
+            it.next().unwrap_or(""),
+            it.next().unwrap_or(""),
+        );
         if kind == "blob" {
             if let Some(spec) = classify(file, mode) {
-                entries.push(Entry { oid: oid.to_string(), kind: spec.kind, lang: spec.lang });
+                entries.push(Entry {
+                    oid: oid.to_string(),
+                    kind: spec.kind,
+                    lang: spec.lang,
+                });
             }
         }
     }
@@ -911,10 +1144,15 @@ fn s(v: &Value, key: &str) -> Option<String> {
 
 /// Run `f` over `items` with at most `limit` at a time, keeping order. Stops taking new items
 /// after the first failure and returns that failure.
-fn limited<T: Sync, R: Send>(items: &[T], limit: usize, f: impl Fn(&T) -> Result<R, String> + Sync) -> Result<Vec<R>, String> {
+fn limited<T: Sync, R: Send>(
+    items: &[T],
+    limit: usize,
+    f: impl Fn(&T) -> Result<R, String> + Sync,
+) -> Result<Vec<R>, String> {
     let next = AtomicUsize::new(0);
     let failed = AtomicBool::new(false);
-    let results: Vec<Mutex<Option<Result<R, String>>>> = items.iter().map(|_| Mutex::new(None)).collect();
+    let results: Vec<Mutex<Option<Result<R, String>>>> =
+        items.iter().map(|_| Mutex::new(None)).collect();
     std::thread::scope(|scope| {
         for _ in 0..limit.min(items.len()) {
             scope.spawn(|| loop {
@@ -948,17 +1186,31 @@ fn limited<T: Sync, R: Send>(items: &[T], limit: usize, f: impl Fn(&T) -> Result
 }
 
 fn valid_repo_name(name: &str) -> bool {
-    !name.is_empty() && name.bytes().all(|c| c.is_ascii_alphanumeric() || matches!(c, b'.' | b'_' | b'-'))
+    !name.is_empty()
+        && name
+            .bytes()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, b'.' | b'_' | b'-'))
 }
 
 fn collect_repo(target: &Target, opts: &Options, cutoff: i64) -> Result<Repo, String> {
-    let Target { name, owner, github_name, url, info } = target;
+    let Target {
+        name,
+        owner,
+        github_name,
+        url,
+        info,
+    } = target;
     let name = name.clone();
     let branch = s(info, "default_branch").unwrap_or_default();
-    if ![&name, owner, github_name].iter().all(|n| valid_repo_name(n)) || branch.is_empty() {
+    if ![&name, owner, github_name]
+        .iter()
+        .all(|n| valid_repo_name(n))
+        || branch.is_empty()
+    {
         return Err("Invalid repository identity".into());
     }
-    std::fs::create_dir_all(&opts.cache_dir).map_err(|e| format!("cannot create {}: {e}", opts.cache_dir.display()))?;
+    std::fs::create_dir_all(&opts.cache_dir)
+        .map_err(|e| format!("cannot create {}: {e}", opts.cache_dir.display()))?;
     let cache = std::fs::canonicalize(&opts.cache_dir).map_err(|e| e.to_string())?;
     let dir = cache.join(format!("{github_name}.git"));
     let remote = format!("https://github.com/{owner}/{github_name}.git");
@@ -966,25 +1218,53 @@ fn collect_repo(target: &Target, opts: &Options, cutoff: i64) -> Result<Repo, St
         if dir.exists() {
             // A mirror made before a move still points at the old address; read from the current one.
             git(&dir, &["remote", "set-url", "origin", &remote])?;
-            git_network(&[format!("--git-dir={}", dir.display()), "fetch".into(), "--prune".into(), "origin".into()])?;
+            git_network(&[
+                format!("--git-dir={}", dir.display()),
+                "fetch".into(),
+                "--prune".into(),
+                "origin".into(),
+            ])?;
         } else {
-            git_network(&["clone".into(), "--mirror".into(), remote, dir.display().to_string()])?;
+            git_network(&[
+                "clone".into(),
+                "--mirror".into(),
+                remote,
+                dir.display().to_string(),
+            ])?;
         }
     } else if !dir.exists() {
-        return Err(format!("No mirror for {owner}/{github_name} in {} (run without --no-fetch first)", cache.display()));
+        return Err(format!(
+            "No mirror for {owner}/{github_name} in {} (run without --no-fetch first)",
+            cache.display()
+        ));
     }
-    let head = String::from_utf8_lossy(&git(&dir, &["rev-parse", &format!("refs/heads/{branch}")])?).trim().to_string();
+    let head =
+        String::from_utf8_lossy(&git(&dir, &["rev-parse", &format!("refs/heads/{branch}")])?)
+            .trim()
+            .to_string();
     let commits = commits_at(&dir, &head, false)?;
     let fp = commits_at(&dir, &head, true)?;
     // Normal Git history cannot place the candidate's parent after its measurement cutoff.
     if commits.iter().any(|c| c.ts.saturating_mul(1000) > cutoff) {
-        return Err(format!("Pinned repository contains a future-dated commit: {name}"));
+        return Err(format!(
+            "Pinned repository contains a future-dated commit: {name}"
+        ));
     }
-    let raw_prs = paginate(&format!("/repos/{owner}/{github_name}/pulls?state=all"), None, github_get)?;
-    let raw_runs = paginate(&format!("/repos/{owner}/{github_name}/actions/runs"), Some("workflow_runs"), github_get)?;
+    let raw_prs = paginate(
+        &format!("/repos/{owner}/{github_name}/pulls?state=all"),
+        None,
+        github_get,
+    )?;
+    let raw_runs = paginate(
+        &format!("/repos/{owner}/{github_name}/actions/runs"),
+        Some("workflow_runs"),
+        github_get,
+    )?;
     let mut prs = Vec::new();
     for p in &raw_prs {
-        let Some(created) = s(p, "created_at") else { continue };
+        let Some(created) = s(p, "created_at") else {
+            continue;
+        };
         if parse_time_ms(&created).is_none_or(|t| t > cutoff) {
             continue;
         }
@@ -1007,7 +1287,12 @@ fn collect_repo(target: &Target, opts: &Options, cutoff: i64) -> Result<Repo, St
     let mut by_url: Vec<String> = Vec::new();
     let mut unique: HashMap<String, &Value> = HashMap::new();
     for r in &raw_runs {
-        let key = r.get("html_url").filter(|v| !v.is_null()).or_else(|| r.get("url")).map(|v| v.to_string()).unwrap_or_else(|| "undefined".into());
+        let key = r
+            .get("html_url")
+            .filter(|v| !v.is_null())
+            .or_else(|| r.get("url"))
+            .map(|v| v.to_string())
+            .unwrap_or_else(|| "undefined".into());
         if unique.insert(key.clone(), r).is_none() {
             by_url.push(key);
         }
@@ -1015,7 +1300,9 @@ fn collect_repo(target: &Target, opts: &Options, cutoff: i64) -> Result<Repo, St
     let mut runs = Vec::new();
     for key in &by_url {
         let r = unique[key];
-        let Some(created) = s(r, "created_at") else { continue };
+        let Some(created) = s(r, "created_at") else {
+            continue;
+        };
         if parse_time_ms(&created).is_none_or(|t| t > cutoff) {
             continue;
         }
@@ -1025,11 +1312,36 @@ fn collect_repo(target: &Target, opts: &Options, cutoff: i64) -> Result<Repo, St
             created_day: day(&created)?,
         });
     }
-    let archived = info.get("archived").and_then(Value::as_bool).unwrap_or(false);
+    let archived = info
+        .get("archived")
+        .and_then(Value::as_bool)
+        .unwrap_or(false);
     let group = group_of(&name, archived);
-    let first = commits.iter().map(|c| c.date.as_str()).fold("9999-12-31", |a, b| if b < a { b } else { a }).to_string();
-    let last = commits.iter().map(|c| c.date.as_str()).fold("0000-01-01", |a, b| if b > a { b } else { a }).to_string();
-    Ok(Repo { name, url: url.clone(), dir, head, branch, commits, fp, prs, runs, archived, group, first, last })
+    let first = commits
+        .iter()
+        .map(|c| c.date.as_str())
+        .fold("9999-12-31", |a, b| if b < a { b } else { a })
+        .to_string();
+    let last = commits
+        .iter()
+        .map(|c| c.date.as_str())
+        .fold("0000-01-01", |a, b| if b > a { b } else { a })
+        .to_string();
+    Ok(Repo {
+        name,
+        url: url.clone(),
+        dir,
+        head,
+        branch,
+        commits,
+        fp,
+        prs,
+        runs,
+        archived,
+        group,
+        first,
+        last,
+    })
 }
 
 pub fn collect(opts: &Options) -> Result<Report, String> {
@@ -1038,13 +1350,18 @@ pub fn collect(opts: &Options) -> Result<Report, String> {
         None => i64::MAX,
     };
     let existing: Value = serde_json::from_str(
-        &std::fs::read_to_string(&opts.output).map_err(|e| format!("cannot read the existing {}: {e}", opts.output.display()))?,
+        &std::fs::read_to_string(&opts.output)
+            .map_err(|e| format!("cannot read the existing {}: {e}", opts.output.display()))?,
     )
     .map_err(|e| format!("{} is not JSON: {e}", opts.output.display()))?;
 
     let mut listing = Vec::new();
     for owner in owners() {
-        match paginate(&format!("/users/{owner}/repos?type=owner&sort=full_name"), None, github_get) {
+        match paginate(
+            &format!("/users/{owner}/repos?type=owner&sort=full_name"),
+            None,
+            github_get,
+        ) {
             Ok(rows) => listing.extend(rows),
             Err(e) => eprintln!("Warning: skipping repositories of {owner}: {e}"),
         }
@@ -1055,7 +1372,11 @@ pub fn collect(opts: &Options) -> Result<Report, String> {
     }
     let started = std::time::Instant::now();
     let repos = limited(&targets, 4, |target| collect_repo(target, opts, cutoff))?;
-    println!("  [PROGRESS] read {} repositories (git history, PRs, runs) in {:.2?}", repos.len(), started.elapsed());
+    println!(
+        "  [PROGRESS] read {} repositories (git history, PRs, runs) in {:.2?}",
+        repos.len(),
+        started.elapsed()
+    );
 
     let asof = match &opts.asof {
         Some(a) => a.clone(),
@@ -1065,13 +1386,24 @@ pub fn collect(opts: &Options) -> Result<Report, String> {
             a
         }
     };
-    if repos.iter().any(|r| r.commits.iter().any(|c| c.ts.saturating_mul(1000) > cutoff)) {
+    if repos
+        .iter()
+        .any(|r| r.commits.iter().any(|c| c.ts.saturating_mul(1000) > cutoff))
+    {
         return Err("Pinned history contains a future-dated commit".into());
     }
-    let first = repos.iter().map(|r| r.first.as_str()).fold("9999-12-31", |a, b| if b < a { b } else { a }).to_string();
+    let first = repos
+        .iter()
+        .map(|r| r.first.as_str())
+        .fold("9999-12-31", |a, b| if b < a { b } else { a })
+        .to_string();
     let last = day_ms(cutoff);
-    let first_days = parse_time_ms(&first).ok_or("Invalid first day")?.div_euclid(86_400_000);
-    let last_days = parse_time_ms(&last).ok_or("Invalid last day")?.div_euclid(86_400_000);
+    let first_days = parse_time_ms(&first)
+        .ok_or("Invalid first day")?
+        .div_euclid(86_400_000);
+    let last_days = parse_time_ms(&last)
+        .ok_or("Invalid last day")?
+        .div_euclid(86_400_000);
     if last_days - first_days + 1 > 10_000 {
         return Err("Unexpected historical range".into());
     }
@@ -1097,19 +1429,31 @@ pub fn collect(opts: &Options) -> Result<Report, String> {
         let mut total = Counts::default();
         let mut number = 0;
         for r in &repos {
-            let Some(candidate) = r.fp.iter().find(|c| c.date.as_str() <= date.as_str()) else { continue };
+            let Some(candidate) = r.fp.iter().find(|c| c.date.as_str() <= date.as_str()) else {
+                continue;
+            };
             number += 1;
             let entries = read_entries(r, &candidate.sha, &mut blobs, &mut trees)?;
             total.add(&count_entries(&entries, &blobs, &mut seen)?);
         }
         let upto = commit_dates.partition_point(|d| *d <= date.as_str());
         let before = commit_dates.partition_point(|d| *d < date.as_str());
-        let ps: Vec<&&Pr> = all_prs.iter().filter(|p| p.created_day.as_str() <= date.as_str()).collect();
+        let ps: Vec<&&Pr> = all_prs
+            .iter()
+            .filter(|p| p.created_day.as_str() <= date.as_str())
+            .collect();
         let merged = ps
             .iter()
-            .filter(|p| p.merged.is_some() && p.merged_ms.is_some_and(|m| m <= cutoff) && p.merged_day.as_deref().is_some_and(|d| d <= date.as_str()))
+            .filter(|p| {
+                p.merged.is_some()
+                    && p.merged_ms.is_some_and(|m| m <= cutoff)
+                    && p.merged_day.as_deref().is_some_and(|d| d <= date.as_str())
+            })
             .count();
-        let ci = all_runs.iter().filter(|r| r.created_day.as_str() <= date.as_str()).count();
+        let ci = all_runs
+            .iter()
+            .filter(|r| r.created_day.as_str() <= date.as_str())
+            .count();
         let ci_daily = all_runs.iter().filter(|r| r.created_day == *date).count();
         series.push(Row {
             date: date.clone(),
@@ -1126,11 +1470,19 @@ pub fn collect(opts: &Options) -> Result<Report, String> {
         });
     }
 
-    println!("  [PROGRESS] measured {} daily snapshots in {:.2?}", series.len(), started.elapsed());
+    println!(
+        "  [PROGRESS] measured {} daily snapshots in {:.2?}",
+        series.len(),
+        started.elapsed()
+    );
     let mut ci_conclusions: BTreeMap<String, u64> = BTreeMap::new();
     for r in &repos {
         for run in &r.runs {
-            let key = run.conclusion.clone().or_else(|| run.status.clone()).unwrap_or_else(|| "null".into());
+            let key = run
+                .conclusion
+                .clone()
+                .or_else(|| run.status.clone())
+                .unwrap_or_else(|| "null".into());
             *ci_conclusions.entry(key).or_insert(0) += 1;
         }
     }
@@ -1151,7 +1503,11 @@ pub fn collect(opts: &Options) -> Result<Report, String> {
             langs: counts.langs,
             revisions: r.commits.len() as u64,
             pr_count: r.prs.len() as u64,
-            merged_count: r.prs.iter().filter(|p| p.merged_ms.is_some_and(|m| m <= cutoff)).count() as u64,
+            merged_count: r
+                .prs
+                .iter()
+                .filter(|p| p.merged_ms.is_some_and(|m| m <= cutoff))
+                .count() as u64,
             ci_count: r.runs.len() as u64,
         });
     }
@@ -1175,20 +1531,43 @@ pub fn collect(opts: &Options) -> Result<Report, String> {
 
     let mut activity: Vec<(i64, Activity)> = Vec::new();
     for r in &repos {
-        for p in r.prs.iter().filter(|p| p.state == "open" || p.merged.is_some()) {
+        for p in r
+            .prs
+            .iter()
+            .filter(|p| p.state == "open" || p.merged.is_some())
+        {
             let timestamp = p.merged.clone().unwrap_or_else(|| p.created.clone());
-            let state = if p.merged.is_some() { "Merged" } else if p.draft { "Draft" } else { "Open" };
-            let ms = parse_time_ms(&timestamp).ok_or_else(|| format!("Invalid timestamp: {timestamp}"))?;
+            let state = if p.merged.is_some() {
+                "Merged"
+            } else if p.draft {
+                "Draft"
+            } else {
+                "Open"
+            };
+            let ms = parse_time_ms(&timestamp)
+                .ok_or_else(|| format!("Invalid timestamp: {timestamp}"))?;
             activity.push((
                 ms,
-                Activity { repo: r.name.clone(), title: p.title.clone(), number: p.number.clone(), url: p.url.clone(), state, date: day_ms(ms), timestamp },
+                Activity {
+                    repo: r.name.clone(),
+                    title: p.title.clone(),
+                    number: p.number.clone(),
+                    url: p.url.clone(),
+                    state,
+                    date: day_ms(ms),
+                    timestamp,
+                },
             ));
         }
     }
     activity.sort_by_key(|a| std::cmp::Reverse(a.0));
     let activity: Vec<Activity> = activity.into_iter().take(12).map(|(_, a)| a).collect();
 
-    let events = existing.get("events").filter(|e| truthy(e)).cloned().unwrap_or_else(|| Value::Array(vec![]));
+    let events = existing
+        .get("events")
+        .filter(|e| truthy(e))
+        .cloned()
+        .unwrap_or_else(|| Value::Array(vec![]));
     let snapshot = Snapshot {
         schema_version: 2,
         asof: asof.clone(),
@@ -1208,12 +1587,14 @@ pub fn collect(opts: &Options) -> Result<Report, String> {
     validate_snapshot(&value)?;
 
     if let Some(parent) = opts.output.parent().filter(|p| !p.as_os_str().is_empty()) {
-        std::fs::create_dir_all(parent).map_err(|e| format!("cannot create {}: {e}", parent.display()))?;
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("cannot create {}: {e}", parent.display()))?;
     }
     let tmp = PathBuf::from(format!("{}.tmp", opts.output.display()));
     let text = serde_json::to_string(&snapshot).map_err(|e| e.to_string())?;
     std::fs::write(&tmp, text).map_err(|e| format!("cannot write {}: {e}", tmp.display()))?;
-    std::fs::rename(&tmp, &opts.output).map_err(|e| format!("cannot replace {}: {e}", opts.output.display()))?;
+    std::fs::rename(&tmp, &opts.output)
+        .map_err(|e| format!("cannot replace {}: {e}", opts.output.display()))?;
     Ok(Report {
         repos: repos.len(),
         loc: snapshot.summary.loc,
@@ -1249,28 +1630,61 @@ mod tests {
         assert_eq!(kind("src/runtime/main.c"), Some(Kind::Source));
         assert_eq!(kind("tests/compiler/check.inc"), Some(Kind::Test));
         assert_eq!(kind("src/lib.rs"), Some(Kind::Source));
-        for p in ["vendor/d3.js", "public/vendor/d3.js", "evidence/old.c", "tests/fixtures/sample.rs", "data/generated.c"] {
+        for p in [
+            "vendor/d3.js",
+            "public/vendor/d3.js",
+            "evidence/old.c",
+            "tests/fixtures/sample.rs",
+            "data/generated.c",
+        ] {
             assert_eq!(classify(p, "100644"), None, "{p}");
         }
         assert_eq!(classify("alias.c", "120000"), None);
-        assert_eq!(classify("scripts/collect-progress.mjs", "100644").map(|s| s.lang), Some("Web"));
+        assert_eq!(
+            classify("scripts/collect-progress.mjs", "100644").map(|s| s.lang),
+            Some("Web")
+        );
     }
 
     #[test]
     fn test_path_and_extension_rules_match_the_former_regular_expressions() {
-        for p in ["src/foo_test.rs", "src/test_foo.py", "Tests/x.c", "a/test.c", "a/tests.rs", "web/app.spec.ts", "web/App.TEST.js", "x/unit_tests/y.rs", "x/my_tests.c"] {
+        for p in [
+            "src/foo_test.rs",
+            "src/test_foo.py",
+            "Tests/x.c",
+            "a/test.c",
+            "a/tests.rs",
+            "web/app.spec.ts",
+            "web/App.TEST.js",
+            "x/unit_tests/y.rs",
+            "x/my_tests.c",
+        ] {
             assert_eq!(kind(p), Some(Kind::Test), "{p}");
         }
-        for p in ["src/testing.rs", "src/contest.rs", "src/latest/x.rs", "src/attest_x.c"] {
+        for p in [
+            "src/testing.rs",
+            "src/contest.rs",
+            "src/latest/x.rs",
+            "src/attest_x.c",
+        ] {
             assert_eq!(kind(p), Some(Kind::Source), "{p}");
         }
         assert_eq!(classify("Build/x.c", "100644"), None);
-        assert_eq!(classify("README.md", "100644").map(|s| s.lang), Some("Docs"));
-        assert_eq!(classify("docs/Notes.TXT", "100644").map(|s| s.kind), Some(Kind::Docs));
+        assert_eq!(
+            classify("README.md", "100644").map(|s| s.lang),
+            Some("Docs")
+        );
+        assert_eq!(
+            classify("docs/Notes.TXT", "100644").map(|s| s.kind),
+            Some(Kind::Docs)
+        );
         assert_eq!(classify("LICENSE.md", "100644"), None);
         assert_eq!(classify("third-party/NOTICE.txt", "100644"), None);
         assert_eq!(classify(".bashrc", "100644"), None);
-        assert_eq!(classify("boot/start.S", "100644").map(|s| s.lang), Some("Assembly"));
+        assert_eq!(
+            classify("boot/start.S", "100644").map(|s| s.lang),
+            Some("Assembly")
+        );
         assert_eq!(classify("photo.PNG", "100644"), None);
         assert_eq!(extname("a/..x"), ".x");
         assert_eq!(extname(".."), "");
@@ -1288,15 +1702,34 @@ mod tests {
 
     #[test]
     fn the_shared_blob_set_prevents_double_counting_migrated_files_across_repositories() {
-        let lines: HashMap<String, u64> = [("shared".to_string(), 10), ("test".to_string(), 5)].into_iter().collect();
-        let entry = |oid: &str, kind, lang| Entry { oid: oid.into(), kind, lang };
+        let lines: HashMap<String, u64> = [("shared".to_string(), 10), ("test".to_string(), 5)]
+            .into_iter()
+            .collect();
+        let entry = |oid: &str, kind, lang| Entry {
+            oid: oid.into(),
+            kind,
+            lang,
+        };
         let mut seen = HashSet::new();
         let a = count_entries(&[entry("shared", Kind::Source, "C")], &lines, &mut seen).unwrap();
-        let b = count_entries(&[entry("shared", Kind::Source, "C"), entry("test", Kind::Test, "Rust")], &lines, &mut seen).unwrap();
+        let b = count_entries(
+            &[
+                entry("shared", Kind::Source, "C"),
+                entry("test", Kind::Test, "Rust"),
+            ],
+            &lines,
+            &mut seen,
+        )
+        .unwrap();
         assert_eq!(a.size.source + b.size.source, 10);
         assert_eq!(b.size.test, 5);
         assert_eq!(b.size.files, 1);
-        assert!(count_entries(&[entry("missing", Kind::Test, "C")], &lines, &mut HashSet::new()).is_err());
+        assert!(count_entries(
+            &[entry("missing", Kind::Test, "C")],
+            &lines,
+            &mut HashSet::new()
+        )
+        .is_err());
     }
 
     #[test]
@@ -1307,7 +1740,10 @@ mod tests {
             let rows: Vec<Value> = if url.ends_with("page=1") {
                 (0..100).map(|id| serde_json::json!({ "id": id })).collect()
             } else {
-                vec![serde_json::json!({ "id": 99 }), serde_json::json!({ "id": 100 })]
+                vec![
+                    serde_json::json!({ "id": 99 }),
+                    serde_json::json!({ "id": 100 }),
+                ]
             };
             Ok(serde_json::json!({ "workflow_runs": rows }))
         })
@@ -1315,7 +1751,8 @@ mod tests {
         assert_eq!(rows.len(), 101);
         assert_eq!(calls.len(), 2);
         assert_eq!(calls[0], "/example?per_page=100&page=1");
-        let bad = paginate("/bad", Some("workflow_runs"), |_| Ok(serde_json::json!({}))).unwrap_err();
+        let bad =
+            paginate("/bad", Some("workflow_runs"), |_| Ok(serde_json::json!({}))).unwrap_err();
         assert!(bad.contains("Invalid GitHub collection"), "{bad}");
         let mut seen = Vec::new();
         paginate("/x?state=all", None, |url| {
@@ -1346,10 +1783,25 @@ mod tests {
     #[test]
     fn timestamps_parse_and_print_like_javascript() {
         assert_eq!(parse_time_ms("1970-01-01T00:00:00Z"), Some(0));
-        assert_eq!(parse_time_ms("2026-10-01T19:37:24.600923+00:00"), parse_time_ms("2026-10-01T19:37:24.600Z"));
-        assert_eq!(parse_time_ms("2026-10-01T14:37:24-05:00"), parse_time_ms("2026-10-01T19:37:24Z"));
-        assert_eq!(parse_time_ms("2026-10-16"), parse_time_ms("2026-10-16T00:00:00Z"));
-        for bad in ["", "main", "2026-02-30T00:00:00Z", "2026-10-01T19:37:24", "2026-10-01T25:00:00Z"] {
+        assert_eq!(
+            parse_time_ms("2026-10-01T19:37:24.600923+00:00"),
+            parse_time_ms("2026-10-01T19:37:24.600Z")
+        );
+        assert_eq!(
+            parse_time_ms("2026-10-01T14:37:24-05:00"),
+            parse_time_ms("2026-10-01T19:37:24Z")
+        );
+        assert_eq!(
+            parse_time_ms("2026-10-16"),
+            parse_time_ms("2026-10-16T00:00:00Z")
+        );
+        for bad in [
+            "",
+            "main",
+            "2026-02-30T00:00:00Z",
+            "2026-10-01T19:37:24",
+            "2026-10-01T25:00:00Z",
+        ] {
             assert_eq!(parse_time_ms(bad), None, "{bad}");
         }
         let t = parse_time_ms("2026-10-16T17:04:05.123Z").unwrap();
@@ -1371,10 +1823,21 @@ mod tests {
 
     #[test]
     fn repository_names_follow_the_project_rule() {
-        for n in ["aien-edge", "aienos", "aienos.com", "omega", "omega-mv", "spark-hive", "crumb-spec", "atlas"] {
+        for n in [
+            "aien-edge",
+            "aienos",
+            "aienos.com",
+            "omega",
+            "omega-mv",
+            "spark-hive",
+            "crumb-spec",
+            "atlas",
+        ] {
             assert!(project_named(n), "{n}");
         }
-        for n in ["omegaman", "aien", "forgery", "physicsx", "cortex", "sparky"] {
+        for n in [
+            "omegaman", "aien", "forgery", "physicsx", "cortex", "sparky",
+        ] {
             assert!(!project_named(n), "{n}");
         }
         assert_eq!(owners(), vec!["aien-dev", "aien-spark"]);
@@ -1450,7 +1913,10 @@ mod tests {
     }
 
     fn find<'a>(targets: &'a [Target], name: &str) -> &'a Target {
-        targets.iter().find(|t| t.name == name).unwrap_or_else(|| panic!("{name} not selected"))
+        targets
+            .iter()
+            .find(|t| t.name == name)
+            .unwrap_or_else(|| panic!("{name} not selected"))
     }
 
     #[test]
@@ -1462,26 +1928,60 @@ mod tests {
         // Every named repository is read from where GitHub keeps it now, under its project name.
         for (project, owner, github_name) in REPOS {
             let t = find(&targets, project);
-            assert_eq!((t.owner.as_str(), t.github_name.as_str()), (*owner, *github_name), "{project}");
-            assert_eq!(t.url, format!("https://github.com/{owner}/{github_name}"), "{project}");
+            assert_eq!(
+                (t.owner.as_str(), t.github_name.as_str()),
+                (*owner, *github_name),
+                "{project}"
+            );
+            assert_eq!(
+                t.url,
+                format!("https://github.com/{owner}/{github_name}"),
+                "{project}"
+            );
         }
         // The -mv core repositories stay Core; the two the old map lost are counted again.
-        for core in ["aien-sovereign-core", "aienos", "omega", "physics", "aien-protocols", "aien-architecture", "benchmarks", "atlas"] {
+        for core in [
+            "aien-sovereign-core",
+            "aienos",
+            "omega",
+            "physics",
+            "aien-protocols",
+            "aien-architecture",
+            "benchmarks",
+            "atlas",
+        ] {
             let t = find(&targets, core);
-            assert_eq!(group_of(&t.name, t.info["archived"].as_bool().unwrap()), "Core", "{core}");
+            assert_eq!(
+                group_of(&t.name, t.info["archived"].as_bool().unwrap()),
+                "Core",
+                "{core}"
+            );
         }
         assert_eq!(find(&targets, "benchmarks").github_name, "benchmarks-mv");
         assert_eq!(find(&targets, "open-humanity").owner, "aien-dev");
         // Links point at the real owner: still aien-spark for these two, aien-dev for the archived spark-crumbs.
-        assert_eq!(find(&targets, "drakestapleton.com").url, "https://github.com/aien-spark/drakestapleton.com");
-        assert_eq!(find(&targets, "aien-dev").url, "https://github.com/aien-spark/aien-dev");
-        assert_eq!(find(&targets, "spark-crumbs").url, "https://github.com/aien-dev/spark-crumbs-mv");
+        assert_eq!(
+            find(&targets, "drakestapleton.com").url,
+            "https://github.com/aien-spark/drakestapleton.com"
+        );
+        assert_eq!(
+            find(&targets, "aien-dev").url,
+            "https://github.com/aien-spark/aien-dev"
+        );
+        assert_eq!(
+            find(&targets, "spark-crumbs").url,
+            "https://github.com/aien-dev/spark-crumbs-mv"
+        );
         assert_eq!(group_of("spark-crumbs", true), "Archived");
         assert_eq!(group_of("drakestapleton.com", false), "Sites");
         // The name rule still finds new repositories; forks, private and unrelated names stay out.
         let mut names: Vec<&str> = targets.iter().map(|t| t.name.as_str()).collect();
         names.sort_unstable();
-        let mut expected: Vec<&str> = REPOS.iter().map(|(p, _, _)| *p).chain(["aien-receipts", "aien-yardsticks"]).collect();
+        let mut expected: Vec<&str> = REPOS
+            .iter()
+            .map(|(p, _, _)| *p)
+            .chain(["aien-receipts", "aien-yardsticks"])
+            .collect();
         expected.sort_unstable();
         assert_eq!(names, expected);
         assert_eq!(targets.len(), 35);
@@ -1496,12 +1996,22 @@ mod tests {
     #[test]
     fn a_lifted_suffix_is_still_read_as_the_same_project() {
         // GitHub lifts the block and omega-mv becomes omega before the map is edited.
-        let rows: Vec<String> = LISTING_2026_10_17.iter().map(|r| r.replace(" omega-mv ", " omega ")).collect();
+        let rows: Vec<String> = LISTING_2026_10_17
+            .iter()
+            .map(|r| r.replace(" omega-mv ", " omega "))
+            .collect();
         let rows: Vec<&str> = rows.iter().map(String::as_str).collect();
         let (targets, missing) = select_repos(&listing(&rows));
         assert_eq!(missing, vec!["aien-dev/omega-mv (omega)".to_string()]);
         let t = find(&targets, "omega");
-        assert_eq!((t.github_name.as_str(), t.url.as_str(), group_of(&t.name, false)), ("omega", "https://github.com/aien-dev/omega", "Core"));
+        assert_eq!(
+            (
+                t.github_name.as_str(),
+                t.url.as_str(),
+                group_of(&t.name, false)
+            ),
+            ("omega", "https://github.com/aien-dev/omega", "Core")
+        );
         // Both names listed at once: the map wins and the project is read once.
         let mut both = LISTING_2026_10_17.to_vec();
         both.push("aien-dev omega - -");
@@ -1512,7 +2022,8 @@ mod tests {
 
     #[test]
     fn repository_links_must_be_github_addresses() {
-        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../public/data/project-progress.json");
+        let path =
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("../../public/data/project-progress.json");
         let data: Value = serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
         let with = |url: Value| {
             let mut d = data.clone();
@@ -1521,7 +2032,13 @@ mod tests {
         };
         assert!(with(Value::from("https://github.com/aien-dev/omega-mv")).is_ok());
         assert!(with(Value::from("https://github.com/aien-spark/.github")).is_ok());
-        for bad in ["https://example.com/aien-dev/omega", "https://github.com/aien-dev", "https://github.com/aien-dev/omega/tree/x", "https://github.com/../..", "javascript:alert(1)"] {
+        for bad in [
+            "https://example.com/aien-dev/omega",
+            "https://github.com/aien-dev",
+            "https://github.com/aien-dev/omega/tree/x",
+            "https://github.com/../..",
+            "javascript:alert(1)",
+        ] {
             assert!(with(Value::from(bad)).is_err(), "{bad}");
         }
         assert!(with(Value::from(3)).is_err());
@@ -1529,7 +2046,8 @@ mod tests {
 
     #[test]
     fn incomplete_and_inconsistent_observations_are_refused_before_publication() {
-        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../public/data/project-progress.json");
+        let path =
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("../../public/data/project-progress.json");
         let data: Value = serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
         validate_snapshot(&data).unwrap();
         let corruptions: Vec<fn(&mut Value)> = vec![

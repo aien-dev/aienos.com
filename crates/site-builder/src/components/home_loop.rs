@@ -58,7 +58,11 @@ pub const STAGES: [(&str, &str, Band); 8] = [
     ("ATLAS", "awakens / lineage", Band::Generation),
     ("AIENOS", "persistent owned substrate", Band::Generation),
     ("AIEN", "proposes / guides search", Band::Generation),
-    ("OMEGA", "formalizes / searches / verifies meaning", Band::Generation),
+    (
+        "OMEGA",
+        "formalizes / searches / verifies meaning",
+        Band::Generation,
+    ),
     ("FORGE", "realizes", Band::Generation),
     ("REALITY", "executes / responds", Band::Reality),
     ("TURING", "scores explanatory gain", Band::Feedback),
@@ -134,14 +138,20 @@ pub const QUESTIONS: [(&str, &str, &str, QStatus, Option<&str>); 3] = [
         "Did it learn anything?",
         "Turing gain",
         "Net explanatory structure that survives held-out reality.",
-        QStatus::TuringRow { id: "TY-2", show_id: true },
+        QStatus::TuringRow {
+            id: "TY-2",
+            show_id: true,
+        },
         None,
     ),
     (
         "What did it cost to learn?",
         "Turing yield",
         "Verified explanatory gain per measured physical resource.",
-        QStatus::TuringRow { id: "TURING-YIELD-TJ", show_id: false },
+        QStatus::TuringRow {
+            id: "TURING-YIELD-TJ",
+            show_id: false,
+        },
         None,
     ),
     (
@@ -286,7 +296,9 @@ mod tests {
     }
 
     fn stage_list(s: &str) -> &str {
-        let start = s.find("<ol class=\"loop-stages\"").expect("stages must be an <ol>");
+        let start = s
+            .find("<ol class=\"loop-stages\"")
+            .expect("stages must be an <ol>");
         let end = s[start..].find("</ol>").expect("stage list closes") + start;
         &s[start..end]
     }
@@ -297,7 +309,10 @@ mod tests {
         let lead = s
             .find("AIENOS is an owned experimental machine for turning search into verified understanding.")
             .expect("central statement missing");
-        assert!(s[..lead].contains("<h1"), "central statement must be the h1 lead");
+        assert!(
+            s[..lead].contains("<h1"),
+            "central statement must be the h1 lead"
+        );
         assert_eq!(s.matches("<h1").count(), 1, "exactly one h1");
         for needle in [
             "Then the next search begins from what survived.",
@@ -354,24 +369,45 @@ mod tests {
         let s = page();
         let ol_end = s.find("<ol class=\"loop-stages\"").unwrap() + stage_list(&s).len();
         let after = &s[ol_end..];
-        let ret = after.find("class=\"loop-return\"").expect("return marker missing");
-        assert!(after[ret..].contains('\u{21BA}'), "return arrow glyph missing");
-        assert!(after[ret..].contains("next AIEN / Omega search"), "return target missing");
+        let ret = after
+            .find("class=\"loop-return\"")
+            .expect("return marker missing");
+        assert!(
+            after[ret..].contains('\u{21BA}'),
+            "return arrow glyph missing"
+        );
+        assert!(
+            after[ret..].contains("next AIEN / Omega search"),
+            "return target missing"
+        );
     }
 
     #[test]
     fn perimeter_is_drawn_outside_the_stage_list() {
         let s = page();
         let ol = stage_list(&s);
-        let perim_start = s.find("<div class=\"loop-perimeter\"").expect("perimeter frame missing");
+        let perim_start = s
+            .find("<div class=\"loop-perimeter\"")
+            .expect("perimeter frame missing");
         for name in ["AEGIS", "ARGUS", "Capability system", "Evidence receipts"] {
             let needle = format!("<span class=\"loop-guard-name\">{name}</span>");
-            let at = s.find(&needle).unwrap_or_else(|| panic!("perimeter item {name} missing"));
-            assert!(at > perim_start, "{name} must sit inside the perimeter frame");
+            let at = s
+                .find(&needle)
+                .unwrap_or_else(|| panic!("perimeter item {name} missing"));
+            assert!(
+                at > perim_start,
+                "{name} must sit inside the perimeter frame"
+            );
             assert!(!ol.contains(name), "{name} must not be a stage");
         }
-        assert!(!ol.contains("capability"), "capability system must not be a stage");
-        assert!(!ol.contains("receipts"), "evidence receipts must not be a stage");
+        assert!(
+            !ol.contains("capability"),
+            "capability system must not be a stage"
+        );
+        assert!(
+            !ol.contains("receipts"),
+            "evidence receipts must not be a stage"
+        );
     }
 
     #[test]
@@ -384,11 +420,17 @@ mod tests {
             "What did it cost to learn?",
             "Did what it learned make future discovery easier?",
         ] {
-            let at = s[from..].find(q).unwrap_or_else(|| panic!("question missing or out of order: {q}")) + from;
+            let at = s[from..]
+                .find(q)
+                .unwrap_or_else(|| panic!("question missing or out of order: {q}"))
+                + from;
             from = at + q.len();
         }
         let checks = s.find("class=\"home-actions\"").unwrap();
-        assert!(from < checks, "questions must sit directly under the diagram");
+        assert!(
+            from < checks,
+            "questions must sit directly under the diagram"
+        );
     }
 
     #[test]
@@ -400,18 +442,29 @@ mod tests {
         // Status words come from research_status.json, never hand-written.
         let d = research_status::data();
         let ty2 = d.turing_row("TY-2").expect("TY-2 row");
-        let tj = d.turing_row("TURING-YIELD-TJ").expect("TURING-YIELD-TJ row");
+        let tj = d
+            .turing_row("TURING-YIELD-TJ")
+            .expect("TURING-YIELD-TJ row");
         let yield_block = &s[y..gap];
         assert!(
             yield_block.contains(&format!(">{}<", tj.status)),
             "yield badge must be the TURING-YIELD-TJ status from the data"
         );
-        assert!(yield_block.contains(&tj.plain), "yield note must be the data row's plain text");
+        assert!(
+            yield_block.contains(&tj.plain),
+            "yield note must be the data row's plain text"
+        );
         if tj.status == "NOT STARTED" {
-            assert!(yield_block.contains("status-planned"), "unstarted yield must carry the planned style");
+            assert!(
+                yield_block.contains("status-planned"),
+                "unstarted yield must carry the planned style"
+            );
         }
         let gap_block = &s[gap..s.find("class=\"home-actions\"").unwrap()];
-        assert!(!gap_block.contains("home-q-badge"), "gap has no data row, so no status badge");
+        assert!(
+            !gap_block.contains("home-q-badge"),
+            "gap has no data row, so no status badge"
+        );
         assert!(gap_block.contains("Nothing here is measured yet."));
         // Gain is never called yield, and its badge is the TY-2 row.
         let gain = s.find("Turing gain").expect("Turing gain missing");
@@ -419,7 +472,10 @@ mod tests {
             s[gain..y].contains(&format!(">TY-2 {}<", ty2.status)),
             "gain badge must be the TY-2 status from the data"
         );
-        assert!(!s[gain..y].contains("yield"), "gain block must not mention yield");
+        assert!(
+            !s[gain..y].contains("yield"),
+            "gain block must not mention yield"
+        );
     }
 
     #[test]
@@ -427,6 +483,9 @@ mod tests {
         let s = page();
         assert!(!s.contains('\u{2014}'), "em dash in homepage top");
         assert!(!s.contains('\u{2013}'), "en dash in homepage top");
-        assert!(!s.contains("&mdash;") && !s.contains("&ndash;"), "dash entity in homepage top");
+        assert!(
+            !s.contains("&mdash;") && !s.contains("&ndash;"),
+            "dash entity in homepage top"
+        );
     }
 }

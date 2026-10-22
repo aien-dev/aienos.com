@@ -167,7 +167,15 @@ mod tests {
     use crate::layouts::base::render_page_layout;
 
     fn page() -> String {
-        render_page_layout(TITLE, DESCRIPTION, URL, "article", html! {}, render_discovery()).into_string()
+        render_page_layout(
+            TITLE,
+            DESCRIPTION,
+            URL,
+            "article",
+            html! {},
+            render_discovery(),
+        )
+        .into_string()
     }
 
     /// Every exam that names a record id must find that row, so a typo or a
@@ -179,15 +187,31 @@ mod tests {
         for exam in EXAMS.iter() {
             match exam.record_id {
                 Some(id) => {
-                    let row = data()
-                        .implementation_row(id)
-                        .unwrap_or_else(|| panic!("{} names record id {id}, which the data does not have", exam.name));
-                    assert!(p.contains(&class_badge(row).into_string()), "{} badge missing", exam.name);
+                    let row = data().implementation_row(id).unwrap_or_else(|| {
+                        panic!(
+                            "{} names record id {id}, which the data does not have",
+                            exam.name
+                        )
+                    });
+                    assert!(
+                        p.contains(&class_badge(row).into_string()),
+                        "{} badge missing",
+                        exam.name
+                    );
                 }
                 None => {
-                    let start = p.find(&format!("id=\"{}\"", exam.id)).expect("exam section missing");
-                    let end = start + p[start..].find("</section>").expect("exam section not closed");
-                    assert!(p[start..end].contains(NOT_ON_RECORD), "{} needs the not-on-record line", exam.name);
+                    let start = p
+                        .find(&format!("id=\"{}\"", exam.id))
+                        .expect("exam section missing");
+                    let end = start
+                        + p[start..]
+                            .find("</section>")
+                            .expect("exam section not closed");
+                    assert!(
+                        p[start..end].contains(NOT_ON_RECORD),
+                        "{} needs the not-on-record line",
+                        exam.name
+                    );
                 }
             }
         }
@@ -197,9 +221,16 @@ mod tests {
     #[test]
     fn no_hand_written_status_words() {
         let body = render_discovery().into_string();
-        let badges: Vec<String> = data().implementation_rows.iter().map(|r| class_badge(r).into_string()).collect();
+        let badges: Vec<String> = data()
+            .implementation_rows
+            .iter()
+            .map(|r| class_badge(r).into_string())
+            .collect();
         let stray = stray_status_words(&body, &badges);
-        assert!(stray.is_empty(), "hand-written status words on /discovery/: {stray:?}");
+        assert!(
+            stray.is_empty(),
+            "hand-written status words on /discovery/: {stray:?}"
+        );
     }
 
     #[test]

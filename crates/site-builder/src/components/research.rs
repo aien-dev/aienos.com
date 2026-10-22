@@ -177,9 +177,17 @@ mod tests {
     #[test]
     fn the_turing_card_and_every_paper_card_link_to_github() {
         let page = render_research().into_string();
-        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(5), "the Turing card and four papers");
+        assert_eq!(
+            crate::components::boxlink::check_boxes(&page),
+            Ok(5),
+            "the Turing card and four papers"
+        );
         assert!(page.contains(TURING_RECORD));
         assert!(page.contains("https://github.com/aien-dev/aienos.com/tree/main/public/research/the-stapleton-doctrine"));
-        assert_eq!(page.matches("box-link-source").count(), 4, "papers are source links, the Turing card is evidence");
+        assert_eq!(
+            page.matches("box-link-source").count(),
+            4,
+            "papers are source links, the Turing card is evidence"
+        );
     }
 }

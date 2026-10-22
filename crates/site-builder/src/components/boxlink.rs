@@ -86,7 +86,10 @@ pub fn foot(href: &str, target: Target) -> Markup {
 /// The same with a custom label, for boxes whose evidence has a better
 /// name ("Ledger line on GitHub").
 pub fn foot_labelled(href: &str, label: &str, target: Target) -> Markup {
-    debug_assert!(href.starts_with(GITHUB), "box link must point at GitHub: {href}");
+    debug_assert!(
+        href.starts_with(GITHUB),
+        "box link must point at GitHub: {href}"
+    );
     let class = match target {
         Target::Evidence => "box-link",
         Target::Source => "box-link box-link-source",
@@ -124,7 +127,9 @@ pub fn check_boxes(page: &str) -> Result<usize, String> {
     let mut i = 0;
     while let Some(off) = page[i..].find('<') {
         let start = i + off;
-        let Some(len) = page[start..].find('>') else { break };
+        let Some(len) = page[start..].find('>') else {
+            break;
+        };
         let tag = &page[start..start + len + 1];
         if !tag.starts_with("</") && !tag.starts_with("<!") {
             tags.push((start, tag));
@@ -148,7 +153,10 @@ pub fn check_boxes(page: &str) -> Result<usize, String> {
         });
         match link.map(|(_, tag)| href_value(tag)) {
             Some(Some(h)) if h.starts_with(GITHUB) => {}
-            Some(other) => problems.push(format!("box {} has a box-link off GitHub: {other:?}", short(tags[k].1))),
+            Some(other) => problems.push(format!(
+                "box {} has a box-link off GitHub: {other:?}",
+                short(tags[k].1)
+            )),
             None => problems.push(format!("box without a GitHub link: {}", short(tags[k].1))),
         }
     }
@@ -160,7 +168,11 @@ pub fn check_boxes(page: &str) -> Result<usize, String> {
 }
 
 fn short(tag: &str) -> &str {
-    let n = tag.char_indices().nth(90).map(|(i, _)| i).unwrap_or(tag.len());
+    let n = tag
+        .char_indices()
+        .nth(90)
+        .map(|(i, _)| i)
+        .unwrap_or(tag.len());
     &tag[..n]
 }
 
@@ -170,12 +182,22 @@ mod tests {
 
     #[test]
     fn foot_is_one_anchor_to_github() {
-        let s = foot("https://github.com/aien-dev/omega-mv/pull/88", Target::Evidence).into_string();
-        assert!(s.starts_with("<a class=\"box-link\" href=\"https://github.com/aien-dev/omega-mv/pull/88\""));
+        let s = foot(
+            "https://github.com/aien-dev/omega-mv/pull/88",
+            Target::Evidence,
+        )
+        .into_string();
+        assert!(s.starts_with(
+            "<a class=\"box-link\" href=\"https://github.com/aien-dev/omega-mv/pull/88\""
+        ));
         assert!(s.contains("Evidence on GitHub"));
         assert!(s.contains('\u{2197}'));
         assert_eq!(s.matches("<a ").count(), 1);
-        let src = foot(&source_href("crates/site-builder/src/components/status.rs"), Target::Source).into_string();
+        let src = foot(
+            &source_href("crates/site-builder/src/components/status.rs"),
+            Target::Source,
+        )
+        .into_string();
         assert!(src.contains("box-link-source") && src.contains("Source on GitHub"));
         assert!(src.contains("https://github.com/aien-dev/aienos.com/blob/main/crates/site-builder/src/components/status.rs"));
     }

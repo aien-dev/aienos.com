@@ -23,7 +23,13 @@ pub const RAW: &str = include_str!("../../data/machines.json");
 /// Words that compare us with other people's systems. None may appear in
 /// the data or on the rendered sections.
 pub const FORBIDDEN: [&str; 7] = [
-    "faster than", "x faster", "llama.cpp", "vllm", "ollama", "beats ", "beat the",
+    "faster than",
+    "x faster",
+    "llama.cpp",
+    "vllm",
+    "ollama",
+    "beats ",
+    "beat the",
 ];
 
 #[derive(Debug, Clone, Deserialize)]
@@ -123,7 +129,9 @@ fn check_text(what: &str, s: &str, errors: &mut Vec<String>) {
 
 fn check_link(what: &str, link: &str, errors: &mut Vec<String>) {
     if !link.starts_with("https://") {
-        errors.push(format!("{what}: link must be a public https URL, got {link:?}"));
+        errors.push(format!(
+            "{what}: link must be a public https URL, got {link:?}"
+        ));
     }
 }
 
@@ -153,7 +161,15 @@ pub fn parse(raw: &str) -> Result<Data, String> {
     for m in &d.machines {
         let what = format!("machine {}", m.id);
         check_link(&what, &m.link, &mut errors);
-        for s in [&m.name, &m.detail, &m.role, &m.today, &m.evidence_date, &m.evidence, &m.branch] {
+        for s in [
+            &m.name,
+            &m.detail,
+            &m.role,
+            &m.today,
+            &m.evidence_date,
+            &m.evidence,
+            &m.branch,
+        ] {
             check_text(&what, s, &mut errors);
         }
         if m.evidence_date.len() != 10 {
@@ -168,8 +184,18 @@ pub fn parse(raw: &str) -> Result<Data, String> {
         let what = format!("speed {}", s.id);
         check_link(&what, &s.link, &mut errors);
         for t in [
-            &s.what, &s.model, &s.machine, &s.engine, &s.value, &s.detail, &s.previous, &s.date,
-            &s.receipt, &s.branch, &s.verdict, &s.note,
+            &s.what,
+            &s.model,
+            &s.machine,
+            &s.engine,
+            &s.value,
+            &s.detail,
+            &s.previous,
+            &s.date,
+            &s.receipt,
+            &s.branch,
+            &s.verdict,
+            &s.note,
         ] {
             check_text(&what, t, &mut errors);
         }
@@ -181,11 +207,17 @@ pub fn parse(raw: &str) -> Result<Data, String> {
         }
         if let (Some(t), Some(c)) = (s.tok_s, d.ceiling(&s.ceiling)) {
             if t > c.tok_s {
-                errors.push(format!("{what}: {t} tok/s is above its ceiling {}", c.tok_s));
+                errors.push(format!(
+                    "{what}: {t} tok/s is above its ceiling {}",
+                    c.tok_s
+                ));
             }
         }
         if s.on_main && s.branch != "main" {
-            errors.push(format!("{what}: on_main is true but branch is {:?}", s.branch));
+            errors.push(format!(
+                "{what}: on_main is true but branch is {:?}",
+                s.branch
+            ));
         }
     }
     let ids: Vec<&str> = d.speeds.iter().map(|s| s.id.as_str()).collect();
@@ -440,11 +472,21 @@ mod tests {
     #[test]
     fn real_data_parses_and_validates() {
         let d = parse(RAW).expect("machines.json must validate");
-        assert_eq!(d.machines.len(), 5, "five machines: Spark, iMac, Pi 5, QEMU, RTX 5070 PC");
+        assert_eq!(
+            d.machines.len(),
+            5,
+            "five machines: Spark, iMac, Pi 5, QEMU, RTX 5070 PC"
+        );
         for want in ["Spark", "iMac", "Raspberry Pi 5", "QEMU", "RTX 5070"] {
-            assert!(d.machines.iter().any(|m| m.name.contains(want)), "machine {want} missing");
+            assert!(
+                d.machines.iter().any(|m| m.name.contains(want)),
+                "machine {want} missing"
+            );
         }
-        assert!(d.speeds.first().unwrap().model.starts_with("Qwen3.8-27B"), "the 27B on Omega comes first");
+        assert!(
+            d.speeds.first().unwrap().model.starts_with("Qwen3.8-27B"),
+            "the 27B on Omega comes first"
+        );
         assert!(d.speeds.first().unwrap().engine.contains("Omega"));
     }
 
@@ -452,16 +494,36 @@ mod tests {
     fn every_row_has_a_public_link() {
         let d = data();
         for m in &d.machines {
-            assert!(m.link.starts_with("https://github.com/aien-dev/"), "{}: {}", m.id, m.link);
+            assert!(
+                m.link.starts_with("https://github.com/aien-dev/"),
+                "{}: {}",
+                m.id,
+                m.link
+            );
             for l in &m.more {
-                assert!(l.link.starts_with("https://github.com/aien-dev/"), "{}: {}", m.id, l.link);
+                assert!(
+                    l.link.starts_with("https://github.com/aien-dev/"),
+                    "{}: {}",
+                    m.id,
+                    l.link
+                );
             }
         }
         for s in &d.speeds {
-            assert!(s.link.starts_with("https://github.com/aien-dev/"), "{}: {}", s.id, s.link);
+            assert!(
+                s.link.starts_with("https://github.com/aien-dev/"),
+                "{}: {}",
+                s.id,
+                s.link
+            );
         }
         for c in &d.ceilings {
-            assert!(c.link.starts_with("https://github.com/aien-dev/"), "{}: {}", c.id, c.link);
+            assert!(
+                c.link.starts_with("https://github.com/aien-dev/"),
+                "{}: {}",
+                c.id,
+                c.link
+            );
         }
     }
 
@@ -479,9 +541,17 @@ mod tests {
             1,
         );
         assert!(parse(&no_link).unwrap_err().contains("public https URL"));
-        let dashed = RAW.replacen("\"what\": \"Live server", "\"what\": \"Live \u{2014} server", 1);
+        let dashed = RAW.replacen(
+            "\"what\": \"Live server",
+            "\"what\": \"Live \u{2014} server",
+            1,
+        );
         assert!(parse(&dashed).unwrap_err().contains("em or en dash"));
-        let compared = RAW.replacen("\"note\": \"Nothing has run on the 5070 yet.\"", "\"note\": \"2x faster than llama.cpp\"", 1);
+        let compared = RAW.replacen(
+            "\"note\": \"Nothing has run on the 5070 yet.\"",
+            "\"note\": \"2x faster than llama.cpp\"",
+            1,
+        );
         let err = parse(&compared).unwrap_err();
         assert!(err.contains("forbidden comparison word"), "{err}");
         let above = RAW.replacen("\"tok_s\": 7.63,", "\"tok_s\": 70.63,", 1);
@@ -497,7 +567,10 @@ mod tests {
             render_speeds_section().into_string(),
             render_real_machines().into_string(),
         ] {
-            assert!(!page.contains('\u{2014}') && !page.contains('\u{2013}'), "dash on the page");
+            assert!(
+                !page.contains('\u{2014}') && !page.contains('\u{2013}'),
+                "dash on the page"
+            );
             let lower = page.to_ascii_lowercase();
             for w in FORBIDDEN {
                 assert!(!lower.contains(w), "forbidden word {w} on the page");
@@ -510,12 +583,30 @@ mod tests {
         assert!(speeds.contains("id=\"speed-27b-live\""));
         assert!(speeds.contains(&data().judging));
         let machines = render_machines_section().into_string();
-        for id in ["machine-spark", "machine-imac", "machine-pi5", "machine-qemu", "machine-rig"] {
+        for id in [
+            "machine-spark",
+            "machine-imac",
+            "machine-pi5",
+            "machine-qemu",
+            "machine-rig",
+        ] {
             assert!(machines.contains(&format!("id=\"{id}\"")), "{id} missing");
         }
-        assert_eq!(machines.matches("class=\"box-link\"").count(), 5, "one evidence link per machine");
-        assert_eq!(crate::components::boxlink::check_boxes(&machines), Ok(5), "every machine card links to GitHub");
+        assert_eq!(
+            machines.matches("class=\"box-link\"").count(),
+            5,
+            "one evidence link per machine"
+        );
+        assert_eq!(
+            crate::components::boxlink::check_boxes(&machines),
+            Ok(5),
+            "every machine card links to GitHub"
+        );
         let rows = data().speeds.len();
-        assert_eq!(crate::components::boxlink::check_boxes(&speeds), Ok(rows), "every speed row links to GitHub");
+        assert_eq!(
+            crate::components::boxlink::check_boxes(&speeds),
+            Ok(rows),
+            "every speed row links to GitHub"
+        );
     }
 }

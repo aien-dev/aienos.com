@@ -9,14 +9,27 @@ const ROLE_LINKS: [(&str, &str); 8] = [
     ("AIENOS", "https://github.com/aien-dev/aienos-mv"),
     ("OMEGA", "https://github.com/aien-dev/omega-mv"),
     ("AIEN", "https://github.com/aien-dev/aien-sovereign-core-mv"),
-    ("AEGIS", "https://github.com/aien-dev/omega-mv/blob/main/spec/r8-aegis-resident.md"),
+    (
+        "AEGIS",
+        "https://github.com/aien-dev/omega-mv/blob/main/spec/r8-aegis-resident.md",
+    ),
     ("FORGE", "https://github.com/aien-dev/physics-mv"),
-    ("ARGUS", "https://github.com/aien-dev/aienos-mv/tree/main/native/argus"),
-    ("CORTEX", "https://github.com/aien-dev/omega-mv/blob/main/src/runtime/rx_cortex.h"),
+    (
+        "ARGUS",
+        "https://github.com/aien-dev/aienos-mv/tree/main/native/argus",
+    ),
+    (
+        "CORTEX",
+        "https://github.com/aien-dev/omega-mv/blob/main/src/runtime/rx_cortex.h",
+    ),
 ];
 
 fn role_link(name: &str) -> &'static str {
-    ROLE_LINKS.iter().find(|(n, _)| *n == name).map(|(_, l)| *l).unwrap_or_else(|| panic!("no GitHub link for role {name}"))
+    ROLE_LINKS
+        .iter()
+        .find(|(n, _)| *n == name)
+        .map(|(_, l)| *l)
+        .unwrap_or_else(|| panic!("no GitHub link for role {name}"))
 }
 
 pub fn render_matrix() -> Markup {
@@ -137,7 +150,11 @@ mod tests {
     #[test]
     fn every_role_links_to_its_home_on_github() {
         let page = render_matrix().into_string();
-        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(8), "four roles and four supporting roles");
+        assert_eq!(
+            crate::components::boxlink::check_boxes(&page),
+            Ok(8),
+            "four roles and four supporting roles"
+        );
         for (_, link) in ROLE_LINKS {
             assert!(page.contains(link), "missing {link}");
         }

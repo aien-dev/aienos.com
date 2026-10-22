@@ -142,8 +142,14 @@ pub fn expand(link: &str) -> Result<String, String> {
         ("ob:", "https://github.com/aien-dev/omega/tree/"),
         ("o:", OMEGA_BLOB),
         ("p:", "https://github.com/aien-dev/physics-mv/blob/main/"),
-        ("c:", "https://github.com/aien-dev/aien-sovereign-core-mv/blob/main/"),
-        ("a:", "https://github.com/aien-dev/aien-architecture-mv/blob/main/"),
+        (
+            "c:",
+            "https://github.com/aien-dev/aien-sovereign-core-mv/blob/main/",
+        ),
+        (
+            "a:",
+            "https://github.com/aien-dev/aien-architecture-mv/blob/main/",
+        ),
         ("issue:", "https://github.com/aien-dev/omega/issues/"),
     ];
     if link.starts_with('/') || link.starts_with('#') {
@@ -162,7 +168,10 @@ pub fn expand(link: &str) -> Result<String, String> {
 
 fn gh(link: &str) -> String {
     let h = expand(link).unwrap_or_else(|e| panic!("data/omega.json: {e}"));
-    assert!(h.starts_with("https://github.com/"), "data/omega.json: box link must be on GitHub: {link}");
+    assert!(
+        h.starts_with("https://github.com/"),
+        "data/omega.json: box link must be on GitHub: {link}"
+    );
     h
 }
 
@@ -174,7 +183,12 @@ pub fn validate(d: &OmegaData) -> Result<(), String> {
     if raw_has_dash(RAW) {
         return Err("data/omega.json has an em or en dash".into());
     }
-    let mut boxes: Vec<&str> = vec![&d.source.doc, &d.source.issue, &d.below.box_, &d.receipt.box_];
+    let mut boxes: Vec<&str> = vec![
+        &d.source.doc,
+        &d.source.issue,
+        &d.below.box_,
+        &d.receipt.box_,
+    ];
     let mut links: Vec<&str> = Vec::new();
     for c in &d.parts {
         boxes.push(&c.box_);
@@ -182,7 +196,10 @@ pub fn validate(d: &OmegaData) -> Result<(), String> {
     }
     links.extend(d.below.links.iter().map(|l| l.1.as_str()));
     if d.layers.len() < 13 {
-        return Err(format!("the CUDA map has {} rows; docs/OMEGA.md has 13", d.layers.len()));
+        return Err(format!(
+            "the CUDA map has {} rows; docs/OMEGA.md has 13",
+            d.layers.len()
+        ));
     }
     for l in &d.layers {
         if !STATUSES.contains(&l.status.as_str()) {
@@ -204,7 +221,9 @@ pub fn validate(d: &OmegaData) -> Result<(), String> {
     }
     let pids: Vec<&str> = d.performance.bar.iter().map(|b| b.id.as_str()).collect();
     if pids != ["P0", "P1", "P2", "P3", "P4"] {
-        return Err(format!("the performance bar must be P0 to P4 in order, found {pids:?}"));
+        return Err(format!(
+            "the performance bar must be P0 to P4 in order, found {pids:?}"
+        ));
     }
     boxes.push(&d.performance.box_);
     for b in d.bar.iter().chain(d.performance.bar.iter()) {
@@ -213,10 +232,17 @@ pub fn validate(d: &OmegaData) -> Result<(), String> {
         }
         match (&b.status[..], &b.receipt) {
             ("PASS", None) => return Err(format!("{} is PASS without a receipt", b.id)),
-            ("PASS", Some(r)) if !r.starts_with("o:evidence/") && !r.starts_with("o/:evidence/") => {
-                return Err(format!("{} receipt must be under omega evidence/: {r}", b.id))
+            ("PASS", Some(r))
+                if !r.starts_with("o:evidence/") && !r.starts_with("o/:evidence/") =>
+            {
+                return Err(format!(
+                    "{} receipt must be under omega evidence/: {r}",
+                    b.id
+                ))
             }
-            (s, Some(_)) if s != "PASS" => return Err(format!("{} has a receipt but is {s}", b.id)),
+            (s, Some(_)) if s != "PASS" => {
+                return Err(format!("{} has a receipt but is {s}", b.id))
+            }
             _ => {}
         }
         if let Some(r) = &b.receipt {
@@ -304,7 +330,10 @@ fn box_foot(link: &str) -> Markup {
 
 /// Counts of each status word in the CUDA map, in legend order.
 pub fn layer_counts(d: &OmegaData) -> Vec<(&'static str, usize)> {
-    STATUSES.iter().map(|s| (*s, d.layers.iter().filter(|l| l.status == *s).count())).collect()
+    STATUSES
+        .iter()
+        .map(|s| (*s, d.layers.iter().filter(|l| l.status == *s).count()))
+        .collect()
 }
 
 pub fn bar_met(d: &OmegaData) -> usize {
@@ -316,7 +345,12 @@ pub fn render_omega_page() -> Markup {
     let doc = gh(&d.source.doc);
     let counts = layer_counts(d);
     let met = bar_met(d);
-    let pmet = d.performance.bar.iter().filter(|b| b.status == "PASS").count();
+    let pmet = d
+        .performance
+        .bar
+        .iter()
+        .filter(|b| b.status == "PASS")
+        .count();
     html! {
         div class="om-page" {
             header class="om-hero" {
@@ -579,7 +613,10 @@ mod tests {
     fn data_parses_and_validates() {
         let d = parse(RAW).unwrap();
         validate(&d).unwrap();
-        assert_eq!(d.claim, "Omega is AIEN's language for all computing, GPU to CPU.");
+        assert_eq!(
+            d.claim,
+            "Omega is AIEN's language for all computing, GPU to CPU."
+        );
         assert_eq!(d.layers.len(), 13);
         assert_eq!(d.bar.len(), 6);
     }
@@ -598,7 +635,14 @@ mod tests {
         let d = data();
         let s = render_omega_page().into_string();
         for l in &d.layers {
-            assert!(s.contains(&format!("<span class=\"om-cuda\" role=\"cell\">{}</span>", l.cuda)), "row {} not rendered", l.cuda);
+            assert!(
+                s.contains(&format!(
+                    "<span class=\"om-cuda\" role=\"cell\">{}</span>",
+                    l.cuda
+                )),
+                "row {} not rendered",
+                l.cuda
+            );
         }
         let missing = d.layers.iter().filter(|l| l.status == "MISSING").count();
         assert!(missing >= 1);
@@ -611,7 +655,18 @@ mod tests {
         let s = render_omega_page().into_string();
         let n = check_boxes(&s).unwrap();
         let d = data();
-        assert_eq!(n, d.parts.len() + 1 + d.layers.len() + 1 + d.not_yet.len() + d.bar.len() + d.beyond.len() + 1 + d.performance.bar.len());
+        assert_eq!(
+            n,
+            d.parts.len()
+                + 1
+                + d.layers.len()
+                + 1
+                + d.not_yet.len()
+                + d.bar.len()
+                + d.beyond.len()
+                + 1
+                + d.performance.bar.len()
+        );
         assert!(s.contains("https://github.com/aien-dev/omega/blob/main/evidence/WHAT-OMEGA-IS-20261021/live-serve-no-cuda.txt"));
         assert!(s.contains("https://github.com/aien-dev/omega/blob/main/docs/OMEGA.md"));
     }
@@ -621,11 +676,18 @@ mod tests {
         let s = render_omega_page().into_string();
         let d = data();
         let met = bar_met(d);
-        let pmet = d.performance.bar.iter().filter(|b| b.status == "PASS").count();
+        let pmet = d
+            .performance
+            .bar
+            .iter()
+            .filter(|b| b.status == "PASS")
+            .count();
         assert_eq!(s.matches("om-bar-row om-done").count(), met + pmet);
         assert_eq!(s.matches("om-bar-row om-open").count(), 6 - met + 5 - pmet);
         assert!(s.contains(&format!("{met} of 6 met")));
-        for id in ["c1", "c2", "c3", "c4", "c5", "c6", "p0", "p1", "p2", "p3", "p4"] {
+        for id in [
+            "c1", "c2", "c3", "c4", "c5", "c6", "p0", "p1", "p2", "p3", "p4",
+        ] {
             assert!(s.contains(&format!("id=\"{id}\"")), "{id}");
         }
     }
@@ -639,14 +701,22 @@ mod tests {
         assert!(validate(&d).unwrap_err().contains("under omega evidence/"));
         let mut d = parse(RAW).unwrap();
         d.performance.bar[0].receipt = Some("o:evidence/x".into());
-        assert!(validate(&d).unwrap_err().contains("has a receipt but is MISSING"));
+        assert!(validate(&d)
+            .unwrap_err()
+            .contains("has a receipt but is MISSING"));
     }
 
     #[test]
     fn unknown_status_and_off_github_box_are_refused() {
-        let d = parse(&RAW.replacen("\"status\": \"PARTIAL\"", "\"status\": \"ALMOST\"", 1)).unwrap();
+        let d =
+            parse(&RAW.replacen("\"status\": \"PARTIAL\"", "\"status\": \"ALMOST\"", 1)).unwrap();
         assert!(validate(&d).unwrap_err().contains("unknown status"));
-        let d = parse(&RAW.replacen("\"box\": \"o/:evidence/E1-CLOSURE\"", "\"box\": \"/now/\"", 1)).unwrap();
+        let d = parse(&RAW.replacen(
+            "\"box\": \"o/:evidence/E1-CLOSURE\"",
+            "\"box\": \"/now/\"",
+            1,
+        ))
+        .unwrap();
         assert!(validate(&d).unwrap_err().contains("off GitHub"));
         assert!(expand("x:foo").is_err());
         assert!(expand("o:../etc").is_err());
@@ -654,9 +724,18 @@ mod tests {
 
     #[test]
     fn link_expansion() {
-        assert_eq!(expand("o:docs/OMEGA.md").unwrap(), "https://github.com/aien-dev/omega/blob/main/docs/OMEGA.md");
-        assert_eq!(expand("o/:src/checker2").unwrap(), "https://github.com/aien-dev/omega/tree/main/src/checker2");
-        assert_eq!(expand("ob:runtime/r2-hello").unwrap(), "https://github.com/aien-dev/omega/tree/runtime/r2-hello");
+        assert_eq!(
+            expand("o:docs/OMEGA.md").unwrap(),
+            "https://github.com/aien-dev/omega/blob/main/docs/OMEGA.md"
+        );
+        assert_eq!(
+            expand("o/:src/checker2").unwrap(),
+            "https://github.com/aien-dev/omega/tree/main/src/checker2"
+        );
+        assert_eq!(
+            expand("ob:runtime/r2-hello").unwrap(),
+            "https://github.com/aien-dev/omega/tree/runtime/r2-hello"
+        );
         assert_eq!(expand("/now/#L332").unwrap(), "/now/#L332");
     }
 
@@ -667,7 +746,10 @@ mod tests {
             "AIEN proposes. <a class=\"omega-link\" href=\"/omega/\">Omega</a> checks. Omega again."
         );
         assert_eq!(link_first("Omegese only").into_string(), "Omegese only");
-        assert_eq!(link_first("Omega's tools").into_string(), "<a class=\"omega-link\" href=\"/omega/\">Omega</a>&#39;s tools".replace("&#39;", "'"));
+        assert_eq!(
+            link_first("Omega's tools").into_string(),
+            "<a class=\"omega-link\" href=\"/omega/\">Omega</a>&#39;s tools".replace("&#39;", "'")
+        );
     }
 
     #[test]
@@ -675,7 +757,15 @@ mod tests {
         let s = render_omega_page().into_string();
         assert!(!s.contains('\u{2014}') && !s.contains('\u{2013}'));
         let lower = s.to_ascii_lowercase();
-        for w in ["revolutionary", "blazing", "cutting-edge", "seamless", "world-class", "powerful", "aienix"] {
+        for w in [
+            "revolutionary",
+            "blazing",
+            "cutting-edge",
+            "seamless",
+            "world-class",
+            "powerful",
+            "aienix",
+        ] {
             assert!(!lower.contains(w), "{w}");
         }
     }

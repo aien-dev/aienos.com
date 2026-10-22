@@ -98,16 +98,19 @@ mod tests {
         let mut last = 0usize;
         for (i, (label, href)) in EXPECTED_PRIMARY.iter().enumerate() {
             let needle = primary_link_markup(label, href);
-            let pos = haystack[last..]
-                .find(&needle)
-                .unwrap_or_else(|| panic!("{what}: nav item {i} ({label}) missing or out of order"));
+            let pos = haystack[last..].find(&needle).unwrap_or_else(|| {
+                panic!("{what}: nav item {i} ({label}) missing or out of order")
+            });
             last += pos + needle.len();
         }
     }
 
     #[test]
     fn primary_nav_const_matches_section_21() {
-        assert_eq!(NAV_PRIMARY, EXPECTED_PRIMARY, "NAV_PRIMARY differs from section 21 order");
+        assert_eq!(
+            NAV_PRIMARY, EXPECTED_PRIMARY,
+            "NAV_PRIMARY differs from section 21 order"
+        );
     }
 
     #[test]
@@ -115,11 +118,22 @@ mod tests {
         let html = render_navbar().into_string();
         assert_six_in_order(&html, "generated navbar");
         let primary_end = html.find("</ul>").expect("primary list closes");
-        let secondary = html.find("aien-nav-secondary").expect("secondary list present");
-        assert!(secondary > primary_end, "secondary links must come after the six sections");
+        let secondary = html
+            .find("aien-nav-secondary")
+            .expect("secondary list present");
+        assert!(
+            secondary > primary_end,
+            "secondary links must come after the six sections"
+        );
         for (label, _) in NAV_SECONDARY {
-            assert!(html[secondary..].contains(label), "secondary item {label} missing");
-            assert!(!html[..primary_end].contains(&format!(">{label}<")), "{label} must not be a primary item");
+            assert!(
+                html[secondary..].contains(label),
+                "secondary item {label} missing"
+            );
+            assert!(
+                !html[..primary_end].contains(&format!(">{label}<")),
+                "{label} must not be a primary item"
+            );
         }
     }
 
@@ -129,8 +143,14 @@ mod tests {
         for rel in HAND_WRITTEN {
             let page = std::fs::read_to_string(root.join(rel))
                 .unwrap_or_else(|_| panic!("cannot read {rel}"));
-            assert!(page.contains("class=\"aien-header\""), "{rel}: missing shared header markup");
-            assert!(page.contains("/assets/site-nav.css"), "{rel}: missing shared nav stylesheet");
+            assert!(
+                page.contains("class=\"aien-header\""),
+                "{rel}: missing shared header markup"
+            );
+            assert!(
+                page.contains("/assets/site-nav.css"),
+                "{rel}: missing shared nav stylesheet"
+            );
             assert_six_in_order(&page, rel);
         }
     }
@@ -145,13 +165,19 @@ mod tests {
     fn every_listed_language_has_its_pages_and_a_menu_link() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let html = render_navbar().into_string();
-        assert!(html.contains(r#"hreflang="en""#), "menu must link back to English");
+        assert!(
+            html.contains(r#"hreflang="en""#),
+            "menu must link back to English"
+        );
         for (code, name) in LANGUAGES {
             assert!(
                 root.join("public").join(code).join("index.html").exists(),
                 "language {code} is listed but public/{code}/index.html is missing"
             );
-            assert!(html.contains(&format!(r#"href="/{code}/" hreflang="{code}""#)), "menu link for {code} missing");
+            assert!(
+                html.contains(&format!(r#"href="/{code}/" hreflang="{code}""#)),
+                "menu link for {code} missing"
+            );
             assert!(html.contains(name), "menu name for {code} missing");
         }
     }

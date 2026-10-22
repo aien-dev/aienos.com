@@ -187,32 +187,62 @@ pub fn evidence_box(link: &Option<String>, evidence: &str) -> (String, Target) {
 fn github_for_evidence(evidence: &str) -> Option<String> {
     let mut text = evidence.trim();
     let mut repo = "omega-mv";
-    for (prefix, r) in [("aienos ", "aienos-mv"), ("aien-architecture ", "aien-architecture-mv"), ("atlas ", "atlas"), ("omega ", "omega-mv")] {
+    for (prefix, r) in [
+        ("aienos ", "aienos-mv"),
+        ("aien-architecture ", "aien-architecture-mv"),
+        ("atlas ", "atlas"),
+        ("omega ", "omega-mv"),
+    ] {
         if let Some(rest) = text.strip_prefix(prefix) {
             repo = r;
             text = rest;
             break;
         }
     }
-    let token = text.split_whitespace().next()?.trim_end_matches([',', ';', ':']);
+    let token = text
+        .split_whitespace()
+        .next()?
+        .trim_end_matches([',', ';', ':']);
     if let Some(n) = token.strip_prefix("QS:") {
         let digits: String = n.chars().take_while(|c| c.is_ascii_digit()).collect();
-        return Some(if digits.is_empty() { QS_RECORD.to_string() } else { format!("{QS_RECORD}#L{digits}") });
+        return Some(if digits.is_empty() {
+            QS_RECORD.to_string()
+        } else {
+            format!("{QS_RECORD}#L{digits}")
+        });
     }
     if token == "QS" {
         return Some(QS_RECORD.to_string());
     }
     let (path, line) = match token.split_once(':') {
-        Some((p, l)) => (p, l.chars().take_while(|c| c.is_ascii_digit()).collect::<String>()),
+        Some((p, l)) => (
+            p,
+            l.chars()
+                .take_while(|c| c.is_ascii_digit())
+                .collect::<String>(),
+        ),
         None => (token, String::new()),
     };
-    let path = if path == "TURING_CURRENT_STATE.md" { "docs/turing/TURING_CURRENT_STATE.md" } else { path };
-    let is_file = path.contains('/') && path.rsplit('.').next().map_or(false, |e| ["h", "c", "md", "sh", "json", "mk", "txt", "tsv"].contains(&e));
+    let path = if path == "TURING_CURRENT_STATE.md" {
+        "docs/turing/TURING_CURRENT_STATE.md"
+    } else {
+        path
+    };
+    let is_file = path.contains('/')
+        && path.rsplit('.').next().map_or(false, |e| {
+            ["h", "c", "md", "sh", "json", "mk", "txt", "tsv"].contains(&e)
+        });
     if !is_file || path.contains("..") || path.starts_with('/') {
         return None;
     }
-    let anchor = if line.is_empty() { String::new() } else { format!("#L{line}") };
-    Some(format!("https://github.com/aien-dev/{repo}/blob/main/{path}{anchor}"))
+    let anchor = if line.is_empty() {
+        String::new()
+    } else {
+        format!("#L{line}")
+    };
+    Some(format!(
+        "https://github.com/aien-dev/{repo}/blob/main/{path}{anchor}"
+    ))
 }
 
 impl StatusData {
@@ -235,8 +265,8 @@ pub fn parse(raw: &str) -> Result<StatusData, String> {
     if raw.contains('\u{2014}') || raw.contains('\u{2013}') {
         return Err("research status data contains an em dash or en dash".to_string());
     }
-    let data: StatusData =
-        serde_json::from_str(raw).map_err(|e| format!("research status data does not parse: {e}"))?;
+    let data: StatusData = serde_json::from_str(raw)
+        .map_err(|e| format!("research status data does not parse: {e}"))?;
     validate(&data)?;
     Ok(data)
 }
@@ -247,7 +277,9 @@ pub fn validate(d: &StatusData) -> Result<(), String> {
         return Err("allowed_statuses in the data file differs from the fixed set".to_string());
     }
     if d.allowed_ladder_states != ALLOWED_LADDER_STATES {
-        return Err("allowed_ladder_states in the data file differs from the fixed set".to_string());
+        return Err(
+            "allowed_ladder_states in the data file differs from the fixed set".to_string(),
+        );
     }
     if d.allowed_classes != ALLOWED_CLASSES {
         return Err("allowed_classes in the data file differs from the fixed set".to_string());
@@ -255,20 +287,31 @@ pub fn validate(d: &StatusData) -> Result<(), String> {
 
     let levels: Vec<&str> = d.ladder.iter().map(|s| s.level.as_str()).collect();
     if levels != LADDER_LEVELS {
-        return Err(format!("ladder levels must be exactly {:?}, found {:?}", LADDER_LEVELS, levels));
+        return Err(format!(
+            "ladder levels must be exactly {:?}, found {:?}",
+            LADDER_LEVELS, levels
+        ));
     }
     for s in &d.ladder {
         if !ALLOWED_LADDER_STATES.contains(&s.state.as_str()) {
-            return Err(format!("ladder step {} has unknown state {:?}", s.level, s.state));
+            return Err(format!(
+                "ladder step {} has unknown state {:?}",
+                s.level, s.state
+            ));
         }
     }
-    let links = d.ladder.iter().map(|s| (&s.level, &s.link))
+    let links = d
+        .ladder
+        .iter()
+        .map(|s| (&s.level, &s.link))
         .chain(d.turing_rows.iter().map(|r| (&r.id, &r.link)))
         .chain(d.implementation_rows.iter().map(|r| (&r.id, &r.link)));
     for (id, link) in links {
         if let Some(l) = link {
             if !l.starts_with("https://github.com/aien-dev/") {
-                return Err(format!("{id}: link must be on github.com/aien-dev, got {l:?}"));
+                return Err(format!(
+                    "{id}: link must be on github.com/aien-dev, got {l:?}"
+                ));
             }
         }
     }
@@ -293,7 +336,10 @@ pub fn validate(d: &StatusData) -> Result<(), String> {
     let first_gap = d.ladder.iter().position(|s| s.state != "achieved");
     if let Some(g) = first_gap {
         if let Some(s) = d.ladder[g..].iter().find(|s| s.state == "achieved") {
-            return Err(format!("ladder step {} is marked achieved above an unachieved step", s.level));
+            return Err(format!(
+                "ladder step {} is marked achieved above an unachieved step",
+                s.level
+            ));
         }
     }
 
@@ -304,18 +350,27 @@ pub fn validate(d: &StatusData) -> Result<(), String> {
         }
         seen.push(&r.id);
         if !ALLOWED_STATUSES.contains(&r.status.as_str()) {
-            return Err(format!("turing row {} has status {:?} outside the allowed set", r.id, r.status));
+            return Err(format!(
+                "turing row {} has status {:?} outside the allowed set",
+                r.id, r.status
+            ));
         }
     }
 
     let mut seen_impl: Vec<&str> = Vec::new();
     for r in &d.implementation_rows {
         if seen_impl.contains(&r.id.as_str()) {
-            return Err(format!("implementation row {} appears more than once", r.id));
+            return Err(format!(
+                "implementation row {} appears more than once",
+                r.id
+            ));
         }
         seen_impl.push(&r.id);
         if !ALLOWED_CLASSES.contains(&r.class.as_str()) {
-            return Err(format!("implementation row {} has class {:?} outside the allowed set", r.id, r.class));
+            return Err(format!(
+                "implementation row {} has class {:?} outside the allowed set",
+                r.id, r.class
+            ));
         }
     }
 
@@ -324,13 +379,22 @@ pub fn validate(d: &StatusData) -> Result<(), String> {
             .turing_row(&a.id)
             .ok_or_else(|| format!("attempt {} has no matching turing row", a.id))?;
         if row.status != a.outcome {
-            return Err(format!("attempt {} outcome {} disagrees with its row status {}", a.id, a.outcome, row.status));
+            return Err(format!(
+                "attempt {} outcome {} disagrees with its row status {}",
+                a.id, a.outcome, row.status
+            ));
         }
         if d.step(&a.beside).is_none() {
-            return Err(format!("attempt {} sits beside unknown level {}", a.id, a.beside));
+            return Err(format!(
+                "attempt {} sits beside unknown level {}",
+                a.id, a.beside
+            ));
         }
         if d.turing_row(&a.led_to).is_none() {
-            return Err(format!("attempt {} leads to unknown row {}", a.id, a.led_to));
+            return Err(format!(
+                "attempt {} leads to unknown row {}",
+                a.id, a.led_to
+            ));
         }
     }
     Ok(())
@@ -344,7 +408,9 @@ pub fn data() -> &'static StatusData {
 }
 
 fn ty2() -> &'static TuringRow {
-    data().turing_row("TY-2").expect("TY-2 row missing from research status data")
+    data()
+        .turing_row("TY-2")
+        .expect("TY-2 row missing from research status data")
 }
 
 // ------------------------------------------------------------------
@@ -360,7 +426,10 @@ pub fn ty2_title() -> &'static str {
     ty2().title.as_str()
 }
 pub fn ty2_headline() -> &'static str {
-    ty2().headline.as_deref().expect("TY-2 row needs a headline")
+    ty2()
+        .headline
+        .as_deref()
+        .expect("TY-2 row needs a headline")
 }
 pub fn ty2_plain() -> &'static str {
     ty2().plain.as_str()
@@ -407,7 +476,9 @@ pub fn turing_instrument_status() -> &'static str {
 /// current level, its limits and the TY-2 gain, all from a given data set.
 pub fn turing_instrument_note_for(d: &StatusData) -> String {
     let row = instrument_row(d);
-    let t = d.turing_row("TY-2").expect("TY-2 row missing from research status data");
+    let t = d
+        .turing_row("TY-2")
+        .expect("TY-2 row missing from research status data");
     format!(
         "{}. Current level: {}. {} {} TY-2 recorded {}. {}",
         row.status_detail,
@@ -448,7 +519,10 @@ pub fn paper_note() -> &'static str {
     static NOTE: OnceLock<String> = OnceLock::new();
     NOTE.get_or_init(|| {
         let d = data();
-        format!("The formal paper. {} Current level: {}.", d.turing_definition, d.current_level.summary)
+        format!(
+            "The formal paper. {} Current level: {}.",
+            d.turing_definition, d.current_level.summary
+        )
     })
 }
 
@@ -457,7 +531,10 @@ pub fn current_level_sentence() -> &'static str {
     static NOTE: OnceLock<String> = OnceLock::new();
     NOTE.get_or_init(|| {
         let c = &data().current_level;
-        format!("Current level: {}. {} {}", c.summary, c.outside_scope, c.note)
+        format!(
+            "Current level: {}. {} {}",
+            c.summary, c.outside_scope, c.note
+        )
     })
 }
 
@@ -822,7 +899,10 @@ mod tests {
         if labels.is_empty() {
             return Err("TY-2 card has no result label".to_string());
         }
-        if labels.iter().any(|l| l.to_lowercase().contains("turing yield")) {
+        if labels
+            .iter()
+            .any(|l| l.to_lowercase().contains("turing yield"))
+        {
             return Err("TY-2 result label says Turing yield".to_string());
         }
         if !labels.iter().any(|l| l.contains("gain")) {
@@ -853,7 +933,11 @@ mod tests {
             let n = d.turing_rows.iter().filter(|r| r.id == id).count();
             assert_eq!(n, 1, "row {id} appears {n} times");
         }
-        assert_eq!(d.turing_rows.len(), TABLE_TURING_IDS.len(), "unexpected extra turing rows");
+        assert_eq!(
+            d.turing_rows.len(),
+            TABLE_TURING_IDS.len(),
+            "unexpected extra turing rows"
+        );
         // Counterexample: duplicating a row must be rejected.
         let mut dup = d.clone();
         dup.turing_rows.push(dup.turing_rows[0].clone());
@@ -864,14 +948,28 @@ mod tests {
     fn no_status_outside_allowed_set() {
         let d = real();
         for r in &d.turing_rows {
-            assert!(ALLOWED_STATUSES.contains(&r.status.as_str()), "{} has {}", r.id, r.status);
+            assert!(
+                ALLOWED_STATUSES.contains(&r.status.as_str()),
+                "{} has {}",
+                r.id,
+                r.status
+            );
         }
         for r in &d.implementation_rows {
-            assert!(ALLOWED_CLASSES.contains(&r.class.as_str()), "{} has {}", r.id, r.class);
+            assert!(
+                ALLOWED_CLASSES.contains(&r.class.as_str()),
+                "{} has {}",
+                r.id,
+                r.class
+            );
         }
         // Counterexample: the old site word VERIFIED is not allowed.
         let mut bad = d.clone();
-        bad.turing_rows.iter_mut().find(|r| r.id == "TY-2").unwrap().status = "VERIFIED".into();
+        bad.turing_rows
+            .iter_mut()
+            .find(|r| r.id == "TY-2")
+            .unwrap()
+            .status = "VERIFIED".into();
         assert!(validate(&bad).is_err());
         // Counterexample: an implementation class outside the set.
         let mut bad2 = d.clone();
@@ -971,7 +1069,12 @@ mod tests {
         assert!(card.contains(">FAIL<"));
         // Counterexample: an attempt whose outcome disagrees with its row.
         let mut hidden = d.clone();
-        hidden.turing_rows.iter_mut().find(|r| r.id == "EXP-001").unwrap().status = "PASS".into();
+        hidden
+            .turing_rows
+            .iter_mut()
+            .find(|r| r.id == "EXP-001")
+            .unwrap()
+            .status = "PASS".into();
         assert!(validate(&hidden).is_err());
     }
 
@@ -982,11 +1085,20 @@ mod tests {
         check_ty2_card(&html).unwrap();
         // Counterexample: relabelling TY-2 as yield fails the check.
         let mut bad = d.clone();
-        bad.turing_rows.iter_mut().find(|r| r.id == "TY-2").unwrap().title = "TY-2 Turing yield".into();
+        bad.turing_rows
+            .iter_mut()
+            .find(|r| r.id == "TY-2")
+            .unwrap()
+            .title = "TY-2 Turing yield".into();
         assert!(check_ty2_card(&render_cards(&bad).into_string()).is_err());
         // Counterexample: dropping the not-yield statement fails the check.
         let mut quiet = d.clone();
-        quiet.turing_rows.iter_mut().find(|r| r.id == "TY-2").unwrap().not_yield = None;
+        quiet
+            .turing_rows
+            .iter_mut()
+            .find(|r| r.id == "TY-2")
+            .unwrap()
+            .not_yield = None;
         assert!(check_ty2_card(&render_cards(&quiet).into_string()).is_err());
     }
 
@@ -1018,7 +1130,10 @@ mod tests {
             if !inside {
                 return Err(format!("{id} is not in the research hypothesis group"));
             }
-            for class in ALLOWED_CLASSES.iter().filter(|c| **c != "Research hypothesis") {
+            for class in ALLOWED_CLASSES
+                .iter()
+                .filter(|c| **c != "Research hypothesis")
+            {
                 if let Some(g) = group_html(html, class) {
                     if g.contains(&plain) || g.contains(&marker) {
                         return Err(format!("{id} also renders under {class}"));
@@ -1068,7 +1183,10 @@ mod tests {
     /// shown to fail it.
     fn check_homepage(d: &StatusData) -> Result<(), String> {
         if turing_instrument_status_for(d) != "IMPLEMENTED" {
-            return Err(format!("instrument status is {}, table says Implemented", turing_instrument_status_for(d)));
+            return Err(format!(
+                "instrument status is {}, table says Implemented",
+                turing_instrument_status_for(d)
+            ));
         }
         let note = turing_instrument_note_for(d);
         if note.to_lowercase().contains("turing yield") || !note.contains("gain") {
@@ -1103,7 +1221,11 @@ mod tests {
         assert!(check_homepage(&hyp).is_err());
         // Counterexample: EXP-003 quietly upgraded to PASS.
         let mut up = d.clone();
-        up.turing_rows.iter_mut().find(|r| r.id == "EXP-003").unwrap().status = "PASS".into();
+        up.turing_rows
+            .iter_mut()
+            .find(|r| r.id == "EXP-003")
+            .unwrap()
+            .status = "PASS".into();
         assert!(check_homepage(&up).is_err());
         // Counterexample: TY-2 headline relabelled as yield.
         let mut y = d.clone();
@@ -1125,7 +1247,9 @@ mod tests {
             ("EXP-002B", &["1310e06", "111a5ea"][..]),
             ("EXP-002C", &["f546162", "111a5ea"][..]),
         ] {
-            let r = d.turing_row(id).ok_or_else(|| format!("{id} row missing"))?;
+            let r = d
+                .turing_row(id)
+                .ok_or_else(|| format!("{id} row missing"))?;
             if !r.receipt.contains("aien-sealed") {
                 return Err(format!("{id} receipt does not name aien-sealed"));
             }
@@ -1145,9 +1269,15 @@ mod tests {
         // Counterexample: each row in turn loses its pointers.
         for id in ["EXP-002A", "EXP-002B", "EXP-002C"] {
             let mut bad = d.clone();
-            bad.turing_rows.iter_mut().find(|r| r.id == id).unwrap().receipt =
-                "PRIVATE aien-sealed R3-49 (not read)".into();
-            assert!(check_sealed_pointers(&bad).is_err(), "{id} without commit passed");
+            bad.turing_rows
+                .iter_mut()
+                .find(|r| r.id == id)
+                .unwrap()
+                .receipt = "PRIVATE aien-sealed R3-49 (not read)".into();
+            assert!(
+                check_sealed_pointers(&bad).is_err(),
+                "{id} without commit passed"
+            );
         }
     }
 }
@@ -1159,9 +1289,15 @@ mod box_tests {
     #[test]
     fn evidence_resolves_to_github_or_honestly_to_the_data_file() {
         let qs = |n: &str| format!("{QS_RECORD}#L{n}");
-        assert_eq!(github_for_evidence("QS:101 \"met\"; definition only"), Some(qs("101")));
+        assert_eq!(
+            github_for_evidence("QS:101 \"met\"; definition only"),
+            Some(qs("101"))
+        );
         assert_eq!(github_for_evidence("QS:108-110"), Some(qs("108")));
-        assert_eq!(github_for_evidence("QS section 6; explainer:7"), Some(QS_RECORD.to_string()));
+        assert_eq!(
+            github_for_evidence("QS section 6; explainer:7"),
+            Some(QS_RECORD.to_string())
+        );
         assert_eq!(
             github_for_evidence("src/runtime/rx_world.h:2-8,73"),
             Some("https://github.com/aien-dev/omega-mv/blob/main/src/runtime/rx_world.h#L2".into())
@@ -1172,7 +1308,10 @@ mod box_tests {
         );
         assert_eq!(
             github_for_evidence("aien-architecture doctrine/ROADMAP.md rows M0-M40"),
-            Some("https://github.com/aien-dev/aien-architecture-mv/blob/main/doctrine/ROADMAP.md".into())
+            Some(
+                "https://github.com/aien-dev/aien-architecture-mv/blob/main/doctrine/ROADMAP.md"
+                    .into()
+            )
         );
         assert_eq!(
             github_for_evidence("omega src/runtime/rx_contract.c, rx_contract.h"),
@@ -1182,35 +1321,73 @@ mod box_tests {
             github_for_evidence("TURING_CURRENT_STATE.md:56; spec/x.md"),
             Some("https://github.com/aien-dev/omega-mv/blob/main/docs/turing/TURING_CURRENT_STATE.md#L56".into())
         );
-        for none in ["omega grep", "grep hits in those two files", "none", "rx_cortex.h:1-14", "../etc/passwd.md", ""] {
+        for none in [
+            "omega grep",
+            "grep hits in those two files",
+            "none",
+            "rx_cortex.h:1-14",
+            "../etc/passwd.md",
+            "",
+        ] {
             assert_eq!(github_for_evidence(none), None, "{none:?}");
         }
         let (href, target) = evidence_box(&None, "omega grep");
         assert_eq!(target, Target::Source);
         assert!(href.ends_with(DATA_FILE));
-        let (href, target) = evidence_box(&Some("https://github.com/aien-dev/omega-mv/pull/86".into()), "none");
-        assert_eq!((href.as_str(), target), ("https://github.com/aien-dev/omega-mv/pull/86", Target::Evidence));
+        let (href, target) = evidence_box(
+            &Some("https://github.com/aien-dev/omega-mv/pull/86".into()),
+            "none",
+        );
+        assert_eq!(
+            (href.as_str(), target),
+            (
+                "https://github.com/aien-dev/omega-mv/pull/86",
+                Target::Evidence
+            )
+        );
     }
 
     #[test]
     fn every_step_card_and_item_links_to_github() {
         let d = data();
         let ladder = render_ladder(d).into_string();
-        assert_eq!(crate::components::boxlink::check_boxes(&ladder), Ok(d.ladder.len()));
-        assert!(!ladder.contains("box-link-source"), "every ladder step cites a line of the qualification record");
+        assert_eq!(
+            crate::components::boxlink::check_boxes(&ladder),
+            Ok(d.ladder.len())
+        );
+        assert!(
+            !ladder.contains("box-link-source"),
+            "every ladder step cites a line of the qualification record"
+        );
         let cards = render_cards(d).into_string();
-        assert_eq!(crate::components::boxlink::check_boxes(&cards), Ok(d.turing_rows.len()));
-        assert!(!cards.contains("box-link-source"), "every experiment row has evidence on GitHub");
+        assert_eq!(
+            crate::components::boxlink::check_boxes(&cards),
+            Ok(d.turing_rows.len())
+        );
+        assert!(
+            !cards.contains("box-link-source"),
+            "every experiment row has evidence on GitHub"
+        );
         let imp = render_implementation(d).into_string();
-        assert_eq!(crate::components::boxlink::check_boxes(&imp), Ok(d.implementation_rows.len()));
+        assert_eq!(
+            crate::components::boxlink::check_boxes(&imp),
+            Ok(d.implementation_rows.len())
+        );
         let page = render_research_status_page().into_string();
         let n = crate::components::boxlink::check_boxes(&page).unwrap();
-        assert_eq!(n, d.ladder.len() + d.turing_rows.len() + d.implementation_rows.len());
+        assert_eq!(
+            n,
+            d.ladder.len() + d.turing_rows.len() + d.implementation_rows.len()
+        );
     }
 
     #[test]
     fn a_link_off_aien_dev_is_refused() {
-        let bad = RAW.replacen("\"link\": \"https://github.com/aien-dev/omega-mv/pull/86\"", "\"link\": \"https://example.com/x\"", 1);
+        let bad = RAW.replacen(
+            "\"link\": \"https://github.com/aien-dev/omega-mv/pull/86\"",
+            "\"link\": \"https://example.com/x\"",
+            1,
+        );
         assert!(bad != RAW);
         assert!(parse(&bad).unwrap_err().contains("github.com/aien-dev"));
     }

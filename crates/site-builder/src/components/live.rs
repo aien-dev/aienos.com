@@ -8,7 +8,11 @@ use crate::facts::{short_date, Facts};
 use super::boxlink::{foot, Target};
 
 fn short_sha(sha: &str) -> &str {
-    if sha.len() >= 12 { &sha[..12] } else { sha }
+    if sha.len() >= 12 {
+        &sha[..12]
+    } else {
+        sha
+    }
 }
 
 /// The receipt on GitHub: the check run itself when GitHub hosts it, else
@@ -153,15 +157,23 @@ mod tests {
 
     #[test]
     fn receipt_and_component_rows_link_to_github() {
-        let facts: Facts = serde_json::from_str(include_str!("../../../../facts.json")).expect("facts.json parses");
+        let facts: Facts = serde_json::from_str(include_str!("../../../../facts.json"))
+            .expect("facts.json parses");
         let page = render_live(&facts).into_string();
         let rows = facts.components.len();
         assert!(rows >= 1);
-        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(rows + 1), "every component row and the receipt link to GitHub");
+        assert_eq!(
+            crate::components::boxlink::check_boxes(&page),
+            Ok(rows + 1),
+            "every component row and the receipt link to GitHub"
+        );
         let mut r = facts.receipt.clone();
         r.target_url = "https://spark.example/receipt".into();
         r.sha = "abc123".into();
-        assert_eq!(receipt_link(&r), format!("https://github.com/{}/commit/abc123", r.repo));
+        assert_eq!(
+            receipt_link(&r),
+            format!("https://github.com/{}/commit/abc123", r.repo)
+        );
         r.target_url.clear();
         r.sha.clear();
         assert!(receipt_link(&r).ends_with("/commits/main"));

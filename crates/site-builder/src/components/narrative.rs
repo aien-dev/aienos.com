@@ -58,16 +58,33 @@ pub mod check {
 
     /// Status words that only the data may supply. Upper-case verdicts are
     /// matched exactly; class labels are matched as words in either case.
-    const VERDICTS: [&str; 7] =
-        ["PASS", "FAIL", "BLOCKED", "INCOMPLETE", "PARTIAL", "NOT STARTED", "NOT ESTABLISHED"];
-    const CLASS_WORDS: [&str; 5] = ["implemented", "planned", "experimental", "hypothesis", "achieved"];
+    const VERDICTS: [&str; 7] = [
+        "PASS",
+        "FAIL",
+        "BLOCKED",
+        "INCOMPLETE",
+        "PARTIAL",
+        "NOT STARTED",
+        "NOT ESTABLISHED",
+    ];
+    const CLASS_WORDS: [&str; 5] = [
+        "implemented",
+        "planned",
+        "experimental",
+        "hypothesis",
+        "achieved",
+    ];
     /// Lower-case uses allowed in fixed prose: the mission line calls AIENOS
     /// "an owned experimental machine", which describes the project, not a
     /// status; Cortex keeps "experimental conditions" as evidence; the Zeta
     /// exam names the Riemann hypothesis; the nature section says "Science
     /// runs hypothesis, experiment and theory". None of these is a status.
-    const ALLOWED_LOWER: [&str; 4] =
-        ["owned experimental machine", "experimental conditions", "Riemann hypothesis", "Science runs hypothesis"];
+    const ALLOWED_LOWER: [&str; 4] = [
+        "owned experimental machine",
+        "experimental conditions",
+        "Riemann hypothesis",
+        "Science runs hypothesis",
+    ];
 
     fn strip_tags(s: &str) -> String {
         let mut out = String::new();
