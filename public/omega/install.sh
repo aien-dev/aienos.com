@@ -19,7 +19,7 @@ for tool in curl sha256sum tar gzip readelf mktemp; do
 done
 # Immutable release URL and SHA are pinned together by the publication owner.
 expected_sha='eaf37ff32d17166de403372069b52aeb98b9523ce154b8f065ae9e4c161c8480'
-url=${OMEGA_DOWNLOAD_URL:-https://github.com/aien-dev/omega-mv/releases/download/v0.1.0-dev.1/omega-developer-linux-arm64-source.tar.gz}
+url=${OMEGA_DOWNLOAD_URL:-https://raw.githubusercontent.com/aien-dev/omega-mv/fd4c12224773253c063f732c7d9e64a5395104e1/releases/experimental/native-developer/omega-developer-linux-arm64-source.tar.gz}
 # Optional mirrors never change the required digest. HTTP is loopback-only.
 case $url in
     https://*|http://127.0.0.1:*/*|http://localhost:*/*) ;;
