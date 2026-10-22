@@ -1,7 +1,7 @@
 {
   "as_of": "2026-10-19",
   "source": "Spark ~/handoffs/2026-10-19-site-inventory.md and .json (ledger L057). Every row carries a public link; a fact without a link is not on the page.",
-  "judging": "Every number on this page is judged against two things only: the physical ceiling of the machine it ran on, and our own previous run. Nothing here is compared with anyone else's software.",
+  "judging": "Every number carries a source. Compare another system only with the same model on the same hardware, labelled measured by us or published by others. Keep the physical ceiling and our own previous run beside our numbers.",
   "ceilings": [
     {
       "id": "qwen38-27b-fp8-gb10",

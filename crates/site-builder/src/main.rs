@@ -277,20 +277,13 @@ fn verify_site(dist: &Path) {
     assert!(content.contains("<ol class=\"loop-stages\""), "Missing loop stage list in index.html");
 
     // The machines and the speeds (components::machines): five machines,
-    // the 27B on Omega first, every number beside its receipt, and no
-    // comparison with anyone else's system anywhere on the homepage.
+    // the 27B on Omega first and every number beside its receipt.
     assert!(content.contains("id=\"machines\""), "Missing machines section in index.html");
     assert!(content.contains("id=\"speed\""), "Missing speed section in index.html");
     for id in ["machine-spark", "machine-imac", "machine-pi5", "machine-qemu", "machine-rig", "speed-27b-live"] {
         assert!(content.contains(&format!("id=\"{id}\"")), "Missing {id} in index.html");
     }
     assert!(content.contains("7.63 tok/s"), "Missing the live 27B speed in index.html");
-    {
-        let lower = content.to_ascii_lowercase();
-        for w in components::machines::FORBIDDEN {
-            assert!(!lower.contains(w), "Comparison with another system on the homepage: {w:?}");
-        }
-    }
     assert!(dist.join("assets/machines.css").exists(), "Missing assets/machines.css");
     assert!(dist.join("machines.json").exists(), "Missing machines.json");
 
