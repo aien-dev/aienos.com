@@ -361,9 +361,9 @@ mod wording_tests {
                     continue;
                 }
                 scan_tree(&p, skip, hits, scanned)?;
-            } else if p.extension().is_some_and(|x| x == "tex") {
-                continue;
-            } else if skip.iter().any(|s| same_file(s, &p)) {
+            } else if p.extension().is_some_and(|x| x == "tex")
+                || skip.iter().any(|s| same_file(s, &p))
+            {
                 continue;
             } else {
                 match std::fs::read_to_string(&p) {
