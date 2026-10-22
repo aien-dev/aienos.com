@@ -13,7 +13,8 @@ permissions:
   id-token: write
 concurrency:
   group: pages
-  cancel-in-progress: true
+  # Let the active build finish; newer data can replace the pending run.
+  cancel-in-progress: false
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -30,6 +31,12 @@ jobs:
           if git fetch --depth 1 origin data/now 2>/dev/null; then
             git show FETCH_HEAD:now.tsv > public/data/now.tsv
             git show FETCH_HEAD:now-pulse.tsv > public/data/now-pulse.tsv || true
+            # Missing metrics stay absent; the dashboard shows unavailable, never zero.
+            if git cat-file -e FETCH_HEAD:renda-metrics.json 2>/dev/null; then
+              git show FETCH_HEAD:renda-metrics.json > public/data/renda-metrics.json
+            else
+              rm -f public/data/renda-metrics.json
+            fi
             echo "ledger: $(wc -l < public/data/now.tsv) lines"
           else
             echo "no data/now branch yet; /now/ renders empty"

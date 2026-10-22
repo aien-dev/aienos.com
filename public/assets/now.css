@@ -485,3 +485,75 @@
   color: var(--tl-green);
   text-decoration-color: var(--tl-green);
 }
+
+/* Renda cycle gauges are deliberately separate from the ledger cards. */
+.renda-section { background: radial-gradient(ellipse 72% 34rem at 50% 0%, rgba(36,66,115,.16), transparent 72%); }
+.renda-section .container { max-width: 1120px; }
+.renda-meta { display:flex; flex-wrap:wrap; align-items:center; gap:9px 22px; margin-top:26px; color:var(--tl-ink-3); font:11px/1.5 var(--font-mono); letter-spacing:.035em; }
+.renda-status { color:var(--tl-blue-soft); }
+.renda-status::before { content:""; display:inline-block; width:6px; height:6px; margin:0 8px 1px 0; border-radius:50%; background:var(--tl-blue); box-shadow:0 0 12px rgba(125,180,255,.5); }
+.renda-workers { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin-top:18px; }
+.renda-unit { min-width:0; border:1px solid rgba(125,180,255,.19); border-radius:20px; overflow:hidden; background:linear-gradient(155deg,rgba(19,27,42,.92),rgba(10,14,21,.94) 72%); box-shadow:0 22px 56px rgba(0,0,0,.25),inset 0 1px rgba(255,255,255,.025); transition:border-color .35s cubic-bezier(.22,.61,.36,1),transform .35s cubic-bezier(.22,.61,.36,1),box-shadow .35s ease; }
+.renda-unit:hover { transform:translateY(-3px); border-color:rgba(125,180,255,.43); box-shadow:0 26px 60px rgba(0,0,0,.35),0 0 26px rgba(70,110,180,.08); }
+.renda-unit-link { display:block; padding:23px 24px 18px; color:inherit; text-decoration:none; }
+.renda-unit-link:focus-visible,.renda-count:focus-visible,.renda-source:focus-visible { outline:2px solid var(--tl-blue-soft); outline-offset:3px; }
+.renda-unit-head { display:flex; align-items:center; gap:10px; }
+.renda-unit-head h3 { margin:0; font:650 18px/1.2 var(--font-mono); letter-spacing:.015em; color:var(--tl-ink); }
+.renda-live { width:8px; height:8px; flex:0 0 8px; border-radius:50%; background:var(--tl-green); box-shadow:0 0 14px rgba(0,229,153,.55); }
+.renda-state { margin-left:auto; color:var(--tl-ink-3); font:10px/1.4 var(--font-mono); letter-spacing:.06em; text-transform:uppercase; text-align:right; }
+.renda-stale .renda-live { background:#e4a95e; box-shadow:0 0 12px rgba(228,169,94,.34); }
+.renda-stale .renda-state { color:#e4b878; }
+.renda-idle .renda-live { background:var(--tl-ink-3); box-shadow:none; }
+.renda-gauge-wrap { max-width:370px; margin:5px auto 0; }
+.renda-gauge { display:block; width:100%; overflow:visible; }
+.renda-gauge-track,.renda-gauge-fill { fill:none; stroke-width:7; stroke-linecap:round; }
+.renda-gauge-track { stroke:rgba(125,180,255,.12); }
+.renda-gauge-fill { stroke:var(--tl-green); filter:drop-shadow(0 0 7px rgba(0,229,153,.32)); transition:stroke-dasharray .8s cubic-bezier(.22,.61,.36,1); }
+.renda-gauge-needle { stroke:rgba(236,240,252,.78); stroke-width:1.5; stroke-linecap:round; transform-origin:120px 126px; transition:transform .8s cubic-bezier(.22,.61,.36,1); }
+.renda-stale .renda-gauge-fill { stroke:#a47c4c; filter:none; }
+.renda-gauge-hub { fill:var(--tl-ink); stroke:rgba(125,180,255,.42); stroke-width:2; }
+.renda-gauge-number { fill:var(--tl-ink); font:500 28px var(--font-mono); text-anchor:middle; letter-spacing:-.04em; }
+.renda-gauge-unit,.renda-gauge-end { fill:var(--tl-ink-3); font:9px var(--font-mono); letter-spacing:.045em; text-anchor:middle; }
+.renda-gauge-end { font-size:8px; }
+.renda-readings { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); border-top:1px solid var(--tl-line); border-bottom:1px solid var(--tl-line); }
+.renda-reading { min-width:0; padding:12px 10px; display:flex; flex-direction:column; gap:5px; text-align:center; }
+.renda-reading + .renda-reading { border-left:1px solid var(--tl-line); }
+.renda-reading span { color:var(--tl-ink-3); font-size:10px; letter-spacing:.03em; }
+.renda-reading strong { color:var(--tl-ink-2); font:500 11px/1.35 var(--font-mono); overflow-wrap:anywhere; }
+.renda-unit-foot { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px 14px; padding-top:14px; color:var(--tl-ink-3); font:10px/1.5 var(--font-mono); }
+.renda-evidence { color:var(--tl-blue-soft); white-space:nowrap; font-size:9px; letter-spacing:.025em; }
+.renda-unit-link:hover .renda-evidence,.renda-count:hover .renda-evidence,.renda-source:hover { color:var(--tl-green); }
+.renda-window { margin-top:24px; border:1px solid var(--tl-line); border-radius:16px; background:rgba(13,17,25,.78); overflow:hidden; }
+.renda-window-head { display:flex; justify-content:space-between; align-items:baseline; gap:12px; padding:16px 19px; border-bottom:1px solid var(--tl-line); }
+.renda-window-head h3 { margin:0; font-size:14px; font-weight:650; color:var(--tl-ink); }
+.renda-window-head span { color:var(--tl-ink-3); font:10px/1.4 var(--font-mono); text-align:right; }
+.renda-counts { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); }
+.renda-count { min-width:0; display:flex; flex-direction:column; gap:5px; padding:15px 13px 13px; color:inherit; text-decoration:none; transition:background .25s ease; }
+.renda-count + .renda-count { border-left:1px solid var(--tl-line); }
+.renda-count:hover { background:rgba(125,180,255,.045); }
+.renda-count strong { font:500 20px/1.1 var(--font-mono); color:var(--tl-ink); }
+.renda-count span:not(.renda-evidence) { color:var(--tl-ink-3); font-size:10px; line-height:1.35; }
+.renda-count .renda-evidence { padding-top:5px; }
+.renda-footnote { margin:14px 0 0; max-width:90ch; color:var(--tl-ink-3); font-size:11px; line-height:1.55; }
+.renda-source { display:inline-block; margin-top:12px; color:var(--tl-blue-soft); font:10px/1.4 var(--font-mono); text-decoration:none; }
+@media(max-width:760px) {
+  .renda-workers { grid-template-columns:1fr; }
+  .renda-counts { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .renda-count:nth-child(4) { border-left:0; }
+  .renda-count:nth-child(n+4) { border-top:1px solid var(--tl-line); }
+  .renda-window-head { align-items:flex-start; flex-direction:column; gap:5px; }
+  .renda-window-head span { text-align:left; }
+}
+@media(max-width:420px) {
+  .renda-unit-link { padding:18px 14px 15px; }
+  .renda-reading { padding:10px 4px; }
+  .renda-reading span { font-size:9px; }
+  .renda-reading strong { font-size:10px; }
+  .renda-count { padding:12px 9px; }
+  .renda-count strong { font-size:17px; }
+  .renda-count span:not(.renda-evidence) { font-size:9px; }
+  .renda-count .renda-evidence { white-space:normal; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .renda-unit,.renda-gauge-fill,.renda-gauge-needle,.renda-count { transition:none; }
+}
