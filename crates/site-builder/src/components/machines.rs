@@ -5,7 +5,7 @@
 //! and validated at build time and in the tests. Every machine and every
 //! speed row must carry a public link; a row without one fails the build.
 //! Numbers stand beside the physical ceiling of the machine they ran on
-//! and beside our own previous run, never beside anyone else's system,
+//! and beside my own previous run, never beside anyone else's system,
 //! and the data is checked for the words that would break that rule.
 //! The homepage shows both sections; /machine/ shows the machines first,
 //! before the theory, so the page describes real hardware.
@@ -20,7 +20,7 @@ use super::boxlink::{foot, Target};
 /// The raw data file, compiled into the binary.
 pub const RAW: &str = include_str!("../../data/machines.json");
 
-/// Words that compare us with other people's systems. None may appear in
+/// Words that compare my work with other people's systems. None may appear in
 /// the data or on the rendered sections.
 pub const FORBIDDEN: [&str; 7] = [
     "faster than", "x faster", "llama.cpp", "vllm", "ollama", "beats ", "beat the",
@@ -346,7 +346,7 @@ fn speed_row(d: &Data, s: &Speed) -> Markup {
                     span class="mx-sub mx-none" { "none published" }
                 }
             }
-            td class="mx-td-prev" data-label="Our previous run" {
+            td class="mx-td-prev" data-label="My previous run" {
                 @if s.previous.is_empty() {
                     span class="mx-sub mx-none" { "first of its kind" }
                 } @else {
@@ -374,9 +374,9 @@ pub fn render_speeds_section() -> Markup {
             div class="container" {
                 div class="mx-head" {
                     p class="kicker" { "Speed, with receipts" }
-                    h2 id="speed-title" class="mx-h2" { "A 27B model on our own engine, today" }
+                    h2 id="speed-title" class="mx-h2" { "A 27B model on my own engine, today" }
                     p class="mx-lead" {
-                        "Qwen3.8-27B answers through our own server on our own GPU kernels, on the Spark. The first row is the door a visitor uses; the rest are the engine alone, the smaller Rig engine and the long-context cost. Every row links to the folder its number came from."
+                        "Qwen3.8-27B answers through my own server on my own GPU kernels, on the Spark. The first row is the door a visitor uses; the rest are the engine alone, the smaller Rig engine and the long-context cost. Every row links to the folder its number came from."
                     }
                 }
                 div class="mx-hero" {
@@ -395,7 +395,7 @@ pub fn render_speeds_section() -> Markup {
                     @if !first.previous.is_empty() {
                         div class="mx-hero-p mx-hero-prev" {
                             (big_value(first.previous.split(',').next().unwrap_or("")))
-                            span class="mx-hero-l" { "our previous run" }
+                            span class="mx-hero-l" { "my previous run" }
                         }
                     }
                     a class="mx-hero-r" href=(first.link) target="_blank" rel="noopener noreferrer" {
@@ -410,7 +410,7 @@ pub fn render_speeds_section() -> Markup {
                                 th { "Machine and engine" }
                                 th { "Measured" }
                                 th { "Ceiling" }
-                                th { "Our previous run" }
+                                th { "My previous run" }
                                 th { "Date" }
                                 th { "Receipt" }
                             }

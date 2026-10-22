@@ -8,7 +8,7 @@ use std::process::Command;
 
 /// Editorial part: what each component is. Live part is filled in by `gather`.
 pub const COMPONENTS: &[(&str, &str, &str, &str)] = &[
-    // key, display name, repository, role (one line, ours)
+    // key, display name, repository, role (one line, mine)
     ("aienos", "AIENOS", "aien-dev/aienos", "The operating system. Agent-first; the model is never the kernel."),
     ("omega", "Omega", "aien-dev/omega", "The language and GPU engine the stack is being rewritten into."),
     ("sovereign-core", "Sovereign core", "aien-dev/aien-sovereign-core", "Host runtime, inference ABI, and the pipeline that judges every change."),

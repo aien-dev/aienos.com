@@ -200,7 +200,7 @@ fn section_cortex() -> Markup {
             }
             p { "With that evidence in place, AIEN will be able to ask:" }
             ul class="narr-questions" {
-                li { "What did we already try?" }
+                li { "What did AIEN already try?" }
                 li { "Why did it fail?" }
                 li { "Under what regime did it work?" }
                 li { "What evidence supports this abstraction?" }

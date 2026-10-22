@@ -149,7 +149,7 @@ pub const QUESTIONS: [(&str, &str, &str, QStatus, Option<&str>); 3] = [
         "Search / verification gap",
         "Whether acquired abstraction would collapse future search complexity.",
         QStatus::NoRow,
-        Some("An open question we want to study. Nothing here is measured yet."),
+        Some("An open question I want to study. Nothing here is measured yet."),
     ),
 ];
 
