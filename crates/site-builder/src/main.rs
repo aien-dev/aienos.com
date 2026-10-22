@@ -372,13 +372,13 @@ fn verify_site(dist: &Path) {
     {
         let c = fs::read_to_string(&cudapp_page).expect("read cudaplusplus page");
         for phrase in [
-            "CUDA++ is the GPU half of Omega",
+            "CUDA++ is the GPU half of the Omega runtime",
             "Less computation, out of the big data centers.",
             "id=\"path\"",
             "id=\"how\"",
             "id=\"pain-points\"",
             "id=\"swap\"",
-            "https://github.com/aien-dev/CUDAplusplus",
+            "https://github.com/aien-dev/CUDApp",
         ] {
             assert!(c.contains(phrase), "Missing on /cudaplusplus/: {phrase}");
         }

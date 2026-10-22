@@ -1,10 +1,10 @@
 //! /cudaplusplus/: CUDA++, the GPU half of Omega, as its own open source
-//! project (aien-dev/CUDAplusplus, MIT).
+//! project (aien-dev/CUDApp, MIT; GitHub slugs cannot hold a plus sign).
 //!
 //! The page renders, from `data/cudaplusplus.json`: what CUDA++ is and what
 //! it is for; the path from a program to the chip, each hop lit by whose
-//! code runs there (ours with a receipt, ours in part, ours being built,
-//! NVIDIA's for a physical reason); how we did it, step by step; CUDA's
+//! code runs there (mine with a receipt, mine in part, mine being built,
+//! NVIDIA's for a physical reason); how I did it, step by step; CUDA's
 //! pain points and the fix for each; and the swap that takes CUDA off a
 //! machine down to the kernel driver.
 //!
@@ -22,7 +22,7 @@ use serde::Deserialize;
 use super::boxlink::{foot_labelled, Target};
 
 pub const TITLE: &str = "CUDA++ | AienOS";
-pub const DESCRIPTION: &str = "CUDA++ is the GPU half of Omega: everything CUDA gives you plus the motor, for the NVIDIA GPUs people already own, with no NVIDIA user-space software. MIT. What it is for, how we did it, CUDA's pain points and the swap.";
+pub const DESCRIPTION: &str = "CUDA++ is the GPU half of the Omega runtime, under the MIT licence so anyone can use it (aien-dev/CUDApp). No NVIDIA user-space software. What it is for, how I did it, CUDA's pain points and the swap.";
 pub const URL: &str = "https://www.aienos.com/cudaplusplus/";
 
 /// The data file, compiled in and published as /cudaplusplus.json.
@@ -121,9 +121,9 @@ pub struct Row {
 /// on this site. Files on branches are always pinned to a full commit.
 pub fn expand(link: &str) -> Result<String, String> {
     const MAP: [(&str, &str, bool); 7] = [
-        ("cp/:", "https://github.com/aien-dev/CUDAplusplus/tree/main/", false),
-        ("cp@:", "https://github.com/aien-dev/CUDAplusplus/blob/", true),
-        ("cp:", "https://github.com/aien-dev/CUDAplusplus/blob/main/", false),
+        ("cp/:", "https://github.com/aien-dev/CUDApp/tree/main/", false),
+        ("cp@:", "https://github.com/aien-dev/CUDApp/blob/", true),
+        ("cp:", "https://github.com/aien-dev/CUDApp/blob/main/", false),
         ("om@:", "https://github.com/aien-dev/omega-mv/blob/", true),
         ("ax@:", "https://github.com/aien-dev/aienux/blob/", true),
         ("sc@/:", "https://github.com/aien-dev/aien-sovereign-core-mv/tree/", true),
@@ -331,7 +331,7 @@ pub fn render_cudaplusplus_page() -> Markup {
                         }
                         div class="om-verdict om-verdict-not" {
                             p class="om-verdict-k" { "The repository" }
-                            p class="om-verdict-s mono" { (ext(&d.source.repo, "aien-dev/CUDAplusplus")) }
+                            p class="om-verdict-s mono" { (ext(&d.source.repo, "aien-dev/CUDApp")) }
                             p class="cp-purpose" { (d.private_note) }
                             a class="om-verdict-a" href=(gh(&d.audit_link)) target="_blank" rel="noopener noreferrer" { "The audit, docs/AUDIT.md" }
                         }
@@ -340,8 +340,13 @@ pub fn render_cudaplusplus_page() -> Markup {
                         "Written from the CUDA++ "
                         (ext(&gh(&d.source.readme), "README"))
                         " (main at " span class="mono" { (d.source.main_commit) } "), "
-                        (ext(&gh(&d.source.how), "docs/HOW_WE_DID_IT.md"))
-                        " (branch " span class="mono" { (d.source.how_branch) } " at " span class="mono" { (d.source.how_commit) } ") and Omega's "
+                        (ext(&gh(&d.source.how), "docs/HOW_I_DID_IT.md"))
+                        @if d.source.how_branch == "main" {
+                            " (main at " span class="mono" { (d.source.how_commit) } ") "
+                        } @else {
+                            " (branch " span class="mono" { (d.source.how_branch) } " at " span class="mono" { (d.source.how_commit) } ") "
+                        }
+                        "and Omega's "
                         (ext(&gh(&d.source.omega_doc), "docs/OMEGA.md"))
                         " (branch " span class="mono" { (d.source.omega_branch) } " at " span class="mono" { (d.source.omega_commit) } "), checked " (d.source.checked) ". "
                         "Ledger item " a href=(format!("/now/#{}", d.source.ledger)) { (d.source.ledger) } " tracks this page; "
@@ -352,7 +357,7 @@ pub fn render_cudaplusplus_page() -> Markup {
                     }
                     nav class="om-toc" aria-label="On this page" {
                         a href="#path" { "From your program to the chip" }
-                        a href="#how" { "How we did it" }
+                        a href="#how" { "How I did it" }
                         a href="#pain-points" { "CUDA's pain points" }
                         a href="#swap" { "Swap CUDA out" }
                     }
@@ -364,8 +369,8 @@ pub fn render_cudaplusplus_page() -> Markup {
                     p class="om-kicker" { "1 \u{00B7} From your program to the chip" }
                     h2 class="om-h2" { "Whose code runs at each step" }
                     p class="om-sub" {
-                        "Each step a GPU program goes through, top to bottom, with the NVIDIA part CUDA uses there and what CUDA++ uses instead. The line on the left is lit by whose code runs: green ours with a receipt, blue ours in part, amber ours being built, grey NVIDIA's. Today "
-                        span class="mono" { (ours) } " steps are ours with a receipt and " span class="mono" { (building) } " is being built."
+                        "Each step a GPU program goes through, top to bottom, with the NVIDIA part CUDA uses there and what CUDA++ uses instead. The line on the left is lit by whose code runs: green, my code with a receipt, blue, my code in part, amber, my code being built, grey NVIDIA's. Today "
+                        span class="mono" { (ours) } " steps are my code with a receipt and " span class="mono" { (building) } " is being built."
                     }
                     ol class="cp-path" {
                         @for h in &d.hops {
@@ -390,7 +395,7 @@ pub fn render_cudaplusplus_page() -> Markup {
 
             section id="how" class="om-section" {
                 div class="container" {
-                    p class="om-kicker" { "2 \u{00B7} How we did it" }
+                    p class="om-kicker" { "2 \u{00B7} How I did it" }
                     h2 class="om-h2" { "Skip every closed layer" }
                     p class="om-sub" { (d.how_lead) }
                     div class="cp-steps" {
@@ -404,7 +409,7 @@ pub fn render_cudaplusplus_page() -> Markup {
                         }
                     }
                     article class="cp-card cp-didnot" {
-                        h3 class="om-gap-title" { "What we did not do" }
+                        h3 class="om-gap-title" { "What I did not do" }
                         ul class="cp-list" {
                             @for t in &d.did_not { li { (t) } }
                         }
@@ -443,14 +448,14 @@ mod tests {
     fn data_parses_and_validates() {
         let d = parse(RAW).unwrap();
         validate(&d).unwrap();
-        assert!(d.claim.starts_with("CUDA++ is the GPU half of Omega"));
+        assert!(d.claim.starts_with("CUDA++ is the GPU half of the Omega runtime"));
         assert_eq!(d.steps.len(), 4);
     }
 
     #[test]
     fn page_names_it_with_the_plus_signs() {
         let s = render_cudaplusplus_page().into_string();
-        assert!(s.contains("<h1 class=\"om-title\">CUDA++ is the GPU half of Omega: everything CUDA gives you, plus the motor.</h1>"));
+        assert!(s.contains("<h1 class=\"om-title\">CUDA++ is the GPU half of the Omega runtime, under the MIT licence so anyone can use it.</h1>"));
         assert_eq!(s.matches("<h1").count(), 1);
         assert!(s.contains("Less computation, out of the big data centers."));
         for id in ["path", "how", "pain-points", "swap"] {
@@ -464,7 +469,9 @@ mod tests {
         let n = check_boxes(&s).unwrap();
         let d = data();
         assert_eq!(n, d.hops.len() + d.steps.len() + 1 + d.pains.len() + d.swaps.len());
-        assert!(s.contains("https://github.com/aien-dev/CUDAplusplus/blob/62ea5a214d46f36e88cb7b892cecebf1f3e8a172/docs/HOW_WE_DID_IT.md"));
+        assert!(s.contains("https://github.com/aien-dev/CUDApp/blob/232332422bfdc31c8918085b50f13c1e18ab702e/docs/HOW_I_DID_IT.md"));
+        assert!(s.contains("aien-dev/CUDApp"));
+        assert!(s.contains("aien-dev/CUDAplusplus redirects"));
     }
 
     #[test]

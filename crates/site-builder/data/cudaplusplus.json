@@ -1,28 +1,28 @@
 {
   "source": {
-    "repo": "https://github.com/aien-dev/CUDAplusplus",
+    "repo": "https://github.com/aien-dev/CUDApp",
     "readme": "cp:README.md",
-    "how": "cp@:62ea5a214d46f36e88cb7b892cecebf1f3e8a172/docs/HOW_WE_DID_IT.md",
-    "how_branch": "docs/how-we-did-it",
-    "how_commit": "62ea5a2",
-    "main_commit": "fc90713",
+    "how": "cp@:232332422bfdc31c8918085b50f13c1e18ab702e/docs/HOW_I_DID_IT.md",
+    "how_branch": "main",
+    "how_commit": "2323324",
+    "main_commit": "2323324",
     "omega_doc": "om@:89aad7c99b4fced80f92b656d2a3f350699456f0/docs/OMEGA.md",
     "omega_branch": "docs/what-omega-is",
     "omega_commit": "89aad7c",
     "checked": "2026-10-22",
     "ledger": "L402",
-    "visibility": "private",
+    "visibility": "public",
     "owner_ledger": "L395"
   },
-  "claim": "CUDA++ is the GPU half of Omega: everything CUDA gives you, plus the motor.",
+  "claim": "CUDA++ is the GPU half of the Omega runtime, under the MIT licence so anyone can use it.",
   "claim_rest": [
-    "It runs on the NVIDIA GPUs people already own, with no NVIDIA user-space software: no CUDA toolkit, no nvcc, no PTX, no libcuda, no cuBLAS. It is its own open source project, under the MIT licence, in the repository aien-dev/CUDAplusplus.",
+    "You write a GPU program, CUDA++ turns it into the GPU's own machine code and runs it on an NVIDIA GPU, with no NVIDIA user-space software: no CUDA toolkit, no nvcc, no PTX, no libcuda, no cuBLAS. The repository is aien-dev/CUDApp.",
     "It runs on the NVIDIA GB10 in the DGX Spark today. On 2026-10-21 the 35 billion parameter model AIEN serves on the Spark was running on this code with zero CUDA libraries loaded."
   ],
   "purpose_title": "Less computation, out of the big data centers.",
   "purpose": "The goal is not a faster way to rent a data center. It is to need less of one: the same work with fewer bytes moved, fewer operations and fewer joules per answer, so it runs on a machine a person owns (a DGX Spark, a PC with one graphics card, a laptop). Every result is reported as work per answer, against the machine's own ceiling.",
   "purpose_link": "om@:89aad7c99b4fced80f92b656d2a3f350699456f0/docs/OMEGA.md",
-  "private_note": "The repository is private until its licence and safety audit is done (ledger L395), then it is made public. Until then the links into it on this page do not open.",
+  "private_note": "Public. GitHub slugs cannot hold a plus sign, so the address is CUDApp. aien-dev/CUDAplusplus redirects there. The licence and safety audit is docs/AUDIT.md, CLEAN for the history it covers.",
   "audit_link": "cp:docs/AUDIT.md",
   "hops": [
     {
@@ -37,7 +37,7 @@
     {
       "step": "Compile to machine code",
       "cuda": "nvcc, NVVM, PTX, ptxas",
-      "ours": "Our own sm_121 encoder and register allocator: 59 instruction kinds, launch descriptors.",
+      "ours": "My own sm_121 encoder and register allocator: 59 instruction kinds, launch descriptors.",
       "status": "PASS",
       "note": "every kernel the live server runs is encoded by it",
       "links": [["encoder", "cp:src/omega_blackwell_encoder.c"]],
@@ -46,7 +46,7 @@
     {
       "step": "Talk to the driver",
       "cuda": "libcuda",
-      "ours": "Our own client for the open kernel module's ioctls, written from its MIT headers.",
+      "ours": "My own client for the open kernel module's ioctls, written from its MIT headers.",
       "status": "PASS",
       "note": "no libcuda linked",
       "links": [["nvrm client", "cp/:nvrm"], ["open headers", "cp/:third_party/nvidia-open-580.173.02"]],
@@ -66,7 +66,7 @@
       "cuda": "cuBLAS, cuDNN, CUB",
       "ours": "Matrix multiply (BF16, FP8, 4 bit, ternary), decode and prefill attention, frozen-order reductions.",
       "status": "PARTIAL",
-      "note": "shaped for the models we run; no any-shape GEMM yet",
+      "note": "shaped for the models AIEN runs; no any-shape GEMM yet",
       "links": [["reductions receipt", "cp/:evidence/E1-CLOSURE"]],
       "box": "cp:ROADMAP.md#1-nvidia-software-on-the-spark-today"
     },
@@ -99,67 +99,67 @@
       "box": "cp:ROADMAP.md#1-nvidia-software-on-the-spark-today"
     }
   ],
-  "how_lead": "One person and a team of AI coding agents, one DGX Spark, four weeks. NVIDIA publishes the source of its Linux kernel module, but not its compiler, its driver library or the GPU's machine code. So we skipped every closed layer.",
+  "how_lead": "I built it alone on one DGX Spark in under four weeks, directing AI coding agents. NVIDIA publishes the source of its Linux kernel module, but not its compiler, its driver library or the GPU's machine code. So I skipped every closed layer.",
   "steps": [
     {
       "title": "1. The driver client, from the open kernel module's headers",
-      "text": "libcuda is closed, but everything it does to the hardware goes through ioctls that the open kernel module defines in its public headers. We copied 67 of those headers unchanged (MIT) and wrote our own client against them: client, device, address space, memory, command ring, compute object, doorbell, completion.",
+      "text": "libcuda is closed, but everything it does to the hardware goes through ioctls that the open kernel module defines in its public headers. I copied 67 of those headers unchanged (MIT) and wrote my own client against them: client, device, address space, memory, command ring, compute object, doorbell, completion.",
       "links": [["nvrm client", "cp/:nvrm"], ["the 67 headers", "cp/:third_party/nvidia-open-580.173.02"], ["no libcuda receipt", "cp:evidence/m16-blackwell-native-path-requalification-receipt.json"]],
-      "box": "cp@:62ea5a214d46f36e88cb7b892cecebf1f3e8a172/docs/HOW_WE_DID_IT.md#step-1-talk-to-the-kernel-module-without-libcuda"
+      "box": "cp@:232332422bfdc31c8918085b50f13c1e18ab702e/docs/HOW_I_DID_IT.md#step-1-talk-to-the-kernel-module-without-libcuda"
     },
     {
       "title": "2. The machine code, reverse engineered",
-      "text": "NVIDIA does not publish the GPU's instruction encoding. We compiled small probe kernels of our own once with NVIDIA's compiler, read the machine code back with NVIDIA's disassembler as an offline oracle, and compared kernels that differ in one detail to see which bits mean what. We cross-checked against Mesa's open NVIDIA compiler, NAK, and believed nothing until the chip ran it and gave the right answer. The tensor-core arithmetic was measured on the chip over 2,048 cases until one model matched every output bit.",
+      "text": "NVIDIA does not publish the GPU's instruction encoding. I compiled small probe kernels of my own once with NVIDIA's compiler, read the machine code back with NVIDIA's disassembler as an offline oracle, and compared kernels that differ in one detail to see which bits mean what. I cross-checked against Mesa's open NVIDIA compiler, NAK, and believed nothing until the chip ran it and gave the right answer. The tensor-core arithmetic was measured on the chip over 2,048 cases until one model matched every output bit.",
       "links": [["encoder", "cp:src/omega_blackwell_encoder.c"], ["tensor-core probe", "cp:tests/gpu_tc_probe_test.c"], ["third-party notices", "cp:THIRD_PARTY.md"]],
-      "box": "cp@:62ea5a214d46f36e88cb7b892cecebf1f3e8a172/docs/HOW_WE_DID_IT.md#step-2-learn-the-machine-code-the-reverse-engineering"
+      "box": "cp@:232332422bfdc31c8918085b50f13c1e18ab702e/docs/HOW_I_DID_IT.md#step-2-learn-the-machine-code-the-reverse-engineering"
     },
     {
       "title": "3. Launches in NVK's order",
-      "text": "A launch on Blackwell is a short list of commands in the channel ring. We took their order from Mesa's NVK Vulkan driver and the method offsets from the open headers, built our own command lists, and measured them: about 24 to 31 microseconds per extra dependent launch.",
+      "text": "A launch on Blackwell is a short list of commands in the channel ring. I took their order from Mesa's NVK Vulkan driver and the method offsets from the open headers, built my own command lists, and measured them: about 24 to 31 microseconds per extra dependent launch.",
       "links": [["command lists", "cp:src/omega_gpu_cmdlist.c"], ["launch cost receipt", "cp/:evidence/OWN30B-LAUNCH-COST-20261014T0120Z"]],
-      "box": "cp@:62ea5a214d46f36e88cb7b892cecebf1f3e8a172/docs/HOW_WE_DID_IT.md#step-3-launch-work-like-the-driver-does"
+      "box": "cp@:232332422bfdc31c8918085b50f13c1e18ab702e/docs/HOW_I_DID_IT.md#step-3-launch-work-like-the-driver-does"
     },
     {
       "title": "4. Built up, nothing counts until the chip agrees",
-      "text": "2026-09-26 vector add on the GB10. 2026-10-02 numerics closed on the chip. 2026-10-13 our own probes measured the tensor cores at 115.14 TFLOPS and memory reads at 195.1 GB/s. 2026-10-21 a 35B model served on this code with zero CUDA libraries in the process.",
+      "text": "2026-09-26 vector add on the GB10. 2026-10-02 numerics closed on the chip. 2026-10-13 my own probes measured the tensor cores at 115.14 TFLOPS and memory reads at 195.1 GB/s. 2026-10-21 a 35B model served on this code with zero CUDA libraries in the process.",
       "links": [["numerics receipt", "cp/:evidence/E1-CLOSURE"], ["ceiling receipt", "cp/:evidence/OWN30B-T3-TC-PEAK-BW-5faa0f70-20261013T2236Z"]],
-      "box": "cp@:62ea5a214d46f36e88cb7b892cecebf1f3e8a172/docs/HOW_WE_DID_IT.md#step-4-build-up-checking-everything"
+      "box": "cp@:232332422bfdc31c8918085b50f13c1e18ab702e/docs/HOW_I_DID_IT.md#step-4-build-up-checking-everything"
     }
   ],
   "did_not": [
-    "No NVIDIA source code other than the open kernel module headers, and no NVIDIA binary. No libcuda, cubin, PTX or firmware in the repository or its history.",
-    "We did not take apart libcuda, nvcc or any other NVIDIA program. We ran NVIDIA's compiler and disassembler on our own small kernels and read what they printed.",
-    "We did not touch the GPU's firmware. It is still NVIDIA's, and the chip checks its signature.",
-    "We did not translate CUDA programs to run on other hardware. CUDA++ runs on NVIDIA GPUs, the ones people already paid for."
+    "I used no NVIDIA source code other than the open kernel module headers, and no NVIDIA binary. There is no libcuda, cubin, PTX or firmware in this repository or its history.",
+    "I did not take apart libcuda, nvcc or any other NVIDIA program. I ran NVIDIA's compiler and disassembler on my own small kernels and read what they printed.",
+    "I did not touch the GPU's firmware. It is still NVIDIA's, and the chip checks its signature.",
+    "I did not translate CUDA programs to run on other hardware. CUDA++ runs on NVIDIA GPUs, the ones people already paid for."
   ],
-  "did_not_box": "cp@:62ea5a214d46f36e88cb7b892cecebf1f3e8a172/docs/HOW_WE_DID_IT.md#what-we-did-not-do",
+  "did_not_box": "cp@:232332422bfdc31c8918085b50f13c1e18ab702e/docs/HOW_I_DID_IT.md#what-i-did-not-do",
   "pain_lead": "What makes CUDA hard to use and hard to leave, how CUDA++ fixes each one, and the command that shows it. A row is marked fixed only with its receipt.",
   "pains": [
     {
       "title": "CUDA's pain points and the fix for each",
-      "text": "Being written in docs/PAIN_POINTS.md and a README section of CUDA++: each pain point people report, how CUDA++ answers it, and the one command that shows the answer.",
+      "text": "Written in docs/PAIN_POINTS.md on main: eleven pain points, each with a count, a source, and CUDA++'s answer. Some answers are done on the host (evidence/dx/); chip runs are still open, so this row stays in progress.",
       "status": "IN PROGRESS",
       "ledger": "L400",
-      "links": [["L400 on /now/", "/now/#L400"]],
-      "box": "s:crates/site-builder/data/cudaplusplus.json"
+      "links": [["the research", "cp:docs/PAIN_POINTS.md"], ["host receipts", "cp/:evidence/dx/pain-points"], ["L400 on /now/", "/now/#L400"]],
+      "box": "cp:docs/PAIN_POINTS.md"
     }
   ],
   "swap_lead": "Take CUDA off a machine and put CUDA++ in its place, all the way down to the kernel driver, with one command each way.",
   "swaps": [
     {
       "title": "User space: cudapp swap",
-      "text": "A drop-in libcuda.so.1 on the CUDA++ runtime, so a CUDA program runs unmodified on CUDA++. One command in, one command back. Written up in docs/SWAP.md.",
+      "text": "The command is swap/cudapp on main: cudapp swap user and cudapp swap back, dry run unless --yes, every changed file copied first and checked by SHA-256 on the way back. A host test runs it on a fake root (tests/swap/test_swap_cli.sh). docs/SWAP.md is named in the script and is not on main, so this row stays in progress.",
       "status": "IN PROGRESS",
       "ledger": "L401",
-      "links": [["L401 on /now/", "/now/#L401"]],
-      "box": "s:crates/site-builder/data/cudaplusplus.json"
+      "links": [["the command", "cp:swap/cudapp"], ["host test", "cp:tests/swap/test_swap_cli.sh"], ["L401 on /now/", "/now/#L401"]],
+      "box": "cp:swap/cudapp"
     },
     {
       "title": "Kernel driver: cudapp swap kernel",
-      "text": "Packaging, switch and rollback that replace nvidia.ko and nvidia-uvm.ko with AIEN's own GB10 driver. L401 builds the packaging; L332 builds the driver, whose simulator gates pass and which has not run on the chip yet.",
+      "text": "The kernel level of the same command holds NVIDIA's modules back and loads AIEN's driver on the next boot. L401 is that command; L332 is the driver, whose simulator gates pass and which has not run on the chip yet.",
       "status": "IN PROGRESS",
       "ledger": "L401",
-      "links": [["L401 on /now/", "/now/#L401"], ["L332 on /now/", "/now/#L332"], ["driver simulator gates receipt", "ax@:ce74e10c13ff3bd0fa22855efd93c65a0633f4ac/evidence/own-gpu-driver/rung1/gates-20261021T2300Z.txt"]],
+      "links": [["the command", "cp:swap/cudapp"], ["L401 on /now/", "/now/#L401"], ["L332 on /now/", "/now/#L332"], ["driver simulator gates receipt", "ax@:ce74e10c13ff3bd0fa22855efd93c65a0633f4ac/evidence/own-gpu-driver/rung1/gates-20261021T2300Z.txt"]],
       "box": "ax@:89360c060102e4242187cda6156d696452e38181/docs/GPU_DRIVER.md"
     }
   ]
