@@ -21,3 +21,4 @@ pub mod follow;
 pub mod now;
 pub mod cudaplusplus;
 pub mod omega;
+pub mod seed_birth;

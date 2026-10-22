@@ -1,0 +1,38 @@
+{
+  "origin": "https://github.com/aien-dev/omega-mv.git",
+  "pin": "29b12760f4c962606411d6bf25032aedef063301",
+  "sources": [
+    {
+      "path": "seed/rung0/seed0.hex",
+      "blob": "3c16777e8358d6c4a192c98f501518e38564aeee"
+    },
+    {
+      "path": "seed/rung0/load0.sh",
+      "blob": "b0449bf8a160e70f4468e84207caf6e9014d150c"
+    },
+    {
+      "path": "seed/rung0/gate0.sh",
+      "blob": "ebe91b81e4986c2d317dcd066041d2935cb11a1f"
+    },
+    {
+      "path": "seed/rung1/hex1.hex",
+      "blob": "8ca4d0cf8ec1e90cc2d5689cf59fe179f2dbc5e2"
+    },
+    {
+      "path": "seed/rung2/asm2.s",
+      "blob": "46f8d1c18426e71d26ef7df1f74d12bbc8f89153"
+    },
+    {
+      "path": "seed/rung4/om4.s",
+      "blob": "deec39af2b3db32aff0cfdf7a5b6161fd5283f9e"
+    },
+    {
+      "path": "seed/omc/omc.om",
+      "blob": "11367847b2f196fbeac5567214fb34e16e4fcf0c"
+    },
+    {
+      "path": "seed/omega-from-seed.sh",
+      "blob": "f5c27ffb1585ebe7a6e143a45a4e2105e4846819"
+    }
+  ]
+}

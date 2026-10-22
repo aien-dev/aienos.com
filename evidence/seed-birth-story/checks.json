@@ -1,0 +1,16 @@
+{
+  "site_tests": 137,
+  "failures": 0,
+  "bootstrap_stages": 8,
+  "source_linked_stages": 8,
+  "desktop_width": 1440,
+  "mobile_width": 390,
+  "horizontal_overflow": false,
+  "canonical": "https://www.aienos.com/omega/",
+  "homepage_link": true,
+  "new_route": false,
+  "full_seed_replay_rc": 0,
+  "root_replay_rc": 0,
+  "publication": "BRANCH_ONLY until desk merge and Pages readback",
+  "limitations": "Existing host tools and legacy C/Rust production paths disclosed; no blanket originality or full-correctness claim."
+}

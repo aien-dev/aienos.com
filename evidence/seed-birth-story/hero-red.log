@@ -1,0 +1,20 @@
+
+running 2 tests
+. 1/2
+components::seed_birth::tests::omega_page_exposes_the_walkthrough_and_its_navigation --- FAILED
+
+failures:
+
+---- components::seed_birth::tests::omega_page_exposes_the_walkthrough_and_its_navigation stdout ----
+
+thread 'components::seed_birth::tests::omega_page_exposes_the_walkthrough_and_its_navigation' (2110339) panicked at crates/site-builder/src/components/seed_birth.rs:71:9:
+assertion failed: page.contains("The production C/Rust migration is unfinished.")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    components::seed_birth::tests::omega_page_exposes_the_walkthrough_and_its_navigation
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 135 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `--bin site-builder`

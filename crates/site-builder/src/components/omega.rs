@@ -22,7 +22,7 @@ use serde::Deserialize;
 use super::boxlink::{foot_labelled, Target};
 
 pub const TITLE: &str = "What Omega is | AienOS";
-pub const DESCRIPTION: &str = "Omega is AIEN's language for all computing, GPU to CPU. On the GPU it is the replacement for CUDA. The CUDA stack piece by piece, the receipt for what is true today, what is not true yet, and the bar C1 to C6.";
+pub const DESCRIPTION: &str = "How I built Omega's compiler from a 408-byte seed, with source links and replay checks. The CPU/GPU language goal, current no-CUDA path and unfinished C/Rust migration are shown separately.";
 pub const URL: &str = "https://www.aienos.com/omega/";
 
 /// The data file, compiled in and published as /omega.json.
@@ -351,6 +351,7 @@ pub fn render_omega_page() -> Markup {
                         "."
                     }
                     nav class="om-toc" aria-label="On this page" {
+                        a href="#seed-birth" { "How I made the language" }
                         a href="#parts" { "The parts" }
                         a href="#cuda-map" { "CUDA, piece by piece" }
                         a href="#today" { "True today" }
@@ -366,6 +367,8 @@ pub fn render_omega_page() -> Markup {
                     }
                 }
             }
+
+            (super::seed_birth::render())
 
             section id="parts" class="om-section" {
                 div class="container" {
@@ -589,7 +592,7 @@ mod tests {
         let s = render_omega_page().into_string();
         let h1 = s.find("<h1").unwrap();
         assert!(s[h1..].starts_with("<h1 class=\"om-title\">Omega is AIEN&#39;s language for all computing, GPU to CPU.</h1>") || s[h1..].starts_with("<h1 class=\"om-title\">Omega is AIEN's language for all computing, GPU to CPU.</h1>"), "{}", &s[h1..h1 + 120]);
-        assert!(s.contains("On the GPU, that makes Omega the replacement for CUDA."));
+        assert!(s.contains("On the GPU, Omega aims to replace CUDA; on the CPU, it aims to replace the legacy C toolchain."));
         assert_eq!(s.matches("<h1").count(), 1);
     }
 
@@ -611,7 +614,8 @@ mod tests {
         let s = render_omega_page().into_string();
         let n = check_boxes(&s).unwrap();
         let d = data();
-        assert_eq!(n, d.parts.len() + 1 + d.layers.len() + 1 + d.not_yet.len() + d.bar.len() + d.beyond.len() + 1 + d.performance.bar.len());
+        // The eight bootstrap stages add eight individually linked source boxes.
+        assert_eq!(n, 8 + d.parts.len() + 1 + d.layers.len() + 1 + d.not_yet.len() + d.bar.len() + d.beyond.len() + 1 + d.performance.bar.len());
         assert!(s.contains("https://github.com/aien-dev/omega/blob/main/evidence/WHAT-OMEGA-IS-20261021/live-serve-no-cuda.txt"));
         assert!(s.contains("https://github.com/aien-dev/omega/blob/main/docs/OMEGA.md"));
     }

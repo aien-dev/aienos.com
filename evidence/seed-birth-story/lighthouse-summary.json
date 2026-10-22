@@ -1,0 +1,46 @@
+{
+  "scores": {
+    "accessibility": 0.92,
+    "seo": 1
+  },
+  "failed_audits": [
+    {
+      "audit": "aria-required-children",
+      "title": "Elements with an ARIA `[role]` that require children to contain a specific `[role]` are missing some or all of those required children.",
+      "selectors": [
+        "section#cuda-map > div.container > div.om-map > div.om-layer",
+        "section#cuda-map > div.container > div.om-map > div.om-layer",
+        "section#cuda-map > div.container > div.om-map > div.om-layer",
+        "section#cuda-map > div.container > div.om-map > div.om-layer",
+        "section#cuda-map > div.container > div.om-map > div.om-layer",
+        "section#cuda-map > div.container > div.om-map > div.om-layer",
+        "section#cuda-map > div.container > div.om-map > div.om-layer",
+        "section#cuda-map > div.container > div.om-map > div.om-layer",
+        "section#cuda-map > div.container > div.om-map > div.om-layer",
+        "section#cuda-map > div.container > div.om-map > div.om-layer",
+        "section#cuda-map > div.container > div.om-map > div.om-layer",
+        "section#cuda-map > div.container > div.om-map > div.om-layer",
+        "section#cuda-map > div.container > div.om-map > div.om-layer"
+      ]
+    },
+    {
+      "audit": "color-contrast",
+      "title": "Background and foreground colors do not have a sufficient contrast ratio.",
+      "selectors": [
+        "div.container > div.om-map > div.om-layer > a.box-link",
+        "div.container > div.om-map > div.om-layer > a.box-link",
+        "div.container > div.om-map > div.om-layer > a.box-link",
+        "div.container > div.om-map > div.om-layer > a.box-link",
+        "div.container > div.om-map > div.om-layer > a.box-link"
+      ]
+    },
+    {
+      "audit": "label-content-name-mismatch",
+      "title": "Elements with visible text labels do not have matching accessible names.",
+      "selectors": [
+        "div#root > header.aien-header > div.aien-header-inner > a.aien-brand"
+      ]
+    }
+  ],
+  "scope": "Whole existing Omega page, including pre-existing CUDA map and header; not all audits PASS."
+}

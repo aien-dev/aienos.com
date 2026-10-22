@@ -1,0 +1,26 @@
+
+running 2 tests
+components::seed_birth::tests::walkthrough_has_eight_source_linked_stages_and_honest_limits --- FAILED
+components::seed_birth::tests::omega_page_exposes_the_walkthrough_and_its_navigation --- FAILED
+
+failures:
+
+---- components::seed_birth::tests::walkthrough_has_eight_source_linked_stages_and_honest_limits stdout ----
+
+thread 'components::seed_birth::tests::walkthrough_has_eight_source_linked_stages_and_honest_limits' (2101295) panicked at crates/site-builder/src/components/seed_birth.rs:12:9:
+assertion failed: page.contains("id=\"seed-birth\"")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- components::seed_birth::tests::omega_page_exposes_the_walkthrough_and_its_navigation stdout ----
+
+thread 'components::seed_birth::tests::omega_page_exposes_the_walkthrough_and_its_navigation' (2101294) panicked at crates/site-builder/src/components/seed_birth.rs:28:9:
+assertion failed: page.contains("href=\"#seed-birth\"")
+
+
+failures:
+    components::seed_birth::tests::omega_page_exposes_the_walkthrough_and_its_navigation
+    components::seed_birth::tests::walkthrough_has_eight_source_linked_stages_and_honest_limits
+
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 135 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `--bin site-builder`

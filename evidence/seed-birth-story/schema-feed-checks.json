@@ -1,0 +1,9 @@
+{
+  "xml_files_parsed": [
+    "sitemap.xml",
+    "feed.xml",
+    "now/feed.xml"
+  ],
+  "omega_jsonld_blocks_parsed": 1,
+  "status": "PASS"
+}

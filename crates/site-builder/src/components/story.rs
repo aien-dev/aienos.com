@@ -17,6 +17,11 @@ pub fn render_story() -> Markup {
                     p style="color: var(--text-secondary); margin-top: 14px; line-height: 1.7; font-size: 16px;" {
                         "AIENOS is the opposite bet: a sovereign machine, built from the first instruction after firmware upward, where a persistent intelligence lives on hardware you own. It keeps its memory, its identity, and its receipts on your side of the line. The hardware underneath is capability, not identity: machines can be replaced, and the lineage persists."
                     }
+                    p style="color: var(--text-secondary); margin-top: 20px; line-height: 1.7; font-size: 16px;" {
+                        "I also built a seed-born compiler path for Omega. "
+                        a href="/omega/#seed-birth" { "Read how it was made, step by step" }
+                        ": explicit instruction words, a 408-byte seed, translator stages and a compiler written in its own language. The walkthrough links the source, reproducible checks and host dependencies. The legacy C/Rust migration is not finished."
+                    }
                 }
             }
         }

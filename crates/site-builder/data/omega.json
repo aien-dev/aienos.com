@@ -9,8 +9,8 @@
   },
   "claim": "Omega is AIEN's language for all computing, GPU to CPU.",
   "claim_rest": [
-    "You write a program once. Omega's own tools check it and compile it straight to the machine code of the processor that runs it, GPU or CPU. No vendor compiler, toolkit or runtime library is involved anywhere.",
-    "On the GPU, that makes Omega the replacement for CUDA. On the CPU, it replaces C and its toolchain. This page says how far each of those has got, and the checks that have to pass before we can claim each one."
+    "The goal is one language whose checked programs become native CPU and GPU code. A seed-born CPU compiler is implemented on a development branch. The production C/Rust migration is unfinished.",
+    "On the GPU, Omega aims to replace CUDA; on the CPU, it aims to replace the legacy C toolchain. The tested bootstrap, current no-CUDA execution path and remaining replacement gates are separate claims below."
   ],
   "true_today": "Omega runs AIEN's models on the GB10 with no CUDA software: no libcuda, no cuBLAS, no nvcc.",
   "not_true_yet": "Omega replaces CUDA.",
