@@ -492,6 +492,7 @@ fn classify_token(tok: &str) -> Option<Ref> {
 ///   `branch@sha` in the note (the agent's own branch leads a note; a
 ///   branch in parentheses is a dependency), else stays text;
 /// - a bare https URL links to itself.
+///
 /// Trailing punctuation stays outside the link. Anything that does not
 /// match exactly (an upstream model name with a revision, a mail address,
 /// `task#3`) is left alone.
