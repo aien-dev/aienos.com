@@ -1,0 +1,71 @@
+note Native structural/refusal tests for queue-snapshot core. All data here is synthetic.
+text cases "M\t1\t2026-10-23T12:00:00Z\thttps://github.com/aien-dev/aienos.com\nJ\taien-dev/omega-mv\t1\t1111111111111111111111111111111111111111\t2222222222222222222222222222222222222222\tFixture\tSUCCESS\tFAILURE\n~M\t1\t2026-02-30T12:00:00Z\thttps://github.com/aien-dev/aienos.com\n~M\t1\t2026-10-23T12:00:00Z\thttps://github.com/aien-dev/aienos.com\nJ\t../omega\t1\t1111111111111111111111111111111111111111\t2222222222222222222222222222222222222222\tFixture\tSUCCESS\tFAILURE\n~M\t1\t2026-10-23T12:00:00Z\thttps://github.com/aien-dev/aienos.com\nJ\taien-dev/omega-mv\t1\tshort\t2222222222222222222222222222222222222222\tFixture\tSUCCESS\tFAILURE\n~M\t1\t2026-10-23T12:00:00Z\thttps://github.com/aien-dev/aienos.com\nJ\taien-dev/omega-mv\t1\t1111111111111111111111111111111111111111\t2222222222222222222222222222222222222222\tsk-ant-test\tSUCCESS\tFAILURE\n~M\t1\t2026-10-23T12:00:00Z\thttps://github.com/aien-dev/aienos.com\nJ\taien-dev/omega-mv\t1\t1111111111111111111111111111111111111111\t2222222222222222222222222222222222222222\tFixture\tACCEPTED\tFAILURE\n~M\t1\t2026-10-23T12:00:00Z\thttps://github.com/aien-dev/aienos.com\nJ\taien-dev/omega-mv\t1\t1111111111111111111111111111111111111111\t2222222222222222222222222222222222222222\tFixture\tSUCCESS\tFAILURE~"
+fn fixture which ulong to int
+i = ulong 0
+k = ulong 0
+while lt k which
+if eq get cases i 126
+k = add k 1
+end
+i = add i 1
+end
+put ilen 0 0
+while ne get cases i 126
+put inp get ilen 0 get cases i
+put ilen 0 add get ilen 0 1
+i = add i 1
+end
+ret 0
+end
+fn main to int
+x = fixture 0
+if ne framing 0
+ret 10
+end
+if ne validall 0
+ret 11
+end
+note Duplicate exact repository/PR must refuse, including case-folded owner identity.
+f = get rs 1
+put rs 2 f
+put rc 2 8
+put nr 0 3
+if eq validall 0
+ret 12
+end
+note Full-identity duplicate check must not collide solely on the PR number.
+x = fixture 0
+x = framing
+f = get rs 1
+start = get fs f
+size = sub get ilen 0 start
+oldlen = get ilen 0
+j = ulong 0
+while lt j size
+p = add oldlen j
+q = add start j
+put inp p get inp q
+j = add j 1
+end
+put inp add oldlen 2 98
+put ilen 0 add oldlen size
+if ne framing 0
+ret 13
+end
+if ne validall 0
+ret 14
+end
+note Independent negative fixtures must each fail; no output is generated.
+i = ulong 1
+while lt i 7
+x = fixture i
+result = framing
+if eq result 0
+if eq validall 0
+ret int add i 20
+end
+end
+i = add i 1
+end
+ret 0
+end

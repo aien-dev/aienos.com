@@ -1,0 +1,4 @@
+note Native executable entry point; concatenate after queue-snapshot.om.
+fn main to int
+ret command
+end

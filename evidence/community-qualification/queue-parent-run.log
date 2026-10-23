@@ -1,0 +1,10 @@
+Parent native structural suite
+native_tests_rc=0
+true
+authentic_projection_records=63; all blocked from execution
+71f5a0492167563b3d183deca8a0e0b92b83c5354e0f0ffeac37fe93c1cc7da1  tools/community-qualification/src/queue-snapshot.om
+1d95ada514e9079f932a63c767125c6c386c4f0a8462cb1b4d43b3cb2a252617  tools/community-qualification/src/queue-main.om
+92956e95795716df5564f67d697e5a24540d9a7ef539c656779e4f8d4eccdeea  tools/community-qualification/tests/queue-tests.om
+0cdaba84acccd110fa2b9452a9b1b6153c88a24aac858d3f09df72f6073fbdc6  evidence/community-qualification/queue-snapshot
+262815d38eefefe6e2c5c3ea3622db5bdfd97bd22dec04c85d007dc8a162122c  evidence/community-qualification/queue-tests
+2010a7b7e25c29e031c6c20a9a2c1805f4855e2755f8d77c0467a9d5dd6e87e3  evidence/community-qualification/queue-omega-snapshot.json
