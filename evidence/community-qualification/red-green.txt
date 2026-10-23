@@ -1,0 +1,2 @@
+RED: Initial valid stub (`fn main to int; ret 0; end`) compiled to a native ELF and executed, but the required versioned JSON was absent; harness reported `expected versioned snapshot JSON` and exited nonzero. This was a behavioral failure, not a compiler/setup failure.
+GREEN: Current bounded Omega empty-projection exporter compiled from source and passed its native behavioral matrix.

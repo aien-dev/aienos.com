@@ -1,0 +1,97 @@
+note Narrow native exporter for an empty runnable-job projection.
+note Input: M TAB 1 TAB RFC3339-UTC(20 bytes) TAB https://github.com/... LF.
+note It emits jobs=[]; no queue access, inferred evidence, or trust elevation.
+global buf uchar 8192
+global pos ulong 1
+global xval ulong 1
+global written ulong 1
+text a "{\"schema_version\":1,\"generated_utc\":\""
+text b "\",\"source_url\":\""
+text c "\",\"jobs\":[]}\n"
+text pre "https://github.com/"
+fn main to int
+n = read 0 buf 0 len buf
+if or le n 1 ge n 8192
+ret 2
+end
+if ne get buf 0 77
+ret 2
+end
+if ne get buf 1 9
+ret 2
+end
+if ne get buf 2 49
+ret 2
+end
+if ne get buf 3 9
+ret 2
+end
+if or ne get buf 24 9 ne get buf sub ulong n 1 10
+ret 2
+end
+if ne get buf 23 90
+ret 2
+end
+if eq get buf 4 0
+ret 2
+end
+if eq get buf 25 0
+ret 2
+end
+put pos 0 4
+while lt get pos 0 24
+put xval 0 ulong get buf get pos 0
+if and lt get xval 0 48 ne get xval 0 45
+ret 2
+end
+if gt get xval 0 57
+if ne get xval 0 84
+if ne get xval 0 58
+if ne get xval 0 90
+ret 2
+end
+end
+end
+end
+put pos 0 add get pos 0 1
+end
+put pos 0 0
+while lt get pos 0 len pre
+if ne get buf add get pos 0 25 get pre get pos 0
+ret 2
+end
+put pos 0 add get pos 0 1
+end
+put pos 0 25
+while lt get pos 0 sub ulong n 1
+put xval 0 ulong get buf get pos 0
+if or lt get xval 0 33 gt get xval 0 126
+ret 2
+end
+if or eq get xval 0 34 eq get xval 0 92
+ret 2
+end
+put pos 0 add get pos 0 1
+end
+put written 0 ulong write 1 a 0 len a
+if ne get written 0 len a
+ret 3
+end
+put written 0 ulong write 1 buf 4 20
+if ne get written 0 20
+ret 3
+end
+put written 0 ulong write 1 b 0 len b
+if ne get written 0 len b
+ret 3
+end
+put written 0 ulong write 1 buf 25 sub ulong n 26
+if ne get written 0 sub ulong n 26
+ret 3
+end
+put written 0 ulong write 1 c 0 len c
+if ne get written 0 len c
+ret 3
+end
+ret 0
+end
