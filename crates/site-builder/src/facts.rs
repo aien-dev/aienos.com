@@ -100,6 +100,15 @@ fn s(v: &serde_json::Value, key: &str) -> String {
     v.get(key).and_then(|x| x.as_str()).unwrap_or("").to_string()
 }
 
+/// The homepage forbids comparisons with other systems. A live PR title can
+/// contain one; such a merge is not rendered rather than rewritten.
+fn comparison_title(t: &str) -> bool {
+    let l = t.to_ascii_lowercase();
+    ["faster than", "x faster", "llama.cpp", "vllm", "ollama", "beats ", "beat the"]
+        .iter()
+        .any(|w| l.contains(w))
+}
+
 fn now_utc() -> String {
     // RFC 3339 to the second, without pulling in a time crate.
     let secs = std::time::SystemTime::now()
@@ -138,6 +147,7 @@ pub fn gather() -> Result<Facts, String> {
             .map(|a| {
                 a.iter()
                     .filter(|p| p.get("merged_at").map(|m| !m.is_null()).unwrap_or(false))
+                    .filter(|p| !comparison_title(&s(p, "title")))
                     .max_by(|a, b| s(a, "merged_at").cmp(&s(b, "merged_at")))
                     .map(|p| Merge {
                         number: p.get("number").and_then(|n| n.as_u64()).unwrap_or(0),
@@ -213,6 +223,13 @@ pub fn gather() -> Result<Facts, String> {
         .and_then(|m| m.lines().next())
         .unwrap_or("")
         .to_string();
+    // The homepage forbids comparisons with other systems. The receipt still
+    // names the commit and its link; a comparison in its title is not rendered.
+    let commit_title = if comparison_title(&commit_title) {
+        "Verification receipt for this commit".to_string()
+    } else {
+        commit_title
+    };
     let committed_at = commit.pointer("/commit/committer/date").and_then(|d| d.as_str()).unwrap_or("").to_string();
     // The judge is the Spark. Its verdict is posted as the commit status whose context is
     // "AIEN Verification (Spark)". The hosted check run that is also named "AIEN Verification"
