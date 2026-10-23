@@ -1,37 +1,37 @@
 {
   "schema": "renda-metrics/1",
-  "generated_at": "2026-10-23T05:50:02Z",
+  "generated_at": "2026-10-23T05:55:01Z",
   "window_seconds": 3600,
   "workers": [
     {
       "name": "renda1",
-      "last_pass_at": "2026-10-23T05:49:56Z",
-      "current_cpm": 0.9836,
+      "last_pass_at": "2026-10-23T05:54:07Z",
+      "current_cpm": 0.9677,
       "min_cpm": 0.9091,
       "max_cpm": 0.9836,
       "last_pass_seconds": 1,
-      "samples": 57,
+      "samples": 56,
       "merges": 0,
       "rebases": 0,
       "reruns": 0,
       "operators": 0,
-      "active_pass_seconds": 103,
-      "window_passes": 58
+      "active_pass_seconds": 102,
+      "window_passes": 57
     },
     {
       "name": "renda2",
-      "last_pass_at": "2026-10-23T05:48:40Z",
-      "current_cpm": 0.4167,
+      "last_pass_at": "2026-10-23T05:53:48Z",
+      "current_cpm": 0.3315,
       "min_cpm": 0.3175,
       "max_cpm": 0.625,
-      "last_pass_seconds": 84,
-      "samples": 28,
+      "last_pass_seconds": 120,
+      "samples": 27,
       "merges": 0,
       "rebases": 0,
       "reruns": 0,
       "operators": 0,
-      "active_pass_seconds": 1831,
-      "window_passes": 29
+      "active_pass_seconds": 1881,
+      "window_passes": 28
     }
   ]
 }
