@@ -56,7 +56,6 @@ pub const REPOS: &[(&str, &str, &str)] = &[
     ("harvester", "aien-dev", "harvester"),
     ("spark-inquisitor", "aien-dev", "spark-inquisitor"),
     ("aien-local-stack", "aien-dev", "aien-local-stack"),
-    ("aienix", "aien-dev", "aienix"),
     ("interplane", "aien-dev", "interplane-mv"),
     ("synapse", "aien-dev", "synapse"),
     ("interplane.io", "aien-dev", "interplane.io"),
@@ -75,7 +74,7 @@ const EXCLUDED_DIRS: &[&str] = &[
     "vendor", "vendored", "third_party", "third-party", "node_modules", "target", "dist", "build", "generated",
     "evidence", "receipts", "artifacts", "data", "results", "fixtures",
 ];
-const CORE_NAMES: &[&str] = &["aien-sovereign-core", "aienix", "aienos", "omega", "physics", "forge", "atlas", "aien-protocols", "aien-architecture", "benchmarks"];
+const CORE_NAMES: &[&str] = &["aien-sovereign-core", "aienos", "omega", "physics", "forge", "atlas", "aien-protocols", "aien-architecture", "benchmarks"];
 const SITE_NAMES: &[&str] = &["aienos.com", "drakestapleton.com", "interplane.io", ".github", "aien-dev"];
 
 /// The accounts whose public repository listings are read: OWNER, then every owner in REPOS.
@@ -1394,7 +1393,6 @@ mod tests {
         "aien-dev aien-receipts - -",
         "aien-dev aien-sovereign-core-mv - -",
         "aien-dev aien-yardsticks - archived",
-        "aien-dev aienix - -",
         "aien-dev aienos-mv - -",
         "aien-dev aienos.com - -",
         "aien-dev arm-trusted-firmware fork archived",
@@ -1484,10 +1482,9 @@ mod tests {
         let mut expected: Vec<&str> = REPOS.iter().map(|(p, _, _)| *p).chain(["aien-receipts", "aien-yardsticks"]).collect();
         expected.sort_unstable();
         assert_eq!(names, expected);
-        assert_eq!(targets.len(), 35);
+        assert_eq!(targets.len(), 34);
         // Added after review of #37: the core tree, the protocol, the changeset service and the protocol site.
         assert_eq!(find(&targets, "interplane").github_name, "interplane-mv");
-        assert_eq!(group_of("aienix", false), "Core");
         assert_eq!(group_of("interplane", false), "Experimental");
         assert_eq!(group_of("synapse", false), "Experimental");
         assert_eq!(group_of("interplane.io", false), "Sites");
