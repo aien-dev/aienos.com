@@ -496,7 +496,7 @@ mod tests {
         assert_eq!(n, d.hops.len() + d.steps.len() + 1 + d.pains.len() + d.swaps.len());
         assert!(s.contains("https://github.com/aien-dev/CUDApp/blob/232332422bfdc31c8918085b50f13c1e18ab702e/docs/HOW_I_DID_IT.md"));
         assert!(s.contains("aien-dev/CUDApp"));
-        assert!(s.contains("aien-dev/CUDAplusplus redirects"));
+        assert!(!s.contains("https://github.com/aien-dev/CUDAplusplus"));
     }
 
     #[test]

@@ -88,10 +88,6 @@ pub fn render_answers() -> Markup {
                     p { "No qualified GPU? After building with make, run build/hello_gpu --sim for a host correctness check. That does not prove GPU support or speed." }
                 }
             }
-            h3 { "The short version, on a compatible GB10 machine" }
-            p { "On Linux with a qualified DGX Spark GB10 and the compatible open kernel module, git, make and a C compiler. No CUDA toolkit installation is needed. The doctor runs first and refuses an unsupported setup." }
-            pre { code { (QUICKSTART) } }
-            p { "For a host-only correctness check after building: " code { "build/hello_gpu --sim" } ". A simulator run is not a GPU speed result. These commands do not replace your installed driver." }
             p { a href=(source("README.md#run-your-first-kernel")) { "Prerequisites and expected results on GitHub" } }
             nav class="gd-links" aria-label="CUDA++ guides" {
                 a href="/cuda-alternative/" { "CUDA++ as a CUDA alternative" }
@@ -110,7 +106,7 @@ pub fn render_feature() -> Markup {
             p { "I am building CUDA++ to own the path from a program to the GPU. Its qualified GB10 path powers AI inference without NVIDIA user-space libraries. More hardware and full CUDA replacement are goals, not finished coverage." }
             nav class="gd-links" aria-label="Explore CUDA++" {
                 a class="gd-primary" href="/cudaplusplus/" { "Explore CUDA++" }
-                a href="/cuda-alternative/#start" { "Start here: the foundation explained" }
+                a href="/cuda-alternative/" { "Start here: the foundation explained" }
                 a href="/ai-inference-speed/" { "What makes AI inference fast?" }
             }
             p class="gd-caption" { "Experimental. NVIDIA GB10 GPU qualified; NVIDIA kernel modules and firmware still required. " a href=(NO_CUDA) { "Evidence on GitHub: historical no-CUDA-library server receipt" } }

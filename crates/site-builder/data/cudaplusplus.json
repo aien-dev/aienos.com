@@ -25,7 +25,7 @@
   "purpose_title": "Less computation, out of the big data centers.",
   "purpose": "The goal is not a faster way to rent a data center. It is to need less of one: the same work with fewer bytes moved, fewer operations and fewer joules per answer, so it runs on a machine a person owns (a DGX Spark, a PC with one graphics card, a laptop). Every result is reported as work per answer, against the machine's own ceiling.",
   "purpose_link": "om@:89aad7c99b4fced80f92b656d2a3f350699456f0/docs/OMEGA.md",
-  "private_note": "Public. GitHub slugs cannot hold a plus sign, so the address is CUDApp. aien-dev/CUDAplusplus redirects there. The licence and safety audit is docs/AUDIT.md, CLEAN for the history it covers.",
+  "private_note": "Public. The project name is CUDA++; its repository address is aien-dev/CUDApp. The licence and safety audit is docs/AUDIT.md, CLEAN for the history it covers.",
   "audit_link": "cp:docs/AUDIT.md",
   "hops": [
     {
@@ -78,8 +78,8 @@
       "cuda": "nothing: left to you",
       "ours": "The motor, the ++ in CUDA++: one schedule built before anything runs, movement engines that check every weight part, and the stroke, many conversations on one read of the weights.",
       "status": "PASS",
-      "note": "live on port 18091; 1.80x to 1.98x the same conversations taken in turn; on branches, not on omega main yet",
-      "links": [["the motor on /omega/", "/omega/#motor"], ["design", "om@:89aad7c99b4fced80f92b656d2a3f350699456f0/docs/OMEGA.md#6-cuda-the-motor"]],
+      "note": "historical 2026-10-21 serving receipt: 1.80x to 1.98x the same conversations taken in turn, not a CUDA comparison; branch result, not a current speed claim",
+      "links": [["motor design on GitHub", "om@:89aad7c99b4fced80f92b656d2a3f350699456f0/docs/OMEGA.md#6-cuda-the-motor"], ["design", "om@:89aad7c99b4fced80f92b656d2a3f350699456f0/docs/OMEGA.md#6-cuda-the-motor"]],
       "box": "sc@/:9c62690a252ab1c0b75eb8933c550316b5c50d52/evidence/q36-batch-20261021"
     },
     {

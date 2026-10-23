@@ -26,6 +26,8 @@
 .gd-guide .gd-source { font-size: 14px; }
 .gd-guide ol { padding-left: 25px; }
 .gd-guide li { padding: 6px 0 6px 8px; }
+.gd-steps { list-style: none; padding-left: 0 !important; }
+.gd-steps h3, .gd-steps h4 { color: var(--tl-ink); font-size: 19px; margin: 28px 0 12px; }
 .gd-definitions dt { color: var(--tl-green); font-weight: 600; font-size: 18px; margin-top: 28px; }
 .gd-definitions dd { margin: 8px 0 26px; }
 .gd-section { padding-top: 60px; padding-bottom: 60px; scroll-margin-top: 140px; }

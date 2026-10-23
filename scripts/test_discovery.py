@@ -51,7 +51,8 @@ class DiscoveryTests(unittest.TestCase):
             self.assertFalse(any('noindex' in a.get('content', '') for a in doc.attrs('meta') if a.get('name') == 'robots'))
             self.assertIn(HOST + route, (DIST / 'sitemap.xml').read_text())
             self.assertIn(HOST + route, (DIST / 'llms.txt').read_text())
-            self.assertIn('href="' + route + '"', page('/'))
+            home_links = {a.get('href') for a in Document(page('/')).attrs('a')}
+            self.assertIn(route, home_links)
 
     def test_local_links_and_fragment_targets_exist(self):
         for route in ROUTES + ['/']:
