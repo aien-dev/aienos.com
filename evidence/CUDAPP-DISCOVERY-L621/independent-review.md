@@ -1,7 +1,7 @@
 # L628 independent review
 
-**Reviewed head:** `d2e81b398cdc198b31cb9e2e250fcd0ed3932884`  
-**Base:** `89683470c430829cef2bcc871dc90657fedac3ab`  
+**Reviewed head:** `d2e81b398cdc198b31cb9e2e250fcd0ed3932884`
+**Base:** `89683470c430829cef2bcc871dc90657fedac3ab`
 **Verdict:** No release-blocking or material correctness findings identified in the frozen diff or inspected `dist` artifacts. Discovery output is source-scoped, crawlable, and aligned with the requested bounded claims. One low-priority evidence-file hygiene finding is listed below.
 
 ## Findings
