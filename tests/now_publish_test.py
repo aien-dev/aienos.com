@@ -111,6 +111,16 @@ exit 90
     def dispatch_count(self):
         return len(self.dispatches.read_text().splitlines()) if self.dispatches.exists() else 0
 
+    def test_installed_metrics_hook_is_preserved_and_published(self):
+        collector = self.home / '.local/lib/renda-public/renda_metrics.py'
+        collector.parent.mkdir(parents=True)
+        collector.write_text('import pathlib,sys\npathlib.Path(sys.argv[2]).write_text(\'{"measured":true}\\n\')\n')
+        self.ledger_status.write_text('1')
+        self.runs_with('in_progress')
+        self.run_publisher()
+        self.assertEqual(json.loads((self.repo / 'renda-metrics.json').read_text()), {'measured': True})
+        self.assertEqual(self.dispatch_count(), 0)
+
     def test_active_or_queued_run_is_not_cancelled_or_redundantly_dispatched(self):
         self.pending()
         for status in ("queued", "in_progress", "waiting", "pending"):

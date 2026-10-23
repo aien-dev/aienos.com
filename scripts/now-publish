@@ -81,10 +81,16 @@ cp "$LEDGER" now.tsv
   printf 'published\t%s\n' "$(date -u +%FT%TZ)"
 } > now-pulse.tsv
 
-if [ "${1:-}" != "--force" ] && git diff --quiet -- now.tsv; then
+# Retain the already installed L545 public-metrics hook.
+if [ -f "$HOME/.local/lib/renda-public/renda_metrics.py" ]; then
+  python3 "$HOME/.local/lib/renda-public/renda_metrics.py" --output renda-metrics.json
+fi
+
+if [ "${1:-}" != "--force" ] && git diff --quiet -- now.tsv renda-metrics.json && [ -z "$(git ls-files --others --exclude-standard -- renda-metrics.json)" ]; then
   log "ledger unchanged"
 else
   git add now.tsv now-pulse.tsv
+  if [ -f renda-metrics.json ]; then git add renda-metrics.json; fi
   git -c user.name="now-publish" -c user.email="now-publish@aienos.com" commit -qm "ledger update $(date -u +%FT%TZ)"
   data_sha=$(git rev-parse HEAD)
   printf '%s\n' "$data_sha" > "$PENDING.tmp"
