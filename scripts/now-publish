@@ -1,0 +1,149 @@
+#!/usr/bin/env bash
+# Publish the machine-written ledger and coalesce Pages rebuild requests.
+# Runs from cron; it never edits main or cancels an existing Pages run.
+# Use --force only for explicit operator intent to republish/retry an unchanged main SHA.
+set -euo pipefail
+
+LEDGER="${LEDGER:-$HOME/handoffs/LEDGER.tsv}"
+STATE="$HOME/.local/state/now-publish"
+REPO="$STATE/repo"
+REMOTE="git@github.com:aien-dev/aienos.com.git"
+BRANCH="data/now"
+LOG="$STATE/publish.log"
+PENDING="$STATE/pages.pending"
+FAILED_MAIN="$STATE/pages-failed-main"
+REASON="$STATE/pages-reason"
+LOCK="$STATE/publisher.lock"
+
+mkdir -p "$STATE"
+log() { printf '%s %s\n' "$(date -u +%FT%TZ)" "$*" >> "$LOG"; }
+
+acquire_lock() {
+  local attempt pid
+  for attempt in $(seq 1 300); do
+    if mkdir "$LOCK" 2>/dev/null; then
+      printf '%s\n' "$$" > "$LOCK/pid"
+      return 0
+    fi
+    if [ -f "$LOCK/pid" ]; then
+      pid=$(cat "$LOCK/pid" 2>/dev/null || true)
+      if [[ "$pid" =~ ^[0-9]+$ ]] && ! kill -0 "$pid" 2>/dev/null; then
+        rm -f "$LOCK/pid"
+        rmdir "$LOCK" 2>/dev/null || true
+      fi
+    fi
+    sleep 1
+  done
+  log "publisher lock busy; deferred"
+  return 1
+}
+cleanup() { rm -f "$LOCK/pid"; rmdir "$LOCK" 2>/dev/null || true; }
+acquire_lock || exit 0
+trap cleanup EXIT HUP INT TERM
+
+[ -s "$LEDGER" ] || { log "no ledger at $LEDGER"; exit 0; }
+
+if [ ! -d "$REPO/.git" ]; then
+  if git ls-remote --exit-code --heads "$REMOTE" "$BRANCH" >/dev/null 2>&1; then
+    git clone -q --branch "$BRANCH" --single-branch --depth 50 "$REMOTE" "$REPO"
+  else
+    git clone -q --depth 1 --no-checkout "$REMOTE" "$REPO"
+    git -C "$REPO" checkout -q --orphan "$BRANCH"
+    git -C "$REPO" rm -rfq . 2>/dev/null || true
+    printf '# data/now\n\nMachine-written branch: the coordination ledger as published for https://www.aienos.com/now/.\nNo hand edits. Writer: ~/.local/bin/now-publish on the Spark.\n' > "$REPO/README.md"
+    git -C "$REPO" add README.md
+    git -C "$REPO" -c user.name="now-publish" -c user.email="now-publish@aienos.com" commit -qm "data/now: open the ledger branch"
+    git -C "$REPO" push -q -u origin "$BRANCH"
+  fi
+fi
+
+cd "$REPO"
+git fetch -q origin "$BRANCH" && git reset -q --hard FETCH_HEAD
+cp "$LEDGER" now.tsv
+{
+  if [ -r /proc/meminfo ]; then
+    awk '/MemAvailable/{printf "memory free\t%.0f GiB of 122\n", $2/1048576}' /proc/meminfo
+  fi
+  df -h / | awk 'NR==2{printf "disk free\t%s of %s\n", $4, $2}'
+  if command -v upsc >/dev/null 2>&1; then
+    w=$(upsc spark ups.load 2>/dev/null || true)
+    [ -n "$w" ] && printf 'wall power\t%s W (UPS, 10 W steps)\n' "$((w * 10))"
+  fi
+  if cutoff=$(date -u -d '-2 hours' +%s 2>/dev/null); then
+    awk -F'\t' -v c="$cutoff" 'NR>1 && $4=="open" && $3 ~ /^sa-/ {
+      t=$8; gsub(/[-TZ:]/," ",t); split(t,a," ");
+      ts=mktime(a[1]" "a[2]" "a[3]" "a[4]" "a[5]" 00");
+      if (ts>c) owners[$3]=1
+    } END { n=0; for (o in owners) n++; printf "agents writing\t%d in the last two hours\n", n }' now.tsv
+  else
+    printf 'agents writing\tunavailable on this host\n'
+  fi
+  printf 'published\t%s\n' "$(date -u +%FT%TZ)"
+} > now-pulse.tsv
+
+if [ "${1:-}" != "--force" ] && git diff --quiet -- now.tsv; then
+  log "ledger unchanged"
+else
+  git add now.tsv now-pulse.tsv
+  git -c user.name="now-publish" -c user.email="now-publish@aienos.com" commit -qm "ledger update $(date -u +%FT%TZ)"
+  data_sha=$(git rev-parse HEAD)
+  printf '%s\n' "$data_sha" > "$PENDING.tmp"
+  mv "$PENDING.tmp" "$PENDING"
+  git push -q origin "$BRANCH"
+  log "published ${data_sha:0:12}; Pages deployment pending"
+fi
+
+# A pending request is checked on every cron tick, even without a ledger diff.
+[ -s "$PENDING" ] || exit 0
+
+main_sha=$(git ls-remote --exit-code "$REMOTE" refs/heads/main 2>/dev/null | awk '$2 == "refs/heads/main" {print $1}') || main_sha=
+if [[ ! "$main_sha" =~ ^[0-9a-fA-F]{40,64}$ ]]; then
+  printf '%s\n' "main ref lookup failed or malformed" > "$REASON"
+  log "Pages dispatch deferred: main ref lookup failed or malformed; pending retained"
+  exit 0
+fi
+
+if ! command -v gh >/dev/null 2>&1 || ! command -v jq >/dev/null 2>&1; then
+  printf '%s\n' "gh or jq unavailable" > "$REASON"
+  log "Pages dispatch deferred: gh or jq unavailable; pending retained"
+  exit 0
+fi
+runs="$STATE/pages-runs.json"
+if ! gh run list --workflow pages.yml -R aien-dev/aienos.com --limit 100 --json status,conclusion,headSha,event > "$runs" 2>/dev/null; then
+  printf '%s\n' "GitHub run read failed" > "$REASON"
+  log "Pages dispatch deferred: GitHub run read failed; pending retained"
+  exit 0
+fi
+if ! jq -e 'type == "array" and length > 0 and all(.[]; (.status | type == "string") and (.headSha | type == "string" and test("^[0-9a-fA-F]{40,64}$")) and (.conclusion == null or (.conclusion | type == "string")) and (.event | type == "string"))' "$runs" >/dev/null 2>&1; then
+  printf '%s\n' "GitHub run response malformed" > "$REASON"
+  log "Pages dispatch deferred: GitHub run response malformed; pending retained"
+  exit 0
+fi
+
+if jq -e 'any(.[]; .status as $status | ["queued", "in_progress", "waiting", "pending", "requested"] | index($status) != null)' "$runs" >/dev/null 2>&1; then
+  printf '%s\n' "Pages run active; coalescing latest ledger state" > "$REASON"
+  log "Pages run already queued/running/waiting; dispatch coalesced; pending retained"
+  exit 0
+fi
+
+if [ "${1:-}" != "--force" ] && [ -s "$FAILED_MAIN" ] && [ "$(cat "$FAILED_MAIN")" = "$main_sha" ]; then
+  printf '%s\n' "same main SHA already failed; waiting for changed main or operator intent" > "$REASON"
+  log "Pages dispatch deferred: remembered failure at unchanged main ${main_sha:0:12}; pending retained"
+  exit 0
+fi
+
+if [ "${1:-}" != "--force" ] && jq -e --arg sha "$main_sha" 'any(.[]; .status == "completed" and .conclusion == "failure" and (.headSha | ascii_downcase) == ($sha | ascii_downcase))' "$runs" >/dev/null 2>&1; then
+  printf '%s\n' "$main_sha" > "$FAILED_MAIN.tmp"
+  mv "$FAILED_MAIN.tmp" "$FAILED_MAIN"
+  printf '%s\n' "same main SHA failed; waiting for changed main or operator intent" > "$REASON"
+  log "Pages dispatch deferred: same-main source failure at ${main_sha:0:12}; pending retained"
+  exit 0
+fi
+
+if gh workflow run pages.yml -R aien-dev/aienos.com >/dev/null 2>&1; then
+  rm -f "$PENDING" "$FAILED_MAIN" "$REASON"
+  log "Pages rebuild requested for main ${main_sha:0:12}"
+else
+  printf '%s\n' "Pages workflow dispatch failed" > "$REASON"
+  log "Pages dispatch failed; pending retained"
+fi

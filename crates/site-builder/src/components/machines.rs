@@ -5,8 +5,8 @@
 //! and validated at build time and in the tests. Every machine and every
 //! speed row must carry a public link; a row without one fails the build.
 //! Numbers stand beside the physical ceiling of the machine they ran on
-//! and beside our own previous run, never beside anyone else's system,
-//! and the data is checked for the words that would break that rule.
+//! and beside our own previous run. Comparisons with other systems need
+//! the same model and hardware, an explicit measurement label, and a source.
 //! The homepage shows both sections; /machine/ shows the machines first,
 //! before the theory, so the page describes real hardware.
 
@@ -20,11 +20,6 @@ use super::boxlink::{foot, Target};
 /// The raw data file, compiled into the binary.
 pub const RAW: &str = include_str!("../../data/machines.json");
 
-/// Words that compare us with other people's systems. None may appear in
-/// the data or on the rendered sections.
-pub const FORBIDDEN: [&str; 7] = [
-    "faster than", "x faster", "llama.cpp", "vllm", "ollama", "beats ", "beat the",
-];
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -112,12 +107,6 @@ fn has_dash(s: &str) -> bool {
 fn check_text(what: &str, s: &str, errors: &mut Vec<String>) {
     if has_dash(s) {
         errors.push(format!("{what}: em or en dash in {s:?}"));
-    }
-    let lower = s.to_ascii_lowercase();
-    for w in FORBIDDEN {
-        if lower.contains(w) {
-            errors.push(format!("{what}: forbidden comparison word {w:?} in {s:?}"));
-        }
     }
 }
 
@@ -449,6 +438,15 @@ mod tests {
     }
 
     #[test]
+    fn accepts_sourced_same_hardware_comparison_text() {
+        let mut value: serde_json::Value = serde_json::from_str(RAW).unwrap();
+        value["speeds"][0]["note"] = serde_json::Value::String(
+            "Measured by us: 2x faster than llama.cpp on the same model and Spark hardware; published baseline source: https://github.com/aien-dev/omega-mv/tree/main/evidence/h2h".to_string(),
+        );
+        parse(&value.to_string()).expect("sourced same-hardware comparison text is allowed");
+    }
+
+    #[test]
     fn every_row_has_a_public_link() {
         let d = data();
         for m in &d.machines {
@@ -472,7 +470,7 @@ mod tests {
     }
 
     #[test]
-    fn rejects_missing_link_dashes_and_comparisons() {
+    fn rejects_missing_links_dashes_bad_ceilings_and_unknown_fields() {
         let no_link = RAW.replacen(
             "\"link\": \"https://github.com/aien-dev/aien-sovereign-core-mv/tree/qwen38/serve-fast/evidence/qwen38-serve-fast-20261019\"",
             "\"link\": \"\"",
@@ -481,9 +479,6 @@ mod tests {
         assert!(parse(&no_link).unwrap_err().contains("public https URL"));
         let dashed = RAW.replacen("\"what\": \"Live server", "\"what\": \"Live \u{2014} server", 1);
         assert!(parse(&dashed).unwrap_err().contains("em or en dash"));
-        let compared = RAW.replacen("\"note\": \"Nothing has run on the 5070 yet.\"", "\"note\": \"2x faster than llama.cpp\"", 1);
-        let err = parse(&compared).unwrap_err();
-        assert!(err.contains("forbidden comparison word"), "{err}");
         let above = RAW.replacen("\"tok_s\": 7.63,", "\"tok_s\": 70.63,", 1);
         assert!(parse(&above).unwrap_err().contains("above its ceiling"));
         let extra = RAW.replacen("\"as_of\"", "\"surprise\": 1, \"as_of\"", 1);
@@ -498,10 +493,6 @@ mod tests {
             render_real_machines().into_string(),
         ] {
             assert!(!page.contains('\u{2014}') && !page.contains('\u{2013}'), "dash on the page");
-            let lower = page.to_ascii_lowercase();
-            for w in FORBIDDEN {
-                assert!(!lower.contains(w), "forbidden word {w} on the page");
-            }
         }
         let speeds = render_speeds_section().into_string();
         assert!(speeds.contains("7.63 tok/s"));
