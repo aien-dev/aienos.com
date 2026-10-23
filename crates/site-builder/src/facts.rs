@@ -71,7 +71,9 @@ impl Facts {
     pub fn load(path: &Path) -> Result<Facts, String> {
         let text = std::fs::read_to_string(path)
             .map_err(|e| format!("cannot read {}: {e} (run `site-builder facts {}` first)", path.display(), path.display()))?;
-        serde_json::from_str(&text).map_err(|e| format!("{} is not a facts file: {e}", path.display()))
+        let mut facts: Facts = serde_json::from_str(&text).map_err(|e| format!("{} is not a facts file: {e}", path.display()))?;
+        facts.decisions.retain(|d| !retired_name(&d.title));
+        Ok(facts)
     }
 
     pub fn save(&self, path: &Path) -> Result<(), String> {
@@ -107,6 +109,12 @@ fn comparison_title(t: &str) -> bool {
     ["faster than", "x faster", "llama.cpp", "vllm", "ollama", "beats ", "beat the"]
         .iter()
         .any(|w| l.contains(w))
+}
+
+/// The retired name is not rendered, including in an automatically collected
+/// decision title. The record remains in the architecture repository.
+fn retired_name(t: &str) -> bool {
+    t.to_ascii_lowercase().contains("aienix")
 }
 
 fn now_utc() -> String {
@@ -192,7 +200,7 @@ pub fn gather() -> Result<Facts, String> {
         })
         .unwrap_or_default();
     decisions.sort_by(|a, b| b.id.cmp(&a.id));
-    decisions.truncate(5);
+    decisions.truncate(6);
     // Prefer each record's own heading ("# ADR 0035: Persistent Cognitive Entity Boundary (ALLEN)").
     for d in &mut decisions {
         let raw = Command::new("gh")
@@ -212,7 +220,8 @@ pub fn gather() -> Result<Facts, String> {
             }
         }
     }
-
+    decisions.retain(|d| !retired_name(&d.title));
+    decisions.truncate(5);
     // The receipt: latest main commit of sovereign-core and its "AIEN Verification" status.
     let repo = "aien-dev/aien-sovereign-core";
     let commit = gh(&[&format!("repos/{repo}/commits/main")])?;
