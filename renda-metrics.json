@@ -1,6 +1,6 @@
 {
   "schema": "renda-metrics/1",
-  "generated_at": "2026-10-23T22:25:01Z",
+  "generated_at": "2026-10-23T22:30:02Z",
   "window_seconds": 3600,
   "workers": [
     {
