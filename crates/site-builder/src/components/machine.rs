@@ -17,7 +17,7 @@ use super::research_status::{
 };
 
 pub const TITLE: &str = "The Machine | AIENOS";
-pub const DESCRIPTION: &str = "The five real machines AIENOS runs on today, the closed loop from search to verified understanding, the Turing as its accounting layer, and what exists.";
+pub const DESCRIPTION: &str = "One machine across five physical bodies: the closed loop from search to verified understanding, the Turing as its accounting layer, and what exists today.";
 pub const URL: &str = "https://www.aienos.com/machine/";
 
 /// Anchor of the homepage loop diagram (NARR-HOME, components/home_loop.rs).

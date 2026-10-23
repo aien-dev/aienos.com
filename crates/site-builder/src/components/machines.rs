@@ -304,9 +304,9 @@ pub fn render_real_machines() -> Markup {
     let d = data();
     html! {
         section id="real-machines" class="narr-section mx-on-narr" aria-labelledby="real-machines-heading" {
-            h2 id="real-machines-heading" { "The real machines" }
+            h2 id="real-machines-heading" { "The bodies of one machine" }
             p {
-                "Before the theory, the hardware. These are the machines the project runs on today, with the last evidence for each and a link to its receipt. The loop below is what they are for."
+                "One machine, five physical bodies. AIEN is one system whose work moves between them: a DGX Spark for development and judgment, an Intel iMac and a Raspberry Pi 5 that run the kernel bare metal, QEMU for every gate before hardware, and a Windows PC with an RTX 5070 as the next target. Each card says what runs on that body today, the last evidence for it, and where the receipt is. The loop below is what they are for."
             }
             (render_machine_cards(d))
             p class="narr-more" {
