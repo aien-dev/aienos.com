@@ -1,0 +1,57 @@
+[
+  {
+    "label": "rust",
+    "argv": [
+      "cargo",
+      "test",
+      "-q",
+      "--manifest-path",
+      "crates/site-builder/Cargo.toml"
+    ],
+    "exit_code": 0,
+    "raw_log_sha256": "f76bb760dd9dac0b6604a9541eafc6ec51a5d2c8126540faf031018814fc38c8"
+  },
+  {
+    "label": "build",
+    "argv": [
+      "cargo",
+      "run",
+      "-q",
+      "--release",
+      "--manifest-path",
+      "crates/site-builder/Cargo.toml",
+      "--",
+      "build",
+      "dist"
+    ],
+    "exit_code": 0,
+    "raw_log_sha256": "e9865739b6e7a247418094bee4512b20a6bc6ea3726a7eac80fa12e351ebf7be"
+  },
+  {
+    "label": "discovery",
+    "argv": [
+      "python3",
+      "scripts/test_discovery.py"
+    ],
+    "exit_code": 0,
+    "raw_log_sha256": "7574f19c5d07f1c7c345c1f056b9a6efba4d260c2492314bdc9188e3dc67bf3c"
+  },
+  {
+    "label": "collector",
+    "argv": [
+      "python3",
+      "scripts/test_renda_metrics.py"
+    ],
+    "exit_code": 0,
+    "raw_log_sha256": "75ff54e727b57e4bd7b88956ed0c92c4b9a416e6f0976707e8fb54aa385ac0bd"
+  },
+  {
+    "label": "publisher",
+    "argv": [
+      "python3",
+      "tests/now_publish_test.py"
+    ],
+    "exit_code": 0,
+    "raw_log_sha256": "13b424bd5ed17b3926169ff8083ead8bb0f7df7b1fe16db24e272aa5fa22ebd3"
+  }
+]

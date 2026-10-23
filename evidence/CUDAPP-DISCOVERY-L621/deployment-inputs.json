@@ -1,0 +1,17 @@
+[
+  {
+    "input": "now.tsv",
+    "sha256": "9f1c369cd59a0b2b469e90fe23267578c44b2ee5ed3cd4d25c58c81479036d78",
+    "bytes": 812000
+  },
+  {
+    "input": "now-pulse.tsv",
+    "sha256": "2ab3f9f6f1abd62a8c280b4945a399e8e4c1aed3f0d116326d98542736e3b72b",
+    "bytes": 154
+  },
+  {
+    "input": "renda-metrics.json",
+    "sha256": "39de8164f48b4977ea2e81ec600038b2d846e2b467f6f5c139f296781b9dd556",
+    "bytes": 833
+  }
+]

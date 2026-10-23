@@ -1,0 +1,80 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/aien-dev/CUDApp/232332422bfdc31c8918085b50f13c1e18ab702e/README.md",
+    "status": 200,
+    "bytes": 34899,
+    "final_url": "https://raw.githubusercontent.com/aien-dev/CUDApp/232332422bfdc31c8918085b50f13c1e18ab702e/README.md"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/aien-dev/CUDApp/232332422bfdc31c8918085b50f13c1e18ab702e/LICENSE",
+    "status": 200,
+    "bytes": 1072,
+    "final_url": "https://raw.githubusercontent.com/aien-dev/CUDApp/232332422bfdc31c8918085b50f13c1e18ab702e/LICENSE"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/aien-dev/CUDApp/232332422bfdc31c8918085b50f13c1e18ab702e/ROADMAP.md",
+    "status": 200,
+    "bytes": 7339,
+    "final_url": "https://raw.githubusercontent.com/aien-dev/CUDApp/232332422bfdc31c8918085b50f13c1e18ab702e/ROADMAP.md"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/aien-dev/CUDApp/232332422bfdc31c8918085b50f13c1e18ab702e/docs/DRIVER.md",
+    "status": 200,
+    "bytes": 7704,
+    "final_url": "https://raw.githubusercontent.com/aien-dev/CUDApp/232332422bfdc31c8918085b50f13c1e18ab702e/docs/DRIVER.md"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/aien-dev/CUDApp/232332422bfdc31c8918085b50f13c1e18ab702e/docs/runtime/PORTABILITY.md",
+    "status": 200,
+    "bytes": 15182,
+    "final_url": "https://raw.githubusercontent.com/aien-dev/CUDApp/232332422bfdc31c8918085b50f13c1e18ab702e/docs/runtime/PORTABILITY.md"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/aien-dev/CUDApp/232332422bfdc31c8918085b50f13c1e18ab702e/src/omega_gpu_cmdlist.c",
+    "status": 200,
+    "bytes": 21936,
+    "final_url": "https://raw.githubusercontent.com/aien-dev/CUDApp/232332422bfdc31c8918085b50f13c1e18ab702e/src/omega_gpu_cmdlist.c"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/aien-dev/CUDApp/232332422bfdc31c8918085b50f13c1e18ab702e/docs/HOW_I_DID_IT.md",
+    "status": 200,
+    "bytes": 8167,
+    "final_url": "https://raw.githubusercontent.com/aien-dev/CUDApp/232332422bfdc31c8918085b50f13c1e18ab702e/docs/HOW_I_DID_IT.md"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/aien-dev/omega-mv/89aad7c99b4fced80f92b656d2a3f350699456f0/evidence/WHAT-OMEGA-IS-20261021/live-serve-no-cuda.txt",
+    "status": 200,
+    "bytes": 1447,
+    "final_url": "https://raw.githubusercontent.com/aien-dev/omega-mv/89aad7c99b4fced80f92b656d2a3f350699456f0/evidence/WHAT-OMEGA-IS-20261021/live-serve-no-cuda.txt"
+  },
+  {
+    "url": "https://rocm.docs.amd.com/",
+    "status": 200,
+    "bytes": 52219,
+    "final_url": "https://rocm.docs.amd.com/en/latest/"
+  },
+  {
+    "url": "https://www.khronos.org/sycl/",
+    "status": 200,
+    "bytes": 76014,
+    "final_url": "https://www.khronos.org/sycl/"
+  },
+  {
+    "url": "https://www.vulkan.org/",
+    "status": 200,
+    "bytes": 88781,
+    "final_url": "https://www.vulkan.org/"
+  },
+  {
+    "url": "https://developer.apple.com/metal/",
+    "status": 200,
+    "bytes": 114517,
+    "final_url": "https://developer.apple.com/metal/"
+  },
+  {
+    "url": "https://github.com/vosen/ZLUDA",
+    "status": 200,
+    "bytes": 370555,
+    "final_url": "https://github.com/vosen/ZLUDA"
+  }
+]

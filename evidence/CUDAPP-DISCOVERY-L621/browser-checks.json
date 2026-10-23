@@ -1,0 +1,74 @@
+[
+  {
+    "page": "/",
+    "viewport": "desktop",
+    "dimensions": {
+      "viewport": 1440,
+      "body": 1440
+    },
+    "javascript_errors": []
+  },
+  {
+    "page": "cuda-alternative",
+    "viewport": "desktop",
+    "dimensions": {
+      "viewport": 1440,
+      "body": 1440
+    },
+    "javascript_errors": []
+  },
+  {
+    "page": "ai-inference-speed",
+    "viewport": "desktop",
+    "dimensions": {
+      "viewport": 1440,
+      "body": 1440
+    },
+    "javascript_errors": []
+  },
+  {
+    "page": "cudaplusplus",
+    "viewport": "desktop",
+    "dimensions": {
+      "viewport": 1440,
+      "body": 1440
+    },
+    "javascript_errors": []
+  },
+  {
+    "page": "/",
+    "viewport": "phone",
+    "dimensions": {
+      "viewport": 390,
+      "body": 390
+    },
+    "javascript_errors": []
+  },
+  {
+    "page": "cuda-alternative",
+    "viewport": "phone",
+    "dimensions": {
+      "viewport": 390,
+      "body": 390
+    },
+    "javascript_errors": []
+  },
+  {
+    "page": "ai-inference-speed",
+    "viewport": "phone",
+    "dimensions": {
+      "viewport": 390,
+      "body": 390
+    },
+    "javascript_errors": []
+  },
+  {
+    "page": "cudaplusplus",
+    "viewport": "phone",
+    "dimensions": {
+      "viewport": 390,
+      "body": 390
+    },
+    "javascript_errors": []
+  }
+]

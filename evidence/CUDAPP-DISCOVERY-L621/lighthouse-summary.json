@@ -1,0 +1,62 @@
+[
+  {
+    "route": "/cuda-alternative/",
+    "source_head": "d2e81b398cdc198b31cb9e2e250fcd0ed3932884",
+    "fetchTime": "2026-10-23T00:32:30.485Z",
+    "scores": {
+      "performance": 90,
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100
+    },
+    "unscored_findings": [
+      {
+        "id": "label-content-name-mismatch",
+        "title": "Elements with visible text labels do not have matching accessible names.",
+        "selectors": [
+          "div#root > header.aien-header > div.aien-header-inner > a.aien-brand"
+        ]
+      }
+    ]
+  },
+  {
+    "route": "/ai-inference-speed/",
+    "source_head": "d2e81b398cdc198b31cb9e2e250fcd0ed3932884",
+    "fetchTime": "2026-10-23T00:32:50.921Z",
+    "scores": {
+      "performance": 94,
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100
+    },
+    "unscored_findings": [
+      {
+        "id": "label-content-name-mismatch",
+        "title": "Elements with visible text labels do not have matching accessible names.",
+        "selectors": [
+          "div#root > header.aien-header > div.aien-header-inner > a.aien-brand"
+        ]
+      }
+    ]
+  },
+  {
+    "route": "/cudaplusplus/",
+    "source_head": "d2e81b398cdc198b31cb9e2e250fcd0ed3932884",
+    "fetchTime": "2026-10-23T00:33:05.871Z",
+    "scores": {
+      "performance": 92,
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100
+    },
+    "unscored_findings": [
+      {
+        "id": "label-content-name-mismatch",
+        "title": "Elements with visible text labels do not have matching accessible names.",
+        "selectors": [
+          "div#root > header.aien-header > div.aien-header-inner > a.aien-brand"
+        ]
+      }
+    ]
+  }
+]

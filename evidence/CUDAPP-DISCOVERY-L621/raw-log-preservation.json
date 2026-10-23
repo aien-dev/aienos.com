@@ -1,0 +1,14 @@
+[
+  {
+    "file": "baseline-build.log",
+    "raw_archive": "baseline-build.log.gz",
+    "raw_sha256": "7125ef5ae85a9e9e42a686adf4a71127bd6e9c58c108015a7494b3f9ec6e3b66",
+    "normalization": "Trailing whitespace removed in the text display only; raw bytes retained in gzip."
+  },
+  {
+    "file": "build.log",
+    "raw_archive": "build.log.gz",
+    "raw_sha256": "e082d10dc4084715e361c4310542c23c7bb461083c95060f04551b8b2e0561a0",
+    "normalization": "Trailing whitespace removed in the text display only; raw bytes retained in gzip."
+  }
+]

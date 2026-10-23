@@ -1,0 +1,14 @@
+[
+  {
+    "route": "/cudaplusplus/",
+    "result": "\n0 ERRORS0 WARNINGS2 ITEMS\nWebPage\n0 ERRORS0 WARNINGS1 ITEM\nDataset\n0 ERRORS0 WARNINGS1 ITEM\nplay_arrow\nVALIDATE"
+  },
+  {
+    "route": "/cuda-alternative/",
+    "result": "\n0 ERRORS0 WARNINGS2 ITEMS\nBreadcrumbList\n0 ERRORS0 WARNINGS1 ITEM\nArticle\n0 ERRORS0 WARNINGS1 ITEM\nplay_arrow\nVALIDATE"
+  },
+  {
+    "route": "/ai-inference-speed/",
+    "result": "\n0 ERRORS0 WARNINGS2 ITEMS\nBreadcrumbList\n0 ERRORS0 WARNINGS1 ITEM\nArticle\n0 ERRORS0 WARNINGS1 ITEM\nplay_arrow\nVALIDATE"
+  }
+]
