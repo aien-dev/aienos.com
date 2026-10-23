@@ -1,0 +1,36 @@
+{
+  "repository": "aien-dev/aienos.com",
+  "branch": "feat/cuda-inference-discovery",
+  "head": "1a76ee477207fece95b555c1b2af1242c703da2b",
+  "base": "89683470c430829cef2bcc871dc90657fedac3ab",
+  "qualification": {
+    "eligible": true,
+    "diagnostic": "trusted recipe fields match exact repository, commit and tree",
+    "commit": "1a76ee477207fece95b555c1b2af1242c703da2b",
+    "tree": "0e5441d62da6bd268a035745bb7cfe11ce4f23df",
+    "recipe_id": "aienos.com/mac-site-tests-build-collector-v1",
+    "signature": "verified against deployment-pinned public key",
+    "receipt_sha256": "f7c2c10912aa3a642128cf1d47c8788fc489564a23e67eb00ced339297463a5e"
+  },
+  "intake": {
+    "ack_path": "/home/drakestapleton/.local/state/aien-local-ci/renda-queue/acks/296e9b696e3f1cdfad7b5cd6150a22c2f946783bf1bb1c60a607fa484a5608f5.json",
+    "acknowledged_at": 1792715793.7528183,
+    "input": "/home/drakestapleton/handoffs/cudapp-site-L621/ready.json",
+    "items": [
+      {
+        "base": "89683470c430829cef2bcc871dc90657fedac3ab",
+        "head": "1a76ee477207fece95b555c1b2af1242c703da2b",
+        "number": null,
+        "ref": "feat/cuda-inference-discovery",
+        "remote_observed_at": null
+      }
+    ],
+    "provenance_sha256": "c0ed98054f189d34de7210014eca82e84ae0c0e72329948624f3e1e7b6803aef",
+    "remote_eligible": false,
+    "repository": "aien-dev/aienos.com",
+    "schema": "renda-intake-ack/1",
+    "state": "ACCEPTED_LOCAL_NOT_PUBLISHED"
+  },
+  "publication": "pending existing website owner; no PR or merge performed",
+  "ledger": "L633"
+}

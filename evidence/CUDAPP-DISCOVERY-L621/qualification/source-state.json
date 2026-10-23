@@ -1,0 +1,8 @@
+{
+  "head": "1a76ee477207fece95b555c1b2af1242c703da2b",
+  "tree": "0e5441d62da6bd268a035745bb7cfe11ce4f23df",
+  "tracked_clean_before": true,
+  "tracked_clean_after": true,
+  "signature_verified_against": "Spark deployment-pinned public key",
+  "receipt_sha256": "f7c2c10912aa3a642128cf1d47c8788fc489564a23e67eb00ced339297463a5e"
+}
