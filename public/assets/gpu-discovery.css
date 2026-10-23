@@ -1,0 +1,43 @@
+/* CUDA++ discovery uses the site's own Turing palette and system fonts. */
+.gd-feature { padding-top: 64px; padding-bottom: 56px; border-bottom: 1px solid var(--tl-line); }
+.gd-feature h2 { max-width: 950px; font-size: clamp(30px, 4.8vw, 60px); line-height: 1.12; letter-spacing: -.035em; margin: 18px 0 22px; }
+.gd-feature > p:not(.gd-eyebrow), .gd-feature nav { max-width: 880px; }
+.gd-eyebrow { color: var(--tl-green); font-family: var(--font-mono, monospace); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; }
+.gd-feature p, .gd-guide p, .gd-section p, .gd-guide li, .gd-guide dd { color: var(--tl-ink-2); font-size: 17px; line-height: 1.8; }
+.gd-feature .gd-caption { font-size: 13px; margin-top: 22px; }
+.gd-links { display: flex; gap: 12px 22px; flex-wrap: wrap; margin: 24px 0; align-items: center; }
+.gd-links a { color: var(--tl-blue-soft); text-decoration: underline; text-underline-offset: 4px; padding: 12px 0; font-size: 15px; }
+.gd-links a.gd-primary { color: var(--tl-bg); background: var(--tl-green); padding: 12px 20px; border-radius: 8px; font-weight: 700; text-decoration: none; }
+.gd-guide { max-width: 960px; padding-top: 70px; padding-bottom: 80px; }
+.gd-guide h1 { font-size: clamp(38px, 5.8vw, 68px); line-height: 1.1; letter-spacing: -.035em; margin: 20px 0 24px; max-width: 900px; }
+.gd-guide .gd-deck { color: var(--tl-ink); font-size: clamp(20px, 2.5vw, 27px); line-height: 1.5; }
+.gd-guide section { margin-top: 64px; scroll-margin-top: 140px; }
+.gd-guide h2, .gd-section h2 { color: var(--tl-ink); font-size: clamp(25px, 3.2vw, 36px); line-height: 1.25; letter-spacing: -.02em; margin-bottom: 22px; }
+.gd-guide p, .gd-section p { margin: 18px 0; }
+.gd-guide a, .gd-section a, .gd-feature p a { color: var(--tl-blue-soft); text-underline-offset: 4px; }
+.gd-guide a:hover, .gd-section a:hover, .gd-feature a:hover { filter: brightness(1.15); }
+.gd-guide a:focus-visible, .gd-section a:focus-visible, .gd-feature a:focus-visible, .gd-answer summary:focus-visible, .gd-table-wrap:focus-visible { outline: 2px solid var(--tl-green); outline-offset: 5px; }
+.gd-guide pre, .gd-section pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; line-height: 1.8; padding: 22px; background: var(--tl-card); border: 1px solid var(--tl-line-2); border-radius: 10px; color: var(--tl-ink); }
+.gd-table-wrap { overflow-x: auto; margin: 25px 0; }
+.gd-guide table { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.7; }
+.gd-guide th, .gd-guide td { text-align: left; vertical-align: top; padding: 16px 12px; border-bottom: 1px solid var(--tl-line-2); min-width: 135px; }
+.gd-guide td { color: var(--tl-ink-2); }
+.gd-guide th { color: var(--tl-ink); }
+.gd-guide .gd-source { font-size: 14px; }
+.gd-guide ol { padding-left: 25px; }
+.gd-guide li { padding: 6px 0 6px 8px; }
+.gd-definitions dt { color: var(--tl-green); font-weight: 600; font-size: 18px; margin-top: 28px; }
+.gd-definitions dd { margin: 8px 0 26px; }
+.gd-section { padding-top: 60px; padding-bottom: 60px; scroll-margin-top: 140px; }
+.gd-section h3 { font-size: 24px; margin: 36px 0 20px; }
+.gd-answer { border-bottom: 1px solid var(--tl-line-2); padding: 18px 0; }
+.gd-answer summary { cursor: pointer; color: var(--tl-ink); font-size: 18px; font-weight: 600; line-height: 1.6; }
+.gd-answer > a { font-size: 14px; display: inline-block; padding: 6px 0; }
+@media (max-width: 640px) {
+  .gd-feature { padding-top: 38px; padding-bottom: 32px; }
+  .gd-guide { padding-top: 42px; }
+  .gd-guide section { margin-top: 44px; }
+  .gd-guide p, .gd-section p, .gd-guide li, .gd-guide dd { font-size: 16px; }
+  .gd-links { gap: 6px 20px; }
+  .gd-guide th, .gd-guide td { padding: 12px 10px; }
+}

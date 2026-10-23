@@ -2,8 +2,8 @@ use maud::{html, Markup, PreEscaped, DOCTYPE};
 
 pub fn render_base_layout(content: Markup) -> Markup {
     render_page_layout(
-        "AIENOS | Persistent machine intelligence you own",
-        "An experimental, open source machine for turning search into verified understanding, running on five real machines. Every claim carries a public receipt.",
+        "AienOS | CUDA++, local AI and verified computing",
+        "Explore CUDA++, an MIT-licensed CUDA alternative for GB10 GPU computing, and AIEN local AI inference research. Source, benchmarks and limits with evidence.",
         "https://www.aienos.com/",
         "website",
         html! {
@@ -53,6 +53,7 @@ pub fn render_page_layout(
                 link rel="stylesheet" href="/assets/turing-look.css";
                 // The machines and the speeds (homepage and /machine/)
                 link rel="stylesheet" href="/assets/machines.css";
+                link rel="stylesheet" href="/assets/gpu-discovery.css";
                 script defer src="/js/turing-look.js" {}
 
                 (extra_head)

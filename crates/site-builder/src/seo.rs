@@ -76,10 +76,12 @@ pub struct PageInfo {
 /// Every English page of the site. The build fails if dist holds a page
 /// that is not here, or if a page here was not written.
 pub const PAGES: &[PageInfo] = &[
+    PageInfo { path: "/cuda-alternative/", name: "CUDA++: an open-source CUDA alternative", what: "CUDA++ GPU computing without the CUDA toolkit: replacement layers, GB10 qualification, local machine learning, alternatives and explicit compatibility limits.", section: Section::Machine, kind: Kind::Article, image: "/og-cuda-alternative.png", published: "2026-10-22", doi: None },
+    PageInfo { path: "/ai-inference-speed/", name: "AI inference speed: measure the whole answer", what: "CUDA++ and LLM inference performance: TTFT, per-request decode speed, aggregate throughput, memory bandwidth, correctness and reproducible benchmark evidence.", section: Section::Machine, kind: Kind::Article, image: "/og-ai-inference-speed.png", published: "2026-10-22", doi: None },
     PageInfo { path: "/", name: "AIENOS", what: "The front page: the loop, the five real machines and their measured speeds beside the physical ceiling, the evidence cards, the current status of every layer.", section: Section::Machine, kind: Kind::Home, image: "/og.png", published: "2026-09-23", doi: None },
     PageInfo { path: "/machine/", name: "The Machine", what: "What AIENOS is: the real machines it runs on today, the closed epistemic loop, the Turing as its accounting layer, and an honest list of what exists.", section: Section::Machine, kind: Kind::Article, image: "/og-machine.png", published: "2026-10-01", doi: None },
     PageInfo { path: "/omega/", name: "What Omega is", what: "Omega is AIEN's language for all computing, GPU to CPU; on the GPU it is the replacement for CUDA. The CUDA stack piece by piece with status, the receipt for the live server running with zero CUDA libraries, what is not true yet, and the bar C1 to C6.", section: Section::Machine, kind: Kind::Page, image: "/og-machine.png", published: "2026-10-21", doi: None },
-    PageInfo { path: "/cudaplusplus/", name: "CUDA++", what: "CUDA++ is the GPU half of the Omega runtime, under the MIT licence so anyone can use it (aien-dev/CUDApp; aien-dev/CUDAplusplus redirects). No NVIDIA user-space software. What it is for, the path from program to chip with whose code runs at each step, how I did it, CUDA's pain points and the swap down to the kernel driver.", section: Section::Machine, kind: Kind::Page, image: "/og-machine.png", published: "2026-10-22", doi: None },
+    PageInfo { path: "/cudaplusplus/", name: "CUDA++", what: "CUDA++ is the MIT-licensed GPU half of Omega, with direct machine-code kernels and a runtime for AI inference on qualified NVIDIA GB10 hardware without CUDA user-space libraries. Quickstart, sources and explicit compatibility limits; not a complete CUDA replacement.", section: Section::Machine, kind: Kind::Page, image: "/og-cudapp.png", published: "2026-10-22", doi: None },
     PageInfo { path: "/now/", name: "Now", what: "The live coordination ledger: what every agent is doing right now, what is settled with evidence, what waits on the operator. Rebuilt whenever the ledger changes.", section: Section::Machine, kind: Kind::Live, image: "/og-now.png", published: "2026-10-19", doi: None },
     PageInfo { path: "/progress/", name: "Project progress", what: "Source lines, revisions, test footprint and verification activity across the public repositories, refreshed hourly from GitHub.", section: Section::Machine, kind: Kind::Live, image: "/og.png", published: "2026-10-01", doi: None },
     PageInfo { path: "/turing/", name: "The Turing: an interactive field guide", what: "What the Turing measures (net held-out explanatory compression), with games, live calculations and the theories behind it.", section: Section::Turing, kind: Kind::Article, image: "/og-turing.png", published: "2026-09-30", doi: None },
@@ -114,6 +116,7 @@ pub struct DataFile {
 }
 
 pub const DATA_FILES: &[DataFile] = &[
+    DataFile { path: "/data/cudapp.json", purpose: "CUDA++ agent dossier: MIT product identity, qualified hardware, dependency boundaries, dated no-CUDA receipt, shared FAQ, quickstart and benchmark policy with immutable sources.", schema: "{ schema_version, name, repository, source_commit, source_checked, license, qualified_gpu[], dependencies[], drop_in_cuda_compatible, independent_kernel_driver_qualified, historical_receipt, answers[], benchmark_policy, quickstart, pages[], retrieval }", cadence: "when the linked source snapshot is revised", media_type: "application/json" },
     DataFile { path: "/data/index.json", purpose: "This list: every machine-readable file on the site with its purpose and cadence.", schema: "{ generated, license, files: [{ path, url, purpose, schema, cadence, media_type }] }", cadence: "every build", media_type: "application/json" },
     DataFile { path: "/llms.txt", purpose: "The site for AI readers: one summary and every page with a one-line description (llms.txt convention).", schema: "Markdown: H1, blockquote summary, H2 sections of links.", cadence: "every build", media_type: "text/markdown" },
     DataFile { path: "/llms-full.txt", purpose: "The full text of every page, concatenated, generated from the same sources as the HTML.", schema: "Markdown: one H1 per page with its source URL.", cadence: "every build", media_type: "text/markdown" },
@@ -567,7 +570,13 @@ fn graph(page: &Emitted, info: &PageInfo, facts: &HeadFacts, has_mirror: bool, c
             node["workTranslation"] = json!({"@id": format!("{HOST}{}", page.zh_path())});
         }
     }
+    if matches!(info.path, "/cudaplusplus/" | "/cuda-alternative/" | "/ai-inference-speed/") {
+        node["about"] = json!({"@id": "https://github.com/aien-dev/CUDApp#software"});
+    }
     let mut nodes = vec![org(), author(), website(), node];
+    if matches!(info.path, "/" | "/cudaplusplus/" | "/cuda-alternative/" | "/ai-inference-speed/") {
+        nodes.push(crate::components::gpu_discovery::product_schema());
+    }
     if page.path != "/" && page.path != "/zh-CN/" {
         nodes.push(breadcrumb(page, &title));
     }
@@ -757,7 +766,12 @@ pub fn llms_txt(status_lines: &[String], research_sentence: &str) -> String {
     let mut s = String::new();
     s.push_str("# AIENOS\n\n");
     s.push_str(&format!("> {SITE_CLAIM}. AIENOS is an experimental, open source (AGPL-3.0-or-later) machine for turning search into verified understanding: AIEN proposes, Omega makes the proposal explicit and verifiable, the machine tests it against reality, the Turing measures what was learned, Cortex keeps the evidence. Every claim on the site carries a public receipt. Status: experimental, pre-alpha. Built by {AUTHOR} with AI agents on five real machines.\n\n"));
-    s.push_str("Rules the site keeps: no comparisons with other systems (every speed stands beside the physical ceiling of its own machine only), failures stay on the record, nothing is loaded from anyone else (no trackers, no outside fonts or scripts; the one outside embed is the film on /turing/), and AI agents are welcome to read, cite, argue and correct. Contact: aien@aienos.com. Source: https://github.com/aien-dev.\n\n");
+    s.push_str("Rules the site keeps: comparisons require the same hardware and model, a source and a measured-by-me or published-by-others label; failures stay on the record, nothing is loaded from anyone else (no trackers, no outside fonts or scripts; the one outside embed is the film on /turing/), and AI agents are welcome to read, cite, argue and correct. Contact: aien@aienos.com. Source: https://github.com/aien-dev.\n\n");
+    s.push_str("## CUDA++: CUDA alternatives and AI inference\n\n");
+    s.push_str(crate::components::gpu_discovery::SUMMARY);
+    s.push_str("\n\nCUDA++ is MIT licensed, not the site-wide AGPL licence. Qualified GPU: NVIDIA GB10 (sm_121) in the DGX Spark. NVIDIA kernel modules and signed firmware remain required. Other hardware CPU tests do not qualify its GPU. A historical no-CUDA-library receipt is not a current uptime or comparative speed claim.\n\n");
+    s.push_str(&format!("- [CUDA++ product and quickstart]({HOST}/cudaplusplus/): implementation, coverage and practical answers.\n- [CUDA alternative guide]({HOST}/cuda-alternative/): what each replacement layer means.\n- [AI inference speed]({HOST}/ai-inference-speed/): TTFT, decode, throughput and matched benchmarks.\n- [CUDA++ agent dossier]({HOST}/data/cudapp.json): source-pinned facts and answers.\n- [CUDA++ source](https://github.com/aien-dev/CUDApp): MIT.\n\n"));
+    s.push_str("llms.txt is a discovery aid, not a guarantee that a search engine or model will index or train on this site. Standard crawlable HTML, linked evidence and robots.txt remain available.\n\n");
     s.push_str("## Current state\n\n");
     for l in status_lines {
         s.push_str(&format!("- {l}\n"));
@@ -877,7 +891,7 @@ pub fn data_index(ctx: &BuildCtx) -> String {
         "contact": ORG_EMAIL,
         "source": ORG_URL,
         "rules": [
-            "No comparisons with other systems: every number stands beside the physical ceiling of its own machine only.",
+            "Comparisons require the same hardware and model, source links, and measured-by-me or published-by-others labels; distinguish physical limits, observed kernel rates and end-to-end speeds.",
             "Every claim links its receipt. Failures stay on the record.",
             "Nothing is loaded from anyone else: no trackers, no outside fonts or scripts. The one outside embed is the film on /turing/."
         ],
@@ -989,6 +1003,36 @@ pub fn verify(dist: &Path) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // Regressions: stale comparison policy, an unregistered guide, or a
+    // product node inheriting the site's licence would mislead consumers.
+    #[test]
+    fn cuda_discovery_is_registered_and_bots_get_evidence_policy() {
+        for path in ["/cuda-alternative/", "/ai-inference-speed/"] {
+            assert!(info_for(path).is_some(), "missing discovery page {path}");
+        }
+        let text = llms_txt(&[], "experimental");
+        assert!(text.contains("## CUDA++: CUDA alternatives and AI inference"));
+        assert!(!text.contains("no comparisons with other systems"));
+        assert!(text.contains("not a drop-in replacement"));
+        let ctx = BuildCtx { built: "b".into(), head_committed: "h".into(), ledger_written: "l".into(), facts_generated: "f".into() };
+        let index = data_index(&ctx);
+        assert!(!index.contains("No comparisons with other systems"));
+        assert!(index.contains("/data/cudapp.json"));
+    }
+
+    #[test]
+    fn cuda_product_graph_has_its_own_identity_and_mit_license() {
+        let ctx = BuildCtx { built: "b".into(), head_committed: "h".into(), ledger_written: "l".into(), facts_generated: "f".into() };
+        let page = Emitted { path: "/cudaplusplus/".into(), file: PathBuf::from("x"), lang: "en".into(), lastmod: "2026-10-22T00:00:00Z".into() };
+        let facts = HeadFacts { title: "CUDA++".into(), description: "GPU toolchain".into(), ..Default::default() };
+        let g = graph(&page, info_for(&page.path).unwrap(), &facts, false, &ctx, Path::new("/nonexistent"));
+        let product = g["@graph"].as_array().unwrap().iter().find(|n| n["@type"] == "SoftwareSourceCode").expect("CUDA++ software entity");
+        assert_eq!(product["name"], "CUDA++");
+        assert_eq!(product["codeRepository"], "https://github.com/aien-dev/CUDApp");
+        assert_eq!(product["license"], "https://opensource.org/license/mit");
+        assert!(product["description"].as_str().unwrap().contains("GB10"));
+    }
 
     #[test]
     fn rfc3339_round_trip() {

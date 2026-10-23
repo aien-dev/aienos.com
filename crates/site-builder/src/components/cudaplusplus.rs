@@ -21,8 +21,8 @@ use serde::Deserialize;
 
 use super::boxlink::{foot_labelled, Target};
 
-pub const TITLE: &str = "CUDA++ | AienOS";
-pub const DESCRIPTION: &str = "CUDA++ is the GPU half of the Omega runtime, under the MIT licence so anyone can use it (aien-dev/CUDApp). No NVIDIA user-space software. What it is for, how I did it, CUDA's pain points and the swap.";
+pub const TITLE: &str = "CUDA++: Open-Source GPU Computing Without CUDA | AienOS";
+pub const DESCRIPTION: &str = "CUDA++ is an MIT-licensed GPU toolchain for AI inference without the CUDA toolkit. GB10-qualified kernels, runtime, source, quickstart and replacement limits.";
 pub const URL: &str = "https://www.aienos.com/cudaplusplus/";
 
 /// The data file, compiled in and published as /cudaplusplus.json.
@@ -317,7 +317,7 @@ pub fn render_cudaplusplus_page() -> Markup {
     let building = d.hops.iter().filter(|h| h.status == "IN PROGRESS").count();
     html! {
         div class="om-page cp-page" {
-            header class="om-hero" {
+            section class="om-hero" aria-label="CUDA++ overview" {
                 div class="container" {
                     p class="om-kicker" { "CUDA++ \u{00B7} open source, MIT" }
                     h1 class="om-title" { (d.claim) }
@@ -363,6 +363,7 @@ pub fn render_cudaplusplus_page() -> Markup {
                         a href="/cudaplusplus.json" { "/cudaplusplus.json" } "."
                     }
                     nav class="om-toc" aria-label="On this page" {
+                        a href="#cuda-faq" { "Try CUDA++ and practical answers" }
                         a href="#path" { "From your program to the chip" }
                         a href="#how" { "How I did it" }
                         a href="#pain-points" { "CUDA's pain points" }
@@ -370,6 +371,8 @@ pub fn render_cudaplusplus_page() -> Markup {
                     }
                 }
             }
+
+            (super::gpu_discovery::render_answers())
 
             section id="path" class="om-section" {
                 div class="container" {
@@ -450,6 +453,18 @@ pub fn render_cudaplusplus_page() -> Markup {
 mod tests {
     use super::*;
     use crate::components::boxlink::check_boxes;
+
+    #[test]
+    fn discovery_uses_public_repo_and_scopes_the_opener() {
+        let s = render_cudaplusplus_page().into_string();
+        assert!(s.contains("https://github.com/aien-dev/CUDApp"));
+        assert!(!s.contains("repository is private"));
+        assert!(!s.contains("everything CUDA gives you"));
+        assert!(s.contains("not a drop-in replacement"));
+        assert!(s.contains("make hello-gpu"));
+        assert!(s.contains("/ai-inference-speed/"));
+        assert!(s.contains("/cuda-alternative/"));
+    }
 
     #[test]
     fn data_parses_and_validates() {

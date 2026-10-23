@@ -25,6 +25,9 @@ MUTED = (148, 163, 184)
 DIM = (100, 116, 139)
 
 CARDS = [
+    ("og-cudapp.png", "CUDA++", "Your GPU. Your machine code.\nNo CUDA toolkit.", "MIT GPU toolchain and runtime. GB10 qualified. Coverage and evidence in the open.", "www.aienos.com/cudaplusplus/", "Open source, MIT"),
+    ("og-cuda-alternative.png", "CUDA++ / CUDA ALTERNATIVE", "A different path\nfrom program to GPU", "Direct machine code, runtime and driver client. GB10 qualified; not full CUDA compatibility.", "www.aienos.com/cuda-alternative/", "Open source, MIT"),
+    ("og-ai-inference-speed.png", "CUDA++ / INFERENCE SPEED", "Measure the whole answer.\nPublish the evidence.", "First token, decode, throughput and memory. Matched workloads, explicit limits.", "www.aienos.com/ai-inference-speed/", "Open source, MIT"),
     # file, kicker, claim (two lines max), sub line, address
     ("og.png", "AIENOS",
      "Persistent machine intelligence\non a machine you own",
@@ -103,7 +106,7 @@ def wrap(draw, text, f, width):
         lines.append(cur)
     return lines
 
-def card(file, kicker, claim, sub, address):
+def card(file, kicker, claim, sub, address, licence="Open source, AGPL-3.0-or-later"):
     im = Image.new("RGBA", (W, H), BG + (255,))
     d = ImageDraw.Draw(im)
     for x in range(0, W, 60):
@@ -135,7 +138,7 @@ def card(file, kicker, claim, sub, address):
         y += 38
     # Badges along the bottom.
     bx = 80
-    for label, col in (("Open source, AGPL-3.0-or-later", GREEN), ("Experimental, pre-alpha", (245, 166, 35)), ("Receipts over claims", BLUE)):
+    for label, col in ((licence, GREEN), ("Experimental, pre-alpha", (245, 166, 35)), ("Receipts over claims", BLUE)):
         tw = d.textlength(label, font=fm)
         d.rounded_rectangle((bx, 518, bx + tw + 30, 558), radius=6, outline=col, width=1, fill=(14, 18, 25, 255))
         d.text((bx + 15, 526), label, font=fm, fill=col)

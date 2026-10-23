@@ -1,0 +1,37 @@
+
+running 138 tests
+................. 17/138
+components::cudaplusplus::tests::discovery_uses_public_repo_and_scopes_the_opener --- FAILED
+....................................................................................... 105/138
+................ 121/138
+seo::tests::cuda_discovery_is_registered_and_bots_get_evidence_policy --- FAILED
+. 123/138
+seo::tests::cuda_product_graph_has_its_own_identity_and_mit_license --- FAILED
+..............
+failures:
+
+---- components::cudaplusplus::tests::discovery_uses_public_repo_and_scopes_the_opener stdout ----
+
+thread 'components::cudaplusplus::tests::discovery_uses_public_repo_and_scopes_the_opener' (704187) panicked at crates/site-builder/src/components/cudaplusplus.rs:445:9:
+assertion failed: s.contains("https://github.com/aien-dev/CUDApp")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- seo::tests::cuda_discovery_is_registered_and_bots_get_evidence_policy stdout ----
+
+thread 'seo::tests::cuda_discovery_is_registered_and_bots_get_evidence_policy' (704293) panicked at crates/site-builder/src/seo.rs:998:13:
+missing discovery page /cuda-alternative/
+
+---- seo::tests::cuda_product_graph_has_its_own_identity_and_mit_license stdout ----
+
+thread 'seo::tests::cuda_product_graph_has_its_own_identity_and_mit_license' (704294) panicked at crates/site-builder/src/seo.rs:1016:107:
+CUDA++ software entity
+
+
+failures:
+    components::cudaplusplus::tests::discovery_uses_public_repo_and_scopes_the_opener
+    seo::tests::cuda_discovery_is_registered_and_bots_get_evidence_policy
+    seo::tests::cuda_product_graph_has_its_own_identity_and_mit_license
+
+test result: FAILED. 135 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+error: test failed, to rerun pass `--bin site-builder`

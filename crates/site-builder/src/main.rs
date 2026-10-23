@@ -72,6 +72,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
 
     // Render landing page in Maud
     let page_content = html! {
+        (components::gpu_discovery::render_feature())
         (components::home_loop::render_home_loop())
         (components::story::render_story())
         (components::machines::render_machines_section())
@@ -198,6 +199,18 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     fs::write(dist.join("cudaplusplus/index.html"), cudapp_page.into_string()).expect("Failed to write cudaplusplus/index.html");
     fs::write(dist.join("cudaplusplus.json"), components::cudaplusplus::RAW).expect("Failed to write cudaplusplus.json");
     println!("  [PAGE] Emitted /cudaplusplus/ and /cudaplusplus.json");
+
+    for (slug, title, description, body) in [
+        ("cuda-alternative", "CUDA++: Open-Source CUDA Alternative | AienOS", "Explore CUDA++, an MIT-licensed GPU toolchain and runtime without the CUDA toolkit. GB10 support, replacement layers, machine learning and honest limits.", components::gpu_discovery::render_alternative()),
+        ("ai-inference-speed", "AI Inference Speed: CUDA++ and LLM Benchmarks | AienOS", "Understand LLM inference speed with CUDA++: time to first token, decode tokens per second, throughput, memory traffic and reproducible benchmark evidence.", components::gpu_discovery::render_speed()),
+    ] {
+        let dir = dist.join(slug);
+        fs::create_dir_all(&dir).expect("discovery directory");
+        let page = render_page_layout(title, description, &format!("https://www.aienos.com/{slug}/"), "article", html! {}, body);
+        fs::write(dir.join("index.html"), page.into_string()).expect("discovery page");
+    }
+    fs::create_dir_all(dist.join("data")).expect("data directory");
+    fs::write(dist.join("data/cudapp.json"), serde_json::to_string_pretty(&components::gpu_discovery::dossier()).expect("dossier JSON")).expect("write CUDA++ dossier");
 
     // Research narrative pages (NARR-RESEARCH): The Machine and Scientific Discovery
     for (slug, title, description, url, body) in [

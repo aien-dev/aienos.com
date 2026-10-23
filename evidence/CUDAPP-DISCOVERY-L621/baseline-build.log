@@ -1,0 +1,30 @@
+============================================================
+  AIEN OS Native Static Site Builder & Integrity Verifier   
+  Engine: Pure Rust & Maud | Target: dist
+  Mode: build
+============================================================
+  [FACTS] Using facts gathered at 2026-10-16T16:29:47Z from facts.json
+  [BUILD] Compiling pure Rust Maud static site into: dist
+  [ASSETS] Synced public/ assets into dist
+  [STATE] Wrote status.json from the canonical layer states
+  [PAGE] Emitted / (index.html)
+  [FACTS] Published /facts.json
+  [PAGE] Emitted /blog (index.html)
+  [PAGE] Emitted /blog/aien-v3-research-plan (index.html)
+  [PAGE] Emitted /research/status (index.html) and /research-status.json
+  [PAGE] Emitted /now/ (57 ledger lines) and /now.json
+  [PAGE] Emitted /omega/ and /omega.json
+  [PAGE] Emitted /cudaplusplus/ and /cudaplusplus.json
+  [PAGE] Emitted /machine/ (index.html)
+  [PAGE] Emitted /discovery/ (index.html)
+  [PAGE] Emitted /experiments/ (index.html)
+  [PAGE] Emitted /evidence/ (index.html)
+  [PAGE] Emitted /philosophy/ (index.html)
+  [SEO] Rewrote the head of 49 pages: canonical on https://www.aienos.com, cards, hreflang, JSON-LD
+  [GEN] sitemap.xml (49 urls), robots.txt (26 named agents), feed.xml, now/feed.xml, llms.txt, llms-full.txt, data/index.json, humans.txt
+------------------------------------------------------------
+  Verified index.html (105672 bytes)
+  Every box links to GitHub: 284 boxes across 13 pages
+  Integrity & Unslop Invariants: PASS
+  Build and Verification Completed in: 610.20ms
+============================================================

@@ -1,3 +1,4 @@
+pub mod gpu_discovery;
 pub mod blog;
 pub mod boxlink;
 pub mod discovery;

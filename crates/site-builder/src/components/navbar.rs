@@ -14,9 +14,11 @@ pub const NAV_PRIMARY: [(&str, &str); 6] = [
 ];
 
 /// Secondary links: smaller, after a divider.
-pub const NAV_SECONDARY: [(&str, &str); 7] = [
+pub const NAV_SECONDARY: [(&str, &str); 9] = [
+    ("Start here", "/cuda-alternative/#start"),
     ("Omega", "/omega/"),
     ("CUDA++", "/cudaplusplus/"),
+    ("Inference speed", "/ai-inference-speed/"),
     ("Now", "/now/"),
     ("Progress", "/progress/"),
     ("Blog", "/blog"),

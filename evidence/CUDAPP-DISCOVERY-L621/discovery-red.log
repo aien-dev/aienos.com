@@ -1,0 +1,51 @@
+E.FFE
+======================================================================
+ERROR: test_dossier_and_visible_answers_share_claims_and_sources (__main__.DiscoveryTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/drakestapleton/.hermes/cache/scratch/site-seo-20261022/scripts/test_discovery.py", line 83, in test_dossier_and_visible_answers_share_claims_and_sources
+    dossier = json.loads((DIST / 'data/cudapp.json').read_text())
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1256, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1242, in open
+    return io.open(self, mode, buffering, encoding, errors, newline,
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1110, in _opener
+    return self._accessor.open(self, flags, mode)
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/drakestapleton/.hermes/cache/scratch/site-seo-20261022/dist/data/cudapp.json'
+
+======================================================================
+ERROR: test_routes_are_unique_indexable_and_linked (__main__.DiscoveryTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/drakestapleton/.hermes/cache/scratch/site-seo-20261022/scripts/test_discovery.py", line 36, in test_routes_are_unique_indexable_and_linked
+    raw = page(route)
+  File "/Users/drakestapleton/.hermes/cache/scratch/site-seo-20261022/scripts/test_discovery.py", line 30, in page
+    return (DIST / route.strip('/') / 'index.html').read_text()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1256, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1242, in open
+    return io.open(self, mode, buffering, encoding, errors, newline,
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1110, in _opener
+    return self._accessor.open(self, flags, mode)
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/drakestapleton/.hermes/cache/scratch/site-seo-20261022/dist/cuda-alternative/index.html'
+
+======================================================================
+FAIL: test_jsonld_identifies_mit_product_not_site_license (__main__.DiscoveryTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/drakestapleton/.hermes/cache/scratch/site-seo-20261022/scripts/test_discovery.py", line 76, in test_jsonld_identifies_mit_product_not_site_license
+    self.assertEqual(len(product), 1)
+AssertionError: 0 != 1
+
+======================================================================
+FAIL: test_local_links_and_fragment_targets_exist (__main__.DiscoveryTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/drakestapleton/.hermes/cache/scratch/site-seo-20261022/scripts/test_discovery.py", line 67, in test_local_links_and_fragment_targets_exist
+    self.assertIn(urllib.parse.unquote(parsed.fragment), ids, (route, href))
+AssertionError: 'L402' not found in {'root', 'L040', 'L027', 'how', 'stream-infrastructure', 'L002', 'L004', 'stream-aienos-on-the-imac', 'stream-engine-speed', 'main-content', 'now-settled-h', 'L037', 'L036', 'L018', 'L038', 'L051', 'L052', 'L001', 'L020', 'L019', 'now-next-h', 'L017', 'L041', 'now-op-h', 'L047', 'L006', 'settled', 'L043', 'L049', 'L034', 'L024', 'L012', 'L007', 'L021', 'stream-research', 'L013', 'L022', 'L050', 'operator', 'L031', 'L011', 'L003', 'L056', 'L025', 'L015', 'L035', 'L028', 'L048', 'L045', 'L026', 'L016', 'L032', 'next', 'now-how-h', 'L030', 'L055', 'L044', 'L054', 'L014', 'L009', 'now-title', 'L010', 'L042', 'L057', 'L039', 'L029', 'L005', None, 'L033', 'L023', 'stream-aien-rig', 'stream-alpha-release', 'L008', 'now-streams-h', 'L046', 'streams', 'L053'} : ('/cudaplusplus/', '/now/#L402')
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.027s
+
+FAILED (failures=2, errors=2)
