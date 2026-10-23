@@ -1,6 +1,6 @@
 {
   "schema": "renda-metrics/1",
-  "generated_at": "2026-10-23T13:05:02Z",
+  "generated_at": "2026-10-23T13:10:02Z",
   "window_seconds": 3600,
   "workers": [
     {
@@ -15,8 +15,8 @@
       "rebases": 0,
       "reruns": 0,
       "operators": 0,
-      "active_pass_seconds": 1031,
-      "window_passes": 2
+      "active_pass_seconds": 578,
+      "window_passes": 1
     },
     {
       "name": "renda2",
