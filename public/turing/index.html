@@ -350,12 +350,12 @@ html,body{overflow-x:clip}
   </div>
   <div class="lab">
     <div class="lab-panel reveal">
-      <label>Hidden events your rule predicts <output id="o-gain">6</output></label>
-      <input type="range" id="r-gain" min="0" max="12" value="6" step="1">
-      <label>Rule length, in words <output id="o-cost">8</output></label>
-      <input type="range" id="r-cost" min="1" max="40" value="8" step="1">
-      <label>Baseline: blind guessing <output>0 T</output></label>
-      <input type="range" min="0" max="0" value="0" disabled style="opacity:.4">
+      <label for="r-gain">Hidden events your rule predicts <output id="o-gain" for="r-gain">6</output></label>
+      <input type="range" id="r-gain" min="0" max="12" value="6" step="1" aria-label="Hidden events your rule predicts">
+      <label for="r-cost">Rule length, in words <output id="o-cost" for="r-cost">8</output></label>
+      <input type="range" id="r-cost" min="1" max="40" value="8" step="1" aria-label="Rule length, in words">
+      <label for="r-base">Baseline: blind guessing <output for="r-base">0 T</output></label>
+      <input type="range" id="r-base" min="0" max="0" value="0" disabled style="opacity:.4" aria-label="Baseline: blind guessing">
       <p style="font-size:13.5px;color:#64748b;line-height:1.7;margin-top:22px">Each hidden event you nail is worth <strong style="color:#f1f5f9">+1&nbsp;T</strong>. Each word of explanation costs <strong style="color:#f1f5f9">0.1&nbsp;T</strong> of rent. The baseline, blind guessing, always scores zero.</p>
     </div>
     <div class="meter reveal">

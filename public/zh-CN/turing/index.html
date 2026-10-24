@@ -341,12 +341,12 @@ html,body{overflow-x:clip}
 </div>
 <div class="lab">
 <div class="lab-panel reveal">
-<label>你的规则预测的隐藏事件 <output id="o-gain">6</output></label>
-<input id="r-gain" max="12" min="0" step="1" type="range" value="6"/>
-<label>解释长度（以词为单位） <output id="o-cost">8</output></label>
-<input id="r-cost" max="40" min="1" step="1" type="range" value="8"/>
-<label>基准线：盲目猜测 <output>0 T</output></label>
-<input disabled="" max="0" min="0" style="opacity:.4" type="range" value="0"/>
+<label for="r-gain">你的规则预测的隐藏事件 <output id="o-gain" for="r-gain">6</output></label>
+<input aria-label="你的规则预测的隐藏事件" id="r-gain" max="12" min="0" step="1" type="range" value="6"/>
+<label for="r-cost">解释长度（以词为单位） <output id="o-cost" for="r-cost">8</output></label>
+<input aria-label="解释长度（以词为单位）" id="r-cost" max="40" min="1" step="1" type="range" value="8"/>
+<label for="r-base">基准线：盲目猜测 <output for="r-base">0 T</output></label>
+<input aria-label="基准线：盲目猜测" disabled="" id="r-base" max="0" min="0" style="opacity:.4" type="range" value="0"/>
 <p style="font-size:13.5px;color:#64748b;line-height:1.7;margin-top:22px">每成功预测一个隐藏事件，获得<strong style="color:#f1f5f9">+1 T</strong>。每多一个词的解释，需支付<strong style="color:#f1f5f9">0.1 T</strong>的租金。基准线“盲目猜测”始终得分为零。</p>
 </div>
 <div class="meter reveal">
