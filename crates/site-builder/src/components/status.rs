@@ -203,7 +203,13 @@ pub fn status_json() -> String {
 /// /llms.txt: the project in plain text for AI readers and crawlers, in
 /// the llms.txt convention (see `seo::llms_txt`), with the layer states.
 pub fn llms_txt() -> String {
-    let lines: Vec<String> = layer_states().iter().map(|l| format!("{}: {}. {}", l.name, l.status, l.note)).collect();
+    let lines: Vec<String> = layer_states()
+        .iter()
+        .map(|l| {
+            let target = l.receipt_url.unwrap_or("https://www.aienos.com/status.json");
+            format!("[{}]({}): {}. {}", l.name, target, l.status, l.note)
+        })
+        .collect();
     crate::seo::llms_txt(&lines, &rs::current_level_sentence())
 }
 

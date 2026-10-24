@@ -224,6 +224,20 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
         println!("  [PAGE] Emitted /{}/ (index.html)", slug);
     }
 
+    // Glossary: the terms of the project, each linked to where it is used.
+    let glossary = render_page_layout(
+        components::glossary::TITLE,
+        components::glossary::DESCRIPTION,
+        components::glossary::URL,
+        "website",
+        html! {},
+        components::glossary::render_glossary(),
+    );
+    fs::create_dir_all(dist.join("glossary")).expect("Failed to create glossary dir");
+    fs::write(dist.join("glossary/index.html"), glossary.into_string())
+        .expect("Failed to write glossary/index.html");
+    println!("  [PAGE] Emitted /glossary/ (index.html)");
+
     // Section hubs: /experiments/, /evidence/, /philosophy/ (NARR-NAV)
     components::hubs::emit_hub_pages(dist);
 

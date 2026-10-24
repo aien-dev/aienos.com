@@ -3,6 +3,7 @@ pub mod boxlink;
 pub mod discovery;
 pub mod evidence;
 pub mod footer;
+pub mod glossary;
 pub mod home_loop;
 pub mod hubs;
 pub mod machine;
