@@ -137,7 +137,7 @@ pub fn render_footer() -> Markup {
                 div class="aien-footer-legal" {
                     div {
                         "AIEN © 2026. Licensed under "
-                        a href="/licensing/" { "AGPL-3.0-or-later" }
+                        a href="/licensing/" { "Apache-2.0 WITH LLVM-exception" }
                         "."
                     }
                     div class="aien-footer-mottos" {

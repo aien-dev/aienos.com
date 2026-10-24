@@ -173,7 +173,7 @@ pub fn render_home_loop() -> Markup {
                 div class="home-column" {
                     div class="home-badges" {
                         span class="badge badge-amber" { "Experimental · pre-alpha" }
-                        span class="badge badge-blue" { "Open source · AGPL-3.0-or-later" }
+                        span class="badge badge-blue" { "Open source · Apache-2.0 WITH LLVM-exception" }
                     }
 
                     h1 id="home-lead" class="home-lead" { (LEAD) }

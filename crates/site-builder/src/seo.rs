@@ -29,7 +29,7 @@ pub const X_URL: &str = "https://x.com/mdrakestapleton";
 pub const AUTHOR: &str = "M. Drake Stapleton";
 pub const AUTHOR_URL: &str = "https://www.drakestapleton.com";
 pub const AUTHOR_GITHUB: &str = "https://github.com/drakestapleton";
-pub const LICENSE_NAME: &str = "AGPL-3.0-or-later";
+pub const LICENSE_NAME: &str = "Apache-2.0 WITH LLVM-exception";
 pub const LICENSE_URL: &str = "https://www.gnu.org/licenses/agpl-3.0.html";
 
 /// What a page is, for structured data.
@@ -103,7 +103,7 @@ pub const PAGES: &[PageInfo] = &[
     PageInfo { path: "/blog/", name: "Blog", what: "Research notes on building AIEN: what shipped, what the evidence says, what remains open.", section: Section::Blog, kind: Kind::Collection, image: "/og-blog.png", published: "2026-09-27", doi: None },
     PageInfo { path: "/blog/aien-v3-research-plan/", name: "The AIEN V3 Research Plan", what: "The ratified V3 research plan, the Substrate Edition, with six falsifiable hypotheses.", section: Section::Blog, kind: Kind::Article, image: "/og-blog.png", published: "2026-09-27", doi: None },
     PageInfo { path: "/glossary/", name: "Glossary", what: "The terms AIENOS uses in its own sense, each linked to the page where it does real work.", section: Section::Optional, kind: Kind::Page, image: "/og.png", published: "2026-10-23", doi: None },
-    PageInfo { path: "/licensing/", name: "Licensing", what: "The one canonical licensing statement: AGPL-3.0-or-later for every repository.", section: Section::Optional, kind: Kind::Page, image: "/og.png", published: "2026-10-01", doi: None },
+    PageInfo { path: "/licensing/", name: "Licensing", what: "The one canonical licensing statement: Apache-2.0 WITH LLVM-exception for compiler and runtime repositories; plain Apache-2.0 for protocols and benchmarks.", section: Section::Optional, kind: Kind::Page, image: "/og.png", published: "2026-10-01", doi: None },
 ];
 
 /// One machine-readable file: path, purpose, schema hint, how often it changes, media type.
@@ -838,7 +838,7 @@ fn section_title(s: Section) -> &'static str {
 pub fn llms_txt(status_lines: &[String], research_sentence: &str) -> String {
     let mut s = String::new();
     s.push_str("# AIENOS\n\n");
-    s.push_str(&format!("> {SITE_CLAIM}. AIENOS is an experimental, open source (AGPL-3.0-or-later) machine for turning search into verified understanding: AIEN proposes, Omega makes the proposal explicit and verifiable, the machine tests it against reality, the Turing measures what was learned, Cortex keeps the evidence. Every claim on the site carries a public receipt. Status: experimental, pre-alpha. Built by {AUTHOR} with AI agents on five real machines.\n\n"));
+    s.push_str(&format!("> {SITE_CLAIM}. AIENOS is an experimental, open source (Apache-2.0 WITH LLVM-exception) machine for turning search into verified understanding: AIEN proposes, Omega makes the proposal explicit and verifiable, the machine tests it against reality, the Turing measures what was learned, Cortex keeps the evidence. Every claim on the site carries a public receipt. Status: experimental, pre-alpha. Built by {AUTHOR} with AI agents on five real machines.\n\n"));
     s.push_str("Rules the site keeps: no comparisons with other systems (every speed stands beside the physical ceiling of its own machine only), failures stay on the record, nothing is loaded from anyone else (no trackers, no outside fonts or scripts; the one outside embed is the film on /turing/), and AI agents are welcome to read, cite, argue and correct. Contact: aien@aienos.com. Source: https://github.com/aien-dev.\n\n");
     s.push_str("## Current state\n\n");
     for l in status_lines {

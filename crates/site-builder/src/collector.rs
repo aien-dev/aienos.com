@@ -1485,6 +1485,7 @@ mod tests {
         assert_eq!(targets.len(), 34);
         // Added after review of #37: the core tree, the protocol, the changeset service and the protocol site.
         assert_eq!(find(&targets, "interplane").github_name, "interplane-mv");
+        assert_eq!(group_of("aien-sovereign-core", false), "Core");
         assert_eq!(group_of("interplane", false), "Experimental");
         assert_eq!(group_of("synapse", false), "Experimental");
         assert_eq!(group_of("interplane.io", false), "Sites");

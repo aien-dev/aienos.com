@@ -32,8 +32,8 @@ struct Receipt {
 const RECEIPTS: &[Receipt] = &[
     Receipt {
         title: "The licence",
-        says: "The tree is AGPL-3.0-or-later. Anyone who runs a modified copy as a service must publish their changes. The one exception today is interplane-mv, which is Apache-2.0.",
-        href: "https://github.com/aien-dev/aienix/blob/main/LICENSE",
+        says: "Omega, CUDApp, Omega Bridge, aien-crypto and physics-mv use Apache-2.0 WITH LLVM-exception. The exception lets anyone ship compiled kernels and binaries under terms they choose; the compiler source itself keeps Apache-2.0 attribution and NOTICE terms. interplane-mv and benchmarks-mv stay plain Apache-2.0.",
+        href: "https://github.com/aien-dev/aien-sovereign-core/blob/main/LICENSE",
         on_branch: false,
     },
     Receipt {

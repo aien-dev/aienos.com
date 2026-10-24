@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Licensing · AIENOS</title>
-<meta name="description" content="The one canonical licensing statement for AIENOS: AGPL-3.0-or-later. Older SRCL-1.0 references are stale.">
+<meta name="description" content="The one canonical licensing statement for AIENOS: Apache-2.0 WITH LLVM-exception for compiler/runtime repositories. Older SRCL-1.0 or AGPL references are stale.">
 <link rel="canonical" href="https://aienos.com/licensing/">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="stylesheet" href="/assets/site-nav.css">
@@ -44,43 +44,47 @@
   <div class="container">
     <div class="badge">OPEN SOURCE</div>
     <h1>Licensing, stated once</h1>
-    <p>AIENOS is open source under one license: the <strong style="color: var(--text-primary);">GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)</strong>. The exceptions are listed below. This page is the canonical statement. If any other page, document, or badge says something different, this page controls.</p>
+    <p>First-party AIEN compiler, language and runtime material is licensed under the <strong style="color: var(--text-primary);">Apache License, Version 2.0 with LLVM Exceptions (Apache-2.0 WITH LLVM-exception)</strong>. Standalone protocols and benchmarks stay under plain Apache-2.0. This page is the canonical statement. If any other page, document, or badge says something different, this page controls.</p>
 
     <div class="card">
       <div class="row">
-        <span class="repo">aien-dev/aienos (AIENOS)</span>
-        <span class="lic">AGPL-3.0-or-later</span>
+        <span class="repo">aien-dev/omega-mv (Omega language)</span>
+        <span class="lic">Apache-2.0 WITH LLVM-exception</span>
+      </div>
+      <div class="row">
+        <span class="repo">aien-dev/CUDApp (CUDA++ GPU toolchain)</span>
+        <span class="lic">Apache-2.0 WITH LLVM-exception</span>
+      </div>
+      <div class="row">
+        <span class="repo">aien-dev/omega-bridge, aien-crypto, physics-mv</span>
+        <span class="lic">Apache-2.0 WITH LLVM-exception</span>
+      </div>
+      <div class="row">
+        <span class="repo"><a href="https://github.com/aien-dev/interplane-mv" style="color: inherit;">aien-dev/interplane-mv</a> (INTERPLANE) and benchmarks-mv</span>
+        <span class="lic">Apache-2.0</span>
       </div>
       <div class="row">
         <span class="repo">aien-dev/aienos.com (this website)</span>
-        <span class="lic">AGPL-3.0-or-later</span>
+        <span class="lic">Apache-2.0 WITH LLVM-exception</span>
       </div>
       <div class="row">
-        <span class="repo">Omega, Physics, aien-architecture, and most other aien-dev repositories</span>
-        <span class="lic">AGPL-3.0-or-later (see each repository's LICENSE file)</span>
-      </div>
-      <div class="row">
-        <span class="repo"><a href="https://github.com/aien-dev/interplane-mv" style="color: inherit;">aien-dev/interplane-mv</a> (INTERPLANE protocol)</span>
-        <span class="lic">Apache-2.0 today; a move to AGPL-3.0-or-later is pending</span>
-      </div>
-      <div class="row">
-        <span class="repo">Forks (translate, t3code) and the Pi 5 firmware chain (rpi5-uefi, edk2-non-osi)</span>
-        <span class="lic">Keep their upstream terms (MIT for the forks; see each LICENSE file)</span>
+        <span class="repo">Forks and vendor components (translate, t3code, NVIDIA headers, Mesa references)</span>
+        <span class="lic">Keep their upstream terms</span>
       </div>
     </div>
-    <p class="note">The LICENSE file inside each repository is the controlling text. Read it in the repo before relying on it. As of 2026-10-19, GitHub reads 22 aien-dev repositories as AGPL-3.0-or-later, one as Apache-2.0 (interplane-mv), two forks as MIT, and a few tools and firmware forks carry no licence file GitHub recognises yet (synapse, spark-scrub). The served model, Qwen3.8-27B, is Qwen's work under its own Apache-2.0 licence; no AIEN-trained weights exist.</p>
+    <p class="note">The LICENSE file inside each repository is the controlling text. The LLVM exception lets a developer compile proprietary models or GPU kernels with Omega or CUDA++ and distribute the resulting object code under terms of their choosing; it also resolves the Apache-2.0/GPLv2 patent and indemnity conflict at the kernel boundary. The compiler source itself remains under Apache-2.0, including NOTICE and trademark terms.</p>
 
     <h2>What changed, and when</h2>
-    <p>Before 2026-09-23 the project used the Sovereign Reciprocal Commons License (SRCL-1.0). On 2026-09-23 it was replaced by Apache-2.0 WITH LLVM-exception. On 2026-10-04 the aien-dev repositories moved from Apache-2.0 to AGPL-3.0-or-later. Any page, PDF, or badge that still cites SRCL-1.0 is stale and should be read as superseded by this page.</p>
+    <p>Before 2026-09-23 the project used the Sovereign Reciprocal Commons License (SRCL-1.0). It was replaced by Apache-2.0 WITH LLVM-exception on 2026-09-23. On 2026-10-04 the repositories moved to AGPL-3.0-or-later. On 2026-10-23 the compiler, language and runtime repositories returned to Apache-2.0 WITH LLVM-exception, while interplane-mv and benchmarks-mv stay plain Apache-2.0. Any page, PDF, or badge that still cites SRCL-1.0 or AGPL for these repositories is stale.</p>
 
-    <h2>What AGPL-3.0-or-later means</h2>
-    <p>The GNU Affero General Public License v3.0 or later lets anyone use, change and share the code, and requires that changed versions, including ones offered to users over a network, are shared under the same license. The controlling text is the LICENSE file in each repository, for example the <a href="https://github.com/aien-dev/aienos" target="_blank" rel="noopener noreferrer">AIENOS repository</a>.</p>
+    <h2>What the LLVM exception means</h2>
+    <p>Apache-2.0 permits use, modification and redistribution with attribution and NOTICE preservation. The LLVM exception waives Sections 4(a), 4(b) and 4(d) for portions embedded in compiled object code, so binaries built with Omega or CUDA++ are not required to carry the compiler's license. It also waives conflicting Apache-2.0 patent or indemnity terms when the compiled form is combined with GPLv2 software. The controlling text is the LICENSE file in each repository, for example the <a href="https://github.com/aien-dev/omega-mv" target="_blank" rel="noopener noreferrer">Omega repository</a>.</p>
 
     <p style="margin-top: 32px;"><a href="/">Back to the homepage</a></p>
   </div>
 </main>
 <footer>
-  <div class="container">AIEN © 2026 · AGPL-3.0-OR-LATER · RECEIPTS OVER CLAIMS</div>
+  <div class="container">AIEN © 2026 · APACHE-2.0 WITH LLVM-EXCEPTION · RECEIPTS OVER CLAIMS</div>
 </footer>
 </body>
 </html>

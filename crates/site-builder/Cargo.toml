@@ -3,6 +3,7 @@ name = "site-builder"
 version = "0.1.0"
 edition = "2021"
 description = "Pure native Rust static site generator for aienos.com"
+license = "Apache-2.0 WITH LLVM-exception"
 
 [dependencies]
 maud = "0.26"

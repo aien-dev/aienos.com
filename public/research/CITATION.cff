@@ -12,7 +12,7 @@ version: "1.14"
 date-released: 2026-10-02
 url: "https://aienos.com/research/computing-machinery-and-understanding"
 repository-code: "https://github.com/aien-dev/omega"
-license: "AGPL-3.0-or-later"
+license: "Apache-2.0 WITH LLVM-exception"
 keywords:
   - turing-gain
   - explanatory-compression

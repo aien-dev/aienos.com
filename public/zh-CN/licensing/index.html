@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
 <title>许可 · AIENOS</title>
-<meta content="AIENOS 的唯一官方许可证声明：AGPL-3.0-or-later。旧的 SRCL-1.0 引用已过时。" name="description"/>
+<meta content="AIENOS 的唯一官方许可证声明：编译器与运行时仓库采用 Apache-2.0 WITH LLVM-exception。旧的 SRCL-1.0 或 AGPL 引用已过时。" name="description"/>
 
 <link href="/favicon.svg" rel="icon" type="image/svg+xml"/>
 <link href="/assets/site-nav.css" rel="stylesheet"/>
@@ -45,22 +45,24 @@
 <div class="container">
 <div class="badge">开源</div>
 <h1>许可声明（仅一次）</h1>
-<p>AIENOS 在单一许可证下开源：即 <strong style="color: var(--text-primary);">GNU Affero 通用公共许可证 v3.0 或更高版本（AGPL-3.0-or-later）</strong>。本页面为官方声明。若任何其他页面、文档或徽章内容与此不同，以本页面为准。</p>
+<p>AIEN 第一方编译器、语言与运行时材料采用 <strong style="color: var(--text-primary);">Apache 许可证 2.0 版及 LLVM 例外（Apache-2.0 WITH LLVM-exception）</strong>。独立协议与基准测试仓库保持纯 Apache-2.0。本页面为官方声明。若任何其他页面、文档或徽章内容与此不同，以本页面为准。</p>
 <div class="card">
-<div class="row"><span class="repo">aien-dev/aienos（AIENOS）</span> <span class="lic">AGPL-3.0-or-later</span></div>
-<div class="row"><span class="repo">aien-dev/aienos.com（本网站）</span> <span class="lic">AGPL-3.0-or-later</span></div>
-<div class="row"><span class="repo">Omega、物理机制、aien-architecture 以及其他 aien-dev 仓库</span> <span class="lic">AGPL-3.0-or-later（详见各仓库的 LICENSE 文件）</span></div>
+<div class="row"><span class="repo">aien-dev/omega-mv（Omega 语言）</span> <span class="lic">Apache-2.0 WITH LLVM-exception</span></div>
+<div class="row"><span class="repo">aien-dev/CUDApp（CUDA++ GPU 工具链）</span> <span class="lic">Apache-2.0 WITH LLVM-exception</span></div>
+<div class="row"><span class="repo">aien-dev/omega-bridge、aien-crypto、physics-mv</span> <span class="lic">Apache-2.0 WITH LLVM-exception</span></div>
+<div class="row"><span class="repo">aien-dev/interplane-mv、benchmarks-mv</span> <span class="lic">Apache-2.0</span></div>
+<div class="row"><span class="repo">aien-dev/aienos.com（本网站）</span> <span class="lic">Apache-2.0 WITH LLVM-exception</span></div>
 </div>
-<p class="note">组织内其他仓库的许可文件以各仓库内的 LICENSE 文件为准。在依赖前请先阅读该文件。</p>
+<p class="note">各仓库内的 LICENSE 文件为控制文本。LLVM 例外允许开发者用 Omega 或 CUDA++ 编译专有模型或 GPU 内核，并以自选条款分发生成的目标代码；它也化解 Apache-2.0 与 GPLv2 在专利和赔偿条款上的冲突。编译器源码本身仍受 Apache-2.0 的署名与 NOTICE 条款约束。</p>
 <h2>变更内容及时间</h2>
-<p>在2026-09-23之前，该项目使用的是主权互惠公共许可证（SRCL-1.0）。2026-09-23起，该许可证被Apache-2.0 WITH LLVM-exception取代。2026-10-04，aien-dev仓库从Apache-2.0变更为AGPL-3.0-or-later。任何仍引用SRCL-1.0的页面、PDF或徽章均已过时，应以本页面内容为准。</p>
-<h2>AGPL-3.0-or-later 的含义</h2>
-<p>GNU Affero通用公共许可证v3.0或更新版本允许任何人使用、修改和共享代码，并要求修改后的版本（包括通过网络提供给用户的版本）也必须以相同许可证发布。具体以各仓库中的 LICENSE 文件为准，例如 <a href="https://github.com/aien-dev/aienos" rel="noopener noreferrer" target="_blank">AIENOS 仓库</a>。</p>
+<p>2026-09-23 之前使用主权互惠公共许可证（SRCL-1.0）。2026-09-23 改為 Apache-2.0 WITH LLVM-exception；2026-10-04 改为 AGPL-3.0-or-later；2026-10-23 编译器、语言与运行时仓库恢复为 Apache-2.0 WITH LLVM-exception，interplane-mv 与 benchmarks-mv 保持纯 Apache-2.0。仍引用 SRCL-1.0 或 AGPL 的旧页面已过时。</p>
+<h2>LLVM 例外的含义</h2>
+<p>Apache-2.0 允许在保留署名与 NOTICE 的前提下使用、修改和再分发。LLVM 例外对嵌入编译目标代码的部分豁免第 4(a)、4(b)、4(d) 条，因此用 Omega 或 CUDA++ 构建的二进制无需携带编译器许可证；与 GPLv2 软件结合时，冲突的专利或赔偿条款亦被豁免。具体以各仓库 LICENSE 为准，例如 <a href="https://github.com/aien-dev/omega-mv" rel="noopener noreferrer" target="_blank">Omega 仓库</a>。</p>
 <p style="margin-top: 32px;"><a href="/zh-CN/">返回首页</a></p>
 </div>
 </main>
 <footer>
-<div class="container">AIEN © 2026 · AGPL-3.0-OR-LATER · RECEIPTS OVER CLAIMS</div>
+<div class="container">AIEN © 2026 · APACHE-2.0 WITH LLVM-EXCEPTION · RECEIPTS OVER CLAIMS</div>
 </footer>
 </body>
 </html>

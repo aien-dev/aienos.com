@@ -1,6 +1,6 @@
 # AIENOS Web Platform (aienos.com)
 
-[![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL--3.0--or--later-blue.svg)](LICENSE)
+[![License: Apache-2.0 WITH LLVM-exception](https://img.shields.io/badge/License-Apache--2.0%20WITH%20LLVM--exception-blue.svg)](LICENSE)
 [![GitHub Pages](https://github.com/aien-dev/aienos.com/actions/workflows/pages.yml/badge.svg)](https://github.com/aien-dev/aienos.com/actions/workflows/pages.yml)
 
 The source of the AIENOS website. It is a static site built by a Rust program and served by GitHub Pages.
@@ -80,7 +80,7 @@ Configuration lives on the hub at `/etc/nginx/sites-available/aienos.com` (edge 
 
 ## License
 
-Licensed under the GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later). See [LICENSE](LICENSE). The runtime itself, aien-sovereign-core, is also AGPL-3.0-or-later. Project values live in the nonbinding [COVENANT.md](https://github.com/aien-dev/aien-sovereign-core/blob/main/COVENANT.md), which grants and restricts no legal rights.
+Licensed under the Apache License, Version 2.0 with LLVM Exceptions. See [LICENSE](LICENSE) and [NOTICE](NOTICE). Project values live in the nonbinding [COVENANT.md](https://github.com/aien-dev/aien-sovereign-core/blob/main/COVENANT.md), which grants and restricts no legal rights.
 
 ## Project progress dashboard
 
