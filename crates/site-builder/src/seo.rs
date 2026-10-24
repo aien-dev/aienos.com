@@ -668,12 +668,37 @@ fn markdown_mirror(page: &Emitted, facts: &HeadFacts, html: &str) -> String {
 /// Writes the mirror next to the page: `/index.md` for `/`, `/machine.md`
 /// for `/machine/`, and the same shape under `/zh-CN/`.
 fn write_markdown_mirror(dist: &Path, page: &Emitted, facts: &HeadFacts, html: &str) {
-    let rel = md_path(&page.path);
-    let file = dist.join(rel.trim_start_matches('/'));
-    if let Some(parent) = file.parent() {
-        fs::create_dir_all(parent).unwrap_or_else(|e| panic!("create {}: {e}", parent.display()));
+    let body = markdown_mirror(page, facts, html);
+    // Both conventions agents use: the sibling file (`/machine.md`) and the
+    // directory index (`/machine/index.md`). The head points at the sibling.
+    let mut paths = vec![md_path(&page.path)];
+    if page.path != "/" && page.path != "/zh-CN/" {
+        paths.push(format!("{}index.md", page.path));
     }
-    fs::write(&file, markdown_mirror(page, facts, html)).unwrap_or_else(|e| panic!("write {}: {e}", file.display()));
+    for rel in paths {
+        let file = dist.join(rel.trim_start_matches('/'));
+        if let Some(parent) = file.parent() {
+            fs::create_dir_all(parent).unwrap_or_else(|e| panic!("create {}: {e}", parent.display()));
+        }
+        fs::write(&file, &body).unwrap_or_else(|e| panic!("write {}: {e}", file.display()));
+    }
+}
+
+/// Every page links the glossary. Generated pages already do through the
+/// footer; hand-written pages under public/ get one small link before
+/// </body>, so the term page is reachable from every scanned URL.
+fn ensure_glossary_link(mut html: String) -> String {
+    if html.contains("href=\"/glossary/\"") {
+        return html;
+    }
+    let block = "<div style=\"padding: 18px 24px; text-align: center; font-family: var(--font-mono); font-size: 12px;\"><a href=\"/glossary/\" style=\"color: var(--accent-green);\">Glossary</a></div>";
+    match html.rfind("</body>") {
+        Some(i) => {
+            html.insert_str(i, block);
+            html
+        }
+        None => html,
+    }
 }
 
 /// Rewrites the head of every page in dist. Returns the pages, for the sitemap and feeds.
@@ -698,6 +723,7 @@ pub fn enrich(dist: &Path, ctx: &BuildCtx) -> Vec<Emitted> {
         out.push('\n');
         out.push_str(&block);
         out.push_str(&html[head_end..]);
+        let out = ensure_glossary_link(out);
         write_markdown_mirror(dist, page, &facts, &out);
         fs::write(&page.file, out).unwrap_or_else(|e| panic!("write {}: {e}", page.file.display()));
     }
@@ -1070,6 +1096,11 @@ pub fn verify(dist: &Path) {
         assert!(md.starts_with("---\n"), "{} markdown mirror must open with frontmatter", info.path);
         assert!(md.contains("canonical_url:"), "{} markdown mirror must carry canonical_url", info.path);
         assert!(md.contains("\n## Sitemap\n"), "{} markdown mirror must carry a Sitemap section", info.path);
+        if info.path != "/" {
+            let dir_md = format!("{}index.md", info.path);
+            assert!(dist.join(dir_md.trim_start_matches('/')).exists(), "{} markdown directory mirror {dir_md} missing", info.path);
+        }
+        assert!(page.contains("href=\"/glossary/\""), "{} must link the glossary", info.path);
         let ld_start = page.find("<script type=\"application/ld+json\">").expect("ld") + "<script type=\"application/ld+json\">".len();
         let ld_end = ld_start + page[ld_start..].find("</script>").expect("ld end");
         let v: Value = serde_json::from_str(&page[ld_start..ld_end]).unwrap_or_else(|e| panic!("{} JSON-LD does not parse: {e}", info.path));

@@ -122,7 +122,7 @@ fn section_turing() -> Markup {
                 "For a baseline B, a candidate explanation M, sealed observations D and a scoring profile P, with L meaning description length:"
             }
             figure class="narr-formula" aria-label="The Turing formula" {
-                pre { code { (TURING_FORMULA) } }
+                pre { code class="language-text" { (TURING_FORMULA) } }
             }
             p {
                 "A candidate earns positive Turings only if it shrinks the description of unseen data by more than its own complexity costs."
