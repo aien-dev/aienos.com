@@ -75,7 +75,7 @@ pub fn render_terminal() -> Markup {
 
                     form id="terminal-form" style="padding: 12px 16px; background: rgba(14, 18, 25, 0.95); border-top: 1px solid var(--border-subtle); display: flex; align-items: center; gap: 8px;" {
                         span style="color: var(--accent-green); font-family: var(--font-mono); font-size: 14px; font-weight: 700;" { "$" }
-                        input id="terminal-input" type="text" aria-label="Terminal command: Type a syscall (sys_telemetry, sys_alloc_kv, sys_vault, help)..." placeholder="Type a syscall (sys_telemetry, sys_alloc_kv, sys_vault, help)..." autocomplete="off" style="flex: 1; background: transparent; border: none; outline: none; color: var(--text-primary); font-family: var(--font-mono); font-size: 13px;" {}
+                        input id="terminal-input" type="text" aria-label="Type a syscall (sys_telemetry, sys_alloc_kv, sys_vault, help)..." placeholder="Type a syscall (sys_telemetry, sys_alloc_kv, sys_vault, help)..." autocomplete="off" style="flex: 1; background: transparent; border: none; outline: none; color: var(--text-primary); font-family: var(--font-mono); font-size: 13px;" {}
                         button type="submit" style="background: var(--accent-green); color: var(--bg-base); border: none; border-radius: 4px; padding: 6px 14px; font-family: var(--font-mono); font-size: 12px; font-weight: 700; cursor: pointer;" {
                             "RUN"
                         }
