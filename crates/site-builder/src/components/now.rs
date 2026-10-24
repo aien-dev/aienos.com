@@ -378,6 +378,10 @@ fn owner_label(it: &Item) -> String {
         "coordinator" => "Coordinator".into(),
         "unassigned" => "Unassigned".into(),
         _ => {
+            // The retired Renda workers (renda, renda1, renda2) read as Keeper.
+            if let Some(n) = it.owner.strip_prefix("renda").filter(|n| n.chars().all(|c| c.is_ascii_digit())) {
+                return if n.is_empty() { "Keeper".into() } else { format!("Keeper {n}") };
+            }
             // sa-3-dfa217d1 reads as "agent dfa217"; anything else stays as written.
             let parts: Vec<&str> = it.owner.split('-').collect();
             if parts.len() >= 3 && parts[0] == "sa" {
@@ -387,6 +391,54 @@ fn owner_label(it: &Item) -> String {
             }
         }
     }
+}
+
+/// Keeper, the merge desk, was called Renda until 2026-10-24 (Drake). The page
+/// shows the new name in ledger prose; the ledger on GitHub keeps every line as
+/// written. Paths, file names and identifiers that contain the old name (a
+/// slash, dot, underscore or letter next to it) stay as they are so they still
+/// point at real things: `renda1` reads Keeper's `keeper1`, `~/renda-queue/` stays.
+pub fn keeper_name(s: &str) -> String {
+    let b = s.as_bytes();
+    let mut out = String::with_capacity(s.len());
+    let mut i = 0;
+    while i < s.len() {
+        let hit = i + 5 <= b.len() && b[i..i + 5].eq_ignore_ascii_case(b"renda");
+        // A capital R after a lowercase letter, or before a capital, is a word
+        // boundary an agent squashed ("soleRenda", "RendaL708"), not an identifier.
+        let capital = b[i] == b'R';
+        let before_ok = i == 0 || {
+            let p = b[i - 1];
+            !(p.is_ascii_uppercase() || p.is_ascii_digit() || b"/._~-".contains(&p)) && (!p.is_ascii_lowercase() || capital)
+        };
+        let after_ok = i + 5 >= b.len() || {
+            let n = b[i + 5];
+            let then = b.get(i + 6).copied();
+            match n {
+                b'/' | b'_' => false,
+                b'.' => !then.is_some_and(|t| t.is_ascii_alphanumeric()),
+                _ if n.is_ascii_lowercase() => false,
+                _ if n.is_ascii_uppercase() => capital,
+                _ => true,
+            }
+        };
+        if hit && before_ok && after_ok {
+            let word = &s[i..i + 5];
+            out.push_str(if word == "RENDA" {
+                "KEEPER"
+            } else if word.starts_with('R') {
+                "Keeper"
+            } else {
+                "keeper"
+            });
+            i += 5;
+        } else {
+            let c = s[i..].chars().next().unwrap();
+            out.push(c);
+            i += c.len_utf8();
+        }
+    }
+    out
 }
 
 fn last_note(it: &Item) -> Option<&String> {
@@ -424,7 +476,7 @@ fn note_markup(note: &str, stream: &str) -> Markup {
             @if let Some(href) = &seg.href {
                 a class="now-ref" href=(href) target="_blank" rel="noopener noreferrer" { (seg.text) }
             } @else {
-                (seg.text)
+                (keeper_name(&seg.text))
             }
         }
     }
@@ -636,12 +688,12 @@ fn card(it: &Item) -> Markup {
                     (age_words(it.age_s))
                 }
             }
-            h3 class="now-item" { (it.item) }
+            h3 class="now-item" { (keeper_name(&it.item)) }
             @if let Some(n) = last_note(it) {
                 p class="now-note" { (note_markup(n, it.stream)) }
             }
             @if !it.done_when.is_empty() {
-                p class="now-done" { span class="now-done-k" { "done when" } " " (it.done_when) }
+                p class="now-done" { span class="now-done-k" { "done when" } " " (keeper_name(&it.done_when)) }
             }
             (line_foot(it))
         }
@@ -662,12 +714,12 @@ fn row(it: &Item) -> Markup {
         li class="now-queue-row now-row" id=(it.id) {
             span class="now-id" { (it.id) }
             span class="now-queue-item" {
-                (it.item)
+                (keeper_name(&it.item))
                 @if let Some(n) = last_note(it) {
                     span class="now-row-note" { (note_markup(n, it.stream)) }
                 }
                 @if !it.done_when.is_empty() {
-                    span class="now-row-done" { "done when " (it.done_when) }
+                    span class="now-row-done" { "done when " (keeper_name(&it.done_when)) }
                 }
             }
             span class="now-row-meta" {
@@ -711,7 +763,7 @@ fn settled_entry(it: &Item) -> Markup {
             div class="now-tl-body" {
                 span class=(format!("now-verdict now-verdict-{}", it.status)) { (it.status) }
                 span class="now-id" { (it.id) }
-                p class="now-tl-item" { (it.item) }
+                p class="now-tl-item" { (keeper_name(&it.item)) }
                 @if let Some(n) = last_note(it) {
                     p class="now-tl-evidence" { (note_markup(n, it.stream)) }
                 }
@@ -1006,7 +1058,7 @@ pub fn render_now_page(now: &Now) -> Markup {
                     a class="prose-link" href="https://github.com/aien-dev/aienos.com/tree/data/now" { "data/now branch" }
                     " whenever it changes. The site builder reads it at build time and writes this page and "
                     a class="prose-link" href="/now.json" { "/now.json" }
-                    ". A line that is not in the file is not here. Every card, queue row and settled entry links to its own line of that file, and the commits, pull requests and evidence folders named in a note link to GitHub. Owners shown as \"agent\" are autonomous coding agents; the operator is one person."
+                    ". A line that is not in the file is not here. Every card, queue row and settled entry links to its own line of that file, and the commits, pull requests and evidence folders named in a note link to GitHub. Owners shown as \"agent\" are autonomous coding agents; the operator is one person. Keeper, the merge desk that lands finished changes, was called Renda until 24 October 2026: this page shows the new name, and the ledger on GitHub keeps each line as it was written."
                 }
             }
         }
@@ -1134,6 +1186,32 @@ L004\t2026-10-19T16:43Z\tunassigned\topen\tResearch: omega#583 simulator\tPR mer
         assert!(page.contains("Q36_CEILING.md"), "35B figures link their receipt");
         assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(3));
         assert!(!page.contains('\u{2014}') && !page.contains('\u{2013}'));
+    }
+
+    #[test]
+    fn keeper_replaces_renda_in_prose_only() {
+        for (from, to) in [
+            ("Renda reviewing on the motor", "Keeper reviewing on the motor"),
+            ("renda1 pass done; RENDA paused", "keeper1 pass done; KEEPER paused"),
+            ("publication remains Renda-owned.", "publication remains Keeper-owned."),
+            ("(Renda, desk)", "(Keeper, desk)"),
+            ("throughsoleRenda, installedRenda11:13, RendaL708", "throughsoleKeeper, installedKeeper11:13, KeeperL708"),
+            ("handed to Renda. Then renda.json stays", "handed to Keeper. Then renda.json stays"),
+            // Paths, file names and identifiers keep the old name so they still resolve.
+            ("~/.local/state/aien-local-ci/renda-queue/acks", "~/.local/state/aien-local-ci/renda-queue/acks"),
+            ("evidence/renda-pr-fastpath-L593 and renda_metrics.py", "evidence/renda-pr-fastpath-L593 and renda_metrics.py"),
+            ("agent now-renda-dashboard, Rendan, rendas", "agent now-renda-dashboard, Rendan, rendas"),
+        ] {
+            assert_eq!(keeper_name(from), to);
+        }
+        let tsv = "id\topened_utc\towner\tstatus\titem\tdone_when\tevidence\tupdated_utc\nL009\t2026-10-19T16:43Z\trenda2\topen\tRenda merges the queue\tRenda idle\tsee evidence/renda-x/ | Renda done\t2026-10-19T17:00Z\n";
+        let at = parse_utc("2026-10-19T18:10Z").unwrap();
+        let now = Now { items: parse_ledger(tsv, at), ..blank() };
+        let page = render_now_page(&now).into_string();
+        assert!(page.contains("Keeper merges the queue") && page.contains("Keeper done") && page.contains(">Keeper 2<"), "prose and owner renamed");
+        assert!(!page.contains("Renda merges"), "old name left in prose");
+        // The machine record keeps the ledger as written.
+        assert!(to_json(&now).contains("Renda merges the queue"));
     }
 
     #[test]
