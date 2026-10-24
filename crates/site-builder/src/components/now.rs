@@ -32,6 +32,67 @@ pub const PULSE_PATH: &str = "public/data/now-pulse.tsv";
 /// The published ledger on GitHub; `#L<n>` names one line of it.
 pub const LEDGER_URL: &str = "https://github.com/aien-dev/aienos.com/blob/data/now/now.tsv";
 
+/// Where the pages workflow lays the Spark's reading of Drake's Claude plan.
+pub const USAGE_PATH: &str = "public/data/claude-usage.tsv";
+/// The same reading on GitHub, the evidence behind the usage card.
+pub const USAGE_URL: &str = "https://github.com/aien-dev/aienos.com/blob/data/now/claude-usage.tsv";
+/// Where a visitor sends money for the plan: Drake's X account, paid with X Money.
+pub const GIVE_URL: &str = "https://x.com/aienscore";
+
+/// One limit of the Claude plan: how much of it is used, and when it resets.
+#[derive(Debug, Clone, Serialize)]
+pub struct UsageLimit {
+    pub label: String,
+    pub used_pct: u32,
+    pub resets_utc: String,
+}
+
+/// The Spark's reading of Drake's Claude plan meter. The publisher writes
+/// `checked`, `plan` and `limit` rows (kind, percent used, reset time,
+/// model scope); it publishes percentages only, never the login.
+#[derive(Debug, Clone, Serialize)]
+pub struct Usage {
+    pub checked_utc: String,
+    pub plan: String,
+    pub limits: Vec<UsageLimit>,
+}
+
+/// Plain words and a safe character set for a scope the meter names.
+fn usage_words(s: &str) -> String {
+    s.chars().filter(|c| c.is_ascii_alphanumeric() || *c == ' ' || *c == '.').take(40).collect::<String>().trim().to_string()
+}
+
+pub fn parse_usage(tsv: &str) -> Option<Usage> {
+    let mut checked = None;
+    let mut plan = String::new();
+    let mut limits = Vec::new();
+    for line in tsv.lines() {
+        let f: Vec<&str> = line.split('\t').collect();
+        match f.as_slice() {
+            ["checked", t, ..] => checked = parse_utc(t).map(fmt_utc),
+            ["plan", p, ..] => plan = usage_words(p),
+            ["limit", kind, pct, resets, rest @ ..] => {
+                let Ok(used) = pct.trim().parse::<f64>() else { continue };
+                let scope = rest.first().map(|s| usage_words(s)).unwrap_or_default();
+                let label = match (*kind, scope.is_empty()) {
+                    ("session", _) => "This five-hour session".to_string(),
+                    ("weekly_all", _) => "This week, all models".to_string(),
+                    ("weekly_scoped", false) => format!("This week, {scope} only"),
+                    _ => continue,
+                };
+                let resets_utc = parse_utc(resets).map(fmt_utc).unwrap_or_default();
+                limits.push(UsageLimit { label, used_pct: used.round().clamp(0.0, 100.0) as u32, resets_utc });
+            }
+            _ => {}
+        }
+    }
+    let checked_utc = checked?;
+    if limits.is_empty() {
+        return None;
+    }
+    Some(Usage { checked_utc, plan: if plan.is_empty() { "Claude".into() } else { plan }, limits })
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub struct Item {
     pub id: String,
@@ -169,6 +230,8 @@ pub struct Now {
     pub models_checked_utc: String,
     pub plan: Link,
     pub models: Vec<Model>,
+    /// The last reading of Drake's Claude plan, if the Spark has published one.
+    pub claude: Option<Usage>,
 }
 
 /// The streams, in display order. Classification is by the item's wording
@@ -362,7 +425,8 @@ pub fn load() -> Now {
     let (checked, ids) = fs::read_to_string(Path::new(MODELS_PATH)).map(|s| parse_models_check(&s)).unwrap_or_default();
     let (plan, models) = models_from(ROSTER, &checked, &ids);
     let models_checked_utc = checked.unwrap_or_else(|| "never".into());
-    Now { built_utc: fmt_utc(at), ledger_written_utc: written, items, pulse, models_checked_utc, plan, models }
+    let claude = fs::read_to_string(Path::new(USAGE_PATH)).ok().and_then(|s| parse_usage(&s));
+    Now { built_utc: fmt_utc(at), ledger_written_utc: written, items, pulse, models_checked_utc, plan, models, claude }
 }
 
 pub fn to_json(now: &Now) -> String {
@@ -682,7 +746,7 @@ fn card(it: &Item) -> Markup {
         article class=(format!("now-card now-{w} now-k-{}", it.owner_kind)) id=(it.id) {
             header class="now-card-top" {
                 span class="now-id" { (it.id) }
-                span class=(format!("now-owner now-owner-{}", it.owner_kind)) { (owner_label(it)) }
+                (owner_chip(it))
                 span class="now-age" title=(it.updated_utc) {
                     span class="now-dot" aria-hidden="true" {}
                     (age_words(it.age_s))
@@ -723,7 +787,7 @@ fn row(it: &Item) -> Markup {
                 }
             }
             span class="now-row-meta" {
-                span class=(format!("now-owner now-owner-{}", it.owner_kind)) { (owner_label(it)) }
+                (owner_chip(it))
                 span class="now-row-age" title=(it.updated_utc) { (age_words(it.age_s)) }
             }
             (line_foot(it))
@@ -875,6 +939,85 @@ fn models_section(now: &Now) -> Markup {
     }
 }
 
+/// A reading older than this is called out as old.
+const USAGE_STALE_S: i64 = 2 * 3600;
+
+/// Drake's Claude plan: how much of each limit is left, and a way for a
+/// visitor to help pay for it (X Money, sent to Drake's X account).
+fn usage_section(now: &Now) -> Markup {
+    let built = parse_utc(&now.built_utc);
+    html! {
+        section class="now-section" id="claude" aria-labelledby="now-claude-h" {
+            div class="container" {
+                p class="kicker" { "Paying for the work" }
+                h2 id="now-claude-h" class="now-h2" { "How much Claude is left" }
+                p class="now-sub" {
+                    "Many of the agents on this page are Claude models made by Anthropic (Opus, Fable, Sonnet and Haiku), running on Drake's own Claude plan. The plan allows a set amount of use in each five-hour session and in each week. The Spark reads the plan's own usage meter every five minutes and publishes the percentages, never the login."
+                }
+                div class="now-usage-wrap" {
+                    article class="now-usage" {
+                        @match &now.claude {
+                            Some(u) => {
+                                header class="now-card-top" {
+                                    span class="now-usage-plan" { "Claude " (u.plan) " plan" }
+                                    span class="now-age mono" { "read " (u.checked_utc) }
+                                }
+                                @if built.zip(parse_utc(&u.checked_utc)).is_some_and(|(b, c)| b - c > USAGE_STALE_S) {
+                                    p class="now-done" { "This is the last reading the Spark published; it has not read a newer one since." }
+                                }
+                                @for l in &u.limits {
+                                    div class="now-usage-row" {
+                                        span class="now-usage-k" { (l.label) }
+                                        meter class="now-usage-meter" min="0" max="100" low="70" high="90" optimum="0" value=(l.used_pct) {
+                                            (l.used_pct) "% used"
+                                        }
+                                        span class="now-usage-v" { strong { (100 - l.used_pct) "% left" } " " span class="now-usage-used" { "(" (l.used_pct) "% used)" } }
+                                        @if !l.resets_utc.is_empty() {
+                                            span class="now-usage-reset" { "resets " span class="mono" { (l.resets_utc) } }
+                                        }
+                                    }
+                                }
+                            }
+                            None => {
+                                p class="now-done" { "The Spark has not published a reading of the plan yet." }
+                            }
+                        }
+                        (foot_labelled(USAGE_URL, "Usage reading on GitHub", Target::Evidence))
+                    }
+                    aside class="now-give" aria-labelledby="now-give-h" {
+                        h3 id="now-give-h" class="now-give-h" { "Help pay for the plan" }
+                        p {
+                            "If you want to chip in, send any amount to Drake's X account, "
+                            span class="mono" { "@aienscore" }
+                            ", with X Money, the payments built into X. Gifts go to the Claude plans above."
+                        }
+                        ol class="now-give-steps" {
+                            li { "Open " span class="mono" { "@aienscore" } " on X with the button below." }
+                            li { "Tap Money, then Send Money." }
+                            li { "Pick an amount and send." }
+                        }
+                        p class="now-give-note" { "X Money is free between Money users and, for now, open to US residents only." }
+                        a class="now-give-btn" href=(GIVE_URL) target="_blank" rel="noopener noreferrer" { "Send with X Money to @aienscore " span aria-hidden="true" { "\u{2197}" } }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Keeper's name tag carries a small dachshund, the picture in "How this page is made".
+fn owner_chip(it: &Item) -> Markup {
+    let label = owner_label(it);
+    html! {
+        span class=(format!("now-owner now-owner-{}", it.owner_kind)) {
+            @if label.starts_with("Keeper") {
+                img class="now-owner-dog" src="/assets/keeper-dog.svg" alt="" width="28" height="14";
+            }
+            (label)
+        }
+    }
+}
+
 pub fn render_now_page(now: &Now) -> Markup {
     let open: Vec<&Item> = now.items.iter().filter(|i| i.status == "open").collect();
     let settled: Vec<&Item> = now.items.iter().filter(|i| i.status == "done" || i.status == "dropped").collect();
@@ -919,6 +1062,7 @@ pub fn render_now_page(now: &Now) -> Markup {
                         @if !for_drake.is_empty() { a href="#operator" { "Operator " span { (for_drake.len()) } } }
                         a href="#streams" { "In motion " span { (moving_now.len()) } }
                         a href="#models" { "Models " span { (now.models.len()) } }
+                        a href="#claude" { "Claude plan" }
                         @if !moving_quiet.is_empty() { a href="#quiet" { "Quiet " span { (moving_quiet.len()) } } }
                         @if !next.is_empty() { a href="#next" { "Queued " span { (next.len()) } } }
                         @if !settled_sorted.is_empty() { a href="#settled" { "Settled " span { (settled_sorted.len()) } } }
@@ -980,6 +1124,8 @@ pub fn render_now_page(now: &Now) -> Markup {
         }
 
         (models_section(now))
+
+        (usage_section(now))
 
         @if !moving_quiet.is_empty() {
             section class="now-section" id="quiet" aria-labelledby="now-quiet-h" {
@@ -1060,6 +1206,10 @@ pub fn render_now_page(now: &Now) -> Markup {
                     a class="prose-link" href="/now.json" { "/now.json" }
                     ". A line that is not in the file is not here. Every card, queue row and settled entry links to its own line of that file, and the commits, pull requests and evidence folders named in a note link to GitHub. Owners shown as \"agent\" are autonomous coding agents; the operator is one person. Keeper, the merge desk that lands finished changes, was called Renda until 24 October 2026: this page shows the new name, and the ledger on GitHub keeps each line as it was written."
                 }
+                figure class="now-keeper" {
+                    img src="/assets/keeper.svg" width="410" height="140" alt="Keeper, the merge desk, drawn as two cartoon dachshunds nose to nose: the big one wears a gold key on its collar for landing changes, the small one a green check tag for the tests they pass." loading="lazy";
+                    figcaption { "Keeper, the merge desk, as two dachshunds: one holds the key that lands finished changes, the other wears the check that says the tests passed. A small Keeper dog marks every line Keeper owns." }
+                }
             }
         }
     }
@@ -1072,7 +1222,7 @@ mod tests {
     /// A page with no ledger and no model check; tests override what they need.
     fn blank() -> Now {
         let (plan, models) = models_from(ROSTER, &None, &[]);
-        Now { built_utc: String::new(), ledger_written_utc: String::new(), items: vec![], pulse: vec![], models_checked_utc: "never".into(), plan, models }
+        Now { built_utc: String::new(), ledger_written_utc: String::new(), items: vec![], pulse: vec![], models_checked_utc: "never".into(), plan, models, claude: None }
     }
 
     const SAMPLE: &str = "id\topened_utc\towner\tstatus\titem\tdone_when\tevidence\tupdated_utc\n\
@@ -1126,7 +1276,7 @@ L004\t2026-10-19T16:43Z\tunassigned\topen\tResearch: omega#583 simulator\tPR mer
         // The Renda workers were retired; their dials must not come back.
         assert!(!page.contains("renda") && !page.contains("<script"), "no Renda dials and no script on /now/");
         // Every card, queue row and timeline entry links to its own ledger line.
-        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(4 + 3), "four ledger boxes and three model cards");
+        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(4 + 3 + 1), "four ledger boxes, three model cards and the Claude plan card");
         for line in 2..=5 {
             assert!(page.contains(&format!("href=\"{LEDGER_URL}#L{line}\"")), "line {line} link missing");
         }
@@ -1153,7 +1303,7 @@ L004\t2026-10-19T16:43Z\tunassigned\topen\tResearch: omega#583 simulator\tPR mer
         assert!(page[queued..].find("id=\"L004\"").unwrap() < page[queued..].find("</details>").unwrap());
         assert!(page[settled..].find("id=\"L003\"").unwrap() < page[settled..].find("</details>").unwrap());
         assert!(page.contains("15.63 tok/s") && page.contains("done when PR merged"));
-        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(4 + 3), "four ledger boxes and three model cards");
+        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(4 + 3 + 1), "four ledger boxes, three model cards and the Claude plan card");
         // Operator lines never fold.
         let op = page.find("id=\"operator\"").unwrap();
         assert!(page[op..].find("id=\"L002\"").unwrap() < page[op..].find("id=\"streams\"").unwrap());
@@ -1184,7 +1334,7 @@ L004\t2026-10-19T16:43Z\tunassigned\topen\tResearch: omega#583 simulator\tPR mer
         assert!(page.contains("id=\"models\"") && page.contains("Models doing the work") && page.contains("qwen3.6-35b-a3b-fp8"));
         assert!(!page.contains("TandemLLM"), "only roster models are shown");
         assert!(page.contains("Q36_CEILING.md"), "35B figures link their receipt");
-        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(3));
+        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(3 + 1));
         assert!(!page.contains('\u{2014}') && !page.contains('\u{2013}'));
     }
 
@@ -1221,6 +1371,45 @@ L004\t2026-10-19T16:43Z\tunassigned\topen\tResearch: omega#583 simulator\tPR mer
         let now = Now { built_utc: "2026-10-19T18:10Z".into(), ledger_written_utc: "never".into(), items: vec![], pulse: vec![], ..blank() };
         let page = render_now_page(&now).into_string();
         assert!(page.contains("No ledger has been published yet"));
+    }
+
+    #[test]
+    fn claude_plan_shows_what_is_left_and_how_to_give() {
+        let tsv = "checked\t2026-10-24T22:40:00Z\nplan\tMax 20x\n\
+limit\tsession\t39\t2026-10-25T02:09:59Z\t\n\
+limit\tweekly_all\t23.4\t2026-10-31T15:59:59Z\t\n\
+limit\tweekly_scoped\t34\t2026-10-31T15:59:59Z\tFable<script>\n\
+limit\tsomething_new\t5\t2026-10-31T15:59:59Z\t\n";
+        let u = parse_usage(tsv).expect("a reading");
+        assert_eq!(u.checked_utc, "2026-10-24T22:40Z");
+        assert_eq!(u.plan, "Max 20x");
+        let labels: Vec<&str> = u.limits.iter().map(|l| l.label.as_str()).collect();
+        assert_eq!(labels, ["This five-hour session", "This week, all models", "This week, Fablescript only"], "unknown kinds are left out");
+        assert_eq!(u.limits[1].used_pct, 23);
+        assert!(parse_usage("plan\tMax\nlimit\tsession\t1\tx\t\n").is_none(), "no time, no reading");
+
+        let now = Now { built_utc: "2026-10-24T22:45Z".into(), claude: Some(u.clone()), ..blank() };
+        let page = render_now_page(&now).into_string();
+        assert!(page.contains("61% left") && page.contains("77% left") && page.contains("66% left"));
+        assert!(page.contains(GIVE_URL) && page.contains("@aienscore"));
+        assert!(!page.contains("has not read a newer one"), "a fresh reading is not called old");
+        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(3 + 1));
+
+        let old = Now { built_utc: "2026-10-25T03:00Z".into(), claude: Some(u), ..blank() };
+        assert!(render_now_page(&old).into_string().contains("has not read a newer one"));
+        let none = render_now_page(&blank()).into_string();
+        assert!(none.contains("has not published a reading of the plan yet") && none.contains(GIVE_URL));
+    }
+
+    #[test]
+    fn keeper_wears_the_dachshund() {
+        let tsv = "id\topened_utc\towner\tstatus\titem\tdone_when\tevidence\tupdated_utc\nL031\t2026-10-19T16:43Z\tkeeper\topen\tLand the queue\tqueue empty\tstarted\t2026-10-19T17:00Z\nL032\t2026-10-19T16:43Z\tsa-0-abc123def\topen\tOther work\tdone\tstarted\t2026-10-19T17:00Z\n";
+        let now = Now { items: parse_ledger(tsv, parse_utc("2026-10-19T18:10Z").unwrap()), ..blank() };
+        let page = render_now_page(&now).into_string();
+        assert_eq!(page.matches("src=\"/assets/keeper-dog.svg\"").count(), 1, "only Keeper's tag carries the dog");
+        assert!(page.contains("src=\"/assets/keeper.svg\"") && page.contains("two cartoon dachshunds"));
+        assert!(page.contains("href=\"#claude\""), "the jump bar reaches the Claude plan");
+        assert!(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../public/assets/keeper.svg").exists());
     }
 
     fn hrefs(segs: &[Seg]) -> Vec<(String, String)> {

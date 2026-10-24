@@ -1242,7 +1242,7 @@ mod tests {
         let tsv = "id\topened_utc\towner\tstatus\titem\tdone_when\tevidence\tupdated_utc\nL001\t2026-10-19T16:00Z\tsa-1\tdone\tFix <x>\twhen y\tnote a | note b\t2026-10-19T16:43Z\nL002\t2026-10-19T16:00Z\tsa-1\topen\tOpen one\twhen z\t\t2026-10-19T16:44Z\n";
         let items = now::parse_ledger(tsv, now::parse_utc("2026-10-19T17:00Z").unwrap());
         let (plan, models) = crate::components::now::models_from(crate::components::now::ROSTER, &None, &[]);
-        let n = Now { built_utc: "x".into(), ledger_written_utc: "2026-10-19T16:44Z".into(), items, pulse: vec![], models_checked_utc: "never".into(), plan, models };
+        let n = Now { built_utc: "x".into(), ledger_written_utc: "2026-10-19T16:44Z".into(), items, pulse: vec![], models_checked_utc: "never".into(), plan, models, claude: None };
         let nf = now_feed(&n, &ctx);
         assert_eq!(nf.matches("<entry>").count(), 1);
         assert!(nf.contains("Fix &lt;x&gt;"));

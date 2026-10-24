@@ -37,6 +37,12 @@ jobs:
             else
               rm -f public/data/models.tsv
             fi
+            # The Claude plan reading is optional too; without it the page says none was published.
+            if git cat-file -e FETCH_HEAD:claude-usage.tsv 2>/dev/null; then
+              git show FETCH_HEAD:claude-usage.tsv > public/data/claude-usage.tsv
+            else
+              rm -f public/data/claude-usage.tsv
+            fi
             echo "ledger: $(wc -l < public/data/now.tsv) lines"
           else
             echo "no data/now branch yet; /now/ renders empty"
