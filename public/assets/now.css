@@ -604,3 +604,112 @@
 .now-model-figs dt { color: var(--tl-ink-3); font: 600 11px/1.3 var(--font-mono); letter-spacing: .05em; text-transform: uppercase; margin-top: 6px; }
 .now-model-figs dd { margin: 0; color: var(--tl-ink); font-size: 14px; line-height: 1.5; }
 #models .now-grid { margin-top: 26px; }
+
+/* Keeper, the merge desk, drawn as dachshunds (public/assets/keeper*.svg). */
+.now-owner-dog {
+  width: 28px;
+  height: 14px;
+  margin-right: 5px;
+  vertical-align: -2px;
+}
+
+.now-keeper {
+  margin: 28px 0 0;
+  max-width: 44rem;
+}
+
+.now-keeper img {
+  display: block;
+  width: 100%;
+  max-width: 410px;
+  height: auto;
+  padding: 14px 18px 8px;
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius);
+  background: #f6efe4;
+}
+
+.now-keeper figcaption {
+  margin-top: 10px;
+  color: var(--tl-ink-2);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+/* Drake's Claude plan: what is left, and how to help pay for it. */
+.now-usage-wrap {
+  display: grid;
+  margin-top: 24px;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.now-usage {
+  position: relative;
+  padding: 20px 22px 18px 24px;
+  border: 1px solid var(--tl-line);
+  border-radius: var(--tl-radius);
+  background: var(--tl-card);
+}
+
+.now-usage-plan {
+  font-weight: 700;
+  color: var(--tl-ink);
+}
+
+.now-usage-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 12px;
+  margin-top: 16px;
+}
+
+.now-usage-k { color: var(--tl-ink); font-size: 15px; }
+.now-usage-v { justify-self: end; color: var(--tl-ink); font-size: 15px; }
+.now-usage-used { color: var(--tl-ink-2); font-size: 13px; }
+.now-usage-reset { grid-column: 1 / -1; color: var(--tl-ink-3); font-size: 12px; }
+
+.now-usage-meter {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  width: 100%;
+  height: 12px;
+}
+
+.now-give {
+  padding: 20px 22px;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  border-radius: var(--tl-radius);
+  background: rgba(245, 158, 11, 0.06);
+  color: var(--tl-ink-2);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.now-give-h {
+  margin: 0 0 8px;
+  color: var(--now-op);
+  font-size: 18px;
+}
+
+.now-give-steps { margin: 10px 0; padding-left: 20px; }
+.now-give-note { color: var(--tl-ink-3); font-size: 13px; }
+
+.now-give-btn {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--now-op);
+  color: #1a1206;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.now-give-btn:hover,
+.now-give-btn:focus-visible { background: #fbbf24; }
+
+@media (max-width: 760px) {
+  .now-usage-wrap { grid-template-columns: 1fr; }
+}

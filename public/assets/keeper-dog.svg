@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="12 26 216 106" role="img" aria-labelledby="t">
+  <title id="t">Keeper, a cartoon dachshund with a gold key on its collar</title>
+  <defs>
+    <g id="dog" stroke="#2b1a10" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M44 78 C30 70 24 58 20 46" fill="none" stroke-width="7"/>
+      <path d="M44 78 C30 70 24 58 20 46" fill="none" stroke="#a5562a" stroke-width="3"/>
+      <rect x="52" y="100" width="13" height="22" rx="6" fill="#8a4420"/>
+      <rect x="138" y="100" width="13" height="22" rx="6" fill="#8a4420"/>
+      <rect x="40" y="64" width="128" height="44" rx="22" fill="#b5602e"/>
+      <path d="M62 100 Q104 112 150 100" fill="none" stroke="#e7b58a" stroke-width="7" stroke-linecap="round"/>
+      <rect x="68" y="102" width="13" height="22" rx="6" fill="#b5602e"/>
+      <rect x="152" y="102" width="13" height="22" rx="6" fill="#b5602e"/>
+      <ellipse cx="76" cy="124" rx="10" ry="4.5" fill="#8a4420"/>
+      <ellipse cx="160" cy="124" rx="10" ry="4.5" fill="#8a4420"/>
+      <path d="M150 72 C152 56 160 46 172 42 L180 70 Z" fill="#b5602e"/>
+      <circle cx="176" cy="58" r="22" fill="#b5602e"/>
+      <ellipse cx="200" cy="68" rx="20" ry="12" fill="#c9733d"/>
+      <circle cx="217" cy="64" r="6" fill="#2b1a10"/>
+      <path d="M198 78 Q205 84 212 78" fill="none" stroke-width="2.5"/>
+      <path d="M152 66 C156 76 164 82 172 80" fill="none" stroke="#c3412e" stroke-width="7"/>
+      <path d="M166 40 C150 44 148 70 156 86 C164 90 170 84 170 76 C172 62 172 50 166 40 Z" fill="#7a3a1a"/>
+    </g>
+  </defs>
+  <ellipse cx="112" cy="128" rx="92" ry="5" fill="#2b1a10" opacity=".14"/>
+  <use href="#dog"/>
+  <circle cx="183" cy="52" r="4" fill="#2b1a10"/>
+  <circle cx="184.4" cy="50.6" r="1.4" fill="#fff"/>
+  <g stroke="#7a5200" stroke-width="2" fill="#f2b632" stroke-linejoin="round">
+    <circle cx="164" cy="90" r="6"/>
+    <rect x="161" y="95" width="6" height="18" rx="2"/>
+    <rect x="167" y="104" width="6" height="4" rx="1"/>
+    <rect x="167" y="109" width="5" height="3.5" rx="1"/>
+  </g>
+  <circle cx="164" cy="90" r="2.2" fill="#b5602e"/>
+</svg>
