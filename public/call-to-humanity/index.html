@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A Call to Humanity | AIEN</title>
+<meta name="description" content="An open letter on breaking the CUDA stranglehold on the hardware market: a clean-room replacement for the CUDA user stack, built in the open, with public receipts. DOI 10.5281/zenodo.23614484.">
+<link rel="canonical" href="https://aienos.com/call-to-humanity">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta property="og:title" content="A Call to Humanity: Breaking the CUDA Stranglehold on the Hardware Market">
+<meta property="og:description" content="One company's software decides whose hardware counts. A working replacement, built in the open, with receipts anyone can check.">
+<meta property="og:url" content="https://aienos.com/call-to-humanity">
+<meta property="og:type" content="article">
+<meta property="og:image" content="https://aienos.com/og-philosophy.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/assets/style.css">
+<style>
+.research-wrap{max-width:880px;margin:0 auto;padding:48px 24px 96px}
+.kicker{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;color:var(--accent-blue);text-transform:uppercase;margin-bottom:16px}
+.paper-title{font-size:clamp(30px,4.5vw,46px);font-weight:800;letter-spacing:-.02em;line-height:1.12;color:var(--text-primary);margin:0 0 12px}
+.paper-sub{font-size:18px;color:var(--text-secondary);margin:0 0 24px;line-height:1.5}
+.byline{font-size:15px;color:var(--text-secondary);margin-bottom:6px}
+.byline strong{color:var(--text-primary)}
+.version-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0 28px}
+.badge{font-family:var(--font-mono);font-size:12px;padding:5px 12px;border-radius:999px;border:1px solid var(--border-subtle);color:var(--text-secondary)}
+.badge.preprint{border-color:var(--accent-amber);color:var(--accent-amber)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 40px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none;border:1px solid var(--accent-blue);background:rgba(45,127,249,.12);color:var(--accent-blue);font-family:var(--font-sans)}
+.btn.secondary{border-color:var(--border-subtle);background:transparent;color:var(--text-primary)}
+.btn.forthcoming{opacity:.55;cursor:default}
+.section{margin:44px 0}
+.section h2{font-size:20px;font-weight:700;color:var(--text-primary);margin:0 0 16px;letter-spacing:-.01em}
+.section p{color:var(--text-secondary);line-height:1.7;font-size:15.5px;margin:0 0 14px}
+.artifact{border:1px solid var(--border-subtle);border-radius:10px;padding:16px 18px;margin:10px 0;background:var(--bg-card);display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.artifact .name{font-weight:700;color:var(--text-primary);font-size:15px}
+.artifact .desc{font-size:13.5px;color:var(--text-secondary);margin-top:4px;line-height:1.55}
+.artifact a{font-family:var(--font-mono);font-size:13px;color:var(--accent-blue);text-decoration:none;white-space:nowrap}
+.hash{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);word-break:break-all;margin-top:6px}
+table.versions{width:100%;border-collapse:collapse;font-size:14px}
+table.versions th{text-align:left;font-family:var(--font-mono);font-size:12px;color:var(--text-muted);padding:8px 10px;border-bottom:1px solid var(--border-subtle)}
+table.versions td{padding:10px;border-bottom:1px solid var(--border-subtle);color:var(--text-secondary);vertical-align:top}
+table.versions td:first-child{font-family:var(--font-mono);color:var(--text-primary);white-space:nowrap}
+pre.cite{background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:10px;padding:18px;font-family:var(--font-mono);font-size:13px;color:var(--text-secondary);overflow-x:auto;line-height:1.6}
+.exp{border-left:3px solid var(--accent-blue);padding:2px 0 2px 16px;margin:16px 0}
+.exp h3{margin:0 0 6px;font-size:16px;color:var(--text-primary)}
+.exp p{margin:0;font-size:14.5px}
+.status{font-family:var(--font-mono);font-size:11.5px;padding:3px 10px;border-radius:999px;border:1px solid var(--accent-green);color:var(--accent-green);display:inline-block;margin-bottom:8px}
+.status.future{border-color:var(--text-muted);color:var(--text-muted)}
+.topnav{border-bottom:1px solid var(--border-subtle);background:rgba(8,9,12,.85);backdrop-filter:blur(12px);position:sticky;top:0;z-index:50;padding:14px 0}
+.topnav .inner{max-width:1180px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.topnav a.brand{font-weight:700;color:var(--text-primary);text-decoration:none;font-size:17px;letter-spacing:-.02em}
+.topnav nav{display:flex;gap:22px;font-size:14px}
+.topnav nav a{color:var(--text-secondary);text-decoration:none}
+.topnav nav a.active{color:var(--accent-blue)}
+.footer-note{margin-top:56px;padding-top:24px;border-top:1px solid var(--border-subtle);font-size:13px;color:var(--text-muted);line-height:1.6}
+.footer-note a{color:var(--accent-blue);text-decoration:none}
+</style>
+<link rel="stylesheet" href="/assets/site-nav.css">
+<link rel="stylesheet" href="/assets/turing-look.css">
+<script defer src="/js/turing-look.js"></script>
+</head>
+<body>
+<header class="aien-header"><div class="aien-header-inner"><a class="aien-brand" href="/" aria-label="AIENOS PERSISTENT MACHINE INTELLIGENCE: home"><span class="aien-brand-mark" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg></span><span class="aien-brand-copy"><span class="aien-brand-name">AIENOS</span><span class="aien-brand-tag">PERSISTENT MACHINE INTELLIGENCE</span></span></a><nav class="aien-nav" aria-label="Primary navigation"><ul class="aien-nav-primary"><li><a class="aien-nav-link" href="/machine/">The Machine</a></li><li><a class="aien-nav-link" href="/turing/">The Turing</a></li><li><a class="aien-nav-link" href="/experiments/">Experiments</a></li><li><a class="aien-nav-link" href="/discovery/">Scientific Discovery</a></li><li><a class="aien-nav-link" href="/evidence/">Evidence</a></li><li><a class="aien-nav-link" href="/philosophy/">Philosophy</a></li></ul><ul class="aien-nav-secondary" aria-label="More"><li><a class="aien-nav-minor" href="/omega/">Omega</a></li><li><a class="aien-nav-minor" href="/progress/">Progress</a></li><li><a class="aien-nav-minor" href="/blog">Blog</a></li><li><a class="aien-nav-minor" href="/#follow">Follow</a></li><li><a class="aien-nav-minor" href="https://github.com/aien-dev">GitHub</a></li></ul></nav></div></header>
+<main class="research-wrap">
+<div class="kicker">Open Letter</div>
+<h1 class="paper-title">A Call to Humanity</h1>
+<p class="paper-sub">Breaking the CUDA stranglehold on the hardware market</p>
+<div class="byline"><strong>Michael Drake Stapleton</strong> &middot; AI Architect &amp; Engineer &middot; October 24, 2026</div>
+<div class="version-row">
+<span class="badge">Open letter</span> <span class="badge">Zenodo record</span>
+</div>
+<div class="actions">
+<a class="btn" href="https://doi.org/10.5281/zenodo.23614484" target="_blank" rel="noopener">DOI: 10.5281/zenodo.23614484</a>
+<a class="btn secondary" href="https://zenodo.org/records/23614484" target="_blank" rel="noopener">Zenodo record</a>
+<a class="btn secondary" href="https://github.com/aien-dev/CUDApp/pull/2" target="_blank" rel="noopener">The chip receipt</a>
+<a class="btn secondary" href="#cite">Cite</a>
+</div>
+
+<div class="section">
+<p>My name is Michael Drake Stapleton. I am an aerospace engineer. Since September 18, I have directed AI agents to build an independent AI stack on a DGX Spark sitting in my home. Every claim in this letter carries a public receipt, because that is the rule the work runs on.</p>
+</div>
+
+<div class="section">
+<h2>The problem</h2>
+<p>Here is the problem this letter answers. One company's software decides whose hardware counts. A chip that cannot speak CUDA gets treated by the market as a chip that does not exist, no matter how good the silicon is. That grip holds back every rival chipmaker, every independent builder, and every person who wants intelligence running on hardware they own. I intend to break it, and this letter is how I am starting: a working replacement for the CUDA user software layer, built in the open, with receipts anyone on Earth can check.</p>
+</div>
+
+<div class="section">
+<h2>Where the rented road leads</h2>
+<p>And look at where the rented road leads. Data centers the size of towns are rising on other people's land, drawing their water and their power, and the companies behind them are already talking about launching more of them into orbit. Intelligence that lives in warehouses belongs to the warehouse owners. Intelligence that runs on your own hardware belongs to you. Competition and free innovation used to be how this field moved. I am putting them back on the table.</p>
+</div>
+
+<div class="section">
+<h2>What exists today</h2>
+<p>What exists today is a clean-room replacement for the CUDA user stack on the GB10, with no nvcc, no libcuda, and no cuBLAS at run time. On October 22 it passed a <a href="https://github.com/aien-dev/CUDApp/pull/2" target="_blank" rel="noopener">full-chip correctness run</a>: 1,048,576 of 1,048,576 values correct, the hash matching the simulator. The method, the measurements, and the limits are <a href="https://doi.org/10.5281/zenodo.23578453" target="_blank" rel="noopener">published</a> for anyone to read.</p>
+<p>There is also <a href="https://github.com/aien-dev/omega-mv" target="_blank" rel="noopener">Omega</a>, a programming language designed for AI systems to write in, with its compiler and runtime developed in the open.</p>
+</div>
+
+<div class="section">
+<h2>Full disclosure</h2>
+<p>Full disclosure, because a call like this one has to be honest to work: the qualification queue for the GPU stack is still open, everything is measured on one machine, the kernel module is still NVIDIA's open one, and the GSP firmware is untouched. Where this work reaches toward other platforms, that reach is proposal-stage today and is labeled as such.</p>
+</div>
+
+<div class="section">
+<h2>The call</h2>
+<p>This call goes out to everyone. It goes in particular to the leaders of the open source community, the maintainers, the foundations, and the people building sovereign, owned tools, because your communities follow where you point. And it goes to the world's political leaders, who are deciding right now what the next phase of AI looks like and who it belongs to. Check the receipts. Test the claims. Tell me where it breaks.</p>
+<p>Everything I build is public. Take the work, test it, build on it. Hardware should compete on hardware.</p>
+</div>
+
+<div class="section">
+<h2>What I am asking you to do</h2>
+<p><strong style="color:var(--text-primary)">Read the receipts.</strong> The chip run, the paper, the code. Everything is linked above, and all of it is public.</p>
+<p><strong style="color:var(--text-primary)">Run it.</strong> If you have a DGX Spark, or any GB10 machine, the stack is open. Put it on your hardware and see if my numbers survive your bench.</p>
+<p><strong style="color:var(--text-primary)">Break it.</strong> File an issue. Publish a failing case. Show me the dependency I missed. A public failure I can fix is worth more to this work than praise.</p>
+<p><strong style="color:var(--text-primary)">Build on it.</strong> Hardware makers, compiler people, independent builders: the code is there to be used. If your chip sits locked out of this market by a software layer, this is a door.</p>
+<p><strong style="color:var(--text-primary)">Lead.</strong> If you lead an open source project, a foundation, or a hardware effort locked out by this layer, this letter is addressed to you directly. Bring your project to the table. Test the stack against your workloads. And if it holds, help carry it to your community.</p>
+<p><strong style="color:var(--text-primary)">Decide.</strong> If you govern, the next phase of AI is being decided on your watch. A field where one company's software picks the winners, and where intelligence lives in warehouses owned by a few firms, is a field your people will rent forever. Owned, open, competitive intelligence is a policy choice as much as a technical one. Choose it on purpose.</p>
+<p><strong style="color:var(--text-primary)">Pass it on.</strong> Send this letter to one builder who is tired of asking permission.</p>
+<p>And write me at <a href="mailto:drake@aienos.com">drake@aienos.com</a> if you are building in this direction and want to compare notes.</p>
+</div>
+
+<div class="section">
+<p>M. Drake Stapleton<br>AI Architect &amp; Engineer<br>drake@aienos.com</p>
+</div>
+
+<div class="section" id="cite">
+<h2>Cite this letter</h2>
+<pre class="cite">@misc{stapleton2026calltohumanity,
+  author = {M. Drake Stapleton},
+  title = {A Call to Humanity: Breaking the CUDA
+           Stranglehold on the Hardware Market},
+  year = {2026},
+  month = {October},
+  doi = {10.5281/zenodo.23614484},
+  url = {https://aienos.com/call-to-humanity}
+}</pre>
+</div>
+
+<div class="footer-note">
+This letter is published by its author. The work it describes is public and carries its own evidence. Questions and challenges are welcome on <a href="https://github.com/aien-dev" target="_blank" rel="noopener">AIEN on GitHub</a>.
+</div>
+</main>
+</body>
+</html>
