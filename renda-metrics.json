@@ -1,15 +1,15 @@
 {
   "schema": "renda-metrics/1",
-  "generated_at": "2026-10-24T06:25:02Z",
+  "generated_at": "2026-10-24T06:30:01Z",
   "window_seconds": 3600,
   "workers": [
     {
       "name": "renda1",
-      "last_pass_at": "2026-10-24T06:25:02Z",
-      "current_cpm": 1.1111,
+      "last_pass_at": "2026-10-24T06:29:44Z",
+      "current_cpm": 0.8824,
       "min_cpm": 0.8219,
       "max_cpm": 1.1321,
-      "last_pass_seconds": 23,
+      "last_pass_seconds": 37,
       "samples": 62,
       "merges": 0,
       "rebases": 0,
