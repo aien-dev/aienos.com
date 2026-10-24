@@ -871,7 +871,7 @@ pub fn llms_txt(status_lines: &[String], research_sentence: &str) -> String {
 
 /// /sitemap.md: the readable twin of sitemap.xml, H2 sections of described
 /// links, generated from the same page registry as llms.txt and the XML map.
-pub fn sitemap_md() -> String {
+pub fn sitemap_md(pages: &[Emitted]) -> String {
     let mut s = String::from("# Sitemap\n\n");
     s.push_str(&format!("> Every page on aienos.com, grouped the way the site is. The crawler index is [sitemap.xml]({HOST}/sitemap.xml); the file list is [data/index.json]({HOST}/data/index.json).\n\n"));
     for sec in [Section::Start, Section::Machine, Section::Turing, Section::Evidence, Section::Philosophy, Section::Blog, Section::Optional] {
@@ -882,8 +882,10 @@ pub fn sitemap_md() -> String {
         s.push('\n');
     }
     s.push_str("## Simplified Chinese\n\n");
-    for p in PAGES {
-        s.push_str(&format!("- [{}]({HOST}/zh-CN{}): the same page in Simplified Chinese.\n", p.name, p.path));
+    for p in pages.iter().filter(|p| p.is_zh()) {
+        if let Some(info) = info_for(&p.en_path()) {
+            s.push_str(&format!("- [{}]({HOST}{}): the same page in Simplified Chinese.\n", info.name, p.path));
+        }
     }
     s.push_str("\n## For agents\n\n");
     s.push_str(&format!("- [llms.txt]({HOST}/llms.txt): the site in one file for AI readers.\n"));
@@ -1047,7 +1049,7 @@ pub fn write_machine_surface(dist: &Path, pages: &[Emitted], now: &Now, ctx: &Bu
     fs::write(dist.join("now/feed.xml"), now_feed(now, ctx)).expect("write now/feed.xml");
     fs::write(dist.join("llms.txt"), llms).expect("write llms.txt");
     fs::write(dist.join("llms-full.txt"), llms_full(pages)).expect("write llms-full.txt");
-    fs::write(dist.join("sitemap.md"), sitemap_md()).expect("write sitemap.md");
+    fs::write(dist.join("sitemap.md"), sitemap_md(pages)).expect("write sitemap.md");
     let agents = fs::read_to_string("AGENTS.md").expect("AGENTS.md must exist at the repository root: the build publishes it at /AGENTS.md");
     fs::write(dist.join("AGENTS.md"), agents).expect("write AGENTS.md");
     fs::create_dir_all(dist.join("data")).expect("data dir");
@@ -1210,7 +1212,7 @@ mod tests {
     fn discovery_files_link_every_list_item_in_an_h2_section() {
         for (name, doc) in [
             ("llms.txt", crate::components::status::llms_txt()),
-            ("sitemap.md", sitemap_md()),
+            ("sitemap.md", sitemap_md(&[])),
         ] {
             let mut in_h2 = false;
             for line in doc.lines() {

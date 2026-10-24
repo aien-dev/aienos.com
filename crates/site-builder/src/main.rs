@@ -649,6 +649,7 @@ mod tests {
                 let tag = &page[tag_start..=tag_end];
                 assert!(tag.contains("aria-label="), "{rel}: input {id} has no accessible name");
             }
+            assert!(!page.contains("<output"), "{rel}: <output> inside a label is invalid");
         }
     }
 
