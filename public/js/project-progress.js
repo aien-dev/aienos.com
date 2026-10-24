@@ -158,7 +158,7 @@ function renderProgress(data,previousDate){
   }
   async function loadInitial(){
     try{
-      const response=await fetch('/data/project-progress.json',{cache:'no-store',signal:AbortSignal.timeout(20000)});
+      const response=await fetch('/data/project-progress.json',{cache:'default',signal:AbortSignal.timeout(20000)});
       if(!response.ok)throw Error('Unavailable');
       data=valid(await response.json());
       display();
