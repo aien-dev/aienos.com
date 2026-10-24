@@ -20,6 +20,12 @@ pub fn render_blog_index() -> Markup {
             p class="blog-standfirst" {
                 "Occasional notes on building AIEN V2: what shipped, what the evidence says, and what remains an open question."
             }
+            p class="blog-standfirst" {
+                "The notes are written while the work is in progress. Each one states what changed, what the evidence supports, and what remains open. Failures stay in the record."
+            }
+            p class="blog-standfirst" {
+                "Posts fall into three groups: research plans, engineering notes on the build, and postmortems of experiments that did not settle the question. The research pages carry the formal papers and their receipts. The blog carries the working record."
+            }
             article class="blog-card" {
                 p class="blog-date" { (CASE_DATE) }
                 h2 class="blog-card-title" {

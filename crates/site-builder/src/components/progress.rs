@@ -9,9 +9,7 @@ pub fn render_progress_page() -> Markup {
         let value = summary[key].as_u64().expect("Progress metric must be a nonnegative integer");
         body = body.replace(marker, &value.to_string());
     }
-    // GitHub titles are untrusted strings; escaping '<' prevents closing the JSON script element.
-    let safe_data = raw.replace('<', "\\u003c");
-    body = body.replace("__DATA__", &format!("<script type=\"application/json\" id=\"ag-data\">{safe_data}</script>"));
+    body = body.replace("__DATA__", "");
     PreEscaped(body)
 }
 
@@ -21,7 +19,7 @@ mod tests {
     #[test]
     fn progress_is_a_real_page_with_the_same_published_measurements() {
         let page = render_progress_page().into_string();
-        assert!(page.contains("<h1>Project progress</h1>"));assert!(page.contains("id=\"ag-data\""));assert!(page.contains("id=\"ag-code\""));assert!(page.contains("id=\"ag-activity\""));
-        assert!(!page.contains("__LINES__"));assert!(!page.contains("__DATA__"));assert!(!page.contains('\u{2014}'));assert!(!page.contains('\u{2013}'));
+        assert!(page.contains("<h1>Project progress</h1>"));assert!(page.contains("id=\"ag-code\""));assert!(page.contains("id=\"ag-activity\""));
+        assert!(!page.contains("__LINES__"));assert!(!page.contains("__DATA__"));assert!(!page.contains("id=\"ag-data\""));assert!(!page.contains('\u{2014}'));assert!(!page.contains('\u{2013}'));
     }
 }
