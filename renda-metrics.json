@@ -1,22 +1,22 @@
 {
   "schema": "renda-metrics/1",
-  "generated_at": "2026-10-24T15:20:02Z",
+  "generated_at": "2026-10-24T15:25:02Z",
   "window_seconds": 3600,
   "workers": [
     {
       "name": "renda1",
-      "last_pass_at": "2026-10-24T15:19:44Z",
+      "last_pass_at": "2026-10-24T15:24:26Z",
       "current_cpm": 1.1111,
       "min_cpm": 0.566,
       "max_cpm": 1.1321,
       "last_pass_seconds": 23,
-      "samples": 62,
+      "samples": 61,
       "merges": 0,
       "rebases": 0,
       "reruns": 0,
       "operators": 0,
-      "active_pass_seconds": 1696,
-      "window_passes": 63
+      "active_pass_seconds": 1671,
+      "window_passes": 62
     },
     {
       "name": "renda2",
