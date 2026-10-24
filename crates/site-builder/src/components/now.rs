@@ -539,6 +539,85 @@ fn card(it: &Item) -> Markup {
     }
 }
 
+/// A line counts as current when it was written in the last day. Current
+/// lines are shown open; older ones are folded, still in the HTML.
+const CURRENT_S: i64 = 24 * 3600;
+
+fn is_current(it: &Item) -> bool {
+    it.age_s >= 0 && it.age_s < CURRENT_S
+}
+
+/// One folded line: id, item, its latest note, owner, age, ledger link.
+fn row(it: &Item) -> Markup {
+    html! {
+        li class="now-queue-row now-row" id=(it.id) {
+            span class="now-id" { (it.id) }
+            span class="now-queue-item" {
+                (it.item)
+                @if let Some(n) = last_note(it) {
+                    span class="now-row-note" { (note_markup(n, it.stream)) }
+                }
+                @if !it.done_when.is_empty() {
+                    span class="now-row-done" { "done when " (it.done_when) }
+                }
+            }
+            span class="now-row-meta" {
+                span class=(format!("now-owner now-owner-{}", it.owner_kind)) { (owner_label(it)) }
+                span class="now-row-age" title=(it.updated_utc) { (age_words(it.age_s)) }
+            }
+            (line_foot(it))
+        }
+    }
+}
+
+/// A closed `details` block. Its rows stay in the page for every reader
+/// and crawler; a visitor opens it with one click, and a link to a line
+/// inside opens it in the browser.
+fn fold(id: &str, title: &str, items: &[&Item]) -> Markup {
+    let newest = items.iter().filter(|i| i.age_s >= 0).map(|i| i.age_s).min();
+    html! {
+        details class="now-fold" id=(id) {
+            summary class="now-fold-sum" {
+                span class="now-fold-name" { (title) }
+                span class="now-fold-n" { (items.len()) " " @if items.len() == 1 { "line" } @else { "lines" } }
+                @if let Some(a) = newest {
+                    span class="now-fold-age" { "last written " (age_words(a)) }
+                }
+            }
+            ol class="now-queue now-fold-rows" {
+                @for it in items { (row(it)) }
+            }
+        }
+    }
+}
+
+fn slug(s: &str) -> String {
+    s.to_ascii_lowercase().replace(' ', "-")
+}
+
+fn settled_entry(it: &Item) -> Markup {
+    html! {
+        li class=(format!("now-tl now-tl-{}", it.status)) id=(it.id) {
+            span class="now-tl-when mono" title=(it.updated_utc) { (age_words(it.age_s)) }
+            div class="now-tl-body" {
+                span class=(format!("now-verdict now-verdict-{}", it.status)) { (it.status) }
+                span class="now-id" { (it.id) }
+                p class="now-tl-item" { (it.item) }
+                @if let Some(n) = last_note(it) {
+                    p class="now-tl-evidence" { (note_markup(n, it.stream)) }
+                }
+                (line_foot(it))
+            }
+        }
+    }
+}
+
+/// The UTC day a line was last written, "2026-10-24", or "date unknown".
+fn day_of(it: &Item) -> String {
+    let s = if it.updated_utc.is_empty() { &it.opened_utc } else { &it.updated_utc };
+    if parse_utc(s).is_some() { s[..10].to_string() } else { "date unknown".into() }
+}
+
 fn river(items: &[&Item]) -> Markup {
     // One segment per line, warm to cold, newest first: the stream's pulse at a glance.
     let mut sorted: Vec<&Item> = items.to_vec();
@@ -606,51 +685,9 @@ fn renda_count(label: &str, field: &str) -> Markup {
     }
 }
 
-pub fn render_now_page(now: &Now) -> Markup {
-    let open: Vec<&Item> = now.items.iter().filter(|i| i.status == "open").collect();
-    let settled: Vec<&Item> = now.items.iter().filter(|i| i.status == "done" || i.status == "dropped").collect();
-    let hands: usize = open.iter().filter(|i| i.owner_kind == "agent" && i.age_s >= 0 && i.age_s < 2 * 3600).map(|i| i.owner.as_str()).collect::<std::collections::BTreeSet<_>>().len();
-    let for_drake: Vec<&Item> = open.iter().copied().filter(|i| i.owner_kind == "operator").collect();
-    let next: Vec<&Item> = open.iter().copied().filter(|i| i.owner_kind != "operator" && (i.owner_kind == "unassigned" || i.notes.is_empty())).collect();
-    let moving: Vec<&Item> = open.iter().copied().filter(|i| i.owner_kind != "operator" && !(i.owner_kind == "unassigned" || i.notes.is_empty())).collect();
-    let settled_today = settled.iter().filter(|i| i.age_s >= 0 && i.age_s < 24 * 3600).count();
-    let mut settled_sorted = settled.clone();
-    settled_sorted.sort_by_key(|i| if i.age_s < 0 { i64::MAX } else { i.age_s });
-
+/// The two Renda speed dials, filled in the browser from the same-origin feed.
+fn renda_section() -> Markup {
     html! {
-        section class="now-hero" aria-labelledby="now-title" {
-            div class="container" {
-                p class="kicker" { "Now" }
-                h1 id="now-title" class="now-title" { "What is being done, right now." }
-                p class="now-lead" {
-                    "This is the working ledger of AIEN, published as it is written. Every line is a promise with an owner and an observable finish. Agents write their progress here; the operator writes decisions here. Nothing on this page is composed by hand."
-                }
-                @if now.items.is_empty() {
-                    p class="now-empty" { "No ledger has been published yet. The page will fill itself the moment one arrives." }
-                } @else {
-                    div class="now-stats" {
-                        (stat(hands, "agents writing in the last two hours", "now-stat-hot"))
-                        (stat(moving.len(), "lines in motion", ""))
-                        (stat(next.len(), "lines queued", ""))
-                        (stat(settled_today, "settled in the last day", "now-stat-done"))
-                        (stat(for_drake.len(), "waiting on the operator", "now-stat-op"))
-                    }
-                    p class="now-stamp" {
-                        "Ledger last written " span class="mono" { (now.ledger_written_utc) }
-                        ". Page built " span class="mono" { (now.built_utc) }
-                        ". It rebuilds within the hour of every change."
-                    }
-                    @if !now.pulse.is_empty() {
-                        ul class="now-pulse" {
-                            @for p in &now.pulse {
-                                li { span class="now-pulse-k" { (p.key) } span class="now-pulse-v mono" { (p.value) } }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         section class="now-section renda-section" id="renda-speed" data-renda-feed="/data/renda-metrics.json" aria-labelledby="renda-title" {
             div class="container" {
                 p class="kicker" { "Turing workers / measured cycles" }
@@ -683,6 +720,73 @@ pub fn render_now_page(now: &Now) -> Markup {
                 a class="renda-source" href=(RENDA_EVIDENCE_URL) { "Evidence on GitHub ↗" }
             }
         }
+    }
+}
+
+pub fn render_now_page(now: &Now) -> Markup {
+    let open: Vec<&Item> = now.items.iter().filter(|i| i.status == "open").collect();
+    let settled: Vec<&Item> = now.items.iter().filter(|i| i.status == "done" || i.status == "dropped").collect();
+    let hands: usize = open.iter().filter(|i| i.owner_kind == "agent" && i.age_s >= 0 && i.age_s < 2 * 3600).map(|i| i.owner.as_str()).collect::<std::collections::BTreeSet<_>>().len();
+    let for_drake: Vec<&Item> = open.iter().copied().filter(|i| i.owner_kind == "operator").collect();
+    let next: Vec<&Item> = open.iter().copied().filter(|i| i.owner_kind != "operator" && (i.owner_kind == "unassigned" || i.notes.is_empty())).collect();
+    let moving: Vec<&Item> = open.iter().copied().filter(|i| i.owner_kind != "operator" && !(i.owner_kind == "unassigned" || i.notes.is_empty())).collect();
+    let mut settled_sorted = settled.clone();
+    settled_sorted.sort_by_key(|i| if i.age_s < 0 { i64::MAX } else { i.age_s });
+    let (moving_now, moving_quiet): (Vec<&Item>, Vec<&Item>) = moving.iter().copied().partition(|i| is_current(i));
+    let (next_now, next_quiet): (Vec<&Item>, Vec<&Item>) = next.iter().copied().partition(|i| is_current(i));
+    let (settled_now, settled_old): (Vec<&Item>, Vec<&Item>) = settled_sorted.iter().copied().partition(|i| is_current(i));
+    // Older settled lines, one fold per UTC day, newest day first.
+    let mut settled_days: Vec<(String, Vec<&Item>)> = Vec::new();
+    for it in &settled_old {
+        let d = day_of(it);
+        match settled_days.last_mut() {
+            Some((day, list)) if *day == d => list.push(it),
+            _ => settled_days.push((d, vec![it])),
+        }
+    }
+
+    html! {
+        section class="now-hero" aria-labelledby="now-title" {
+            div class="container" {
+                p class="kicker" { "Now" }
+                h1 id="now-title" class="now-title" { "What is being done, right now." }
+                p class="now-lead" {
+                    "This is the working ledger of AIEN, published as it is written. Every line is a promise with an owner and an observable finish. Agents write their progress here; the operator writes decisions here. Nothing on this page is composed by hand. Lines written in the last day are shown open; older lines are folded below, each one click away."
+                }
+                @if now.items.is_empty() {
+                    p class="now-empty" { "No ledger has been published yet. The page will fill itself the moment one arrives." }
+                } @else {
+                    div class="now-stats" {
+                        (stat(hands, "agents writing in the last two hours", "now-stat-hot"))
+                        (stat(moving_now.len(), "lines in motion, written in the last day", ""))
+                        (stat(moving_quiet.len() + next_quiet.len(), "open lines quiet for over a day, quiet and queued", ""))
+                        (stat(settled_now.len(), "settled in the last day", "now-stat-done"))
+                        (stat(for_drake.len(), "waiting on the operator", "now-stat-op"))
+                    }
+                    nav class="now-jump" aria-label="On this page" {
+                        @if !for_drake.is_empty() { a href="#operator" { "Operator " span { (for_drake.len()) } } }
+                        a href="#streams" { "In motion " span { (moving_now.len()) } }
+                        a href="#renda-speed" { "Speedometer" }
+                        @if !moving_quiet.is_empty() { a href="#quiet" { "Quiet " span { (moving_quiet.len()) } } }
+                        @if !next.is_empty() { a href="#next" { "Queued " span { (next.len()) } } }
+                        @if !settled_sorted.is_empty() { a href="#settled" { "Settled " span { (settled_sorted.len()) } } }
+                        a href="#how" { "How it is made" }
+                    }
+                    p class="now-stamp" {
+                        "Ledger last written " span class="mono" { (now.ledger_written_utc) }
+                        ". Page built " span class="mono" { (now.built_utc) }
+                        ". It rebuilds within the hour of every change."
+                    }
+                    @if !now.pulse.is_empty() {
+                        ul class="now-pulse" {
+                            @for p in &now.pulse {
+                                li { span class="now-pulse-k" { (p.key) } span class="now-pulse-v mono" { (p.value) } }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         @if !for_drake.is_empty() {
             section class="now-section now-op-section" id="operator" aria-labelledby="now-op-h" {
@@ -701,11 +805,14 @@ pub fn render_now_page(now: &Now) -> Markup {
             div class="container" {
                 p class="kicker" { "In motion" }
                 h2 id="now-streams-h" class="now-h2" { "What the agents are doing" }
-                p class="now-sub" { "Grouped by stream. The bar under each name is the stream's pulse: one segment per line, bright when written in the last half hour, fading as it cools." }
+                p class="now-sub" { "Lines written in the last day, grouped by stream. The bar under each name is the stream's pulse: one segment per line, bright when written in the last half hour, fading as it cools." }
+                @if moving_now.is_empty() {
+                    p class="now-empty" { "No line in motion was written in the last day." }
+                }
                 @for s in STREAMS {
-                    @let in_stream: Vec<&Item> = moving.iter().copied().filter(|i| i.stream == s).collect();
+                    @let in_stream: Vec<&Item> = moving_now.iter().copied().filter(|i| i.stream == s).collect();
                     @if !in_stream.is_empty() {
-                        div class="now-stream" id=(format!("stream-{}", s.to_ascii_lowercase().replace(' ', "-"))) {
+                        div class="now-stream" id=(format!("stream-{}", slug(s))) {
                             header class="now-stream-head" {
                                 h3 class="now-stream-name" { (s) }
                                 span class="now-stream-n" { (in_stream.len()) " " @if in_stream.len() == 1 { "line" } @else { "lines" } }
@@ -720,23 +827,40 @@ pub fn render_now_page(now: &Now) -> Markup {
             }
         }
 
+        (renda_section())
+
+        @if !moving_quiet.is_empty() {
+            section class="now-section" id="quiet" aria-labelledby="now-quiet-h" {
+                div class="container" {
+                    p class="kicker" { "Quiet" }
+                    h2 id="now-quiet-h" class="now-h2" { "Open, not written in the last day" }
+                    p class="now-sub" { "Still open, with an owner and notes, but nobody has written to them for over a day. Folded by stream; open a stream to read every line and its latest note." }
+                    div class="now-folds" {
+                        @for s in STREAMS {
+                            @let in_stream: Vec<&Item> = moving_quiet.iter().copied().filter(|i| i.stream == s).collect();
+                            @if !in_stream.is_empty() {
+                                (fold(&format!("quiet-{}", slug(s)), s, &in_stream))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         @if !next.is_empty() {
             section class="now-section" id="next" aria-labelledby="now-next-h" {
                 div class="container" {
                     p class="kicker" { "Next" }
                     h2 id="now-next-h" class="now-h2" { "What is queued" }
                     p class="now-sub" { "Promised, with a finish line, not yet picked up or not yet reported on." }
-                    ol class="now-queue" {
-                        @for it in &next {
-                            li class="now-queue-row" id=(it.id) {
-                                span class="now-id" { (it.id) }
-                                span class="now-queue-item" { (it.item) }
-                                span class=(format!("now-owner now-owner-{}", it.owner_kind)) { (owner_label(it)) }
-                                @if !it.done_when.is_empty() {
-                                    span class="now-queue-done" { "done when " (it.done_when) }
-                                }
-                                (line_foot(it))
-                            }
+                    @if !next_now.is_empty() {
+                        ol class="now-queue" {
+                            @for it in &next_now { (row(it)) }
+                        }
+                    }
+                    @if !next_quiet.is_empty() {
+                        div class="now-folds" {
+                            (fold("queued-older", "Queued, not written in the last day", &next_quiet))
                         }
                     }
                 }
@@ -748,19 +872,23 @@ pub fn render_now_page(now: &Now) -> Markup {
                 div class="container" {
                     p class="kicker" { "Settled" }
                     h2 id="now-settled-h" class="now-h2" { "Decisions made, with their evidence" }
-                    p class="now-sub" { "A line closes on evidence (a commit, a receipt, a file) or is dropped for a stated reason. Newest first." }
-                    ol class="now-timeline" {
-                        @for it in &settled_sorted {
-                            li class=(format!("now-tl now-tl-{}", it.status)) id=(it.id) {
-                                span class="now-tl-when mono" title=(it.updated_utc) { (age_words(it.age_s)) }
-                                div class="now-tl-body" {
-                                    span class=(format!("now-verdict now-verdict-{}", it.status)) { (it.status) }
-                                    span class="now-id" { (it.id) }
-                                    p class="now-tl-item" { (it.item) }
-                                    @if let Some(n) = last_note(it) {
-                                        p class="now-tl-evidence" { (note_markup(n, it.stream)) }
-                                    }
-                                    (line_foot(it))
+                    p class="now-sub" { "A line closes on evidence (a commit, a receipt, a file) or is dropped for a stated reason. The last day is shown open, newest first; earlier days are folded by date (UTC)." }
+                    @if settled_now.is_empty() {
+                        p class="now-empty" { "Nothing settled in the last day." }
+                    } @else {
+                        ol class="now-timeline" {
+                            @for it in &settled_now { (settled_entry(it)) }
+                        }
+                    }
+                    div class="now-folds" {
+                        @for (day, list) in &settled_days {
+                            details class="now-fold" id=(format!("settled-{day}")) {
+                                summary class="now-fold-sum" {
+                                    span class="now-fold-name" { "Settled " (day) }
+                                    span class="now-fold-n" { (list.len()) " " @if list.len() == 1 { "line" } @else { "lines" } }
+                                }
+                                ol class="now-timeline now-fold-rows" {
+                                    @for it in list { (settled_entry(it)) }
                                 }
                             }
                         }
@@ -865,6 +993,30 @@ L004\t2026-10-19T16:43Z\tunassigned\topen\tResearch: omega#583 simulator\tPR mer
             assert!(page.contains(must), "missing {must}");
         }
         assert!(!page.contains("https://data/renda"), "feed must be same-origin");
+        assert!(!page.contains('\u{2014}') && !page.contains('\u{2013}'));
+    }
+
+    #[test]
+    fn old_lines_fold_but_stay_in_the_page() {
+        // Three days after SAMPLE was written every line is old.
+        let at = parse_utc("2026-10-22T18:10Z").unwrap();
+        let now = Now { built_utc: fmt_utc(at), ledger_written_utc: "2026-10-19T18:00Z".into(), items: parse_ledger(SAMPLE, at), pulse: vec![] };
+        let page = render_now_page(&now).into_string();
+        assert!(page.contains("No line in motion was written in the last day."));
+        assert!(page.contains("Nothing settled in the last day."));
+        let quiet = page.find("<details class=\"now-fold\" id=\"quiet-engine-speed\">").expect("quiet fold missing");
+        let queued = page.find("<details class=\"now-fold\" id=\"queued-older\">").expect("queued fold missing");
+        let settled = page.find("<details class=\"now-fold\" id=\"settled-2026-10-19\">").expect("settled day fold missing");
+        // Each old line sits inside its fold, keeps its anchor, note and ledger link.
+        assert!(page[quiet..].find("id=\"L001\"").unwrap() < page[quiet..].find("</details>").unwrap());
+        assert!(page[queued..].find("id=\"L004\"").unwrap() < page[queued..].find("</details>").unwrap());
+        assert!(page[settled..].find("id=\"L003\"").unwrap() < page[settled..].find("</details>").unwrap());
+        assert!(page.contains("15.63 tok/s") && page.contains("done when PR merged"));
+        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(4));
+        // Operator lines never fold.
+        let op = page.find("id=\"operator\"").unwrap();
+        assert!(page[op..].find("id=\"L002\"").unwrap() < page[op..].find("id=\"streams\"").unwrap());
+        assert!(page.contains("open lines quiet for over a day"));
         assert!(!page.contains('\u{2014}') && !page.contains('\u{2013}'));
     }
 
