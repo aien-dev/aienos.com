@@ -31,7 +31,6 @@ pub const LEDGER_PATH: &str = "public/data/now.tsv";
 pub const PULSE_PATH: &str = "public/data/now-pulse.tsv";
 /// The published ledger on GitHub; `#L<n>` names one line of it.
 pub const LEDGER_URL: &str = "https://github.com/aien-dev/aienos.com/blob/data/now/now.tsv";
-pub const RENDA_EVIDENCE_URL: &str = "https://github.com/aien-dev/aienos.com/blob/data/now/renda-metrics.json";
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Item {
@@ -640,89 +639,6 @@ fn stat(n: usize, label: &str, class: &str) -> Markup {
     }
 }
 
-fn renda_worker(name: &str) -> Markup {
-    html! {
-        article class="renda-unit" data-worker=(name) {
-            a class="renda-unit-link" href=(RENDA_EVIDENCE_URL) aria-label=(format!("{} telemetry evidence on GitHub", name)) {
-                div class="renda-unit-head" {
-                    span class="renda-live" aria-hidden="true" {}
-                    h3 { (name) }
-                    span class="renda-state" data-field="state" { "Waiting for telemetry" }
-                }
-                div class="renda-gauge-wrap" {
-                    svg class="renda-gauge" viewBox="0 0 240 146" role="img" aria-label=(format!("{} current completed-cycle rate gauge", name)) {
-                        path class="renda-gauge-track" d="M 24 126 A 96 96 0 0 1 216 126" {}
-                        path class="renda-gauge-fill" data-field="arc" d="M 24 126 A 96 96 0 0 1 216 126" {}
-                        line class="renda-gauge-needle" data-field="needle" x1="120" y1="126" x2="120" y2="44" {}
-                        circle class="renda-gauge-hub" cx="120" cy="126" r="5" {}
-                        text class="renda-gauge-number" x="120" y="91" data-field="current" { "Unknown" }
-                        text class="renda-gauge-unit" x="120" y="111" { "cycles / min" }
-                        text class="renda-gauge-end" x="24" y="144" { "0" }
-                        text class="renda-gauge-end" x="216" y="144" text-anchor="end" { "observed max" }
-                    }
-                }
-                div class="renda-readings" {
-                    div class="renda-reading" { span { "Observed max" } strong data-field="max" { "Unknown" } }
-                    div class="renda-reading" { span { "Observed range" } strong data-field="range" { "Unknown" } }
-                    div class="renda-reading" { span { "Last pass" } strong data-field="pass" { "Unknown" } }
-                }
-                div class="renda-unit-foot" {
-                    span data-field="last" { "Last completed cycle unknown" }
-                    span class="renda-evidence" { "Evidence on GitHub ↗" }
-                }
-            }
-        }
-    }
-}
-
-fn renda_count(label: &str, field: &str) -> Markup {
-    html! {
-        a class="renda-count" href=(RENDA_EVIDENCE_URL) {
-            strong data-field=(field) { "Unknown" }
-            span { (label) }
-            span class="renda-evidence" { "Evidence on GitHub ↗" }
-        }
-    }
-}
-
-/// The two Renda speed dials, filled in the browser from the same-origin feed.
-fn renda_section() -> Markup {
-    html! {
-        section class="now-section renda-section" id="renda-speed" data-renda-feed="/data/renda-metrics.json" aria-labelledby="renda-title" {
-            div class="container" {
-                p class="kicker" { "Turing workers / measured cycles" }
-                h2 id="renda-title" class="now-h2" { "Renda speedometer" }
-                p class="now-sub" { "Completed cycles per minute, including the observed rest between passes. This is a snapshot rate, not token speed. Current rate goes stale five minutes after the last completed pass; the observed maximum is history, not a ceiling." }
-                div class="renda-meta" {
-                    span class="renda-status" data-field="feed-state" { "Waiting for first telemetry snapshot" }
-                    span { "Refreshes every 60 seconds" }
-                    span data-field="generated" { "Snapshot time unknown" }
-                }
-                div class="renda-workers" {
-                    (renda_worker("renda1"))
-                    (renda_worker("renda2"))
-                }
-                div class="renda-window" {
-                    div class="renda-window-head" {
-                        h3 { "Last 60 minutes" }
-                        span { "Activity is reported by the collector" }
-                    }
-                    div class="renda-counts" {
-                        (renda_count("Merges", "merges"))
-                        (renda_count("Rebases", "rebases"))
-                        (renda_count("Reruns", "reruns"))
-                        (renda_count("Operators", "operators"))
-                        (renda_count("Passes", "window_passes"))
-                        (renda_count("Active pass seconds", "active_pass_seconds"))
-                    }
-                }
-                p class="renda-footnote" { "Unknown means the snapshot has no value. Idle means no pass was recorded in the window. Stale means the last completed pass is more than five minutes old; no current rate is shown as fresh." }
-                a class="renda-source" href=(RENDA_EVIDENCE_URL) { "Evidence on GitHub ↗" }
-            }
-        }
-    }
-}
-
 pub fn render_now_page(now: &Now) -> Markup {
     let open: Vec<&Item> = now.items.iter().filter(|i| i.status == "open").collect();
     let settled: Vec<&Item> = now.items.iter().filter(|i| i.status == "done" || i.status == "dropped").collect();
@@ -766,7 +682,6 @@ pub fn render_now_page(now: &Now) -> Markup {
                     nav class="now-jump" aria-label="On this page" {
                         @if !for_drake.is_empty() { a href="#operator" { "Operator " span { (for_drake.len()) } } }
                         a href="#streams" { "In motion " span { (moving_now.len()) } }
-                        a href="#renda-speed" { "Speedometer" }
                         @if !moving_quiet.is_empty() { a href="#quiet" { "Quiet " span { (moving_quiet.len()) } } }
                         @if !next.is_empty() { a href="#next" { "Queued " span { (next.len()) } } }
                         @if !settled_sorted.is_empty() { a href="#settled" { "Settled " span { (settled_sorted.len()) } } }
@@ -826,8 +741,6 @@ pub fn render_now_page(now: &Now) -> Markup {
                 }
             }
         }
-
-        (renda_section())
 
         @if !moving_quiet.is_empty() {
             section class="now-section" id="quiet" aria-labelledby="now-quiet-h" {
@@ -910,7 +823,6 @@ pub fn render_now_page(now: &Now) -> Markup {
                 }
             }
         }
-        script defer src="/assets/renda-dashboard.js" {}
     }
 }
 
@@ -965,6 +877,8 @@ L004\t2026-10-19T16:43Z\tunassigned\topen\tResearch: omega#583 simulator\tPR mer
             assert!(page.contains(must), "missing {must}");
         }
         assert!(!page.contains('\u{2014}') && !page.contains('\u{2013}'));
+        // The Renda workers were retired; their dials must not come back.
+        assert!(!page.contains("renda") && !page.contains("<script"), "no Renda dials and no script on /now/");
         // Every card, queue row and timeline entry links to its own ledger line.
         assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(4));
         for line in 2..=5 {
@@ -975,25 +889,6 @@ L004\t2026-10-19T16:43Z\tunassigned\topen\tResearch: omega#583 simulator\tPR mer
         assert!(page.contains("class=\"now-ref\" href=\"https://github.com/aien-dev/aien-sovereign-core-mv/issues/8\""), "note reference not linked");
         let json = to_json(&now);
         assert!(json.contains("\"L001\"") && json.contains("\"stream\": \"Engine speed\""));
-    }
-
-    #[test]
-    fn renda_dashboard_has_same_origin_refresh_and_evidence_scaffold() {
-        let now = Now { built_utc: "2026-10-19T18:10Z".into(), ledger_written_utc: "never".into(), items: vec![], pulse: vec![] };
-        let page = render_now_page(&now).into_string();
-        for must in [
-            "id=\"renda-speed\"",
-            "data-renda-feed=\"/data/renda-metrics.json\"",
-            "renda1",
-            "renda2",
-            "Evidence on GitHub",
-            "https://github.com/aien-dev/aienos.com/blob/data/now/renda-metrics.json",
-            "/assets/renda-dashboard.js",
-        ] {
-            assert!(page.contains(must), "missing {must}");
-        }
-        assert!(!page.contains("https://data/renda"), "feed must be same-origin");
-        assert!(!page.contains('\u{2014}') && !page.contains('\u{2013}'));
     }
 
     #[test]
