@@ -17,7 +17,7 @@ The homepage opens with "AIENOS is an owned experimental machine for turning sea
 
 ## Gandi.net DNS Record Configuration Reference
 
-To bind `aienos.com` on Gandi.net to GitHub Pages:
+To bind `aienos.com` on Gandi.net to the live site:
 
 | Type | Name | Target Value | TTL |
 | :--- | :--- | :--- | :--- |
@@ -29,7 +29,11 @@ To bind `aienos.com` on Gandi.net to GitHub Pages:
 | `AAAA` | `@` | `2606:50c0:8001::153` | 1800 |
 | `AAAA` | `@` | `2606:50c0:8002::153` | 1800 |
 | `AAAA` | `@` | `2606:50c0:8003::153` | 1800 |
-| `CNAME` | `www` | `aien-dev.github.io.` | 1800 |
+| `A` | `www` | `74.167.84.120` | 300 |
+
+`www` terminates on the hub nginx edge, which proxies GitHub Pages as the origin. The edge exists because GitHub Pages cannot negotiate `Accept: text/markdown` or emit a `Link` header on a `.md` response. The apex still points at GitHub Pages and canonicalises to `www`.
+
+Rollback: delete the `www` A record and restore `CNAME www aien-dev.github.io.` at TTL 1800. The site then returns to GitHub Pages directly. The hub configuration can stay in place, unused.
 
 ---
 
@@ -66,7 +70,13 @@ The build also writes the files AI agents probe, all from the same page registry
 - Head signals on every page: `<link rel="alternate" type="text/markdown">`, `<link rel="describedby">` to `/llms.txt`, and robots directives for `max-snippet:-1` and `max-image-preview:large`.
 - `/glossary/`: the terms the project uses in its own sense, linked from the footer of every page.
 
-GitHub Pages serves static files only. It cannot vary a response on `Accept: text/markdown` and cannot add a `Link` header to a Markdown response, so those two agent-readability checks (content negotiation and the Markdown `Link` header) need an edge proxy or a request-aware host. Every other discovery file and page signal is generated at build time.
+GitHub Pages serves static files only. It cannot vary a response on `Accept: text/markdown` and cannot add a `Link` header to a Markdown response, so `www.aienos.com` terminates on the hub nginx edge instead. The edge:
+
+- proxies GitHub Pages as the origin (the four Pages IPs with `Host: www.aienos.com`), so every deploy still goes live without an edge change;
+- rewrites a page path to its mirror when the request carries `Accept: text/markdown`;
+- adds `Vary: Accept` and `Link: <canonical HTML>; rel="canonical"` on every `.md` response.
+
+Configuration lives on the hub at `/etc/nginx/sites-available/aienos.com` (edge server) and `/etc/nginx/stream.d/sni-router.conf` (SNI map to `127.0.0.1:4445`). TLS is an acme.sh DNS-01 certificate for `www.aienos.com`, installed at `/etc/nginx/certs/www.aienos.com/`. The backup of the pre-edge SNI router is `sni-router.conf.bak-20261024T0127Z`, and the pre-cutover DNS record is `/root/aienos-edge-rollback-cname.json` on the hub.
 
 ## License
 
