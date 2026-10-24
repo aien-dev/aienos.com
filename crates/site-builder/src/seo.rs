@@ -30,7 +30,7 @@ pub const AUTHOR: &str = "M. Drake Stapleton";
 pub const AUTHOR_URL: &str = "https://www.drakestapleton.com";
 pub const AUTHOR_GITHUB: &str = "https://github.com/drakestapleton";
 pub const LICENSE_NAME: &str = "Apache-2.0 WITH LLVM-exception";
-pub const LICENSE_URL: &str = "https://www.gnu.org/licenses/agpl-3.0.html";
+pub const LICENSE_URL: &str = "https://www.aienos.com/licensing/";
 
 /// What a page is, for structured data.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -535,7 +535,7 @@ fn graph(page: &Emitted, info: &PageInfo, facts: &HeadFacts, has_mirror: bool, c
     let url = page.url();
     let title = unescape(if facts.og_title.is_empty() { &facts.title } else { &facts.og_title });
     let description = unescape(if facts.description.is_empty() { &facts.og_description } else { &facts.description });
-    let image = format!("{HOST}{}", info.image);
+    let image = social_image_url(info);
     let zh = page.is_zh();
     let kind = match info.kind {
         Kind::Home | Kind::Page | Kind::Live => "WebPage",
@@ -611,13 +611,18 @@ fn graph(page: &Emitted, info: &PageInfo, facts: &HeadFacts, has_mirror: bool, c
     json!({"@context": "https://schema.org", "@graph": nodes})
 }
 
+/// Bump when cards change so preview crawlers fetch the new image bytes.
+fn social_image_url(info: &PageInfo) -> String {
+    format!("{HOST}{}?v=20261024-apache-llvm", info.image)
+}
+
 /// The tags the pass writes into every head.
 fn head_block(page: &Emitted, info: &PageInfo, facts: &HeadFacts, has_mirror: bool, ctx: &BuildCtx, dist: &Path) -> String {
     let url = page.url();
     let title = if facts.og_title.is_empty() { facts.title.clone() } else { facts.og_title.clone() };
     let description = if facts.og_description.is_empty() { facts.description.clone() } else { facts.og_description.clone() };
     let og_type = if !facts.og_type.is_empty() { facts.og_type.clone() } else { match info.kind { Kind::Article | Kind::Paper => "article".into(), _ => "website".into() } };
-    let image = format!("{HOST}{}", info.image);
+    let image = social_image_url(info);
     let image_alt = escape(&format!("{SITE_NAME}: {}", info.name));
     let locale = if page.is_zh() { "zh_CN" } else { "en_US" };
     let mut b = String::new();
@@ -1123,6 +1128,27 @@ pub fn verify(dist: &Path) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn social_previews_use_current_license_and_fresh_images() {
+        assert_eq!(LICENSE_NAME, "Apache-2.0 WITH LLVM-exception");
+        assert_eq!(LICENSE_URL, "https://www.aienos.com/licensing/");
+        let ctx = BuildCtx { built: "b".into(), head_committed: "h".into(), ledger_written: "l".into(), facts_generated: "f".into() };
+        for info in PAGES {
+            for lang in ["en", "zh-CN"] {
+                let path = if lang == "en" { info.path.to_string() } else { format!("/zh-CN{}", info.path) };
+                let page = Emitted { path, file: PathBuf::from("x"), lang: lang.into(), lastmod: "2026-10-24T00:00:00Z".into() };
+                let facts = HeadFacts::default();
+                let head = head_block(&page, info, &facts, false, &ctx, Path::new("/nonexistent"));
+                let image = social_image_url(info);
+                assert!(image.ends_with("?v=20261024-apache-llvm"));
+                assert!(head.contains(&format!("property=\"og:image\" content=\"{image}\"")));
+                assert!(head.contains(&format!("name=\"twitter:image\" content=\"{image}\"")));
+                assert!(head.contains(LICENSE_URL));
+                assert!(!head.contains("gnu.org/licenses/agpl"));
+            }
+        }
+    }
 
     #[test]
     fn rfc3339_round_trip() {

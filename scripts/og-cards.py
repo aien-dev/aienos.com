@@ -23,6 +23,19 @@ GREEN = (0, 229, 153)
 TEXT = (241, 245, 249)
 MUTED = (148, 163, 184)
 DIM = (100, 116, 139)
+LICENSE_NAME = "Apache-2.0 WITH LLVM-exception"
+BADGES = ((f"Open source, {LICENSE_NAME}", GREEN),
+          ("Experimental, pre-alpha", (245, 166, 35)),
+          ("Receipts over claims", BLUE))
+
+def badge_font(draw):
+    # Keep the full license identifier and all three badges inside the margins.
+    for size in range(22, 11, -1):
+        candidate = font(MONO, size)
+        width = sum(draw.textlength(label, font=candidate) + 30 for label, _ in BADGES)
+        if width + 16 * (len(BADGES) - 1) <= W - 160:
+            return candidate
+    raise ValueError("Social card badges do not fit")
 
 CARDS = [
     # file, kicker, claim (two lines max), sub line, address
@@ -71,15 +84,16 @@ CARDS = [
 FONT_DIRS = ["/System/Library/Fonts/Supplemental", "/System/Library/Fonts",
              "/usr/share/fonts/truetype/dejavu", "/usr/share/fonts/truetype/liberation"]
 def font(names, size):
-    for d in FONT_DIRS:
-        for n in names:
+    for n in names:
+        for d in FONT_DIRS:
             p = os.path.join(d, n)
             if os.path.exists(p):
                 return ImageFont.truetype(p, size)
     return ImageFont.load_default(size)
 
-BOLD = ["Arial Bold.ttf", "DejaVuSans-Bold.ttf", "LiberationSans-Bold.ttf"]
-REG = ["Arial.ttf", "DejaVuSans.ttf", "LiberationSans-Regular.ttf"]
+# Liberation Sans is metrically compatible with Arial; preserve the card layout on Linux.
+BOLD = ["Arial Bold.ttf", "LiberationSans-Bold.ttf", "DejaVuSans-Bold.ttf"]
+REG = ["Arial.ttf", "LiberationSans-Regular.ttf", "DejaVuSans.ttf"]
 MONO = ["Menlo.ttc", "DejaVuSansMono.ttf", "LiberationMono-Regular.ttf"]
 
 def glow(base, xy, r, color, alpha):
@@ -135,7 +149,8 @@ def card(file, kicker, claim, sub, address):
         y += 38
     # Badges along the bottom.
     bx = 80
-    for label, col in (("Open source, AGPL-3.0-or-later", GREEN), ("Experimental, pre-alpha", (245, 166, 35)), ("Receipts over claims", BLUE)):
+    fm = badge_font(d)
+    for label, col in BADGES:
         tw = d.textlength(label, font=fm)
         d.rounded_rectangle((bx, 518, bx + tw + 30, 558), radius=6, outline=col, width=1, fill=(14, 18, 25, 255))
         d.text((bx + 15, 526), label, font=fm, fill=col)
