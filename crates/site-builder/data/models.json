@@ -1,0 +1,42 @@
+{
+  "plan": {
+    "label": "ADR 0040: three tracks to Allen",
+    "url": "https://github.com/aien-dev/aien-architecture-mv/blob/439da479/docs/adr/0040-three-tracks-to-allen.md"
+  },
+  "models": [
+    {
+      "key": "model-35b",
+      "name": "The 35B",
+      "served_match": "35b",
+      "absent": "not-answering",
+      "track": "Track A, the body",
+      "role": "The borrowed brain that answers Allen and the agents today, served by our own Omega engine. Track A works on its speed: every token should move at the speed of the memory bus.",
+      "plan_ledger": "L310",
+      "figures": [
+        { "label": "One conversation", "value": "48.31 tokens a second, 52.6 % of the memory-bus ceiling of 91.85", "receipt": "https://github.com/aien-dev/aien-sovereign-core-mv/blob/35a64c22/docs/speed/Q36_CEILING.md#3-ceiling-table" },
+        { "label": "Eight conversations at once", "value": "135.1 tokens a second in total, 56.9 % of the ceiling", "receipt": "https://github.com/aien-dev/aien-sovereign-core-mv/blob/35a64c22/docs/speed/Q36_CEILING.md#3-ceiling-table" }
+      ]
+    },
+    {
+      "key": "model-27b",
+      "name": "The 27B",
+      "served_match": "27b",
+      "absent": "planned",
+      "track": "Dual-model release",
+      "role": "The second model for guest access: visitors with a key will reach both the 35B and the 27B on the Spark.",
+      "plan_ledger": "L792",
+      "figures": []
+    },
+    {
+      "key": "model-own",
+      "name": "Our own model",
+      "served_match": null,
+      "absent": "not-trained",
+      "track": "Track C, own model",
+      "role": "A Spark-shaped model grown by teaching from the borrowed brain. It takes over a task only when it beats the rental on the same goldens.",
+      "plan_ledger": null,
+      "source": { "label": "Design: aien-train issue 21", "url": "https://github.com/aien-dev/aien-train/issues/21" },
+      "figures": []
+    }
+  ]
+}

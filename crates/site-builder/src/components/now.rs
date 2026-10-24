@@ -17,7 +17,7 @@ use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use maud::{html, Markup};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use super::boxlink::{foot_labelled, Target};
 
@@ -50,6 +50,109 @@ pub struct Item {
     pub age_s: i64,
 }
 
+
+/// Where the pages workflow lays the Spark's model check (optional).
+/// Lines: `checked<TAB>utc`, then one `model<TAB>served id` per model that
+/// answered the Spark's local check. No ports, no addresses.
+pub const MODELS_PATH: &str = "public/data/models.tsv";
+/// Which models the plan names, their roles and their measured figures.
+pub const ROSTER: &str = include_str!("../../data/models.json");
+
+#[derive(Debug, Clone, Deserialize)]
+struct Roster {
+    plan: Link,
+    models: Vec<ModelEntry>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Link {
+    pub label: String,
+    pub url: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Figure {
+    pub label: String,
+    pub value: String,
+    pub receipt: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct ModelEntry {
+    key: String,
+    name: String,
+    /// Lowercase text a served id must contain to count as this model.
+    served_match: Option<String>,
+    /// What the card says when no served id matches: not-answering, planned or not-trained.
+    absent: String,
+    track: String,
+    role: String,
+    plan_ledger: Option<String>,
+    source: Option<Link>,
+    figures: Vec<Figure>,
+}
+
+/// One model as the page shows it, after the Spark's check.
+#[derive(Debug, Clone, Serialize)]
+pub struct Model {
+    pub key: String,
+    pub name: String,
+    /// answering, not-answering, planned, not-trained or unknown.
+    pub state: String,
+    pub served_as: Option<String>,
+    pub track: String,
+    pub role: String,
+    pub plan_ledger: Option<String>,
+    pub source: Option<Link>,
+    pub figures: Vec<Figure>,
+}
+
+/// The check: when the Spark last looked, and which served ids answered.
+pub fn parse_models_check(tsv: &str) -> (Option<String>, Vec<String>) {
+    let mut checked = None;
+    let mut ids = Vec::new();
+    for (k, v) in tsv.lines().filter_map(|l| l.split_once('\t')) {
+        match k.trim() {
+            "checked" if parse_utc(v).is_some() => checked = Some(v.trim().to_string()),
+            "model" if !v.trim().is_empty() => ids.push(clean(v)),
+            _ => {}
+        }
+    }
+    (checked, ids)
+}
+
+/// Join the roster with the check. With no check at all, a model that
+/// can be served reads as unknown, never as answering or down.
+pub fn models_from(roster_json: &str, checked: &Option<String>, ids: &[String]) -> (Link, Vec<Model>) {
+    let roster: Roster = serde_json::from_str(roster_json).expect("data/models.json must parse");
+    let models = roster
+        .models
+        .into_iter()
+        .map(|m| {
+            let served_as = m
+                .served_match
+                .as_deref()
+                .and_then(|pat| ids.iter().find(|id| id.to_ascii_lowercase().contains(pat)).cloned());
+            let state = match (&served_as, &m.served_match, checked) {
+                (Some(_), _, _) => "answering".to_string(),
+                (None, Some(_), None) if m.absent == "not-answering" => "unknown".to_string(),
+                _ => m.absent.clone(),
+            };
+            Model {
+                key: m.key,
+                name: m.name,
+                state,
+                served_as,
+                track: m.track,
+                role: m.role,
+                plan_ledger: m.plan_ledger,
+                source: m.source,
+                figures: m.figures,
+            }
+        })
+        .collect();
+    (roster.plan, models)
+}
 #[derive(Debug, Clone, Serialize)]
 pub struct Pulse {
     pub key: String,
@@ -62,6 +165,10 @@ pub struct Now {
     pub ledger_written_utc: String,
     pub items: Vec<Item>,
     pub pulse: Vec<Pulse>,
+    /// When the Spark last checked its model servers, or "never".
+    pub models_checked_utc: String,
+    pub plan: Link,
+    pub models: Vec<Model>,
 }
 
 /// The streams, in display order. Classification is by the item's wording
@@ -252,7 +359,10 @@ pub fn load() -> Now {
         .max()
         .map(fmt_utc)
         .unwrap_or_else(|| "never".into());
-    Now { built_utc: fmt_utc(at), ledger_written_utc: written, items, pulse }
+    let (checked, ids) = fs::read_to_string(Path::new(MODELS_PATH)).map(|s| parse_models_check(&s)).unwrap_or_default();
+    let (plan, models) = models_from(ROSTER, &checked, &ids);
+    let models_checked_utc = checked.unwrap_or_else(|| "never".into());
+    Now { built_utc: fmt_utc(at), ledger_written_utc: written, items, pulse, models_checked_utc, plan, models }
 }
 
 pub fn to_json(now: &Now) -> String {
@@ -639,6 +749,80 @@ fn stat(n: usize, label: &str, class: &str) -> Markup {
     }
 }
 
+fn state_words(state: &str) -> &'static str {
+    match state {
+        "answering" => "Answering",
+        "not-answering" => "Not answering",
+        "planned" => "Planned",
+        "not-trained" => "Not trained yet",
+        _ => "Status unknown",
+    }
+}
+
+/// One model card. Its box link goes to the ledger line that carries its
+/// plan, else to its design source, else to the plan itself.
+fn model_card(m: &Model, now: &Now) -> Markup {
+    let foot = match m.plan_ledger.as_deref().and_then(|id| now.items.iter().find(|i| i.id == id)) {
+        Some(it) => foot_labelled(&line_url(it), &format!("Plan: ledger {} on GitHub", it.id), Target::Evidence),
+        None => match &m.source {
+            Some(s) => foot_labelled(&s.url, &s.label, Target::Source),
+            None => foot_labelled(&now.plan.url, &now.plan.label, Target::Source),
+        },
+    };
+    html! {
+        article class=(format!("now-card now-model now-model-{}", m.state)) id=(m.key) {
+            header class="now-card-top" {
+                span class="now-model-track" { (m.track) }
+                span class=(format!("now-model-state now-model-state-{}", m.state)) { (state_words(&m.state)) }
+            }
+            h3 class="now-item" { (m.name) }
+            p class="now-note now-model-role" { (m.role) }
+            @match m.state.as_str() {
+                "answering" => {
+                    p class="now-done" { span class="now-done-k" { "serving" } " " span class="mono" { (m.served_as.as_deref().unwrap_or("")) } ", answered the Spark's check at " span class="mono" { (now.models_checked_utc) } }
+                }
+                "not-answering" => {
+                    p class="now-done" { "Did not answer the Spark's check at " span class="mono" { (now.models_checked_utc) } "." }
+                }
+                "unknown" => {
+                    p class="now-done" { "The Spark has not published a model check yet." }
+                }
+                _ => {}
+            }
+            @if !m.figures.is_empty() {
+                dl class="now-model-figs" {
+                    @for f in &m.figures {
+                        dt { (f.label) }
+                        dd { (f.value) " " a class="now-ref" href=(f.receipt) target="_blank" rel="noopener noreferrer" { "receipt" } }
+                    }
+                }
+            }
+            (foot)
+        }
+    }
+}
+
+fn models_section(now: &Now) -> Markup {
+    html! {
+        section class="now-section" id="models" aria-labelledby="now-models-h" {
+            div class="container" {
+                p class="kicker" { "On the Spark" }
+                h2 id="now-models-h" class="now-h2" { "Models doing the work" }
+                p class="now-sub" {
+                    "The models the plan names, what each one is for, and whether it answered the Spark's own check of its model servers. The Spark checks every five minutes; this page shows the check from its last build"
+                    @if now.models_checked_utc != "never" { " (" span class="mono" { (now.models_checked_utc) } ")" }
+                    ". Every speed links to its receipt. A token is a word or a piece of one. The plan: "
+                    a class="prose-link" href=(now.plan.url) { (now.plan.label) }
+                    "."
+                }
+                div class="now-grid" {
+                    @for m in &now.models { (model_card(m, now)) }
+                }
+            }
+        }
+    }
+}
+
 pub fn render_now_page(now: &Now) -> Markup {
     let open: Vec<&Item> = now.items.iter().filter(|i| i.status == "open").collect();
     let settled: Vec<&Item> = now.items.iter().filter(|i| i.status == "done" || i.status == "dropped").collect();
@@ -682,6 +866,7 @@ pub fn render_now_page(now: &Now) -> Markup {
                     nav class="now-jump" aria-label="On this page" {
                         @if !for_drake.is_empty() { a href="#operator" { "Operator " span { (for_drake.len()) } } }
                         a href="#streams" { "In motion " span { (moving_now.len()) } }
+                        a href="#models" { "Models " span { (now.models.len()) } }
                         @if !moving_quiet.is_empty() { a href="#quiet" { "Quiet " span { (moving_quiet.len()) } } }
                         @if !next.is_empty() { a href="#next" { "Queued " span { (next.len()) } } }
                         @if !settled_sorted.is_empty() { a href="#settled" { "Settled " span { (settled_sorted.len()) } } }
@@ -741,6 +926,8 @@ pub fn render_now_page(now: &Now) -> Markup {
                 }
             }
         }
+
+        (models_section(now))
 
         @if !moving_quiet.is_empty() {
             section class="now-section" id="quiet" aria-labelledby="now-quiet-h" {
@@ -830,6 +1017,12 @@ pub fn render_now_page(now: &Now) -> Markup {
 mod tests {
     use super::*;
 
+    /// A page with no ledger and no model check; tests override what they need.
+    fn blank() -> Now {
+        let (plan, models) = models_from(ROSTER, &None, &[]);
+        Now { built_utc: String::new(), ledger_written_utc: String::new(), items: vec![], pulse: vec![], models_checked_utc: "never".into(), plan, models }
+    }
+
     const SAMPLE: &str = "id\topened_utc\towner\tstatus\titem\tdone_when\tevidence\tupdated_utc\n\
 L001\t2026-10-19T16:43Z\tsa-0-abc123def\topen\tAgent: w4-gemv\thandoff written\tstarted | chip PASS 15.63 tok/s\t2026-10-19T18:00Z\n\
 L002\t2026-10-19T16:43Z\tdrake\topen\tDecide: register the speed gate\tDrake answer recorded\t\t2026-10-19T16:43Z\n\
@@ -871,6 +1064,7 @@ L004\t2026-10-19T16:43Z\tunassigned\topen\tResearch: omega#583 simulator\tPR mer
             ledger_written_utc: "2026-10-19T18:00Z".into(),
             items: parse_ledger(SAMPLE, at),
             pulse: vec![Pulse { key: "memory free".into(), value: "50 GiB".into() }],
+            ..blank()
         };
         let page = render_now_page(&now).into_string();
         for must in ["id=\"operator\"", "id=\"streams\"", "id=\"next\"", "id=\"settled\"", "Engine speed", "15.63 tok/s", "now-verdict-done", "L004"] {
@@ -880,7 +1074,7 @@ L004\t2026-10-19T16:43Z\tunassigned\topen\tResearch: omega#583 simulator\tPR mer
         // The Renda workers were retired; their dials must not come back.
         assert!(!page.contains("renda") && !page.contains("<script"), "no Renda dials and no script on /now/");
         // Every card, queue row and timeline entry links to its own ledger line.
-        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(4));
+        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(4 + 3), "four ledger boxes and three model cards");
         for line in 2..=5 {
             assert!(page.contains(&format!("href=\"{LEDGER_URL}#L{line}\"")), "line {line} link missing");
         }
@@ -895,7 +1089,7 @@ L004\t2026-10-19T16:43Z\tunassigned\topen\tResearch: omega#583 simulator\tPR mer
     fn old_lines_fold_but_stay_in_the_page() {
         // Three days after SAMPLE was written every line is old.
         let at = parse_utc("2026-10-22T18:10Z").unwrap();
-        let now = Now { built_utc: fmt_utc(at), ledger_written_utc: "2026-10-19T18:00Z".into(), items: parse_ledger(SAMPLE, at), pulse: vec![] };
+        let now = Now { built_utc: fmt_utc(at), ledger_written_utc: "2026-10-19T18:00Z".into(), items: parse_ledger(SAMPLE, at), pulse: vec![], ..blank() };
         let page = render_now_page(&now).into_string();
         assert!(page.contains("No line in motion was written in the last day."));
         assert!(page.contains("Nothing settled in the last day."));
@@ -907,7 +1101,7 @@ L004\t2026-10-19T16:43Z\tunassigned\topen\tResearch: omega#583 simulator\tPR mer
         assert!(page[queued..].find("id=\"L004\"").unwrap() < page[queued..].find("</details>").unwrap());
         assert!(page[settled..].find("id=\"L003\"").unwrap() < page[settled..].find("</details>").unwrap());
         assert!(page.contains("15.63 tok/s") && page.contains("done when PR merged"));
-        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(4));
+        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(4 + 3), "four ledger boxes and three model cards");
         // Operator lines never fold.
         let op = page.find("id=\"operator\"").unwrap();
         assert!(page[op..].find("id=\"L002\"").unwrap() < page[op..].find("id=\"streams\"").unwrap());
@@ -916,8 +1110,35 @@ L004\t2026-10-19T16:43Z\tunassigned\topen\tResearch: omega#583 simulator\tPR mer
     }
 
     #[test]
+    fn models_follow_the_check() {
+        // No check published: the 35B reads unknown, never answering or down.
+        let (_, m) = models_from(ROSTER, &None, &[]);
+        let by = |m: &[Model], k: &str| m.iter().find(|x| x.key == k).unwrap().state.clone();
+        assert_eq!(by(&m, "model-35b"), "unknown");
+        assert_eq!(by(&m, "model-27b"), "planned");
+        assert_eq!(by(&m, "model-own"), "not-trained");
+        // The check names the 35B: answering. The 27B stays planned until it answers.
+        let (checked, ids) = parse_models_check("checked\t2026-10-24T20:00:01Z\nmodel\tqwen3.6-35b-a3b-fp8\nmodel\tTandemLLM\nbogus line\n");
+        assert_eq!(checked.as_deref(), Some("2026-10-24T20:00:01Z"));
+        let (_, m) = models_from(ROSTER, &checked, &ids);
+        assert_eq!(by(&m, "model-35b"), "answering");
+        assert_eq!(by(&m, "model-27b"), "planned");
+        let (_, m) = models_from(ROSTER, &checked, &["Qwen3.8-27B".to_string()]);
+        assert_eq!(by(&m, "model-35b"), "not-answering");
+        assert_eq!(by(&m, "model-27b"), "answering");
+        // On the page: every card has its GitHub link, ids outside the roster never show.
+        let now = Now { models_checked_utc: checked.unwrap(), models: models_from(ROSTER, &Some("x".into()), &ids).1, ..blank() };
+        let page = render_now_page(&now).into_string();
+        assert!(page.contains("id=\"models\"") && page.contains("Models doing the work") && page.contains("qwen3.6-35b-a3b-fp8"));
+        assert!(!page.contains("TandemLLM"), "only roster models are shown");
+        assert!(page.contains("Q36_CEILING.md"), "35B figures link their receipt");
+        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(3));
+        assert!(!page.contains('\u{2014}') && !page.contains('\u{2013}'));
+    }
+
+    #[test]
     fn empty_ledger_is_honest() {
-        let now = Now { built_utc: "2026-10-19T18:10Z".into(), ledger_written_utc: "never".into(), items: vec![], pulse: vec![] };
+        let now = Now { built_utc: "2026-10-19T18:10Z".into(), ledger_written_utc: "never".into(), items: vec![], pulse: vec![], ..blank() };
         let page = render_now_page(&now).into_string();
         assert!(page.contains("No ledger has been published yet"));
     }
