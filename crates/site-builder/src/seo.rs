@@ -24,8 +24,8 @@ pub const ORG_NAME: &str = "AIEN (aien-dev)";
 pub const ORG_URL: &str = "https://github.com/aien-dev";
 pub const ORG_EMAIL: &str = "aien@aienos.com";
 /// Drake's X account, from his GitHub profile and www.drakestapleton.com.
-pub const X_HANDLE: &str = "@aienscore";
-pub const X_URL: &str = "https://x.com/aienscore";
+pub const X_HANDLE: &str = "@mdrakestapleton";
+pub const X_URL: &str = "https://x.com/mdrakestapleton";
 pub const AUTHOR: &str = "M. Drake Stapleton";
 pub const AUTHOR_URL: &str = "https://www.drakestapleton.com";
 pub const AUTHOR_GITHUB: &str = "https://github.com/drakestapleton";
