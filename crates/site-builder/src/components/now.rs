@@ -1011,7 +1011,7 @@ fn owner_chip(it: &Item) -> Markup {
     html! {
         span class=(format!("now-owner now-owner-{}", it.owner_kind)) {
             @if label.starts_with("Keeper") {
-                img class="now-owner-dog" src="/assets/keeper-dog.svg" alt="" width="28" height="14";
+                img class="now-owner-dog" src="/assets/keeper.svg" alt="" width="42" height="14";
             }
             (label)
         }
@@ -1043,10 +1043,18 @@ pub fn render_now_page(now: &Now) -> Markup {
     html! {
         section class="now-hero" aria-labelledby="now-title" {
             div class="container" {
-                p class="kicker" { "Now" }
-                h1 id="now-title" class="now-title" { "What is being done, right now." }
-                p class="now-lead" {
-                    "This is the working ledger of AIEN, published as it is written. Every line is a promise with an owner and an observable finish. Agents write their progress here; the operator writes decisions here. Nothing on this page is composed by hand. Lines written in the last day are shown open; older lines are folded below, each one click away."
+                div class="now-hero-top" {
+                    div class="now-hero-text" {
+                        p class="kicker" { "Now" }
+                        h1 id="now-title" class="now-title" { "What is being done, right now." }
+                        p class="now-lead" {
+                        "This is the working ledger of AIEN, published as it is written. Every line is a promise with an owner and an observable finish. Agents write their progress here; the operator writes decisions here. Nothing on this page is composed by hand. Lines written in the last day are shown open; older lines are folded below, each one click away."
+                        }
+                    }
+                    figure class="now-keeper" {
+                        img src="/assets/keeper.svg" width="600" height="200" alt="Keeper, the merge desk that lands finished changes: a big cartoon dachshund, long and low, wearing a gold key on its red collar.";
+                        figcaption { "Keeper, the merge desk" }
+                    }
                 }
                 @if now.items.is_empty() {
                     p class="now-empty" { "No ledger has been published yet. The page will fill itself the moment one arrives." }
@@ -1204,11 +1212,7 @@ pub fn render_now_page(now: &Now) -> Markup {
                     a class="prose-link" href="https://github.com/aien-dev/aienos.com/tree/data/now" { "data/now branch" }
                     " whenever it changes. The site builder reads it at build time and writes this page and "
                     a class="prose-link" href="/now.json" { "/now.json" }
-                    ". A line that is not in the file is not here. Every card, queue row and settled entry links to its own line of that file, and the commits, pull requests and evidence folders named in a note link to GitHub. Owners shown as \"agent\" are autonomous coding agents; the operator is one person. Keeper, the merge desk that lands finished changes, was called Renda until 24 October 2026: this page shows the new name, and the ledger on GitHub keeps each line as it was written."
-                }
-                figure class="now-keeper" {
-                    img src="/assets/keeper.svg" width="410" height="140" alt="Keeper, the merge desk, drawn as two cartoon dachshunds nose to nose: the big one wears a gold key on its collar for landing changes, the small one a green check tag for the tests they pass." loading="lazy";
-                    figcaption { "Keeper, the merge desk, as two dachshunds: one holds the key that lands finished changes, the other wears the check that says the tests passed. A small Keeper dog marks every line Keeper owns." }
+                    ". A line that is not in the file is not here. Every card, queue row and settled entry links to its own line of that file, and the commits, pull requests and evidence folders named in a note link to GitHub. Owners shown as \"agent\" are autonomous coding agents; the operator is one person. Keeper, the merge desk that lands finished changes, was called Renda until 24 October 2026: this page shows the new name, and the ledger on GitHub keeps each line as it was written. Keeper is the dachshund at the top of this page; a small one marks every line Keeper owns."
                 }
             }
         }
@@ -1406,8 +1410,9 @@ limit\tsomething_new\t5\t2026-10-31T15:59:59Z\t\n";
         let tsv = "id\topened_utc\towner\tstatus\titem\tdone_when\tevidence\tupdated_utc\nL031\t2026-10-19T16:43Z\tkeeper\topen\tLand the queue\tqueue empty\tstarted\t2026-10-19T17:00Z\nL032\t2026-10-19T16:43Z\tsa-0-abc123def\topen\tOther work\tdone\tstarted\t2026-10-19T17:00Z\n";
         let now = Now { items: parse_ledger(tsv, parse_utc("2026-10-19T18:10Z").unwrap()), ..blank() };
         let page = render_now_page(&now).into_string();
-        assert_eq!(page.matches("src=\"/assets/keeper-dog.svg\"").count(), 1, "only Keeper's tag carries the dog");
-        assert!(page.contains("src=\"/assets/keeper.svg\"") && page.contains("two cartoon dachshunds"));
+        assert_eq!(page.matches("class=\"now-owner-dog\"").count(), 1, "only Keeper's tag carries the dog");
+        assert_eq!(page.matches("src=\"/assets/keeper.svg\"").count(), 2, "the big dog in the hero and the one tag");
+        assert!(page.contains("a big cartoon dachshund") && !page.contains("two cartoon dachshunds"), "one big dog, no old card");
         assert!(page.contains("href=\"#claude\""), "the jump bar reaches the Claude plan");
         assert!(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../public/assets/keeper.svg").exists());
     }

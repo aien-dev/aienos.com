@@ -605,35 +605,44 @@
 .now-model-figs dd { margin: 0; color: var(--tl-ink); font-size: 14px; line-height: 1.5; }
 #models .now-grid { margin-top: 26px; }
 
-/* Keeper, the merge desk, drawn as dachshunds (public/assets/keeper*.svg). */
+/* Keeper, the merge desk: one big dachshund standing on the page (public/assets/keeper.svg). */
 .now-owner-dog {
-  width: 28px;
+  width: 42px;
   height: 14px;
   margin-right: 5px;
   vertical-align: -2px;
 }
 
+.now-hero-top {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 24px;
+  align-items: end;
+}
+
 .now-keeper {
-  margin: 28px 0 0;
-  max-width: 44rem;
+  margin: 0;
+  text-align: center;
 }
 
 .now-keeper img {
   display: block;
   width: 100%;
-  max-width: 410px;
   height: auto;
-  padding: 14px 18px 8px;
-  border: 1px solid var(--tl-line);
-  border-radius: var(--tl-radius);
-  background: #f6efe4;
 }
 
 .now-keeper figcaption {
-  margin-top: 10px;
-  color: var(--tl-ink-2);
-  font-size: 14px;
-  line-height: 1.55;
+  margin-top: 6px;
+  color: var(--tl-ink-3);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 900px) {
+  .now-hero-top { grid-template-columns: 1fr; }
+  .now-keeper { order: -1; }
 }
 
 /* Drake's Claude plan: what is left, and how to help pay for it. */
