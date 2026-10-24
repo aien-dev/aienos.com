@@ -1,44 +1,46 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410 140" role="img" aria-labelledby="t">
-  <title id="t">Keeper, the merge desk: two cartoon dachshunds nose to nose, the big one with a gold key on its collar, the small one with a green check tag</title>
-  <defs>
-    <g id="dog" stroke="#2b1a10" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
-      <path d="M44 78 C30 70 24 58 20 46" fill="none" stroke-width="7"/>
-      <path d="M44 78 C30 70 24 58 20 46" fill="none" stroke="#a5562a" stroke-width="3"/>
-      <rect x="52" y="100" width="13" height="22" rx="6" fill="#8a4420"/>
-      <rect x="138" y="100" width="13" height="22" rx="6" fill="#8a4420"/>
-      <rect x="40" y="64" width="128" height="44" rx="22" fill="#b5602e"/>
-      <path d="M62 100 Q104 112 150 100" fill="none" stroke="#e7b58a" stroke-width="7" stroke-linecap="round"/>
-      <rect x="68" y="102" width="13" height="22" rx="6" fill="#b5602e"/>
-      <rect x="152" y="102" width="13" height="22" rx="6" fill="#b5602e"/>
-      <ellipse cx="76" cy="124" rx="10" ry="4.5" fill="#8a4420"/>
-      <ellipse cx="160" cy="124" rx="10" ry="4.5" fill="#8a4420"/>
-      <path d="M150 72 C152 56 160 46 172 42 L180 70 Z" fill="#b5602e"/>
-      <circle cx="176" cy="58" r="22" fill="#b5602e"/>
-      <ellipse cx="200" cy="68" rx="20" ry="12" fill="#c9733d"/>
-      <circle cx="217" cy="64" r="6" fill="#2b1a10"/>
-      <path d="M198 78 Q205 84 212 78" fill="none" stroke-width="2.5"/>
-      <path d="M152 66 C156 76 164 82 172 80" fill="none" stroke="#c3412e" stroke-width="7"/>
-      <path d="M166 40 C150 44 148 70 156 86 C164 90 170 84 170 76 C172 62 172 50 166 40 Z" fill="#7a3a1a"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 200" role="img" aria-labelledby="t">
+  <title id="t">Keeper, the merge desk: a big cartoon dachshund, long and low, with a gold key on its red collar</title>
+  <defs><path id="body" d="M100 78 C160 60 330 60 400 68 C420 60 430 44 440 32 C452 16 484 12 502 22 C514 30 526 38 550 44 C566 48 578 54 578 62 C576 74 560 78 542 78 C516 80 496 82 480 84 C464 88 454 98 450 110 C446 126 440 142 424 150 C398 162 360 160 330 152 C280 142 200 140 150 142 C118 144 90 134 84 112 C80 98 86 84 100 78 Z"/></defs>
+  <style>
+    .tail { transform-origin: 104px 86px; animation: wag 1.6s ease-in-out infinite; }
+    @keyframes wag { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-14deg); } }
+    @media (prefers-reduced-motion: reduce) { .tail { animation: none; } }
+  </style>
+  <g stroke="#1a0f08" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <!-- tail, tapering to a point -->
+    <path class="tail" d="M108 88 C84 74 62 52 42 28 C38 24 33 27 36 32 C52 58 72 84 96 104 Z" fill="#b85a28"/>
+    <!-- far legs, in shadow -->
+    <path d="M150 138 L148 172 Q148 182 158 182 L176 182 Q182 180 177 174 L168 170 L170 138 Z" fill="#8a3f19"/>
+    <path d="M384 140 L384 172 Q384 182 394 182 L412 182 Q418 180 413 174 L404 170 L404 140 Z" fill="#8a3f19"/>
+    <!-- near legs: short, stubby, paws forward (tops tucked under the body) -->
+    <path d="M128 128 L132 170 Q132 182 142 182 L164 182 Q171 179 165 172 L154 168 L152 128 Z" fill="#c4672f"/>
+    <path d="M406 136 L404 172 Q404 182 414 182 L436 182 Q443 179 437 172 L426 168 L428 136 Z" fill="#c4672f"/>
+    <!-- long low body, neck and long head: fill, then light patches, then one outline over both -->
+    <use href="#body" fill="#c4672f" stroke="none"/>
+    <!-- light chest and belly -->
+    <path d="M444 112 C440 132 428 146 410 150 C380 156 350 152 322 146 C290 140 230 136 190 138 C230 130 300 132 340 138 C380 142 410 138 430 120 Z" fill="#e4a066" stroke="none"/>
+    <!-- light muzzle -->
+    <path d="M520 40 C540 46 560 50 574 58 C572 70 556 74 538 74 C522 74 510 66 506 54 Z" fill="#dd9255" stroke="none"/>
+    <use href="#body" fill="none" stroke="#1a0f08"/>
+    <!-- collar -->
+    <path d="M424 60 Q446 74 462 98" fill="none" stroke="#1a0f08" stroke-width="15"/>
+    <path d="M424 60 Q446 74 462 98" fill="none" stroke="#d23c2c" stroke-width="9"/>
+    <!-- floppy ear over the collar -->
+    <path d="M474 30 C460 34 452 58 454 86 C456 104 474 110 482 96 C489 80 488 54 482 34 Z" fill="#7a3414"/>
+    <!-- nose, eye, smile, tongue -->
+    <ellipse cx="574" cy="58" rx="9" ry="8" fill="#1a0f08"/>
+    <path d="M532 76 Q540 90 552 82" fill="#ef6f86" stroke-width="3"/>
+    <path d="M522 72 Q536 82 552 76" fill="none" stroke-width="3.5"/>
+    <circle cx="506" cy="36" r="7" fill="#1a0f08" stroke="none"/>
+    <path d="M496 24 Q506 18 516 24" fill="none" stroke-width="3.5"/>
+    <!-- gold key hanging from the collar -->
+    <g stroke-width="3" fill="#f2b632">
+      <circle cx="436" cy="80" r="9"/>
+      <rect x="432" y="88" width="8" height="28" rx="3"/>
+      <rect x="439" y="104" width="9" height="5" rx="1.5"/>
+      <rect x="439" y="111" width="7" height="5" rx="1.5"/>
     </g>
-  </defs>
-  <ellipse cx="112" cy="128" rx="92" ry="6" fill="#2b1a10" opacity=".14"/>
-  <ellipse cx="320" cy="128" rx="72" ry="5" fill="#2b1a10" opacity=".14"/>
-  <use href="#dog"/>
-  <circle cx="183" cy="52" r="4" fill="#2b1a10"/>
-  <circle cx="184.4" cy="50.6" r="1.4" fill="#fff"/>
-  <g stroke="#7a5200" stroke-width="2" fill="#f2b632" stroke-linejoin="round">
-    <circle cx="164" cy="90" r="6"/>
-    <rect x="161" y="95" width="6" height="18" rx="2"/>
-    <rect x="167" y="104" width="6" height="4" rx="1"/>
-    <rect x="167" y="109" width="5" height="3.5" rx="1"/>
+    <circle cx="436" cy="80" r="3.2" fill="#c4672f" stroke="none"/>
   </g>
-  <circle cx="164" cy="90" r="2.2" fill="#b5602e"/>
-  <g transform="translate(405 27.3) scale(-.78 .78)">
-    <use href="#dog"/>
-    <circle cx="183" cy="52" r="4.5" fill="#2b1a10"/>
-    <circle cx="184.6" cy="50.4" r="1.6" fill="#fff"/>
-    <circle cx="164" cy="94" r="9" fill="#2f9e5b" stroke="#1d5e37" stroke-width="2.5"/>
-    <path d="M159 94 L163 98.5 L170 89.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  </g>
-  <path d="M232 26 C228 18 220 18 220 26 C220 33 232 40 232 40 C232 40 244 33 244 26 C244 18 236 18 232 26 Z" fill="#e2574c" stroke="#2b1a10" stroke-width="2.5" stroke-linejoin="round"/>
+  <circle cx="508.5" cy="33.5" r="2.4" fill="#fff"/>
 </svg>
