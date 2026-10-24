@@ -55,6 +55,19 @@ cargo run --release --manifest-path crates/site-builder/Cargo.toml -- verify dis
 
 `build dist` writes the site to `dist/` and then verifies it; `verify dist` re-checks an existing output directory. There is no dev server or preview command. `.github/workflows/pages.yml` runs the same steps (plus the progress collection described below) and deploys `dist/` to GitHub Pages on pushes to `main`.
 
+## Agent surface
+
+The build also writes the files AI agents probe, all from the same page registry in `crates/site-builder/src/seo.rs`:
+
+- `/llms.txt` and `/llms-full.txt`: the site index and the full text.
+- `/sitemap.md`: the readable twin of `sitemap.xml`, H2 sections of described links.
+- `/AGENTS.md`: the repository brief for coding agents (`AGENTS.md` at the repository root is published unchanged). It carries Installation, Configuration and Usage with executable commands.
+- A Markdown mirror for every page at the same path with `.md`, so `/` is `/index.md` and `/machine/` is `/machine.md`. Each mirror carries YAML frontmatter (`title`, `description`, `last_updated`, `canonical_url`), the page body converted from the final HTML, and a `## Sitemap` section.
+- Head signals on every page: `<link rel="alternate" type="text/markdown">`, `<link rel="describedby">` to `/llms.txt`, and robots directives for `max-snippet:-1` and `max-image-preview:large`.
+- `/glossary/`: the terms the project uses in its own sense, linked from the footer of every page.
+
+GitHub Pages serves static files only. It cannot vary a response on `Accept: text/markdown` and cannot add a `Link` header to a Markdown response, so those two agent-readability checks (content negotiation and the Markdown `Link` header) need an edge proxy or a request-aware host. Every other discovery file and page signal is generated at build time.
+
 ## License
 
 Licensed under the GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later). See [LICENSE](LICENSE). The runtime itself, aien-sovereign-core, is also AGPL-3.0-or-later. Project values live in the nonbinding [COVENANT.md](https://github.com/aien-dev/aien-sovereign-core/blob/main/COVENANT.md), which grants and restricts no legal rights.

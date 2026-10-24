@@ -59,10 +59,11 @@ pub const FOOTER_GROUPS: [(&str, &[FooterLink]); 6] = [
 ];
 
 /// Secondary links, after the six sections.
-const FOOTER_MORE: [FooterLink; 6] = [
+const FOOTER_MORE: [FooterLink; 7] = [
     ("Progress", "/progress/", false),
     ("Blog", "/blog", false),
     ("Follow", "/#follow", false),
+    ("Glossary", "/glossary/", false),
     ("Licensing", "/licensing/", false),
     ("GitHub", "https://github.com/aien-dev", true),
     ("Drake Stapleton", "https://www.drakestapleton.com", true),
@@ -101,6 +102,10 @@ pub fn render_footer() -> Markup {
                             a href="/llms.txt" { "llms.txt" }
                             " · "
                             a href="/llms-full.txt" { "full text" }
+                            " · "
+                            a href="/sitemap.md" { "sitemap.md" }
+                            " · "
+                            a href="/AGENTS.md" { "AGENTS.md" }
                             " · "
                             a href="/feed.xml" { "feed" }
                             " · "

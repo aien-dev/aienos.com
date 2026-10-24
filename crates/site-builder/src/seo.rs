@@ -101,6 +101,7 @@ pub const PAGES: &[PageInfo] = &[
     PageInfo { path: "/post-llm-case/", name: "The Post-LLM Case", what: "The case for a different learning machine: programs proposed, verification deciding, knowledge kept as inspectable programs.", section: Section::Philosophy, kind: Kind::Article, image: "/og-philosophy.png", published: "2026-09-27", doi: None },
     PageInfo { path: "/blog/", name: "Blog", what: "Research notes on building AIEN: what shipped, what the evidence says, what remains open.", section: Section::Blog, kind: Kind::Collection, image: "/og-blog.png", published: "2026-09-27", doi: None },
     PageInfo { path: "/blog/aien-v3-research-plan/", name: "The AIEN V3 Research Plan", what: "The ratified V3 research plan, the Substrate Edition, with six falsifiable hypotheses.", section: Section::Blog, kind: Kind::Article, image: "/og-blog.png", published: "2026-09-27", doi: None },
+    PageInfo { path: "/glossary/", name: "Glossary", what: "The terms AIENOS uses in its own sense, each linked to the page where it does real work.", section: Section::Optional, kind: Kind::Page, image: "/og.png", published: "2026-10-23", doi: None },
     PageInfo { path: "/licensing/", name: "Licensing", what: "The one canonical licensing statement: AGPL-3.0-or-later for every repository.", section: Section::Optional, kind: Kind::Page, image: "/og.png", published: "2026-10-01", doi: None },
 ];
 
@@ -129,6 +130,9 @@ pub const DATA_FILES: &[DataFile] = &[
     DataFile { path: "/data/now.tsv", purpose: "The raw ledger as published: one line per item, tab separated.", schema: "Columns: id, opened_utc, owner, status, item, done_when, evidence, updated_utc.", cadence: "whenever the ledger changes", media_type: "text/tab-separated-values" },
     DataFile { path: "/feed.xml", purpose: "Atom feed of the blog posts and research papers, newest first.", schema: "Atom 1.0", cadence: "when a page is published or revised", media_type: "application/atom+xml" },
     DataFile { path: "/sitemap.xml", purpose: "Every page, both languages, with lastmod and hreflang alternates. Walked from the files actually written.", schema: "sitemaps.org 0.9 with xhtml:link alternates", cadence: "every build", media_type: "application/xml" },
+    DataFile { path: "/sitemap.md", purpose: "The readable twin of sitemap.xml: every page grouped in H2 sections with a one-line description.", schema: "Markdown: H1, blockquote summary, H2 sections of links.", cadence: "every build", media_type: "text/markdown" },
+    DataFile { path: "/AGENTS.md", purpose: "The repository brief for coding agents: installation, configuration, usage, conventions and approval boundaries.", schema: "Markdown: H1, Installation, Configuration, Usage, Conventions, Safety and approvals.", cadence: "when the build or conventions change", media_type: "text/markdown" },
+    DataFile { path: "/index.md", purpose: "The front page as Markdown: the same content as the HTML, with frontmatter, the page body and a sitemap section. Every page has a mirror at the same path with .md.", schema: "Markdown: YAML frontmatter (title, description, last_updated, canonical_url), body, Sitemap section.", cadence: "every build", media_type: "text/markdown" },
     DataFile { path: "/research/CITATION.cff", purpose: "Citation metadata for the Turing preprints.", schema: "Citation File Format 1.2.0", cadence: "when a paper is revised", media_type: "text/yaml" },
     DataFile { path: "/research/aien-research-plan.md", purpose: "The ratified V3 research plan in Markdown.", schema: "Markdown", cadence: "when the plan is revised", media_type: "text/markdown" },
     DataFile { path: "/humans.txt", purpose: "Who builds this: the person, the agents and the machines.", schema: "humanstxt.org", cadence: "rarely", media_type: "text/plain" },
@@ -277,6 +281,17 @@ pub fn info_for(en_path: &str) -> Option<&'static PageInfo> {
     PAGES.iter().find(|p| p.path == en_path)
 }
 
+/// The markdown mirror of a page: `/` becomes `/index.md`, every other
+/// directory page loses its trailing slash and gains `.md`. This is the
+/// path an agent reaches by adding `.md` to the readable URL.
+pub fn md_path(path: &str) -> String {
+    if path == "/" || path == "/zh-CN/" {
+        format!("{path}index.md")
+    } else {
+        format!("{}.md", path.trim_end_matches('/'))
+    }
+}
+
 /// Fails the build when dist and PAGES disagree.
 pub fn check_registry(pages: &[Emitted]) {
     for p in pages.iter().filter(|p| !p.is_zh()) {
@@ -331,11 +346,15 @@ fn owned_tag(tag: &str) -> bool {
     match tag_name(tag).as_str() {
         "link" => {
             let rel = attr(tag, "rel").unwrap_or_default();
-            rel == "canonical" || (rel == "alternate" && (attr(tag, "hreflang").is_some() || attr(tag, "type").map(|t| t.contains("xml")).unwrap_or(false)))
+            rel == "canonical"
+                || rel == "describedby"
+                || (rel == "alternate"
+                    && (attr(tag, "hreflang").is_some()
+                        || attr(tag, "type").map(|t| t.contains("xml") || t.contains("markdown")).unwrap_or(false)))
         }
         "meta" => {
             let key = attr(tag, "property").or_else(|| attr(tag, "name")).unwrap_or_default();
-            key.starts_with("og:") || key.starts_with("twitter:") || key.starts_with("article:")
+            key.starts_with("og:") || key.starts_with("twitter:") || key.starts_with("article:") || key == "robots"
         }
         _ => false,
     }
@@ -542,9 +561,7 @@ fn graph(page: &Emitted, info: &PageInfo, facts: &HeadFacts, has_mirror: bool, c
     if is_web_page {
         // WebPage-only properties; the validator warns when they sit on an Article.
         node["primaryImageOfPage"] = json!({"@type": "ImageObject", "url": image, "width": 1200, "height": 630});
-        if page.path != "/" && page.path != "/zh-CN/" {
-            node["breadcrumb"] = json!({"@id": format!("{url}#breadcrumb")});
-        }
+        node["breadcrumb"] = json!({"@id": format!("{url}#breadcrumb")});
     } else {
         node["author"] = json!({"@id": format!("{HOST}/#drake")});
         node["mainEntityOfPage"] = json!(url);
@@ -568,7 +585,7 @@ fn graph(page: &Emitted, info: &PageInfo, facts: &HeadFacts, has_mirror: bool, c
         }
     }
     let mut nodes = vec![org(), author(), website(), node];
-    if page.path != "/" && page.path != "/zh-CN/" {
+    if is_web_page || page.path != "/" {
         nodes.push(breadcrumb(page, &title));
     }
     match info.path {
@@ -603,6 +620,9 @@ fn head_block(page: &Emitted, info: &PageInfo, facts: &HeadFacts, has_mirror: bo
     let locale = if page.is_zh() { "zh_CN" } else { "en_US" };
     let mut b = String::new();
     b.push_str(&format!("<link rel=\"canonical\" href=\"{url}\">\n"));
+    b.push_str(&format!("<link rel=\"alternate\" type=\"text/markdown\" href=\"{}\">\n", md_path(&page.path)));
+    b.push_str(&format!("<link rel=\"describedby\" href=\"{HOST}/llms.txt\">\n"));
+    b.push_str("<meta name=\"robots\" content=\"index, follow, max-snippet:-1, max-image-preview:large\">\n");
     if has_mirror {
         let en = format!("{HOST}{}", page.en_path());
         let zh = format!("{HOST}{}", page.zh_path());
@@ -620,6 +640,40 @@ fn head_block(page: &Emitted, info: &PageInfo, facts: &HeadFacts, has_mirror: bo
     let ld = serde_json::to_string(&graph(page, info, facts, has_mirror, ctx, dist)).expect("JSON-LD serializes").replace("</", "<\\/");
     b.push_str(&format!("<script type=\"application/ld+json\">{ld}</script>\n"));
     b
+}
+
+fn yaml_quote(s: &str) -> String {
+    s.replace('\\', "\\\\").replace('"', "\\\"")
+}
+
+/// The markdown mirror of one page: frontmatter, the page body as markdown
+/// from the same HTML that was just written, and the sitemap section every
+/// mirror carries so an agent can walk the rest of the site from it.
+fn markdown_mirror(page: &Emitted, facts: &HeadFacts, html: &str) -> String {
+    let title = unescape(if facts.og_title.is_empty() { &facts.title } else { &facts.og_title });
+    let description = unescape(if facts.description.is_empty() { &facts.og_description } else { &facts.description });
+    let date = page.lastmod.get(..10).unwrap_or(&page.lastmod);
+    let mut s = String::new();
+    s.push_str("---\n");
+    s.push_str(&format!("title: \"{}\"\n", yaml_quote(&title)));
+    s.push_str(&format!("description: \"{}\"\n", yaml_quote(&description)));
+    s.push_str(&format!("last_updated: \"{date}\"\n"));
+    s.push_str(&format!("canonical_url: \"{}\"\n", page.url()));
+    s.push_str("---\n\n");
+    s.push_str(&html_to_text(html));
+    s.push_str(&format!("\n\n## Sitemap\n\nSee the full [sitemap]({HOST}/sitemap.md) for every page on aienos.com.\n"));
+    s
+}
+
+/// Writes the mirror next to the page: `/index.md` for `/`, `/machine.md`
+/// for `/machine/`, and the same shape under `/zh-CN/`.
+fn write_markdown_mirror(dist: &Path, page: &Emitted, facts: &HeadFacts, html: &str) {
+    let rel = md_path(&page.path);
+    let file = dist.join(rel.trim_start_matches('/'));
+    if let Some(parent) = file.parent() {
+        fs::create_dir_all(parent).unwrap_or_else(|e| panic!("create {}: {e}", parent.display()));
+    }
+    fs::write(&file, markdown_mirror(page, facts, html)).unwrap_or_else(|e| panic!("write {}: {e}", file.display()));
 }
 
 /// Rewrites the head of every page in dist. Returns the pages, for the sitemap and feeds.
@@ -644,9 +698,10 @@ pub fn enrich(dist: &Path, ctx: &BuildCtx) -> Vec<Emitted> {
         out.push('\n');
         out.push_str(&block);
         out.push_str(&html[head_end..]);
+        write_markdown_mirror(dist, page, &facts, &out);
         fs::write(&page.file, out).unwrap_or_else(|e| panic!("write {}: {e}", page.file.display()));
     }
-    println!("  [SEO] Rewrote the head of {} pages: canonical on {HOST}, cards, hreflang, JSON-LD", pages.len());
+    println!("  [SEO] Rewrote the head of {} pages: canonical on {HOST}, cards, hreflang, JSON-LD, markdown mirrors", pages.len());
     pages
 }
 
@@ -762,7 +817,7 @@ pub fn llms_txt(status_lines: &[String], research_sentence: &str) -> String {
     for l in status_lines {
         s.push_str(&format!("- {l}\n"));
     }
-    s.push_str(&format!("- Research: {research_sentence}\n\n"));
+    s.push_str(&format!("- [Research status]({HOST}/research/status/): {research_sentence}\n\n"));
     for sec in [Section::Machine, Section::Turing, Section::Evidence, Section::Philosophy, Section::Blog] {
         s.push_str(&format!("## {}\n\n", section_title(sec)));
         for p in PAGES.iter().filter(|p| p.section == sec) {
@@ -782,6 +837,30 @@ pub fn llms_txt(status_lines: &[String], research_sentence: &str) -> String {
     s.push_str(&format!("- [简体中文]({HOST}/zh-CN/): the same site in Simplified Chinese (every page has a /zh-CN/ mirror).\n"));
     s.push_str(&format!("- [Papers as PDF]({HOST}/research/): each research page links its paper.pdf, paper.tex and SHA256SUMS.\n"));
     s.push_str(&format!("- [X]({X_URL}): where the project posts.\n"));
+    s
+}
+
+/// /sitemap.md: the readable twin of sitemap.xml, H2 sections of described
+/// links, generated from the same page registry as llms.txt and the XML map.
+pub fn sitemap_md() -> String {
+    let mut s = String::from("# Sitemap\n\n");
+    s.push_str(&format!("> Every page on aienos.com, grouped the way the site is. The crawler index is [sitemap.xml]({HOST}/sitemap.xml); the file list is [data/index.json]({HOST}/data/index.json).\n\n"));
+    for sec in [Section::Machine, Section::Turing, Section::Evidence, Section::Philosophy, Section::Blog, Section::Optional] {
+        s.push_str(&format!("## {}\n\n", section_title(sec)));
+        for p in PAGES.iter().filter(|p| p.section == sec) {
+            s.push_str(&format!("- [{}]({HOST}{}): {}\n", p.name, p.path, p.what));
+        }
+        s.push('\n');
+    }
+    s.push_str("## Simplified Chinese\n\n");
+    for p in PAGES {
+        s.push_str(&format!("- [{}]({HOST}/zh-CN{}): the same page in Simplified Chinese.\n", p.name, p.path));
+    }
+    s.push_str("\n## For agents\n\n");
+    s.push_str(&format!("- [llms.txt]({HOST}/llms.txt): the site in one file for AI readers.\n"));
+    s.push_str(&format!("- [llms-full.txt]({HOST}/llms-full.txt): every page's full text in one file.\n"));
+    s.push_str(&format!("- [AGENTS.md]({HOST}/AGENTS.md): how to build, test and change this site.\n"));
+    s.push_str(&format!("- [data/index.json]({HOST}/data/index.json): every machine-readable file with its purpose and cadence.\n"));
     s
 }
 
@@ -939,10 +1018,13 @@ pub fn write_machine_surface(dist: &Path, pages: &[Emitted], now: &Now, ctx: &Bu
     fs::write(dist.join("now/feed.xml"), now_feed(now, ctx)).expect("write now/feed.xml");
     fs::write(dist.join("llms.txt"), llms).expect("write llms.txt");
     fs::write(dist.join("llms-full.txt"), llms_full(pages)).expect("write llms-full.txt");
+    fs::write(dist.join("sitemap.md"), sitemap_md()).expect("write sitemap.md");
+    let agents = fs::read_to_string("AGENTS.md").expect("AGENTS.md must exist at the repository root: the build publishes it at /AGENTS.md");
+    fs::write(dist.join("AGENTS.md"), agents).expect("write AGENTS.md");
     fs::create_dir_all(dist.join("data")).expect("data dir");
     fs::write(dist.join("data/index.json"), data_index(ctx)).expect("write data/index.json");
     fs::write(dist.join("humans.txt"), humans_txt(ctx)).expect("write humans.txt");
-    println!("  [GEN] sitemap.xml ({} urls), robots.txt ({} named agents), feed.xml, now/feed.xml, llms.txt, llms-full.txt, data/index.json, humans.txt", pages.len(), AI_AGENTS.len());
+    println!("  [GEN] sitemap.xml ({} urls), sitemap.md, AGENTS.md, robots.txt ({} named agents), feed.xml, now/feed.xml, llms.txt, llms-full.txt, data/index.json, humans.txt", pages.len(), AI_AGENTS.len());
 }
 
 /// Fails the build when the machine surface is inconsistent with the pages.
@@ -956,6 +1038,17 @@ pub fn verify(dist: &Path) {
     }
     assert!(robots.contains(&format!("Sitemap: {HOST}/sitemap.xml")), "robots.txt must point at the sitemap");
     assert!(!sitemap.contains("https://aienos.com/"), "sitemap must use the www host");
+    let sitemap_md = fs::read_to_string(dist.join("sitemap.md")).expect("sitemap.md");
+    assert!(sitemap_md.starts_with("# Sitemap\n"), "sitemap.md must start with its H1");
+    assert!(sitemap_md.contains("\n## "), "sitemap.md must carry H2 sections");
+    assert!(sitemap_md.contains(&format!("]({HOST}/glossary/)")), "sitemap.md must link the glossary");
+    let agents = fs::read_to_string(dist.join("AGENTS.md")).expect("AGENTS.md");
+    for section in ["## Installation", "## Configuration", "## Usage"] {
+        assert!(agents.contains(section), "AGENTS.md must carry {section}");
+    }
+    let index_html = fs::read_to_string(dist.join("index.html")).expect("index.html");
+    assert!(index_html.contains("href=\"/glossary/\""), "the homepage must link the glossary");
+    assert!(index_html.contains("\"BreadcrumbList\""), "the homepage JSON-LD must carry a BreadcrumbList");
     for d in DATA_FILES {
         let rel = d.path.trim_start_matches('/');
         assert!(dist.join(rel).exists(), "data index lists {} but it was not written", d.path);
@@ -969,6 +1062,14 @@ pub fn verify(dist: &Path) {
         assert!(page.contains(&format!("<link rel=\"canonical\" href=\"{HOST}{}\">", info.path)), "{} canonical must be on {HOST}", info.path);
         assert!(page.contains("application/ld+json"), "{} must carry JSON-LD", info.path);
         assert!(page.contains("twitter:site"), "{} must carry twitter:site", info.path);
+        let md_rel = md_path(info.path);
+        assert!(page.contains(&format!("<link rel=\"alternate\" type=\"text/markdown\" href=\"{md_rel}\">")), "{} must link its markdown mirror {md_rel}", info.path);
+        assert!(page.contains(&format!("<link rel=\"describedby\" href=\"{HOST}/llms.txt\">")), "{} must declare llms.txt via describedby", info.path);
+        assert!(page.contains("max-snippet:-1") && page.contains("max-image-preview:large"), "{} must carry the AI snippet directives", info.path);
+        let md = fs::read_to_string(dist.join(md_rel.trim_start_matches('/'))).unwrap_or_else(|_| panic!("{} markdown mirror {md_rel} missing", info.path));
+        assert!(md.starts_with("---\n"), "{} markdown mirror must open with frontmatter", info.path);
+        assert!(md.contains("canonical_url:"), "{} markdown mirror must carry canonical_url", info.path);
+        assert!(md.contains("\n## Sitemap\n"), "{} markdown mirror must carry a Sitemap section", info.path);
         let ld_start = page.find("<script type=\"application/ld+json\">").expect("ld") + "<script type=\"application/ld+json\">".len();
         let ld_end = ld_start + page[ld_start..].find("</script>").expect("ld end");
         let v: Value = serde_json::from_str(&page[ld_start..ld_end]).unwrap_or_else(|e| panic!("{} JSON-LD does not parse: {e}", info.path));
@@ -980,7 +1081,7 @@ pub fn verify(dist: &Path) {
             assert!(!text.contains('\u{2014}') && !text.contains('\u{2013}'), "dash in {}", info.path);
         }
     }
-    for f in ["feed.xml", "now/feed.xml", "llms.txt", "llms-full.txt", "humans.txt", "data/index.json", "sitemap.xml", "robots.txt", "404.html"] {
+    for f in ["feed.xml", "now/feed.xml", "llms.txt", "llms-full.txt", "humans.txt", "data/index.json", "sitemap.xml", "sitemap.md", "AGENTS.md", "index.md", "robots.txt", "404.html"] {
         let t = fs::read_to_string(dist.join(f)).expect(f);
         assert!(!t.contains('\u{2014}') && !t.contains('\u{2013}'), "dash in {f}");
     }
@@ -1005,6 +1106,9 @@ mod tests {
         assert!(owned_tag(t));
         assert!(!owned_tag("<meta name=\"viewport\" content=\"width=device-width\">"));
         assert!(owned_tag("<link href=\"https://www.aienos.com/\" hreflang=\"en\" rel=\"alternate\"/>"));
+        assert!(owned_tag("<link rel=\"alternate\" type=\"text/markdown\" href=\"/index.md\">"));
+        assert!(owned_tag("<link rel=\"describedby\" href=\"/llms.txt\">"));
+        assert!(owned_tag("<meta name=\"robots\" content=\"noindex\">"));
         assert!(!owned_tag("<link rel=\"stylesheet\" href=\"/assets/style.css\">"));
     }
 
@@ -1057,6 +1161,32 @@ mod tests {
         }
         let opt = t.find("## Optional").unwrap();
         assert!(t[opt..].contains("/licensing/"));
+    }
+
+    #[test]
+    fn markdown_mirror_paths_follow_the_public_convention() {
+        assert_eq!(md_path("/"), "/index.md");
+        assert_eq!(md_path("/machine/"), "/machine.md");
+        assert_eq!(md_path("/zh-CN/"), "/zh-CN/index.md");
+        assert_eq!(md_path("/zh-CN/machine/"), "/zh-CN/machine.md");
+        assert_eq!(md_path("/research/status/"), "/research/status.md");
+    }
+
+    #[test]
+    fn discovery_files_link_every_list_item_in_an_h2_section() {
+        for (name, doc) in [
+            ("llms.txt", crate::components::status::llms_txt()),
+            ("sitemap.md", sitemap_md()),
+        ] {
+            let mut in_h2 = false;
+            for line in doc.lines() {
+                if line.starts_with("## ") {
+                    in_h2 = true;
+                } else if in_h2 && line.starts_with("- ") {
+                    assert!(line.contains("]("), "{name} has an unlinked item in an H2 section: {line}");
+                }
+            }
+        }
     }
 
     #[test]
