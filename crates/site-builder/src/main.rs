@@ -91,6 +91,23 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     fs::copy(facts_path, dist.join("facts.json")).expect("Failed to copy facts.json");
     println!("  [FACTS] Published /facts.json");
 
+    // /start/: the newcomer route through the project. It carries no status
+    // figures of its own; it links to the canonical implementation list,
+    // evidence record and release record, and names the cross-project
+    // boundaries.
+    let start_page = render_page_layout(
+        components::start::TITLE,
+        components::start::DESCRIPTION,
+        components::start::URL,
+        "website",
+        html! {},
+        components::start::render_start_page(),
+    );
+    fs::create_dir_all(dist.join("start")).expect("Failed to create start dir");
+    fs::write(dist.join("start/index.html"), start_page.into_string())
+        .expect("Failed to write start/index.html");
+    println!("  [PAGE] Emitted /start/ (index.html)");
+
     // Public project measurements, collected before compilation in CI.
     let progress = render_page_layout(
         "Project progress | AIEN OS",
@@ -445,6 +462,20 @@ fn verify_site(dist: &Path) {
     assert!(machine.contains("class=\"rs-ladder\""), "Missing research ladder markup in machine/index.html");
     assert!(machine.contains("class=\"rs-impl\""), "Missing implementation list in machine/index.html");
 
+    // The newcomer route must reach the canonical status, evidence,
+    // reproduction and cross-project surfaces.
+    let start = fs::read_to_string(dist.join("start/index.html")).expect("Failed to read start/index.html");
+    for needle in [
+        "/machine/#today",
+        "/research/status/#implementation",
+        "/evidence/",
+        "/AGENTS.md",
+        "https://www.drakestapleton.com",
+        "https://interplane.io/",
+    ] {
+        assert!(start.contains(needle), "/start/ is missing {needle}");
+    }
+
     // Every box on every generated page links to its evidence on GitHub
     // (components::boxlink). A page listed here with a floor below it must
     // carry at least that many boxes, so a component that stops rendering
@@ -472,6 +503,7 @@ fn verify_site(dist: &Path) {
 /// must carry. /now/ has no floor because the ledger may be absent.
 const GENERATED_PAGES: &[(&str, usize)] = &[
     ("index.html", 30),
+    ("start/index.html", 0),
     ("machine/index.html", 15),
     ("discovery/index.html", 0),
     ("experiments/index.html", 15),
@@ -602,6 +634,23 @@ mod tests {
         let sample = "AIEN OS: The GPU-Native Neural Operating Environment.";
         assert!(!sample.contains('\u{2014}'), "Must not contain em dash");
         assert!(!sample.contains('\u{2013}'), "Must not contain en dash");
+    }
+
+    #[test]
+    fn turing_sliders_have_accessible_names() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        for rel in ["public/turing/index.html", "public/zh-CN/turing/index.html"] {
+            let page = fs::read_to_string(root.join(rel)).unwrap_or_else(|_| panic!("cannot read {rel}"));
+            for id in ["r-gain", "r-cost", "r-base"] {
+                assert!(page.contains(&format!("for=\"{id}\"")), "{rel}: no label for {id}");
+                let pos = page.find(&format!("id=\"{id}\"")).unwrap_or_else(|| panic!("{rel}: missing id {id}"));
+                let tag_start = page[..pos].rfind("<input").unwrap_or_else(|| panic!("{rel}: {id} is not an input"));
+                let tag_end = page[tag_start..].find('>').unwrap_or(0) + tag_start;
+                let tag = &page[tag_start..=tag_end];
+                assert!(tag.contains("aria-label="), "{rel}: input {id} has no accessible name");
+            }
+            assert!(!page.contains("<output"), "{rel}: <output> inside a label is invalid");
+        }
     }
 
     #[test]
