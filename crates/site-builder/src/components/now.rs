@@ -378,8 +378,8 @@ fn owner_label(it: &Item) -> String {
         "coordinator" => "Coordinator".into(),
         "unassigned" => "Unassigned".into(),
         _ => {
-            // The retired Renda workers (renda, renda1, renda2) read as Keeper.
-            if let Some(n) = it.owner.strip_prefix("renda").filter(|n| n.chars().all(|c| c.is_ascii_digit())) {
+            // Keeper, and the retired Renda workers (renda, renda1, renda2), read as Keeper.
+            if let Some(n) = it.owner.strip_prefix("keeper").or_else(|| it.owner.strip_prefix("renda")).filter(|n| n.chars().all(|c| c.is_ascii_digit())) {
                 return if n.is_empty() { "Keeper".into() } else { format!("Keeper {n}") };
             }
             // sa-3-dfa217d1 reads as "agent dfa217"; anything else stays as written.
@@ -1208,6 +1208,8 @@ L004\t2026-10-19T16:43Z\tunassigned\topen\tResearch: omega#583 simulator\tPR mer
         let at = parse_utc("2026-10-19T18:10Z").unwrap();
         let now = Now { items: parse_ledger(tsv, at), ..blank() };
         let page = render_now_page(&now).into_string();
+        let owned = parse_ledger(&tsv.replace("\trenda2\t", "\tkeeper\t"), at);
+        assert_eq!(owner_label(&owned[0]), "Keeper");
         assert!(page.contains("Keeper merges the queue") && page.contains("Keeper done") && page.contains(">Keeper 2<"), "prose and owner renamed");
         assert!(!page.contains("Renda merges"), "old name left in prose");
         // The machine record keeps the ledger as written.
