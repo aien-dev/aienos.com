@@ -582,3 +582,25 @@
   .now-fold .now-timeline { padding: 4px 12px 12px; }
 }
 .now-row-done { display: block; margin-top: 3px; font-size: 12px; font-weight: 400; color: var(--tl-ink-3); overflow-wrap: anywhere; }
+
+/* ---------- models on the Spark ---------- */
+.now-model-track { color: var(--tl-ink-3); font: 600 11px/1.3 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; }
+.now-model-state {
+  margin-left: auto;
+  padding: 3px 9px;
+  border: 1px solid var(--tl-line);
+  border-radius: 999px;
+  font: 600 11px/1.3 var(--font-mono);
+  color: var(--tl-ink-3);
+  white-space: nowrap;
+}
+.now-model-state-answering { color: var(--now-hot); border-color: rgba(0, 229, 153, 0.45); }
+.now-model-state-not-answering { color: var(--now-drop); border-color: rgba(248, 113, 113, 0.45); }
+.now-model-state-planned { color: var(--now-warm); border-color: rgba(125, 180, 255, 0.4); }
+.now-model-answering::before { background: var(--now-hot); }
+.now-model-not-answering::before { background: var(--now-drop); }
+.now-model .now-model-role { -webkit-line-clamp: unset; }
+.now-model-figs { margin: 12px 0 0; display: grid; gap: 4px; }
+.now-model-figs dt { color: var(--tl-ink-3); font: 600 11px/1.3 var(--font-mono); letter-spacing: .05em; text-transform: uppercase; margin-top: 6px; }
+.now-model-figs dd { margin: 0; color: var(--tl-ink); font-size: 14px; line-height: 1.5; }
+#models .now-grid { margin-top: 26px; }

@@ -31,11 +31,11 @@ jobs:
           if git fetch --depth 1 origin data/now 2>/dev/null; then
             git show FETCH_HEAD:now.tsv > public/data/now.tsv
             git show FETCH_HEAD:now-pulse.tsv > public/data/now-pulse.tsv || true
-            # Missing metrics stay absent; the dashboard shows unavailable, never zero.
-            if git cat-file -e FETCH_HEAD:renda-metrics.json 2>/dev/null; then
-              git show FETCH_HEAD:renda-metrics.json > public/data/renda-metrics.json
+            # A missing model check stays absent; the page then says status unknown.
+            if git cat-file -e FETCH_HEAD:models.tsv 2>/dev/null; then
+              git show FETCH_HEAD:models.tsv > public/data/models.tsv
             else
-              rm -f public/data/renda-metrics.json
+              rm -f public/data/models.tsv
             fi
             echo "ledger: $(wc -l < public/data/now.tsv) lines"
           else
