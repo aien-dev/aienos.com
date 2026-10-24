@@ -1,11 +1,11 @@
 {
   "schema": "renda-metrics/1",
-  "generated_at": "2026-10-24T16:00:02Z",
+  "generated_at": "2026-10-24T16:05:01Z",
   "window_seconds": 3600,
   "workers": [
     {
       "name": "renda1",
-      "last_pass_at": "2026-10-24T15:59:49Z",
+      "last_pass_at": "2026-10-24T16:04:33Z",
       "current_cpm": 1.1111,
       "min_cpm": 0.8824,
       "max_cpm": 1.1321,
@@ -15,7 +15,7 @@
       "rebases": 0,
       "reruns": 0,
       "operators": 0,
-      "active_pass_seconds": 1629,
+      "active_pass_seconds": 1631,
       "window_passes": 64
     },
     {
