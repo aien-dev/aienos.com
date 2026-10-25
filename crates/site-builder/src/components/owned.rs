@@ -50,13 +50,13 @@ const RECEIPTS: &[Receipt] = &[
     },
     Receipt {
         title: "An operating system on a 2017 iMac",
-        says: "Aienux, the AIENOS kernel, boots on an ordinary desktop computer, bare metal, with no Linux underneath.",
+        says: "Aienux, the AienOS kernel, boots on an ordinary desktop computer, bare metal, with no Linux underneath.",
         href: "https://github.com/aien-dev/aienux/blob/main/evidence/imac_kernel1_2026-10-17",
         on_branch: false,
     },
     Receipt {
         title: "Hardware runs on a Raspberry Pi 5",
-        says: "Aienux, the AIENOS kernel, running on a small, inexpensive board, with a receipt for each run.",
+        says: "Aienux, the AienOS kernel, running on a small, inexpensive board, with a receipt for each run.",
         href: "https://github.com/aien-dev/aienux/blob/main/evidence/pi5_hardware_runs_2026-10-13",
         on_branch: false,
     },
