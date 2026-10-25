@@ -71,15 +71,18 @@ CARDS = [
 FONT_DIRS = ["/System/Library/Fonts/Supplemental", "/System/Library/Fonts",
              "/usr/share/fonts/truetype/dejavu", "/usr/share/fonts/truetype/liberation"]
 def font(names, size):
-    for d in FONT_DIRS:
-        for n in names:
+    # Names in preference order: Arial and Menlo on macOS; on Linux, Liberation
+    # Sans (Arial's metrics) and DejaVu Sans Mono (Menlo's source), so a card
+    # drawn on either machine keeps the same line breaks and badge widths.
+    for n in names:
+        for d in FONT_DIRS:
             p = os.path.join(d, n)
             if os.path.exists(p):
                 return ImageFont.truetype(p, size)
     return ImageFont.load_default(size)
 
-BOLD = ["Arial Bold.ttf", "DejaVuSans-Bold.ttf", "LiberationSans-Bold.ttf"]
-REG = ["Arial.ttf", "DejaVuSans.ttf", "LiberationSans-Regular.ttf"]
+BOLD = ["Arial Bold.ttf", "LiberationSans-Bold.ttf", "DejaVuSans-Bold.ttf"]
+REG = ["Arial.ttf", "LiberationSans-Regular.ttf", "DejaVuSans.ttf"]
 MONO = ["Menlo.ttc", "DejaVuSansMono.ttf", "LiberationMono-Regular.ttf"]
 
 def glow(base, xy, r, color, alpha):
@@ -135,7 +138,7 @@ def card(file, kicker, claim, sub, address):
         y += 38
     # Badges along the bottom.
     bx = 80
-    for label, col in (("Open source, AGPL-3.0-or-later", GREEN), ("Experimental, pre-alpha", (245, 166, 35)), ("Receipts over claims", BLUE)):
+    for label, col in (("Open source, Apache-2.0", GREEN), ("Experimental, pre-alpha", (245, 166, 35)), ("Receipts over claims", BLUE)):
         tw = d.textlength(label, font=fm)
         d.rounded_rectangle((bx, 518, bx + tw + 30, 558), radius=6, outline=col, width=1, fill=(14, 18, 25, 255))
         d.text((bx + 15, 526), label, font=fm, fill=col)
