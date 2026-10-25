@@ -6,6 +6,9 @@ class CosmicChecks(unittest.TestCase):
  def test_omega_bytes_untouched(self):
   p=ROOT/'om/hive-page/main.html'
   self.assertEqual(hashlib.sha256(p.read_bytes()).hexdigest(),(ROOT/'om/hive-page/main.html.sha256').read_text().split()[0])
+ def test_stylesheet_version_matches_bytes(self):
+  digest=hashlib.sha256((ROOT/'public/assets/hive.css').read_bytes()).hexdigest()[:12]
+  self.assertIn('/assets/hive.css?v='+digest,(ROOT/'crates/site-builder/src/main.rs').read_text())
  def test_decorative_asset(self):
   p=ROOT/'public/assets/hive-universe.svg'
   self.assertEqual(ET.parse(p).getroot().attrib['viewBox'],'0 0 1600 900')
