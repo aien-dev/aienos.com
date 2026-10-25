@@ -12,7 +12,7 @@ pub fn render_base_layout(content: Markup) -> Markup {
             script defer src="/js/turing-game.js" {}
             (PreEscaped(r#"<script>
                 document.addEventListener('DOMContentLoaded', () => {
-                    console.log('[AIEN OS] Pure Rust Maud engine online. Zero hydration overhead.');
+                    console.log('[AienOS] Pure Rust Maud engine online. Zero hydration overhead.');
                 });
             </script>"#))
         },

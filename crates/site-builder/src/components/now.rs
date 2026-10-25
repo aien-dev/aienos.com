@@ -21,7 +21,7 @@ use serde::{Deserialize, Serialize};
 
 use super::boxlink::{foot_labelled, Target};
 
-pub const TITLE: &str = "Now | AIEN OS";
+pub const TITLE: &str = "Now | AienOS";
 pub const DESCRIPTION: &str = "The live coordination ledger of AIEN: what every agent is doing right now, what is settled with evidence, and what waits on an operator decision.";
 pub const URL: &str = "https://www.aienos.com/now/";
 

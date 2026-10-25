@@ -34,7 +34,7 @@ pub const LICENSE_URL: &str = "https://www.aienos.com/licensing/";
 /// Bump whenever scripts/og-cards.py redraws the cards: X and other link
 /// unfurlers cache a card image by its URL, so a new query string makes them
 /// fetch the new picture instead of showing the old one.
-pub const OG_IMAGE_VERSION: &str = "20261025";
+pub const OG_IMAGE_VERSION: &str = "20261025b";
 
 /// What a page is, for structured data.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
