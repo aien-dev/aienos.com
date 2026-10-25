@@ -16,6 +16,9 @@ pub const SOURCE: &str = "https://github.com/aien-dev/aienos.com/blob/main/crate
 /// The generated skeleton, byte for byte as `check.sh` wrote it.
 pub const SKELETON: &str = include_str!("../../../../om/hive-page/main.html");
 
+/// The page stylesheet, byte for byte as the build copies it.
+const HIVE_CSS: &str = include_str!("../../../../public/assets/hive.css");
+
 pub fn render_hive_page() -> Markup {
     debug_assert!(
         SOURCE.starts_with("https://github.com/"),
@@ -28,6 +31,21 @@ pub fn render_hive_page() -> Markup {
 mod tests {
     use super::*;
     use sha2::{Digest, Sha256};
+
+    fn hex_colour(css: &str) -> Option<String> {
+        let bytes = css.as_bytes();
+        let mut i = 0;
+        while i < bytes.len() {
+            if bytes[i] == b'#' {
+                let run = bytes[i + 1..].iter().take_while(|b| b.is_ascii_hexdigit()).count();
+                if run == 3 || run == 6 || run == 8 {
+                    return Some(css[i..i + 1 + run].to_string());
+                }
+            }
+            i += 1;
+        }
+        None
+    }
 
     #[test]
     fn the_embedded_skeleton_matches_its_recorded_sha256() {
@@ -46,6 +64,82 @@ mod tests {
         assert_eq!(
             got, want,
             "the committed skeleton and its digest disagree; run: sh om/hive-page/check.sh"
+        );
+    }
+
+    #[test]
+    fn the_skeleton_declares_collapsible_branches() {
+        for (template, kind) in [("hive-tpl-row", "root"), ("hive-tpl-child", "nested")] {
+            let at = SKELETON
+                .find(&format!("<template id=\"{template}\">"))
+                .unwrap_or_else(|| panic!("the skeleton lost the {kind} row template"));
+            let row = &SKELETON[at..SKELETON[at..].find("</template>").unwrap_or(0) + at];
+            assert!(
+                row.contains(r#"class="hive-disclose" type="button" aria-expanded="true" aria-controls=""#),
+                "the {kind} row must declare a disclosure with aria-expanded and aria-controls"
+            );
+            assert!(
+                row.contains(r#"<ul class="hive-children" data-f="children"></ul>"#),
+                "the {kind} row must declare the branch the disclosure controls"
+            );
+        }
+        // Bounded panels: the head stays and only the body scrolls, so the
+        // fleet cannot become a document thousands of pixels tall again.
+        assert_eq!(
+            SKELETON.matches(r#"<div class="hive-panel-head">"#).count(),
+            2,
+            "the missions panel and the selected mission panel are the two bounded panels"
+        );
+        assert_eq!(
+            SKELETON.matches(r#"<div class="hive-panel-body">"#).count(),
+            2,
+            "each bounded panel needs its scroll body"
+        );
+        assert!(
+            SKELETON.contains(r#"<div class="hive-tools">"#),
+            "the missions tools ride at the top of the scroll body"
+        );
+    }
+
+    #[test]
+    fn the_stylesheet_stays_on_the_shared_palette_and_compositor_motion() {
+        assert!(
+            hex_colour(HIVE_CSS).is_none(),
+            "hive.css must use the palette tokens, never a local hex colour: {:?}",
+            hex_colour(HIVE_CSS)
+        );
+        for (name, text) in [("main.html", SKELETON), ("hive.css", HIVE_CSS)] {
+            assert!(!text.contains('\u{2014}'), "{name} carries an em dash");
+            assert!(!text.contains('\u{2013}'), "{name} carries an en dash");
+        }
+        // Motion is compositor only: transform or opacity, and never a filter,
+        // a box shadow or the all shorthand that would animate both.
+        for rule in HIVE_CSS.split('}') {
+            let rule = rule.to_ascii_lowercase();
+            if let Some(at) = rule.find("transition") {
+                let decl = &rule[at..];
+                let decl = &decl[..decl.find(';').unwrap_or(decl.len())];
+                assert!(!decl.contains("all"), "a transition must name transform or opacity: {decl}");
+                assert!(!decl.contains("filter"), "a transition must not animate filter: {decl}");
+                assert!(!decl.contains("box-shadow"), "a transition must not animate box-shadow: {decl}");
+            }
+            assert!(!rule.contains("animation-name"), "hive.css must not name an animation: {rule}");
+            for (at, _) in rule.match_indices("animation") {
+                let rest = rule[at + "animation".len()..].trim_start();
+                if !rest.starts_with(':') {
+                    continue;
+                }
+                let value = rest[1..].split(';').next().unwrap_or("").trim();
+                assert!(value.starts_with("none"), "hive.css must not animate: {value}");
+            }
+        }
+        assert!(
+            HIVE_CSS.contains("prefers-reduced-motion"),
+            "the single transform transition must be removed under prefers-reduced-motion"
+        );
+        assert!(
+            HIVE_CSS.contains(r#".hive[data-motion="off"]"#),
+            "the page's own motion control must also disable the transition"
         );
     }
 }

@@ -1,7 +1,20 @@
-/* Hive layout. Structure comes from om/hive-page/hive.om; this file only places
-   it. Palette tokens come from assets/style.css and no rule here decorates:
-   the visual pass follows. Nothing animates, so nothing here can strobe. */
+/* Hive layout and look. Structure comes from om/hive-page/hive.om; this file
+   only places it, so a change of sections, order or wording is an edit to the
+   .om unit and a change of scale, spacing or state colour is an edit here.
+   Palette comes from assets/style.css tokens only: no local hex, no scene, no
+   gradient, glow or invented coordinate. Motion is compositor only (transform,
+   opacity), there is a single transform transition, and it is removed for
+   prefers-reduced-motion and whenever the page's own motion control is off. */
 .hive {
+  --hive-h1: clamp(2.4rem, 5.4vw, 4rem);
+  --hive-h2: clamp(1.2rem, 1.4vw, 1.45rem);
+  --hive-row: 0.95rem;
+  --hive-body: 0.85rem;
+  --hive-label: 0.7rem;
+  --hive-micro: 0.66rem;
+  /* Height of the sticky site header, consumed by the sticky side panel. */
+  --hive-nav: 0px;
+  --hive-scroll: clamp(360px, 74vh, 880px);
   max-width: 1320px;
   margin: 0 auto;
   padding: 32px 5vw 72px;
@@ -9,121 +22,183 @@
   font-family: var(--font-sans);
 }
 
+/* The site header is sticky from this width up, so the sticky side panel
+   starts below it instead of sliding under it. */
+@media (min-width: 1100px) {
+  .hive { --hive-nav: 133px; }
+}
+
 .hive [hidden] { display: none !important; }
 
 /* The masthead is one block of prose beside nothing: no scene, no stage. */
 .hive-masthead { max-width: 68ch; margin-bottom: 32px; }
-.hive h1 { font-size: clamp(2.6rem, 6vw, 4.4rem); line-height: 1.02; margin: 0 0 16px; }
-.hive h2 { font-size: clamp(1.3rem, 2vw, 1.7rem); line-height: 1.2; margin: 0; }
-.hive h3 { font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin: 24px 0 8px; }
+.hive h1 { font-size: var(--hive-h1); font-weight: 600; line-height: 1.02; letter-spacing: -0.02em; margin: 0 0 16px; }
+.hive h2 { font-size: var(--hive-h2); font-weight: 600; line-height: 1.25; letter-spacing: -0.01em; margin: 0; }
+.hive h3 { font-family: var(--font-mono); font-size: var(--hive-label); font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin: 18px 0 6px; }
 .hive p { margin: 0; line-height: 1.6; }
 .hive a { color: var(--accent-blue); text-underline-offset: 4px; }
 .hive-period { color: var(--text-muted); }
 
-.hive-eyebrow, .hive-small, .hive-state, .hive-pill, .hive-chip, .hive-elapsed,
-.hive-times, .hive-fields, .hive-message-who, .hive-source-note, .hive-coverage {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  line-height: 1.6;
-  font-variant-numeric: tabular-nums;
-}
-.hive-eyebrow { text-transform: uppercase; letter-spacing: 0.14em; color: var(--text-muted); margin-bottom: 8px; }
-.hive-small, .hive-source-note { color: var(--text-muted); }
+/* Labels: mono, quiet, and never wider than the value they introduce. */
+.hive-eyebrow { font-family: var(--font-mono); font-size: var(--hive-label); letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-muted); margin: 0 0 6px; }
+.hive-small, .hive-source-note, .hive-state { font-family: var(--font-mono); font-size: var(--hive-micro); line-height: 1.55; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .hive-intro { font-size: 1.15rem; max-width: 46ch; margin-bottom: 12px; }
 .hive-welcome { max-width: 62ch; color: var(--text-secondary); }
 .hive-learn { display: inline-block; margin-top: 16px; }
 
 .hive-jumps { display: flex; flex-wrap: wrap; gap: 8px 24px; padding: 12px 0; margin-bottom: 24px; border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); }
-.hive-jumps a { color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; }
+.hive-jumps a { color: var(--text-secondary); font-size: var(--hive-body); text-decoration: none; }
+.hive-jumps a:hover { color: var(--accent-blue); }
 
 /* Sections are placed by the grid, not by their markup order, so the section
-   list, its order and its width class stay a hive.om decision. */
-.hive-sections {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
-  gap: 24px;
-  align-items: start;
-}
-.hive-section { min-width: 0; padding: 20px; border: 1px solid var(--border-subtle); background: var(--bg-surface); }
+   list, its order and its width class stay a hive.om decision. One panel per
+   region, one 1px separator inside it, and no card nested in a card. */
+.hive-sections { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 380px); gap: 20px; align-items: start; }
+.hive-section { min-width: 0; padding: 18px 20px; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--bg-surface); }
 .hive-section-full { grid-column: 1 / -1; }
 .hive-section-main { grid-column: 1; }
 .hive-section-narrow { grid-column: 2; }
-.hive-note { color: var(--text-secondary); font-size: 0.85rem; margin-top: 6px; max-width: 70ch; }
-.hive-section > * + * { margin-top: 16px; }
+.hive-note { color: var(--text-secondary); font-size: var(--hive-body); line-height: 1.55; margin: 8px 0 0; max-width: 74ch; }
+.hive-section > .hive-eyebrow + h2 + .hive-note { margin-bottom: 14px; }
 
-/* Status and freshness strip: label and value pairs on one line each. */
-.hive-times, .hive-fields { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 16px; margin: 0; }
-.hive-times dt, .hive-fields dt { color: var(--text-muted); }
-.hive-times dd, .hive-fields dd { margin: 0; overflow-wrap: anywhere; }
+/* A bounded panel: the head stays, the body is the only scroll box, so a fleet
+   of hundreds of agents is one viewport tall instead of thousands of pixels. */
+.hive-panel { display: flex; flex-direction: column; max-height: var(--hive-scroll); padding: 0; overflow: hidden; }
+.hive-panel-head { position: sticky; top: 0; flex: 0 0 auto; z-index: 2; padding: 16px 18px 0; background: var(--bg-surface); }
+.hive-panel-head .hive-note { margin-bottom: 0; padding-bottom: 12px; border-bottom: 1px solid var(--border-subtle); }
+.hive-panel-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 18px 16px; scroll-padding-top: 76px; }
+.hive-panel-body > * + * { margin-top: 12px; }
+.hive-section-narrow { position: sticky; top: calc(var(--hive-nav) + 12px); } /* While the manifest is
+   shorter than the missions panel it pins at that offset and stays readable as the reader moves
+   through the row; the bounded panels are what keep both on screen. */
+
+/* The missions tools ride at the top of the scroll box, so search is reachable
+   while the tree scrolls under it. */
+.hive-tools { position: sticky; top: 0; z-index: 1; padding: 10px 0 8px; background: var(--bg-surface); border-bottom: 1px solid var(--border-subtle); }
+.hive-search { display: grid; gap: 5px; max-width: 44ch; }
+.hive-search label { font-family: var(--font-mono); font-size: var(--hive-micro); letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+.hive-tools .hive-small { margin-top: 6px; }
+
+/* Status and freshness strip: one screen-wide band, two quiet columns, so the
+   missions panel is not pushed a whole viewport down the page. */
+#hive-strip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 28px; align-items: start; }
+#hive-strip > .hive-eyebrow, #hive-strip > h2, #hive-strip > .hive-note { grid-column: 1 / -1; }
+#hive-strip > .hive-note { margin-bottom: 2px; }
+#hive-strip > #hive-motion { justify-self: start; }
+
+/* Status and freshness strip: two quiet columns of label and value. */
+.hive-times, .hive-fields { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 3px 16px; margin: 0; }
+.hive-times dt, .hive-fields dt { font-family: var(--font-mono); font-size: var(--hive-micro); color: var(--text-muted); }
+.hive-times dd, .hive-fields dd { margin: 0; font-family: var(--font-mono); font-size: var(--hive-micro); color: var(--text-secondary); overflow-wrap: anywhere; }
+.hive-times dd time, .hive-fields dd time, .hive-message-who time { font-variant-numeric: tabular-nums; }
 .hive-strip-status { display: grid; gap: 4px; }
-.hive-coverage { color: var(--text-secondary); border-left: 2px solid var(--border-subtle); padding-left: 10px; }
+.hive-connection { font-size: var(--hive-body); color: var(--text-secondary); }
+.hive-counts { font-family: var(--font-mono); font-size: var(--hive-micro); color: var(--text-secondary); }
+.hive-coverage { font-family: var(--font-mono); font-size: var(--hive-micro); line-height: 1.55; color: var(--text-secondary); border-left: 2px solid var(--border-subtle); padding-left: 10px; }
 .hive-coverage[data-complete="false"] { border-left-color: var(--accent-amber); }
-.hive-counts { font-variant-numeric: tabular-nums; }
+/* Rewritten every second: clamped so the strip cannot reflow under the pointer. */
+.hive-connection, .hive-counts, .hive-coverage, .hive-strip-status .hive-small {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+}
 
 .hive button, .hive input { font: inherit; }
-.hive button { color: var(--text-primary); background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 3px; padding: 7px 11px; min-height: 36px; cursor: pointer; }
+.hive button { color: var(--text-primary); background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 3px; padding: 6px 10px; min-height: 34px; font-size: var(--hive-body); cursor: pointer; }
+.hive button:hover { border-color: var(--text-muted); }
 .hive button[aria-pressed="true"] { border-color: var(--accent-blue); color: var(--accent-blue); }
 .hive button:disabled { color: var(--text-muted); cursor: default; }
-.hive :is(a, button, input, [tabindex]):focus-visible { outline: 2px solid var(--accent-green); outline-offset: 3px; }
-.hive input { color: var(--text-primary); background: var(--bg-base); border: 1px solid var(--border-subtle); border-radius: 3px; padding: 7px 9px; width: 100%; }
-.hive-search { display: grid; gap: 6px; max-width: 44ch; }
-.hive-search label { color: var(--text-muted); font-size: 0.8rem; }
+.hive button:disabled:hover { border-color: var(--border-subtle); }
+.hive :is(a, button, input, [tabindex]):focus-visible { outline: 2px solid var(--accent-green); outline-offset: 2px; border-radius: 2px; }
+.hive input { color: var(--text-primary); background: var(--bg-base); border: 1px solid var(--border-subtle); border-radius: 3px; padding: 6px 9px; width: 100%; font-size: var(--hive-body); }
+.hive input::placeholder { color: var(--text-muted); }
 
-/* The mission tree: indentation carries the hierarchy, nothing else does. */
+/* The mission tree. One 1px separator per row and one indentation rail per
+   level carry the hierarchy; nothing else decorates a row. */
 .hive-tree, .hive-children { list-style: none; margin: 0; padding: 0; }
-.hive-children { margin-left: 14px; padding-left: 12px; border-left: 1px solid var(--border-subtle); }
+.hive-children { margin-left: 10px; padding-left: 10px; border-left: 1px solid var(--border-subtle); }
 .hive-node[hidden] { display: none !important; }
-.hive-record { display: grid; grid-template-columns: minmax(0, 1fr) max-content max-content max-content; gap: 4px 12px; align-items: baseline; padding: 7px 0; border-bottom: 1px solid var(--border-subtle); }
-.hive-select { text-align: left; border-color: transparent !important; background: transparent !important; padding: 0 !important; min-height: 0 !important; font-weight: 500; overflow-wrap: anywhere; }
-.hive-state, .hive-pill { color: var(--text-secondary); }
-.hive-node[data-status="working"] .hive-pill { color: var(--accent-green); }
-.hive-node[data-status="failed"] .hive-pill { color: var(--rs-fail); }
-.hive-node[data-status="waiting"] .hive-pill { color: var(--accent-amber); }
-.hive-node[data-status="unknown"] .hive-pill { color: var(--text-muted); }
-.hive-chip { color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hive-elapsed { color: var(--text-muted); white-space: nowrap; }
-.hive-activity { grid-column: 1 / -1; color: var(--text-secondary); font-size: 0.85rem; overflow-wrap: anywhere; }
-/* Rewritten every second: clamped so the row never reflows under the pointer. */
-.hive-activity, .hive-connection, .hive-counts, .hive-coverage, .hive-small {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.hive-record {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.2rem minmax(0, 1fr) max-content max-content max-content;
+  gap: 3px 10px;
+  align-items: baseline;
+  padding: 6px 10px;
+  margin: 0 -10px;
+  border-bottom: 1px solid var(--border-subtle);
+  border-radius: 3px 3px 0 0;
 }
-.hive-node[data-context="true"] .hive-record { opacity: 0.55; }
+.hive-record:hover { background: var(--bg-card-hover); }
+.hive-disclose { grid-area: 1 / 1; display: inline-flex; align-items: center; gap: 4px; padding: 0; min-height: 0; background: transparent; border: 0; color: var(--text-muted); }
+.hive .hive-disclose { padding: 0; min-height: 0; border: 0; background: transparent; }
+.hive-disclose::before { content: ""; flex: 0 0 auto; width: 5px; height: 5px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; transform: rotate(-45deg); transition: transform 140ms ease-out; }
+.hive-disclose[aria-expanded="true"]::before { transform: rotate(45deg); }
+.hive-disclose:hover { color: var(--text-primary); border-color: transparent; }
+.hive-branch { font-family: var(--font-mono); font-size: var(--hive-micro); font-variant-numeric: tabular-nums; }
+.hive .hive-select { grid-area: 1 / 2; text-align: left; font-size: var(--hive-row); font-weight: 600; line-height: 1.35; color: var(--text-primary); background: transparent; border: 0; padding: 0; min-height: 0; overflow-wrap: anywhere; }
+.hive-select:hover { border-color: transparent; color: var(--accent-blue); }
+.hive-pill { grid-area: 1 / 3; font-family: var(--font-mono); font-size: var(--hive-micro); letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; color: var(--text-muted); border: 1px solid var(--border-subtle); border-radius: 999px; padding: 1px 8px; }
+.hive-node[data-status="working"] > .hive-record .hive-pill { color: var(--accent-green); }
+.hive-node[data-status="waiting"] > .hive-record .hive-pill,
+.hive-node[data-status="idle"] > .hive-record .hive-pill { color: var(--accent-amber); }
+.hive-node[data-status="completed"] > .hive-record .hive-pill { color: var(--text-secondary); }
+.hive-node[data-status="failed"] > .hive-record .hive-pill { color: var(--rs-fail); }
+.hive-node[data-status="unknown"] > .hive-record .hive-pill { color: var(--text-muted); }
+.hive-chip { grid-area: 1 / 4; font-family: var(--font-mono); font-size: var(--hive-micro); color: var(--text-secondary); background: var(--bg-base); border-radius: 3px; padding: 1px 6px; min-width: 0; max-width: 28ch; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hive-elapsed { grid-area: 1 / 5; font-family: var(--font-mono); font-size: var(--hive-micro); color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 5ch; text-align: right; }
+/* Rewritten as the source advances: two fixed lines, so the row never resizes
+   and the pointer never falls off the row it is over. */
+.hive-activity { grid-area: 2 / 2 / 3 / -1; font-size: var(--hive-body); line-height: 1.4; color: var(--text-secondary); overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; min-height: calc(1.4em * 2); }
+.hive-node[data-context="true"] > .hive-record { opacity: 0.6; }
 .hive-node[data-selected="true"] > .hive-record { background: var(--bg-card); }
-.hive-node[data-ancestor="true"] > .hive-record { border-bottom-color: var(--border-active); }
-.hive-empty { color: var(--text-muted); font-size: 0.85rem; }
+.hive-node[data-selected="true"] > .hive-record::before { content: ""; position: absolute; left: -1px; top: 3px; bottom: 3px; width: 2px; background: var(--accent-blue); border-radius: 1px; }
+.hive-node[data-selected="true"] > .hive-record .hive-select { color: var(--accent-blue); }
+.hive-node[data-ancestor="true"] > .hive-record { border-bottom-color: var(--accent-blue); }
+.hive-empty { color: var(--text-muted); font-size: var(--hive-body); line-height: 1.55; }
 
-/* Selected-agent manifest: a label and value grid, no cards inside it. */
-.hive-manifest-name { font-weight: 600; overflow-wrap: anywhere; }
-.hive-state { color: var(--text-secondary); }
-.hive-work { color: var(--text-secondary); overflow-wrap: anywhere; }
-.hive-family { display: flex; flex-wrap: wrap; gap: 6px 14px; }
-.hive-family-link { font-size: 0.8rem; }
+/* Selected-agent manifest: label and value pairs, no cards inside it. */
+.hive-manifest-name { font-size: 1rem; font-weight: 600; line-height: 1.35; margin: 12px 0 14px; overflow-wrap: anywhere; }
+.hive-work { color: var(--text-secondary); font-size: var(--hive-body); overflow-wrap: anywhere; }
+.hive-family { display: flex; flex-wrap: wrap; gap: 5px 14px; }
+.hive-family-link { font-family: var(--font-mono); font-size: var(--hive-micro); }
+.hive-panel-body #hive-show-selected { margin-top: 14px; }
 
 /* The message feed. Only the list scrolls, and the page never jumps with it. */
-.hive-conversations { display: grid; gap: 12px; }
 .hive-conversation-controls { display: flex; flex-wrap: wrap; gap: 8px; }
-.hive-chat { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; max-height: 480px; overflow-y: auto; overscroll-behavior: contain; }
+.hive-chat { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; max-height: min(60vh, 520px); overflow-y: auto; overscroll-behavior: contain; }
 .hive-chat:focus-visible { outline: 2px solid var(--accent-green); outline-offset: 4px; }
-.hive-message { display: grid; gap: 4px; padding: 10px 12px; border: 1px solid var(--border-subtle); background: var(--bg-card); }
-.hive-message-who { display: flex; flex-wrap: wrap; gap: 4px 12px; color: var(--text-muted); }
-.hive-message-who strong { color: var(--text-primary); }
-.hive-message-text { color: var(--text-secondary); overflow-wrap: anywhere; white-space: pre-wrap; }
+.hive-message { display: grid; gap: 3px; padding: 8px 10px 8px 12px; border-left: 2px solid var(--border-subtle); }
+.hive-message[data-role="drake"] { border-left-color: var(--accent-blue); }
+.hive-message-who { display: flex; flex-wrap: wrap; gap: 3px 12px; font-family: var(--font-mono); font-size: var(--hive-micro); color: var(--text-muted); }
+.hive-message-who strong { color: var(--text-primary); font-weight: 600; }
+.hive-message-text { color: var(--text-secondary); font-size: var(--hive-body); overflow-wrap: anywhere; white-space: pre-wrap; }
 
 .hive-closing { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: baseline; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border-subtle); }
 .hive-closing p { color: var(--text-muted); }
 
 @media (max-width: 900px) {
-  .hive { padding: 24px 4vw 56px; }
-  .hive-sections { grid-template-columns: minmax(0, 1fr); }
+  .hive { padding: 24px 4vw 56px; --hive-scroll: clamp(320px, 68vh, 640px); }
+  .hive-sections { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .hive-section-full, .hive-section-main, .hive-section-narrow { grid-column: 1; }
-  .hive-record { grid-template-columns: minmax(0, 1fr) max-content; }
-  .hive-chip { grid-column: 1 / -1; }
-  .hive-chat { max-height: 60vh; }
+  .hive-section-narrow { position: static; }
+  .hive-section { padding: 16px; }
+  .hive-panel { padding: 0; }
+  .hive-panel-head { padding: 14px 14px 0; }
+  .hive-panel-body { padding: 0 14px 14px; }
+  .hive-record { grid-template-columns: 2rem minmax(0, 1fr) max-content; column-gap: 8px; padding: 6px 8px; margin: 0 -8px; }
+  .hive-disclose { grid-area: 1 / 1; }
+  .hive .hive-select { grid-area: 1 / 2; }
+  .hive-pill { grid-area: 1 / 3; }
+  .hive-chip { grid-area: 2 / 2 / 3 / 3; max-width: 100%; justify-self: start; }
+  .hive-elapsed { grid-area: 2 / 3 / 3 / 4; }
+  .hive-activity { grid-area: 3 / 2 / 4 / -1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hive * { scroll-behavior: auto !important; }
+  .hive *, .hive *::before, .hive *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+}
+
+.hive[data-motion="off"] *, .hive[data-motion="off"] *::before, .hive[data-motion="off"] *::after {
+  transition: none !important;
+  animation: none !important;
+  scroll-behavior: auto !important;
 }
