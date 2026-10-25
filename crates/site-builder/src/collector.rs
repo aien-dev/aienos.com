@@ -28,7 +28,7 @@ pub const OWNER: &str = "aien-dev";
 /// rule are read as well, under their GitHub name.
 pub const REPOS: &[(&str, &str, &str)] = &[
     ("aien-sovereign-core", "aien-dev", "aien-sovereign-core-mv"),
-    ("aienos", "aien-dev", "aienos-mv"),
+    ("aienos", "aien-dev", "aienux"),
     ("omega", "aien-dev", "omega-mv"),
     ("physics", "aien-dev", "physics-mv"),
     ("atlas", "aien-dev", "atlas"),
@@ -1380,7 +1380,8 @@ mod tests {
     }
 
     /// The public repository listing of aien-dev and aien-spark as GitHub returned it on
-    /// 2026-10-17 (`/users/{owner}/repos?type=owner`): owner, name, fork, archived.
+    /// 2026-10-17 (`/users/{owner}/repos?type=owner`): owner, name, fork, archived. The
+    /// kernel row carries its current name: aienos-mv was renamed aienux afterwards.
     const LISTING_2026_10_17: &[&str] = &[
         "aien-dev .github - -",
         "aien-dev aegis-runtime-mv - -",
@@ -1393,7 +1394,7 @@ mod tests {
         "aien-dev aien-receipts - -",
         "aien-dev aien-sovereign-core-mv - -",
         "aien-dev aien-yardsticks - archived",
-        "aien-dev aienos-mv - -",
+        "aien-dev aienux - -",
         "aien-dev aienos.com - -",
         "aien-dev arm-trusted-firmware fork archived",
         "aien-dev atlas - -",

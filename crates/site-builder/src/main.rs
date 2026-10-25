@@ -204,6 +204,21 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     fs::write(dist.join("now/index.html"), now_page.into_string()).expect("Failed to write now/index.html");
     fs::write(dist.join("now.json"), components::now::to_json(&now)).expect("Failed to write now.json");
     println!("  [PAGE] Emitted /now/ ({} ledger lines) and /now.json", now.items.len());
+    // /agents/: every public repository with its agent instructions, from
+    // public/data/agent-repos.json (refreshed by `site-builder agents`).
+    let agent_repos = components::agents::Repos::load(Path::new(components::agents::DATA_PATH))
+        .unwrap_or_else(|e| panic!("agents: {e}"));
+    let agents_page = render_page_layout(
+        components::agents::TITLE,
+        components::agents::DESCRIPTION,
+        components::agents::URL,
+        "website",
+        html! {},
+        components::agents::render_agents_page(&agent_repos),
+    );
+    fs::create_dir_all(dist.join("agents")).expect("Failed to create agents dir");
+    fs::write(dist.join("agents/index.html"), agents_page.into_string()).expect("Failed to write agents/index.html");
+    println!("  [PAGE] Emitted /agents/ ({} repositories)", agent_repos.listed().len());
     // /omega/: what Omega is, from data/omega.json (the omega repository's
     // docs/OMEGA.md), published next to it as /omega.json.
     let omega_page = render_page_layout(
@@ -551,6 +566,7 @@ const GENERATED_PAGES: &[(&str, usize)] = &[
     ("omega/index.html", 30),
     ("cudaplusplus/index.html", 12),
     ("progress/index.html", 0),
+    ("agents/index.html", 10),
     ("blog/index.html", 2),
     ("blog/aien-v3-research-plan/index.html", 0),
 ];
@@ -577,6 +593,27 @@ fn main() {
             gathered.decisions.len(),
             gathered.receipt.state,
             &gathered.receipt.sha[..gathered.receipt.sha.len().min(12)],
+            start.elapsed()
+        );
+        return;
+    }
+
+    // `agents [out.json]`: read every public repository of the organization and
+    // the agent brief it carries (AGENTS.md or CLAUDE.md). Read-only, needs `gh`.
+    if first_arg == "agents" {
+        let out = std::env::args().nth(2).unwrap_or_else(|| components::agents::DATA_PATH.to_string());
+        let gathered = components::agents::gather().unwrap_or_else(|e| {
+            eprintln!("agents: {e}");
+            std::process::exit(1);
+        });
+        gathered.save(Path::new(&out)).unwrap_or_else(|e| {
+            eprintln!("agents: cannot write {out}: {e}");
+            std::process::exit(1);
+        });
+        println!(
+            "  [AGENTS] {out}: {} public repositories, {} with a brief ({:.2?})",
+            gathered.repos.len(),
+            gathered.repos.iter().filter(|r| r.brief.is_some()).count(),
             start.elapsed()
         );
         return;

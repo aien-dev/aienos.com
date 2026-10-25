@@ -28,7 +28,7 @@
       "branch": "qwen38/serve-fast",
       "on_main": false,
       "more": [
-        { "label": "First native boot, 2026-09-24", "link": "https://github.com/aien-dev/aienos-mv/blob/main/evidence/m2_first_boot_2026-09-24.md" },
+        { "label": "First native boot, 2026-09-24", "link": "https://github.com/aien-dev/aienux/blob/main/evidence/m2_first_boot_2026-09-24.md" },
         { "label": "Fresh-account alpha test, 2026-10-19", "link": "https://github.com/aien-dev/aien-sovereign-core-mv/tree/alpha/fresh-account-evidence/evidence/alpha-fresh-account-20261019" }
       ]
     },
@@ -40,14 +40,14 @@
       "today": "Boots the kernel from its own disk or netbooted from the Spark as a signed image, and sends a boot report back over the network. The kernel it runs today is in the open iMac pull request stack, not yet on main.",
       "evidence_date": "2026-10-17",
       "evidence": "iMac batch run: all cores, both disks read, Ethernet seen (evidence/imac_kernel1_2026-10-17, on main)",
-      "link": "https://github.com/aien-dev/aienos-mv/blob/main/evidence/imac_kernel1_2026-10-17",
+      "link": "https://github.com/aien-dev/aienux/blob/main/evidence/imac_kernel1_2026-10-17",
       "branch": "main (evidence); kernel in PR #418 stack",
       "on_main": true,
       "more": [
-        { "label": "The x86 port", "link": "https://github.com/aien-dev/aienos-mv/blob/main/native/kernel/x86" },
-        { "label": "PR #414 netboot", "link": "https://github.com/aien-dev/aienos-mv/pull/414" },
-        { "label": "PR #418 boot disk", "link": "https://github.com/aien-dev/aienos-mv/pull/418" },
-        { "label": "PR #424 screensaver", "link": "https://github.com/aien-dev/aienos-mv/pull/424" }
+        { "label": "The x86 port", "link": "https://github.com/aien-dev/aienux/blob/main/native/kernel/x86" },
+        { "label": "PR #414 netboot", "link": "https://github.com/aien-dev/aienux/pull/414" },
+        { "label": "PR #418 boot disk", "link": "https://github.com/aien-dev/aienux/pull/418" },
+        { "label": "PR #424 screensaver", "link": "https://github.com/aien-dev/aienux/pull/424" }
       ]
     },
     {
@@ -58,13 +58,13 @@
       "today": "Kernel runs are per test, from an SD image written for each run; no resident kernel is claimed. The house server runs readings-window, a read-only window onto the Spark's readings, and pi-register, the register of its services.",
       "evidence_date": "2026-10-13",
       "evidence": "Hardware runs: interrupts, four cores, user-mode tasks, scheduling, message passing, a log written to SD and read back (evidence/pi5_hardware_runs_2026-10-13, on main)",
-      "link": "https://github.com/aien-dev/aienos-mv/blob/main/evidence/pi5_hardware_runs_2026-10-13",
+      "link": "https://github.com/aien-dev/aienux/blob/main/evidence/pi5_hardware_runs_2026-10-13",
       "branch": "main",
       "on_main": true,
       "more": [
-        { "label": "PR #345", "link": "https://github.com/aien-dev/aienos-mv/pull/345" },
-        { "label": "PR #346", "link": "https://github.com/aien-dev/aienos-mv/pull/346" },
-        { "label": "PR #402 ALLEN REFLEX on the Pi image (open)", "link": "https://github.com/aien-dev/aienos-mv/pull/402" },
+        { "label": "PR #345", "link": "https://github.com/aien-dev/aienux/pull/345" },
+        { "label": "PR #346", "link": "https://github.com/aien-dev/aienux/pull/346" },
+        { "label": "PR #402 ALLEN REFLEX on the Pi image (open)", "link": "https://github.com/aien-dev/aienux/pull/402" },
         { "label": "readings-window", "link": "https://github.com/aien-dev/readings-window" },
         { "label": "pi-register", "link": "https://github.com/aien-dev/pi-register" }
       ]
@@ -77,11 +77,11 @@
       "today": "Core-only and full AIENOS kernel images for AArch64, the iMac kernel image for x86, the Atlas boot seed and the recovery images.",
       "evidence_date": "2026-10-09",
       "evidence": "24 of 24 emulator gates PASS at 7f0de7e (receipt on main). The gate script now lists 26 gates, so a newer receipt is owed.",
-      "link": "https://github.com/aien-dev/aienos-mv/blob/main/evidence/ck_gates_29ed03c97454354a18676f768273dd7f7a8e15462c4be1939d9994d277d0d639.json",
+      "link": "https://github.com/aien-dev/aienux/blob/main/evidence/ck_gates_29ed03c97454354a18676f768273dd7f7a8e15462c4be1939d9994d277d0d639.json",
       "branch": "main",
       "on_main": true,
       "more": [
-        { "label": "The gate list", "link": "https://github.com/aien-dev/aienos-mv/blob/main/native/kernel/GATES.md" },
+        { "label": "The gate list", "link": "https://github.com/aien-dev/aienux/blob/main/native/kernel/GATES.md" },
         { "label": "Atlas, the boot seed", "link": "https://github.com/aien-dev/atlas" }
       ]
     },

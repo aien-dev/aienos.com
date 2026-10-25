@@ -187,7 +187,7 @@ pub fn evidence_box(link: &Option<String>, evidence: &str) -> (String, Target) {
 fn github_for_evidence(evidence: &str) -> Option<String> {
     let mut text = evidence.trim();
     let mut repo = "omega-mv";
-    for (prefix, r) in [("aienos ", "aienos-mv"), ("aien-architecture ", "aien-architecture-mv"), ("atlas ", "atlas"), ("omega ", "omega-mv")] {
+    for (prefix, r) in [("aienos ", "aienux"), ("aien-architecture ", "aien-architecture-mv"), ("atlas ", "atlas"), ("omega ", "omega-mv")] {
         if let Some(rest) = text.strip_prefix(prefix) {
             repo = r;
             text = rest;
@@ -1168,7 +1168,7 @@ mod box_tests {
         );
         assert_eq!(
             github_for_evidence("aienos native/argus/docs/ARGUS0_GATES.md:3; ARGUS1_GATES.md:6"),
-            Some("https://github.com/aien-dev/aienos-mv/blob/main/native/argus/docs/ARGUS0_GATES.md#L3".into())
+            Some("https://github.com/aien-dev/aienux/blob/main/native/argus/docs/ARGUS0_GATES.md#L3".into())
         );
         assert_eq!(
             github_for_evidence("aien-architecture doctrine/ROADMAP.md rows M0-M40"),
