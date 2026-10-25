@@ -47,10 +47,24 @@ jobs:
           else
             echo "no data/now branch yet; /now/ renders empty"
           fi
+      # The collector walks the public GitHub record; a slow or rate-limited
+      # API must not hold the whole deploy (it did twice on 2026-10-25). It is
+      # bounded, written to a temp file, and the committed file stays in place
+      # when it does not finish.
       - name: Collect public project history
+        timeout-minutes: 6
         env:
           GH_TOKEN: ${{ github.token }}
-        run: cargo run --release --manifest-path crates/site-builder/Cargo.toml -- progress public/data/project-progress.json
+        run: |
+          set -euo pipefail
+          tmp=$(mktemp)
+          if timeout 240 cargo run --release --manifest-path crates/site-builder/Cargo.toml -- progress "$tmp"; then
+            mv "$tmp" public/data/project-progress.json
+            echo "progress: collected"
+          else
+            rm -f "$tmp"
+            echo "progress: collector timed out or failed; keeping the committed project-progress.json"
+          fi
       - name: Refresh facts from the public GitHub record
         env:
           GH_TOKEN: ${{ github.token }}
