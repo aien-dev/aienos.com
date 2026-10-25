@@ -103,6 +103,11 @@ pub fn render_start_page() -> Markup {
                         ": the rules our agents follow and each repository's own instructions."
                     }
                     p {
+                        "For .om coding work, "
+                        a href="/agents/#omega-operator" { "install and operate the Omega Harness agent skills" }
+                        ". These guide an existing agent through source checks and evidence, but do not install the AienOS runtime or grant hardware access."
+                    }
+                    p {
                         "There is no supported installer for the runtime yet. To reproduce a result, follow the receipt on its evidence card. To reproduce the site, build it from the repository."
                     }
                 }
