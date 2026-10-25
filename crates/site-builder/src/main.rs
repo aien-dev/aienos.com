@@ -210,7 +210,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
         components::hive::URL,
         "website",
         html! {
-            link rel="stylesheet" href="/assets/hive.css?v=facfc75b8ce5";
+            link rel="stylesheet" href="/assets/hive.css?v=99d3b8c64cb4";
             script defer src="/js/hive.js" {}
         },
         components::hive::render_hive_page(),
