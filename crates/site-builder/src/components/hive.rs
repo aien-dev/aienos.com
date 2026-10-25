@@ -2,21 +2,21 @@
 use maud::{html, Markup};
 use crate::components::boxlink::{foot, Target};
 
-pub const TITLE: &str = "The Hive | AIENOS";
-pub const DESCRIPTION: &str = "Watch Drake and the AIEN coding agents work in public: real missions, nested agents, exact models and live conversations. Learn how to build with AI.";
+pub const TITLE: &str = "The Universe | AIENOS";
+pub const DESCRIPTION: &str = "An open universe of Drake and the AIEN coding agents at work: real bodies, nested orbits, exact models and live conversation. Zoom out, drift, and read what is actually happening.";
 pub const URL: &str = "https://www.aienos.com/hive/";
 const SOURCE: &str = "https://github.com/aien-dev/aienos.com/blob/main/crates/site-builder/src/components/hive.rs";
 
 pub fn render_hive_page() -> Markup {
     html! {
         div class="hive" id="hive" data-motion="off" data-fresh="false" {
-            nav class="hive-breadcrumb" aria-label="Breadcrumb" { a href="/now/" { "Now" } span aria-hidden="true" { " / " } span { "Hive" } }
+            nav class="hive-breadcrumb" aria-label="Breadcrumb" { a href="/now/" { "Now" } span aria-hidden="true" { " / " } span { "Universe" } }
             header class="hive-masthead" {
                 div {
-                    p class="hive-eyebrow" { "An open observatory / AIEN" }
-                    h1 { "The hive" span class="hive-period" { "." } }
-                    p class="hive-intro" { "Drake. A constellation of agents. Real work, unfolding in the open." }
-                    p class="hive-welcome" { "Welcome aboard. Watch Drake and the agents build, question, get things wrong and try again. You do not need to know how any of this works to begin." }
+                    p class="hive-eyebrow" { "An open universe / AIEN" }
+                    h1 { "The universe" span class="hive-period" { "." } }
+                    p class="hive-intro" { "Drake. A system of agents. Real work, unfolding in the open." }
+                    p class="hive-welcome" { "Welcome. Move through the universe Drake and the agents actually occupy: every body is one observed session, with its own orbit, model and work. Watch it build, question, get things wrong and try again. You do not need to know how any of this works to begin." }
                     a class="hive-learn" href="/learn/" { "Learn to build with AI" span aria-hidden="true" { " ↗" } }
                 }
                 div class="hive-reception" {
@@ -31,14 +31,13 @@ pub fn render_hive_page() -> Markup {
                 }
             }
             nav class="hive-jumps" aria-label="Observatory sections" {
-                a href="#hive-atlas" { "Orbital atlas" }
-                a href="#hive-missions" { "Current missions" }
-                a href="#hive-manifest" { "Selected mission" }
+                a href="#hive-atlas" { "The universe" }
+                a href="#hive-manifest" { "Selected body" }
                 a href="#hive-conversations" { "Drake ↔ agents" }
             }
             section class="hive-atlas-section" id="hive-atlas" aria-labelledby="hive-atlas-title" {
                 div class="hive-section-head" {
-                    div { p class="hive-eyebrow" { "01 / Flight paths" } h2 id="hive-atlas-title" { "The night fleet" } }
+                    div { p class="hive-eyebrow" { "01 / The observable universe" } h2 id="hive-atlas-title" { "Everything that is working" } }
                     p id="hive-counts" { "Awaiting the first source observation." }
                 }
                 p id="hive-coverage" class="hive-coverage" { "Coverage is not yet known. This view never assumes it can see every agent." }
@@ -52,35 +51,30 @@ pub fn render_hive_page() -> Markup {
                             ellipse cx="530" cy="340" rx="550" ry="178" transform="rotate(-18 530 340)" {}
                             ellipse cx="530" cy="340" rx="400" ry="245" transform="rotate(24 530 340)" {}
                             ellipse cx="530" cy="340" rx="230" ry="290" transform="rotate(-38 530 340)" {}
-                            circle cx="530" cy="340" r="52" {}
-                            path d="M510 340h40M530 320v40" {}
                         }
                     }
-                    p class="hive-atlas-coordinate" aria-hidden="true" { "AIEN / PUBLIC OBSERVATIONS" }
-                    div id="hive-ships" class="hive-ships" {}
+                    p class="hive-atlas-coordinate" aria-hidden="true" { "AIEN / OBSERVED BODIES" }
+                    div class="universe" id="hive-universe" tabindex="0" role="group" aria-label="Interactive map of observed agents. Drag to move, scroll or pinch to zoom, arrow keys to pan." {
+                        div class="universe-world" id="hive-world" {}
+                    }
                     div id="hive-atlas-empty" class="hive-atlas-empty" { p class="hive-eyebrow" { "The sky is open" } p { "Waiting for a signal." } span { "Real agents appear here when the source reports them. Nothing is simulated." } }
-                    p class="hive-atlas-legend" { span { "◇ Root mission" } span { "› Nested agent" } span { "Select a ship to read its work" } }
                 }
-                div class="hive-sector-controls" {
-                    button id="hive-sector-prev" type="button" disabled { "Previous sector" }
-                    p id="hive-sector-label" { "All observed missions appear in the outline below." }
-                    button id="hive-sector-next" type="button" disabled { "Next sector" }
+                div class="universe-bar" {
+                    div class="universe-zoom" role="group" aria-label="Zoom" {
+                        button id="hive-zoom-out" type="button" { "Zoom out" }
+                        button id="hive-zoom-reset" type="button" { "Reset view" }
+                        button id="hive-zoom-in" type="button" { "Zoom in" }
+                    }
+                    div class="hive-search" { label for="hive-search" { "Find an agent, model or task" } input id="hive-search" type="search" placeholder="Find an agent" autocomplete="off"; }
+                    p id="hive-search-count" class="hive-small" {}
                 }
             }
             div class="hive-workspace" {
-                section id="hive-missions" class="hive-missions" aria-labelledby="hive-missions-title" {
-                    p class="hive-eyebrow" { "02 / The complete observed tree" }
-                    h2 id="hive-missions-title" { "Current missions" }
-                    p class="hive-section-note" { "Every reported branch, open from the start. A working light describes an agent's reported state, not a measure of progress." }
-                    div class="hive-search" { label for="hive-search" { "Find an agent, model or task" } input id="hive-search" type="search" placeholder="Search the fleet" autocomplete="off"; }
-                    p id="hive-search-count" class="hive-small" {}
-                    p id="hive-tree-empty" class="hive-empty" { "No snapshot received yet. The last useful observation will stay here if the connection drops." }
-                    ul id="hive-tree" class="hive-tree" {}
-                }
                 aside id="hive-manifest" class="hive-manifest hub-card" aria-labelledby="hive-manifest-title" {
-                    p class="hive-eyebrow" { "03 / Mission manifest" }
-                    h2 id="hive-manifest-title" { "Select a ship" }
-                    p id="hive-manifest-context" { "Choose any root or nested agent. Its exact model, task and source times will appear here." }
+                    p class="hive-eyebrow" { "02 / Selected body" }
+                    h2 id="hive-manifest-title" { "Select a body" }
+                    p id="hive-manifest-context" { "Choose any body in the universe. Its exact model, task and source times appear here." }
+                    p id="hive-idle" class="hive-idle" hidden {}
                     div id="hive-manifest-body" hidden {
                         p id="hive-manifest-state" class="hive-state" {}
                         dl id="hive-manifest-identity" class="hive-identity" {}
@@ -96,7 +90,7 @@ pub fn render_hive_page() -> Markup {
             }
             section id="hive-conversations" class="hive-conversations hub-card" aria-labelledby="hive-conversations-title" {
                 div class="hive-section-head" {
-                    div { p class="hive-eyebrow" { "04 / The conversation deck" } h2 id="hive-conversations-title" { "Drake ↔ agents" } }
+                    div { p class="hive-eyebrow" { "03 / The conversation deck" } h2 id="hive-conversations-title" { "Drake ↔ agents" } }
                     div class="hive-conversation-controls" role="group" aria-label="Conversation scope" {
                         button id="hive-chat-all" type="button" aria-pressed="true" { "All agents" }
                         button id="hive-chat-selected" type="button" aria-pressed="false" { "Selected agent" }

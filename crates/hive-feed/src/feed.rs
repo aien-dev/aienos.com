@@ -15,7 +15,7 @@ fn safe_date(v: &Value) -> Option<String> { milliseconds(v).map(timestamp) }
 pub struct Agent {
     pub id: String, pub parent_id: Option<String>, pub name: String, pub runtime: String,
     pub provider: String, pub model: String, pub role: String, pub task: String, pub status: String,
-    pub activity: String, pub activity_state: String, pub started_at: Option<String>, pub updated_at: Option<String>, pub observed_at: String,
+    pub activity: String, pub activity_state: String, pub idle_reason: Option<String>, pub started_at: Option<String>, pub updated_at: Option<String>, pub observed_at: String,
 }
 /// The receiver, the client validator and this collector share one window size.
 const INTERACTION_WINDOW: usize = 100;
@@ -25,7 +25,21 @@ pub struct Interaction { pub id: String, pub agent_id: String, pub role: String,
 pub struct Coverage { label: &'static str, roots: usize, agents: usize, complete: bool, notice: String }
 #[derive(Serialize)]
 pub struct Feed { schema_version: u8, generated_at: String, sequence: String, poll_ms: u32, stale_after_ms: u32, coverage: Coverage, agents: Vec<Agent>, interactions: Vec<Interaction> }
-struct Node { public: Agent, root: String, seen: i64, terminal: Option<i64>, tools: BTreeMap<String,(String,String)>, placeholder: bool, unavailable: Option<(String,String)>, has_summary: bool }
+struct Node { public: Agent, root: String, seen: i64, terminal: Option<i64>, tools: BTreeMap<String,(String,String)>, placeholder: bool, unavailable: Option<(String,String)>, has_summary: bool, signals: VecDeque<String> }
+
+/// Why an idle agent is idle, from the tail of its own transcript. The words
+/// published here are one of these fixed reasons, never raw session text.
+const USAGE_LIMIT_MARKERS: [&str; 9] = ["usage limit","rate limit","rate-limit","quota","credits","429","too many requests","limit exceeded","resets at"];
+
+fn idle_reason(node: &Node) -> Option<String> {
+    if node.public.status != "idle" && node.public.status != "waiting" { return None; }
+    let recent: String = node.signals.iter().rev().take(6).cloned().collect::<Vec<_>>().join(" ");
+    if USAGE_LIMIT_MARKERS.iter().any(|m| recent.contains(m)) { return Some("usage-limit".into()); }
+    if node.public.status == "waiting" || recent.contains("awaiting input") { return Some("awaiting-input".into()); }
+    if recent.contains("session ended") { return Some("ended".into()); }
+    if recent.contains("reported an error") || recent.contains("tool error") { return Some("error".into()); }
+    Some("unknown".into())
+}
 pub struct Collector {
     salt: Vec<u8>, since: i64, sequence: u64, nodes: BTreeMap<String,Node>, cursors: HashMap<PathBuf,Cursor>,
     interactions: VecDeque<Interaction>, seen_events: HashSet<String>, known_hosts: HashMap<u32,String>, task_summaries: HashMap<String,String>,
@@ -41,7 +55,7 @@ impl Collector {
         if self.nodes.contains_key(key) { return; }
         let id = self.id(key); let parent_id = parent.map(|p| self.id(p));
         let summary = self.task_summaries.get(key);
-        self.nodes.insert(key.to_owned(), Node { public: Agent { id, parent_id, name: label(name, "Agent"), runtime: "OMP".into(), provider: "unknown".into(), model: "unknown".into(), role: if parent.is_some() { "worker" } else { "root" }.into(), task: summary.cloned().unwrap_or_else(|| label(name, "Task label withheld")), status: "unknown".into(), activity: "No action observed".into(), activity_state: "unknown".into(), started_at: None, updated_at: None, observed_at: timestamp(now) }, root: root.to_owned(), seen: now, terminal: None, tools: BTreeMap::new(), placeholder: true, unavailable: None, has_summary: summary.is_some() });
+        self.nodes.insert(key.to_owned(), Node { public: Agent { id, parent_id, name: label(name, "Agent"), runtime: "OMP".into(), provider: "unknown".into(), model: "unknown".into(), role: if parent.is_some() { "worker" } else { "root" }.into(), task: summary.cloned().unwrap_or_else(|| label(name, "Task label withheld")), status: "unknown".into(), activity: "No action observed".into(), activity_state: "unknown".into(), idle_reason: None, started_at: None, updated_at: None, observed_at: timestamp(now) }, root: root.to_owned(), seen: now, terminal: None, tools: BTreeMap::new(), placeholder: true, unavailable: None, has_summary: summary.is_some(), signals: VecDeque::new() });
     }
     fn model(node: &mut Node, raw: &str, provider: Option<&str>) {
         let (p,m) = if let Some(p) = provider { (p,raw) } else { raw.split_once('/').unwrap_or(("unknown",raw)) };
@@ -76,6 +90,25 @@ impl Collector {
         let kind = text(value,"type"); let custom = text(value,"customType");
         let at = safe_date(&value["timestamp"]);
         let event_time = milliseconds(&value["timestamp"]).unwrap_or(now);
+        // Private diagnosis of idleness. These raw fragments never leave the
+        // collector; only the fixed reason computed from them is published.
+        {
+            let m = value.get("message").unwrap_or(value);
+            let mut note = String::new();
+            if let Some(parts) = m["content"].as_array() {
+                for part in parts { if part["type"] == "text" { if let Some(t) = part["text"].as_str() { note.push_str(t); note.push('\n'); } } }
+            }
+            if text(m,"role") == "toolResult" && (m["isError"] == true || text(m,"error").len() > 0) { note.push_str("tool reported an error\n"); }
+            if custom == "session_exit" { note.push_str(&format!("session ended {}\n", text(&value["data"],"kind"))); }
+            if text(value,"type") == "error" || value["error"].is_string() { note.push_str("error reported\n"); }
+            if !note.is_empty() {
+                if let Some(node) = self.nodes.get_mut(key) {
+                    let note: String = note.chars().take(600).collect::<String>().to_lowercase();
+                    node.signals.push_back(note);
+                    while node.signals.len() > 12 { node.signals.pop_front(); }
+                }
+            }
+        }
         if let Some(node) = self.nodes.get_mut(key) {
             node.placeholder = false;
             if kind == "title" && !node.has_summary && !text(value,"title").trim().is_empty() { node.public.task = label(text(value,"title"), "Task label withheld"); }
@@ -281,6 +314,7 @@ impl Collector {
             if visible.len() == before { break; }
         }
         self.nodes.retain(|_,n| roots.contains(&n.root) || visible.contains(&n.public.id));
+        for node in self.nodes.values_mut() { node.public.idle_reason = idle_reason(node); }
         let agents: Vec<_> = self.nodes.values().filter(|n| visible.contains(&n.public.id)).map(|n| n.public.clone()).collect();
         let mut interactions: Vec<_> = self.interactions.iter().cloned().collect(); interactions.sort_by(|a,b| a.at.cmp(&b.at));
         Feed { schema_version: 1, generated_at: timestamp(now), sequence: self.id(&format!("snapshot:{now}:{}",self.sequence)), poll_ms: 1000, stale_after_ms: 15000,

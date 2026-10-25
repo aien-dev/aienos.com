@@ -157,3 +157,15 @@ impl Drop for Fixture { fn drop(&mut self) { let _ = fs::remove_dir_all(&self.di
     let output=serde_json::to_string(&c.nodes.values().map(|n| &n.public).collect::<Vec<_>>()).unwrap();
     assert!(!output.contains("CANARY")); assert!(c.interactions.is_empty());
 }
+
+#[test] fn idle_agent_names_its_reason() {
+    let f=Fixture::new();
+    fs::write(&f.hosts,json!({"version":1,"hosts":[{"sessionId":"private-root","sessionName":"Rate limited run","pid":12345,"busy":false,"model":{"provider":"anthropic","id":"claude-opus-5-5"},"startedAt":1000}]}).to_string()).unwrap();
+    f.append(json!({"type":"message","timestamp":900,"message":{"role":"assistant","content":[{"type":"text","text":"You have hit your usage limit. It resets at 3pm."}]}}));
+    let mut c=Collector::new(vec![8;32],500);
+    let feed=c.poll(&f.sessions,Some(&f.hosts),2000);
+    assert_eq!(feed.agents[0].status,"idle");
+    assert_eq!(feed.agents[0].idle_reason.as_deref(),Some("usage-limit"));
+    let reason = feed.agents[0].idle_reason.clone().unwrap();
+    assert!(!reason.contains("3pm") && reason.len() < 20, "the published reason is a fixed label, never transcript text: {reason}");
+}

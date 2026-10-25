@@ -1,82 +1,66 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 200" role="img" aria-labelledby="title desc">
-  <title id="title">Keeper, the dachshund at the merge desk</title>
-  <desc id="desc">A warm chestnut dachshund with floppy ears, little paws and a gold key on a red collar. Keeper breathes gently, blinks, and wags his tail.</desc>
+  <title id="title">Keeper, the merge desk</title>
+  <desc id="desc">Three queued streams of light curve in from the left, pass through a copper aperture, and leave as one settled line with three merged nodes. Nothing is boxed; the whole figure is drawn from flowing arcs.</desc>
   <defs>
-    <linearGradient id="coat" x1="0" y1="0" x2="0.2" y2="1">
-      <stop stop-color="#cf824d"/><stop offset=".55" stop-color="#ad572d"/><stop offset="1" stop-color="#823c23"/>
+    <linearGradient id="stream" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#a4adbb" stop-opacity=".18"/>
+      <stop offset=".55" stop-color="#eee5d4" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#d6aa7a" stop-opacity=".95"/>
     </linearGradient>
-    <linearGradient id="ear" x1="0" y1="0" x2="1" y2="1">
-      <stop stop-color="#874324"/><stop offset="1" stop-color="#542a20"/>
+    <linearGradient id="settled" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#d6aa7a" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#eee5d4" stop-opacity=".35"/>
     </linearGradient>
-    <linearGradient id="tan" x1="0" y1="0" x2="0" y2="1">
-      <stop stop-color="#f0bf80"/><stop offset="1" stop-color="#d99453"/>
-    </linearGradient>
-    <linearGradient id="collar" x1="0" y1="0" x2="1" y2="1">
-      <stop stop-color="#ed6557"/><stop offset="1" stop-color="#af302f"/>
-    </linearGradient>
+    <radialGradient id="halo" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#d6aa7a" stop-opacity=".38"/>
+      <stop offset=".55" stop-color="#c88e4b" stop-opacity=".12"/>
+      <stop offset="1" stop-color="#c88e4b" stop-opacity="0"/>
+    </radialGradient>
+    <style>
+      .queue { fill:none; stroke:url(#stream); stroke-width:1.6; stroke-linecap:round; }
+      .queue--b { stroke-width:2.2; }
+      .settled { fill:none; stroke:url(#settled); stroke-width:2; stroke-linecap:round; stroke-dasharray:3 7; animation:carry 9s linear infinite; }
+      .gate { fill:none; stroke:#d6aa7a; stroke-width:1.8; }
+      .gate-core { fill:none; stroke:#eee5d4; stroke-width:1; opacity:.7; }
+      .glow { fill:url(#halo); }
+      .node { fill:#eee5d4; opacity:.85; }
+      .node--warm { fill:#d6aa7a; }
+      .base { stroke:#3a3630; stroke-width:1; }
+      .tick { stroke:#4a453e; stroke-width:1; }
+      .pulse { transform-origin:300px 120px; animation:breathe 6s ease-in-out infinite; }
+      .flicker { animation:flicker 7s ease-in-out infinite; }
+      .flicker--2 { animation-delay:-2.5s; }
+      .flicker--3 { animation-delay:-4.5s; }
+      @keyframes breathe { 0%,100% { opacity:.55; } 50% { opacity:1; } }
+      @keyframes flicker { 0%,100% { opacity:.45; } 50% { opacity:.9; } }
+      @keyframes carry { to { stroke-dashoffset:-20; } }
+      @media (prefers-reduced-motion:reduce) { * { animation:none !important; } }
+    </style>
   </defs>
-  <style>
-    /* Paws stay planted. Each small movement has its own rhythm. */
-    .breath { transform-origin: 285px 151px; animation: breathe 4s ease-in-out infinite; }
-    .tail { transform-origin: 132px 108px; animation: wag 1.15s ease-in-out infinite; }
-    .head { transform-origin: 432px 107px; animation: look 8s ease-in-out infinite; }
-    .ear { transform-origin: 458px 48px; animation: ear-sway 8s ease-in-out infinite; }
-    .eye { transform-origin: 493px 49px; animation: blink 6.7s linear infinite; }
-    .key { transform-origin: 425px 111px; animation: key-sway 4s ease-in-out infinite; }
-    @keyframes breathe { 0%,100% { transform: scaleY(1); } 50% { transform: scaleY(1.025); } }
-    @keyframes wag { 0%,100% { transform: rotate(-8deg); } 50% { transform: rotate(13deg); } }
-    @keyframes look { 0%,24%,64%,100% { transform: rotate(0deg); } 36%,49% { transform: rotate(-3deg); } 78%,86% { transform: rotate(1.5deg); } }
-    @keyframes ear-sway { 0%,24%,64%,100% { transform: rotate(0deg); } 39%,49% { transform: rotate(4deg); } 80%,86% { transform: rotate(-2deg); } }
-    @keyframes blink { 0%,42%,46%,75%,79%,100% { transform: scaleY(1); } 44%,77% { transform: scaleY(.08); } }
-    @keyframes key-sway { 0%,100% { transform: rotate(-5deg); } 50% { transform: rotate(6deg); } }
-    @media (prefers-reduced-motion: reduce) { .breath,.tail,.head,.ear,.eye,.key { animation: none; } }
-    /* The same drawing is also used as a tiny owner marker. Keep those still. */
-    @media (max-width: 100px) { .breath,.tail,.head,.ear,.eye,.key { animation: none; } }
-  </style>
-  <ellipse cx="302" cy="181" rx="206" ry="8" fill="#1d1511" opacity=".12"/>
-  <g stroke="#61331f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-    <!-- Far paws and near paws share a ground line, with rounded toes. -->
-    <path d="M171 131 Q181 140 176 158 L175 170 Q190 169 193 177 Q193 181 185 181 H163 Q156 180 157 172 L155 139Z" fill="#794027"/>
-    <path d="M382 132 L398 132 L398 170 Q415 171 416 178 Q416 181 409 181 H386 Q379 181 380 173Z" fill="#794027"/>
-    <path d="M138 129 Q158 127 164 141 L156 170 Q172 170 174 178 Q174 183 166 183 H142 Q132 182 134 171 L131 146Z" fill="url(#coat)"/>
-    <path d="M410 130 L432 128 L429 169 Q445 170 448 178 Q449 183 439 183 H417 Q407 183 408 174Z" fill="url(#coat)"/>
-    <path d="M142 177 V181 M151 177 V182 M419 177 V182 M429 177 V182" stroke="#66351f" stroke-width="1.5"/>
-    <g class="breath">
-      <path class="tail" d="M139 108 C112 100 92 83 77 56 C73 49 69 49 70 57 C74 85 94 114 126 124Z" fill="url(#coat)"/>
-      <path d="M127 94 C156 77 210 86 269 87 L373 86 Q405 86 424 67 Q441 62 451 84 L451 119 Q444 146 420 151 C391 158 363 149 338 146 L191 146 Q154 156 132 142 C111 131 108 109 127 94Z" fill="url(#coat)"/>
-      <path d="M166 139 C223 129 298 142 350 137 Q402 147 431 124 Q429 145 411 147 C379 152 361 143 338 142 L192 143Z" fill="#e2a465" opacity=".65" stroke="none"/>
-      <path d="M145 96 C193 88 245 98 297 96" fill="none" stroke="#ecac6e" stroke-width="5" opacity=".32"/>
-      <path d="M135 119 Q147 112 158 119" fill="none" stroke="#874625" stroke-width="2" opacity=".5"/>
-      <g class="head">
-        <!-- Neck and muzzle are one silhouette; the ear hangs over the join. -->
-        <path d="M408 99 C417 84 424 72 429 51 C433 30 449 22 469 25 C491 24 503 36 512 49 C521 57 541 58 552 62 Q566 65 564 75 C562 87 541 92 518 89 Q490 88 478 105 L452 127 Q425 123 408 99Z" fill="url(#coat)"/>
-        <path d="M503 56 C519 65 539 63 554 68 Q559 76 548 82 C533 88 513 83 501 79 Q491 71 503 56Z" fill="url(#tan)" stroke="none"/>
-        <path d="M477 91 Q470 111 450 122 L436 115 Q458 105 460 84Z" fill="url(#tan)" stroke="none"/>
-        <path d="M414 91 Q428 108 452 113 L448 124 Q423 119 408 102Z" fill="url(#collar)"/>
-        <path d="M415 96 Q429 111 447 115" fill="none" stroke="#ff9c82" stroke-width="2" opacity=".7"/>
-        <g class="key" stroke="#986127" stroke-width="1.8" fill="#edbc56">
-          <circle cx="425" cy="114" r="3.5" fill="none"/>
-          <path d="M425 117 A7 7 0 1 0 425 131 L425 145 L431 145 L431 141 L435 141 L435 136 L430 136 L430 130 A7 7 0 0 0 425 117Z"/>
-          <circle cx="425" cy="124" r="2.5" fill="#a86032"/>
-          <path d="M427 132 V141" stroke="#ffdf85" stroke-width="1.5"/>
-        </g>
-        <g class="ear">
-          <path d="M458 39 C441 37 434 50 437 68 L444 99 C447 114 459 116 467 104 C476 88 481 62 474 48 Q469 40 458 39Z" fill="url(#ear)"/>
-          <path d="M451 47 Q444 55 448 72 L454 94" fill="none" stroke="#b37343" stroke-width="4" opacity=".5"/>
-        </g>
-        <path d="M483 37 Q490 32 497 36" fill="none" stroke="#e9ae72" stroke-width="4"/>
-        <g class="eye" stroke="none">
-          <ellipse cx="493" cy="49" rx="6" ry="7.5" fill="#281d18"/>
-          <circle cx="495" cy="46.5" r="2.2" fill="#fff6e5"/>
-          <circle cx="490.5" cy="52" r=".9" fill="#cb9f79"/>
-        </g>
-        <path d="M551 61 Q563 60 566 66 Q567 73 558 77 Q550 74 548 68 Q547 64 551 61Z" fill="#302320" stroke="#302320"/>
-        <path d="M553 65 Q558 63 561 66" fill="none" stroke="#79615a" stroke-width="2"/>
-        <path d="M516 84 Q525 96 535 87 L535 82" fill="#db7c7a" stroke-width="1.8"/>
-        <path d="M526 86 L527 91" fill="none" stroke="#a75353" stroke-width="1.3"/>
-        <path d="M502 78 Q516 87 538 81" fill="none" stroke="#693924" stroke-width="2"/>
-        <circle cx="510" cy="70" r="1.1" fill="#aa7148" stroke="none"/>
-      </g>
-    </g>
+
+  <ellipse class="glow pulse" cx="300" cy="120" rx="96" ry="82"/>
+
+  <path class="queue flicker flicker--2" d="M36 78 C132 78 206 112 296 119"/>
+  <path class="queue queue--b" d="M36 120 C120 120 214 120 296 120"/>
+  <path class="queue flicker flicker--3" d="M36 162 C132 162 206 128 296 121"/>
+
+  <path class="gate pulse" d="M300 62 C346 90 346 150 300 178 C254 150 254 90 300 62 Z"/>
+  <path class="gate-core" d="M300 86 C328 106 328 134 300 154 C272 134 272 106 300 86 Z"/>
+  <circle cx="300" cy="120" r="4.2" fill="#eee5d4"/>
+  <circle cx="300" cy="120" r="10.5" fill="none" stroke="#d6aa7a" stroke-width="1" opacity=".6"/>
+
+  <path class="settled" d="M304 120 C400 120 470 100 560 96"/>
+  <circle class="node" cx="392" cy="116" r="3"/>
+  <circle class="node node--warm" cx="452" cy="108" r="3.4"/>
+  <circle class="node" cx="522" cy="99" r="4"/>
+
+  <line class="base" x1="44" y1="178" x2="556" y2="178"/>
+  <g class="tick">
+    <line x1="92" y1="178" x2="92" y2="184"/>
+    <line x1="164" y1="178" x2="164" y2="184"/>
+    <line x1="236" y1="178" x2="236" y2="184"/>
+    <line x1="364" y1="178" x2="364" y2="184"/>
+    <line x1="436" y1="178" x2="436" y2="184"/>
+    <line x1="508" y1="178" x2="508" y2="184"/>
   </g>
 </svg>

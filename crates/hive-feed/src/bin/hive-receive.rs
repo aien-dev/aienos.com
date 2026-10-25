@@ -49,13 +49,14 @@ fn validate(v: &Value) -> Result<(), ()> {
     if agents.len() > 10000 || c["agents"].as_u64() != Some(agents.len() as u64) { return Err(()); }
     let mut ids = HashSet::new();
     for a in agents {
-        object(a, &["id", "parent_id", "name", "runtime", "provider", "model", "role", "task", "status", "activity", "activity_state", "started_at", "updated_at", "observed_at"])?;
+        object(a, &["id", "parent_id", "name", "runtime", "provider", "model", "role", "task", "status", "activity", "activity_state", "idle_reason", "started_at", "updated_at", "observed_at"])?;
         if !ids.insert(ident(&a["id"])?) { return Err(()); }
         if !a["parent_id"].is_null() { ident(&a["parent_id"])?; }
         for k in ["name", "runtime", "provider", "model", "role"] { text(&a[k], LABEL_MAX)?; }
         for k in ["task", "activity"] { text(&a[k], BODY_MAX)?; }
         if !["working", "waiting", "idle", "completed", "failed", "unknown"].contains(&text(&a["status"], 20)?) { return Err(()); }
         if !["running", "finished", "unknown"].contains(&text(&a["activity_state"], 20)?) { return Err(()); }
+        if !a["idle_reason"].is_null() && !["usage-limit", "awaiting-input", "ended", "error", "unknown"].contains(&text(&a["idle_reason"], 20)?) { return Err(()); }
         stamp(&a["started_at"], true)?;
         stamp(&a["updated_at"], true)?;
         stamp(&a["observed_at"], false)?;
@@ -171,7 +172,7 @@ mod tests {
     #[test]
     fn accepts_the_collector_maximum_label_length() {
         let mut snapshot = empty();
-        let agent = serde_json::json!({"id":"a1","parent_id":null,"name":"x".repeat(LABEL_MAX),"runtime":"OMP","provider":"unknown","model":"unknown","role":"root","task":"t","status":"working","activity":"","activity_state":"unknown","started_at":null,"updated_at":null,"observed_at":"2026-10-25T20:00:00Z"});
+        let agent = serde_json::json!({"id":"a1","parent_id":null,"name":"x".repeat(LABEL_MAX),"runtime":"OMP","provider":"unknown","model":"unknown","role":"root","task":"t","status":"working","activity":"","activity_state":"unknown","idle_reason":null,"started_at":null,"updated_at":null,"observed_at":"2026-10-25T20:00:00Z"});
         snapshot["agents"] = serde_json::json!([agent]);
         snapshot["coverage"]["agents"] = 1.into();
         snapshot["coverage"]["roots"] = 1.into();

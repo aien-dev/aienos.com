@@ -13,7 +13,6 @@
   let received = null;
   let selected = null;
   let scope = 'all';
-  let sector = 0;
   let order = 0;
   let connected = false;
   let advancedAt = 0;
@@ -72,11 +71,12 @@
     const agents = new Map();
     let roots = 0;
     for (const agent of value.agents) {
-      if (!object(agent, ['id', 'parent_id', 'name', 'runtime', 'provider', 'model', 'role', 'task', 'status', 'activity', 'activity_state', 'started_at', 'updated_at', 'observed_at'])
+      if (!object(agent, ['id', 'parent_id', 'name', 'runtime', 'provider', 'model', 'role', 'task', 'status', 'activity', 'activity_state', 'idle_reason', 'started_at', 'updated_at', 'observed_at'])
         || !id(agent.id) || agents.has(agent.id) || !(agent.parent_id === null || id(agent.parent_id)) || agent.parent_id === agent.id
         || !['name', 'runtime', 'provider', 'model', 'role'].every(key => string(agent[key], 1000))
         || !string(agent.task, 12000, true) || !string(agent.activity, 12000, true)
         || !statuses.has(agent.status) || !actions.has(agent.activity_state)
+        || !(agent.idle_reason === null || ['usage-limit', 'awaiting-input', 'ended', 'error', 'unknown'].includes(agent.idle_reason))
         || !(agent.started_at === null || timestamp(agent.started_at)) || !(agent.updated_at === null || timestamp(agent.updated_at))
         || !timestamp(agent.observed_at)) fail();
       agents.set(agent.id, agent);
@@ -135,52 +135,33 @@
       else parent.insertBefore(node, cursor);
     }
   }
-  let pulseWindow = 0;
-  let pulseBudget = 0;
   function pulse(node) {
     if (page.dataset.motion !== 'on' || page.dataset.fresh !== 'true' || document.hidden) return;
-    // A busy fleet changes every second; a strobe of accents is not information.
-    const now = performance.now();
-    if (now - pulseWindow > 1000) { pulseWindow = now; pulseBudget = 3; }
-    if (pulseBudget <= 0) return;
-    pulseBudget--;
     node.classList.add('hive-changed');
     setTimeout(() => node.classList.remove('hive-changed'), 1300);
   }
+  const WORLD = { width: 2600, height: 1800 };
+  const camera = { x: 0, y: 0, scale: 0.62 };
+  const IDLE_TEXT = {
+    'usage-limit': 'idle because of a usage limit. The provider accepted no more work until it resets.',
+    'awaiting-input': 'idle because it is waiting for Drake to answer.',
+    'ended': 'idle because its session ended.',
+    'error': 'idle after a reported error, with no work since.',
+    'unknown': 'idle. The source reports no work and its transcript names no cause.'
+  };
+  function hashOf(value) { let h = 2166136261; for (const ch of value) { h ^= ch.codePointAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
   function createRecord(agent) {
-    const li = make('li', 'hive-node');
-    li.id = `hive-agent-${agent.id}`;
-    const record = make('div', 'hive-node-record');
-    const parent = make('p', 'hive-node-parent');
-    const select = button('', () => choose(agent.id), 'hive-node-select');
-    const status = make('p', 'hive-state');
-    const model = make('p', 'hive-node-model');
-    const task = make('p', 'hive-node-task');
-    const action = make('p', 'hive-node-action');
-    const times = make('div', 'hive-node-times');
-    const updated = make('time');
-    const observed = make('time');
-    const updatedLine = make('span', '', 'Work updated: ');
-    const observedLine = make('span', '', 'Source observed: ');
-    updatedLine.append(updated);
-    observedLine.append(observed);
-    times.append(updatedLine, observedLine);
-    record.append(parent, select, status, model, task, action, times);
-    const children = make('ul', 'hive-tree');
-    li.append(record, children);
-    const station = make('div', 'hive-station');
-    const ship = button('', () => choose(agent.id), 'hive-ship');
-    const shipLabel = make('span', 'hive-ship-label');
-    const shipName = make('span', 'hive-ship-name');
-    const shipState = make('span', 'hive-ship-state');
-    const shipModel = make('span', 'hive-ship-model');
-    shipLabel.append(shipName, shipState, shipModel);
-    ship.append(glyph(), shipLabel);
-    const satellites = make('div', 'hive-satellites');
-    station.append(ship, satellites);
-    const satellite = button('', () => choose(agent.id), 'hive-satellite');
-    satellite.append(glyph(true));
-    return { data:agent, li, parent, select, status, model, task, action, updated, observed, children, station, ship, shipName, shipState, shipModel, satellites, satellite, order:order++, absentAt:null };
+    const node = make('article', 'planet');
+    node.id = `hive-agent-${agent.id}`;
+    const select = button('', () => choose(agent.id), 'planet-body');
+    const label = make('span', 'planet-label');
+    const name = make('span', 'planet-name');
+    const state = make('span', 'planet-state');
+    const model = make('span', 'planet-model');
+    label.append(name, state, model);
+    select.append(glyph(agent.parent_id !== null), label);
+    node.append(select);
+    return { data:agent, node, select, name, state, model, angle:0, radius:0, speed:0, order:order++, absentAt:null };
   }
   function actionLabel(record) {
     return record.absentAt === null && record.data.activity_state === 'running' ? 'Reported current activity' : 'Last observed action';
@@ -190,40 +171,84 @@
     const age = snapshot ? Date.parse(snapshot.generated_at) - Date.parse(record.data.observed_at) : 0;
     return record.data.status + (age > snapshot?.stale_after_ms ? ` · source observation ${Math.floor(age / 1000)}s behind snapshot` : '');
   }
+  function idleText(record) {
+    const reason = record?.data.idle_reason;
+    if (!reason) return '';
+    return `${record.data.name} is ${IDLE_TEXT[reason] || IDLE_TEXT.unknown}`;
+  }
   function updateRecord(record) {
     const agent = record.data;
-    text(record.select, agent.name);
-    text(record.parent, agent.parent_id ? `Parent: ${records.get(agent.parent_id)?.data.name || 'not in this observation'}` : 'Root mission');
-    text(record.status, recordState(record));
-    text(record.model, `${agent.model} · ${agent.provider} · ${agent.runtime} · ${agent.role}`);
-    text(record.task, agent.task || 'Current task not reported.');
-    text(record.action, `${actionLabel(record)}: ${agent.activity || 'Not reported.'}`);
-    setTime(record.updated, agent.updated_at);
-    setTime(record.observed, agent.observed_at);
-    for (const node of [record.ship, record.satellite]) node.dataset.observationOld = String(snapshot && Date.parse(snapshot.generated_at) - Date.parse(agent.observed_at) > snapshot.stale_after_ms);
-    for (const node of [record.li, record.ship, record.satellite]) node.dataset.status = record.absentAt === null ? agent.status : 'unknown';
-    text(record.shipName, agent.name);
-    text(record.shipModel, `${agent.model} · ${agent.provider}`);
-    record.ship.setAttribute('aria-label', `Select ${agent.name}, ${recordState(record)}, ${agent.model}`);
-    record.satellite.setAttribute('aria-label', `Select ${agent.name}, ${recordState(record)}, ${agent.model}`);
-    record.satellite.title = `${agent.name} · ${agent.model} · ${recordState(record)}`;
+    text(record.name, agent.name);
+    text(record.state, recordState(record) + (agent.idle_reason ? ` · ${agent.idle_reason}` : ''));
+    text(record.model, `${agent.model} · ${agent.provider}`);
+    record.node.dataset.status = record.absentAt === null ? agent.status : 'unknown';
+    record.node.dataset.depth = agent.parent_id ? '1' : '0';
+    record.node.dataset.idle = agent.idle_reason || '';
+    record.select.setAttribute('aria-label', `Select ${agent.name}, ${recordState(record)}${agent.idle_reason ? `, ${agent.idle_reason}` : ''}, ${agent.model}`);
   }
   function treeOrder() { return [...records.values()].sort((a, b) => a.order - b.order); }
-  function rootFor(record) {
-    let root = record;
-    const visited = new Set();
-    while (hierarchyParents.get(root.data.id) && !visited.has(root.data.id)) {
-      visited.add(root.data.id);
-      root = records.get(hierarchyParents.get(root.data.id));
+  function layoutUniverse() {
+    const roots = treeOrder().filter(record => !hierarchyParents.get(record.data.id));
+    roots.forEach((record, index) => {
+      const h = hashOf(record.data.id);
+      record.radius = 300 + (index % 4) * 165;
+      record.angle = (index / Math.max(1, roots.length)) * Math.PI * 2 + ((h % 100) / 100) * 0.5;
+      record.base = record.angle;
+      record.phase = (h % 628) / 100;
+    });
+    const clusters = new Map();
+    for (const record of treeOrder()) {
+      const parent = hierarchyParents.get(record.data.id);
+      if (!parent) continue;
+      const siblings = clusters.get(parent) || [];
+      siblings.push(record);
+      clusters.set(parent, siblings);
     }
-    return root;
+    for (const [, siblings] of clusters) {
+      siblings.forEach((record, index) => {
+        const h = hashOf(record.data.id);
+        record.radius = 86 + index * 42 + (h % 3) * 10;
+        record.angle = (index / Math.max(1, siblings.length)) * Math.PI * 2 + ((h % 100) / 100) * 0.4;
+        record.base = record.angle;
+        record.phase = (h % 628) / 100;
+      });
+    }
   }
-  function reconcileTree() {
+  function worldPositions() {
+    const out = new Map();
+    const walk = (record) => {
+      const origin = out.get(hierarchyParents.get(record.data.id)) || { x: WORLD.width / 2, y: WORLD.height / 2 };
+      out.set(record.data.id, { x: origin.x + Math.cos(record.angle) * record.radius, y: origin.y + Math.sin(record.angle) * record.radius * 0.82 });
+      for (const child of records.values()) if (hierarchyParents.get(child.data.id) === record.data.id) walk(child);
+    };
+    for (const record of treeOrder()) if (!hierarchyParents.get(record.data.id)) walk(record);
+    return out;
+  }
+  // Labels are the hard part of a map: nudge orbits until no two captions sit on
+  // top of each other. Deterministic, so a body keeps its place between polls.
+  function settleLabels() {
+    const ordered = treeOrder();
+    for (let pass = 0; pass < 90; pass++) {
+      const at = worldPositions();
+      let moved = false;
+      for (let i = 0; i < ordered.length; i++) {
+        const a = at.get(ordered[i].data.id);
+        for (let j = i + 1; j < ordered.length; j++) {
+          const b = at.get(ordered[j].data.id);
+          if (Math.abs(a.y - b.y) > 26 || Math.abs(a.x - b.x) > 175) continue;
+          ordered[j].base += 0.03;
+          ordered[j].angle = ordered[j].base;
+          moved = true;
+        }
+      }
+      if (!moved) break;
+    }
+  }
+  function reconcileUniverse() {
     const ordered = treeOrder();
     const focused = document.activeElement;
     hierarchyParents.clear();
     for (const record of ordered) hierarchyParents.set(record.data.id, records.has(record.data.parent_id) ? record.data.parent_id : null);
-    // Old missing observations cannot override the current source's acyclic tree.
     for (const record of ordered) {
       if (record.absentAt === null) continue;
       const visited = new Set([record.data.id]);
@@ -234,73 +259,76 @@
         parent = hierarchyParents.get(parent);
       }
     }
-    const groups = new Map([[null, []]]);
-    for (const record of ordered) groups.set(record.data.id, []);
-    for (const record of ordered) {
-      const parent = hierarchyParents.get(record.data.id);
-      groups.get(parent).push(record.li);
-    }
-    // Detach changed branches first so a legitimate reparent cannot temporarily
-    // insert an ancestor into its old descendant.
-    for (const record of ordered) {
-      const parent = hierarchyParents.get(record.data.id);
-      const destination = parent ? records.get(parent).children : get('tree');
-      if (record.li.parentElement && record.li.parentElement !== destination) record.li.remove();
-    }
-    place(get('tree'), groups.get(null));
-    for (const record of ordered) {
-      place(record.children, groups.get(record.data.id));
-      record.children.hidden = !groups.get(record.data.id).length;
-    }
-    get('missions').dataset.large = String(records.size > 50);
+    const world = get('world');
+    for (const record of ordered) if (record.node.parentElement !== world) world.append(record.node);
+    for (const record of [...records.values()]) if (!records.has(record.data.id)) record.node.remove();
+    layoutUniverse();
+    settleLabels();
+    get('atlas-empty').hidden = records.size > 0;
     applySearch();
-    renderAtlas();
     if (focused !== document.activeElement && focused?.isConnected) focused.focus({ preventScroll:true });
   }
-  function renderAtlas() {
-    const ordered = treeOrder();
-    const roots = ordered.filter(record => !hierarchyParents.get(record.data.id));
-    const sectors = Math.max(1, Math.ceil(roots.length / 6));
-    sector = Math.max(0, Math.min(sector, sectors - 1));
-    const visible = new Set(roots.slice(sector * 6, sector * 6 + 6).map(record => record.data.id));
+  let lastFrame = 0;
+  let spinAngle = 0;
+  function frame(now) {
+    const dt = lastFrame ? Math.min(0.05, (now - lastFrame) / 1000) : 0;
+    lastFrame = now;
+    const moving = page.dataset.motion === 'on' && !document.hidden;
+    if (moving) spinAngle += dt * 0.02;
+    const roots = [];
+    for (const record of records.values()) if (!hierarchyParents.get(record.data.id)) roots.push(record);
     for (const root of roots) {
-      const descendants = ordered.filter(record => record !== root && rootFor(record) === root);
-      text(root.shipState, `${recordState(root)} · ${descendants.length} nested`);
-      place(root.satellites, descendants.map(record => record.satellite));
-      root.satellites.hidden = descendants.length === 0;
-      root.station.hidden = !visible.has(root.data.id);
+      const origins = new Map();
+      const place = (record, origin, depth) => {
+        const angle = (record.base ?? record.angle) + spinAngle * (depth ? 1.6 : 1);
+        const bob = Math.sin(now / 5200 + (record.phase ?? 0)) * 5;
+        const x = origin.x + Math.cos(angle) * record.radius;
+        const y = origin.y + Math.sin(angle) * record.radius * 0.82 + bob;
+        record.node.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`;
+        for (const child of records.values()) if (hierarchyParents.get(child.data.id) === record.data.id) place(child, { x, y }, depth + 1);
+      };
+      place(root, { x: WORLD.width / 2, y: WORLD.height / 2 }, 0);
     }
-    for (const record of ordered) {
-      if (hierarchyParents.get(record.data.id)) record.station.remove();
-      else record.satellite.remove();
-    }
-    place(get('ships'), roots.map(root => root.station));
-    get('atlas-empty').hidden = records.size > 0;
-    get('sector-prev').disabled = sector === 0;
-    get('sector-next').disabled = sector === sectors - 1;
-    text(get('sector-label'), roots.length ? `Sector ${sector + 1} of ${sectors} · ${visible.size} of ${roots.length} root missions · complete tree below` : 'The atlas will populate from real source observations.');
+    requestAnimationFrame(frame);
+  }
+  function applyCamera() {
+    const viewport = get('universe');
+    if (!viewport) return;
+    const width = viewport.clientWidth || 1;
+    const height = viewport.clientHeight || 1;
+    const spanX = WORLD.width * camera.scale;
+    const spanY = WORLD.height * camera.scale;
+    camera.x = spanX <= width ? (width - spanX) / 2 : Math.min(0, Math.max(width - spanX, camera.x));
+    camera.y = spanY <= height ? (height - spanY) / 2 : Math.min(0, Math.max(height - spanY, camera.y));
+    const world = get('world');
+    world.style.transform = `translate3d(${camera.x.toFixed(1)}px,${camera.y.toFixed(1)}px,0) scale(${camera.scale})`;
+    // Progressive detail: a wider view shows names, a closer view shows identity.
+    world.dataset.detail = camera.scale < 0.42 ? 'body' : camera.scale < 0.95 ? 'name' : 'full';
+  }
+  function resetCamera() {
+    camera.scale = 0.62;
+    applyCamera();
+  }
+  function zoomAt(factor, clientX, clientY) {
+    const viewport = get('universe');
+    const rect = viewport.getBoundingClientRect();
+    const px = (clientX ?? rect.left + rect.width / 2) - rect.left;
+    const py = (clientY ?? rect.top + rect.height / 2) - rect.top;
+    const wx = (px - camera.x) / camera.scale;
+    const wy = (py - camera.y) / camera.scale;
+    camera.scale = Math.min(2.6, Math.max(0.2, camera.scale * factor));
+    camera.x = px - wx * camera.scale;
+    camera.y = py - wy * camera.scale;
+    applyCamera();
   }
   function applySearch() {
     const matches = new Set();
-    const visible = new Set();
     for (const record of records.values()) {
       const agent = record.data;
-      if (!query || [agent.name, agent.task, agent.activity, agent.model, agent.provider, agent.runtime, agent.role, agent.status].join(' ').toLowerCase().includes(query)) {
-        matches.add(agent.id);
-        let current = record;
-        while (current && !visible.has(current.data.id)) {
-          visible.add(current.data.id);
-          current = records.get(current.data.parent_id);
-        }
-      }
+      if (!query || [agent.name, agent.task, agent.activity, agent.model, agent.provider, agent.runtime, agent.role, agent.status, agent.idle_reason || ''].join(' ').toLowerCase().includes(query)) matches.add(agent.id);
     }
-    for (const record of records.values()) {
-      record.li.hidden = !visible.has(record.data.id);
-      record.li.dataset.context = String(!matches.has(record.data.id));
-    }
-    text(get('search-count'), query ? `${matches.size} matching / ${records.size} displayed agents. Parent branches remain visible for context.` : `${records.size} displayed agents, including any briefly retained missing observations.`);
-    get('tree-empty').hidden = matches.size > 0;
-    if (snapshot) text(get('tree-empty'), records.size ? 'No missions match this search. Clear it to see the complete observed tree.' : 'No agents reported in this snapshot. An empty fleet is not a connection failure.');
+    for (const record of records.values()) record.node.dataset.context = String(!matches.has(record.data.id));
+    text(get('search-count'), query ? `${matches.size} matching / ${records.size} observed agents.` : `${records.size} observed agents. Drag to move, scroll to zoom.`);
     renderManifest();
   }
   function fields(container, entries, times = false) {
@@ -332,9 +360,11 @@
     }
     for (const record of records.values()) {
       const active = record.data.id === selected;
-      record.li.dataset.selected = String(active);
-      record.li.dataset.ancestor = String(!active && ancestors.has(record.data.id));
-      for (const control of [record.select, record.ship, record.satellite]) control.setAttribute('aria-pressed', String(active));
+      record.node.dataset.selected = String(active);
+      record.node.dataset.ancestor = String(!active && ancestors.has(record.data.id));
+      record.select.setAttribute('aria-pressed', String(active));
+      // An idle body is taken down from the universe, and its reason is named.
+      record.node.dataset.down = String(active && Boolean(record.data.idle_reason));
     }
     renderManifest();
     renderMessages();
@@ -347,7 +377,10 @@
     text(get('manifest-title'), agent.name);
     const parent = records.get(agent.parent_id);
     const context = agent.parent_id ? `Nested under ${parent?.data.name || 'an unobserved parent'}.` : 'Root mission.';
-    text(get('manifest-context'), context + (record.li.hidden ? ' Outside the current search filter.' : '') + (record.absentAt !== null ? ' Retained from an earlier observation; disappearance does not mean completion.' : ''));
+    text(get('manifest-context'), context + (record.node.hidden ? ' Outside the current search filter.' : '') + (record.absentAt !== null ? ' Retained from an earlier observation; disappearance does not mean completion.' : ''));
+    const idle = idleText(record);
+    get('idle').hidden = !idle;
+    text(get('idle'), idle ? `${idle} Its body is taken down from the universe while it stays idle.` : '');
     text(get('manifest-state'), recordState(record));
     fields(get('manifest-identity'), [['Model', agent.model], ['Provider', agent.provider], ['Runtime', agent.runtime], ['Role', agent.role]]);
     text(get('manifest-task'), agent.task || 'Not reported.');
@@ -455,11 +488,9 @@
       if (!record) {
         record = createRecord(agent);
         records.set(agent.id, record);
-        if (previouslyObserved) { pulse(record.li); pulse(record.ship); pulse(record.satellite); }
+        if (previouslyObserved) pulse(record.node);
       } else if (record.data.task !== agent.task || record.data.activity !== agent.activity || record.data.status !== agent.status || record.data.activity_state !== agent.activity_state) {
-        pulse(record.li);
-        pulse(record.ship);
-        pulse(record.satellite);
+        pulse(record.node);
       }
       record.data = agent;
       record.absentAt = null;
@@ -470,8 +501,8 @@
         const hasPresentChildren = value.agents.some(agent => agent.parent_id === agentId);
         if (now - record.absentAt > 30000 && selected !== agentId && !hasPresentChildren && !messageAgents.has(agentId)) {
           // Reattach any retained descendants before removing their old ancestor.
-          for (const child of records.values()) if (child.data.parent_id === agentId) get('tree').append(child.li);
-          record.li.remove(); record.station.remove(); record.satellite.remove(); records.delete(agentId);
+          for (const child of records.values()) if (child.data.parent_id === agentId) get('world').append(child.node);
+          record.node.remove(); records.delete(agentId);
         }
       }
     }
@@ -481,7 +512,7 @@
     text(get('counts'), `${value.coverage.agents} agents observed across ${value.coverage.roots} root missions.`);
     get('coverage').dataset.complete = String(value.coverage.complete);
     text(get('coverage'), `${value.coverage.complete ? 'Reported coverage' : 'Partial coverage'}: ${value.coverage.label}. ${value.coverage.notice}`);
-    reconcileTree();
+    reconcileUniverse();
     if (!selected) {
       let fragment = '';
       try { fragment = location.hash.startsWith('#agent=') ? decodeURIComponent(location.hash.slice(7)) : ''; } catch (_) { /* Invalid fragments do not select a node. */ }
@@ -535,14 +566,53 @@
   reducedMotion.addEventListener('change', motion);
   document.addEventListener('visibilitychange', () => { motion(); freshness(); });
   get('search').addEventListener('input', event => { query = event.target.value.trim().toLowerCase(); applySearch(); });
-  get('sector-prev').addEventListener('click', () => { sector--; renderAtlas(); });
-  get('sector-next').addEventListener('click', () => { sector++; renderAtlas(); });
+  const universe = get('universe');
+  universe.addEventListener('wheel', event => {
+    event.preventDefault();
+    zoomAt(Math.exp(-event.deltaY * 0.0015), event.clientX, event.clientY);
+  }, { passive:false });
+  let dragging = null;
+  let dragMoved = 0;
+  universe.addEventListener('pointerdown', event => {
+    if (event.button !== 0) return;
+    dragging = { x: event.clientX, y: event.clientY };
+    dragMoved = 0;
+    universe.setPointerCapture(event.pointerId);
+  });
+  universe.addEventListener('pointermove', event => {
+    if (!dragging) return;
+    const dx = event.clientX - dragging.x;
+    const dy = event.clientY - dragging.y;
+    dragMoved += Math.abs(dx) + Math.abs(dy);
+    dragging = { x: event.clientX, y: event.clientY };
+    camera.x += dx;
+    camera.y += dy;
+    applyCamera();
+  });
+  universe.addEventListener('pointerup', event => {
+    if (dragging && dragMoved > 6) { event.preventDefault(); }
+    dragging = null;
+    universe.releasePointerCapture(event.pointerId);
+  });
+  universe.addEventListener('dblclick', event => zoomAt(1.45, event.clientX, event.clientY));
+  universe.addEventListener('keydown', event => {
+    const pan = 90;
+    const keys = { ArrowLeft: [-pan, 0], ArrowRight: [pan, 0], ArrowUp: [0, -pan], ArrowDown: [0, pan] };
+    if (keys[event.key]) { camera.x += keys[event.key][0]; camera.y += keys[event.key][1]; applyCamera(); event.preventDefault(); return; }
+    if (event.key === '+' || event.key === '=') { zoomAt(1.25); event.preventDefault(); }
+    if (event.key === '-' || event.key === '_') { zoomAt(1 / 1.25); event.preventDefault(); }
+    if (event.key === '0') { resetCamera(); event.preventDefault(); }
+  });
+  get('zoom-in').addEventListener('click', () => zoomAt(1.3));
+  get('zoom-out').addEventListener('click', () => zoomAt(1 / 1.3));
+  get('zoom-reset').addEventListener('click', resetCamera);
+  window.addEventListener('resize', applyCamera);
   get('show-selected').addEventListener('click', () => {
     const record = records.get(selected);
     if (!record) return;
-    if (record.li.hidden) { query = ''; get('search').value = ''; applySearch(); }
+    if (record.node.hidden) { query = ''; get('search').value = ''; applySearch(); }
+    record.node.dataset.down = 'false';
     record.select.focus({ preventScroll:true });
-    record.li.scrollIntoView({ block:'center', behavior:'auto' });
   });
   for (const name of ['all', 'selected']) get(`chat-${name}`).addEventListener('click', () => {
     scope = name;
@@ -567,6 +637,8 @@
   if ('IntersectionObserver' in window) new IntersectionObserver(entries => {
     page.dataset.offscreen = String(!entries[0].isIntersecting);
   }).observe(get('atlas'));
+  resetCamera();
+  requestAnimationFrame(frame);
   motion();
   setInterval(freshness, 1000);
   poll();
