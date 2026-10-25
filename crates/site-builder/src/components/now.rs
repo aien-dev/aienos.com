@@ -37,7 +37,7 @@ pub const USAGE_PATH: &str = "public/data/claude-usage.tsv";
 /// The same reading on GitHub, the evidence behind the usage card.
 pub const USAGE_URL: &str = "https://github.com/aien-dev/aienos.com/blob/data/now/claude-usage.tsv";
 /// Where a visitor sends money for the plan: Drake's X account, paid with X Money.
-pub const GIVE_URL: &str = "https://x.com/mDrakeStapleton";
+pub const GIVE_URL: &str = "https://x.com/mdrakestapleton";
 
 /// One limit of the Claude plan: how much of it is used, and when it resets.
 #[derive(Debug, Clone, Serialize)]
@@ -952,7 +952,10 @@ fn usage_section(now: &Now) -> Markup {
                 p class="kicker" { "Paying for the work" }
                 h2 id="now-claude-h" class="now-h2" { "How much Claude is left" }
                 p class="now-sub" {
-                    "Many of the agents on this page are Claude models made by Anthropic (Opus, Fable, Sonnet and Haiku), running on Drake's own Claude plan. The plan allows a set amount of use in each five-hour session and in each week. The Spark reads the plan's own usage meter every five minutes and publishes the percentages, never the login."
+                    "Many of the agents on this page are Claude models made by Anthropic (Opus, Fable, Sonnet and Haiku), running on Drake's own three Claude subscriptions. The plans allow a set amount of use in each five-hour session and in each week. The Spark reads the plan's own usage meter every five minutes and publishes the percentages, never the login."
+                }
+                p class="now-sub" {
+                    "The same work also runs on subscriptions Drake pays for himself: OpenAI Codex, Google Gemini and xAI Grok. Those plans publish no usage meter here, so this page shows no percentage for them. The Claude meter is the only one the Spark can read."
                 }
                 div class="now-usage-wrap" {
                     article class="now-usage" {
@@ -988,16 +991,16 @@ fn usage_section(now: &Now) -> Markup {
                         h3 id="now-give-h" class="now-give-h" { "Help pay for the plan" }
                         p {
                             "If you want to chip in, send any amount to Drake's X account, "
-                            span class="mono" { "@mDrakeStapleton" }
-                            ", with X Money, the payments built into X. Gifts go to the Claude plans above."
+                            span class="mono" { "@mdrakestapleton" }
+                            ", with X Money, the payments built into X. Gifts go to the plans above: three Claude subscriptions, plus Codex, Gemini and Grok."
                         }
                         ol class="now-give-steps" {
-                            li { "Open " span class="mono" { "@mDrakeStapleton" } " on X with the button below." }
+                            li { "Open " span class="mono" { "@mdrakestapleton" } " on X with the button below." }
                             li { "Tap Money, then Send Money." }
                             li { "Pick an amount and send." }
                         }
                         p class="now-give-note" { "X Money is free between Money users and, for now, open to US residents only." }
-                        a class="now-give-btn" href=(GIVE_URL) target="_blank" rel="noopener noreferrer" { "Send with X Money to @mDrakeStapleton " span aria-hidden="true" { "\u{2197}" } }
+                        a class="now-give-btn" href=(GIVE_URL) target="_blank" rel="noopener noreferrer" { "Send with X Money to @mdrakestapleton " span aria-hidden="true" { "\u{2197}" } }
                     }
                 }
             }
@@ -1067,10 +1070,10 @@ pub fn render_now_page(now: &Now) -> Markup {
                         (stat(for_drake.len(), "waiting on the operator", "now-stat-op"))
                     }
                     nav class="now-jump" aria-label="On this page" {
+                        a href="#claude" { "Paying for the work" }
                         @if !for_drake.is_empty() { a href="#operator" { "Operator " span { (for_drake.len()) } } }
                         a href="#streams" { "In motion " span { (moving_now.len()) } }
                         a href="#models" { "Models " span { (now.models.len()) } }
-                        a href="#claude" { "Claude plan" }
                         @if !moving_quiet.is_empty() { a href="#quiet" { "Quiet " span { (moving_quiet.len()) } } }
                         @if !next.is_empty() { a href="#next" { "Queued " span { (next.len()) } } }
                         @if !settled_sorted.is_empty() { a href="#settled" { "Settled " span { (settled_sorted.len()) } } }
@@ -1091,6 +1094,8 @@ pub fn render_now_page(now: &Now) -> Markup {
                 }
             }
         }
+
+        (usage_section(now))
 
         @if !for_drake.is_empty() {
             section class="now-section now-op-section" id="operator" aria-labelledby="now-op-h" {
@@ -1132,8 +1137,6 @@ pub fn render_now_page(now: &Now) -> Markup {
         }
 
         (models_section(now))
-
-        (usage_section(now))
 
         @if !moving_quiet.is_empty() {
             section class="now-section" id="quiet" aria-labelledby="now-quiet-h" {
@@ -1395,7 +1398,7 @@ limit\tsomething_new\t5\t2026-10-31T15:59:59Z\t\n";
         let now = Now { built_utc: "2026-10-24T22:45Z".into(), claude: Some(u.clone()), ..blank() };
         let page = render_now_page(&now).into_string();
         assert!(page.contains("61% left") && page.contains("77% left") && page.contains("66% left"));
-        assert!(page.contains(GIVE_URL) && page.contains("@mDrakeStapleton"));
+        assert!(page.contains(GIVE_URL) && page.contains("@mdrakestapleton"));
         assert!(!page.to_ascii_lowercase().contains("aienscore"), "retired X handle must not be rendered");
         assert!(!page.contains("has not read a newer one"), "a fresh reading is not called old");
         assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(3 + 1));
