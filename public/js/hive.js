@@ -20,6 +20,7 @@
   let sourceAgeAtAdvance = 0;
   let latestGenerated = -Infinity;
   let freshnessTrusted = false;
+  let regressed = false;
   let requestActive = false;
   const familyButtons = new Map();
   let newMessages = 0;
@@ -419,15 +420,16 @@
     const age = sourceAgeAtAdvance + elapsed;
     const stale = age > snapshot.stale_after_ms;
     page.dataset.fresh = String(connected && !stale && freshnessTrusted);
-    const label = !connected ? 'Connection interrupted; last snapshot retained' : stale ? 'Source stale; last observation retained' : !freshnessTrusted ? 'Connected; source age not verified' : 'Receiving source observations';
+    const label = !connected ? (regressed ? 'Snapshot timestamp moved backwards; last observation retained' : 'Connection interrupted; last snapshot retained') : stale ? 'Source stale; last observation retained' : !freshnessTrusted ? 'Connected; source age not verified' : 'Receiving source observations';
     text(get('connection'), label);
     text(get('freshness'), `${Math.floor(elapsed / 1000)}s since the source timestamp last advanced here. ${freshnessTrusted ? `Source age at least ${Math.floor(age / 1000)}s, using the HTTP server clock.` : 'No usable server clock received; browser time is not proof of freshness.'}`);
   }
   function ingest(value, serverDate) {
     const now = performance.now();
     const generated = Date.parse(value.generated_at);
-    if (snapshot && generated < Date.parse(snapshot.generated_at)) throw new Error('Snapshot moved backwards');
+    if (snapshot && generated < Date.parse(snapshot.generated_at)) { regressed = true; throw new Error('Snapshot moved backwards'); }
     if (generated > latestGenerated) {
+      regressed = false;
       latestGenerated = generated;
       advancedAt = now;
       const server = Date.parse(serverDate || '');

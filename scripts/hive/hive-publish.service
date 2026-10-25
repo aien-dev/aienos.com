@@ -5,7 +5,8 @@ Wants=network-online.target hive-feed.service
 
 [Service]
 Type=simple
-ExecStart=%h/.local/lib/aienos-hive/bin/hive-publish %h/.local/state/aienos-hive/live.json hub drake %h/.local/state/aienos-hive/publish_key %h/.local/state/aienos-hive/known_hosts
+EnvironmentFile=%h/.local/state/aienos-hive/publication.env
+ExecStart=%h/.local/lib/aienos-hive/bin/hive-publish %h/.local/state/aienos-hive/live.json ${HIVE_EDGE_HOST} ${HIVE_EDGE_USER} %h/.local/state/aienos-hive/publish_key %h/.local/state/aienos-hive/known_hosts
 Restart=on-failure
 RestartSec=3
 UMask=0077

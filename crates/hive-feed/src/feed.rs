@@ -17,6 +17,8 @@ pub struct Agent {
     pub provider: String, pub model: String, pub role: String, pub task: String, pub status: String,
     pub activity: String, pub activity_state: String, pub started_at: Option<String>, pub updated_at: Option<String>, pub observed_at: String,
 }
+/// The receiver, the client validator and this collector share one window size.
+const INTERACTION_WINDOW: usize = 100;
 #[derive(Clone, Serialize)]
 pub struct Interaction { pub id: String, pub agent_id: String, pub role: String, pub text: String, pub at: String, pub runtime: String, pub provider: String, pub model: String }
 #[derive(Serialize)]
@@ -164,7 +166,13 @@ impl Collector {
         if !self.seen_events.insert(eid.clone()) { return; }
         self.interactions.push_back(Interaction { id: eid, agent_id: self.id(key), role: if direct_user { "drake" } else { "assistant" }.into(), text: public, at: timestamp(time), runtime: "OMP".into(), provider: if direct_user { "unknown".into() } else { label(text(m,"provider"),"unknown") }, model: if direct_user { "unknown".into() } else { label(text(m,"model"),"unknown") } });
         self.interactions.make_contiguous().sort_by(|a,b| a.at.cmp(&b.at).then(a.id.cmp(&b.id)));
-        while self.interactions.len() > 100 { if let Some(old) = self.interactions.pop_front() { self.seen_events.remove(&old.id); } }
+        // Drake's own messages are the scarce signal here; agent replies would
+        // otherwise fill the whole window within minutes. Evict the oldest agent
+        // reply first, and only drop Drake's once no replies remain to evict.
+        while self.interactions.len() > INTERACTION_WINDOW {
+            let victim = self.interactions.iter().position(|m| m.role != "drake").unwrap_or(0);
+            if let Some(old) = self.interactions.remove(victim) { self.seen_events.remove(&old.id); }
+        }
     }
     fn read_node(&mut self, key: &str, path: &Path, now: i64) -> bool {
         let terminal = self.nodes.get(key).and_then(|n| n.terminal.map(|t| (t,n.public.status.clone())));

@@ -8,6 +8,10 @@ use std::os::unix::fs::OpenOptionsExt;
 use std::path::Path;
 
 const MAX: u64 = 2 * 1024 * 1024;
+// Collectors truncate to 180 and 4000 characters, which is at most this many
+// bytes of UTF-8. One emoji-heavy label must not freeze the whole feed.
+const LABEL_MAX: usize = 720;
+const BODY_MAX: usize = 16000;
 
 fn object<'a>(v: &'a Value, keys: &[&str]) -> Result<&'a serde_json::Map<String, Value>, ()> {
     let o = v.as_object().ok_or(())?;
@@ -48,8 +52,8 @@ fn validate(v: &Value) -> Result<(), ()> {
         object(a, &["id", "parent_id", "name", "runtime", "provider", "model", "role", "task", "status", "activity", "activity_state", "started_at", "updated_at", "observed_at"])?;
         if !ids.insert(ident(&a["id"])?) { return Err(()); }
         if !a["parent_id"].is_null() { ident(&a["parent_id"])?; }
-        for k in ["name", "runtime", "provider", "model", "role"] { text(&a[k], 512)?; }
-        for k in ["task", "activity"] { text(&a[k], 4000)?; }
+        for k in ["name", "runtime", "provider", "model", "role"] { text(&a[k], LABEL_MAX)?; }
+        for k in ["task", "activity"] { text(&a[k], BODY_MAX)?; }
         if !["working", "waiting", "idle", "completed", "failed", "unknown"].contains(&text(&a["status"], 20)?) { return Err(()); }
         if !["running", "finished", "unknown"].contains(&text(&a["activity_state"], 20)?) { return Err(()); }
         stamp(&a["started_at"], true)?;
@@ -76,24 +80,32 @@ fn validate(v: &Value) -> Result<(), ()> {
         ident(&m["agent_id"])?;
         if !["drake", "assistant"].contains(&text(&m["role"], 20)?) { return Err(()); }
         text(&m["text"], 16000)?;
-        for key in ["runtime", "provider", "model"] { text(&m[key], 512)?; }
+        for key in ["runtime", "provider", "model"] { text(&m[key], LABEL_MAX)?; }
         stamp(&m["at"], false)?;
     }
     Ok(())
 }
 
-fn canonical(line: &[u8]) -> Result<Vec<u8>, ()> {
+fn canonical(line: &[u8]) -> Result<(Value, Vec<u8>), ()> {
     let data: Value = serde_json::from_slice(line).map_err(|_| ())?;
     validate(&data)?;
     // Publish exactly the checked value, never unchecked duplicate-key bytes.
     let mut bytes = serde_json::to_vec(&data).map_err(|_| ())?;
     bytes.push(b'\n');
-    Ok(bytes)
+    Ok((data, bytes))
+}
+
+fn stamp_of(v: &Value) -> Option<i64> {
+    chrono::DateTime::parse_from_rfc3339(v["generated_at"].as_str()?).ok().map(|t| t.timestamp_millis())
 }
 
 fn receive(dir: &Path) -> Result<(), ()> {
     let metadata = fs::symlink_metadata(dir).map_err(|_| ())?;
     if !metadata.is_dir() || metadata.file_type().is_symlink() { return Err(()); }
+    // Never let a replayed or delayed upload replace a newer observation.
+    let mut latest = fs::read(dir.join("live.json")).ok()
+        .and_then(|bytes| serde_json::from_slice::<Value>(&bytes).ok())
+        .and_then(|v| stamp_of(&v));
     let stdin = io::stdin();
     let mut input = stdin.lock();
     let mut line = Vec::new();
@@ -103,7 +115,9 @@ fn receive(dir: &Path) -> Result<(), ()> {
         let n = (&mut input).take(MAX + 1).read_until(b'\n', &mut line).map_err(|_| ())?;
         if n == 0 { return Ok(()); }
         if n as u64 > MAX || line.last() != Some(&b'\n') { return Err(()); }
-        let bytes = canonical(&line)?;
+        let (data, bytes) = canonical(&line)?;
+        let stamp = stamp_of(&data).ok_or(())?;
+        if let Some(previous) = latest { if stamp < previous { return Err(()); } }
         let mut out = OpenOptions::new().write(true).create_new(true).mode(0o644).open(&tmp).map_err(|_| ())?;
         // Ephemeral feed: write_all plus same-directory rename gives runtime atomicity.
         // Durability across a crash is not promised, and fsync here stalls publication.
@@ -114,6 +128,7 @@ fn receive(dir: &Path) -> Result<(), ()> {
         })();
         if result.is_err() { let _ = fs::remove_file(&tmp); }
         result?;
+        latest = Some(stamp);
     }
 }
 fn main() {
@@ -154,10 +169,21 @@ mod tests {
         assert!(validate(&snapshot).is_err());
     }
     #[test]
+    fn accepts_the_collector_maximum_label_length() {
+        let mut snapshot = empty();
+        let agent = serde_json::json!({"id":"a1","parent_id":null,"name":"x".repeat(LABEL_MAX),"runtime":"OMP","provider":"unknown","model":"unknown","role":"root","task":"t","status":"working","activity":"","activity_state":"unknown","started_at":null,"updated_at":null,"observed_at":"2026-10-25T20:00:00Z"});
+        snapshot["agents"] = serde_json::json!([agent]);
+        snapshot["coverage"]["agents"] = 1.into();
+        snapshot["coverage"]["roots"] = 1.into();
+        assert!(validate(&snapshot).is_ok(), "collector output at the byte bound must publish");
+        snapshot["agents"][0]["name"] = "x".repeat(LABEL_MAX + 1).into();
+        assert!(validate(&snapshot).is_err(), "oversize labels stay refused");
+    }
+    #[test]
     fn duplicate_keys_cannot_smuggle_unchecked_fields() {
         let valid = empty().to_string();
         let input = format!("{{\"agents\":[{{\"password\":\"private-canary\"}}],{}", &valid[1..]);
-        let output = canonical(input.as_bytes()).unwrap();
+        let output = canonical(input.as_bytes()).unwrap().1;
         let text = String::from_utf8(output).unwrap();
         assert!(!text.contains("private-canary"));
         assert!(!text.contains("password"));

@@ -98,6 +98,17 @@ impl Drop for Fixture { fn drop(&mut self) { let _ = fs::remove_dir_all(&self.di
     assert_eq!(node.status,"working"); assert_eq!(node.activity_state,"running");
 }
 
+#[test] fn drake_messages_survive_an_agent_flood() {
+    let mut c=collector();
+    c.event("private-root",&message("user","user",json!([{"type":"text","text":"Ship the observatory"}]),1000),2000);
+    for i in 0..300 { c.event("private-root",&message("assistant","",json!([{"type":"text","text":format!("Reply {i}")}]),1001+i),2000); }
+    assert_eq!(c.interactions.len(),100);
+    let drake: Vec<_> = c.interactions.iter().filter(|m| m.role=="drake").collect();
+    assert_eq!(drake.len(),1,"the one authorized Drake message must not be evicted by replies");
+    assert_eq!(drake[0].text,"Ship the observatory");
+    assert!(c.interactions.front().unwrap().role=="drake" || c.interactions.iter().any(|m| m.role=="drake"));
+}
+
 #[test] fn interaction_bound_uses_event_time_not_scan_order() {
     let mut c=collector();
     for i in (0..150).rev() { c.event("private-root",&message("assistant","",json!([{"type":"text","text":"Public response"}]),1000+i),2000); }
