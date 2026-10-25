@@ -101,6 +101,20 @@ mod tests {
         );
     }
 
+    fn strip_comments(css: &str) -> String {
+        let mut out = String::with_capacity(css.len());
+        let mut rest = css;
+        while let Some(start) = rest.find("/*") {
+            out.push_str(&rest[..start]);
+            match rest[start..].find("*/") {
+                Some(end) => rest = &rest[start + end + 2..],
+                None => return out,
+            }
+        }
+        out.push_str(rest);
+        out
+    }
+
     #[test]
     fn the_stylesheet_stays_on_the_shared_palette_and_compositor_motion() {
         assert!(
@@ -113,8 +127,9 @@ mod tests {
             assert!(!text.contains('\u{2013}'), "{name} carries an en dash");
         }
         // Motion is compositor only: transform or opacity, and never a filter,
-        // a box shadow or the all shorthand that would animate both.
-        for rule in HIVE_CSS.split('}') {
+        // a box shadow or the all shorthand that would animate both. Comments
+        // are prose, and prose may name a word this scan looks for.
+        for rule in strip_comments(HIVE_CSS).split('}') {
             let rule = rule.to_ascii_lowercase();
             if let Some(at) = rule.find("transition") {
                 let decl = &rule[at..];
@@ -140,6 +155,52 @@ mod tests {
         assert!(
             HIVE_CSS.contains(r#".hive[data-motion="off"]"#),
             "the page's own motion control must also disable the transition"
+        );
+    }
+
+    #[test]
+    fn the_scene_is_emitted_by_the_omega_program() {
+        // Allen's two black holes are computed by om/hive-page/hive.om, so the
+        // markup, every keyframe and the motion gate are bytes of the skeleton,
+        // and the stylesheet only places them.
+        for part in [
+            r#"<div class="hive-scene" aria-hidden="true" data-scene="allen""#,
+            "data-appear=\"2600\"",
+            "data-spiral=\"6000\"",
+            "data-merge=\"12000\"",
+            "data-gone=\"15200\"",
+            "--hive-cycle:19000ms",
+            "@keyframes hive-posa",
+            "@keyframes hive-msiz",
+            "@media (prefers-reduced-motion:no-preference)",
+            r#".hive[data-motion="on"] .hive-hole-a{animation:hive-posa var(--hive-cycle) linear infinite}"#,
+        ] {
+            assert!(SKELETON.contains(part), "the emitted scene lost {part:?}");
+        }
+        // Every keyframe stop animates transform or opacity and nothing else, so
+        // the whole sequence runs on the compositor and cannot cause layout.
+        let stops = SKELETON.matches("%{").count();
+        let animated = SKELETON.matches("{transform:").count() + SKELETON.matches("{opacity:").count();
+        assert!(stops > 400, "the scene lost its samples: {stops} stops");
+        assert_eq!(animated, stops, "a keyframe stop animates something other than transform or opacity");
+        for forbidden in ["filter:", "box-shadow:", "background-position:", "background-size:"] {
+            assert!(!SKELETON.contains(forbidden), "the scene animates or paints {forbidden}");
+        }
+        // One motion gate holds every animation, so reduced motion has one place to gate.
+        assert_eq!(
+            SKELETON.matches("animation:").count(),
+            SKELETON.matches(r#"[data-motion="on"] .hive-"#).count(),
+            "an animation escaped the prefers-reduced-motion gate"
+        );
+        // The scene is a layer at 0 in the masthead, never a negative z-index.
+        assert!(
+            HIVE_CSS.contains(".hive-masthead > .hive-scene") && HIVE_CSS.contains("z-index:0"),
+            "the scene layer must be placed in the masthead at z-index 0"
+        );
+        assert!(!HIVE_CSS.contains("z-index:-"), "never a negative z-index for the scene");
+        assert!(
+            !HIVE_CSS.contains("@keyframes") && !HIVE_CSS.contains("animation:hive-"),
+            "the sequence belongs to the .om, not to the stylesheet"
         );
     }
 }
