@@ -67,6 +67,7 @@ Open `http://127.0.0.1:8080/` after the preview server starts. GitHub Pages serv
 - Keep one source for machine-readable state. `status.json`, the status section, and the current-state lines in `llms.txt` all read `components::status::layer_states()`.
 - Tests live beside the code in `#[cfg(test)]` modules. Add a test when a rule can regress silently.
 - Hive's orbital scene is decorative; task/activity/lifecycle data must come from real observations. Preserve source freshness, partial coverage, unknown states, message-time model identity, keyboard focus, and reduced-motion support.
+- Hive surfaces use the shared palette tokens (`--bg-base`, `--bg-surface`, `--bg-card`, `--border-subtle`), never a bespoke near-black. Its motion stays compositor-only: animate transform and opacity, never `filter` or `box-shadow`, and cap change highlights so a busy fleet cannot strobe. The atlas slab is the page base, so it must read as the same surface as the page around it.
 - Hive text passes a field whitelist and full-string privacy screening before truncation. Never serialize raw sessions, system/task prompts, tool payloads, hidden reasoning, credentials, or control metadata. Direct Drake messages, short task-summary fields and public agent replies require the authorized publication boundary. Render feed strings through text nodes, not HTML.
 
 ## Safety and approvals
