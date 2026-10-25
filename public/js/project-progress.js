@@ -125,7 +125,7 @@ function renderProgress(data,previousDate){
 
 (function startProgress(){
   const root=document.getElementById('aien-growth-observatory');if(!root)return;
-  let data=JSON.parse(root.querySelector('#ag-data').textContent),view,busy=false,error=false;
+  let data=null,view,busy=false,error=false;
   const template=root.innerHTML;
   function freshness(){
     const age=Math.max(0,Date.now()-Date.parse(data.asof));
@@ -156,6 +156,22 @@ function renderProgress(data,previousDate){
     }catch(e){error=true;freshness();}
     finally{busy=false;root.querySelector('#ag-refresh').disabled=false;if(!manual||error)root.querySelector('#ag-refresh').textContent='Check for updates';}
   }
-  valid(data);display();refresh();setInterval(()=>{freshness();if(!document.hidden)refresh();},5*60000);
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
+  async function loadInitial(){
+    try{
+      const response=await fetch('/data/project-progress.json',{cache:'default',signal:AbortSignal.timeout(20000)});
+      if(!response.ok)throw Error('Unavailable');
+      data=valid(await response.json());
+      display();
+      setInterval(()=>{freshness();if(!document.hidden)refresh();},5*60000);
+      document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
+    }catch(e){
+      error=true;
+      const node=root.querySelector('#ag-freshness');
+      node.dataset.stale='true';
+      node.textContent='Dataset unavailable · Retry';
+      const button=root.querySelector('#ag-refresh');
+      button.addEventListener('click',()=>location.reload());
+    }
+  }
+  loadInitial();
 })();

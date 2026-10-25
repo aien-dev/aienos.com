@@ -31,6 +31,23 @@ fn copy_dir_all(src: &Path, dst: &Path) -> std::io::Result<()> {
     Ok(())
 }
 
+/// The zh-CN progress mirror is a generated translation of the old page,
+/// which inlined the full dataset. The English builder now fetches the
+/// dataset; the mirror still carries the dead copy in its source. Strip it
+/// after copying so the deployed page has one data path and one copy.
+fn strip_legacy_progress_dataset(dist: &Path) {
+    let path = dist.join("zh-CN/progress/index.html");
+    let Ok(html) = fs::read_to_string(&path) else { return; };
+    let Some(start) = html.find("<script id=\"ag-data\"") else { return; };
+    let Some(relative_end) = html[start..].find("</script>") else { return; };
+    let end = start + relative_end + "</script>".len();
+    let mut out = String::with_capacity(html.len());
+    out.push_str(&html[..start]);
+    out.push_str(&html[end..]);
+    fs::write(&path, out).expect("strip legacy progress dataset");
+    println!("  [ASSETS] Removed the legacy inline progress dataset from the zh-CN mirror");
+}
+
 fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     let facts = facts::Facts::load(facts_path)
         .unwrap_or_else(|e| panic!("Cannot build without facts: {e}. Run `site-builder facts {}` first.", facts_path.display()));
@@ -55,6 +72,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
             }
         }
         println!("  [ASSETS] Synced public/ assets into {}", dist.display());
+        strip_legacy_progress_dataset(dist);
     }
 
     // Canonical project state for machines: rendered from the same
@@ -289,6 +307,10 @@ fn verify_site(dist: &Path) {
     assert!(index_file.exists(), "Required index.html missing in {}", dist.display());
 
     let content = fs::read_to_string(&index_file).expect("Failed to read index.html");
+
+    let zh_progress = fs::read_to_string(dist.join("zh-CN/progress/index.html"))
+        .expect("Failed to read the zh-CN progress page");
+    assert!(!zh_progress.contains("id=\"ag-data\""), "zh-CN progress page must not inline the dataset");
 
     // Verify DOM structure
     assert!(content.contains("<div id=\"root\""), "Missing #root element in index.html");

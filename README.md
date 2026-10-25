@@ -70,6 +70,10 @@ The build also writes the files AI agents probe, all from the same page registry
 - Head signals on every page: `<link rel="alternate" type="text/markdown">`, `<link rel="describedby">` to `/llms.txt`, and robots directives for `max-snippet:-1` and `max-image-preview:large`.
 - `/glossary/`: the terms the project uses in its own sense, linked from the footer of every page.
 
+Search and security discovery:
+- `/.well-known/security.txt`: the RFC 9116 security contact.
+- `/61088fe61cf5283afad8253cec1087ab.txt`: the IndexNow key for Bing and Yandex. The file name is the key. After a deploy, submit changed URLs to `https://api.indexnow.org/indexnow` with that key. The key is public by design.
+
 GitHub Pages serves static files only. It cannot vary a response on `Accept: text/markdown` and cannot add a `Link` header to a Markdown response, so `www.aienos.com` terminates on the hub nginx edge instead. The edge:
 
 - proxies GitHub Pages as the origin (the four Pages IPs with `Host: www.aienos.com`), so every deploy still goes live without an edge change;
