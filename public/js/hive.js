@@ -58,6 +58,13 @@
     return typeof value === 'string' && (empty || value.length > 0) && value.length <= max && !/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(value);
   }
   function id(value) { return typeof value === 'string' && /^[a-zA-Z0-9_-]{1,160}$/.test(value); }
+  const AGENT_FIELDS = ['id', 'parent_id', 'name', 'runtime', 'provider', 'model', 'role', 'task', 'status', 'activity', 'activity_state', 'started_at', 'updated_at', 'observed_at'];
+  // idle_reason is optional so the collector and this page may be deployed in either order.
+  function agentFields(agent) {
+    if (!agent || typeof agent !== 'object' || Array.isArray(agent)) return false;
+    const keys = Object.keys(agent);
+    return AGENT_FIELDS.every(key => keys.includes(key)) && keys.every(key => key === 'idle_reason' || AGENT_FIELDS.includes(key));
+  }
   function validate(value) {
     const fail = () => { throw new Error('Invalid public snapshot'); };
     if (!object(value, ['schema_version', 'generated_at', 'sequence', 'poll_ms', 'stale_after_ms', 'coverage', 'agents', 'interactions'])
@@ -71,12 +78,12 @@
     const agents = new Map();
     let roots = 0;
     for (const agent of value.agents) {
-      if (!object(agent, ['id', 'parent_id', 'name', 'runtime', 'provider', 'model', 'role', 'task', 'status', 'activity', 'activity_state', 'idle_reason', 'started_at', 'updated_at', 'observed_at'])
+      if (!agentFields(agent)
         || !id(agent.id) || agents.has(agent.id) || !(agent.parent_id === null || id(agent.parent_id)) || agent.parent_id === agent.id
         || !['name', 'runtime', 'provider', 'model', 'role'].every(key => string(agent[key], 1000))
         || !string(agent.task, 12000, true) || !string(agent.activity, 12000, true)
         || !statuses.has(agent.status) || !actions.has(agent.activity_state)
-        || !(agent.idle_reason === null || ['usage-limit', 'awaiting-input', 'ended', 'error', 'unknown'].includes(agent.idle_reason))
+        || !(agent.idle_reason === undefined || agent.idle_reason === null || ['usage-limit', 'awaiting-input', 'ended', 'error', 'unknown'].includes(agent.idle_reason))
         || !(agent.started_at === null || timestamp(agent.started_at)) || !(agent.updated_at === null || timestamp(agent.updated_at))
         || !timestamp(agent.observed_at)) fail();
       agents.set(agent.id, agent);

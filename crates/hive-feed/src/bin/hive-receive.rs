@@ -49,14 +49,19 @@ fn validate(v: &Value) -> Result<(), ()> {
     if agents.len() > 10000 || c["agents"].as_u64() != Some(agents.len() as u64) { return Err(()); }
     let mut ids = HashSet::new();
     for a in agents {
-        object(a, &["id", "parent_id", "name", "runtime", "provider", "model", "role", "task", "status", "activity", "activity_state", "idle_reason", "started_at", "updated_at", "observed_at"])?;
+        // idle_reason is optional so a collector and receiver can be deployed in
+        // either order without breaking the live snapshot.
+        const AGENT_FIELDS: [&str; 14] = ["id", "parent_id", "name", "runtime", "provider", "model", "role", "task", "status", "activity", "activity_state", "started_at", "updated_at", "observed_at"];
+        let fields = a.as_object().ok_or(())?;
+        if !AGENT_FIELDS.iter().all(|k| fields.contains_key(*k)) { return Err(()); }
+        if fields.keys().any(|k| k != "idle_reason" && !AGENT_FIELDS.contains(&k.as_str())) { return Err(()); }
         if !ids.insert(ident(&a["id"])?) { return Err(()); }
         if !a["parent_id"].is_null() { ident(&a["parent_id"])?; }
         for k in ["name", "runtime", "provider", "model", "role"] { text(&a[k], LABEL_MAX)?; }
         for k in ["task", "activity"] { text(&a[k], BODY_MAX)?; }
         if !["working", "waiting", "idle", "completed", "failed", "unknown"].contains(&text(&a["status"], 20)?) { return Err(()); }
         if !["running", "finished", "unknown"].contains(&text(&a["activity_state"], 20)?) { return Err(()); }
-        if !a["idle_reason"].is_null() && !["usage-limit", "awaiting-input", "ended", "error", "unknown"].contains(&text(&a["idle_reason"], 20)?) { return Err(()); }
+        if let Some(reason) = a.get("idle_reason") { if !reason.is_null() && !["usage-limit", "awaiting-input", "ended", "error", "unknown"].contains(&text(reason, 20)?) { return Err(()); } }
         stamp(&a["started_at"], true)?;
         stamp(&a["updated_at"], true)?;
         stamp(&a["observed_at"], false)?;
