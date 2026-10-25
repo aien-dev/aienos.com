@@ -36,8 +36,10 @@ pub const LEDGER_URL: &str = "https://github.com/aien-dev/aienos.com/blob/data/n
 pub const USAGE_PATH: &str = "public/data/claude-usage.tsv";
 /// The same reading on GitHub, the evidence behind the usage card.
 pub const USAGE_URL: &str = "https://github.com/aien-dev/aienos.com/blob/data/now/claude-usage.tsv";
-/// Where a visitor sends money for the plan: Drake's X account, paid with X Money.
-pub const GIVE_URL: &str = "https://x.com/mdrakestapleton";
+/// Where a visitor joins in: the public Open Humanity repository (issues and
+/// discussions open), for agents working on their own plans and Sparks
+/// qualifying the same gates.
+pub const HUMANITY_URL: &str = "https://github.com/aien-dev/open-humanity";
 
 /// One limit of the Claude plan: how much of it is used, and when it resets.
 #[derive(Debug, Clone, Serialize)]
@@ -939,11 +941,28 @@ fn models_section(now: &Now) -> Markup {
     }
 }
 
+/// One limit's row: its label, its meter, what is left, and when it resets.
+fn usage_row(l: &UsageLimit) -> Markup {
+    html! {
+        div class="now-usage-row" {
+            span class="now-usage-k" { (l.label) }
+            meter class="now-usage-meter" min="0" max="100" low="70" high="90" optimum="0" value=(l.used_pct) {
+                (l.used_pct) "% used"
+            }
+            span class="now-usage-v" { strong { (100 - l.used_pct) "% left" } " " span class="now-usage-used" { "(" (l.used_pct) "% used)" } }
+            @if !l.resets_utc.is_empty() {
+                span class="now-usage-reset" { "resets " span class="mono" { (l.resets_utc) } }
+            }
+        }
+    }
+}
+
 /// A reading older than this is called out as old.
 const USAGE_STALE_S: i64 = 2 * 3600;
 
-/// Drake's Claude plan: how much of each limit is left, and a way for a
-/// visitor to help pay for it (X Money, sent to Drake's X account).
+/// Drake's Claude plans: how much of each limit is left, and the two ways a
+/// visitor can give compute instead of money (an agent on their own plan, or a
+/// Spark qualifying the same gates).
 fn usage_section(now: &Now) -> Markup {
     let built = parse_utc(&now.built_utc);
     html! {
@@ -968,17 +987,29 @@ fn usage_section(now: &Now) -> Markup {
                                 @if built.zip(parse_utc(&u.checked_utc)).is_some_and(|(b, c)| b - c > USAGE_STALE_S) {
                                     p class="now-done" { "This is the last reading the Spark published; it has not read a newer one since." }
                                 }
-                                @for l in &u.limits {
-                                    div class="now-usage-row" {
-                                        span class="now-usage-k" { (l.label) }
-                                        meter class="now-usage-meter" min="0" max="100" low="70" high="90" optimum="0" value=(l.used_pct) {
-                                            (l.used_pct) "% used"
+                                @if u.limits.len() > 1 {
+                                    div class="now-usage-menu" {
+                                        @for (i, _) in u.limits.iter().enumerate() {
+                                            input type="radio" name="now-usage" id=(format!("now-usage-{i}")) class="now-usage-radio" checked[i == 0];
                                         }
-                                        span class="now-usage-v" { strong { (100 - l.used_pct) "% left" } " " span class="now-usage-used" { "(" (l.used_pct) "% used)" } }
-                                        @if !l.resets_utc.is_empty() {
-                                            span class="now-usage-reset" { "resets " span class="mono" { (l.resets_utc) } }
+                                        div class="now-usage-tabs" role="tablist" aria-label="Usage limits: choose one to read" {
+                                            @for (i, l) in u.limits.iter().enumerate() {
+                                                label class="now-usage-tab" for=(format!("now-usage-{i}")) {
+                                                    span class="now-usage-tab-k" { (l.label) }
+                                                    span class="now-usage-tab-v" { (100 - l.used_pct) "% left" }
+                                                }
+                                            }
+                                        }
+                                        div class="now-usage-panels" {
+                                            @for (i, l) in u.limits.iter().enumerate() {
+                                                div class=(format!("now-usage-panel now-usage-panel-{i}")) {
+                                                    (usage_row(l))
+                                                }
+                                            }
                                         }
                                     }
+                                } @else {
+                                    @for l in &u.limits { (usage_row(l)) }
                                 }
                             }
                             None => {
@@ -988,19 +1019,22 @@ fn usage_section(now: &Now) -> Markup {
                         (foot_labelled(USAGE_URL, "Usage reading on GitHub", Target::Evidence))
                     }
                     aside class="now-give" aria-labelledby="now-give-h" {
-                        h3 id="now-give-h" class="now-give-h" { "Help pay for the plan" }
+                        h3 id="now-give-h" class="now-give-h" { "Give compute, not money" }
                         p {
-                            "If you want to chip in, send any amount to Drake's X account, "
-                            span class="mono" { "@mdrakestapleton" }
-                            ", with X Money, the payments built into X. Gifts go to the plans above: three Claude subscriptions, plus Codex, Gemini and Grok."
+                            "The work runs on plans and on one Spark. Both can come from you, and Drake takes no payment for either."
                         }
-                        ol class="now-give-steps" {
-                            li { "Open " span class="mono" { "@mdrakestapleton" } " on X with the button below." }
-                            li { "Tap Money, then Send Money." }
-                            li { "Pick an amount and send." }
+                        ul class="now-give-steps" {
+                            li {
+                                strong { "Your agent, your plan. " }
+                                "Point it at " a class="prose-link" href="/AGENTS.md" { "AGENTS.md" } ": it reads this ledger, claims an open line and pushes its evidence like ours does. Its own subscription pays for it (Claude, Codex, Gemini or Grok); nothing of yours is sent to the Spark."
+                            }
+                            li {
+                                strong { "Your Spark. " }
+                                "A second GB10 can qualify the same gates and publish its own receipt. The GPU gates are written to run on any Spark, and a PASS from your machine is evidence, not a claim."
+                            }
                         }
-                        p class="now-give-note" { "X Money is free between Money users and, for now, open to US residents only." }
-                        a class="now-give-btn" href=(GIVE_URL) target="_blank" rel="noopener noreferrer" { "Send with X Money to @mdrakestapleton " span aria-hidden="true" { "\u{2197}" } }
+                        p class="now-give-note" { "No keys are collected. Your agent runs on your account, your Spark on your network, and only merged evidence reaches this page." }
+                        a class="now-give-btn" href=(HUMANITY_URL) target="_blank" rel="noopener noreferrer" { "Join in Open Humanity " span aria-hidden="true" { "\u{2197}" } }
                     }
                 }
             }
@@ -1398,7 +1432,15 @@ limit\tsomething_new\t5\t2026-10-31T15:59:59Z\t\n";
         let now = Now { built_utc: "2026-10-24T22:45Z".into(), claude: Some(u.clone()), ..blank() };
         let page = render_now_page(&now).into_string();
         assert!(page.contains("61% left") && page.contains("77% left") && page.contains("66% left"));
-        assert!(page.contains(GIVE_URL) && page.contains("@mdrakestapleton"));
+        // The limits are one menu: a radio and a chip per window, one panel open.
+        assert_eq!(page.matches("class=\"now-usage-radio\"").count(), 3, "one radio per limit");
+        assert_eq!(page.matches("class=\"now-usage-tab\"").count(), 3, "one chip per limit");
+        assert_eq!(page.matches("now-usage-panel-").count(), 3, "one panel per limit");
+        assert!(page.contains("id=\"now-usage-0\"") && page.contains("for=\"now-usage-2\""));
+        assert!(page.contains("checked") && !page.contains("checked id=\"now-usage-1\""), "the first limit opens");
+        assert!(page.contains("61% left") && page.contains("77% left"), "each chip carries its own figure");
+        assert!(page.contains(HUMANITY_URL), "the way in is Open Humanity");
+        assert!(!page.contains("X Money") && !page.contains("Send Money"), "no money ask is rendered");
         assert!(!page.to_ascii_lowercase().contains("aienscore"), "retired X handle must not be rendered");
         assert!(!page.contains("has not read a newer one"), "a fresh reading is not called old");
         assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(3 + 1));
@@ -1406,7 +1448,7 @@ limit\tsomething_new\t5\t2026-10-31T15:59:59Z\t\n";
         let old = Now { built_utc: "2026-10-25T03:00Z".into(), claude: Some(u), ..blank() };
         assert!(render_now_page(&old).into_string().contains("has not read a newer one"));
         let none = render_now_page(&blank()).into_string();
-        assert!(none.contains("has not published a reading of the plan yet") && none.contains(GIVE_URL));
+        assert!(none.contains("has not published a reading of the plan yet") && none.contains(HUMANITY_URL));
     }
 
     #[test]
