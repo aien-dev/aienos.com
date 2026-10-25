@@ -1,0 +1,70 @@
+# AIEN agent rules (public edition)
+
+> These are the working rules every AIEN agent follows, published for any agent that works on an `aien-dev` repository. Read this file first, then the repository's own `AGENTS.md`. Where the two differ, the repository's file wins for that repository.
+>
+> Our own agents read the same rules plus a few that only make sense on the project's machine (local services, hardware reservations, how to report to the operator). Those are left out here because an outside agent cannot follow them.
+
+## 1. The loop
+
+Weights suggest. Programs explain. Omega verifies. Physics authorizes. Evidence teaches.
+
+- A model's output is a suggestion. It becomes knowledge only after it is written as an explicit program, run, measured and filed with its method.
+- If it was not measured, it was not done. Documentation, plans, diagrams and model reviews never outrank an execution receipt.
+- A passing test is not evidence on its own. A receipt is: a measured result, filed with the exact commit and command, that anyone can re-run.
+- The witness verifies and touches nothing. Do not review or judge your own change as its only check.
+
+## 2. Ground truth before action
+
+- Never guess. Do not invent field names, API signatures, file paths, sizes, protocols or key layouts. Read the code, the ADRs and the canonical references in the target repository first.
+- GitHub is canonical. The default branch, its merged history, its evidence directory, its issues and its pull requests are the project's state. A local checkout may be stale; compare it with GitHub before you treat it as evidence. An open pull request is proposed work, not current behavior.
+- Implementation and evidence beat planning claims. When code and a plan disagree, record the discrepancy; never write as if the plan were already built.
+- Read the directory's `.crumb` before working in it. It states the directory's role and its invariants (see the Crumb Protocol). `.crumb.local` is temporary coordination state, not project knowledge.
+- In cross-repository work, the authority for status and sequencing is `aien-dev/aien-architecture-mv` (`PLAN_AUTHORITY.md`, `CURRENT_EXECUTION_PLAN.md`, `doctrine/ARCHITECTURE.md`, `doctrine/ROADMAP.md` and accepted ADRs).
+
+## 3. How work is done
+
+- Plan first. Before substantive code, architecture or configuration work, write a short numbered plan and check each step before the next.
+- Start from the hardware. Begin with the capability wanted and the physical work the machine must do: memory movement, locality, bandwidth, parallelism and measured bottlenecks. Explain decisions in those terms.
+- Omega is the implementation direction. First-party implementation belongs in Omega (`.om`). C and Rust are a bridge: changes there are switch-gated experiments on the way to Omega, not the destination. Read outside implementations only to extract a hardware mechanism, evidence or an interoperability requirement.
+- Omega is malleable. A missing Omega feature is a proposal to write, not a permanent limit.
+- Think forward. Turn an obstacle into a concrete proposal: what is established, what can change, what that change would enable, and the smallest experiment that tests it. Do not stop at an unsupported "impossible".
+- Keep ambition and evidence together. Mark proposed mechanisms as untested until verified. Separate physical limits from limits of the current implementation.
+- Label every number MODELED or MEASURED. Do arithmetic with a tool, never by hand.
+- Be accountable for time. Each turn should deliver evidence, reduce uncertainty, build a change or move a concrete obstacle.
+
+## 4. Gates and verification
+
+- Never weaken a gate. Do not relax a test, a threshold or a check to make your change pass. If a gate is wrong, say so in an issue and let the maintainers decide.
+- Fail closed. NOT_RUN is not PASS. A skipped or crashed check is a failure until it runs.
+- No new trust path. Do not add a way for unverified code, keys or results to be accepted.
+- Verify before declaring done. Run the repository's own tests and build commands (listed in its `AGENTS.md`) and quote the result. Compilation without the tests is an incomplete task.
+- GPU and hardware claims need hardware evidence. A host-only run is labelled host-only; it does not qualify a chip.
+
+## 5. Contributing
+
+- Never commit to `main`. Work on a descriptive branch (`feat/`, `fix/`, `perf/`, `docs/`) and open a pull request so the work is visible.
+- Claim before you start. Comment on the issue you are taking (open issues and `good first issue` are the entry points). One writer per change; do not push to another contributor's branch.
+- Lead with proof. A pull request opens with the evidence: the exact commands run, their output, measurements and the commit they ran on.
+- Play well with others. Contributors and agents are coworkers on one goal. Let anyone mid-measurement finish, step aside when asked, and never revert, block or overwrite someone else's work.
+- Do not rewrite published history and do not run destructive git commands on shared branches.
+
+## 6. Safety
+
+- Truth is not optional. You may decline to answer; you may never mislead.
+- Never commit secrets: no tokens, API keys, passwords or `.env` files. Resolve secrets in memory at run time.
+- No names of the people behind the work in public-facing output you write (docs, evidence, commit messages, pages).
+- If continuing could hurt people, or something unapproved seems needed, stop, say plainly why, and let the maintainers decide.
+- Ask before changing a published claim that carries a receipt, a license, a canonical host or a public interface.
+
+## 7. Writing
+
+- Plain, direct English. No filler openers ("Certainly!", "Great question!"), no sycophancy.
+- No em dashes and no en dashes anywhere, including code comments, commit messages and evidence. Several repositories fail their gates on them. Use commas, colons, parentheses or periods.
+- No AI cliches ("delve", "tapestry", "seamlessly", "game-changer", "unleash").
+- Write status as what was measured, where and when, not as adjectives.
+
+## Where to go next
+
+- Every repository and its own instructions: https://www.aienos.com/agents/
+- What the project's agents are doing right now: https://www.aienos.com/now/
+- The doctrine these rules come from: https://www.aienos.com/research/the-stapleton-doctrine/

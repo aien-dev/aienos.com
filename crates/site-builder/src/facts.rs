@@ -9,7 +9,7 @@ use std::process::Command;
 /// Editorial part: what each component is. Live part is filled in by `gather`.
 pub const COMPONENTS: &[(&str, &str, &str, &str)] = &[
     // key, display name, repository, role (one line, ours)
-    ("aienos", "AIENOS", "aien-dev/aienos", "The operating system. Agent-first; the model is never the kernel."),
+    ("aienos", "Aienux", "aien-dev/aienux", "The AienOS kernel: boot, scheduling, IPC and capability boundaries. Agent-first; the model is never the kernel."),
     ("omega", "Omega", "aien-dev/omega", "AIEN's language for all computing, GPU to CPU. On the GPU it is the replacement for CUDA."),
     ("sovereign-core", "Sovereign core", "aien-dev/aien-sovereign-core", "Host runtime, inference ABI, and the pipeline that judges every change."),
     ("architecture", "Architecture", "aien-dev/aien-architecture", "Flows, boundaries, decision records, execution plan."),
@@ -82,7 +82,7 @@ impl Facts {
     }
 }
 
-fn gh(args: &[&str]) -> Result<serde_json::Value, String> {
+pub(crate) fn gh(args: &[&str]) -> Result<serde_json::Value, String> {
     let out = Command::new("gh")
         .arg("api")
         .args(args)
@@ -113,11 +113,11 @@ fn comparison_title(t: &str) -> bool {
 
 /// The retired name is not rendered, including in an automatically collected
 /// decision title. The record remains in the architecture repository.
-fn retired_name(t: &str) -> bool {
+pub(crate) fn retired_name(t: &str) -> bool {
     t.to_ascii_lowercase().contains("aienix")
 }
 
-fn now_utc() -> String {
+pub(crate) fn now_utc() -> String {
     // RFC 3339 to the second, without pulling in a time crate.
     let secs = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)

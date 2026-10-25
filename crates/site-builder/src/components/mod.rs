@@ -24,3 +24,4 @@ pub mod now;
 pub mod cudaplusplus;
 pub mod omega;
 pub mod owned;
+pub mod agents;

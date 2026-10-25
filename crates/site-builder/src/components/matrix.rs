@@ -6,12 +6,12 @@ use super::boxlink::{foot, Target};
 /// the role, from the site inventory of 2026-10-19.
 const ROLE_LINKS: [(&str, &str); 8] = [
     ("ATLAS", "https://github.com/aien-dev/atlas"),
-    ("AIENOS", "https://github.com/aien-dev/aienos-mv"),
+    ("AIENOS", "https://github.com/aien-dev/aienux"),
     ("OMEGA", "https://github.com/aien-dev/omega-mv"),
     ("AIEN", "https://github.com/aien-dev/aien-sovereign-core-mv"),
     ("AEGIS", "https://github.com/aien-dev/omega-mv/blob/main/spec/r8-aegis-resident.md"),
     ("FORGE", "https://github.com/aien-dev/physics-mv"),
-    ("ARGUS", "https://github.com/aien-dev/aienos-mv/tree/main/native/argus"),
+    ("ARGUS", "https://github.com/aien-dev/aienux/tree/main/native/argus"),
     ("CORTEX", "https://github.com/aien-dev/omega-mv/blob/main/src/runtime/rx_cortex.h"),
 ];
 

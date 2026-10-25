@@ -3,17 +3,17 @@
   "components": [
     {
       "key": "aienos",
-      "name": "AIENOS",
-      "repo": "aien-dev/aienos",
-      "role": "The operating system. Agent-first; the model is never the kernel.",
-      "url": "https://github.com/aien-dev/aienos",
+      "name": "Aienux",
+      "repo": "aien-dev/aienux",
+      "role": "The AienOS kernel: boot, scheduling, IPC and capability boundaries. Agent-first; the model is never the kernel.",
+      "url": "https://github.com/aien-dev/aienux",
       "pushed_at": "2026-10-16T11:20:41Z",
       "open_prs": 4,
       "last_merge": {
         "number": 401,
         "title": "docs: native KV ownership status and one resolved GB10 unknown (PERF-DOC P1)",
         "merged_at": "2026-10-16T11:20:40Z",
-        "url": "https://github.com/aien-dev/aienos-mv/pull/401"
+        "url": "https://github.com/aien-dev/aienux/pull/401"
       }
     },
     {

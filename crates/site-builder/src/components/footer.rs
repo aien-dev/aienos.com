@@ -10,7 +10,7 @@ pub const FOOTER_GROUPS: [(&str, &[FooterLink]); 6] = [
         "The Machine",
         &[
             ("The Machine", "/machine/", false),
-            ("AIENOS source", "https://github.com/aien-dev/aienos", true),
+            ("Aienux kernel source", "https://github.com/aien-dev/aienux", true),
             ("What Omega is", "/omega/", false),
             ("Omega source", "https://github.com/aien-dev/omega", true),
             ("Architecture", "https://github.com/aien-dev/aien-architecture", true),

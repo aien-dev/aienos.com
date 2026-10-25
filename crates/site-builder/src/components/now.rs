@@ -528,7 +528,7 @@ fn default_repo(stream: &str) -> Option<&'static str> {
         "Engine speed" | "Research" => Some("omega-mv"),
         "Alpha release" => Some("aien-sovereign-core-mv"),
         "AIEN Rig" => Some("aien-rig"),
-        "AIENOS on the iMac" => Some("aienos-mv"),
+        "AIENOS on the iMac" => Some("aienux"),
         "Public record" => Some("aienos.com"),
         _ => None,
     }
@@ -558,14 +558,17 @@ pub struct Seg {
 }
 
 /// Short repository names the ledger uses, and the GitHub name of each.
-const REPOS: [(&str, &str); 19] = [
+/// `aienos` and `aienos-mv` are the kernel's former names: ledger lines
+/// written before the rename mean the kernel, now `aienux`.
+const REPOS: [(&str, &str); 20] = [
     ("omega", "omega-mv"),
     ("omega-mv", "omega-mv"),
     ("sc", "aien-sovereign-core-mv"),
     ("aien-sovereign-core", "aien-sovereign-core-mv"),
     ("aien-sovereign-core-mv", "aien-sovereign-core-mv"),
-    ("aienos", "aienos-mv"),
-    ("aienos-mv", "aienos-mv"),
+    ("aienux", "aienux"),
+    ("aienos", "aienux"),
+    ("aienos-mv", "aienux"),
     ("arch", "aien-architecture-mv"),
     ("aien-architecture", "aien-architecture-mv"),
     ("aien-architecture-mv", "aien-architecture-mv"),
@@ -1026,7 +1029,7 @@ fn usage_section(now: &Now) -> Markup {
                         ul class="now-give-steps" {
                             li {
                                 strong { "Your agent, your plan. " }
-                                "Point it at " a class="prose-link" href="/AGENTS.md" { "AGENTS.md" } ": it reads this ledger, claims an open line and pushes its evidence like ours does. Its own subscription pays for it (Claude, Codex, Gemini or Grok); nothing of yours is sent to the Spark."
+                                "Pick any repository on " a class="prose-link" href="/agents/" { "Agents" } " and give your agent its instructions: the rules ours follow and that repository's own AGENTS.md. It claims an open issue and opens a pull request that leads with its evidence, like ours do. Its own subscription pays for it (Claude, Codex, Gemini or Grok); nothing of yours is sent to the Spark."
                             }
                             li {
                                 strong { "Your Spark. " }
@@ -1500,8 +1503,8 @@ limit\tsomething_new\t5\t2026-10-31T15:59:59Z\t\n";
 
     #[test]
     fn linkify_commit_falls_back_to_the_stream_repo_or_stays_text() {
-        let segs = linkify("feat/goodbye-panel-off@2954f5e pushed", Some("aienos-mv"));
-        assert_eq!(hrefs(&segs), vec![("feat/goodbye-panel-off@2954f5e".into(), "https://github.com/aien-dev/aienos-mv/commit/2954f5e".into())]);
+        let segs = linkify("feat/goodbye-panel-off@2954f5e pushed", Some("aienux"));
+        assert_eq!(hrefs(&segs), vec![("feat/goodbye-panel-off@2954f5e".into(), "https://github.com/aien-dev/aienux/commit/2954f5e".into())]);
         let segs = linkify("feat/goodbye-panel-off@2954f5e pushed", None);
         assert!(hrefs(&segs).is_empty(), "no repository to resolve against: stays text");
         assert_eq!(joined(&segs), "feat/goodbye-panel-off@2954f5e pushed");

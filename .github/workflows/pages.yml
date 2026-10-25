@@ -69,6 +69,22 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: cargo run --release --manifest-path crates/site-builder/Cargo.toml -- facts facts.json
+      # /agents/ lists every public repository and its AGENTS.md. Same rule as
+      # the progress collector: bounded, and the committed list stays in place
+      # when GitHub does not answer.
+      - name: Refresh the agent repository list
+        timeout-minutes: 3
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tmp=$(mktemp)
+          if timeout 120 cargo run --release --manifest-path crates/site-builder/Cargo.toml -- agents "$tmp"; then
+            mv "$tmp" public/data/agent-repos.json
+          else
+            rm -f "$tmp"
+            echo "agents: collector timed out or failed; keeping the committed agent-repos.json"
+          fi
       - name: Build static site with pure Rust engine
         run: cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist
       - name: Upload Pages artifact
