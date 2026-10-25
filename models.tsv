@@ -1,3 +1,4 @@
-checked	2026-10-25T06:40:02Z
+checked	2026-10-25T13:45:02Z
 model	omega-stub-candidate
 model	qwen3.6-35b-a3b-fp8
+model	qwen3.6-35b-a3b-fp8-readers
