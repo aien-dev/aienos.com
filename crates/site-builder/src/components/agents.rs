@@ -27,6 +27,9 @@ pub const ORG: &str = "aien-dev";
 pub const DATA_PATH: &str = "public/data/agent-repos.json";
 /// The shared rules, compiled in so the page and the file never disagree.
 pub const RULES: &str = include_str!("../../../../public/agents/RULES.md");
+/// Copyable handoff for an installed Agent Skills reader. This is a brief, not a command.
+const OMEGA_OPERATOR_PROMPT: &str = "You are an AIEN coding agent operating with the installed Omega Harness skills.\nTask: <describe one bounded change and the owning repository here>.\n\n1. Load omega-harness, omega-encoding, omega-communication,\n   aien-repositories and crumb-protocol. Read\n   https://www.aienos.com/agents/RULES.md and the target repository's\n   AGENTS.md (or CLAUDE.md) and relevant .crumb files.\n2. Confirm the repository, base branch, exact commit, source contracts\n   and compiler pin. Read real .om compiler and fixture sources before\n   choosing syntax. Use a separate branch or checkout; respect locks.\n3. Propose the smallest .om-first change, affected consumers,\n   invariants, required approvals, acceptance checks and a negative\n   control. Do not silently replace missing Omega features with\n   another language.\n4. Implement only the approved scope. Compile, run the changed path,\n   compare actual outputs, and confirm the negative/refusal case fails\n   as intended. Never treat a compile as a successful execution.\n5. Do not touch live services, hardware, credentials, gates or\n   deployment without the operator's authorization.\n6. Open a PR with the exact revision, commands, outputs, limits and\n   evidence links. Label the result accurately: implemented,\n   exercised, verified or qualified. Never imply merged or deployed\n   until confirmed. Update relevant harness skills if they became stale.";
+
 pub const RULES_PATH: &str = "/agents/RULES.md";
 pub const RULES_URL: &str = "https://www.aienos.com/agents/RULES.md";
 /// The source of the rules on GitHub, for the rules box.
@@ -232,6 +235,57 @@ pub fn render_agents_page(repos: &Repos) -> Markup {
                 }
             }
 
+            section class="hub-section" id="omega-operator" aria-labelledby="agents-omega-operator" {
+                h2 id="agents-omega-operator" class="hub-h2" { "Operate agents with Omega Harness" }
+                p {
+                    "Omega Harness is a collection of Agent Skills for an existing coding agent, not a separate agent runtime or an automatic verification system. It teaches that agent how to find the right AIEN repository, write supported .om, compile and exercise the result, challenge it with a negative control, and report evidence accurately. "
+                    a href="https://github.com/aien-dev/omega-harness" { "Read the harness source" }
+                    "."
+                }
+                ol class="agents-steps" {
+                    li {
+                        strong { "Install the skills in your agent." }
+                        " Clone the harness and copy its skill directories into the location your agent reads. For Codex and other Agent Skills readers:"
+                    }
+                }
+                pre class="agents-prompt" { code { "git clone https://github.com/aien-dev/omega-harness.git\nmkdir -p ~/.agents/skills\ncp -R omega-harness/skills/* ~/.agents/skills/" } }
+                p class="hub-note" {
+                    "For Claude Code use ~/.claude/skills/; for oh-my-pi (omp) use ~/.omp/agent/skills/ or a project's .omp/skills/. Omp can also load the clone from skills.customDirectories. See the "
+                    a href="https://github.com/aien-dev/omega-harness#install" { "current installation guide" }
+                    " for details. Start a fresh agent session after installation."
+                }
+                ol class="agents-steps" start="2" {
+                    li {
+                        strong { "Select the owning repository and its instructions." }
+                        " Read its AGENTS.md (or CLAUDE.md), the "
+                        a href=(RULES_PATH) { "shared rules" }
+                        ", and relevant .crumb files. A checked-out branch is not a live deployment."
+                    }
+                    li {
+                        strong { "Give the agent a bounded task." }
+                        " Paste and customize the prompt below. In omp, /skill:omega-harness can explicitly load the main skill. Other Agent Skills readers discover it by name and description."
+                    }
+                    li {
+                        strong { "Judge the evidence before accepting work." }
+                        " Require a real compile and execution result, an invalid-input or wrong-answer negative control, the exact source revision, and a pull request. Hardware qualification and live-service actions need operator approval."
+                    }
+                }
+                pre class="agents-prompt" { code { (OMEGA_OPERATOR_PROMPT) } }
+                p class="hub-note" {
+                    "The "
+                    a href="https://github.com/aien-dev/omega-harness/blob/main/skills/omega-encoding/SKILL.md" { "Omega encoding skill" }
+                    " is the checked language guide; "
+                    a href="https://github.com/aien-dev/omega-harness/blob/main/skills/omega-communication/SKILL.md" { "communication" }
+                    " defines honest status labels; "
+                    a href="https://github.com/aien-dev/omega-harness/blob/main/skills/aien-repositories/SKILL.md" { "repository routing" }
+                    " identifies ownership; and "
+                    a href="https://github.com/aien-dev/omega-harness/blob/main/skills/crumb-protocol/SKILL.md" { "crumb protocol" }
+                    " covers coordination. Conversion across languages belongs to "
+                    a href="https://github.com/aien-dev/omega-bridge" { "Omega Bridge" }
+                    ", not the harness."
+                }
+            }
+
             section class="hub-section" id="rules" aria-labelledby="agents-rules" {
                 h2 id="agents-rules" class="hub-h2" { "The shared rules" }
                 p {
@@ -334,6 +388,26 @@ mod tests {
             assert!(!RULES.contains(private), "RULES.md leaks a machine-only detail: {private}");
         }
         assert!(RULES.contains("https://www.aienos.com/agents/"), "RULES.md must point back at the repository list");
+    }
+
+    #[test]
+    fn omega_operator_instructions_are_present_and_bounded() {
+        let page = render_agents_page(&sample()).into_string();
+        for expected in [
+            "id=\"omega-operator\"",
+            "https://github.com/aien-dev/omega-harness",
+            "omega-harness/skills/*",
+            "omega-encoding",
+            "crumb-protocol",
+            "negative control",
+            "operator approval",
+            "https://github.com/aien-dev/omega-bridge",
+        ] {
+            assert!(page.contains(expected), "operator instructions missing {expected}");
+        }
+        assert!(OMEGA_OPERATOR_PROMPT.contains("exact commit"));
+        assert!(OMEGA_OPERATOR_PROMPT.contains("Open a PR"));
+        assert!(!page.contains('\u{2014}') && !page.contains('\u{2013}'));
     }
 
     #[test]
