@@ -13,7 +13,8 @@
 <a class="hive-learn" href="/learn/">Learn to build with AI</a>
 </header>
 <div class="hive-sections">
-<section id="hive-strip" class="hive-section hive-section-full" aria-labelledby="hive-strip-title" data-requires="always"><p class="hive-eyebrow">01 / Signal</p><h2 id="hive-strip-title">Source and freshness</h2><p class="hive-note">This page reads one public JSON snapshot of the fleet. It never assumes it can see every agent.</p>
+<section id="hive-strip" class="hive-section hive-section-full" aria-labelledby="hive-strip-title" data-requires="always"><div class="hive-head-row"><p class="hive-eyebrow">01 / Signal</p><h2 id="hive-strip-title">Source and freshness</h2><p class="hive-note">This page reads one public JSON snapshot of the fleet. It never assumes it can see every agent.</p>
+</div><div class="hive-strip-facts">
 <dl class="hive-times">
 <dt>Source snapshot</dt><dd><time id="hive-source-time">Not received</time></dd>
 <dt>Browser received</dt><dd><time id="hive-fetch-time">Not received</time></dd>
@@ -22,22 +23,26 @@
 <p id="hive-connection" class="hive-connection" role="status" aria-live="polite">Connecting to the observatory</p>
 <p id="hive-freshness" class="hive-small">A browser clock is not evidence of a live source.</p>
 </div>
+</div>
+<div class="hive-strip-foot">
 <p id="hive-counts" class="hive-counts">Awaiting the first source observation.</p>
 <p id="hive-coverage" class="hive-coverage">Coverage is not yet known. This view can be partial and it says so.</p>
+</div>
 <button id="hive-motion" type="button" aria-pressed="false">Pause motion</button>
 </section>
-<section id="hive-tree-section" class="hive-section hive-section-main" aria-labelledby="hive-tree-section-title" data-requires="always"><p class="hive-eyebrow">02 / Missions</p><h2 id="hive-tree-section-title">Current missions</h2><p class="hive-note">Every reported branch, open from the start. A status describes the agent's reported state, not a measure of progress.</p>
+<section id="hive-tree-section" class="hive-section hive-section-main hive-panel" aria-labelledby="hive-tree-section-title" data-requires="always"><div class="hive-panel-head"><p class="hive-eyebrow">02 / Missions</p><h2 id="hive-tree-section-title">Current missions</h2><p class="hive-note">One disclosure per branch. A status describes the agent's reported state, not a measure of progress.</p>
+</div><div class="hive-panel-body"><div class="hive-tools">
 <div class="hive-search">
 <label for="hive-search">Find an agent, model or task</label>
 <input id="hive-search" type="search" placeholder="Search the fleet" autocomplete="off">
 </div>
 <p id="hive-search-count" class="hive-small"></p>
+</div>
 <p id="hive-tree-empty" class="hive-empty">No snapshot received yet. The last useful observation stays here if the connection drops.</p>
 <ul id="hive-tree" class="hive-tree" aria-label="Observed agent tree"></ul>
-</section>
-<section id="hive-manifest" class="hive-section hive-section-narrow" aria-labelledby="hive-manifest-title" data-requires="always"><p class="hive-eyebrow">03 / Manifest</p><h2 id="hive-manifest-title">Selected mission</h2><p class="hive-note">Runtime observations, not GitHub receipts or proof that a task succeeded.</p>
-<p id="hive-manifest-name" class="hive-manifest-name">Nothing selected</p>
-<p id="hive-manifest-context" class="hive-small">Choose any root or nested agent. Its exact model, task and source times appear here.</p>
+</div></section>
+<section id="hive-manifest" class="hive-section hive-section-narrow hive-panel" aria-labelledby="hive-manifest-title" data-requires="always"><div class="hive-panel-head"><p class="hive-eyebrow">03 / Manifest</p><h2 id="hive-manifest-title">Selected mission</h2><p class="hive-note">Runtime observations, not GitHub receipts or proof that a task succeeded.</p>
+<p id="hive-manifest-name" class="hive-manifest-name">Nothing selected</p></div><div class="hive-panel-body"><p id="hive-manifest-context" class="hive-small">Choose any root or nested agent. Its exact model, task and source times appear here.</p>
 <p id="hive-manifest-empty" class="hive-empty">No agent selected yet. This panel fills from the row you choose.</p>
 <div id="hive-manifest-body" hidden>
 <p id="hive-manifest-state" class="hive-state"></p>
@@ -50,7 +55,7 @@
 <nav id="hive-manifest-family" class="hive-family" aria-label="Related agents"></nav>
 <button id="hive-show-selected" type="button">Back to selected mission</button>
 </div>
-</section>
+</div></section>
 <section id="hive-chat-section" class="hive-section hive-section-full" aria-labelledby="hive-chat-section-title" data-requires="interactions"><p class="hive-eyebrow">04 / Conversations</p><h2 id="hive-chat-section-title">Drake and the agents</h2><p class="hive-note">Direct messages from Drake and agents public replies, in time order, inside one publication window. Hidden reasoning, tool payloads and automatic context are not conversations.</p>
 <div class="hive-conversation-controls" role="group" aria-label="Conversation scope">
 <button id="hive-chat-all" type="button" aria-pressed="true">All agents</button>
@@ -71,6 +76,7 @@
 </footer>
 <noscript><p class="hive-empty">This observatory needs JavaScript to read its live source. <a href="/hive/live.json">Open the public JSON snapshot</a>.</p></noscript>
 <template id="hive-tpl-row"><li class="hive-node"><div class="hive-record">
+<button class="hive-disclose" type="button" aria-expanded="true" aria-controls="" data-f="disclose"><span class="hive-branch" data-f="branch"></span></button>
 <button class="hive-select" type="button" aria-pressed="false" data-f="select"></button>
 <span class="hive-pill" data-f="state"></span>
 <span class="hive-chip" data-f="model"></span>
@@ -80,10 +86,12 @@
 <ul class="hive-children" data-f="children"></ul>
 </li></template>
 <template id="hive-tpl-child"><li class="hive-node hive-node-nested"><div class="hive-record">
+<button class="hive-disclose" type="button" aria-expanded="true" aria-controls="" data-f="disclose"><span class="hive-branch" data-f="branch"></span></button>
 <button class="hive-select" type="button" aria-pressed="false" data-f="select"></button>
 <span class="hive-pill" data-f="state"></span>
 <span class="hive-chip" data-f="model"></span>
 <span class="hive-elapsed" data-f="elapsed"></span>
+<span class="hive-activity" data-f="activity"></span>
 </div>
 <ul class="hive-children" data-f="children"></ul>
 </li></template>

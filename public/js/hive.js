@@ -17,6 +17,10 @@
     return first ? first.cloneNode(true) : null;
   };
   const statuses = new Set(['working', 'waiting', 'idle', 'completed', 'failed', 'unknown']);
+  /* A branch holding more direct children than this starts folded, so the first
+     view is the roots and their near children rather than one root's 53 rows.
+     Every folded branch shows how many agents it holds. */
+  const BRANCH_LIMIT = 12;
   const actions = new Set(['running', 'finished', 'unknown']);
   const records = new Map();
   const messages = new Map();
@@ -35,6 +39,11 @@
   let requestActive = false;
   let newMessages = 0;
   let query = '';
+  /* Whether the current search decides what is open (a Set of branch ids) or
+     the reader does (record.collapsed), plus the branches the reader closed
+     while that search was running. */
+  let forced = null;
+  const closedNow = new Set();
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let paused = false;
   try { paused = localStorage.getItem('hive-motion-paused') === 'true'; } catch (_) { /* Storage is optional. */ }
@@ -125,10 +134,66 @@
       data: agent, li, nested,
       select: slot(li, 'select'), state: slot(li, 'state'), model: slot(li, 'model'),
       elapsed: slot(li, 'elapsed'), activity: slot(li, 'activity'), children: slot(li, 'children'),
-      absentAt: null, order: order++,
+      disclose: slot(li, 'disclose'), branch: slot(li, 'branch'),
+      absentAt: null, order: order++, collapsed: null, kids: 0,
     };
+    if (record.children) record.children.id = `hive-branch-${agent.id}`;
+    if (record.disclose && record.children) {
+      record.disclose.setAttribute('aria-controls', record.children.id);
+      record.disclose.setAttribute('aria-expanded', String(!record.collapsed));
+      record.disclose.addEventListener('click', () => setCollapsed(record, !record.collapsed));
+    }
     record.select.addEventListener('click', () => choose(record.data.id));
     return record;
+  }
+  /* One writer decides what a branch's disclosure says and whether its child
+     list is in the document flow, so the button, aria-expanded and the list
+     can never disagree. A search opens the branches that hold a match without
+     forgetting which ones the reader had folded. */
+  function setCollapsed(record, value) {
+    record.collapsed = value;
+    if (forced) {
+      if (value) closedNow.add(record.data.id);
+      else closedNow.delete(record.data.id);
+    }
+    applyBranches();
+  }
+  function applyBranches() {
+    for (const record of records.values()) {
+      if (!record.disclose) continue;
+      const kids = record.kids;
+      record.disclose.hidden = kids === 0;
+      if (kids === 0 || !record.children) continue;
+      const open = forced ? forced.has(record.data.id) && !closedNow.has(record.data.id) : !record.collapsed;
+      record.children.hidden = !open;
+      record.disclose.setAttribute('aria-expanded', String(open));
+      record.li.dataset.collapsed = String(!open);
+      text(record.branch, String(kids));
+      record.disclose.setAttribute('aria-label', `${open ? 'Collapse' : 'Expand'} ${record.data.name}: ${kids} ${kids === 1 ? 'nested agent' : 'nested agents'}`);
+    }
+  }
+  function branchOpen(record) {
+    if (!record || !record.children || record.kids === 0) return true;
+    return forced ? forced.has(record.data.id) && !closedNow.has(record.data.id) : !record.collapsed;
+  }
+  /* A selection inside a folded branch would fill the manifest from a row the
+     reader cannot see, so choosing an agent opens the path down to it. */
+  function revealBranch(agentId) {
+    let up = records.get(records.get(agentId)?.data.parent_id);
+    for (let guard = 0; up && guard < 128; guard += 1) {
+      up.collapsed = false;
+      closedNow.delete(up.data.id);
+      up = records.get(up.data.parent_id);
+    }
+    applyBranches();
+  }
+  function foldedAbove(record) {
+    let up = records.get(record.data.parent_id);
+    for (let guard = 0; up && guard < 128; guard += 1) {
+      if (!branchOpen(up)) return true;
+      up = records.get(up.data.parent_id);
+    }
+    return false;
   }
   /* How long this agent has been running, measured from the source timestamp so
      a browser clock never invents progress. */
@@ -188,11 +253,26 @@
       const replacement = makeRecord(record.data, depth > 0);
       replacement.absentAt = record.absentAt;
       replacement.order = record.order;
+      replacement.collapsed = record.collapsed;
       record.li.replaceWith(replacement.li);
       records.set(record.data.id, replacement);
       return [replacement, depth];
     });
-    for (const [record] of ordered) updateRecord(record);
+    /* How much each branch holds, from the same parent links the tree uses, so
+       a folded branch still says how many agents it is folding. */
+    const counts = new Map();
+    for (const [record] of ordered) {
+      let up = records.get(record.data.parent_id);
+      for (let guard = 0; up && guard < 128; guard += 1) {
+        counts.set(up.data.id, (counts.get(up.data.id) || 0) + 1);
+        up = records.get(up.data.parent_id);
+      }
+    }
+    for (const [record] of ordered) {
+      record.kids = counts.get(record.data.id) || 0;
+      if (record.collapsed === null) record.collapsed = record.kids > BRANCH_LIMIT;
+      updateRecord(record);
+    }
     for (const [record, depth] of ordered) {
       const parent = depth > 0 ? records.get(record.data.parent_id) : null;
       (parent && parent.children ? parent.children : get('tree')).appendChild(record.li);
@@ -220,6 +300,7 @@
   function applySearch() {
     const matches = new Set();
     const visible = new Set();
+    forced = query ? new Set() : null;
     for (const record of records.values()) {
       const agent = record.data;
       if (!query || [agent.name, agent.task, agent.activity, agent.model, agent.provider, agent.runtime, agent.role, agent.status].join(' ').toLowerCase().includes(query)) {
@@ -229,12 +310,20 @@
           visible.add(current.data.id);
           current = records.get(current.data.parent_id);
         }
+        /* Every branch above a match opens, so a hit deep in the tree is not
+           hidden by a folded ancestor. */
+        let up = records.get(agent.parent_id);
+        while (up && forced && !forced.has(up.data.id)) {
+          forced.add(up.data.id);
+          up = records.get(up.data.parent_id);
+        }
       }
     }
     for (const record of records.values()) {
       record.li.hidden = !visible.has(record.data.id);
       record.li.dataset.context = String(!matches.has(record.data.id));
     }
+    applyBranches();
     text(get('search-count'), query ? `${matches.size} matching / ${records.size} displayed agents. Parent branches remain visible for context.` : `${records.size} displayed agents, including any briefly retained missing observations.`);
     const empty = get('tree-empty');
     empty.hidden = matches.size > 0;
@@ -273,6 +362,7 @@
   }
   function choose(agentId, updateFragment = true) {
     if (!records.has(agentId)) return;
+    if (selected !== agentId) revealBranch(agentId);
     selected = agentId;
     if (updateFragment) {
       try { history.replaceState(null, '', `#agent=${encodeURIComponent(agentId)}`); } catch (_) { /* Sandboxed previews may deny history. */ }
@@ -303,7 +393,7 @@
     text(get('manifest-name'), agent.name);
     const parent = records.get(agent.parent_id);
     const context = agent.parent_id ? `Nested under ${parent?.data.name || 'an unobserved parent'}.` : 'Root mission.';
-    text(get('manifest-context'), context + (record.li.hidden ? ' Outside the current search filter.' : '') + (record.absentAt !== null ? ' Retained from an earlier observation; disappearance does not mean completion.' : ''));
+    text(get('manifest-context'), context + (record.li.hidden ? ' Outside the current search filter.' : foldedAbove(record) ? ' Inside a collapsed branch.' : '') + (record.absentAt !== null ? ' Retained from an earlier observation; disappearance does not mean completion.' : ''));
     text(get('manifest-state'), recordState(record));
     fields(get('manifest-identity'), [['Model', agent.model], ['Provider', agent.provider], ['Runtime', agent.runtime], ['Role', agent.role]]);
     text(get('manifest-task'), agent.task || 'Not reported.');
@@ -470,11 +560,13 @@
   });
   reducedMotion.addEventListener('change', motion);
   document.addEventListener('visibilitychange', () => { motion(); freshness(); });
-  get('search').addEventListener('input', event => { query = event.target.value.trim().toLowerCase(); applySearch(); });
+  get('search').addEventListener('input', event => { query = event.target.value.trim().toLowerCase(); closedNow.clear(); applySearch(); });
   get('show-selected').addEventListener('click', () => {
     const record = records.get(selected);
     if (!record) return;
     if (record.li.hidden) { query = ''; get('search').value = ''; applySearch(); }
+    revealBranch(record.data.id);
+    renderManifest();
     record.select.focus({ preventScroll: true });
     record.li.scrollIntoView({ block: 'center', behavior: 'auto' });
   });
