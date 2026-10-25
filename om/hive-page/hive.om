@@ -1,0 +1,219 @@
+note Hive page skeleton generator. Every structural decision for /hive/ lives in this unit:
+note the section set, its order, the ids and aria attributes, the mission tree container, the
+note compact agent row, the message, field and family templates, the freshness strip, the empty
+note states and the jump navigation. The hydrator in public/js/hive.js only fills these slots.
+note
+note Program mode. The pinned compiler emits a static AArch64 ELF that writes the skeleton to
+note stdout; sh om/hive-page/check.sh compiles it, runs it twice and keeps om/hive-page/main.html.
+note
+note meta holds one record per line and six pipe separated fields per record: opening tag up to
+note the eyebrow, eyebrow text, heading opening tag, heading text, note opening tag, note text.
+note A section is therefore reordered, renamed or re-headed by editing this table, and the loop in
+note main emits sections in table order until the table ends. A record may not contain a newline.
+note The opening tag also carries data-requires: a section marked interactions is hidden by the
+note hydrator while the snapshot reports no messages, and always sections are never hidden.
+note
+note Names: the compiler allows 8 bytes per data name and at most 6 parameters per function.
+
+text meta "<section id=\"hive-strip\" class=\"hive-section hive-section-full\" aria-labelledby=\"hive-strip-title\" data-requires=\"always\"><p class=\"hive-eyebrow\">|01 / Signal|</p><h2 id=\"hive-strip-title\">|Source and freshness|</h2><p class=\"hive-note\">|This page reads one public JSON snapshot of the fleet. It never assumes it can see every agent.\n<section id=\"hive-tree-section\" class=\"hive-section hive-section-main\" aria-labelledby=\"hive-tree-section-title\" data-requires=\"always\"><p class=\"hive-eyebrow\">|02 / Missions|</p><h2 id=\"hive-tree-section-title\">|Current missions|</h2><p class=\"hive-note\">|Every reported branch, open from the start. A status describes the agent's reported state, not a measure of progress.\n<section id=\"hive-manifest\" class=\"hive-section hive-section-narrow\" aria-labelledby=\"hive-manifest-title\" data-requires=\"always\"><p class=\"hive-eyebrow\">|03 / Manifest|</p><h2 id=\"hive-manifest-title\">|Selected mission|</h2><p class=\"hive-note\">|Runtime observations, not GitHub receipts or proof that a task succeeded.\n<section id=\"hive-chat-section\" class=\"hive-section hive-section-full\" aria-labelledby=\"hive-chat-section-title\" data-requires=\"interactions\"><p class=\"hive-eyebrow\">|04 / Conversations|</p><h2 id=\"hive-chat-section-title\">|Drake and the agents|</h2><p class=\"hive-note\">|Direct messages from Drake and agents public replies, in time order, inside one publication window. Hidden reasoning, tool payloads and automatic context are not conversations.\n"
+
+text noteend "</p>\n"
+
+text page1 "<div class=\"hive\" id=\"hive\" data-fresh=\"false\" data-motion=\"off\">\n<nav class=\"hive-jumps\" aria-label=\"Hive sections\">\n<a href=\"#hive-strip\">Signal</a>\n<a href=\"#hive-tree-section\">Missions</a>\n<a href=\"#hive-manifest\">Manifest</a>\n<a href=\"#hive-chat-section\" data-requires=\"interactions\">Conversations</a>\n</nav>\n<header class=\"hive-masthead\">\n<p class=\"hive-eyebrow\">An open observatory / AIEN</p>\n<h1>The hive<span class=\"hive-period\">.</span></h1>\n<p class=\"hive-intro\">Drake. A constellation of agents. Real work, unfolding in the open.</p>\n<p class=\"hive-welcome\">Watch Drake and the agents build, question, get things wrong and try again. You do not need to know how any of this works to begin.</p>\n<a class=\"hive-learn\" href=\"/learn/\">Learn to build with AI</a>\n</header>\n<div class=\"hive-sections\">\n"
+
+text secend "</section>\n"
+
+text sig1 "<dl class=\"hive-times\">\n<dt>Source snapshot</dt><dd><time id=\"hive-source-time\">Not received</time></dd>\n<dt>Browser received</dt><dd><time id=\"hive-fetch-time\">Not received</time></dd>\n</dl>\n"
+
+text sig2 "<div class=\"hive-strip-status\">\n<p id=\"hive-connection\" class=\"hive-connection\" role=\"status\" aria-live=\"polite\">Connecting to the observatory</p>\n<p id=\"hive-freshness\" class=\"hive-small\">A browser clock is not evidence of a live source.</p>\n</div>\n"
+
+text sig3 "<p id=\"hive-counts\" class=\"hive-counts\">Awaiting the first source observation.</p>\n<p id=\"hive-coverage\" class=\"hive-coverage\">Coverage is not yet known. This view can be partial and it says so.</p>\n<button id=\"hive-motion\" type=\"button\" aria-pressed=\"false\">Pause motion</button>\n"
+
+text tree1 "<div class=\"hive-search\">\n<label for=\"hive-search\">Find an agent, model or task</label>\n<input id=\"hive-search\" type=\"search\" placeholder=\"Search the fleet\" autocomplete=\"off\">\n</div>\n<p id=\"hive-search-count\" class=\"hive-small\"></p>\n"
+
+text tree2 "<p id=\"hive-tree-empty\" class=\"hive-empty\">No snapshot received yet. The last useful observation stays here if the connection drops.</p>\n<ul id=\"hive-tree\" class=\"hive-tree\" aria-label=\"Observed agent tree\"></ul>\n"
+
+text man1 "<p id=\"hive-manifest-name\" class=\"hive-manifest-name\">Nothing selected</p>\n<p id=\"hive-manifest-context\" class=\"hive-small\">Choose any root or nested agent. Its exact model, task and source times appear here.</p>\n<p id=\"hive-manifest-empty\" class=\"hive-empty\">No agent selected yet. This panel fills from the row you choose.</p>\n"
+
+text man2 "<div id=\"hive-manifest-body\" hidden>\n<p id=\"hive-manifest-state\" class=\"hive-state\"></p>\n<dl id=\"hive-manifest-identity\" class=\"hive-fields\"></dl>\n<h3>Current task</h3>\n<p id=\"hive-manifest-task\" class=\"hive-work\"></p>\n<h3 id=\"hive-manifest-action-label\">Last observed action</h3>\n<p id=\"hive-manifest-action\" class=\"hive-work\"></p>\n<dl id=\"hive-manifest-times\" class=\"hive-fields\"></dl>\n<nav id=\"hive-manifest-family\" class=\"hive-family\" aria-label=\"Related agents\"></nav>\n<button id=\"hive-show-selected\" type=\"button\">Back to selected mission</button>\n</div>\n"
+
+text chat1 "<div class=\"hive-conversation-controls\" role=\"group\" aria-label=\"Conversation scope\">\n<button id=\"hive-chat-all\" type=\"button\" aria-pressed=\"true\">All agents</button>\n<button id=\"hive-chat-selected\" type=\"button\" aria-pressed=\"false\">Selected agent</button>\n</div>\n<p id=\"hive-conversation-range\" class=\"hive-small\"></p>\n<p id=\"hive-chat-empty\" class=\"hive-empty\">No published live message for this view yet.</p>\n"
+
+text chat2 "<ol id=\"hive-chat\" class=\"hive-chat\" tabindex=\"0\" aria-label=\"Recent conversations, oldest first\"></ol>\n<button id=\"hive-chat-latest\" type=\"button\" hidden>Go to latest message</button>\n<p class=\"hive-source-note\">This is work in progress, including mistakes and failures. Public messages are not verified project outcomes.</p>\n"
+
+text page2 "</div>\n<footer class=\"hive-closing\">\n<p>Curiosity is enough to start.</p>\n<a href=\"/learn/\">Take your first step with AI</a>\n<a href=\"/agents/\">Read the agents' working rules</a>\n<a href=\"https://github.com/aien-dev/aienos.com/blob/main/om/hive-page/hive.om\" rel=\"noopener noreferrer\">Page structure on GitHub</a>\n</footer>\n<noscript><p class=\"hive-empty\">This observatory needs JavaScript to read its live source. <a href=\"/hive/live.json\">Open the public JSON snapshot</a>.</p></noscript>\n"
+
+text tplrow "<template id=\"hive-tpl-row\"><li class=\"hive-node\"><div class=\"hive-record\">\n<button class=\"hive-select\" type=\"button\" aria-pressed=\"false\" data-f=\"select\"></button>\n<span class=\"hive-pill\" data-f=\"state\"></span>\n<span class=\"hive-chip\" data-f=\"model\"></span>\n<span class=\"hive-elapsed\" data-f=\"elapsed\"></span>\n<span class=\"hive-activity\" data-f=\"activity\"></span>\n</div>\n<ul class=\"hive-children\" data-f=\"children\"></ul>\n</li></template>\n"
+
+text tplkid "<template id=\"hive-tpl-child\"><li class=\"hive-node hive-node-nested\"><div class=\"hive-record\">\n<button class=\"hive-select\" type=\"button\" aria-pressed=\"false\" data-f=\"select\"></button>\n<span class=\"hive-pill\" data-f=\"state\"></span>\n<span class=\"hive-chip\" data-f=\"model\"></span>\n<span class=\"hive-elapsed\" data-f=\"elapsed\"></span>\n</div>\n<ul class=\"hive-children\" data-f=\"children\"></ul>\n</li></template>\n"
+
+text tplmsg "<template id=\"hive-tpl-msg\"><li class=\"hive-message\">\n<div class=\"hive-message-who\"><strong data-f=\"speaker\"></strong><span class=\"hive-message-model\" data-f=\"model\"></span><time data-f=\"at\">Not reported</time></div>\n<p class=\"hive-message-text\" data-f=\"text\"></p>\n</li></template>\n"
+
+text tplfld "<template id=\"hive-tpl-field\"><dt data-f=\"label\"></dt><dd><span data-f=\"value\"></span><time data-f=\"time\" hidden></time></dd></template>\n"
+
+text tplfam "<template id=\"hive-tpl-family\"><a class=\"hive-family-link\" href=\"\"><span data-f=\"label\"></span></a></template>\n"
+
+text pageend "</div>\n"
+
+
+fn fieldend p ulong to ulong
+i = p
+while lt i len meta
+c = get meta i
+if eq c 124
+ret i
+end
+if eq c 10
+ret i
+end
+i = add i 1
+end
+ret len meta
+end
+
+fn emit a ulong b ulong to void
+n = write 1 meta a sub b a
+if lt n 0
+trap 3
+end
+end
+
+fn secthead p ulong to ulong
+a = p
+b = fieldend a
+emit a b
+a = add b 1
+b = fieldend a
+emit a b
+a = add b 1
+b = fieldend a
+emit a b
+a = add b 1
+b = fieldend a
+emit a b
+a = add b 1
+b = fieldend a
+emit a b
+a = add b 1
+b = fieldend a
+emit a b
+n = write 1 noteend 0 len noteend
+if lt n 0
+trap 3
+end
+ret add b 1
+end
+
+fn sec_signal to void
+n = write 1 sig1 0 len sig1
+if lt n 0
+trap 3
+end
+n = write 1 sig2 0 len sig2
+if lt n 0
+trap 3
+end
+n = write 1 sig3 0 len sig3
+if lt n 0
+trap 3
+end
+end
+
+fn sec_tree to void
+n = write 1 tree1 0 len tree1
+if lt n 0
+trap 3
+end
+n = write 1 tree2 0 len tree2
+if lt n 0
+trap 3
+end
+end
+
+fn sec_manifest to void
+n = write 1 man1 0 len man1
+if lt n 0
+trap 3
+end
+n = write 1 man2 0 len man2
+if lt n 0
+trap 3
+end
+end
+
+fn sec_chat to void
+n = write 1 chat1 0 len chat1
+if lt n 0
+trap 3
+end
+n = write 1 chat2 0 len chat2
+if lt n 0
+trap 3
+end
+end
+
+fn body k uchar to void
+if eq k 0
+sec_signal
+ret
+end
+if eq k 1
+sec_tree
+ret
+end
+if eq k 2
+sec_manifest
+ret
+end
+if eq k 3
+sec_chat
+ret
+end
+end
+
+fn main to int
+n = write 1 page1 0 len page1
+if lt n 0
+trap 3
+end
+p = ulong 0
+k = uchar 0
+while lt p len meta
+p = secthead p
+body k
+n = write 1 secend 0 len secend
+if lt n 0
+trap 3
+end
+k = add k 1
+end
+n = write 1 page2 0 len page2
+if lt n 0
+trap 3
+end
+n = write 1 tplrow 0 len tplrow
+if lt n 0
+trap 3
+end
+n = write 1 tplkid 0 len tplkid
+if lt n 0
+trap 3
+end
+n = write 1 tplmsg 0 len tplmsg
+if lt n 0
+trap 3
+end
+n = write 1 tplfld 0 len tplfld
+if lt n 0
+trap 3
+end
+n = write 1 tplfam 0 len tplfam
+if lt n 0
+trap 3
+end
+n = write 1 pageend 0 len pageend
+if lt n 0
+trap 3
+end
+ret 0
+end
