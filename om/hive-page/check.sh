@@ -7,7 +7,9 @@
 # x86_64 and cannot execute the pin; it relies on the site-builder test, which
 # re-reads main.html.sha256 instead.
 #
-#   OMEGA_OMC              compiler path (default: the pin named below)
+#   OMEGA_OMC              compiler path (default: ./omc, the pinned seed-born
+#                          compiler committed beside this script; any other
+#                          build whose sha256 matches omc.sha256 works too)
 #   OMEGA_ACCEPT_CHANGE=1  exit 0 even when main.html had to be rewritten
 #
 # Exit codes: 0 unchanged or written as asked, 2 compiler missing, 3 compiler
@@ -16,7 +18,7 @@
 set -eu
 cd "$(dirname "$0")"
 
-omc=${OMEGA_OMC:-/home/drakestapleton/workspace/omega-mv-naming/seed/out/omc}
+omc=${OMEGA_OMC:-$PWD/omc}
 pin=$(tr -d ' \n' < omc.sha256)
 
 if [ ! -f "$omc" ]; then
