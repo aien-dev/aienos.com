@@ -29,7 +29,14 @@ Weights suggest. Programs explain. Omega verifies. Physics authorizes. Evidence 
 - Omega is malleable. A missing Omega feature is a proposal to write, not a permanent limit.
 - Think forward. Turn an obstacle into a concrete proposal: what is established, what can change, what that change would enable, and the smallest experiment that tests it. Do not stop at an unsupported "impossible".
 - Keep ambition and evidence together. Mark proposed mechanisms as untested until verified. Separate physical limits from limits of the current implementation.
-- Label every number MODELED or MEASURED. Do arithmetic with a tool, never by hand.
+- **Label every number MODELED or MEASURED, and do the mathematics in Wolfram. Mandatory.** Any
+  computation, derivation, integral, identity check, unit conversion, statistical calculation or
+  numeric constant goes through the Wolfram tools (`WolframLanguageEvaluator` to evaluate,
+  `WolframAlpha` for facts and identities, `WolframContext` to retrieve), never by hand, never by an
+  ad-hoc script and never by a model's fluency. Quote the query with the result where the work lives,
+  and carry the unit. If the tools are not mounted, the session is not math-capable: say so and stop
+  rather than estimating. Setup, the two verification calls and the failure handling are in the
+  `wolfram-math` skill of `aien-dev/omega-harness`.
 - Be accountable for time. Each turn should deliver evidence, reduce uncertainty, build a change or move a concrete obstacle.
 
 ## 4. Gates and verification
