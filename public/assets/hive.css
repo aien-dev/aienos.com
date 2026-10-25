@@ -38,13 +38,14 @@
 .hive-section-head .hive-eyebrow { margin-bottom:10px; }
 .hive-coverage { color:var(--hive-muted); font-size:.8rem; border-left:2px solid var(--hive-copper); padding-left:12px; margin-bottom:24px; }
 .hive-coverage[data-complete="false"] { color:#d7b9a2; }
-.hive-atlas { min-height:610px; position:relative; isolation:isolate; overflow:hidden; border-top:1px solid #29272a; border-bottom:1px solid #29272a; background:radial-gradient(ellipse at 44% 56%,#28201c36,transparent 62%),#090b10; }
+.hive-atlas { min-height:610px; position:relative; isolation:isolate; overflow:hidden; border-top:1px solid var(--border-subtle); border-bottom:1px solid var(--border-subtle); background:radial-gradient(ellipse at 44% 56%,#28201c2e,transparent 62%),var(--bg-base); }
 .hive-orbits { position:absolute; width:100%; height:100%; inset:0; color:#75614c; opacity:.4; pointer-events:none; }
-.hive-stars { position:absolute; inset:-10px; z-index:-1; pointer-events:none; background-repeat:repeat; }
-.hive-stars-near { opacity:.7; background-image:radial-gradient(1px 1px at 23px 41px,#eee5d4 95%,transparent),radial-gradient(1px 1px at 157px 109px,#b7a28d 95%,transparent),radial-gradient(1px 1px at 91px 211px,#c7cfdf 95%,transparent); background-size:269px 277px; animation:hive-drift 43s ease-in-out infinite alternate; }
-.hive-stars-far { opacity:.35; background-image:radial-gradient(1px 1px at 73px 16px,#a4adbb 95%,transparent),radial-gradient(1px 1px at 213px 171px,#d6aa7a 95%,transparent); background-size:317px 233px; animation:hive-drift 59s ease-in-out infinite alternate-reverse; }
-.hive-nebula { position:absolute; inset:-20%; pointer-events:none; z-index:-1; background:radial-gradient(ellipse at 46% 49%,#c88e4b1c,transparent 25%),radial-gradient(ellipse at 64% 60%,#647b9a1e,transparent 36%),radial-gradient(ellipse at 30% 30%,#b56e4712,transparent 38%); animation:hive-nebula 18s ease-in-out infinite alternate; }
-.hive-core { position:absolute; left:44%; top:54%; width:106px; height:106px; margin:-53px; border-radius:50%; pointer-events:none; background:radial-gradient(circle at 28% 23%,#fff4dc,#c79c69 12%,#60452f 34%,#171417 60%,#090b10 73%); box-shadow:-5px -4px 22px #d8b48238,0 0 65px #b97f3f1a,inset 2px 2px 5px #ffedcc55; animation:hive-corona 9s ease-in-out infinite alternate; }
+.hive-stars { position:absolute; inset:-10px; z-index:-1; pointer-events:none; background-repeat:repeat; will-change:transform; }
+.hive-stars-near { opacity:.7; background-image:radial-gradient(1px 1px at 23px 41px,#eee5d4 95%,transparent),radial-gradient(1px 1px at 157px 109px,#b7a28d 95%,transparent),radial-gradient(1px 1px at 91px 211px,#c7cfdf 95%,transparent); background-size:269px 277px; animation:hive-drift 96s ease-in-out infinite alternate; }
+.hive-stars-far { opacity:.35; background-image:radial-gradient(1px 1px at 73px 16px,#a4adbb 95%,transparent),radial-gradient(1px 1px at 213px 171px,#d6aa7a 95%,transparent); background-size:317px 233px; animation:hive-drift 150s ease-in-out infinite alternate-reverse; }
+.hive-nebula { position:absolute; inset:-20%; pointer-events:none; z-index:-1; background:radial-gradient(ellipse at 46% 49%,#c88e4b18,transparent 25%),radial-gradient(ellipse at 64% 60%,#647b9a1a,transparent 36%),radial-gradient(ellipse at 30% 30%,#b56e4710,transparent 38%); animation:hive-nebula 34s ease-in-out infinite alternate; will-change:transform; }
+.hive-core { position:absolute; left:44%; top:54%; width:106px; height:106px; margin:-53px; border-radius:50%; pointer-events:none; background:radial-gradient(circle at 28% 23%,#fff4dc,#c79c69 12%,#60452f 34%,#171417 60%,#090b10 73%); box-shadow:-5px -4px 22px #d8b48238,0 0 65px #b97f3f1a,inset 2px 2px 5px #ffedcc55; }
+.hive-core::after { content:""; position:absolute; inset:-18px; border-radius:50%; pointer-events:none; background:radial-gradient(circle,#d8b4825c,transparent 68%); opacity:.6; animation:hive-corona 11s ease-in-out infinite alternate; will-change:opacity,transform; }
 .hive-core::before { content:""; position:absolute; inset:-29px -66px; border:1px solid #d6aa7a80; border-top-color:#f1dac1b3; border-bottom-color:#483b334d; border-radius:50%; transform:rotate(-23deg) scaleY(.37); box-shadow:0 -3px 10px #d6aa7a22,0 4px 0 #d6aa7a12; }
 .hive-core span { position:absolute; inset:-42px; border:1px dashed #cda77835; border-radius:50%; animation:hive-orbital-dust 65s linear infinite; }
 .hive-core span::before { content:""; position:absolute; left:26px; top:21px; width:4px; height:4px; border-radius:50%; background:#e6ccb0; box-shadow:0 0 9px #e4bc87; }
@@ -54,8 +55,8 @@
 .hive-ships { z-index:1; }
 .hive-station { min-width:0; position:relative; }
 .hive-station:nth-child(3n + 2) { transform:translateY(25px); }
-.hive-ship { display:flex; gap:13px; width:100%; text-align:left; align-items:start; border:0 !important; background:#090b10e8 !important; border-radius:0 !important; padding:10px 8px !important; }
-.hive-ship[aria-pressed="true"] { background:#251e18ed !important; box-shadow:inset 2px 0 var(--hive-copper); }
+.hive-ship { display:flex; gap:13px; width:100%; text-align:left; align-items:start; border:0 !important; background:var(--bg-surface) !important; border-radius:0 !important; padding:10px 8px !important; position:relative; }
+.hive-ship[aria-pressed="true"] { background:var(--bg-card) !important; box-shadow:inset 2px 0 var(--hive-copper); }
 .hive-ship svg { width:30px; height:36px; flex-shrink:0; overflow:visible; color:var(--hive-ivory); }
 .hive-ship-label { min-width:0; }
 .hive-ship-name { display:block; font-size:1.05rem; line-height:1.35; overflow-wrap:anywhere; color:var(--hive-ivory); }
@@ -65,11 +66,11 @@
 [data-status="working"] .hive-engine { fill:var(--hive-copper); animation:hive-breathe 3s ease-in-out infinite; }
 [data-status="unknown"] .hive-hull { stroke-dasharray:3 2; }
 [data-status="failed"] .hive-hull { stroke:#f0a7a2; }
-.hive-satellites { display:flex; flex-wrap:wrap; gap:2px; margin:7px 0 0 26px; border-left:1px solid #69523b; padding-left:8px; max-height:140px; overflow:auto; scrollbar-color:#69523b #090b10; }
+.hive-satellites { display:flex; flex-wrap:wrap; gap:2px; margin:7px 0 0 26px; border-left:1px solid #69523b; padding-left:8px; max-height:140px; overflow:auto; scrollbar-color:#69523b var(--bg-surface); }
 .hive-satellite { border:0 !important; padding:8px !important; width:38px; height:44px; color:var(--hive-copper); }
 .hive-satellite svg { width:15px; height:20px; }
-.hive-satellite[aria-pressed="true"] { background:#392b1f !important; }
-.hive-atlas-empty { position:absolute; left:12%; top:35%; max-width:380px; padding:24px; background:#090b10e8; }
+.hive-satellite[aria-pressed="true"] { background:var(--bg-card) !important; }
+.hive-atlas-empty { position:absolute; left:12%; top:35%; max-width:380px; padding:24px; background:var(--bg-surface); }
 .hive-atlas-empty > p:nth-child(2) { font-size:2rem; letter-spacing:-.04em; line-height:1.2; margin-bottom:15px; }
 .hive-atlas-empty > span { color:var(--hive-muted); font-size:.9rem; line-height:1.7; }
 .hive-sector-controls { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:15px 0; color:var(--hive-muted); }
@@ -79,7 +80,7 @@
 .hive-section-note { color:var(--hive-muted); font-size:.88rem; max-width:75ch; }
 .hive-search { display:grid; gap:9px; margin-top:28px; }
 .hive-search label { color:var(--hive-muted); font-size:.8rem; }
-.hive-search input { background:#0e1117; color:var(--hive-ivory); border:1px solid #41434b; border-radius:2px; padding:12px 14px; min-width:0; width:100%; }
+.hive-search input { background:var(--bg-surface); color:var(--hive-ivory); border:1px solid var(--border-subtle); border-radius:2px; padding:12px 14px; min-width:0; width:100%; }
 .hive-tree { list-style:none; padding:0; margin:25px 0 0; }
 .hive-tree .hive-tree { margin:4px 0 0 13px; padding-left:15px; border-left:1px solid #534434; }
 .hive-tree .hive-tree .hive-tree .hive-tree { margin-left:0; padding-left:0; border-left:0; }
@@ -94,9 +95,12 @@
 [data-status="failed"] .hive-state { color:#f0a7a2; }
 .hive-node-model { font-family:var(--font-mono,monospace); color:#d8d1c8; font-size:.76rem; line-height:1.7; overflow-wrap:anywhere; margin-bottom:14px; }
 .hive-node-task,.hive-work-text { white-space:pre-wrap; overflow-wrap:anywhere; font-size:.9rem; line-height:1.75; }
-.hive-node-action { font-size:.8rem; color:var(--hive-muted); white-space:pre-wrap; overflow-wrap:anywhere; }
+/* The source rewrites these lines every second; a fixed height keeps the page
+   from reflowing under the pointer. The manifest shows the full text. */
+.hive-node-task { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; }
+.hive-node-action { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; font-size:.8rem; color:var(--hive-muted); white-space:pre-wrap; overflow-wrap:anywhere; }
 .hive-node-times { display:flex; flex-direction:column; color:var(--hive-muted); font-size:.65rem; }
-.hive-manifest.hub-card { position:sticky; top:100px; padding:28px; background:#101116; border:1px solid #3b3430; border-radius:0; box-shadow:none; min-width:0; }
+.hive-manifest.hub-card { position:sticky; top:100px; padding:28px; background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:0; box-shadow:none; min-width:0; }
 .hive-manifest #hive-manifest-title { overflow-wrap:anywhere; }
 #hive-manifest-context { color:var(--hive-muted); font-size:.8rem; overflow-wrap:anywhere; }
 .hive-identity { display:grid; grid-template-columns:70px minmax(0,1fr); font-family:var(--font-mono,monospace); font-size:.75rem; gap:9px 12px; line-height:1.5; }
@@ -113,7 +117,7 @@
 .hive-conversations.hub-card { margin-top:75px; padding:32px 0; border:0; border-top:1px solid var(--hive-rule); border-bottom:1px solid var(--hive-rule); background:transparent; border-radius:0; box-shadow:none; }
 .hive-conversation-controls { display:flex; gap:8px; flex-shrink:0; margin-bottom:16px; }
 .hive-conversation-controls button { font-size:.75rem; }
-.hive-chat { list-style:none; margin:28px 0 0; padding:0 18px 0 0; max-height:720px; overflow-y:auto; overscroll-behavior:contain; scrollbar-color:#69523b #090b10; overflow-anchor:none; }
+.hive-chat { list-style:none; margin:28px 0 0; padding:0 18px 0 0; max-height:720px; overflow-y:auto; overscroll-behavior:contain; scrollbar-color:#69523b var(--bg-surface); overflow-anchor:none; }
 .hive-message { padding:23px 0; border-top:1px solid var(--hive-rule); display:grid; grid-template-columns:210px minmax(0,1fr); gap:25px; }
 .hive-message-who { font-size:.9rem; overflow-wrap:anywhere; }
 .hive-message-who strong { display:block; font-weight:550; color:var(--hive-ivory); }
@@ -126,23 +130,24 @@
 .hive-closing { padding:60px 0 0; display:flex; gap:20px 35px; flex-wrap:wrap; align-items:baseline; }
 .hive-closing p { font-size:1.7rem; letter-spacing:-.04em; flex-basis:100%; margin:0; }
 .hive-closing a { font-size:.9rem; }
-.hive-changed > .hive-node-record { animation:hive-change 1.2s ease-out; }
-.hive-ship.hive-changed,.hive-satellite.hive-changed { animation:hive-change 1.2s ease-out; }
+.hive-node-record::after,.hive-ship::after,.hive-satellite::after { content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--hive-copper); opacity:0; pointer-events:none; }
+.hive-satellite { position:relative; }
+.hive-changed > .hive-node-record::after,.hive-ship.hive-changed::after,.hive-satellite.hive-changed::after { animation:hive-change 1.2s ease-out; }
 .hive[data-motion="off"] *, .hive[data-hidden="true"] *, .hive[data-offscreen="true"] .hive-atlas * { animation-play-state:paused !important; }
 .hive[data-fresh="false"] .hive-engine,.hive [data-observation-old="true"] .hive-engine { animation:none !important; opacity:.45; }
-@keyframes hive-drift { from { transform:translate3d(-4px,-3px,0); } to { transform:translate3d(4px,3px,0); } }
+@keyframes hive-drift { from { transform:translate3d(-2px,-1.5px,0); } to { transform:translate3d(2px,1.5px,0); } }
 @keyframes hive-breathe { 0%,100% { opacity:.4; } 50% { opacity:1; } }
-@keyframes hive-change { from { box-shadow:inset 3px 0 #d6aa7a; } to { box-shadow:inset 0 0 transparent; } }
-@keyframes hive-nebula { from { transform:translate3d(-12px,-8px,0) rotate(-4deg); opacity:.55; } to { transform:translate3d(12px,8px,0) rotate(4deg); opacity:1; } }
-@keyframes hive-corona { from { filter:brightness(.85); } to { filter:brightness(1.18); } }
+@keyframes hive-change { 0% { opacity:.9; } 100% { opacity:0; } }
+@keyframes hive-nebula { from { transform:translate3d(-6px,-4px,0) scale(1); } to { transform:translate3d(6px,4px,0) scale(1.03); } }
+@keyframes hive-corona { from { opacity:.35; transform:scale(.94); } to { opacity:.85; transform:scale(1.06); } }
 @keyframes hive-orbital-dust { to { transform:rotate(360deg); } }
-@media (min-width:1100px) { .hive-missions[data-large="true"] > .hive-tree { max-height:1250px; overflow:auto; padding-right:18px; scrollbar-color:#69523b #090b10; } }
+@media (min-width:1100px) { .hive-missions[data-large="true"] > .hive-tree { max-height:1250px; overflow:auto; padding-right:18px; scrollbar-color:#69523b var(--bg-surface); } }
 @media (max-width:1099px) { .hive-masthead { gap:40px; grid-template-columns:minmax(0,1fr) 250px; } .hive-workspace { gap:30px; grid-template-columns:minmax(0,1fr) minmax(280px,.85fr); } .hive-manifest.hub-card { padding:22px; } .hive-ships { gap:60px 16px; padding-left:18px; padding-right:18px; } .hive-ship-name { font-size:.9rem; } }
 @media (max-width:699px) {
  .hive { padding:25px 22px 48px; } .hive-breadcrumb { margin-bottom:38px; } .hive-masthead { grid-template-columns:1fr; gap:30px; } .hive h1 { font-size:clamp(4.9rem,20vw,8rem); } .hive-intro { font-size:1.2rem; } .hive-reception { padding-left:18px; } .hive-reception-times { display:grid; grid-template-columns:1fr 1.4fr; gap:5px 12px; font-size:.65rem; } .hive-reception-times dd { margin:0; } .hive-jumps { margin:35px 0; gap:12px 22px; }
  .hive-section-head { display:block; } .hive-atlas { min-height:380px; } .hive-orbits { opacity:.15; } .hive-ships { display:block; min-height:380px; padding:65px 20px 80px 36px; } .hive-ships::before { content:""; position:absolute; left:23px; top:75px; bottom:80px; border-left:1px solid #8b6b48; } .hive-station { margin:0 0 28px; transform:none !important; } .hive-station::before { content:""; position:absolute; left:-12px; top:27px; width:12px; border-top:1px solid #8b6b48; } .hive-ship-name { font-size:1.05rem; } .hive-satellites { max-height:none; } .hive-atlas-empty { left:8%; right:8%; top:25%; padding:20px; } .hive-atlas-coordinate { font-size:.55rem; } .hive-atlas-legend { font-size:.58rem; gap:3px 12px; } .hive-sector-controls { flex-wrap:wrap; } .hive-sector-controls p { order:-1; width:100%; text-align:left; }
  .hive-workspace { display:flex; flex-direction:column; padding-top:42px; gap:35px; } .hive-missions,.hive-manifest { width:100%; } .hive-manifest.hub-card { position:static; } .hive-tree .hive-tree { padding-left:11px; margin-left:6px; } .hive-conversations.hub-card { margin-top:45px; } .hive-conversation-controls { margin-top:22px; } .hive-message { display:block; } .hive-message-who { margin-bottom:16px; } .hive-message-model { margin:3px 0; } .hive-chat { padding-right:8px; max-height:650px; } .hive-closing { padding-top:40px; }
  .hive-core { left:80%; top:18%; opacity:.42; transform:scale(.85); }
- .hive-missions[data-large="true"] > .hive-tree { max-height:85vh; overflow:auto; padding-right:12px; scrollbar-color:#69523b #090b10; }
+ .hive-missions[data-large="true"] > .hive-tree { max-height:85vh; overflow:auto; padding-right:12px; scrollbar-color:#69523b var(--bg-surface); }
 }
 @media (prefers-reduced-motion:reduce) { .hive *, .hive *::before, .hive *::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; } }

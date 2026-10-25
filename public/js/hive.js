@@ -135,8 +135,15 @@
       else parent.insertBefore(node, cursor);
     }
   }
+  let pulseWindow = 0;
+  let pulseBudget = 0;
   function pulse(node) {
     if (page.dataset.motion !== 'on' || page.dataset.fresh !== 'true' || document.hidden) return;
+    // A busy fleet changes every second; a strobe of accents is not information.
+    const now = performance.now();
+    if (now - pulseWindow > 1000) { pulseWindow = now; pulseBudget = 3; }
+    if (pulseBudget <= 0) return;
+    pulseBudget--;
     node.classList.add('hive-changed');
     setTimeout(() => node.classList.remove('hive-changed'), 1300);
   }
