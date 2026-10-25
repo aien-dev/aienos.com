@@ -2,7 +2,7 @@
 
 > Static site for aienos.com. One Rust program, `crates/site-builder`, renders every page from Maud templates, copies hand-written files from `public/`, then rewrites every head and writes the machine surface. GitHub Pages serves the output; `.github/workflows/pages.yml` builds and deploys it on every push to `main`.
 
-Shared rules: read https://www.aienos.com/agents/RULES.md first. This file adds what is specific to this repository; where the two differ, this file wins here. The rules live in `public/agents/RULES.md`; every public repository and its own AGENTS.md are listed at https://www.aienos.com/agents/ (`components/agents.rs`, data refreshed by `site-builder agents`).
+Shared rules: read https://www.aienos.com/agents/RULES.md first. This file adds what is specific to this repository; where the two differ, this file wins here. The rules live in `public/agents/RULES.md`; every public repository is listed at https://www.aienos.com/agents/ (`components/agents.rs`, data refreshed by `site-builder agents`). The catalog follows every GitHub API page, includes archived repositories as read-only references, and links the actual `AGENTS.md` or `CLAUDE.md` when present. Missing instructions are marked explicitly. AienOS is the whole system at its current `aien-dev/aienix` URL until renamed; Aienux is the separate kernel.
 
 ## Scope
 
