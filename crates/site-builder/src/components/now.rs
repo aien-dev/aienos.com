@@ -37,7 +37,7 @@ pub const USAGE_PATH: &str = "public/data/claude-usage.tsv";
 /// The same reading on GitHub, the evidence behind the usage card.
 pub const USAGE_URL: &str = "https://github.com/aien-dev/aienos.com/blob/data/now/claude-usage.tsv";
 /// Where a visitor sends money for the plan: Drake's X account, paid with X Money.
-pub const GIVE_URL: &str = "https://x.com/aienscore";
+pub const GIVE_URL: &str = "https://x.com/mDrakeStapleton";
 
 /// One limit of the Claude plan: how much of it is used, and when it resets.
 #[derive(Debug, Clone, Serialize)]
@@ -988,16 +988,16 @@ fn usage_section(now: &Now) -> Markup {
                         h3 id="now-give-h" class="now-give-h" { "Help pay for the plan" }
                         p {
                             "If you want to chip in, send any amount to Drake's X account, "
-                            span class="mono" { "@aienscore" }
+                            span class="mono" { "@mDrakeStapleton" }
                             ", with X Money, the payments built into X. Gifts go to the Claude plans above."
                         }
                         ol class="now-give-steps" {
-                            li { "Open " span class="mono" { "@aienscore" } " on X with the button below." }
+                            li { "Open " span class="mono" { "@mDrakeStapleton" } " on X with the button below." }
                             li { "Tap Money, then Send Money." }
                             li { "Pick an amount and send." }
                         }
                         p class="now-give-note" { "X Money is free between Money users and, for now, open to US residents only." }
-                        a class="now-give-btn" href=(GIVE_URL) target="_blank" rel="noopener noreferrer" { "Send with X Money to @aienscore " span aria-hidden="true" { "\u{2197}" } }
+                        a class="now-give-btn" href=(GIVE_URL) target="_blank" rel="noopener noreferrer" { "Send with X Money to @mDrakeStapleton " span aria-hidden="true" { "\u{2197}" } }
                     }
                 }
             }
@@ -1395,7 +1395,8 @@ limit\tsomething_new\t5\t2026-10-31T15:59:59Z\t\n";
         let now = Now { built_utc: "2026-10-24T22:45Z".into(), claude: Some(u.clone()), ..blank() };
         let page = render_now_page(&now).into_string();
         assert!(page.contains("61% left") && page.contains("77% left") && page.contains("66% left"));
-        assert!(page.contains(GIVE_URL) && page.contains("@aienscore"));
+        assert!(page.contains(GIVE_URL) && page.contains("@mDrakeStapleton"));
+        assert!(!page.to_ascii_lowercase().contains("aienscore"), "retired X handle must not be rendered");
         assert!(!page.contains("has not read a newer one"), "a fresh reading is not called old");
         assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(3 + 1));
 
