@@ -15,6 +15,13 @@ pub fn render_follow() -> Markup {
                     p style="color: var(--text-secondary); line-height: 1.6; max-width: 600px; margin: 0 auto 32px auto; font-size: 16px;" {
                         "There is no release to wait for and no list to join. Everything happens in public repositories, every change is judged on the machine itself, and this page reads the record every hour. Watch the repositories, read the receipts, open an issue."
                     }
+                    p style="color: var(--text-secondary); line-height: 1.7; max-width: 600px; margin: 0 auto 28px; font-size: 17px;" {
+                        "Learning to code with AI? You are welcome here. "
+                        a href="/learn/" style="color: var(--text-primary); text-decoration: underline;" { "Start with a practical working method" }
+                        ", then "
+                        a href="/hive/" style="color: var(--text-primary); text-decoration: underline;" { "watch Drake and the agents in Hive" }
+                        ": the instructions, the models, the corrections, and the work as it happens."
+                    }
                     div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;" {
                         a href="https://github.com/aien-dev" target="_blank" rel="noopener noreferrer" style="background: var(--accent-green); color: var(--bg-base); border-radius: 4px; padding: 12px 22px; font-family: var(--font-mono); font-size: 13px; font-weight: 700;" {
                             "GitHub: aien-dev"

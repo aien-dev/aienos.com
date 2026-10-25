@@ -1,0 +1,192 @@
+//! A practical first workflow for building with an AI coding agent.
+//! Examples are instructional, not claims about executed project work.
+
+use maud::{html, Markup};
+
+pub const TITLE: &str = "Build with AI | AIENOS";
+pub const DESCRIPTION: &str = "A practical way to build with AI: write a small brief, divide ownership, check the change, and publish what actually happened. Follow real agent work in the Hive.";
+pub const URL: &str = "https://www.aienos.com/learn/";
+
+const SOURCE: &str = "https://github.com/aien-dev/aienos.com/blob/main/crates/site-builder/src/components/learn.rs";
+const STARTER_BRIEF: &str = r#"Goal
+Add a 'Skip to content' link to this small website so a keyboard
+user can move past the navigation directly to the main content.
+
+Context
+Read AGENTS.md and the existing page layout and focus styles first.
+Tell me which files own navigation, main content, and shared styles.
+Use the repository's existing language, build, and test conventions.
+
+Non-goals
+No navigation redesign, new dependency, analytics, or new JavaScript.
+Do not change unrelated pages or rewrite unrelated styles.
+
+Plan and ownership
+Propose the smallest change and name its files before editing.
+Keep one writer per file. If you delegate a separate review, that
+reviewer reads only. Agree on the main-content target ID first.
+
+Acceptance
+On a fresh page load, Tab reveals a readable skip link.
+Enter moves keyboard focus to main content, past navigation.
+The next Tab reaches the next interactive element in that content.
+The link works on every layout that shares this navigation.
+At narrow width and high zoom, the focused link remains visible.
+Existing navigation links still work.
+
+Safety
+Work locally on a branch. Never expose secrets or private content.
+Do not deploy, delete data, or change permissions without asking me.
+If requirements conflict or a command is destructive, stop and explain.
+
+Evidence and handoff
+Run the relevant repository checks and exercise the keyboard behavior
+in a browser. Report the commit, exact commands, results, and which
+pages and browser you checked. If a check cannot run, say NOT RUN and
+why. Show the diff, remaining limitations, and any unrelated changes.
+Do not call it complete just because it compiles."#;
+
+pub fn render_learn_page() -> Markup {
+    html! {
+        article class="learn-page" {
+            header class="learn-intro" {
+                p class="learn-eyebrow" { "A field guide for your first change" }
+                h1 { "Build" br; "with AI." }
+                p class="learn-lede" {
+                    "You are welcome here. You do not need to arrive knowing all the words. If you have been dismissed for learning with AI, you can still bring your questions and make something worth checking."
+                }
+                p class="learn-invitation" {
+                    "Start with a small change you can describe and observe. Let an agent help with the code. Keep hold of the purpose, the boundaries, and the decision to publish."
+                }
+                nav class="learn-jump" aria-label="Learning guide" {
+                    a href="#workflow" { "The working loop" }
+                    a href="#brief" { "A brief to copy" }
+                    a href="/hive/" { "Watch the Hive" }
+                }
+                div class="learn-orbit" aria-hidden="true" {
+                    span class="learn-orbit-ring" {}
+                    span class="learn-orbit-dot" {}
+                }
+            }
+
+            section class="learn-section" id="workflow" aria-labelledby="workflow-title" {
+                div class="learn-margin" {
+                    p class="learn-eyebrow" { "01 / Make the work legible" }
+                    h2 id="workflow-title" { "A small, repeatable loop." }
+                    p { "You do not need a fleet of agents. One agent and one observable change are enough to begin." }
+                }
+                ol class="learn-steps" {
+                    li {
+                        h3 { "Describe the finish, not just the feature." }
+                        p { "Say who needs it, what they do, and what should happen. Replace 'make it accessible' with a behavior you can try: 'Tab reveals the skip link; Enter moves focus past navigation.' Write acceptance checks before the implementation." }
+                    }
+                    li {
+                        h3 { "Give the agent the relevant ground." }
+                        p {
+                            "Point to the repository instructions, the affected feature, existing patterns, and the commands used to build and test. State non-goals and actions that need approval. Ask it to read before guessing. Our "
+                            a href="/agents/" { "repository guide" }
+                            " and " a href="/agents/RULES.md" { "public agent rules" }
+                            " show what those constraints look like here. Use your own project's rules, not ours by default."
+                        }
+                    }
+                    li {
+                        h3 { "Draw the boundary before dividing the work." }
+                        p { "Ask for a short plan with named files and an agreed interface: the data, names, or behavior two pieces share. Delegate only independent slices. Give every file one editing owner and give shared interfaces one integration owner. Two agents editing the same layout are not two independent jobs." }
+                    }
+                    li {
+                        h3 { "Read the change and its evidence." }
+                        p { "A diff is the before-and-after of the files. Ask the agent to walk you through it. Check that each changed file serves the goal, that unrelated edits remain untouched, and that no secret or private content entered the patch. Ask a separate reviewer to examine the change without editing it." }
+                    }
+                    li {
+                        h3 { "Run the behavior you asked for." }
+                        p { "Run the project's relevant checks, then try the acceptance steps yourself. A successful build says the code can be built. A passing test says that test passed under those conditions. Neither proves every user journey, security property, or future input is correct." }
+                    }
+                    li {
+                        h3 { "Use a failure to make the next instruction precise." }
+                        p { "Record what you did, what you expected, and what happened. Ask for the cause, not a way to hide the symptom. Reduce the case if needed, change one thing, and repeat the check that failed. Mistakes are part of learning; weakening the check does not fix the behavior." }
+                    }
+                    li {
+                        h3 { "Publish the outcome, with its limits." }
+                        p {
+                            "Keep the commit, exact commands, results, and manual steps together. Say what failed or was not run. Review the diff before opening a pull request, and review again before deployment. Our "
+                            a href="/evidence/" { "evidence guide" }
+                            " explains how to read a claim alongside its receipt."
+                        }
+                    }
+                }
+            }
+
+            section class="learn-section learn-brief-section" id="brief" aria-labelledby="brief-title" {
+                div class="learn-margin" {
+                    p class="learn-eyebrow" { "02 / Give it a bounded job" }
+                    h2 id="brief-title" { "Your first brief." }
+                    p { "This is a small website feature, not a universal prompt. Replace the goal and checks with your own. Select the text to copy it into your coding agent." }
+                    p { "New to a command the agent suggests? Ask what it reads, changes, or sends before you run it. Keep credentials out of the conversation." }
+                }
+                div class="learn-brief" {
+                    p class="learn-caption" id="brief-caption" { "Starter brief / keyboard skip link" }
+                    pre tabindex="0" aria-labelledby="brief-caption" { code { (STARTER_BRIEF) } }
+                }
+            }
+
+            section class="learn-section" id="example" aria-labelledby="example-title" {
+                div class="learn-margin" {
+                    p class="learn-eyebrow" { "03 / Learn from a correction" }
+                    h2 id="example-title" { "From a claim to a check." }
+                    p class="learn-example-label" { "Illustrative example. Not a historical conversation, measured result, or project receipt." }
+                }
+                div class="learn-example" {
+                    p { "Suppose the agent adds the skip link and reports that the site builds. That is useful, but it has not answered the keyboard requirement." }
+                    dl {
+                        dt { "Try it" }
+                        dd { "Reload the page. Press Tab, then Enter on the skip link, then Tab again. Imagine that the page scrolls, but the next Tab still lands in navigation." }
+                        dt { "Give a specific correction" }
+                        dd {
+                            blockquote { "The page scrolls to the content, but keyboard focus stays in navigation. Reproduce those steps. Find how the target receives focus in this layout, make the smallest fix, and check the next Tab destination. Do not redesign the header." }
+                        }
+                        dt { "Check the fix" }
+                        dd { "Repeat the same steps on the affected layouts. Check visible focus at narrow width and high zoom. Have the reviewer inspect the target ID and focus behavior, as well as the diff." }
+                        dt { "Write an honest handoff" }
+                        dd { "Record the actual browser, pages, commands, commit, and observed results. If you checked only one browser, say so. If the keyboard check still fails, the feature is not finished." }
+                    }
+                    p { "You do not have to know the implementation in advance to notice that the promised behavior did not happen. That observation is a useful contribution." }
+                }
+            }
+
+            section class="learn-section" id="watch" aria-labelledby="watch-title" {
+                div class="learn-margin" {
+                    p class="learn-eyebrow" { "04 / Watch real work" }
+                    h2 id="watch-title" { "Meet the Hive." }
+                    p { "The guide above is an example. The Hive is an observation surface for actual agent work." }
+                    a class="learn-text-link" href="/hive/" { "Open the live Hive" }
+                }
+                div class="learn-watch" {
+                    p { "Watch Drake give instructions and corrections, and read the agents' public replies. Follow how a broad request becomes a bounded task. Look for what changed after a correction, then follow the public source and evidence rather than treating an activity label as proof." }
+                    dl class="learn-terms" {
+                        dt { "Runtime" }
+                        dd { "The program running the agent session. It manages tools, permissions, and the conversation. It is not the model." }
+                        dt { "Exact model" }
+                        dd { "The model identifier reported for that session, alongside its provider. A runtime name or agent nickname does not tell you which model is answering." }
+                        dt { "Subagent role" }
+                        dd { "The job given to a child agent, such as implementation or read-only review. A role describes responsibility, not a different model. The tree shows the observed parent and child relationships." }
+                    }
+                    p { "Read the Hive's coverage and freshness notices. Unknown identity is unknown, not an invitation to guess. A fresh snapshot does not mean every task just advanced, and a working agent is not a successful result." }
+                    p { "The interaction view is a filtered public record, not the entire session. It does not expose hidden reasoning, private tool payloads, secrets, or automatic system context. An absent message is not evidence that no discussion happened." }
+                    p { "For a broader view of the project, use " a href="/now/" { "Now" } ". For the project introduction, use " a href="/start/" { "Start here" } "." }
+                }
+            }
+
+            footer class="learn-outro" {
+                p class="learn-eyebrow" { "Leave something another person can check" }
+                h2 { "One useful change. An honest record." }
+                p { "Pick something small enough to try today. Ask questions, keep the boundaries clear, and tell the next person what actually happened. You can learn the vocabulary as you go." }
+                p class="learn-source-links" {
+                    a href="https://github.com/aien-dev/aienos.com" { "Explore this site's public repository" }
+                    a href=(SOURCE) { "Read this guide's source on GitHub" }
+                    a href="/agents/" { "Find a repository and its instructions" }
+                }
+            }
+        }
+    }
+}
+

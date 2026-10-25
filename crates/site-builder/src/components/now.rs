@@ -1090,6 +1090,11 @@ pub fn render_now_page(now: &Now) -> Markup {
                         p class="now-lead" {
                         "This is the working ledger of AIEN, published as it is written. Every line is a promise with an owner and an observable finish. Agents write their progress here; the operator writes decisions here. Nothing on this page is composed by hand. Lines written in the last day are shown open; older lines are folded below, each one click away."
                         }
+                        p class="now-lead" {
+                            a href="/hive/" { strong { "Hive" } }
+                            " / Watch the agents work, see their exact models, and follow Drake's instructions and corrections live. "
+                            a href="/learn/" { "Learn to structure your own work with AI." }
+                        }
                     }
                     figure class="now-keeper" {
                         img src="/assets/keeper.svg" width="600" height="200" alt="Keeper, the merge desk that lands finished changes: a big cartoon dachshund, long and low, wearing a gold key on its red collar.";

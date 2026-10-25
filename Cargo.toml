@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "crates/site-builder",
+    "crates/hive-feed",
 ]
 resolver = "2"
 

@@ -1,0 +1,22 @@
+[Unit]
+Description=Hive public coding-agent telemetry collector
+After=network.target
+
+[Service]
+Type=simple
+EnvironmentFile=%h/.local/state/aienos-hive/publication.env
+ExecStart=%h/.local/lib/aienos-hive/bin/hive-feed --out %h/.local/state/aienos-hive/live.json --salt %h/.local/state/aienos-hive/id-salt --since ${HIVE_SINCE}
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+Restart=on-failure
+RestartSec=3
+UMask=0077
+Nice=10
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=%h/.local/state/aienos-hive %h/.omp/run
+StandardOutput=null
+StandardError=journal
+
+[Install]
+WantedBy=default.target

@@ -9,6 +9,7 @@ Shared rules: read https://www.aienos.com/agents/RULES.md first. This file adds 
 - Applies to the whole repository.
 - Source of truth is `crates/site-builder/src` plus `public/`. The root `index.html` and `dist/` are not the live site.
 - `dist/` is generated output. Never edit it by hand; rebuild it.
+- `crates/hive-feed` is opt-in Rust website telemetry tooling. It does not run during static builds. `scripts/hive/` holds its service and exact-route edge templates; README documents installation and the publication boundary.
 
 ## Installation
 
@@ -43,7 +44,7 @@ GH_TOKEN="$(gh auth token)" cargo run --release --manifest-path crates/site-buil
 
 ```bash
 # Full test suite
-cargo test --manifest-path crates/site-builder/Cargo.toml
+cargo test --workspace
 
 # Build the site into dist/ (this also runs the integrity verifier)
 cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist
@@ -65,6 +66,8 @@ Open `http://127.0.0.1:8080/` after the preview server starts. GitHub Pages serv
 - Copy rules: no em dashes, no en dashes, no outside fonts, scripts or trackers. The verifier fails the build on a dash in a page.
 - Keep one source for machine-readable state. `status.json`, the status section, and the current-state lines in `llms.txt` all read `components::status::layer_states()`.
 - Tests live beside the code in `#[cfg(test)]` modules. Add a test when a rule can regress silently.
+- Hive's orbital scene is decorative; task/activity/lifecycle data must come from real observations. Preserve source freshness, partial coverage, unknown states, message-time model identity, keyboard focus, and reduced-motion support.
+- Hive text passes a field whitelist and full-string privacy screening before truncation. Never serialize raw sessions, system/task prompts, tool payloads, hidden reasoning, credentials, or control metadata. Direct Drake messages, short task-summary fields and public agent replies require the authorized publication boundary. Render feed strings through text nodes, not HTML.
 
 ## Safety and approvals
 

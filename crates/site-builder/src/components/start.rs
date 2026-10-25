@@ -23,6 +23,13 @@ pub fn render_start_page() -> Markup {
                     p class="narr-standfirst" {
                         "AIENOS is an experimental, pre-alpha machine for turning search into verified understanding. This page is the shortest route from what it is to what exists today, how to check the evidence, and how to take part."
                     }
+                    p class="narr-standfirst" {
+                        "Here to learn to build with AI? "
+                        a href="/learn/" { "Start with a practical working method" }
+                        ", then visit "
+                        a href="/hive/" { "Hive" }
+                        " to watch Drake and the coding agents use it, including the corrections and failed attempts."
+                    }
                 }
 
                 section class="narr-section" id="what" {

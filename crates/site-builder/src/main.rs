@@ -204,6 +204,29 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     fs::write(dist.join("now/index.html"), now_page.into_string()).expect("Failed to write now/index.html");
     fs::write(dist.join("now.json"), components::now::to_json(&now)).expect("Failed to write now.json");
     println!("  [PAGE] Emitted /now/ ({} ledger lines) and /now.json", now.items.len());
+    let hive_page = render_page_layout(
+        components::hive::TITLE,
+        components::hive::DESCRIPTION,
+        components::hive::URL,
+        "website",
+        html! {
+            link rel="stylesheet" href="/assets/hive.css";
+            script defer src="/js/hive.js" {}
+        },
+        components::hive::render_hive_page(),
+    );
+    fs::create_dir_all(dist.join("hive")).expect("Create Hive directory");
+    fs::write(dist.join("hive/index.html"), hive_page.into_string()).expect("Write Hive page");
+    let learn_page = render_page_layout(
+        components::learn::TITLE,
+        components::learn::DESCRIPTION,
+        components::learn::URL,
+        "website",
+        html! { link rel="stylesheet" href="/assets/learn.css"; },
+        components::learn::render_learn_page(),
+    );
+    fs::create_dir_all(dist.join("learn")).expect("Create learning directory");
+    fs::write(dist.join("learn/index.html"), learn_page.into_string()).expect("Write learning page");
     // /agents/: every public repository with its agent instructions, from
     // public/data/agent-repos.json (refreshed by `site-builder agents`).
     let agent_repos = components::agents::Repos::load(Path::new(components::agents::DATA_PATH))
@@ -563,6 +586,8 @@ const GENERATED_PAGES: &[(&str, usize)] = &[
     ("owned/index.html", 7),
     ("research/status/index.html", 40),
     ("now/index.html", 0),
+    ("hive/index.html", 0),
+    ("learn/index.html", 0),
     ("omega/index.html", 30),
     ("cudaplusplus/index.html", 12),
     ("progress/index.html", 0),
