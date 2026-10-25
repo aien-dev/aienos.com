@@ -61,7 +61,7 @@ pub mod check {
     const VERDICTS: [&str; 7] =
         ["PASS", "FAIL", "BLOCKED", "INCOMPLETE", "PARTIAL", "NOT STARTED", "NOT ESTABLISHED"];
     const CLASS_WORDS: [&str; 5] = ["implemented", "planned", "experimental", "hypothesis", "achieved"];
-    /// Lower-case uses allowed in fixed prose: the mission line calls AIENOS
+    /// Lower-case uses allowed in fixed prose: the mission line calls AienOS
     /// "an owned experimental machine", which describes the project, not a
     /// status; Cortex keeps "experimental conditions" as evidence; the Zeta
     /// exam names the Riemann hypothesis; the nature section says "Science

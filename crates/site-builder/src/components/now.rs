@@ -242,7 +242,7 @@ pub const STREAMS: [&str; 8] = [
     "Engine speed",
     "Alpha release",
     "AIEN Rig",
-    "AIENOS on the iMac",
+    "AienOS on the iMac",
     "Research",
     "Public record",
     "PR desk",
@@ -262,7 +262,7 @@ fn classify(item: &str, owner: &str) -> &'static str {
     } else if t.contains("alpha") || t.contains("install") || t.contains("serve-27b") || t.contains("27b server") {
         "Alpha release"
     } else if t.contains("imac") || t.contains("horizon") || t.contains("allen") || t.contains("aienos") || t.contains("bundle") {
-        "AIENOS on the iMac"
+        "AienOS on the iMac"
     } else if owner == "desk" || t.starts_with("merge") || t.starts_with("queue") || t.contains("label") || t.contains("squash") {
         "PR desk"
     } else {
@@ -528,7 +528,7 @@ fn default_repo(stream: &str) -> Option<&'static str> {
         "Engine speed" | "Research" => Some("omega-mv"),
         "Alpha release" => Some("aien-sovereign-core-mv"),
         "AIEN Rig" => Some("aien-rig"),
-        "AIENOS on the iMac" => Some("aienux"),
+        "AienOS on the iMac" => Some("aienux"),
         "Public record" => Some("aienos.com"),
         _ => None,
     }

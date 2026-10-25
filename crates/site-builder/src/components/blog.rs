@@ -75,7 +75,7 @@ fn render_post_body() -> Markup {
             " AIEN lives or dies on continuity of logical state, organized as a pattern across one physical machine, with the architecture deciding which state gets continuity guarantees and which processor microstate is disposable execution detail."
         }
         p {
-            "The lineage is deliberately small. A minimal seed (Atlas) awakens AIENOS, the trusted substrate. Above it, OMEGA defines, synthesizes, verifies, and realizes programs, keeping the ones that work in a reusable library. AIEN, the neural component, learns to guide the search from OMEGA's own verified search traces, never from human text pretraining. The architecture is explicit on this point: neural weights suggest where to search; they do not define meaning, truth, or authority. Verification does."
+            "The lineage is deliberately small. A minimal seed (Atlas) awakens AienOS, the trusted substrate. Above it, OMEGA defines, synthesizes, verifies, and realizes programs, keeping the ones that work in a reusable library. AIEN, the neural component, learns to guide the search from OMEGA's own verified search traces, never from human text pretraining. The architecture is explicit on this point: neural weights suggest where to search; they do not define meaning, truth, or authority. Verification does."
         }
         h2 { "Why now" }
         p {

@@ -323,8 +323,8 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
 
     // The 404 page, served by GitHub Pages for any address that has no file.
     let not_found = render_page_layout(
-        "Page not found | AIENOS",
-        "There is nothing at this address. Every page of AIENOS is listed in llms.txt and the sitemap; the front page, the machine and the research are one link away.",
+        "Page not found | AienOS",
+        "There is nothing at this address. Every page of AienOS is listed in llms.txt and the sitemap; the front page, the machine and the research are one link away.",
         "",
         "website",
         seo::head_404(),
@@ -364,7 +364,7 @@ fn verify_site(dist: &Path) {
     // Homepage top (NARR-HOME): literal phrases, so a wording change in the
     // component cannot pass by accident.
     for phrase in [
-        "AIENOS is an owned experimental machine for turning search into verified understanding.",
+        "AienOS is an owned experimental machine for turning search into verified understanding.",
         "Weights suggest. Programs explain. Verification decides. Evidence teaches. The Turing keeps score.",
         "Did it learn anything?",
         "What did it cost to learn?",

@@ -1,7 +1,7 @@
 use maud::{html, Markup};
 
-pub const TITLE: &str = "Glossary | AIENOS";
-pub const DESCRIPTION: &str = "The terms AIENOS uses in its own sense: the Turing, receipts, crumbs, the loop, the agents that surround it, and the five machines.";
+pub const TITLE: &str = "Glossary | AienOS";
+pub const DESCRIPTION: &str = "The terms AienOS uses in its own sense: the Turing, receipts, crumbs, the loop, the agents that surround it, and the five machines.";
 pub const URL: &str = "https://www.aienos.com/glossary/";
 
 fn term(name: &str, definition: Markup) -> Markup {
@@ -28,7 +28,7 @@ pub fn render_glossary() -> Markup {
 
                 h2 style="font-size: 24px; font-weight: 700; color: var(--text-primary); margin: 44px 0 4px 0;" { "The system" }
                 dl style="margin: 0;" {
-                    (term("AIENOS", html! {
+                    (term("AienOS", html! {
                         "The experimental, open source machine this site documents. A sovereign substrate that owns the hardware and keeps a persistent intelligence alive and continuous. Pre-alpha. See "
                         a href="/machine/" { "The Machine" } "."
                     }))
@@ -37,7 +37,7 @@ pub fn render_glossary() -> Markup {
                         a href="/machine/" { "The Machine" } " and " a href="/research/" { "Research" } "."
                     }))
                     (term("Atlas", html! {
-                        "The awakening layer, planned. The seed that wakes AIENOS on new hardware. Doctrine is published; implementation is ahead."
+                        "The awakening layer, planned. The seed that wakes AienOS on new hardware. Doctrine is published; implementation is ahead."
                     }))
                     (term("Omega", html! {
                         "The language for all computing, GPU to CPU. It turns intent into explicit programs that can be verified before they are trusted. See "

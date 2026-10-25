@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 use crate::components::boxlink::{foot_labelled, Target};
 use crate::facts::now_utc;
 
-pub const TITLE: &str = "Agents | AIENOS";
+pub const TITLE: &str = "Agents | AienOS";
 pub const DESCRIPTION: &str = "Point your own coding agent at any public AIEN repository: the rules our agents work by, and each repository's own AGENTS.md, refreshed hourly from GitHub.";
 pub const URL: &str = "https://www.aienos.com/agents/";
 

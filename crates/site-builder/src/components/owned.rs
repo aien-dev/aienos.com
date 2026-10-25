@@ -8,7 +8,7 @@ use maud::{html, Markup};
 
 use super::boxlink::{foot, source_href, Target};
 
-pub const TITLE: &str = "Intelligence should be owned | AIENOS";
+pub const TITLE: &str = "Intelligence should be owned | AienOS";
 pub const DESCRIPTION: &str = "Drake Stapleton on why language models belong to everyone who wrote the words they learned from, why running one yourself is a right and a responsibility, and what AIEN does about it, with receipts.";
 pub const URL: &str = "https://www.aienos.com/owned/";
 
@@ -121,7 +121,7 @@ pub fn render_owned() -> Markup {
                         "When you rent, the price can change, the rules can change and the service can end. Your work sits on someone else's floor."
                     }
                     p {
-                        "When you own, it runs with the network cable pulled. It runs after the company that made it has moved on. The test I set for the whole project is simple: if a company disappears tomorrow, AIENOS still boots and remains mine."
+                        "When you own, it runs with the network cable pulled. It runs after the company that made it has moved on. The test I set for the whole project is simple: if a company disappears tomorrow, AienOS still boots and remains mine."
                     }
                     p {
                         "Owning does not mean building every part yourself. It means no outside organization is required for the machine to start, to keep its data, to change its model, or to keep operating."

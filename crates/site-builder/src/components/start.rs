@@ -2,15 +2,15 @@
 //!
 //! The page does not restate status figures. It links to the canonical
 //! implementation list, the evidence record and the release record, and it
-//! names the boundary between AIENOS, the author's personal record and
+//! names the boundary between AienOS, the author's personal record and
 //! Interplane.
 
 use maud::{html, Markup};
 
 use super::narrative::SLOGAN;
 
-pub const TITLE: &str = "Start here | AIENOS";
-pub const DESCRIPTION: &str = "The shortest route through AIENOS: what it is, what exists today, how to check the evidence, how to reproduce or contribute, and where the author and Interplane fit.";
+pub const TITLE: &str = "Start here | AienOS";
+pub const DESCRIPTION: &str = "The shortest route through AienOS: what it is, what exists today, how to check the evidence, how to reproduce or contribute, and where the author and Interplane fit.";
 pub const URL: &str = "https://www.aienos.com/start/";
 
 pub fn render_start_page() -> Markup {
@@ -18,10 +18,10 @@ pub fn render_start_page() -> Markup {
         article class="narr-page" {
             div class="narr-column" {
                 header class="narr-header" {
-                    p class="narr-kicker" { "New to AIENOS" }
+                    p class="narr-kicker" { "New to AienOS" }
                     h1 class="narr-title" { "Start here" }
                     p class="narr-standfirst" {
-                        "AIENOS is an experimental, pre-alpha machine for turning search into verified understanding. This page is the shortest route from what it is to what exists today, how to check the evidence, and how to take part."
+                        "AienOS is an experimental, pre-alpha machine for turning search into verified understanding. This page is the shortest route from what it is to what exists today, how to check the evidence, and how to take part."
                     }
                     p class="narr-standfirst" {
                         "Here to learn to build with AI? "
@@ -110,13 +110,13 @@ pub fn render_start_page() -> Markup {
                 section class="narr-section" id="boundaries" {
                     h2 { "5. Who and what is around it" }
                     p {
-                        "AIENOS is built by M. Drake Stapleton. His "
+                        "AienOS is built by M. Drake Stapleton. His "
                         a href="https://www.drakestapleton.com" { "personal site" }
                         " is the record of the person, not the project."
                     }
                     p {
                         a href="https://interplane.io/" { "Interplane" }
-                        " is an open interoperability protocol between a model and the program that runs it. A model expresses intent; the runtime keeps authority. It is not AIENOS, not the operating system, and not the model."
+                        " is an open interoperability protocol between a model and the program that runs it. A model expresses intent; the runtime keeps authority. It is not AienOS, not the operating system, and not the model."
                     }
                 }
 
@@ -159,7 +159,7 @@ mod tests {
         assert!(s.contains("https://www.drakestapleton.com"), "author link missing");
         assert!(s.contains("not the project"), "author boundary missing");
         assert!(s.contains("https://interplane.io/"), "Interplane link missing");
-        assert!(s.contains("not AIENOS"), "Interplane boundary missing");
+        assert!(s.contains("not AienOS"), "Interplane boundary missing");
     }
 
     #[test]

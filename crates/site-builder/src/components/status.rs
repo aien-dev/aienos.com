@@ -71,7 +71,7 @@ pub fn layer_states() -> Vec<LayerState> {
         LayerState {
             name: "Atlas, the awakening layer",
             status: "PLANNED",
-            note: "The seed that wakes AIENOS on new hardware. Doctrine published in the architecture repository; implementation ahead.",
+            note: "The seed that wakes AienOS on new hardware. Doctrine published in the architecture repository; implementation ahead.",
             receipt_label: Some("aien-dev/aien-architecture"),
             receipt_url: Some("https://github.com/aien-dev/aien-architecture"),
         },

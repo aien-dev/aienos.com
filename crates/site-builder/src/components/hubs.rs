@@ -60,7 +60,7 @@ pub struct Hub {
 pub static HUBS: [Hub; 3] = [
     Hub {
         slug: "experiments",
-        title: "Experiments | AIENOS",
+        title: "Experiments | AienOS",
         description: "Every experiment on the AIEN research ladder, failures included, rendered from one canonical status source.",
         required: &[EXPERIMENTS_SLOT, CARDS_MARKUP, STATUS_BUTTON],
         status: StatusSource::Data,
@@ -68,7 +68,7 @@ pub static HUBS: [Hub; 3] = [
     },
     Hub {
         slug: "evidence",
-        title: "Evidence | AIENOS",
+        title: "Evidence | AienOS",
         description: "What counts as evidence for AIEN, which source wins when two disagree, and where to inspect the receipts, frozen profiles and status records.",
         required: &[EVIDENCE_PHRASE, STATUS_PAGE_LINK, STATUS_JSON_LINK],
         status: StatusSource::Absent,
@@ -76,7 +76,7 @@ pub static HUBS: [Hub; 3] = [
     },
     Hub {
         slug: "philosophy",
-        title: "Philosophy | AIENOS",
+        title: "Philosophy | AienOS",
         description: "Position papers behind AIEN: the Stapleton Doctrine and the Post-LLM Case. These argue a stance and are not experimental results.",
         required: &[PHILOSOPHY_PHRASE],
         status: StatusSource::Absent,

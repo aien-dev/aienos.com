@@ -2,7 +2,7 @@
 use maud::{html, Markup};
 use crate::components::boxlink::{foot, Target};
 
-pub const TITLE: &str = "The Hive | AIENOS";
+pub const TITLE: &str = "The Hive | AienOS";
 pub const DESCRIPTION: &str = "Watch Drake and the AIEN coding agents work in public: real missions, nested agents, exact models and live conversations. Learn how to build with AI.";
 pub const URL: &str = "https://www.aienos.com/hive/";
 const SOURCE: &str = "https://github.com/aien-dev/aienos.com/blob/main/crates/site-builder/src/components/hive.rs";
