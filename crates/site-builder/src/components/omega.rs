@@ -134,16 +134,17 @@ pub struct Bar {
 
 /// Expands a short link from the data file into a full address.
 /// `o:` a file in omega, `o/:` a folder in omega, `ob:` an omega branch,
-/// `p:` physics, `c:` aien-sovereign-core, `a:` aien-architecture,
+/// `p:` physics, `c:` aien-sovereign-core, `a:` aien-architecture, `b:` omega-bridge,
 /// `issue:` an omega issue. A link starting with `/` or `#` stays on this site.
 pub fn expand(link: &str) -> Result<String, String> {
-    const MAP: [(&str, &str); 7] = [
+    const MAP: [(&str, &str); 8] = [
         ("o/:", OMEGA_TREE),
         ("ob:", "https://github.com/aien-dev/omega/tree/"),
         ("o:", OMEGA_BLOB),
         ("p:", "https://github.com/aien-dev/physics-mv/blob/main/"),
         ("c:", "https://github.com/aien-dev/aien-sovereign-core-mv/blob/main/"),
         ("a:", "https://github.com/aien-dev/aien-architecture-mv/blob/main/"),
+        ("b:", "https://github.com/aien-dev/omega-bridge/blob/main/"),
         ("issue:", "https://github.com/aien-dev/omega/issues/"),
     ];
     if link.starts_with('/') || link.starts_with('#') {
