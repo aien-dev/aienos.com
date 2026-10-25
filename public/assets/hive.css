@@ -1,9 +1,11 @@
 /* Hive layout and look. Structure comes from om/hive-page/hive.om; this file
-   only places it, so a change of sections, order or wording is an edit to the
-   .om unit and a change of scale, spacing or state colour is an edit here.
-   Palette comes from assets/style.css tokens only: no local hex, no scene, no
-   gradient, glow or invented coordinate. Motion is compositor only (transform,
-   opacity), there is a single transform transition, and it is removed for
+   places it. Two layers live here and they are read in that order: layout and
+   state first (the bounded panels, the branch disclosure, the row grid, the
+   status pill and model chip, tabular numbers, the clamped activity line, the
+   focus rings), then the presentation layer at the end of the file (the galaxy
+   behind the masthead, its scrim, the display type scale and the softer radii).
+   Palette tokens from assets/style.css only: no local hex, no bespoke near
+   black. Motion is compositor only, one transform transition, removed for
    prefers-reduced-motion and whenever the page's own motion control is off. */
 .hive {
   --hive-h1: clamp(2.4rem, 5.4vw, 4rem);
@@ -63,7 +65,7 @@
 
 /* A bounded panel: the head stays, the body is the only scroll box, so a fleet
    of hundreds of agents is one viewport tall instead of thousands of pixels. */
-.hive-panel { display: flex; flex-direction: column; max-height: var(--hive-scroll); padding: 0; overflow: hidden; }
+.hive-section.hive-panel { display: flex; flex-direction: column; max-height: var(--hive-scroll); padding: 0; overflow: hidden; }
 .hive-panel-head { position: sticky; top: 0; flex: 0 0 auto; z-index: 2; padding: 16px 18px 0; background: var(--bg-surface); }
 .hive-panel-head .hive-note { margin-bottom: 0; padding-bottom: 12px; border-bottom: 1px solid var(--border-subtle); }
 .hive-panel-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 18px 16px; scroll-padding-top: 76px; }
@@ -78,13 +80,6 @@
 .hive-search { display: grid; gap: 5px; max-width: 44ch; }
 .hive-search label { font-family: var(--font-mono); font-size: var(--hive-micro); letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
 .hive-tools .hive-small { margin-top: 6px; }
-
-/* Status and freshness strip: one screen-wide band, two quiet columns, so the
-   missions panel is not pushed a whole viewport down the page. */
-#hive-strip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 28px; align-items: start; }
-#hive-strip > .hive-eyebrow, #hive-strip > h2, #hive-strip > .hive-note { grid-column: 1 / -1; }
-#hive-strip > .hive-note { margin-bottom: 2px; }
-#hive-strip > #hive-motion { justify-self: start; }
 
 /* Status and freshness strip: two quiet columns of label and value. */
 .hive-times, .hive-fields { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 3px 16px; margin: 0; }
@@ -181,7 +176,7 @@
   .hive-section-full, .hive-section-main, .hive-section-narrow { grid-column: 1; }
   .hive-section-narrow { position: static; }
   .hive-section { padding: 16px; }
-  .hive-panel { padding: 0; }
+  .hive-section.hive-panel { padding: 0; }
   .hive-panel-head { padding: 14px 14px 0; }
   .hive-panel-body { padding: 0 14px 14px; }
   .hive-record { grid-template-columns: 2rem minmax(0, 1fr) max-content; column-gap: 8px; padding: 6px 8px; margin: 0 -8px; }
@@ -202,3 +197,97 @@
   animation: none !important;
   scroll-behavior: auto !important;
 }
+
+/* Presentation layer, from #91. The sky is decorative and belongs to the
+   masthead alone: it never encodes agent position, progress, topology or live
+   activity, and it is inert (no script, no animation, no external reference).
+   Where a rule here collided with the bounded panels or the row grid, the
+   structure won: the record grid, the panel scroll boxes and the manifest
+   offset are set once, in the sections above. */
+.hive { max-width:1600px; padding:22px 4vw 80px; }
+.hive *, .hive *::before, .hive *::after { box-sizing:border-box; }
+.hive-jumps { margin-bottom:0; border-top:0; padding:14px 0; gap:12px 30px; }
+.hive-jumps a { font-size:.73rem; letter-spacing:.04em; }
+.hive-masthead {
+  position:relative; isolation:isolate; overflow:hidden;
+  max-width:none; min-height:520px; margin:0 -4vw 36px;
+  padding:80px 8vw 72px; display:flex; flex-direction:column; justify-content:center;
+  background:var(--bg-base);
+}
+.hive-masthead::before {
+  content:""; position:absolute; inset:0 -10% 0 18%; z-index:-2; pointer-events:none;
+  background:url('/assets/hive-universe.svg') 55% 48% / cover no-repeat;
+  opacity:.95;
+}
+/* Scrim. The prose always sits over --bg-base at a token-derived alpha, never
+   straight over the scene. The first 68% (74% on a phone) of the band stays at
+   0.90 or more of --bg-base, and against the brightest pixel the scene could
+   produce (white) 0.90 leaves --text-primary at 14.7:1, --text-secondary at
+   6.2:1 and --text-muted at 6.0:1, so no width of this decoration can outshout
+   the text. scripts/test-hive-cosmic.py checks the stop contract; the browser
+   audit in the pull request measures the prose against those stops. */
+.hive-masthead::after {
+  content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--bg-base) 92%, transparent) 0%, color-mix(in srgb, var(--bg-base) 90%, transparent) 68%, color-mix(in srgb, var(--bg-base) 55%, transparent) 86%, color-mix(in srgb, var(--bg-base) 12%, transparent) 100%),
+    linear-gradient(0deg, var(--bg-base) 0%, transparent 18%, transparent 86%, var(--bg-base) 100%);
+}
+.hive-masthead .hive-eyebrow { color:var(--text-secondary); font-size:.65rem; letter-spacing:.24em; margin-bottom:22px; }
+.hive h1 { font-size:clamp(4rem,9vw,8.5rem); font-weight:400; letter-spacing:-.065em; margin:0 0 24px; }
+.hive-period { color:var(--accent-blue); }
+.hive-intro { max-width:34ch; font-size:clamp(1.1rem,1.8vw,1.4rem); line-height:1.5; }
+.hive-welcome { max-width:43ch; font-size:.85rem; margin-top:16px; }
+.hive-learn { align-self:flex-start; margin-top:25px; padding:12px 19px; border:1px solid var(--border-subtle); border-radius:30px; text-decoration:none; font-size:.76rem; background:var(--bg-surface); }
+.hive-learn:hover { border-color:var(--border-active); background:var(--bg-card); }
+.hive-sections { gap:28px; }
+.hive-section { border-radius:16px; padding:26px; background:var(--bg-surface); }
+.hive-section .hive-eyebrow { font-size:.61rem; letter-spacing:.18em; }
+.hive h2 { font-size:1.5rem; font-weight:450; letter-spacing:-.025em; }
+.hive-note { font-size:.78rem; }
+#hive-strip { display:grid; grid-template-columns:minmax(220px,1fr) minmax(240px,1.2fr); gap:12px 32px; padding:22px 26px; }
+#hive-strip > * { margin-top:0; }
+#hive-strip > .hive-eyebrow,#hive-strip > h2,#hive-strip > .hive-note { grid-column:1; }
+#hive-strip > .hive-times { grid-column:2; grid-row:1 / 4; align-self:center; }
+#hive-strip > .hive-strip-status { grid-column:1 / -1; }
+#hive-strip > .hive-coverage { grid-column:1 / -1; }
+#hive-motion { justify-self:start; }
+.hive button { min-height:44px; border-radius:22px; font-size:.78rem; padding:9px 14px; }
+.hive input { min-height:44px; border-radius:22px; padding:10px 15px; }
+.hive-search { max-width:none; }
+.hive-search label { font-size:.71rem; }
+.hive-chip { font-size:.66rem; }
+.hive-pill,.hive-elapsed { font-size:.63rem; }
+.hive-activity { font-size:.76rem; }
+.hive-node[data-selected="true"] > .hive-record { background:var(--bg-card); border-radius:8px; }
+.hive-children { margin-left:10px; padding-left:15px; }
+.hive-message { border-radius:10px; padding:16px 18px; }
+.hive-message-text { font-size:.88rem; line-height:1.75; }
+.hive-closing { font-size:.78rem; }
+@media (max-width:900px) {
+  .hive-masthead { min-height:460px; padding:58px 7vw; }
+  .hive-masthead::before { inset:0 -30% 0 10%; opacity:.75; }
+  .hive-section { padding:22px; }
+}
+@media (max-width:600px) {
+  .hive { padding:14px 20px 50px; }
+  .hive-jumps { gap:10px 20px; }
+  .hive-jumps a { font-size:.65rem; }
+  .hive-masthead { margin:0 -20px 22px; padding:54px 28px 48px; min-height:520px; justify-content:flex-end; }
+  .hive-masthead::before { inset:-25% -65% 15% -25%; background-position:center; opacity:.7; }
+  /* The prose is bottom-aligned here, so the scrim is too. */
+  .hive-masthead::after {
+    background:linear-gradient(0deg, color-mix(in srgb, var(--bg-base) 94%, transparent) 0%, color-mix(in srgb, var(--bg-base) 90%, transparent) 74%, color-mix(in srgb, var(--bg-base) 60%, transparent) 92%, color-mix(in srgb, var(--bg-base) 30%, transparent) 100%);
+  }
+  .hive h1 { font-size:clamp(3.7rem,17vw,5rem); margin-bottom:18px; }
+  .hive-intro { font-size:1rem; }
+  .hive-welcome { font-size:.78rem; }
+  .hive-sections { gap:18px; }
+  .hive-section { padding:20px 16px; border-radius:12px; }
+  #hive-strip { display:block; padding:20px 16px; }
+  #hive-strip > * + * { margin-top:12px; }
+  .hive-times { grid-template-columns:1fr; font-size:.67rem; gap:2px; }
+  .hive-times dd { margin-bottom:8px; }
+  .hive-chip { max-width:100%; }
+  .hive-conversation-controls button { flex:1; }
+}
+@media (prefers-reduced-motion:reduce) { .hive *, .hive *::before, .hive *::after { animation:none !important; transition:none !important; } }
