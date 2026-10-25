@@ -88,7 +88,8 @@ mod tests {
     ];
 
     /// Hand-written pages that must carry the same six links.
-    const HAND_WRITTEN: [&str; 3] = [
+    const HAND_WRITTEN: [&str; 4] = [
+        "public/turing/index.html",
         "public/post-llm-case/index.html",
         "public/research/the-stapleton-doctrine/index.html",
         "public/licensing/index.html",
