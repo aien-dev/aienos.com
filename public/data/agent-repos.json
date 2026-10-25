@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-25T19:36:56Z",
+  "generated_at": "2026-10-25T20:37:00Z",
   "org": "aien-dev",
   "repos": [
     {
@@ -8,7 +8,158 @@
       "url": "https://github.com/aien-dev/omega-mv",
       "default_branch": "main",
       "fork": false,
-      "pushed_at": "2026-10-25T19:36:22Z",
+      "pushed_at": "2026-10-25T20:36:31Z",
+      "archived": false,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": "aien-architecture-mv",
+      "description": "Canonical architecture for the AIEN ecosystem: flows, boundaries, ADRs, and the map from design to implementation repositories.",
+      "url": "https://github.com/aien-dev/aien-architecture-mv",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-10-25T20:36:25Z",
+      "archived": false,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": "pi-register",
+      "description": "Register of the services on a Linux server: what the machine runs and why (Rust CLI + register.toml)",
+      "url": "https://github.com/aien-dev/pi-register",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-10-25T20:36:10Z",
+      "archived": false,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": "aienix",
+      "description": "AienOS front door: pinned repositories, source-linked lessons and verification paths. Components remain separate; whole-stack integration is pre-alpha.",
+      "url": "https://github.com/aien-dev/aienix",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-10-25T20:35:58Z",
+      "archived": false,
+      "brief": null
+    },
+    {
+      "name": "aien-sovereign-core-mv",
+      "description": "AienOS host runtime: inference scheduling, paged KV state, the aien CLI and Spark verification tooling. Pre-alpha; Omega is the implementation destination.",
+      "url": "https://github.com/aien-dev/aien-sovereign-core-mv",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-10-25T20:31:13Z",
+      "archived": false,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": "aienos.com",
+      "description": "Source of www.aienos.com, built by a Rust generator and served by GitHub Pages",
+      "url": "https://github.com/aien-dev/aienos.com",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-10-25T20:30:03Z",
+      "archived": false,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": "aien-edge",
+      "description": "Native Rust edge server for AIEN static sites (not currently deployed; sites are on GitHub Pages)",
+      "url": "https://github.com/aien-dev/aien-edge",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-10-25T20:27:28Z",
+      "archived": false,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": "readings-window",
+      "description": "Read-only, token-protected HTTPS window onto the Spark's GPU/CPU readings, served from the Pi hub (Rust)",
+      "url": "https://github.com/aien-dev/readings-window",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-10-25T20:27:22Z",
+      "archived": false,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": "aien-protocols-mv",
+      "description": "Canonical specifications, wire protocols, and schemas for the AIEN sovereign ecosystem",
+      "url": "https://github.com/aien-dev/aien-protocols-mv",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-10-25T20:05:31Z",
+      "archived": false,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": ".github",
+      "description": "AienOS organization profile, contribution guidance and GitHub community templates. Source, lessons and verification evidence are linked explicitly.",
+      "url": "https://github.com/aien-dev/.github",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-10-25T20:04:07Z",
+      "archived": false,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": "aien-train",
+      "description": "AIEN training programme: language-model history, GB10 constraints and the route to training on the project engine. Plans and runnable checks are distinguished.",
+      "url": "https://github.com/aien-dev/aien-train",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-10-25T20:04:03Z",
+      "archived": false,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": "edk2-non-osi",
+      "description": "AIEN fork for the Raspberry Pi 5 firmware chain (see aien-dev/rpi5-uefi). EDK II non-OSI licensed content",
+      "url": "https://github.com/aien-dev/edk2-non-osi",
+      "default_branch": "master",
+      "fork": true,
+      "pushed_at": "2026-10-25T20:03:59Z",
+      "archived": false,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": "physics-mv",
+      "description": "FORGE: request-bound machine realization, providers and verification for AienOS. Host, simulated and GB10 hardware paths have separate evidence.",
+      "url": "https://github.com/aien-dev/physics-mv",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-10-25T20:03:58Z",
+      "archived": false,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": "omega-bridge",
+      "description": "Omega-first language interoperability: checked conversion backends and native language bindings",
+      "url": "https://github.com/aien-dev/omega-bridge",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-10-25T19:57:55Z",
+      "archived": false,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": "omnet",
+      "description": "Security-critical network code rewritten in Omega, so decades-old bug classes (out-of-bounds access, integer overflow, unbounded reads) cannot happen silently. First project: server-side Tailnet Lock for self-hosted Tailscale control servers.",
+      "url": "https://github.com/aien-dev/omnet",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-10-25T19:56:24Z",
+      "archived": false,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": "aienux",
+      "description": "Aienux, the AienOS kernel: boot, scheduling, IPC and capability boundaries. Pre-alpha; host, emulator and physical evidence are labelled separately.",
+      "url": "https://github.com/aien-dev/aienux",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-10-25T19:38:07Z",
+      "archived": false,
       "brief": "AGENTS.md"
     },
     {
@@ -18,6 +169,7 @@
       "default_branch": "main",
       "fork": false,
       "pushed_at": "2026-10-25T19:34:35Z",
+      "archived": false,
       "brief": "AGENTS.md"
     },
     {
@@ -27,6 +179,7 @@
       "default_branch": "main",
       "fork": false,
       "pushed_at": "2026-10-25T19:34:33Z",
+      "archived": false,
       "brief": "AGENTS.md"
     },
     {
@@ -36,6 +189,7 @@
       "default_branch": "main",
       "fork": false,
       "pushed_at": "2026-10-25T19:34:30Z",
+      "archived": false,
       "brief": "AGENTS.md"
     },
     {
@@ -45,42 +199,7 @@
       "default_branch": "main",
       "fork": false,
       "pushed_at": "2026-10-25T19:33:58Z",
-      "brief": "AGENTS.md"
-    },
-    {
-      "name": "aienux",
-      "description": "Aienux, the AienOS kernel: boot, scheduling, IPC and capability boundaries. Pre-alpha; host, emulator and physical evidence are labelled separately.",
-      "url": "https://github.com/aien-dev/aienux",
-      "default_branch": "main",
-      "fork": false,
-      "pushed_at": "2026-10-25T19:32:55Z",
-      "brief": "AGENTS.md"
-    },
-    {
-      "name": "aien-architecture-mv",
-      "description": "Canonical architecture for the AIEN ecosystem: flows, boundaries, ADRs, and the map from design to implementation repositories.",
-      "url": "https://github.com/aien-dev/aien-architecture-mv",
-      "default_branch": "main",
-      "fork": false,
-      "pushed_at": "2026-10-25T19:31:03Z",
-      "brief": "AGENTS.md"
-    },
-    {
-      "name": "aien-protocols-mv",
-      "description": "Canonical specifications, wire protocols, and schemas for the AIEN sovereign ecosystem",
-      "url": "https://github.com/aien-dev/aien-protocols-mv",
-      "default_branch": "main",
-      "fork": false,
-      "pushed_at": "2026-10-25T19:30:36Z",
-      "brief": null
-    },
-    {
-      "name": "physics-mv",
-      "description": "FORGE: request-bound machine realization, providers and verification for AienOS. Host, simulated and GB10 hardware paths have separate evidence.",
-      "url": "https://github.com/aien-dev/physics-mv",
-      "default_branch": "main",
-      "fork": false,
-      "pushed_at": "2026-10-25T19:30:30Z",
+      "archived": false,
       "brief": "AGENTS.md"
     },
     {
@@ -90,33 +209,7 @@
       "default_branch": "main",
       "fork": false,
       "pushed_at": "2026-10-25T19:30:25Z",
-      "brief": "AGENTS.md"
-    },
-    {
-      "name": "omega-bridge",
-      "description": "Omega-first language interoperability: checked conversion backends and native language bindings",
-      "url": "https://github.com/aien-dev/omega-bridge",
-      "default_branch": "main",
-      "fork": false,
-      "pushed_at": "2026-10-25T19:30:21Z",
-      "brief": "AGENTS.md"
-    },
-    {
-      "name": "aien-sovereign-core-mv",
-      "description": "AienOS host runtime: inference scheduling, paged KV state, the aien CLI and Spark verification tooling. Pre-alpha; Omega is the implementation destination.",
-      "url": "https://github.com/aien-dev/aien-sovereign-core-mv",
-      "default_branch": "main",
-      "fork": false,
-      "pushed_at": "2026-10-25T19:29:04Z",
-      "brief": "AGENTS.md"
-    },
-    {
-      "name": "pi-register",
-      "description": "Register of the services on a Linux server: what the machine runs and why (Rust CLI + register.toml)",
-      "url": "https://github.com/aien-dev/pi-register",
-      "default_branch": "main",
-      "fork": false,
-      "pushed_at": "2026-10-25T19:27:16Z",
+      "archived": false,
       "brief": "AGENTS.md"
     },
     {
@@ -126,6 +219,7 @@
       "default_branch": "master",
       "fork": true,
       "pushed_at": "2026-10-25T19:27:10Z",
+      "archived": false,
       "brief": "AGENTS.md"
     },
     {
@@ -135,6 +229,7 @@
       "default_branch": "main",
       "fork": false,
       "pushed_at": "2026-10-25T19:27:07Z",
+      "archived": false,
       "brief": "AGENTS.md"
     },
     {
@@ -144,6 +239,7 @@
       "default_branch": "master",
       "fork": false,
       "pushed_at": "2026-10-25T19:26:34Z",
+      "archived": false,
       "brief": "AGENTS.md"
     },
     {
@@ -153,42 +249,7 @@
       "default_branch": "main",
       "fork": false,
       "pushed_at": "2026-10-25T19:25:21Z",
-      "brief": "AGENTS.md"
-    },
-    {
-      "name": "readings-window",
-      "description": "Read-only, token-protected HTTPS window onto the Spark's GPU/CPU readings, served from the Pi hub (Rust)",
-      "url": "https://github.com/aien-dev/readings-window",
-      "default_branch": "main",
-      "fork": false,
-      "pushed_at": "2026-10-25T19:25:19Z",
-      "brief": "AGENTS.md"
-    },
-    {
-      "name": ".github",
-      "description": "AienOS organization profile, contribution guidance and GitHub community templates. Source, lessons and verification evidence are linked explicitly.",
-      "url": "https://github.com/aien-dev/.github",
-      "default_branch": "main",
-      "fork": false,
-      "pushed_at": "2026-10-25T19:25:17Z",
-      "brief": "AGENTS.md"
-    },
-    {
-      "name": "aien-edge",
-      "description": "Native Rust edge server for AIEN static sites (not currently deployed; sites are on GitHub Pages)",
-      "url": "https://github.com/aien-dev/aien-edge",
-      "default_branch": "main",
-      "fork": false,
-      "pushed_at": "2026-10-25T19:24:45Z",
-      "brief": "AGENTS.md"
-    },
-    {
-      "name": "edk2-non-osi",
-      "description": "AIEN fork for the Raspberry Pi 5 firmware chain (see aien-dev/rpi5-uefi). EDK II non-OSI licensed content",
-      "url": "https://github.com/aien-dev/edk2-non-osi",
-      "default_branch": "master",
-      "fork": true,
-      "pushed_at": "2026-10-25T19:24:42Z",
+      "archived": false,
       "brief": "AGENTS.md"
     },
     {
@@ -198,6 +259,7 @@
       "default_branch": "master",
       "fork": true,
       "pushed_at": "2026-10-25T19:24:39Z",
+      "archived": false,
       "brief": "AGENTS.md"
     },
     {
@@ -207,6 +269,7 @@
       "default_branch": "main",
       "fork": false,
       "pushed_at": "2026-10-25T19:24:34Z",
+      "archived": false,
       "brief": "AGENTS.md"
     },
     {
@@ -216,15 +279,7 @@
       "default_branch": "main",
       "fork": false,
       "pushed_at": "2026-10-25T19:24:31Z",
-      "brief": "AGENTS.md"
-    },
-    {
-      "name": "aien-train",
-      "description": "AIEN training programme: language-model history, GB10 constraints and the route to training on the project engine. Plans and runnable checks are distinguished.",
-      "url": "https://github.com/aien-dev/aien-train",
-      "default_branch": "main",
-      "fork": false,
-      "pushed_at": "2026-10-25T19:24:28Z",
+      "archived": false,
       "brief": "AGENTS.md"
     },
     {
@@ -234,24 +289,7 @@
       "default_branch": "main",
       "fork": false,
       "pushed_at": "2026-10-25T19:24:03Z",
-      "brief": "AGENTS.md"
-    },
-    {
-      "name": "omnet",
-      "description": "Security-critical network code rewritten in Omega, so decades-old bug classes (out-of-bounds access, integer overflow, unbounded reads) cannot happen silently. First project: server-side Tailnet Lock for self-hosted Tailscale control servers.",
-      "url": "https://github.com/aien-dev/omnet",
-      "default_branch": "main",
-      "fork": false,
-      "pushed_at": "2026-10-25T19:19:18Z",
-      "brief": "AGENTS.md"
-    },
-    {
-      "name": "aienos.com",
-      "description": "Source of www.aienos.com, built by a Rust generator and served by GitHub Pages",
-      "url": "https://github.com/aien-dev/aienos.com",
-      "default_branch": "main",
-      "fork": false,
-      "pushed_at": "2026-10-25T18:50:03Z",
+      "archived": false,
       "brief": "AGENTS.md"
     },
     {
@@ -261,6 +299,7 @@
       "default_branch": "main",
       "fork": false,
       "pushed_at": "2026-10-25T14:18:34Z",
+      "archived": false,
       "brief": "AGENTS.md"
     },
     {
@@ -270,6 +309,7 @@
       "default_branch": "main",
       "fork": false,
       "pushed_at": "2026-10-24T18:38:09Z",
+      "archived": false,
       "brief": "AGENTS.md"
     },
     {
@@ -279,6 +319,7 @@
       "default_branch": "main",
       "fork": false,
       "pushed_at": "2026-10-24T18:24:09Z",
+      "archived": false,
       "brief": "AGENTS.md"
     },
     {
@@ -288,16 +329,8 @@
       "default_branch": "main",
       "fork": false,
       "pushed_at": "2026-10-24T18:06:15Z",
+      "archived": false,
       "brief": "AGENTS.md"
-    },
-    {
-      "name": "aienix",
-      "description": "AienOS front door: pinned repositories, source-linked lessons and verification paths. Components remain separate; whole-stack integration is pre-alpha.",
-      "url": "https://github.com/aien-dev/aienix",
-      "default_branch": "main",
-      "fork": false,
-      "pushed_at": "2026-10-23T00:25:29Z",
-      "brief": null
     },
     {
       "name": "mobhub",
@@ -306,6 +339,7 @@
       "default_branch": "main",
       "fork": false,
       "pushed_at": "2026-10-22T21:46:04Z",
+      "archived": false,
       "brief": "AGENTS.md"
     },
     {
@@ -315,7 +349,218 @@
       "default_branch": "main",
       "fork": true,
       "pushed_at": "2026-10-18T19:01:55Z",
+      "archived": false,
       "brief": "AGENTS.md"
+    },
+    {
+      "name": "aien-yardsticks",
+      "description": "Outside yardsticks AIEN is measured against (Modular MAX, a Transformers reference, a CUDA mirror). Never part of AIEN.",
+      "url": "https://github.com/aien-dev/aien-yardsticks",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-10-15T22:37:20Z",
+      "archived": true,
+      "brief": null
+    },
+    {
+      "name": "arm-trusted-firmware",
+      "description": "AIEN fork for the Raspberry Pi 5 firmware chain (see aien-dev/rpi5-uefi). Read-only mirror of Trusted Firmware-A",
+      "url": "https://github.com/aien-dev/arm-trusted-firmware",
+      "default_branch": "master",
+      "fork": true,
+      "pushed_at": "2026-10-15T22:33:11Z",
+      "archived": true,
+      "brief": null
+    },
+    {
+      "name": "edk2",
+      "description": "AIEN fork for the Raspberry Pi 5 firmware chain (see aien-dev/rpi5-uefi). EDK II",
+      "url": "https://github.com/aien-dev/edk2",
+      "default_branch": "master",
+      "fork": true,
+      "pushed_at": "2026-10-15T22:33:09Z",
+      "archived": true,
+      "brief": null
+    },
+    {
+      "name": "odysseus",
+      "description": "Self-hosted AI workspace. ",
+      "url": "https://github.com/aien-dev/odysseus",
+      "default_branch": "dev",
+      "fork": true,
+      "pushed_at": "2026-10-14T12:54:30Z",
+      "archived": true,
+      "brief": null
+    },
+    {
+      "name": "MojoLlama",
+      "description": "ARCHIVED 2026-10-15: depended on Mojo/MAX, dropped by AIEN 2026-10-15. Eval runners: aien-dev/aien-yardsticks yardsticks/mojollama-eval-runners (PR #10). MojoLlama is a high-throughput inference engine for CPU, built on Modular MAX. GGUF native, MoE-optimized, with support for 50+ architectures: from Llama to Gemma 4 to hybrid SSM models. GPU accel",
+      "url": "https://github.com/aien-dev/MojoLlama",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-10-13T23:20:54Z",
+      "archived": true,
+      "brief": null
+    },
+    {
+      "name": "encounter",
+      "description": "ARCHIVED 2026-10-15: no active work. Encounter: scene-bounded research commons for inhabitant-to-inhabitant speech",
+      "url": "https://github.com/aien-dev/encounter",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-10-13T10:43:09Z",
+      "archived": true,
+      "brief": null
+    },
+    {
+      "name": "physics0",
+      "description": "RETIRED 2026-10-03 (empty): Physics-0 learner work lives in aien-dev/omega under src/physics0",
+      "url": "https://github.com/aien-dev/physics0",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-10-03T23:10:23Z",
+      "archived": true,
+      "brief": null
+    },
+    {
+      "name": "aien-local-stack",
+      "description": "In-process composition stack integrating AEGIS and Sovereign Core via AIEN protocols",
+      "url": "https://github.com/aien-dev/aien-local-stack",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-09-23T15:55:19Z",
+      "archived": true,
+      "brief": null
+    },
+    {
+      "name": "crumb-spec-mv",
+      "description": "The Crumb Protocol: Spatial Grounding, Architectural Topography, and Ephemeral Scent Specification for Autonomous AI Agents",
+      "url": "https://github.com/aien-dev/crumb-spec-mv",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-09-23T15:55:16Z",
+      "archived": true,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": "spark-crumbs-mv",
+      "description": "Event ledger and session tree implementation of the Crumb protocol for spatial grounding",
+      "url": "https://github.com/aien-dev/spark-crumbs-mv",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-09-23T15:55:13Z",
+      "archived": true,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": "rad-id-sync",
+      "description": "Decentralized peer-to-peer git synchronization utility anchoring repositories to the Radicle network",
+      "url": "https://github.com/aien-dev/rad-id-sync",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-09-23T15:55:11Z",
+      "archived": true,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": "cortex-rs",
+      "description": "Native Rust memory engine with SQLite FTS5 lexical search and bi-encoder vector similarity",
+      "url": "https://github.com/aien-dev/cortex-rs",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-09-23T15:55:09Z",
+      "archived": true,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": "spark-dream",
+      "description": "Native Rust memory consolidation daemon for background session compaction",
+      "url": "https://github.com/aien-dev/spark-dream",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-09-23T15:55:07Z",
+      "archived": true,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": "aien-harness",
+      "description": "Autonomous Change-Management, Schema Validation, and Eval Reliability Harness for AI Agents",
+      "url": "https://github.com/aien-dev/aien-harness",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-09-23T15:55:04Z",
+      "archived": true,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": "spark-hive",
+      "description": "Native honeycomb execution engine with 2D axial hexagonal geometry and model adapter pipeline",
+      "url": "https://github.com/aien-dev/spark-hive",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-09-23T15:55:02Z",
+      "archived": true,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": "spark-supervisor",
+      "description": "Process supervisor, health monitor, and crash recovery daemon for local services",
+      "url": "https://github.com/aien-dev/spark-supervisor",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-09-23T15:55:00Z",
+      "archived": true,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": "spark-debugger",
+      "description": "Native runtime state inspector, continuous watchdog, and hardware crash diagnostics",
+      "url": "https://github.com/aien-dev/spark-debugger",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-09-23T15:54:57Z",
+      "archived": true,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": "spark-adapters",
+      "description": "Hardware abstraction adapters for local AI accelerators and Modular MAX",
+      "url": "https://github.com/aien-dev/spark-adapters",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-09-23T15:54:55Z",
+      "archived": true,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": "harvester",
+      "description": "Native reasoning extraction and dataset distillation pipeline",
+      "url": "https://github.com/aien-dev/harvester",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-09-23T15:54:53Z",
+      "archived": true,
+      "brief": "AGENTS.md"
+    },
+    {
+      "name": "spark-inquisitor",
+      "description": "Native Rust GitHub Action and CLI for pull request diff auditing, credential scanning, and automated triage",
+      "url": "https://github.com/aien-dev/spark-inquisitor",
+      "default_branch": "main",
+      "fork": false,
+      "pushed_at": "2026-09-23T15:54:51Z",
+      "archived": true,
+      "brief": null
+    },
+    {
+      "name": "edk2-platforms",
+      "description": "AIEN fork for the Raspberry Pi 5 firmware chain (see aien-dev/rpi5-uefi). edk2-platforms fork for RPi 5 dev  -----  Binary releases here -> https://github.com/worproject/rpi5-uefi",
+      "url": "https://github.com/aien-dev/edk2-platforms",
+      "default_branch": "rpi5-dev",
+      "fork": true,
+      "pushed_at": "2024-03-15T22:24:58Z",
+      "archived": true,
+      "brief": null
     }
   ]
 }

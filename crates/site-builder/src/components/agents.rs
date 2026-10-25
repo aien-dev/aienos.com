@@ -15,7 +15,7 @@ use maud::{html, Markup};
 use serde::{Deserialize, Serialize};
 
 use crate::components::boxlink::{foot_labelled, Target};
-use crate::facts::{gh, now_utc, retired_name};
+use crate::facts::now_utc;
 
 pub const TITLE: &str = "Agents | AIENOS";
 pub const DESCRIPTION: &str = "Point your own coding agent at any public AIEN repository: the rules our agents work by, and each repository's own AGENTS.md, refreshed hourly from GitHub.";
@@ -42,6 +42,8 @@ pub struct Repo {
     pub default_branch: String,
     pub fork: bool,
     pub pushed_at: String,
+    #[serde(default)]
+    pub archived: bool,
     /// The first of BRIEF_FILES present on the default branch, if any.
     pub brief: Option<String>,
 }
@@ -72,9 +74,9 @@ impl Repos {
         std::fs::write(path, text + "\n").map_err(|e| format!("cannot write {}: {e}", path.display()))
     }
 
-    /// The repositories the page shows: retired names are never rendered.
+    /// Every public repository, including archived repositories and current slugs.
     pub fn listed(&self) -> Vec<&Repo> {
-        self.repos.iter().filter(|r| !retired_name(&r.name)).collect()
+        self.repos.iter().collect()
     }
 }
 
@@ -101,26 +103,42 @@ fn s(v: &serde_json::Value, key: &str) -> String {
     v.get(key).and_then(|x| x.as_str()).unwrap_or("").to_string()
 }
 
-/// Read every public, unarchived repository of ORG and the brief file each
-/// one carries. Read-only public data; a plain `GH_TOKEN` is enough.
+/// Read every public repository of ORG, including archived repositories.
+/// Pagination is delegated to gh, which follows GitHub's Link headers.
 pub fn gather() -> Result<Repos, String> {
-    let list = gh(&[&format!("orgs/{ORG}/repos?type=public&per_page=100")])?;
-    let list = list.as_array().ok_or("org repository list is not an array")?;
-    if list.len() >= 100 {
-        return Err("100 or more public repositories: the collector must paginate".into());
+    let out = Command::new("gh")
+        .args(["api", "--paginate", &format!("orgs/{ORG}/repos?type=public&per_page=100")])
+        .output().map_err(|e| format!("cannot run gh: {e}"))?;
+    if !out.status.success() {
+        return Err(format!("gh repository listing failed: {}", String::from_utf8_lossy(&out.stderr).trim()));
     }
+    // Older gh versions emit consecutive JSON arrays, not a single slurped array.
+    let pages = serde_json::Deserializer::from_slice(&out.stdout)
+        .into_iter::<serde_json::Value>()
+        .collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())?;
+    let pages = serde_json::Value::Array(pages);
+    gather_from_pages(&pages, |name, branch, file| {
+        exists(&format!("repos/{ORG}/{name}/contents/{file}?ref={branch}"))
+    })
+}
+
+fn gather_from_pages(
+    pages: &serde_json::Value,
+    mut has_brief: impl FnMut(&str, &str, &str) -> Result<bool, String>,
+) -> Result<Repos, String> {
+    let pages = pages.as_array().ok_or("org repository pages are not an array")?;
     let mut repos = Vec::new();
-    for v in list {
-        if v.get("archived").and_then(|x| x.as_bool()).unwrap_or(false)
-            || v.get("private").and_then(|x| x.as_bool()).unwrap_or(false)
-        {
+    for page in pages {
+      let list = page.as_array().ok_or("org repository page is not an array")?;
+      for v in list {
+        if v.get("private").and_then(|x| x.as_bool()).unwrap_or(false) {
             continue;
         }
         let name = s(v, "name");
         let default_branch = s(v, "default_branch");
         let mut brief = None;
         for f in BRIEF_FILES {
-            if exists(&format!("repos/{ORG}/{name}/contents/{f}?ref={default_branch}"))? {
+            if has_brief(&name, &default_branch, f)? {
                 brief = Some(f.to_string());
                 break;
             }
@@ -129,11 +147,13 @@ pub fn gather() -> Result<Repos, String> {
             description: s(v, "description"),
             url: s(v, "html_url"),
             fork: v.get("fork").and_then(|x| x.as_bool()).unwrap_or(false),
+            archived: v.get("archived").and_then(|x| x.as_bool()).unwrap_or(false),
             pushed_at: s(v, "pushed_at"),
             name,
             default_branch,
             brief,
         });
+      }
     }
     // Most recently pushed first: where the work is happening leads.
     repos.sort_by(|a, b| b.pushed_at.cmp(&a.pushed_at).then(a.name.cmp(&b.name)));
@@ -151,14 +171,23 @@ pub fn rule_headings(md: &str) -> Vec<&str> {
 /// The prompt a visitor pastes into their agent for one repository.
 pub fn prompt(repo_url: &str) -> String {
     format!(
-        "Read {RULES_URL} and then the AGENTS.md of {repo_url}, and follow both. Pick an open issue there, comment to claim it, work on a branch, and open a pull request that leads with the evidence: the commands you ran and their output."
+        "Read {RULES_URL} and then the repository instructions (AGENTS.md, or CLAUDE.md if that is the file listed) at {repo_url}, and follow both. Pick an open issue in an active repository, comment to claim it, work on a branch, and open a pull request that leads with the evidence: the commands you ran and their output. Archived repositories are listed for reference; do not assume they accept contributions."
     )
 }
 
 fn repo_card(r: &Repo) -> Markup {
     html! {
         li class="hub-card agents-card" id=(format!("repo-{}", r.name)) {
-            a href=(r.url) target="_blank" rel="noopener noreferrer" { (r.name) }
+            a href=(r.url) target="_blank" rel="noopener noreferrer" {
+                @match r.name.as_str() {
+                    "aienix" | "aienos" => { "AienOS (whole system)" }
+                    "aienux" => { "Aienux (kernel)" }
+                    _ => { (r.name) }
+                }
+            }
+            @if r.archived {
+                p class="agents-tag" { "Archived: read-only reference" }
+            }
             @if r.fork {
                 p class="agents-tag" { "Fork" }
             }
@@ -170,7 +199,7 @@ fn repo_card(r: &Repo) -> Markup {
                     (foot_labelled(&href, &format!("{} on GitHub", r.brief.as_deref().unwrap_or("AGENTS.md")), Target::Evidence))
                 }
                 None => {
-                    p class="agents-none" { "No AGENTS.md yet: the shared rules apply, then the README." }
+                    p class="agents-none" { "No AGENTS.md or CLAUDE.md yet: the shared rules apply, then the README." }
                     (foot_labelled(&r.url, "README on GitHub", Target::Source))
                 }
             }
@@ -186,13 +215,13 @@ pub fn render_agents_page(repos: &Repos) -> Markup {
             p class="hub-kicker" { "For agents" }
             h1 class="hub-title" { "Point your agent at any AIEN repository" }
             p class="hub-standfirst" {
-                "Every public AIEN repository is open to your own coding agent, working under the same rules ours follow. Give it two files: the shared rules, and the AGENTS.md of the repository you want it to work on. Your own subscription pays for the work (Claude, Codex, Gemini, Grok or any other agent), and nothing of yours is sent to the project."
+                "Every public AIEN repository is listed here, including archived repositories for reference. Give your agent two files: the shared rules, and the repository instructions linked below under their actual filename, AGENTS.md or CLAUDE.md. Your own subscription pays for the work (Claude, Codex, Gemini, Grok or any other agent)."
             }
 
             section class="hub-section" id="start" aria-labelledby="agents-start" {
                 h2 id="agents-start" class="hub-h2" { "Start an agent" }
                 ol class="agents-steps" {
-                    li { "Pick a repository below and open its AGENTS.md: it says what the repository is, how to build and test it, and what needs approval." }
+                    li { "Pick an active repository below and open its linked instructions: they say what the repository is, how to build and test it, and what needs approval." }
                     li { "Paste this into your agent, with the repository's address in place of the example:" }
                 }
                 pre class="agents-prompt" { code { (prompt("https://github.com/aien-dev/omega-mv")) } }
@@ -249,6 +278,7 @@ mod tests {
             url: format!("https://github.com/aien-dev/{name}"),
             default_branch: "main".into(),
             fork: false,
+            archived: false,
             pushed_at: pushed.into(),
             brief: brief.map(String::from),
         }
@@ -274,15 +304,16 @@ mod tests {
         assert!(page.contains("href=\"https://github.com/aien-dev/translate/blob/main/CLAUDE.md\""), "a CLAUDE.md is linked under its own name");
         assert!(page.contains(">CLAUDE.md on GitHub"));
         assert!(!page.contains("aien-edge/blob/main/AGENTS.md"), "a brief that does not exist is never linked");
-        assert!(page.contains("No AGENTS.md yet"));
-        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(4), "the rules box and three listed repositories, each with a GitHub link");
+        assert!(page.contains("No AGENTS.md or CLAUDE.md yet"));
+        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(5), "the rules box and every listed repository have a GitHub link");
     }
 
     #[test]
-    fn retired_name_is_not_rendered() {
+    fn whole_system_keeps_its_real_url_and_current_label() {
         let page = render_agents_page(&sample()).into_string();
-        assert!(!page.to_ascii_lowercase().contains("aienix"));
-        assert!(page.contains("3 public repositories, 2 with their own instructions"));
+        assert!(page.contains("href=\"https://github.com/aien-dev/aienix\""));
+        assert!(page.contains("AienOS (whole system)"));
+        assert!(page.contains("4 public repositories, 3 with their own instructions"));
     }
 
     #[test]
@@ -308,6 +339,25 @@ mod tests {
     #[test]
     fn prompt_names_both_files() {
         let p = prompt("https://github.com/aien-dev/x");
-        assert!(p.contains(RULES_URL) && p.contains("AGENTS.md of https://github.com/aien-dev/x"));
+        assert!(p.contains(RULES_URL) && p.contains("AGENTS.md") && p.contains("CLAUDE.md") && p.contains("https://github.com/aien-dev/x"));
+    }
+
+    #[test]
+    fn pagination_includes_archived_and_excludes_private_repositories() {
+        let first: Vec<_> = (0..100).map(|n| serde_json::json!({
+            "name": format!("repo-{n}"), "default_branch": "main",
+            "html_url": format!("https://github.com/aien-dev/repo-{n}")
+        })).collect();
+        let pages = serde_json::json!([first, [
+            {"name": "archive", "archived": true, "default_branch": "main", "html_url": "https://github.com/aien-dev/archive"},
+            {"name": "private", "private": true}
+        ]]);
+        let repos = gather_from_pages(&pages, |_, _, f| Ok(f == "CLAUDE.md")).unwrap();
+        assert_eq!(repos.repos.len(), 101);
+        let archived = repos.repos.iter().find(|r| r.name == "archive").unwrap();
+        assert!(archived.archived);
+        assert_eq!(archived.brief.as_deref(), Some("CLAUDE.md"));
+        assert!(render_agents_page(&repos).into_string().contains("Archived: read-only reference"));
+        assert!(gather_from_pages(&pages, |_, _, _| Err("network failure".into())).is_err());
     }
 }

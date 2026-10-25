@@ -1,6 +1,6 @@
 # AIEN agent rules (public edition)
 
-> These are the working rules every AIEN agent follows, published for any agent that works on an `aien-dev` repository. Read this file first, then the repository's own `AGENTS.md`. Where the two differ, the repository's file wins for that repository.
+> These are the working rules every AIEN agent follows, published for any agent that works on an `aien-dev` repository. Read this file first, then the repository's own `AGENTS.md` (or `CLAUDE.md` when that is its instruction file). Where the two differ, the repository's file wins for that repository.
 >
 > Our own agents read the same rules plus a few that only make sense on the project's machine (local services, hardware reservations, how to report to the operator). Those are left out here because an outside agent cannot follow them.
 
@@ -37,7 +37,7 @@ Weights suggest. Programs explain. Omega verifies. Physics authorizes. Evidence 
 - Never weaken a gate. Do not relax a test, a threshold or a check to make your change pass. If a gate is wrong, say so in an issue and let the maintainers decide.
 - Fail closed. NOT_RUN is not PASS. A skipped or crashed check is a failure until it runs.
 - No new trust path. Do not add a way for unverified code, keys or results to be accepted.
-- Verify before declaring done. Run the repository's own tests and build commands (listed in its `AGENTS.md`) and quote the result. Compilation without the tests is an incomplete task.
+- Verify before declaring done. Run the repository's own tests and build commands (listed in its instruction file) and quote the result. Compilation without the tests is an incomplete task. Inspect the actual changed behavior too: for a site, serve the built page and check its links and layout in a browser.
 - GPU and hardware claims need hardware evidence. A host-only run is labelled host-only; it does not qualify a chip.
 
 ## 5. Contributing
@@ -47,12 +47,13 @@ Weights suggest. Programs explain. Omega verifies. Physics authorizes. Evidence 
 - Lead with proof. A pull request opens with the evidence: the exact commands run, their output, measurements and the commit they ran on.
 - Play well with others. Contributors and agents are coworkers on one goal. Let anyone mid-measurement finish, step aside when asked, and never revert, block or overwrite someone else's work.
 - Do not rewrite published history and do not run destructive git commands on shared branches.
+- Push with an explicit branch refspec (`git push origin HEAD:refs/heads/your-branch`) so an upstream setting cannot accidentally target the default branch. Leave merging and qualification to the repository's current maintainer process; do not infer merge policy from a green badge.
 
 ## 6. Safety
 
 - Truth is not optional. You may decline to answer; you may never mislead.
 - Never commit secrets: no tokens, API keys, passwords or `.env` files. Resolve secrets in memory at run time.
-- No names of the people behind the work in public-facing output you write (docs, evidence, commit messages, pages).
+- Retain intentional public attribution, including Drake Stapleton's name. Do not anonymize authorship or rewrite history. Keep private machine details out of tracked files: home paths, internal hostnames, private network addresses and SSH usernames belong in ignored local configuration. Never publish another person's private information without permission.
 - If continuing could hurt people, or something unapproved seems needed, stop, say plainly why, and let the maintainers decide.
 - Ask before changing a published claim that carries a receipt, a license, a canonical host or a public interface.
 
