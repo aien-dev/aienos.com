@@ -127,3 +127,87 @@
 @media (prefers-reduced-motion: reduce) {
   .hive * { scroll-behavior: auto !important; }
 }
+
+/* Cosmic presentation pass. The sky is decorative; .om owns all page structure.
+   No agent positions, source states or progress values are invented here. */
+.hive { max-width:1600px; padding:22px 4vw 80px; }
+.hive *, .hive *::before, .hive *::after { box-sizing:border-box; }
+.hive-jumps { margin-bottom:0; border-top:0; padding:14px 0; gap:12px 30px; }
+.hive-jumps a { font-size:.73rem; letter-spacing:.04em; }
+.hive-masthead {
+  position:relative; isolation:isolate; overflow:hidden;
+  max-width:none; min-height:520px; margin:0 -4vw 36px;
+  padding:80px 8vw 72px; display:flex; flex-direction:column; justify-content:center;
+  background:var(--bg-base);
+}
+.hive-masthead::before {
+  content:""; position:absolute; inset:0 -10% 0 18%; z-index:-2; pointer-events:none;
+  background:url('/assets/hive-universe.svg') 55% 48% / cover no-repeat;
+  opacity:.95;
+}
+.hive-masthead::after {
+  content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background:linear-gradient(90deg,var(--bg-base) 3%,transparent 76%),linear-gradient(0deg,var(--bg-base),transparent 15%,transparent 88%,var(--bg-base));
+}
+.hive-masthead .hive-eyebrow { color:var(--text-secondary); font-size:.65rem; letter-spacing:.24em; margin-bottom:22px; }
+.hive h1 { font-size:clamp(4rem,9vw,8.5rem); font-weight:400; letter-spacing:-.065em; margin:0 0 24px; }
+.hive-period { color:var(--accent-blue); }
+.hive-intro { max-width:34ch; font-size:clamp(1.1rem,1.8vw,1.4rem); line-height:1.5; }
+.hive-welcome { max-width:43ch; font-size:.85rem; margin-top:16px; }
+.hive-learn { align-self:flex-start; margin-top:25px; padding:12px 19px; border:1px solid var(--border-subtle); border-radius:30px; text-decoration:none; font-size:.76rem; background:var(--bg-surface); }
+.hive-learn:hover { border-color:var(--border-active); background:var(--bg-card); }
+.hive-sections { gap:28px; }
+.hive-section { border-radius:16px; padding:26px; background:var(--bg-surface); }
+.hive-section .hive-eyebrow { font-size:.61rem; letter-spacing:.18em; }
+.hive h2 { font-size:1.5rem; font-weight:450; letter-spacing:-.025em; }
+.hive-note { font-size:.78rem; }
+#hive-strip { display:grid; grid-template-columns:minmax(220px,1fr) minmax(240px,1.2fr); gap:12px 32px; padding:22px 26px; }
+#hive-strip > * { margin-top:0; }
+#hive-strip > .hive-eyebrow,#hive-strip > h2,#hive-strip > .hive-note { grid-column:1; }
+#hive-strip > .hive-times { grid-column:2; grid-row:1 / 4; align-self:center; }
+#hive-strip > .hive-strip-status { grid-column:1 / -1; }
+#hive-strip > .hive-coverage { grid-column:1 / -1; }
+#hive-motion { justify-self:start; }
+.hive button { min-height:44px; border-radius:22px; font-size:.78rem; padding:9px 14px; }
+.hive input { min-height:44px; border-radius:22px; padding:10px 15px; }
+.hive-search { max-width:none; }
+.hive-search label { font-size:.71rem; }
+.hive-record { grid-template-columns:minmax(0,1fr) max-content; gap:5px 14px; padding:14px 0; }
+.hive-select { min-height:44px !important; line-height:1.45; font-size:.88rem !important; }
+.hive-chip { grid-column:1; font-size:.66rem; }
+.hive-pill,.hive-elapsed { font-size:.63rem; }
+.hive-activity { font-size:.76rem; }
+.hive-node[data-selected="true"] > .hive-record { background:var(--bg-card); border-radius:8px; }
+.hive-children { margin-left:10px; padding-left:15px; }
+.hive-fields { grid-template-columns:72px minmax(0,1fr); font-size:.68rem; }
+#hive-manifest { position:sticky; top:145px; }
+.hive-message { border-radius:10px; padding:16px 18px; }
+.hive-message-text { font-size:.88rem; line-height:1.75; }
+.hive-closing { font-size:.78rem; }
+@media (min-width:901px) { #hive-tree { max-height:1000px; overflow:auto; padding-right:12px; scrollbar-color:var(--border-active) var(--bg-surface); } }
+@media (max-width:900px) {
+  .hive-masthead { min-height:460px; padding:58px 7vw; }
+  .hive-masthead::before { inset:0 -30% 0 10%; opacity:.75; }
+  #hive-manifest { position:static; }
+  .hive-section { padding:22px; }
+}
+@media (max-width:600px) {
+  .hive { padding:14px 20px 50px; }
+  .hive-jumps { gap:10px 20px; }
+  .hive-jumps a { font-size:.65rem; }
+  .hive-masthead { margin:0 -20px 22px; padding:54px 28px 48px; min-height:520px; justify-content:flex-end; }
+  .hive-masthead::before { inset:-25% -65% 15% -25%; background-position:center; opacity:.7; }
+  .hive-masthead::after { background:linear-gradient(0deg,var(--bg-base) 1%,transparent 95%); }
+  .hive h1 { font-size:clamp(3.7rem,17vw,5rem); margin-bottom:18px; }
+  .hive-intro { font-size:1rem; }
+  .hive-welcome { font-size:.78rem; }
+  .hive-sections { gap:18px; }
+  .hive-section { padding:20px 16px; border-radius:12px; }
+  #hive-strip { display:block; padding:20px 16px; }
+  #hive-strip > * + * { margin-top:12px; }
+  .hive-times { grid-template-columns:1fr; font-size:.67rem; gap:2px; }
+  .hive-times dd { margin-bottom:8px; }
+  .hive-chip { max-width:100%; }
+  .hive-conversation-controls button { flex:1; }
+}
+@media (prefers-reduced-motion:reduce) { .hive *, .hive *::before, .hive *::after { animation:none !important; transition:none !important; } }
