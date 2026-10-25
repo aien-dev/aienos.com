@@ -3,7 +3,7 @@
 [![License: Apache-2.0 WITH LLVM-exception](https://img.shields.io/badge/License-Apache--2.0%20WITH%20LLVM--exception-blue.svg)](LICENSE)
 [![GitHub Pages](https://github.com/aien-dev/aienos.com/actions/workflows/pages.yml/badge.svg)](https://github.com/aien-dev/aienos.com/actions/workflows/pages.yml)
 
-The source of the AIENOS website. It is a static site built by a Rust program and served by GitHub Pages.
+The source of the AIENOS website. A Rust program builds the pages, GitHub Pages serves their origin, and the existing nginx edge adds Markdown negotiation and the opt-in live Hive feed.
 
 Live: [https://www.aienos.com](https://www.aienos.com)
 
@@ -81,6 +81,46 @@ GitHub Pages serves static files only. It cannot vary a response on `Accept: tex
 - adds `Vary: Accept` and `Link: <canonical HTML>; rel="canonical"` on every `.md` response.
 
 Configuration lives on the hub at `/etc/nginx/sites-available/aienos.com` (edge server) and `/etc/nginx/stream.d/sni-router.conf` (SNI map to `127.0.0.1:4445`). TLS is an acme.sh DNS-01 certificate for `www.aienos.com`, installed at `/etc/nginx/certs/www.aienos.com/`. The backup of the pre-edge SNI router is `sni-router.conf.bak-20261024T0127Z`, and the pre-cutover DNS record is `/root/aienos-edge-rollback-cname.json` on the hub.
+
+## Hive and learning to build with AI
+
+`/now/` links to [Hive](https://www.aienos.com/hive/), an animated orbital view of observed coding sessions. It shows nested agents, current task summaries, reported tool activity, exact runtime/provider/model/role, and a recent **Drake ↔ agents** conversation window. `/learn/` is the practical entry point: a bounded starter brief, ownership and delegation, checking real behavior, and learning from a correction. The homepage and `/start/` link both surfaces.
+
+The page and assets are generated normally; `/hive/live.json` is not a build artifact or a GitHub receipt. The separate, explicitly started `hive-feed` collector observes OMP collaboration hosts and their incremental session records. Recognized live process-only workers remain visible with unknown task/activity when no reliable transcript association exists. Coverage is always disclosed as partial; neither a live process nor a fresh snapshot proves productive or successful work.
+
+```sh
+cargo test --workspace
+cargo build --release --workspace
+target/release/site-builder build dist
+# Local opt-in preview; choose a publication cutoff you have authorized:
+target/release/hive-feed --out dist/hive/live.json \
+  --salt "$HOME/.local/state/aienos-hive/id-salt" \
+  --since 2026-10-25T20:21:45.897Z
+```
+
+The collector samples every second; transport and browsers add latency. The page displays source and receipt timestamps separately, retains the last observation on failure, and expires freshness after 15 seconds. Missing agents become unknown, not completed. A quiet, still-observed long tool remains running. Pause motion and device reduced-motion preferences stop animation, not data updates. Background and offscreen decoration is paused.
+
+### Public data boundary
+
+- Agent and interaction IDs are HMAC-derived using a private persistent salt. Runtime IDs, PIDs, session paths and control links are never emitted.
+- Task titles, short `solutionSpace` assignment summaries and action intents are explicitly selected fields, not raw tool payloads.
+- Drake messages require direct-user attribution on a root session. Agent replies use only public text blocks; their model/provider identity is recorded from that message, not the agent's later model selection.
+- Conversation publication starts at the authorized `--since` timestamp. The most recent 100 accepted messages are retained, up to 4,000 Unicode characters each. This is a live window, not a complete historical transcript.
+- Full source strings are screened before truncation. Detected credential/key material or injected context withholds the entire string. Private paths and addresses are redacted. Thinking blocks, system prompts, tool arguments/results, provider payloads and raw operational errors are not public fields.
+- Filtering is heuristic: arbitrary unlabeled short secrets cannot be guaranteed detectable. Do not put credentials into conversations. Publication cannot be recalled from visitors or scrapers after disclosure.
+
+The JSON v1 envelope contains `schema_version`, `generated_at`, `sequence`, `poll_ms`, `stale_after_ms`, `coverage`, `agents` and `interactions`. Each agent has opaque `id`/`parent_id`, `name`, `runtime`, `provider`, `model`, `role`, `task`, `status`, `activity`, `activity_state`, `started_at`, `updated_at` and `observed_at`. Each interaction has `id`, `agent_id`, `role` (`drake` or `assistant`), `text`, `at` and message-specific `runtime`/`provider`/`model`. Missing identity is `unknown`; missing timestamps are null. Browser feed text is rendered as text nodes, never HTML.
+
+### Operating the live feed
+
+Templates are in `scripts/hive/`. Install the three release binaries under `$HOME/.local/lib/aienos-hive/bin/` on the collector host; the receiver alone also goes to `/usr/local/libexec/hive-receive` on the edge. Keep keys, the HMAC salt, `publication.env` (`HIVE_SINCE=...`) and the pinned SSH `known_hosts` in the private `$HOME/.local/state/aienos-hive/` directory. The two user units are opt-in: `hive-feed.service` collects, `hive-publish.service` uploads. Enable them only after reviewing the cutoff and local filtered snapshot.
+
+Uploads use a dedicated SSH key with `restrict,command="/usr/local/libexec/hive-receive /var/www/aienos-hive"` in the edge's authorized keys. The receiver refuses any original command other than `hive-feed`, bounds each newline-delimited snapshot to 2 MiB, validates the exact schema and hierarchy, serializes only the checked object, and atomically replaces the fixed `live.json`. A partial or invalid upload leaves the preceding snapshot intact. No public listener is opened on the collector host.
+
+Include `scripts/hive/nginx-location.conf` inside the existing `www.aienos.com` TLS server, validate with `nginx -t`, then reload. It exposes only the exact GET/HEAD `/hive/live.json` path with `no-store` and security headers; there is no directory, upload, or agent-control route. The dynamic endpoint is linked from Hive rather than put into the static builder's file-existence registry.
+
+To stop publication, stop both user units and remove the edge's `live.json`; remove the exact nginx include and restricted upload key to retire the transport. Do not stop or restart agent sessions or model services. To inspect operation, use `systemctl --user status hive-feed hive-publish` and request the public endpoint; compare `generated_at` across responses rather than trusting a successful HTTP status alone.
+
 
 ## License
 

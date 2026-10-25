@@ -25,3 +25,5 @@ pub mod cudaplusplus;
 pub mod omega;
 pub mod owned;
 pub mod agents;
+pub mod hive;
+pub mod learn;

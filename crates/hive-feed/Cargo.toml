@@ -1,0 +1,15 @@
+[package]
+name = "hive-feed"
+version = "0.1.0"
+edition = "2021"
+default-run = "hive-feed"
+description = "Whitelisted live coding-agent telemetry for the public Hive"
+license = "Apache-2.0 WITH LLVM-exception"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+regex = "1"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+hmac = "0.12"
+sha2 = "0.10"

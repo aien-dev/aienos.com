@@ -1,0 +1,20 @@
+[Unit]
+Description=Publish filtered Hive snapshots through restricted outbound SSH
+After=network-online.target hive-feed.service
+Wants=network-online.target hive-feed.service
+
+[Service]
+Type=simple
+ExecStart=%h/.local/lib/aienos-hive/bin/hive-publish %h/.local/state/aienos-hive/live.json hub drake %h/.local/state/aienos-hive/publish_key %h/.local/state/aienos-hive/known_hosts
+Restart=on-failure
+RestartSec=3
+UMask=0077
+Nice=10
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+StandardOutput=null
+StandardError=journal
+
+[Install]
+WantedBy=default.target
