@@ -52,6 +52,7 @@ pub enum Kind {
 /// The sections of llms.txt, in order.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Section {
+    Start,
     Machine,
     Turing,
     Evidence,
@@ -77,6 +78,7 @@ pub struct PageInfo {
 /// that is not here, or if a page here was not written.
 pub const PAGES: &[PageInfo] = &[
     PageInfo { path: "/", name: "AIENOS", what: "The front page: the loop, the five real machines and their measured speeds beside the physical ceiling, the evidence cards, the current status of every layer.", section: Section::Machine, kind: Kind::Home, image: "/og.png", published: "2026-09-23", doi: None },
+    PageInfo { path: "/start/", name: "Start here", what: "The shortest route through AIENOS: what it is, what exists today, how to check the evidence, how to reproduce or contribute, and where the author and Interplane fit.", section: Section::Start, kind: Kind::Page, image: "/og.png", published: "2026-10-24", doi: None },
     PageInfo { path: "/machine/", name: "The Machine", what: "One machine across five physical bodies: the closed epistemic loop, the Turing as its accounting layer, and an honest list of what exists.", section: Section::Machine, kind: Kind::Article, image: "/og-machine.png", published: "2026-10-01", doi: None },
     PageInfo { path: "/omega/", name: "What Omega is", what: "Omega is AIEN's language for all computing, GPU to CPU; on the GPU it is the replacement for CUDA. The CUDA stack piece by piece with status, the receipt for the live server running with zero CUDA libraries, what is not true yet, and the bar C1 to C6.", section: Section::Machine, kind: Kind::Page, image: "/og-machine.png", published: "2026-10-21", doi: None },
     PageInfo { path: "/cudaplusplus/", name: "CUDA++", what: "CUDA++ is the GPU half of Omega: everything CUDA gives you plus the motor, for the NVIDIA GPUs people already own, with no NVIDIA user-space software (MIT, aien-dev/CUDAplusplus). What it is for, the path from program to chip with whose code runs at each step, how we did it, CUDA's pain points and the swap down to the kernel driver.", section: Section::Machine, kind: Kind::Page, image: "/og-machine.png", published: "2026-10-22", doi: None },
@@ -825,6 +827,7 @@ pub fn now_feed(now: &Now, ctx: &BuildCtx) -> String {
 
 fn section_title(s: Section) -> &'static str {
     match s {
+        Section::Start => "Start here",
         Section::Machine => "The machine",
         Section::Turing => "The Turing and the research",
         Section::Evidence => "Evidence and status",
@@ -846,7 +849,7 @@ pub fn llms_txt(status_lines: &[String], research_sentence: &str) -> String {
         s.push_str(&format!("- {l}\n"));
     }
     s.push_str(&format!("- [Research status]({HOST}/research/status/): {research_sentence}\n\n"));
-    for sec in [Section::Machine, Section::Turing, Section::Evidence, Section::Philosophy, Section::Blog] {
+    for sec in [Section::Start, Section::Machine, Section::Turing, Section::Evidence, Section::Philosophy, Section::Blog] {
         s.push_str(&format!("## {}\n\n", section_title(sec)));
         for p in PAGES.iter().filter(|p| p.section == sec) {
             s.push_str(&format!("- [{}]({HOST}{}): {}\n", p.name, p.path, p.what));
@@ -870,10 +873,10 @@ pub fn llms_txt(status_lines: &[String], research_sentence: &str) -> String {
 
 /// /sitemap.md: the readable twin of sitemap.xml, H2 sections of described
 /// links, generated from the same page registry as llms.txt and the XML map.
-pub fn sitemap_md() -> String {
+pub fn sitemap_md(pages: &[Emitted]) -> String {
     let mut s = String::from("# Sitemap\n\n");
     s.push_str(&format!("> Every page on aienos.com, grouped the way the site is. The crawler index is [sitemap.xml]({HOST}/sitemap.xml); the file list is [data/index.json]({HOST}/data/index.json).\n\n"));
-    for sec in [Section::Machine, Section::Turing, Section::Evidence, Section::Philosophy, Section::Blog, Section::Optional] {
+    for sec in [Section::Start, Section::Machine, Section::Turing, Section::Evidence, Section::Philosophy, Section::Blog, Section::Optional] {
         s.push_str(&format!("## {}\n\n", section_title(sec)));
         for p in PAGES.iter().filter(|p| p.section == sec) {
             s.push_str(&format!("- [{}]({HOST}{}): {}\n", p.name, p.path, p.what));
@@ -881,8 +884,10 @@ pub fn sitemap_md() -> String {
         s.push('\n');
     }
     s.push_str("## Simplified Chinese\n\n");
-    for p in PAGES {
-        s.push_str(&format!("- [{}]({HOST}/zh-CN{}): the same page in Simplified Chinese.\n", p.name, p.path));
+    for p in pages.iter().filter(|p| p.is_zh()) {
+        if let Some(info) = info_for(&p.en_path()) {
+            s.push_str(&format!("- [{}]({HOST}{}): the same page in Simplified Chinese.\n", info.name, p.path));
+        }
     }
     s.push_str("\n## For agents\n\n");
     s.push_str(&format!("- [llms.txt]({HOST}/llms.txt): the site in one file for AI readers.\n"));
@@ -1046,7 +1051,7 @@ pub fn write_machine_surface(dist: &Path, pages: &[Emitted], now: &Now, ctx: &Bu
     fs::write(dist.join("now/feed.xml"), now_feed(now, ctx)).expect("write now/feed.xml");
     fs::write(dist.join("llms.txt"), llms).expect("write llms.txt");
     fs::write(dist.join("llms-full.txt"), llms_full(pages)).expect("write llms-full.txt");
-    fs::write(dist.join("sitemap.md"), sitemap_md()).expect("write sitemap.md");
+    fs::write(dist.join("sitemap.md"), sitemap_md(pages)).expect("write sitemap.md");
     let agents = fs::read_to_string("AGENTS.md").expect("AGENTS.md must exist at the repository root: the build publishes it at /AGENTS.md");
     fs::write(dist.join("AGENTS.md"), agents).expect("write AGENTS.md");
     fs::create_dir_all(dist.join("data")).expect("data dir");
@@ -1209,7 +1214,7 @@ mod tests {
     fn discovery_files_link_every_list_item_in_an_h2_section() {
         for (name, doc) in [
             ("llms.txt", crate::components::status::llms_txt()),
-            ("sitemap.md", sitemap_md()),
+            ("sitemap.md", sitemap_md(&[])),
         ] {
             let mut in_h2 = false;
             for line in doc.lines() {

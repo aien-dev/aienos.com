@@ -59,13 +59,15 @@ pub const FOOTER_GROUPS: [(&str, &[FooterLink]); 6] = [
 ];
 
 /// Secondary links, after the six sections.
-const FOOTER_MORE: [FooterLink; 7] = [
+const FOOTER_MORE: [FooterLink; 9] = [
+    ("Start here", "/start/", false),
     ("Progress", "/progress/", false),
     ("Blog", "/blog", false),
     ("Follow", "/#follow", false),
     ("Glossary", "/glossary/", false),
     ("Licensing", "/licensing/", false),
     ("GitHub", "https://github.com/aien-dev", true),
+    ("Interplane", "https://interplane.io/", true),
     ("Drake Stapleton", "https://www.drakestapleton.com", true),
 ];
 

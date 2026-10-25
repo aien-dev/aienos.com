@@ -15,6 +15,7 @@ pub mod progress;
 pub mod research;
 pub mod research_status;
 pub mod status;
+pub mod start;
 pub mod story;
 pub mod terminal;
 pub mod live;

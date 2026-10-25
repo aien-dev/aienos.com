@@ -260,7 +260,8 @@ pub fn render_home_loop() -> Markup {
                 }
 
                 div class="home-actions" {
-                    a class="home-cta home-cta-primary" href="#evidence" { "See the evidence" }
+                    a class="home-cta home-cta-primary" href="/start/" { "Start here" }
+                    a class="home-cta" href="#evidence" { "See the evidence" }
                     a class="home-cta" href="#architecture" { "Explore the architecture" }
                     a class="home-cta home-cta-ghost" href="https://github.com/aien-dev" target="_blank" rel="noopener noreferrer" { "GitHub" }
                 }
