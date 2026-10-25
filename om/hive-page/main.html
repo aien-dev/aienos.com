@@ -13,7 +13,8 @@
 <a class="hive-learn" href="/learn/">Learn to build with AI</a>
 </header>
 <div class="hive-sections">
-<section id="hive-strip" class="hive-section hive-section-full" aria-labelledby="hive-strip-title" data-requires="always"><p class="hive-eyebrow">01 / Signal</p><h2 id="hive-strip-title">Source and freshness</h2><p class="hive-note">This page reads one public JSON snapshot of the fleet. It never assumes it can see every agent.</p>
+<section id="hive-strip" class="hive-section hive-section-full" aria-labelledby="hive-strip-title" data-requires="always"><div class="hive-head-row"><p class="hive-eyebrow">01 / Signal</p><h2 id="hive-strip-title">Source and freshness</h2><p class="hive-note">This page reads one public JSON snapshot of the fleet. It never assumes it can see every agent.</p>
+</div><div class="hive-strip-facts">
 <dl class="hive-times">
 <dt>Source snapshot</dt><dd><time id="hive-source-time">Not received</time></dd>
 <dt>Browser received</dt><dd><time id="hive-fetch-time">Not received</time></dd>
@@ -22,8 +23,11 @@
 <p id="hive-connection" class="hive-connection" role="status" aria-live="polite">Connecting to the observatory</p>
 <p id="hive-freshness" class="hive-small">A browser clock is not evidence of a live source.</p>
 </div>
+</div>
+<div class="hive-strip-foot">
 <p id="hive-counts" class="hive-counts">Awaiting the first source observation.</p>
 <p id="hive-coverage" class="hive-coverage">Coverage is not yet known. This view can be partial and it says so.</p>
+</div>
 <button id="hive-motion" type="button" aria-pressed="false">Pause motion</button>
 </section>
 <section id="hive-tree-section" class="hive-section hive-section-main hive-panel" aria-labelledby="hive-tree-section-title" data-requires="always"><div class="hive-panel-head"><p class="hive-eyebrow">02 / Missions</p><h2 id="hive-tree-section-title">Current missions</h2><p class="hive-note">One disclosure per branch. A status describes the agent's reported state, not a measure of progress.</p>

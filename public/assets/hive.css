@@ -244,13 +244,29 @@
 .hive-section .hive-eyebrow { font-size:.61rem; letter-spacing:.18em; }
 .hive h2 { font-size:1.5rem; font-weight:450; letter-spacing:-.025em; }
 .hive-note { font-size:.78rem; }
-#hive-strip { display:grid; grid-template-columns:minmax(220px,1fr) minmax(240px,1.2fr); gap:12px 32px; padding:22px 26px; }
+/* The Signal band is three short rows, not a column of stacked headings: the
+   eyebrow, heading and note share one head row (hive.om opens that row in field
+   1 and closes it in field 7), the two timestamps sit beside the connection
+   state, counts sit beside coverage, and the motion control takes the top
+   right. The band stays near 180px, so the Missions head is on screen at 1280
+   by 900 without a scroll. */
+#hive-strip { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px 24px; padding:14px 22px 16px; }
 #hive-strip > * { margin-top:0; }
-#hive-strip > .hive-eyebrow,#hive-strip > h2,#hive-strip > .hive-note { grid-column:1; }
-#hive-strip > .hive-times { grid-column:2; grid-row:1 / 4; align-self:center; }
-#hive-strip > .hive-strip-status { grid-column:1 / -1; }
-#hive-strip > .hive-coverage { grid-column:1 / -1; }
-#hive-motion { justify-self:start; }
+.hive-head-row { grid-column:1; grid-row:1; display:flex; flex-wrap:wrap; align-items:baseline; column-gap:16px; row-gap:2px; }
+.hive-head-row .hive-eyebrow { margin:0; }
+.hive-head-row h2 { margin:0; }
+.hive-head-row .hive-note { flex:1 1 100%; margin:2px 0 0; }
+.hive-strip-facts { grid-column:1 / -1; grid-row:2; display:grid; grid-template-columns:minmax(0,max-content) minmax(0,1fr); gap:2px 28px; align-items:start; }
+.hive-strip-facts .hive-times { gap:1px 14px; }
+.hive-strip-facts .hive-strip-status { gap:1px; }
+.hive-strip-foot { grid-column:1 / -1; grid-row:3; display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 22px; }
+.hive-strip-foot .hive-counts, .hive-strip-foot .hive-coverage { min-width:0; }
+.hive-strip-foot .hive-coverage { flex:1 1 auto; }
+#hive-strip > #hive-motion { grid-column:2; grid-row:1; align-self:center; justify-self:end; min-height:32px; padding:4px 12px; font-size:.72rem; }
+@media (min-width:901px) {
+  /* One line of context above the facts; the text is short enough to fit. */
+  .hive-head-row .hive-note { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:1; overflow:hidden; }
+}
 .hive button { min-height:44px; border-radius:22px; font-size:.78rem; padding:9px 14px; }
 .hive input { min-height:44px; border-radius:22px; padding:10px 15px; }
 .hive-search { max-width:none; }
@@ -263,6 +279,23 @@
 .hive-message { border-radius:10px; padding:16px 18px; }
 .hive-message-text { font-size:.88rem; line-height:1.75; }
 .hive-closing { font-size:.78rem; }
+/* Fold budget. The Signal band is 172px and the presentation masthead was 538,
+   which put the Missions head at 977 on a 900px viewport. The band below trims
+   the hero (smaller display size, tighter padding and rhythm) and the gaps
+   around the strip, without touching the scene or any section head, so the
+   Missions head lands above the fold at 1280 by 900. */
+@media (min-width:901px) {
+  .hive { padding-top:14px; }
+  .hive-masthead { min-height:380px; margin:0 -4vw 22px; padding:40px 8vw 32px; }
+  .hive h1 { font-size:clamp(3rem,5.6vw,5.2rem); margin:0 0 12px; }
+  .hive-masthead .hive-eyebrow { margin-bottom:14px; }
+  .hive-welcome { margin-top:10px; }
+  .hive-learn { margin-top:14px; }
+  .hive-jumps { padding:8px 0; }
+  .hive-sections { gap:18px; }
+  #hive-strip { padding:10px 22px 12px; gap:6px 24px; }
+}
+
 @media (max-width:900px) {
   .hive-masthead { min-height:460px; padding:58px 7vw; }
   .hive-masthead::before { inset:0 -30% 0 10%; opacity:.75; }
@@ -283,7 +316,7 @@
   .hive-welcome { font-size:.78rem; }
   .hive-sections { gap:18px; }
   .hive-section { padding:20px 16px; border-radius:12px; }
-  #hive-strip { display:block; padding:20px 16px; }
+  #hive-strip { display:block; padding:16px; }
   #hive-strip > * + * { margin-top:12px; }
   .hive-times { grid-template-columns:1fr; font-size:.67rem; gap:2px; }
   .hive-times dd { margin-bottom:8px; }
