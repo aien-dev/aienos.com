@@ -2,11 +2,15 @@
    places it. Two layers live here and they are read in that order: layout and
    state first (the bounded panels, the branch disclosure, the row grid, the
    status pill and model chip, tabular numbers, the clamped activity line, the
-   focus rings), then the presentation layer at the end of the file (the galaxy
-   behind the masthead, its scrim, the display type scale and the softer radii).
+   focus rings), then the presentation layer at the end of the file (the
+   masthead scene, its scrim, the display type scale and the softer radii).
    Palette tokens from assets/style.css only: no local hex, no bespoke near
    black. Motion is compositor only, one transform transition, removed for
-   prefers-reduced-motion and whenever the page's own motion control is off. */
+   prefers-reduced-motion and whenever the page's own motion control is off.
+   The masthead scene is Allen's two black holes: its markup, its samples and
+   every keyframe of it are emitted by the Omega program into
+   om/hive-page/main.html, and this file only places the stage and paints the
+   discs. It animates nothing of its own. */
 .hive {
   --hive-h1: clamp(2.4rem, 5.4vw, 4rem);
   --hive-h2: clamp(1.2rem, 1.4vw, 1.45rem);
@@ -214,16 +218,93 @@
   padding:80px 8vw 72px; display:flex; flex-direction:column; justify-content:center;
   background:var(--bg-base);
 }
-/* The scene is a real composited layer, not a negative-z child: a stable
+/* The sky is a real composited layer, not a negative-z child: a stable
    layer is rasterised once and moved by the compositor. Negative z-index
    under isolation made Chromium rebuild the layer on scroll, which showed up
    as the background flickering. It stays cover sized: the band is wide and
    short, so any height-relative size leaves a bare gap on the right, and at
-   1365x768 cover downscales (0.785x) rather than upscaling. */
+   1365x768 cover downscales (0.785x) rather than upscaling. It is now the
+   residual sky behind the black holes rather than the whole scene, so it is
+   held back to a little over half its light: the holes are the subject. */
 .hive-masthead::before {
   content:""; position:absolute; inset:0 -10% 0 18%; z-index:0; pointer-events:none;
   background:url('/assets/hive-universe.svg') 55% 48% / cover no-repeat;
-  transform:translateZ(0); will-change:transform; contain:paint;
+  transform:translateZ(0); will-change:transform; contain:paint; opacity:.52;
+}
+
+/* The scene: Allen's two black holes (native/kernel/ui/night.c and chirp.c,
+   ported by om/hive-page/hive.om). The markup, the samples and every keyframe
+   come from that program; this block only places the stage and paints the
+   discs, and it animates nothing. The emitted <style> in the artifact
+   attaches the animations, inside a prefers-reduced-motion:no-preference
+   query and behind the page's own data-motion="on", so with motion off the
+   base values below are what the reader sees: one frame of the sequence, the
+   two holes at a visible separation (t = 7000 ms of the 19000 ms cycle), no
+   merged hole and no ripple.
+   Units: 1em is one unit of Allen's picture (a0 is 270 of them), and the
+   scene's font-size is that unit, so the whole scene scales on one number. */
+.hive-masthead > .hive-scene {
+  position:absolute; inset:0; z-index:0; overflow:hidden; pointer-events:none;
+  font-size:var(--hive-u,1px); contain:paint;
+}
+.hive-stage { position:absolute; left:74%; top:44%; width:0; height:0; }
+.hive-hole, .hive-merge {
+  position:absolute; left:0; top:0; width:0; height:0;
+  transform:translateZ(0); will-change:transform;
+}
+/* The bend: the region whose light a hole bends (night.c's Einstein radius,
+   60 units). A page cannot warp starlight with a transform, so the timing of
+   this halo is Allen's, the 2600 to 5200 ms ramp, and the shape is the
+   page's: it is the one place the scene simplifies. */
+.hive-bend, .hive-mglow {
+  position:absolute; left:0; top:0; border-radius:50%;
+  background:radial-gradient(circle closest-side,
+    color-mix(in srgb, var(--accent-blue) 20%, transparent) 0%,
+    color-mix(in srgb, var(--accent-blue) 8%, transparent) 46%,
+    transparent 74%);
+}
+.hive-bend { width:180em; height:180em; margin:-90em 0 0 -90em; }
+.hive-mglow { width:254em; height:254em; margin:-127em 0 0 -127em; }
+/* The shadow: night.c draws an opaque disc of radius rs (20 units), a thin
+   ring at 1.04 rs, and a glow that dies out by 1.5 rs. The box is 60em
+   across, 3 rs, so each stop below is one of those radii as a share of the
+   box, and scaling the box scales all three together. */
+.hive-plate, .hive-mplate {
+  position:absolute; left:0; top:0; width:60em; height:60em; margin:-30em 0 0 -30em;
+  border-radius:50%;
+  background:radial-gradient(circle closest-side,
+    var(--bg-base) 0 65.8%,
+    color-mix(in srgb, var(--accent-amber) 62%, var(--text-primary)) 68.9% 69.7%,
+    color-mix(in srgb, var(--accent-amber) 30%, transparent) 70.6%,
+    transparent 100%);
+}
+/* The ring that wobbles after the merger, inside the merged shadow's own
+   scale so it always sits just outside the shadow it belongs to. */
+.hive-ring {
+  position:absolute; inset:0; border-radius:50%;
+  background:radial-gradient(circle closest-side, transparent 0 66.4%,
+    color-mix(in srgb, var(--text-primary) 56%, transparent) 68.6% 70%,
+    transparent 72%);
+}
+/* The ripple: one circle from the merge point, out to 1000 units, drawn in
+   night.c's shape (a band a tenth of the radius wide) and its envelope. */
+.hive-ripple {
+  position:absolute; left:0; top:0; width:2em; height:2em; margin:-1em 0 0 -1em;
+  border-radius:50%;
+  background:radial-gradient(circle closest-side, transparent 0 64%,
+    color-mix(in srgb, var(--accent-blue) 34%, transparent) 82% 94%,
+    transparent 100%);
+}
+/* The two parts that exist only after the merger. With motion off the frame is
+   the pair, so both stay hidden; the emitted keyframes are what turn them on,
+   and they win over these declarations while they run. */
+.hive-merge, .hive-ripple { opacity:0; }
+@media (max-width:600px) {
+  /* The prose is bottom aligned on a phone, so the pair rides in the upper
+     fifth: at 0.86 of the unit the discs bottom out at about 457 CSS px, above
+     the first line at 464, and the scrim over the prose is untouched. */
+  .hive-masthead > .hive-scene { --hive-u:.86px; }
+  .hive-stage { left:50%; top:15%; }
 }
 .hive-masthead > * { position:relative; z-index:2; }
 /* Scrim. The prose always sits over --bg-base at a token-derived alpha, never

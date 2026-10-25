@@ -35,6 +35,67 @@ note The hydrator assigns the id it points at, hides it on a leaf row, and keeps
 note per branch, so which branches start open is a hydrator decision made from the reported depth.
 note
 note Names: the compiler allows 8 bytes per data name and at most 6 parameters per function.
+note
+note The scene: Allen's two black holes. The source is native/kernel/ui/night.c and chirp.c in the
+note aienos-allen-portable-build tree, and docs/ALLEN_SKY_SCIENCE.md says for each part of it what is
+note measured, what is simplified and what is only an illustration. This unit computes the sequence
+note here, at generation time, in integer and f64 arithmetic, and writes both the scene markup and
+note its keyframes into main.html: the page serves samples of the law, not a hand written animation,
+note and public/assets/hive.css only places the stage and paints the discs.
+note
+note Timeline in milliseconds, from night.h: 0 the eyes adjust to the dark, 6800 they have (fade
+note end), 2600 the two holes appear, 6000 the inspiral starts, 12000 they merge, 12000 to 15600 the
+note ripple runs out and 15200 the last hole is gone. The page loops on a 19000 ms cycle, so the sky
+note holds for the 3400 ms between the end of the ripple and the next appearance.
+note
+note Wide orbit, orbit_angle and ck_night_at: separation a0 = 270 units, one turn per 5200 ms, angle
+note = (t - 2600) / 5200 turns. Each hole sits at (hx, hy) from the centre with
+note hx = (sep / 2) cos(2 pi angle) and hy = (sep / 4) sin(2 pi angle): the orbit is seen edge on, so
+note its height is half its width, exactly as night.c halves the sine again. Nothing is drawn before
+note 2600, so the first stop holds the 2600 position.
+note
+note Inspiral, 6000 to 12000: with L = (12000 - t) / 6000 the separation is a0 L^(1/4) and the angle
+note is spiral_from + turns (1 - L^(5/8)), with spiral_from = (6000 - 2600) 65536 / 5200 = 42850 and
+note turns = 65536 * 8 * 6000 / (5 * 5200) = 120989, both over 65536 of a turn: night.c's own fixed
+note point, so the spiral leaves the wide orbit at the speed and the phase the wide orbit had.
+note L^(1/4) is (L^(1/8))^2 and L^(5/8) is (L^(1/8))^5, and L^(1/8) is three square roots, which is
+note night.c's root8. The law is the leading order inspiral of a real pair (separation as t^(1/4),
+note angle as t^(5/8), t the time left); ALLEN_SKY_SCIENCE.md section 4 says the law is real and the
+note clock is not, because this picture spends 6 s where physics spends 42 s and draws 1.85 turns
+note where physics draws about 150.
+note
+note The shadows: a hole's shadow is 20 units of radius, grown in from 4000 to 6000 by
+note smooth(prog(t, 4000, 6000)), which is night.c's rs_full with the +1400 and +3400 marks of the
+note appearance. The region whose light the hole bends (the Einstein radius, 60 units) grows in from
+note 2600 to 5200 by smooth(prog(t, 2600, 5200)). The page cannot bend starlight pixel by pixel, so
+note the bend is drawn as a faint halo whose opacity is that same 0 to 256 ramp: the shape of the
+note halo is the page's, the timing is Allen's, and this is the one place the scene simplifies.
+note
+note Merge, 12000 to 15200: one hole whose shadow runs from 20 * 323 / 256 (= 25.234375) to 20 * 2
+note over 180 ms, with a glow of 60 * 362 / 256 (= 84.84375), the 1.414 of the science note's square
+note root of two. It rings: the photon ring's radius is 1 + 0.07 sin(2 pi tm / 95) exp(-tm / 260),
+note tm the milliseconds since the merger. Then the hole fades from 12900 to 15200 by
+note 1 - smooth(prog(t, 12900, 15200)); night.c also shrinks the shadow by the square of that fade,
+note and the page folds that into the fade. ALLEN_SKY_SCIENCE.md section 4 calls the ringdown an
+note illustration on a wrong timescale: the real mode is 250 Hz and is gone in about two cycles,
+note and the picture slows the period 24 times and the decay 65 times.
+note
+note The ripple, 12000 to 15600: one circle from the merge point out to 1000 units, which is far
+note enough to cross a 1280 wide band from the stage's place in it. Its opacity is the envelope
+note smooth(prog(tr, 0, 220)) (1 - smooth(prog(tr, 2160, 3600))) scaled to 0.35, which is the shape
+note and the size of night.c's ripple_light (it peaks at 46 of 256). ALLEN_SKY_SCIENCE.md section 4
+note calls the wave across the sky an illustration: the real strain is 1e-21 and it is not light.
+note The page draws the ripple as a circle; night.c also stretches it along the line the pair last
+note lay on, which a transform only scene cannot do.
+note
+note Every animated property below is transform or opacity, so the compositor runs the whole
+note sequence without layout. Each keyframe stop carries its sample time as a percentage of the
+note 19000 ms cycle, and the ms of the timeline are also in the data attributes and in the comment
+note the emitted style block starts with, so scripts/test-hive-cosmic.py can recompute the same law
+note in Python and compare every stop with it.
+note The emitted style block also carries the wiring, inside a prefers-reduced-motion media query and
+note behind the page's own data-motion="on", so with motion off the elements keep their base state:
+note one representative frame, the two holes at a visible separation, no merged hole, no ripple.
 
 text meta "<section id=\"hive-strip\" class=\"hive-section hive-section-full\" aria-labelledby=\"hive-strip-title\" data-requires=\"always\"><div class=\"hive-head-row\"><p class=\"hive-eyebrow\">|01 / Signal|</p><h2 id=\"hive-strip-title\">|Source and freshness|</h2><p class=\"hive-note\">|This page reads one public JSON snapshot of the fleet. It never assumes it can see every agent.|</div>|</section>|<section id=\"hive-tree-section\" class=\"hive-section hive-section-main hive-panel\" aria-labelledby=\"hive-tree-section-title\" data-requires=\"always\"><div class=\"hive-panel-head\"><p class=\"hive-eyebrow\">|02 / Missions|</p><h2 id=\"hive-tree-section-title\">|Current missions|</h2><p class=\"hive-note\">|One disclosure per branch. A status describes the agent's reported state, not a measure of progress.|</div><div class=\"hive-panel-body\">|</div></section>|<section id=\"hive-manifest\" class=\"hive-section hive-section-narrow hive-panel\" aria-labelledby=\"hive-manifest-title\" data-requires=\"always\"><div class=\"hive-panel-head\"><p class=\"hive-eyebrow\">|03 / Manifest|</p><h2 id=\"hive-manifest-title\">|Selected mission|</h2><p class=\"hive-note\">|Runtime observations, not GitHub receipts or proof that a task succeeded.|<p id=\"hive-manifest-name\" class=\"hive-manifest-name\">Nothing selected</p></div><div class=\"hive-panel-body\">|</div></section>|<section id=\"hive-chat-section\" class=\"hive-section hive-section-full\" aria-labelledby=\"hive-chat-section-title\" data-requires=\"interactions\"><p class=\"hive-eyebrow\">|04 / Conversations|</p><h2 id=\"hive-chat-section-title\">|Drake and the agents|</h2><p class=\"hive-note\">|Direct messages from Drake and agents public replies, in time order, inside one publication window. Hidden reasoning, tool payloads and automatic context are not conversations.||</section>|"
 
@@ -42,7 +103,9 @@ text noteend "</p>\n"
 
 text lineend "\n"
 
-text page1 "<div class=\"hive\" id=\"hive\" data-fresh=\"false\" data-motion=\"off\">\n<nav class=\"hive-jumps\" aria-label=\"Hive sections\">\n<a href=\"#hive-strip\">Signal</a>\n<a href=\"#hive-tree-section\">Missions</a>\n<a href=\"#hive-manifest\">Manifest</a>\n<a href=\"#hive-chat-section\" data-requires=\"interactions\">Conversations</a>\n</nav>\n<header class=\"hive-masthead\">\n<p class=\"hive-eyebrow\">An open observatory, written in Omega</p>\n<h1>The hive<span class=\"hive-period\">.</span></h1>\n<p class=\"hive-intro\">Drake. A constellation of agents. Real work, unfolding in the open.</p>\n<p class=\"hive-welcome\">Watch Drake and the agents build, question, get things wrong and try again. You do not need to know how any of this works to begin.</p>\n<a class=\"hive-learn\" href=\"/learn/\">Learn to build with AI</a>\n</header>\n<aside class=\"hive-omega\" aria-label=\"How this page is made\">\n<p class=\"hive-omega-kicker\">Built in Omega</p>\n<p class=\"hive-omega-line\">This page is written in Omega. Every heading, panel, row and template you see is generated by an Omega program, not by hand-written HTML.</p>\n<p class=\"hive-omega-note\">Omega is our own language and it is still being finished. Please bear with the glitches while we iron it out.</p>\n<a class=\"hive-omega-source\" href=\"https://github.com/aien-dev/aienos.com/blob/main/om/hive-page/hive.om\" rel=\"noopener noreferrer\">Read the Omega source</a>\n</aside>\n<div class=\"hive-sections\">\n"
+text page1a "<div class=\"hive\" id=\"hive\" data-fresh=\"false\" data-motion=\"off\">\n<nav class=\"hive-jumps\" aria-label=\"Hive sections\">\n<a href=\"#hive-strip\">Signal</a>\n<a href=\"#hive-tree-section\">Missions</a>\n<a href=\"#hive-manifest\">Manifest</a>\n<a href=\"#hive-chat-section\" data-requires=\"interactions\">Conversations</a>\n</nav>\n<header class=\"hive-masthead\">\n"
+
+text page1b "<p class=\"hive-eyebrow\">An open observatory, written in Omega</p>\n<h1>The hive<span class=\"hive-period\">.</span></h1>\n<p class=\"hive-intro\">Drake. A constellation of agents. Real work, unfolding in the open.</p>\n<p class=\"hive-welcome\">Watch Drake and the agents build, question, get things wrong and try again. You do not need to know how any of this works to begin.</p>\n<a class=\"hive-learn\" href=\"/learn/\">Learn to build with AI</a>\n</header>\n<aside class=\"hive-omega\" aria-label=\"How this page is made\">\n<p class=\"hive-omega-kicker\">Built in Omega</p>\n<p class=\"hive-omega-line\">This page is written in Omega. Every heading, panel, row and template you see is generated by an Omega program, not by hand-written HTML.</p>\n<p class=\"hive-omega-note\">Omega is our own language and it is still being finished. Please bear with the glitches while we iron it out.</p>\n<a class=\"hive-omega-source\" href=\"https://github.com/aien-dev/aienos.com/blob/main/om/hive-page/hive.om\" rel=\"noopener noreferrer\">Read the Omega source</a>\n</aside>\n<div class=\"hive-sections\">\n"
 
 text sig1 "<div class=\"hive-strip-facts\">\n<dl class=\"hive-times\">\n<dt>Source snapshot</dt><dd><time id=\"hive-source-time\">Not received</time></dd>\n<dt>Browser received</dt><dd><time id=\"hive-fetch-time\">Not received</time></dd>\n</dl>\n<div class=\"hive-strip-status\">\n<p id=\"hive-connection\" class=\"hive-connection\" role=\"status\" aria-live=\"polite\">Connecting to the observatory</p>\n<p id=\"hive-freshness\" class=\"hive-small\">A browser clock is not evidence of a live source.</p>\n</div>\n</div>\n"
 
@@ -76,6 +139,449 @@ text tplfam "<template id=\"hive-tpl-family\"><a class=\"hive-family-link\" href
 
 text pageend "</div>\n"
 
+text tkhd "<style>/* Allen's two black holes. Every stop below is a sample of the inspiral law in native/kernel/ui/night.c, computed here by om/hive-page/hive.om. Timeline ms: 2600 appear, 4000 shadow starts, 6000 inspiral, 12000 merge, 12900 fade starts, 15200 gone, 15600 ripple end, 19000 cycle. Animated properties: transform and opacity only. The orbit and the chirp law are Allen's and real; the ripple across the sky and the ringing of the last hole are illustration, not evidence. */"
+
+text tkpa "@keyframes hive-posa{/*0ms 2600ms 6000ms 12000ms 15200ms 19000ms*/"
+text tkpb "@keyframes hive-posb{/*0ms 2600ms 6000ms 12000ms 15200ms 19000ms*/"
+text tkbnd "@keyframes hive-bend{/*2600ms 4000ms 5200ms 12000ms*/"
+text tksiz "@keyframes hive-size{/*4000ms 6000ms 12000ms*/"
+text tkmsz "@keyframes hive-msiz{/*12000ms 12180ms 15200ms*/"
+text tkmrg "@keyframes hive-mring{/*95ms period, 260ms decay*/"
+text tkmkp "@keyframes hive-mkeep{/*12000ms 12900ms 15200ms*/"
+text tkrpp "@keyframes hive-ripp{/*12000ms 12220ms 14160ms 15600ms*/"
+text tbrc "}"
+
+text tkmed "@media (prefers-reduced-motion:no-preference){"
+text tkwir ".hive[data-motion=\"on\"] .hive-hole-a{animation:hive-posa var(--hive-cycle) linear infinite}.hive[data-motion=\"on\"] .hive-hole-b{animation:hive-posb var(--hive-cycle) linear infinite}.hive[data-motion=\"on\"] .hive-bend{animation:hive-bend var(--hive-cycle) linear infinite}.hive[data-motion=\"on\"] .hive-plate{animation:hive-size var(--hive-cycle) linear infinite}.hive[data-motion=\"on\"] .hive-merge{animation:hive-mkeep var(--hive-cycle) linear infinite}.hive[data-motion=\"on\"] .hive-mplate{animation:hive-msiz var(--hive-cycle) linear infinite}.hive[data-motion=\"on\"] .hive-ring{animation:hive-mring var(--hive-cycle) linear infinite}.hive[data-motion=\"on\"] .hive-ripple{animation:hive-ripp var(--hive-cycle) linear infinite}"
+text tkend "}</style>"
+
+text tminus "-"
+text tdot "."
+text tme "em,"
+text tme2 "em,0)}"
+text tme3 "em,0)\""
+text ttr "%{transform:translate3d("
+text tsty "style=\"transform:translate3d("
+text tsp "%{transform:scale("
+text tso "%{opacity:"
+text tcs ");opacity:"
+text tcl ")}"
+text tcl2 "}"
+
+text scna "<div class=\"hive-scene\" aria-hidden=\"true\" data-scene=\"allen\" data-cycle=\"19000\" data-appear=\"2600\" data-spiral=\"6000\" data-merge=\"12000\" data-gone=\"15200\" data-ripple=\"15600\" style=\"--hive-cycle:19000ms\"><div class=\"hive-stage\"><span class=\"hive-ripple\"></span><span class=\"hive-hole hive-hole-a\" "
+text scnb "><span class=\"hive-bend\"></span><span class=\"hive-plate\"></span></span><span class=\"hive-hole hive-hole-b\" "
+text scnc "><span class=\"hive-bend\"></span><span class=\"hive-plate\"></span></span><span class=\"hive-merge\"><span class=\"hive-mglow\"></span><span class=\"hive-mplate\"><span class=\"hive-ring\"></span></span></span></div></div>"
+
+global digs uchar 24
+global gx f64 1
+global gy f64 1
+
+
+fn dig v ulong to void
+c = uchar v
+put digs 0 uchar add 48 c
+q = write 1 digs 0 1
+end
+
+fn unum v ulong to void
+p = ulong 10000
+k = false
+while gt p 0 bound 20
+  d = div v p
+  if or k ne d 0
+    dig d
+    k = true
+    v = rem v p
+  end
+  p = div p 10
+end
+if not k
+  dig 0
+end
+end
+
+fn num v f64 to void
+c = ulong mul add (fabs v) 0.005 100.0
+if and lt v 0.0 gt c 0
+  q = write 1 tminus 0 1
+end
+unum div c 100
+q = write 1 tdot 0 1
+f = rem c 100
+dig div f 10
+dig rem f 10
+end
+
+fn pct t ulong to void
+n = div mul t 1000000 19000
+unum div n 10000
+q = write 1 tdot 0 1
+m = rem n 10000
+dig div m 1000
+dig rem div m 100 10
+dig rem div m 10 10
+dig rem m 10
+end
+
+fn sinp t f64 to f64
+u = f64 -0.00000002505210838544172
+u = add 0.0000027557319223985893 (mul t mul t u)
+u = add -0.0001984126984126984 (mul t mul t u)
+u = add 0.008333333333333333 (mul t mul t u)
+u = add -0.16666666666666666 (mul t mul t u)
+u = add 1.0 mul t mul t u
+ret mul t u
+end
+
+fn cosp t f64 to f64
+u = f64 0.00000000208767569878681
+u = add -0.00000027557319223985893 (mul t mul t u)
+u = add 0.0000248015873015873 (mul t mul t u)
+u = add -0.001388888888888889 (mul t mul t u)
+u = add 0.041666666666666664 (mul t mul t u)
+u = add -0.5 mul t mul t u
+ret add 1.0 mul t mul t u
+end
+
+fn quad a f64 to f64
+while ge a 1.0 bound 100
+  a = sub a 1.0
+end
+while lt a 0.0 bound 100
+  a = add a 1.0
+end
+k = ulong mul a 4.0
+f = mul sub mul a 4.0 (f64 k) 1.5707963267948966
+if eq k 0
+  ret sinp f
+end
+if eq k 1
+  ret cosp f
+end
+if eq k 2
+  ret neg sinp f
+end
+ret neg cosp f
+end
+
+fn sepr t f64 to f64
+if lt t 6000.0
+  ret 270.0
+end
+l = div sub 12000.0 t 6000.0
+if lt l 0.0
+  l = 0.0
+end
+r = fsqrt fsqrt fsqrt l
+ret mul 270.0 mul r r
+end
+
+fn angr t f64 to f64
+if lt t 2600.0
+  ret 0.0
+end
+if lt t 6000.0
+  ret div sub t 2600.0 5200.0
+end
+l = div sub 12000.0 t 6000.0
+if lt l 0.0
+  l = 0.0
+end
+r = fsqrt fsqrt fsqrt l
+q = mul r r
+w = mul mul q q r
+ret add 0.653839111328125 mul 1.8461456298828125 sub 1.0 w
+end
+
+fn xyc t ulong sg long to void
+tt = f64 t
+s = sepr tt
+a = angr tt
+x = mul mul 0.5 s (quad add a 0.25)
+y = mul mul 0.25 s (quad a)
+if lt sg 0
+  x = neg x
+  y = neg y
+end
+put gx 0 x
+put gy 0 y
+end
+
+fn kpos t ulong sg long to void
+pct t
+q = write 1 ttr 0 len ttr
+xyc t sg
+num get gx 0
+q = write 1 tme 0 len tme
+num get gy 0
+q = write 1 tme2 0 len tme2
+end
+
+fn kbas t ulong sg long to void
+q = write 1 tsty 0 len tsty
+xyc t sg
+num get gx 0
+q = write 1 tme 0 len tme
+num get gy 0
+q = write 1 tme3 0 len tme3
+end
+
+fn smth u ulong to ulong
+v = u
+if gt v 256
+  v = 256
+end
+ret div mul mul v v sub 768 mul 2 v 65536
+end
+
+fn prog t ulong a ulong b ulong to ulong
+if le t a
+  ret 0
+end
+if ge t b
+  ret 256
+end
+ret div mul sub t a 256 sub b a
+end
+
+fn fsc t ulong v f64 to void
+pct t
+q = write 1 tsp 0 len tsp
+num v
+q = write 1 tcl 0 len tcl
+end
+
+fn fop t ulong v f64 to void
+pct t
+q = write 1 tso 0 len tso
+num v
+q = write 1 tcl2 0 len tcl2
+end
+
+fn fscop t ulong s f64 o f64 to void
+pct t
+q = write 1 tsp 0 len tsp
+num s
+q = write 1 tcs 0 len tcs
+num o
+q = write 1 tcl2 0 len tcl2
+end
+
+fn frse t ulong a ulong b ulong to void
+pct t
+q = write 1 tsp 0 len tsp
+num div (f64 smth prog t a b) 256.0
+q = write 1 tcl 0 len tcl
+end
+
+fn fopa t ulong a ulong b ulong to void
+pct t
+q = write 1 tso 0 len tso
+num div (f64 smth prog t a b) 256.0
+q = write 1 tcl2 0 len tcl2
+end
+
+fn fopb t ulong a ulong b ulong to void
+pct t
+q = write 1 tso 0 len tso
+num sub 1.0 div (f64 smth prog t a b) 256.0
+q = write 1 tcl2 0 len tcl2
+end
+
+fn exneg z f64 to f64
+u = neg div z 64.0
+s = add 1.0 u
+p = mul u u
+s = add s div p 2.0
+p = mul p u
+s = add s div p 6.0
+p = mul p u
+s = add s div p 24.0
+p = mul p u
+s = add s div p 120.0
+p = mul p u
+s = add s div p 720.0
+k = ulong 0
+while lt k 6 bound 10
+  s = mul s s
+  k = add k 1
+end
+ret s
+end
+
+fn wob t ulong to f64
+tm = f64 sub t 12000
+ret mul 0.07 mul (quad div tm 95.0) (exneg div tm 260.0)
+end
+
+fn msiz t ulong to void
+tm = sub t 12000
+pct t
+q = write 1 tsp 0 len tsp
+num add 1.26171875 mul 0.73828125 div (f64 smth prog tm 0 180) 256.0
+q = write 1 tcl 0 len tcl
+end
+
+fn mring t ulong to void
+pct t
+q = write 1 tsp 0 len tsp
+num add 1.0 wob t
+q = write 1 tcl 0 len tcl
+end
+
+fn krpp t ulong to void
+tr = ulong 0
+if gt t 12000
+  tr = sub t 12000
+end
+pct t
+q = write 1 tsp 0 len tsp
+num div mul 1000.0 (f64 tr) 3600.0
+q = write 1 tcs 0 len tcs
+num mul 0.35 div (f64 mul (smth prog tr 0 220) (sub 256 (smth prog tr 2160 3600))) 65536.0
+q = write 1 tcl2 0 len tcl2
+end
+
+fn kfpa to void
+q = write 1 tkpa 0 len tkpa
+kpos 0 1
+t = ulong 2600
+while le t 12000 bound 400
+  kpos t 1
+  t = add t 40
+end
+kpos 19000 1
+q = write 1 tbrc 0 1
+end
+
+fn kfpb to void
+q = write 1 tkpb 0 len tkpb
+kpos 0 -1
+t = ulong 2600
+while le t 12000 bound 400
+  kpos t -1
+  t = add t 40
+end
+kpos 19000 -1
+q = write 1 tbrc 0 1
+end
+
+fn kfben to void
+q = write 1 tkbnd 0 len tkbnd
+fop 0 0.0
+fopa 2600 2600 5200
+t = ulong 2700
+while le t 5100 bound 60
+  fopa t 2600 5200
+  t = add t 100
+end
+fopa 5200 2600 5200
+fop 11999 1.0
+fop 12000 0.0
+fop 19000 0.0
+q = write 1 tbrc 0 1
+end
+
+fn kfsiz to void
+q = write 1 tksiz 0 len tksiz
+fsc 0 0.0
+fsc 4000 0.0
+t = ulong 4100
+while le t 6000 bound 30
+  frse t 4000 6000
+  t = add t 100
+end
+fsc 11999 1.0
+fsc 12000 0.0
+fsc 19000 0.0
+q = write 1 tbrc 0 1
+end
+
+fn kfmsz to void
+q = write 1 tkmsz 0 len tkmsz
+fsc 0 0.0
+fsc 11999 0.0
+msiz 12000
+t = ulong 12010
+while le t 12400 bound 60
+  msiz t
+  t = add t 10
+end
+t = ulong 12440
+while le t 15200 bound 80
+  msiz t
+  t = add t 40
+end
+fsc 19000 0.0
+q = write 1 tbrc 0 1
+end
+
+fn kfmrg to void
+q = write 1 tkmrg 0 len tkmrg
+fsc 0 1.0
+fsc 11999 1.0
+mring 12000
+t = ulong 12010
+while le t 12400 bound 60
+  mring t
+  t = add t 10
+end
+t = ulong 12440
+while le t 15200 bound 80
+  mring t
+  t = add t 40
+end
+fsc 19000 1.0
+q = write 1 tbrc 0 1
+end
+
+fn kfmkp to void
+q = write 1 tkmkp 0 len tkmkp
+fop 0 0.0
+fop 11999 0.0
+fop 12000 1.0
+fopb 12900 12900 15200
+t = ulong 13000
+while le t 15200 bound 30
+  fopb t 12900 15200
+  t = add t 100
+end
+fop 19000 0.0
+q = write 1 tbrc 0 1
+end
+
+fn kfrpp to void
+q = write 1 tkrpp 0 len tkrpp
+fscop 0 0.0 0.0
+fscop 11999 0.0 0.0
+t = ulong 12000
+while le t 15600 bound 60
+  krpp t
+  t = add t 100
+end
+fscop 19000 1000.0 0.0
+q = write 1 tbrc 0 1
+end
+
+fn scene to void
+q = write 1 tkhd 0 len tkhd
+kfpa
+kfpb
+kfben
+kfsiz
+kfmsz
+kfmrg
+kfmkp
+kfrpp
+q = write 1 tkmed 0 len tkmed
+q = write 1 tkwir 0 len tkwir
+q = write 1 tkend 0 len tkend
+q = write 1 scna 0 len scna
+kbas 7000 1
+q = write 1 scnb 0 len scnb
+kbas 7000 -1
+q = write 1 scnc 0 len scnc
+end
 
 fn fieldend p ulong to ulong
 i = p
@@ -189,7 +695,12 @@ end
 end
 
 fn main to int
-n = write 1 page1 0 len page1
+n = write 1 page1a 0 len page1a
+if lt n 0
+trap 3
+end
+scene
+n = write 1 page1b 0 len page1b
 if lt n 0
 trap 3
 end
