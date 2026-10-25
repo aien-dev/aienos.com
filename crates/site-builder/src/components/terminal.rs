@@ -23,7 +23,7 @@ pub fn render_terminal() -> Markup {
                             span style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b;" {}
                             span style="width: 10px; height: 10px; border-radius: 50%; background: #10b981;" {}
                             span class="terminal-title" style="margin-left: 12px; font-family: var(--font-mono); font-size: 12px; color: var(--text-muted);" {
-                                "AIEN OS REPL v0.4.0 (sm_121a · aarch64 · 128GB LPDDR5x)"
+                                "AienOS REPL v0.4.0 (sm_121a · aarch64 · 128GB LPDDR5x)"
                             }
                         }
                         div class="terminal-status" style="display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px; color: var(--accent-green);" {
@@ -53,7 +53,7 @@ pub fn render_terminal() -> Markup {
                     div id="terminal-output" style="padding: 20px; min-height: 280px; max-height: 440px; overflow-y: auto; font-family: var(--font-mono); font-size: 13px; line-height: 1.6;" {
                         div class="terminal-log-line sys" {
                             span class="sys-msg" style="color: var(--accent-blue);" {
-                                "[*] AIEN OS Neural Kernel v0.4.0 initialized on GB10 (aarch64)."
+                                "[*] AienOS Neural Kernel v0.4.0 initialized on GB10 (aarch64)."
                             }
                         }
                         div class="terminal-log-line sys" {

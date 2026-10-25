@@ -1,4 +1,4 @@
-# AIENOS website (aienos.com)
+# AienOS website (aienos.com)
 
 > Static site for aienos.com. One Rust program, `crates/site-builder`, renders every page from Maud templates, copies hand-written files from `public/`, then rewrites every head and writes the machine surface. GitHub Pages serves the output; `.github/workflows/pages.yml` builds and deploys it on every push to `main`.
 

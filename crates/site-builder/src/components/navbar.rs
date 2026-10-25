@@ -40,12 +40,12 @@ pub fn render_navbar() -> Markup {
     html! {
         header class="aien-header" {
             div class="aien-header-inner" {
-                a class="aien-brand" href="/" aria-label="AIENOS PERSISTENT MACHINE INTELLIGENCE: home" {
+                a class="aien-brand" href="/" aria-label="AienOS PERSISTENT MACHINE INTELLIGENCE: home" {
                     span class="aien-brand-mark" aria-hidden="true" {
                         (PreEscaped(r#"<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>"#))
                     }
                     span class="aien-brand-copy" {
-                        span class="aien-brand-name" { "AIENOS" }
+                        span class="aien-brand-name" { "AienOS" }
                         span class="aien-brand-tag" { "PERSISTENT MACHINE INTELLIGENCE" }
                     }
                 }

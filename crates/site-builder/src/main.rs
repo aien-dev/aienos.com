@@ -128,7 +128,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
 
     // Public project measurements, collected before compilation in CI.
     let progress = render_page_layout(
-        "Project progress | AIEN OS",
+        "Project progress | AienOS",
         "Explore the retained AIEN project history: codebase growth, revisions, test footprint and verification activity, refreshed hourly from public GitHub sources.",
         "https://www.aienos.com/progress/", "website",
         html! {
@@ -142,7 +142,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
 
     // Blog index page
     let blog_index = render_page_layout(
-        "Blog | AIEN OS",
+        "Blog | AienOS",
         "Research notes on building AIEN V2: what shipped, what the evidence says, and what remains an open question.",
         "https://www.aienos.com/blog/",
         "website",
@@ -157,7 +157,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
 
     // First post: the AIEN V3 research plan
     let blog_post = render_page_layout(
-        &format!("{} | AIEN OS Blog", components::blog::POST_TITLE),
+        &format!("{} | AienOS Blog", components::blog::POST_TITLE),
         components::blog::POST_DESCRIPTION,
         &format!("https://www.aienos.com/blog/{}/", components::blog::POST_SLUG),
         "article",
@@ -174,7 +174,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     // all rendered from data/research_status.json. The data file itself is
     // published next to it so machines read the same source.
     let research_status = render_page_layout(
-        "Research status | AIEN OS",
+        "Research status | AienOS",
         "Where the AIEN research stands: the qualification ladder, every experiment with its verdict, receipt and limits, and what is built versus still a hypothesis.",
         "https://www.aienos.com/research/status/",
         "website",
@@ -323,8 +323,8 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
 
     // The 404 page, served by GitHub Pages for any address that has no file.
     let not_found = render_page_layout(
-        "Page not found | AIENOS",
-        "There is nothing at this address. Every page of AIENOS is listed in llms.txt and the sitemap; the front page, the machine and the research are one link away.",
+        "Page not found | AienOS",
+        "There is nothing at this address. Every page of AienOS is listed in llms.txt and the sitemap; the front page, the machine and the research are one link away.",
         "",
         "website",
         seo::head_404(),
@@ -364,7 +364,7 @@ fn verify_site(dist: &Path) {
     // Homepage top (NARR-HOME): literal phrases, so a wording change in the
     // component cannot pass by accident.
     for phrase in [
-        "AIENOS is an owned experimental machine for turning search into verified understanding.",
+        "AienOS is an owned experimental machine for turning search into verified understanding.",
         "Weights suggest. Programs explain. Verification decides. Evidence teaches. The Turing keeps score.",
         "Did it learn anything?",
         "What did it cost to learn?",
@@ -703,7 +703,7 @@ fn main() {
     let dist = Path::new(&target_dir);
 
     println!("============================================================");
-    println!("  AIEN OS Native Static Site Builder & Integrity Verifier   ");
+    println!("  AienOS Native Static Site Builder & Integrity Verifier   ");
     println!("  Engine: Pure Rust & Maud | Target: {}", dist.display());
     println!("  Mode: {}", mode);
     println!("============================================================");
@@ -730,7 +730,7 @@ mod tests {
 
     #[test]
     fn test_unslop_punctuation_invariants() {
-        let sample = "AIEN OS: The GPU-Native Neural Operating Environment.";
+        let sample = "AienOS: The GPU-Native Neural Operating Environment.";
         assert!(!sample.contains('\u{2014}'), "Must not contain em dash");
         assert!(!sample.contains('\u{2013}'), "Must not contain en dash");
     }
@@ -758,6 +758,6 @@ mod tests {
         let s = markup.into_string();
         assert!(s.contains("<!DOCTYPE html>"));
         assert!(s.contains("<div id=\"root\""));
-        assert!(s.contains("AIEN OS"));
+        assert!(s.contains("AienOS"));
     }
 }

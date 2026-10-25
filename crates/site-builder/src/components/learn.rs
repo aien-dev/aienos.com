@@ -3,7 +3,7 @@
 
 use maud::{html, Markup};
 
-pub const TITLE: &str = "Build with AI | AIENOS";
+pub const TITLE: &str = "Build with AI | AienOS";
 pub const DESCRIPTION: &str = "A practical way to build with AI: write a small brief, divide ownership, check the change, and publish what actually happened. Follow real agent work in the Hive.";
 pub const URL: &str = "https://www.aienos.com/learn/";
 

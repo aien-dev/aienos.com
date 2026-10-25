@@ -16,14 +16,14 @@ use super::research_status::{
     ImplementationRow, TuringRow,
 };
 
-pub const TITLE: &str = "The Machine | AIENOS";
+pub const TITLE: &str = "The Machine | AienOS";
 pub const DESCRIPTION: &str = "One machine across five physical bodies: the closed loop from search to verified understanding, the Turing as its accounting layer, and what exists today.";
 pub const URL: &str = "https://www.aienos.com/machine/";
 
 /// Anchor of the homepage loop diagram (NARR-HOME, components/home_loop.rs).
 pub const HOME_LOOP_HREF: &str = "/#loop-title";
 
-const MISSION: &str = "AIENOS is an owned experimental machine for turning search into verified understanding. AIEN proposes structure. Omega makes that structure explicit and checkable. The machine tests it against reality under authority. The Turing measures what was actually learned. Cortex keeps the evidence. Then the next search begins from what survived.";
+const MISSION: &str = "AienOS is an owned experimental machine for turning search into verified understanding. AIEN proposes structure. Omega makes that structure explicit and checkable. The machine tests it against reality under authority. The Turing measures what was actually learned. Cortex keeps the evidence. Then the next search begins from what survived.";
 
 const LOOP_STAGES: [&str; 11] = [
     "Observe",
@@ -98,7 +98,7 @@ fn section_loop() -> Markup {
                 "In the design, each step has an owner. AIEN suggests. Omega formalizes, synthesizes and verifies. FORGE realizes the verified program, and the physical machine executes it."
             }
             p {
-                "The Turing then measures explanatory gain, Cortex preserves the evidence, and AIEN and Omega use that evidence to improve the next search. ATLAS carries the lineage across hardware, and AIENOS provides the owned, persistent substrate underneath."
+                "The Turing then measures explanatory gain, Cortex preserves the evidence, and AIEN and Omega use that evidence to improve the next search. ATLAS carries the lineage across hardware, and AienOS provides the owned, persistent substrate underneath."
             }
             p {
                 "AEGIS and ARGUS sit around the loop. AEGIS guards the boundary of proof and authority, so nothing executes without permission. ARGUS observes what actually happens. Neither one is a step that work passes through in sequence."
@@ -285,7 +285,7 @@ fn section_today() -> Markup {
         section id="today" class="narr-section" aria-labelledby="today-heading" {
             h2 id="today-heading" { "What exists today" }
             p {
-                "This list is drawn from the research status record, built from a check of the code on the main branches of Omega and AIENOS. Built work and open research questions are kept apart, and each entry opens to show its limits and evidence."
+                "This list is drawn from the research status record, built from a check of the code on the main branches of Omega and AienOS. Built work and open research questions are kept apart, and each entry opens to show its limits and evidence."
             }
             (render_implementation(data()))
             p class="narr-more" {

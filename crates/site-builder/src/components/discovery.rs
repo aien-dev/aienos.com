@@ -8,7 +8,7 @@ use maud::{html, Markup};
 use super::narrative::class_badge;
 use super::research_status::{data, ImplementationRow};
 
-pub const TITLE: &str = "Scientific Discovery | AIENOS";
+pub const TITLE: &str = "Scientific Discovery | AienOS";
 pub const DESCRIPTION: &str = "Physics Zero, Dirac, Zeta and supersymmetry as examinations of representation discovery. AIEN is never given the named answer; it must earn the structure.";
 pub const URL: &str = "https://www.aienos.com/discovery/";
 

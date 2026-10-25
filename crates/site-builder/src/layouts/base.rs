@@ -2,7 +2,7 @@ use maud::{html, Markup, PreEscaped, DOCTYPE};
 
 pub fn render_base_layout(content: Markup) -> Markup {
     render_page_layout(
-        "AIENOS | Persistent machine intelligence you own",
+        "AienOS | Persistent machine intelligence you own",
         "An experimental, open source machine for turning search into verified understanding, running on five real machines. Every claim carries a public receipt.",
         "https://www.aienos.com/",
         "website",
@@ -12,7 +12,7 @@ pub fn render_base_layout(content: Markup) -> Markup {
             script defer src="/js/turing-game.js" {}
             (PreEscaped(r#"<script>
                 document.addEventListener('DOMContentLoaded', () => {
-                    console.log('[AIEN OS] Pure Rust Maud engine online. Zero hydration overhead.');
+                    console.log('[AienOS] Pure Rust Maud engine online. Zero hydration overhead.');
                 });
             </script>"#))
         },

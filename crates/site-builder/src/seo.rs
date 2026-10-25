@@ -18,7 +18,7 @@ use serde_json::{json, Value};
 use crate::components::now::{self, Now};
 
 pub const HOST: &str = "https://www.aienos.com";
-pub const SITE_NAME: &str = "AIENOS";
+pub const SITE_NAME: &str = "AienOS";
 pub const SITE_CLAIM: &str = "Persistent machine intelligence on a machine you own";
 pub const ORG_NAME: &str = "AIEN (aien-dev)";
 pub const ORG_URL: &str = "https://github.com/aien-dev";
@@ -34,7 +34,7 @@ pub const LICENSE_URL: &str = "https://www.aienos.com/licensing/";
 /// Bump whenever scripts/og-cards.py redraws the cards: X and other link
 /// unfurlers cache a card image by its URL, so a new query string makes them
 /// fetch the new picture instead of showing the old one.
-pub const OG_IMAGE_VERSION: &str = "20261025";
+pub const OG_IMAGE_VERSION: &str = "20261025b";
 
 /// What a page is, for structured data.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -81,8 +81,8 @@ pub struct PageInfo {
 /// Every English page of the site. The build fails if dist holds a page
 /// that is not here, or if a page here was not written.
 pub const PAGES: &[PageInfo] = &[
-    PageInfo { path: "/", name: "AIENOS", what: "The front page: the loop, the five real machines and their measured speeds beside the physical ceiling, the evidence cards, the current status of every layer.", section: Section::Machine, kind: Kind::Home, image: "/og.png", published: "2026-09-23", doi: None },
-    PageInfo { path: "/start/", name: "Start here", what: "The shortest route through AIENOS: what it is, what exists today, how to check the evidence, how to reproduce or contribute, and where the author and Interplane fit.", section: Section::Start, kind: Kind::Page, image: "/og.png", published: "2026-10-24", doi: None },
+    PageInfo { path: "/", name: "AienOS", what: "The front page: the loop, the five real machines and their measured speeds beside the physical ceiling, the evidence cards, the current status of every layer.", section: Section::Machine, kind: Kind::Home, image: "/og.png", published: "2026-09-23", doi: None },
+    PageInfo { path: "/start/", name: "Start here", what: "The shortest route through AienOS: what it is, what exists today, how to check the evidence, how to reproduce or contribute, and where the author and Interplane fit.", section: Section::Start, kind: Kind::Page, image: "/og.png", published: "2026-10-24", doi: None },
     PageInfo { path: "/machine/", name: "The Machine", what: "One machine across five physical bodies: the closed epistemic loop, the Turing as its accounting layer, and an honest list of what exists.", section: Section::Machine, kind: Kind::Article, image: "/og-machine.png", published: "2026-10-01", doi: None },
     PageInfo { path: "/omega/", name: "What Omega is", what: "Omega is AIEN's language for all computing, GPU to CPU; on the GPU it is the replacement for CUDA. The CUDA stack piece by piece with status, the receipt for the live server running with zero CUDA libraries, what is not true yet, and the bar C1 to C6.", section: Section::Machine, kind: Kind::Page, image: "/og-machine.png", published: "2026-10-21", doi: None },
     PageInfo { path: "/cudaplusplus/", name: "CUDA++", what: "CUDA++ is the GPU half of Omega: everything CUDA gives you plus the motor, for the NVIDIA GPUs people already own, with no NVIDIA user-space software (MIT, aien-dev/CUDAplusplus). What it is for, the path from program to chip with whose code runs at each step, how we did it, CUDA's pain points and the swap down to the kernel driver.", section: Section::Machine, kind: Kind::Page, image: "/og-machine.png", published: "2026-10-22", doi: None },
@@ -112,7 +112,7 @@ pub const PAGES: &[PageInfo] = &[
     PageInfo { path: "/call-to-humanity/", name: "A Call to Humanity", what: "An open letter on breaking the CUDA stranglehold on the hardware market: a clean-room replacement for the CUDA user stack, built in the open, with public receipts. DOI 10.5281/zenodo.23614947.", section: Section::Philosophy, kind: Kind::Article, image: "/og-philosophy.png", published: "2026-10-24", doi: Some("10.5281/zenodo.23614947") },
     PageInfo { path: "/blog/", name: "Blog", what: "Research notes on building AIEN: what shipped, what the evidence says, what remains open.", section: Section::Blog, kind: Kind::Collection, image: "/og-blog.png", published: "2026-09-27", doi: None },
     PageInfo { path: "/blog/aien-v3-research-plan/", name: "The AIEN V3 Research Plan", what: "The ratified V3 research plan, the Substrate Edition, with six falsifiable hypotheses.", section: Section::Blog, kind: Kind::Article, image: "/og-blog.png", published: "2026-09-27", doi: None },
-    PageInfo { path: "/glossary/", name: "Glossary", what: "The terms AIENOS uses in its own sense, each linked to the page where it does real work.", section: Section::Optional, kind: Kind::Page, image: "/og.png", published: "2026-10-23", doi: None },
+    PageInfo { path: "/glossary/", name: "Glossary", what: "The terms AienOS uses in its own sense, each linked to the page where it does real work.", section: Section::Optional, kind: Kind::Page, image: "/og.png", published: "2026-10-23", doi: None },
     PageInfo { path: "/licensing/", name: "Licensing", what: "The one canonical licensing statement: Apache-2.0 WITH LLVM-exception for compiler and runtime repositories; plain Apache-2.0 for protocols and benchmarks.", section: Section::Optional, kind: Kind::Page, image: "/og.png", published: "2026-10-01", doi: None },
 ];
 
@@ -641,8 +641,8 @@ fn head_block(page: &Emitted, info: &PageInfo, facts: &HeadFacts, has_mirror: bo
         let zh = format!("{HOST}{}", page.zh_path());
         b.push_str(&format!("<link rel=\"alternate\" hreflang=\"en\" href=\"{en}\">\n<link rel=\"alternate\" hreflang=\"zh-CN\" href=\"{zh}\">\n<link rel=\"alternate\" hreflang=\"x-default\" href=\"{en}\">\n"));
     }
-    b.push_str(&format!("<link rel=\"alternate\" type=\"application/atom+xml\" title=\"AIENOS: blog and research\" href=\"{HOST}/feed.xml\">\n"));
-    b.push_str(&format!("<link rel=\"alternate\" type=\"application/atom+xml\" title=\"AIENOS: settled work from the live ledger\" href=\"{HOST}/now/feed.xml\">\n"));
+    b.push_str(&format!("<link rel=\"alternate\" type=\"application/atom+xml\" title=\"AienOS: blog and research\" href=\"{HOST}/feed.xml\">\n"));
+    b.push_str(&format!("<link rel=\"alternate\" type=\"application/atom+xml\" title=\"AienOS: settled work from the live ledger\" href=\"{HOST}/now/feed.xml\">\n"));
     b.push_str(&format!("<meta property=\"og:site_name\" content=\"{SITE_NAME}\">\n<meta property=\"og:locale\" content=\"{locale}\">\n"));
     b.push_str(&format!("<meta property=\"og:title\" content=\"{title}\">\n<meta property=\"og:description\" content=\"{description}\">\n<meta property=\"og:url\" content=\"{url}\">\n<meta property=\"og:type\" content=\"{og_type}\">\n"));
     b.push_str(&format!("<meta property=\"og:image\" content=\"{image}\">\n<meta property=\"og:image:width\" content=\"1200\">\n<meta property=\"og:image:height\" content=\"630\">\n<meta property=\"og:image:alt\" content=\"{image_alt}\">\n"));
@@ -794,7 +794,7 @@ pub fn site_feed(pages: &[Emitted]) -> String {
         .collect();
     entries.sort_by(|a, b| b.0.lastmod.cmp(&a.0.lastmod).then(b.1.published.cmp(a.1.published)));
     let updated = entries.first().map(|e| e.0.lastmod.clone()).unwrap_or_else(|| rfc3339(now_secs()));
-    let mut s = atom_head("AIENOS: blog and research", "Research notes and preprints from the AIEN project, with receipts.", "/feed.xml", &updated);
+    let mut s = atom_head("AienOS: blog and research", "Research notes and preprints from the AIEN project, with receipts.", "/feed.xml", &updated);
     for (p, i) in entries {
         s.push_str(&format!(
             "  <entry>\n    <title>{}</title>\n    <link href=\"{}\" rel=\"alternate\" type=\"text/html\"/>\n    <id>{}</id>\n    <published>{}T00:00:00Z</published>\n    <updated>{}</updated>\n    <summary>{}</summary>\n    <category term=\"{}\"/>\n  </entry>\n",
@@ -809,7 +809,7 @@ pub fn site_feed(pages: &[Emitted]) -> String {
 pub fn now_feed(now: &Now, ctx: &BuildCtx) -> String {
     let mut settled: Vec<&now::Item> = now.items.iter().filter(|i| i.status == "done" || i.status == "dropped").collect();
     settled.sort_by(|a, b| now::parse_utc(&b.updated_utc).cmp(&now::parse_utc(&a.updated_utc)).then(b.id.cmp(&a.id)));
-    let mut s = atom_head("AIENOS: settled work from the live ledger", "Every coordination ledger line that reached done or dropped, with the evidence that settled it.", "/now/feed.xml", &ctx.ledger_written);
+    let mut s = atom_head("AienOS: settled work from the live ledger", "Every coordination ledger line that reached done or dropped, with the evidence that settled it.", "/now/feed.xml", &ctx.ledger_written);
     for it in settled {
         let updated = now::parse_utc(&it.updated_utc).map(rfc3339).unwrap_or_else(|| ctx.ledger_written.clone());
         let published = now::parse_utc(&it.opened_utc).map(rfc3339).unwrap_or_else(|| updated.clone());
@@ -850,8 +850,8 @@ fn section_title(s: Section) -> &'static str {
 /// sections of links with one-line descriptions, an Optional section last.
 pub fn llms_txt(status_lines: &[String], research_sentence: &str) -> String {
     let mut s = String::new();
-    s.push_str("# AIENOS\n\n");
-    s.push_str(&format!("> {SITE_CLAIM}. AIENOS is an experimental, open source (Apache-2.0 WITH LLVM-exception) machine for turning search into verified understanding: AIEN proposes, Omega makes the proposal explicit and verifiable, the machine tests it against reality, the Turing measures what was learned, Cortex keeps the evidence. Every claim on the site carries a public receipt. Status: experimental, pre-alpha. Built by {AUTHOR} with AI agents on five real machines.\n\n"));
+    s.push_str("# AienOS\n\n");
+    s.push_str(&format!("> {SITE_CLAIM}. AienOS is an experimental, open source (Apache-2.0 WITH LLVM-exception) machine for turning search into verified understanding: AIEN proposes, Omega makes the proposal explicit and verifiable, the machine tests it against reality, the Turing measures what was learned, Cortex keeps the evidence. Every claim on the site carries a public receipt. Status: experimental, pre-alpha. Built by {AUTHOR} with AI agents on five real machines.\n\n"));
     s.push_str("Rules the site keeps: no comparisons with other systems (every speed stands beside the physical ceiling of its own machine only), failures stay on the record, nothing is loaded from anyone else (no trackers, no outside fonts or scripts; the one outside embed is the film on /turing/), and AI agents are welcome to read, cite, argue and correct. Contact: aien@aienos.com. Source: https://github.com/aien-dev.\n\n");
     s.push_str("## Current state\n\n");
     for l in status_lines {
@@ -976,7 +976,7 @@ pub fn html_to_text(html: &str) -> String {
 
 /// /llms-full.txt: every English page as text, in llms.txt order, from the files just written.
 pub fn llms_full(pages: &[Emitted]) -> String {
-    let mut s = format!("# AIENOS: every page in one file\n\nGenerated with the site from the same sources as the HTML. Page list and summaries: {HOST}/llms.txt. Machine-readable data: {HOST}/data/index.json.\n\n");
+    let mut s = format!("# AienOS: every page in one file\n\nGenerated with the site from the same sources as the HTML. Page list and summaries: {HOST}/llms.txt. Machine-readable data: {HOST}/data/index.json.\n\n");
     for info in PAGES {
         let Some(p) = pages.iter().find(|p| p.path == info.path) else { continue };
         let html = fs::read_to_string(&p.file).unwrap_or_default();
@@ -1031,7 +1031,7 @@ pub fn render_404() -> Markup {
                 }
                 ul style="margin: 28px 0 0 0; padding: 0; list-style: none; display: grid; gap: 10px;" {
                     li { a href="/" { "The front page" } ": the loop, the machines, the evidence." }
-                    li { a href="/machine/" { "The Machine" } ": what AIENOS is and what runs today." }
+                    li { a href="/machine/" { "The Machine" } ": what AienOS is and what runs today." }
                     li { a href="/now/" { "Now" } ": what every agent is doing right now." }
                     li { a href="/research/" { "Research" } ": the preprints and the papers." }
                     li { a href="/evidence/" { "Evidence" } ": receipts over claims." }
@@ -1200,7 +1200,7 @@ mod tests {
     #[test]
     fn llms_txt_follows_the_convention() {
         let t = llms_txt(&["Layer: STATE. note".into()], "ladder sentence");
-        assert!(t.starts_with("# AIENOS\n\n> "));
+        assert!(t.starts_with("# AienOS\n\n> "));
         assert!(t.contains("\n## Optional\n"));
         assert_eq!(t.matches("\n# ").count(), 0, "exactly one H1");
         for p in PAGES {
