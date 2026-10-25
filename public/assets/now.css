@@ -686,6 +686,77 @@
   height: 12px;
 }
 
+/* The limits as one menu: a chip per window flips the card between the
+   five-hour session and the weekly limits, with no script and no page jump. */
+.now-usage-menu { margin-top: 4px; }
+
+.now-usage-radio {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.now-usage-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 2px;
+}
+
+.now-usage-tab {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 7px 12px;
+  border: 1px solid var(--tl-line);
+  border-radius: 999px;
+  color: var(--tl-ink-2);
+  font-size: 13px;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.now-usage-tab:hover { color: var(--tl-ink); border-color: var(--tl-line-2); }
+.now-usage-tab-k { font-weight: 600; }
+.now-usage-tab-v { color: var(--tl-ink-3); font-variant-numeric: tabular-nums; }
+
+.now-usage-panels .now-usage-panel { display: none; }
+.now-usage-panel .now-usage-row { margin-top: 14px; }
+
+#now-usage-0:checked ~ .now-usage-tabs label[for="now-usage-0"],
+#now-usage-1:checked ~ .now-usage-tabs label[for="now-usage-1"],
+#now-usage-2:checked ~ .now-usage-tabs label[for="now-usage-2"] {
+  border-color: var(--now-op);
+  color: var(--tl-ink);
+  box-shadow: inset 0 -2px 0 var(--now-op);
+}
+
+#now-usage-0:checked ~ .now-usage-tabs label[for="now-usage-0"] .now-usage-tab-v,
+#now-usage-1:checked ~ .now-usage-tabs label[for="now-usage-1"] .now-usage-tab-v,
+#now-usage-2:checked ~ .now-usage-tabs label[for="now-usage-2"] .now-usage-tab-v { color: var(--tl-ink); }
+
+#now-usage-0:focus-visible ~ .now-usage-tabs label[for="now-usage-0"],
+#now-usage-1:focus-visible ~ .now-usage-tabs label[for="now-usage-1"],
+#now-usage-2:focus-visible ~ .now-usage-tabs label[for="now-usage-2"] {
+  outline: 2px solid var(--now-op);
+  outline-offset: 2px;
+}
+
+#now-usage-0:checked ~ .now-usage-panels .now-usage-panel-0,
+#now-usage-1:checked ~ .now-usage-panels .now-usage-panel-1,
+#now-usage-2:checked ~ .now-usage-panels .now-usage-panel-2 { display: block; }
+
+@media (max-width: 520px) {
+  .now-usage-tab { flex: 1 1 100%; }
+}
+
 .now-give {
   padding: 20px 22px;
   border: 1px solid rgba(245, 158, 11, 0.45);
