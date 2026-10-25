@@ -217,11 +217,12 @@
 /* The scene is a real composited layer, not a negative-z child: a stable
    layer is rasterised once and moved by the compositor. Negative z-index
    under isolation made Chromium rebuild the layer on scroll, which showed up
-   as the background flickering. It is also never upscaled beyond its own
-   pixels, because resampling the fine star field is what makes it shimmer. */
+   as the background flickering. It stays cover sized: the band is wide and
+   short, so any height-relative size leaves a bare gap on the right, and at
+   1365x768 cover downscales (0.785x) rather than upscaling. */
 .hive-masthead::before {
   content:""; position:absolute; inset:0 -10% 0 18%; z-index:0; pointer-events:none;
-  background:url('/assets/hive-universe.svg') 55% 45% / auto 120% no-repeat;
+  background:url('/assets/hive-universe.svg') 55% 48% / cover no-repeat;
   transform:translateZ(0); will-change:transform; contain:paint;
 }
 .hive-masthead > * { position:relative; z-index:2; }
@@ -316,7 +317,7 @@
 
 @media (max-width:900px) {
   .hive-masthead { min-height:460px; padding:58px 7vw; }
-  .hive-masthead::before { inset:0 -30% 0 10%; background-size:auto 120%; }
+  .hive-masthead::before { inset:0 -30% 0 10%; }
   .hive-section { padding:22px; }
 }
 @media (max-width:600px) {
@@ -324,7 +325,7 @@
   .hive-jumps { gap:10px 20px; }
   .hive-jumps a { font-size:.65rem; }
   .hive-masthead { margin:0 -20px 22px; padding:54px 28px 48px; min-height:520px; justify-content:flex-end; }
-  .hive-masthead::before { inset:-25% -65% 15% -25%; background-position:center; background-size:auto 120%; }
+  .hive-masthead::before { inset:-25% -65% 15% -25%; background-position:center; }
   /* The prose is bottom-aligned here, so the scrim is too. */
   .hive-masthead::after {
     background:linear-gradient(0deg, color-mix(in srgb, var(--bg-base) 94%, transparent) 0%, color-mix(in srgb, var(--bg-base) 90%, transparent) 74%, color-mix(in srgb, var(--bg-base) 60%, transparent) 92%, color-mix(in srgb, var(--bg-base) 30%, transparent) 100%);
