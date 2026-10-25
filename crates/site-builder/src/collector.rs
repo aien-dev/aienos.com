@@ -28,7 +28,7 @@ pub const OWNER: &str = "aien-dev";
 /// rule are read as well, under their GitHub name.
 pub const REPOS: &[(&str, &str, &str)] = &[
     ("aien-sovereign-core", "aien-dev", "aien-sovereign-core-mv"),
-    ("aienos", "aien-dev", "aienux"),
+    ("aienux", "aien-dev", "aienux"),
     ("omega", "aien-dev", "omega-mv"),
     ("physics", "aien-dev", "physics-mv"),
     ("atlas", "aien-dev", "atlas"),
@@ -74,7 +74,9 @@ const EXCLUDED_DIRS: &[&str] = &[
     "vendor", "vendored", "third_party", "third-party", "node_modules", "target", "dist", "build", "generated",
     "evidence", "receipts", "artifacts", "data", "results", "fixtures",
 ];
-const CORE_NAMES: &[&str] = &["aien-sovereign-core", "aienos", "omega", "physics", "forge", "atlas", "aien-protocols", "aien-architecture", "benchmarks"];
+/// `aienux` is the kernel; `aienos` is the whole system (today GitHub's aien-dev/aienix). Once
+/// that repository is renamed aienos, the name rule reads it as its own Core project.
+const CORE_NAMES: &[&str] = &["aien-sovereign-core", "aienux", "aienos", "omega", "physics", "forge", "atlas", "aien-protocols", "aien-architecture", "benchmarks"];
 const SITE_NAMES: &[&str] = &["aienos.com", "drakestapleton.com", "interplane.io", ".github", "aien-dev"];
 
 /// The accounts whose public repository listings are read: OWNER, then every owner in REPOS.
@@ -1465,7 +1467,7 @@ mod tests {
             assert_eq!(t.url, format!("https://github.com/{owner}/{github_name}"), "{project}");
         }
         // The -mv core repositories stay Core; the two the old map lost are counted again.
-        for core in ["aien-sovereign-core", "aienos", "omega", "physics", "aien-protocols", "aien-architecture", "benchmarks", "atlas"] {
+        for core in ["aien-sovereign-core", "aienux", "omega", "physics", "aien-protocols", "aien-architecture", "benchmarks", "atlas"] {
             let t = find(&targets, core);
             assert_eq!(group_of(&t.name, t.info["archived"].as_bool().unwrap()), "Core", "{core}");
         }
@@ -1507,6 +1509,36 @@ mod tests {
         let (targets, _) = select_repos(&listing(&both));
         assert_eq!(targets.iter().filter(|t| t.name == "omega").count(), 1);
         assert_eq!(find(&targets, "omega").github_name, "omega-mv");
+    }
+
+    #[test]
+    fn the_kernel_and_the_whole_system_are_two_projects() {
+        // aien-dev/aienix is renamed aienos (the whole system) while aienux stays the kernel.
+        let mut rows = LISTING_2026_10_17.to_vec();
+        rows.push("aien-dev aienos - -");
+        let (targets, missing) = select_repos(&listing(&rows));
+        assert!(missing.is_empty(), "missing: {missing:?}");
+        let kernel = find(&targets, "aienux");
+        let system = find(&targets, "aienos");
+        assert_eq!((kernel.github_name.as_str(), kernel.url.as_str()), ("aienux", "https://github.com/aien-dev/aienux"));
+        assert_eq!((system.github_name.as_str(), system.url.as_str()), ("aienos", "https://github.com/aien-dev/aienos"));
+        assert_eq!(targets.iter().filter(|t| t.name == "aienux" || t.name == "aienos").count(), 2);
+        assert_eq!((group_of(&kernel.name, false), group_of(&system.name, false)), ("Core", "Core"));
+        // A snapshot carrying both projects passes; the same rows under one name are refused.
+        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../public/data/project-progress.json");
+        let mut data: Value = serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
+        let repos = data["repos"].as_array_mut().unwrap();
+        let mut entry = repos.iter().find(|r| r["name"] == "aienux").expect("committed data names the kernel aienux").clone();
+        entry["name"] = Value::from("aienos");
+        entry["url"] = Value::from("https://github.com/aien-dev/aienos");
+        entry["prCount"] = Value::from(0);
+        entry["ciCount"] = Value::from(0);
+        repos.push(entry);
+        validate_snapshot(&data).unwrap();
+        for r in data["repos"].as_array_mut().unwrap().iter_mut().filter(|r| r["name"] == "aienux") {
+            r["name"] = Value::from("aienos");
+        }
+        assert_eq!(validate_snapshot(&data), Err("Duplicate repositories".into()));
     }
 
     #[test]
