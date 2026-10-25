@@ -18,4 +18,22 @@ class CosmicChecks(unittest.TestCase):
   self.assertNotRegex(css,r'#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?\b')
   self.assertNotIn('@keyframes',css)
   self.assertIn(':focus-visible',css)
+ def test_scene_layer_is_stable(self):
+  css=(ROOT/'public/assets/hive.css').read_text()
+  # The galaxy must stay a composited layer with its own pixels: a negative
+  # z-index under isolation made Chromium rebuild it on scroll (the reported
+  # flicker), and upscaling a fine star field resamples it into shimmer.
+  self.assertNotRegex(css,r'z-index\s*:\s*-')
+  self.assertNotIn('isolation:isolate',css)
+  self.assertIn('will-change:transform',css)
+  self.assertIn('transform:translateZ(0)',css)
+  self.assertIn('background-size:auto 120%',css)
+  self.assertNotRegex(css,r'/\s*cover\s+no-repeat')
+ def test_omega_provenance_is_visible(self):
+  page=(ROOT/'om/hive-page/main.html').read_text()
+  self.assertIn('hive-omega',page)
+  self.assertIn('This page is written in Omega.',page)
+  self.assertIn('bear with the glitches while we iron it out',page)
+  self.assertIn('Read the Omega source',page)
+  self.assertIn('.hive-omega {',(ROOT/'public/assets/hive.css').read_text())
 if __name__=='__main__':unittest.main()
