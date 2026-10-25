@@ -30,7 +30,11 @@ pub const AUTHOR: &str = "M. Drake Stapleton";
 pub const AUTHOR_URL: &str = "https://www.drakestapleton.com";
 pub const AUTHOR_GITHUB: &str = "https://github.com/drakestapleton";
 pub const LICENSE_NAME: &str = "Apache-2.0 WITH LLVM-exception";
-pub const LICENSE_URL: &str = "https://www.gnu.org/licenses/agpl-3.0.html";
+pub const LICENSE_URL: &str = "https://www.aienos.com/licensing/";
+/// Bump whenever scripts/og-cards.py redraws the cards: X and other link
+/// unfurlers cache a card image by its URL, so a new query string makes them
+/// fetch the new picture instead of showing the old one.
+pub const OG_IMAGE_VERSION: &str = "20261025";
 
 /// What a page is, for structured data.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -619,7 +623,7 @@ fn head_block(page: &Emitted, info: &PageInfo, facts: &HeadFacts, has_mirror: bo
     let title = if facts.og_title.is_empty() { facts.title.clone() } else { facts.og_title.clone() };
     let description = if facts.og_description.is_empty() { facts.description.clone() } else { facts.og_description.clone() };
     let og_type = if !facts.og_type.is_empty() { facts.og_type.clone() } else { match info.kind { Kind::Article | Kind::Paper => "article".into(), _ => "website".into() } };
-    let image = format!("{HOST}{}", info.image);
+    let image = format!("{HOST}{}?v={OG_IMAGE_VERSION}", info.image);
     let image_alt = escape(&format!("{SITE_NAME}: {}", info.name));
     let locale = if page.is_zh() { "zh_CN" } else { "en_US" };
     let mut b = String::new();
