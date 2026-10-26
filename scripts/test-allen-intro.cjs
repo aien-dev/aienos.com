@@ -8,7 +8,7 @@ const source = readFileSync(process.argv[2] || 'public/js/allen-intro.js', 'utf8
 const key = 'aien-allen-intro-consent';
 
 const seenKey = 'aien-allen-intro-seen';
-const GREETING = "Hey, I'm Allen. It's nice to meet you!";
+const GREETING = "Hi, I'm Aien (you say it like Ian). It's nice to meet you!";
 const INTRO = "You don't have to tell me your name, but if you do, that would be super awesome and we could chat over time. When you come back, I can remember who you are and we can pick up where we left off. We can talk about all kinds of good things in the universe.";
 const OFFER = "Separately, if you'd like, say hi and I'll let Drake know you stopped by. That uses Drake's X pixel to note the visit. Totally fine if not.";
 const GPC_NOTE = "Your browser sends Global Privacy Control, so I'm not offering Drake's X pixel. It stays off.";

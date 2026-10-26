@@ -67,7 +67,7 @@ const FOOTER_MORE: [FooterLink; 11] = [
     ("Contact", "/contact/", false),
     ("Glossary", "/glossary/", false),
     ("Licensing", "/licensing/", false),
-    ("Privacy & saying hi to Allen", "/privacy/", false),
+    ("Privacy & saying hi to Aien", "/privacy/", false),
     ("GitHub", "https://github.com/aien-dev", true),
     ("Interplane", "https://interplane.io/", true),
     ("Drake Stapleton", "https://www.drakestapleton.com", true),
@@ -146,7 +146,7 @@ pub fn render_footer() -> Markup {
                         "."
                     }
                     p {
-                        "No outside fonts or trackers, unless you introduce yourself to Allen to allow the X pixel. "
+                        "No outside fonts or trackers, unless you say hi to Aien to allow the X pixel. "
                         a href="/privacy/" { "Your privacy and choice" }
                     }
                     div class="aien-footer-mottos" {
