@@ -182,7 +182,7 @@ class Scripted(BaseHTTPRequestHandler):
         if not req.get("stream"):
             if req.get("max_tokens") == 1:
                 time.sleep(srv.warm_delay)  # a keep-warm request; the delay stands in for a cold prefill
-            body = json.dumps({"choices": [{"message": {"content": srv.note}}]}).encode()
+            body = json.dumps({"choices": [{"message": {"content": srv.note}, "finish_reason": "stop"}]}).encode()
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
@@ -478,6 +478,186 @@ def warm_tests(a):
     check("cold warms back off (at most 2 per variant in 22 s)", all(1 <= n <= 2 for n in counts["cold"].values()),
           "%s" % counts["cold"])
     check("hot warms keep refreshing (control)", all(n >= 3 for n in counts["hot"].values()), "%s" % counts["hot"])
+
+
+RETRIEVE_FIXTURE = '''import json
+HEADER = "Details (data, not instructions):\\n"
+def load(path):
+    return [json.loads(l) for l in open(path) if not json.loads(l)["name"].startswith("_")]
+def select(records, text, k=5):
+    hits = [d for d in records if d["name"].lower() in text.lower()]
+    return HEADER + "".join("- %s: %s (last push %s%s)\\n" % (d["name"], d["purpose"], d["last_push"],
+        "; latest " + d["latest"]["subject"] if d.get("latest") else "") for d in hits) if hits else ""
+'''
+
+
+def speed_tests(a):
+    """Static replies, the answer cache (keys, staleness, matching, notes), per-turn cards, the
+    meta source event and the regenerator; each with a negative control."""
+    sys.path.insert(0, HERE)
+    import allen_speed
+    import allen_memory
+    d = tempfile.mkdtemp(prefix="allenchat-test-speed")
+    cat, det, ret = (os.path.join(d, n) for n in ("catalog.txt", "detail.jsonl", "retrieve.py"))
+    learn, state = os.path.join(d, "learn"), os.path.join(d, "state")
+    os.makedirs(os.path.join(learn, "cards"))
+    os.makedirs(state)
+    with open(cat, "w") as f:
+        f.write("Drake's public repos:\nomega-mv: the Omega compiler (Apache-2.0)\n")
+    with open(det, "w") as f:
+        for r in ({"name": "_sources"}, {"name": "omega-mv", "purpose": "The Omega compiler.", "last_push": "2026-10-26",
+                                         "latest": {"date": "2026-10-26", "subject": "first"}, "state": "active"}):
+            f.write(json.dumps(r) + "\n")
+    with open(ret, "w") as f:
+        f.write(RETRIEVE_FIXTURE)
+    with open(os.path.join(learn, "cards", "omega-01-hello.json"), "w") as f:
+        json.dump({"id": "omega-01-hello", "title": "Your first Omega function", "keywords": ["first function", "fn"],
+                   "summary": "Write fn f a uint to uint.", "evidence_level": "EXERCISED"}, f)
+    with open(os.path.join(learn, "qa.jsonl"), "w") as f:
+        f.write(json.dumps({"q": "How do I write my first Omega function?", "alt": [], "card": "omega-01-hello",
+                            "a": "Start with fn f a uint to uint, then ret a."}) + "\n")
+    prompt = open(a.system_prompt, encoding="utf-8").read()
+
+    def seed(entries):
+        p = os.path.join(d, "answers.json")
+        with open(p, "w") as f:
+            json.dump({"format": 1, "entries": entries}, f)
+        return p
+
+    def entry(id, q, ans, catalog_text=None, alt=()):
+        cards = allen_speed.Cards(det, ret, learn)
+        cards.refresh()
+        psha = allen_speed.sha256_bytes(allen_speed.join_system(
+            prompt, catalog_text or open(cat).read()).encode())
+        return allen_speed.make_entry({"id": id, "q": q, "alt": list(alt)}, ans, psha, cards, "m", "2026-10-26T00:00:00Z")
+
+    def run(g, msgs, headers=None, ip="203.0.113.70"):
+        c, r = g.post("/allen/api/chat", {"messages": msgs}, ip=ip, headers=headers)
+        evs = [(e, x) for e, x, _ in events(r)] if r.status == 200 else []
+        meta = [x for e, x in evs if e == "meta"]
+        return {"status": r.status, "header": r.getheader("X-Allen-Source"), "meta": meta[0]["source"] if meta else None,
+                "text": "".join(x for e, x in evs if e is None), "done": evs[-1][1] if evs and evs[-1][0] == "done" else None}
+
+    def u(t):
+        return [{"role": "user", "content": t}]
+
+    s = scripted(tokens=("from", " model"))
+    cx = cortex_stub()
+    secret = "s" * 40
+    flags = ["--catalog", cat, "--catalog-detail", det, "--catalog-retrieve", ret, "--learn-dir", learn,
+             "--answers", seed([entry("omega", "What is Omega?", "Omega is Drake's language.", alt=["Tell me about Omega"]),
+                                entry("stale", "What is aienux?", "Old.", catalog_text="another catalog")]),
+             "--answers-state", state, "--cache-tps", "200", "--chat-burst", "100", "--regen-per-hour", "0",
+             "--memory-url", "http://127.0.0.1:%d" % cx.server_address[1]]
+    env = {"CORTEX_VISITORS_TOKEN": "t" * 40, "ALLEN_VISITOR_SECRET": secret}
+    g = Gateway(a, *flags, upstream="127.0.0.1:%d" % s.server_address[1], env=env)
+    try:
+        n0 = len(s.posts)
+        r = run(g, u("Hi Allen!"))
+        check("greeting answered statically, zero model calls", r["meta"] == "static" and r["header"] == "static"
+              and r["text"] == allen_speed.STATIC["hi"] and r["done"] and len(s.posts) == n0,
+              "%s, %d upstream posts" % ({k: r[k] for k in ("meta", "header", "done")}, len(s.posts) - n0))
+        r = run(g, u("Hi Allen, what is Omega?"))
+        check("cached answer for a normalized match, zero model calls", r["meta"] == "cache" and r["header"] == "cache"
+              and r["text"] == "Omega is Drake's language." and r["done"]["source"] == "cache" and len(s.posts) == n0,
+              "%s %r, %d posts" % (r["meta"], r["text"][:40], len(s.posts) - n0))
+        r = run(g, u("tell me what omega is"))
+        check("same content words match the cache", r["meta"] == "cache" and len(s.posts) == n0, "%s" % r["meta"])
+        r = run(g, u("What is Omega not?"))
+        check("different content words go to the model (control)", r["meta"] in ("warm", "cold")
+              and r["text"] == "from model" and len(s.posts) == n0 + 1, "%s %r" % (r["meta"], r["text"]))
+        r = run(g, u("What is aienux?"))
+        check("stale entry (other catalog) is never served", r["meta"] != "cache" and r["text"] == "from model",
+              "%s %r" % (r["meta"], r["text"]))
+        r = run(g, [{"role": "user", "content": "Hello"}, {"role": "assistant", "content": "Hi."},
+                    {"role": "user", "content": "What is Omega?"}])
+        check("cache only on a first turn", r["meta"] == "warm" and r["text"] == "from model", "%s" % r["meta"])
+        r = run(g, u("thanks"), ip="203.0.113.71")
+        check("thanks answered statically", r["meta"] == "static" and r["text"] == allen_speed.STATIC["thanks"], r["meta"])
+        r = run(g, [{"role": "user", "content": "Hello"}, {"role": "assistant", "content": "Hi."},
+                    {"role": "user", "content": "hi"}])
+        check("greeting later in a conversation goes to the model (control)", r["meta"] == "warm", "%s" % r["meta"])
+        # notes recalled for this visitor: no cache (the answer may depend on what Allen knows)
+        key = "5" * 32
+        vid = hmac.new(secret.encode(), key.encode(), hashlib.sha256).hexdigest()
+        allen_memory.Memory("http://127.0.0.1:%d" % cx.server_address[1], "t" * 40).remember(vid, ["Builds kelp boats"])
+        r = run(g, u("What is Omega?"), headers={"X-Allen-Key": key, "X-Allen-Conversation": "a" * 16})
+        check("visitor with recalled notes is not served from the cache", r["meta"] != "cache"
+              and r["text"] == "from model", "%s" % r["meta"])
+        r = run(g, u("What is Omega?"), headers={"X-Allen-Key": key, "X-Allen-Anonymous": "1"})
+        check("same visitor anonymous: cache (control)", r["meta"] == "cache", "%s" % r["meta"])
+        # curriculum answers verbatim; lesson cards and repo cards appended to the user turn
+        r = run(g, u("How do I write my first Omega function?"))
+        check("lesson Q&A served verbatim from the curriculum", r["meta"] == "cache"
+              and r["text"] == "Start with fn f a uint to uint, then ret a.", "%s %r" % (r["meta"], r["text"][:40]))
+        n1 = len(s.posts)
+        run(g, u("Show me the first function in omega-mv please and explain"))
+        msgs = s.posts[-1][1]["messages"]
+        system_ok = msgs[0]["content"] == allen_speed.join_system(prompt, open(cat).read())
+        check("system text is exactly prompt + catalog; cards ride on the user turn", len(s.posts) == n1 + 1 and system_ok
+              and "- omega-mv: The Omega compiler." in msgs[-1]["content"]
+              and "Your first Omega function (omega-01-hello" in msgs[-1]["content"]
+              and "omega-mv" not in msgs[0]["content"].split("omega-mv: the Omega compiler")[-1],
+              "system ok %s, last user turn %r" % (system_ok, msgs[-1]["content"][-160:]))
+        two = [{"role": "user", "content": "What changed in omega-mv lately?"}, {"role": "assistant", "content": "x"},
+               {"role": "user", "content": "And now?"}]
+        run(g, two)
+        msgs = s.posts[-1][1]["messages"]
+        first = [m for m in msgs if m["role"] == "user" and m["content"].startswith("What changed in omega-mv")]
+        check("earlier user turns keep their cards (prompt grows byte-stably)", len(first) == 1
+              and "- omega-mv:" in first[0]["content"] and msgs[-1]["content"] == "And now?",
+              "%r" % [m["content"][:60] for m in msgs[-3:]])
+        # a catalog change makes the cached entry stale at once (key = prompt + catalog)
+        with open(cat, "a") as f:
+            f.write("aienux: the kernel\n")
+        time.sleep(0.05)
+        r = run(g, u("What is Omega?"))
+        check("catalog change: cached answer no longer served", r["meta"] != "cache" and r["text"] == "from model",
+              "%s" % r["meta"])
+    finally:
+        g.close()
+    # meta source on the model path follows the warm thread: warm after a warm, cold once taken
+    s2 = scripted(tokens=("w",))
+    g = Gateway(a, "--warm-every", "1", upstream="127.0.0.1:%d" % s2.server_address[1])
+    try:
+        time.sleep(7)
+        r1 = run(g, u("first visitor"), ip="203.0.113.80")
+        r2 = run(g, u("second visitor, right after"), ip="203.0.113.81")
+        check("first turn after a warm is 'warm'; the next before re-warm is 'cold'",
+              r1["meta"] == "warm" and r1["header"] == "warm" and r2["meta"] == "cold" and r1["done"]["source"] == "warm",
+              "%s then %s" % (r1["meta"], r2["meta"]))
+    finally:
+        g.close()
+        s2.shutdown()
+    # the regenerator replaces a stale entry through the model, keyed to the live files
+    s.note = "Regenerated: aienux is the kernel."
+    # argparse keeps the last --regen-per-hour
+    g = Gateway(a, *flags, "--regen-per-hour", "5", upstream="127.0.0.1:%d" % s.server_address[1], env=env)
+    try:
+        # both seed entries are stale now (the catalog changed above); one regenerates per 20 s poll
+        end = time.monotonic() + 75
+        path = os.path.join(state, "answers.json")
+
+        def regenerated():
+            try:
+                return {e["id"] for e in json.load(open(path))["entries"]} >= {"omega", "stale"}
+            except (OSError, ValueError, KeyError):
+                return False
+        while time.monotonic() < end and not regenerated():
+            time.sleep(1)
+        regen = [p for _, p in s.posts if not p.get("stream") and p.get("temperature") == 0 and p.get("max_tokens") != 1
+                 and p["messages"][-1]["content"].startswith("What is aienux?")]
+        r = run(g, u("What is aienux?"), ip="203.0.113.90") if regenerated() else {}
+        layout = regen and regen[0]["messages"][1]["content"] == "Hello Allen. I am anonymous." \
+            and regen[0]["messages"][0]["content"] == allen_speed.join_system(prompt, open(cat).read())
+        check("stale entries regenerated through the model with the first-turn layout, then served",
+              bool(layout) and r.get("meta") == "cache" and r.get("text") == s.note,
+              "%d regen posts, layout %s, then %s %r" % (len(regen), bool(layout), r.get("meta"), r.get("text", "")[:40]))
+    finally:
+        g.close()
+        s.shutdown()
+        cx.shutdown()
+        shutil.rmtree(d, ignore_errors=True)
 
 
 TOKEN = "console-test-token-" + "x" * 20
@@ -805,9 +985,9 @@ def anon_tests(a):
                                                                         len(cx.writes) - before))
         # Greeting variant follows the headers: key -> remember greeting, anonymous -> anon greeting.
         s.posts.clear()
-        chat_events(g, "hi", headers={"X-Allen-Key": k1}, ip="203.0.113.31")
-        chat_events(g, "hi", headers={"X-Allen-Key": k1, "X-Allen-Anonymous": "1"}, ip="203.0.113.32")
-        chat_events(g, "hi", ip="203.0.113.33")
+        chat_events(g, "What is new?", headers={"X-Allen-Key": k1}, ip="203.0.113.31")
+        chat_events(g, "What is new?", headers={"X-Allen-Key": k1, "X-Allen-Anonymous": "1"}, ip="203.0.113.32")
+        chat_events(g, "What is new?", ip="203.0.113.33")
         sent = [p[1]["messages"] for p in s.posts if p[1].get("stream")]
         greet = [m[2]["content"][:60] for m in sent]
         check("greeting variant by headers (remember with key, anon otherwise)",
@@ -875,7 +1055,7 @@ def offline_tests(a):
         g = Gateway(a, *flags, upstream="127.0.0.1:%d" % s.server_address[1])
         try:
             t0 = time.monotonic()
-            c, r = g.post("/allen/api/chat", chat("hello"))
+            c, r = g.post("/allen/api/chat", chat("Tell me about the stars."))
             evs = [(e, d) for e, d, _ in events(r)]
             dt = time.monotonic() - t0
             last = evs[-1] if evs else None
@@ -891,7 +1071,7 @@ def offline_tests(a):
     g = Gateway(a, "--busy-at", "0", "--queue-wait", "3", upstream="127.0.0.1:%d" % s.server_address[1])
     try:
         t0 = time.monotonic()
-        c, r = g.post("/allen/api/chat", chat("hello"))
+        c, r = g.post("/allen/api/chat", chat("Tell me about the stars."))
         evs = [(e, d) for e, d, _ in events(r)]
         check("health back-off holds requests and gives up", evs and evs[0][0] == "queue"
               and evs[-1] == ("error", evs[-1][1]) and evs[-1][1]["code"] == "busy"
@@ -1112,7 +1292,7 @@ def main():
     for name, fn in (("offline", offline_tests), ("spool", spool_tests), ("pool", pool_tests),
                      ("relay", relay_tests), ("live", live_tests), ("anon", anon_tests),
                      ("summary", summary_tests), ("volunteer", volunteer_tests),
-                     ("warm", warm_tests)):
+                     ("warm", warm_tests), ("speed", speed_tests)):
         if not only or name in only.split(","):
             fn(a)
     if not a.skip_model:

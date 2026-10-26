@@ -21,6 +21,11 @@ ExecStart=/usr/bin/python3 -I /opt/allen-chat/allen_chat.py \
   --system-prompt /opt/allen-chat/system-prompt.txt \
   --catalog /var/lib/allen-catalog/catalog.txt \
   --areas-file /var/lib/allen-catalog/areas.txt \
+  --catalog-detail /var/lib/allen-catalog/catalog-detail.jsonl \
+  --catalog-retrieve /opt/allen-catalog/retrieve.py \
+  --learn-dir /opt/allen-chat/learn \
+  --answers /opt/allen-chat/answers.json \
+  --answers-state /var/lib/allen-chat/answers \
   --omc /opt/allen-chat/omc \
   --irwasm /opt/allen-chat/irwasm \
   --spool-in /var/lib/allen-chat/spool-in \
@@ -49,7 +54,7 @@ PrivateUsers=yes
 ProtectProc=invisible
 ProtectSystem=strict
 ProtectHome=yes
-ReadWritePaths=/var/lib/allen-chat/spool-in /var/lib/allen-chat/contacts-drop /var/lib/allen-chat/relay-drop /var/lib/allen-chat/console
+ReadWritePaths=/var/lib/allen-chat/spool-in /var/lib/allen-chat/contacts-drop /var/lib/allen-chat/relay-drop /var/lib/allen-chat/console /var/lib/allen-chat/answers
 InaccessiblePaths=-/var/lib/allen-contacts -/var/lib/omega-pusher -/var/lib/allen-relay
 PrivateTmp=yes
 PrivateDevices=yes

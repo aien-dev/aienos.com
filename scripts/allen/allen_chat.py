@@ -62,6 +62,8 @@ from urllib.parse import parse_qs, urlsplit
 # python3 -I drops the script directory from sys.path; the directory is a read-only bind.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import allen_spool  # noqa: E402
+import allen_speed  # noqa: E402
+import allen_transcribe  # noqa: E402  (POST transcribe: push-to-talk, off unless --whisper-cli)
 
 try:
     import allen_memory  # noqa: E402  (isolated visitor Cortex client; optional)
@@ -86,6 +88,8 @@ GREETING_REMEMBER = ("Hey, I'm Allen. It's nice to meet you! You don't have to t
                      "remember who you are and we can pick up where we left off. We can talk about all kinds "
                      "of good things in the universe.")
 GREETING_ANON = "Hey, I'm Allen. It's nice to meet you! We can talk about all kinds of good things in the universe."
+OPEN_USER = "Hello Allen."
+OPEN_USER_ANON = "Hello Allen. I am anonymous."
 
 MODEL = "qwen3.6-35b-a3b-fp8"
 BWRAP = "/usr/bin/bwrap"
@@ -733,8 +737,15 @@ class App:
         self.day = (None, 0)
         self.day_lock = threading.Lock()
         self.areas_cache = (0.0, None)
-        self.catalog_cache = (0.0, None)
+        self.catalog_cache = (0.0, None, self.system_sha)
         self.rewarm = {"remember": threading.Event(), "anon": threading.Event()}
+        # Whether the warm thread last left that variant's opening snapshot in a free row (set
+        # by a completed warm, cleared when a first turn takes it): meta "warm" versus "cold".
+        self.ready = {"remember": False, "anon": False}
+        self.cards = allen_speed.Cards(args.catalog_detail, args.catalog_retrieve, args.learn_dir)
+        self.answers = (allen_speed.Answers(args.answers, args.answers_state)
+                        if args.answers or args.answers_state else None)
+        self.regens = collections.deque()  # times of answer regenerations in the last hour
         secret = os.environ.get("ALLEN_VISITOR_SECRET", "").strip()
         self.visitor_secret = secret.encode() if len(secret) >= 32 else None
         token = os.environ.get("CORTEX_VISITORS_TOKEN", "").strip()
@@ -785,6 +796,10 @@ class App:
         if rc != 0 or not out:
             sys.exit("allen-chat: the compile sandbox does not work here (rc %s: %s); refusing to start"
                      % (rc, (err or b"").decode("utf-8", "replace").strip()[:200]))
+        self.transcribe_rate = Buckets(args.chat_burst, args.chat_refill)  # the chat route's limits
+        self.transcriber = (allen_transcribe.Transcriber(
+            args.whisper_cli, args.whisper_model, args.ffmpeg, args.transcribe_threads, args.transcribe_cap,
+            args.transcribe_max_bytes) if args.whisper_cli else None)
 
     def drop(self, rec, d=None, name=None):
         """Write one record into a drop directory (write, never read): contacts by default."""
@@ -822,8 +837,20 @@ class App:
             return self.system
         if self.catalog_cache[0] != mtime:
             with open(path, encoding="utf-8") as f:
-                self.catalog_cache = (mtime, self.system.rstrip("\n") + "\n\n" + f.read())
+                text = allen_speed.join_system(self.system, f.read())
+            self.catalog_cache = (mtime, text, hashlib.sha256(text.encode()).hexdigest())
         return self.catalog_cache[1]
+
+    def prefix_sha(self):
+        """sha256 of the current system text (prompt + catalog): the answer cache's key."""
+        text = self.system_text()
+        cached = self.catalog_cache
+        return cached[2] if text is cached[1] else hashlib.sha256(text.encode()).hexdigest()
+
+    def augment(self, messages):
+        """Visitor turns with each user turn's cards (allen_speed.augment); no cards: unchanged."""
+        self.cards.refresh()
+        return allen_speed.augment(messages, self.cards)
 
     def vid(self, handler):
         """HMAC of the visitor key from the request header; the raw key is never kept.
@@ -981,8 +1008,14 @@ class App:
                     c = http.client.HTTPConnection(self.up.host, self.up.port, timeout=120)
                     c.request("POST", "/v1/chat/completions", body,
                               dict(self.up.headers, **{"Content-Type": "application/json"}))
-                    c.getresponse().read(65536)
+                    r = c.getresponse()
+                    r.read(65536)
                     c.close()
+                    if r.status != 200:
+                        self.stats.add("prefix_warm_status_%d" % r.status)
+                        continue
+                    for v in variants:
+                        self.ready[v] = not self.rewarm[v].is_set()
                     done = time.monotonic()
                     sent_for[line], last[line] = text, done
                     if done - t0 > self.args.warm_cold_s:
@@ -996,6 +1029,60 @@ class App:
                         streak[line], hold[line] = 0, 0.0
                 except (OSError, ValueError, http.client.HTTPException):
                     self.stats.add("prefix_warm_error")
+
+    def regen(self):
+        """Regenerate answer-cache entries whose key no longer matches (prompt, catalog or their
+        stable cards changed): one at a time, at most --regen-per-hour, only while the shared
+        server reports nothing in flight and no public request runs or waits, holding a public
+        slot while it runs. The request is a visitor's exact anonymous first turn (temperature
+        0), so it takes the anonymous opening snapshot; the warm thread re-warms it after."""
+        while True:
+            time.sleep(20)
+            try:
+                self.answers.reload()
+                self.cards.refresh()
+                psha = self.prefix_sha()
+                todo = self.answers.stale(psha, self.cards)
+                now = time.monotonic()
+                while self.regens and now - self.regens[0] > 3600:
+                    self.regens.popleft()
+                if not todo or len(self.regens) >= self.args.regen_per_hour:
+                    continue
+                with self.gate.cond:
+                    if self.gate.running or self.gate.waiting or not self.up.admit() or self.up.health_inflight:
+                        continue
+                    self.gate.running += 1
+            except (OSError, ValueError):
+                self.stats.add("answers_regen_error")
+                continue
+            try:
+                e = sorted(todo, key=lambda x: x["id"])[0]
+                self.regens.append(time.monotonic())
+                text = self.system_text()
+                body = json.dumps({"model": MODEL, "max_tokens": self.args.max_tokens, "temperature": 0,
+                                   "stream": False,
+                                   "messages": allen_speed.generation_messages(
+                                       text, self.opening("anon"), e["q"], self.cards)}).encode()
+                c = http.client.HTTPConnection(self.up.host, self.up.port, timeout=300)
+                c.request("POST", "/v1/chat/completions", body,
+                          dict(self.up.headers, **{"Content-Type": "application/json"}))
+                r = c.getresponse()
+                out = json.loads(r.read(1 << 20))
+                c.close()
+                self.ready["anon"] = False
+                self.rewarm["anon"].set()
+                ch = out["choices"][0]
+                answer = (ch["message"]["content"] or "").strip()
+                if r.status != 200 or ch.get("finish_reason") != "stop" or not answer \
+                        or hashlib.sha256(text.encode()).hexdigest() != psha:
+                    self.stats.add("answers_regen_rejected")
+                    continue
+                self.answers.put(allen_speed.make_entry(e, answer, psha, self.cards, MODEL, utc_now()))
+                self.stats.add("answers_regenerated")
+            except (OSError, ValueError, KeyError, IndexError, TypeError, http.client.HTTPException):
+                self.stats.add("answers_regen_error")
+            finally:
+                self.gate.done()
 
     def submit_day(self):
         """Global cap on submissions per UTC day, on top of the per-address bucket."""
@@ -1139,6 +1226,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.say()
         if r == "project-summary":
             return self.project_summary()
+        if r == "transcribe":
+            return allen_transcribe.handle(self)
         self.send_json(404, {"error": "not_found"})
 
     def validate(self, req):
@@ -1170,15 +1259,56 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(line.encode())
         self.wfile.flush()
 
-    def sse_headers(self):
+    def sse_headers(self, source=None):
         self.close_connection = True
         self.send_response(200)
         self.send_header("Content-Type", "text/event-stream; charset=utf-8")
         self.send_header("Cache-Control", "no-store")
         self.send_header("X-Accel-Buffering", "no")
         self.send_header("X-Content-Type-Options", "nosniff")
+        if source:
+            self.send_header("X-Allen-Source", source)
         self.send_header("Connection", "close")
         self.end_headers()
+
+    def fast_reply(self, messages):
+        """A first turn answered without the model: a pure greeting or thanks (static), or a
+        canonical answer whose key matches the current prompt, catalog and cards (cache), only
+        when no notes are recalled for this visitor. Streamed in token-sized pieces at the
+        model's measured pace. True when answered."""
+        app = self.app
+        if len(messages) != 1:
+            return False
+        text, source = allen_speed.static_reply(messages), "static"
+        if text is None and app.answers is not None:
+            entry, how = app.answers.lookup(messages[0]["content"], app.prefix_sha(), app.cards)
+            if entry is None:
+                return False
+            if app.notes_for(app.vid(self), self.conversation() or ""):
+                app.stats.add("cache_skipped_notes")
+                return False
+            text, source = entry["a"], "cache"
+            app.stats.add("cache_hit_" + how)
+        if text is None:
+            return False
+        app.stats.add("chat_" + source)
+        t0 = time.monotonic()
+        parts = allen_speed.pieces(text)
+        self.sse_headers(source)
+        try:
+            self.sse("start", {"model": MODEL, "queued_ms": 0, "remembered": False})
+            self.sse("meta", {"source": source})
+            gap = 1.0 / app.args.cache_tps if app.args.cache_tps > 0 else 0.0
+            for i, p in enumerate(parts):
+                if gap and i:
+                    time.sleep(gap)
+                self.sse(None, p)
+            self.sse("done", {"prompt_tokens": 0, "completion_tokens": len(parts), "finish": "stop",
+                              "upstream_ttft_ms": 0, "upstream_ms": int((time.monotonic() - t0) * 1000),
+                              "source": source})
+        except (BrokenPipeError, ConnectionResetError, socket.timeout, TimeoutError):
+            app.stats.add("client_gone")
+        return True
 
     def conversation(self):
         conv = self.headers.get("X-Allen-Conversation", "").strip()
@@ -1205,12 +1335,18 @@ class Handler(BaseHTTPRequestHandler):
         retry = app.chat_rate.take(app.client_key(self))
         if retry:
             return self.refuse(429, "rate", "You are sending messages quickly. Try again shortly.", retry)
+        if self.fast_reply(req["messages"]):
+            return
         if app.volunteer and self.volunteer_wanted() and self.volunteer(req["messages"]):
             return
         ticket = app.gate.enter()
         if ticket is None:
             return self.refuse(503, "busy", "Allen has a full queue right now. Try again shortly.", 10)
-        self.sse_headers()
+        variant = app.variant(self)
+        # Predicted from the warm thread's state: a first turn reuses the opening snapshot only
+        # if it is still in a free row; later turns reuse their own row's history.
+        source = "warm" if len(req["messages"]) > 1 or app.ready[variant] else "cold"
+        self.sse_headers(source)
         started = False
         try:
             t0 = time.monotonic()
@@ -1235,7 +1371,8 @@ class Handler(BaseHTTPRequestHandler):
             conv = self.headers.get("X-Allen-Conversation", "").strip()
             notes = app.notes_for(vid, conv if CONV.match(conv) else "")
             self.sse("start", {"model": MODEL, "queued_ms": queued_ms, "remembered": bool(notes)})
-            reply = self.relay(req["messages"], notes, app.variant(self))
+            self.sse("meta", {"source": source})
+            reply = self.relay(req["messages"], notes, variant, source)
             if vid and app.memory and reply:
                 app.queue_notes(vid, req["messages"][-1]["content"], reply)
         except (BrokenPipeError, ConnectionResetError, socket.timeout, TimeoutError):
@@ -1351,13 +1488,15 @@ class Handler(BaseHTTPRequestHandler):
             c.close()
         return True
 
-    def relay(self, messages, notes, variant):
+    def relay(self, messages, notes, variant, source=None):
         app = self.app
+        if len(messages) == 1:
+            app.ready[variant] = False  # this first turn takes that variant's opening snapshot
         body = json.dumps({
             "model": MODEL,
             "messages": ([{"role": "system", "content": app.system_text()}] + app.opening(variant)
                          + ([{"role": "user", "content": notes}, {"role": "assistant", "content": "(noted)"}]
-                            if notes else []) + messages),
+                            if notes else []) + app.augment(messages)),
             "stream": True,
             "stream_options": {"include_usage": True},
             "max_tokens": app.args.max_tokens,
@@ -1429,8 +1568,6 @@ class Handler(BaseHTTPRequestHandler):
                         said.append(text)
                     self.sse(None, text)
             app.stats.add("chat_completed")
-            if len(messages) == 1:
-                app.rewarm[variant].set()  # this first turn consumed that variant's ready snapshot
             app.stats.add("tokens_out", int(usage.get("completion_tokens", n)))
             self.sse("done", {
                 "prompt_tokens": int(usage.get("prompt_tokens", 0)),
@@ -1438,6 +1575,7 @@ class Handler(BaseHTTPRequestHandler):
                 "finish": finish or "stop",
                 "upstream_ttft_ms": int(((first or time.monotonic()) - t0) * 1000),
                 "upstream_ms": int((time.monotonic() - t0) * 1000),
+                "source": source,
             })
             return "".join(said)
         except (socket.timeout, TimeoutError):
@@ -1449,6 +1587,8 @@ class Handler(BaseHTTPRequestHandler):
             app.stats.add("upstream_error")
             self.sse("error", {"code": "upstream", "message": "Allen could not answer just now."})
         finally:
+            if len(messages) == 1:
+                app.rewarm[variant].set()  # re-warm that variant's opening snapshot, which this turn used
             if reusable:
                 app.up.give_back(c)
             else:
@@ -1730,7 +1870,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def presence(self):
         online, hours = self.app.presence.get()
-        self.send_json(200, {"online": online, "hours": hours, "handoff": online and self.app.live.can_take()})
+        self.send_json(200, {"online": online, "hours": hours, "handoff": online and self.app.live.can_take(),
+                             "transcribe": self.app.transcriber is not None})
 
     def handoff(self):
         """The visitor asks for Drake live; allowed only while he is online."""
@@ -2140,6 +2281,15 @@ def main():
     ap.add_argument("--submit-per-day", type=int, default=40)
     ap.add_argument("--contacts-drop", help="write-only drop directory for consented introductions")
     ap.add_argument("--catalog", help="public catalog text appended to the system prompt")
+    ap.add_argument("--catalog-detail", help="catalog-detail.jsonl: per-repo cards appended to each user turn")
+    ap.add_argument("--catalog-retrieve", help="the catalog's retrieve.py (load/select over --catalog-detail)")
+    ap.add_argument("--learn-dir", help="teach curriculum directory (cards/*.json lesson cards, qa.jsonl answers)")
+    ap.add_argument("--answers", help="reviewed answer-cache seed file (answers.json, read-only)")
+    ap.add_argument("--answers-state", help="writable directory where regenerated cache answers are kept")
+    ap.add_argument("--cache-tps", type=float, default=40,
+                    help="pieces per second when streaming a cached or static answer (the model's pace)")
+    ap.add_argument("--regen-per-hour", type=int, default=6,
+                    help="answer-cache entries regenerated per hour at most, only while the server is idle")
     ap.add_argument("--warm-every", type=float, default=30,
                     help="seconds between keep-warm requests for each opening snapshot (0 disables). "
                     "The server gives a cold request the least recently used free row, and other "
@@ -2147,9 +2297,9 @@ def main():
                     "snapshot is there) keeps both warm rows recently used")
     ap.add_argument("--warm-cold-s", type=float, default=3.0,
                     help="a warm slower than this was a cold prefill (back-off and hourly cap apply)")
-    ap.add_argument("--open-user", default="Hello Allen.",
+    ap.add_argument("--open-user", default=OPEN_USER,
                     help="fixed first user line before the remember-me greeting")
-    ap.add_argument("--open-user-anon", default="Hello Allen. I am anonymous.",
+    ap.add_argument("--open-user-anon", default=OPEN_USER_ANON,
                     help="fixed first user line before the anonymous greeting; a different line "
                     "gives that variant its own warm row")
     ap.add_argument("--memory-url", help="isolated visitor Cortex base URL (loopback); needs "
@@ -2165,6 +2315,12 @@ def main():
                     "needs ALLEN_CONSOLE_TOKEN_SHA256 in the environment")
     ap.add_argument("--console-state", help="directory for presence.json (Drake's availability)")
     ap.add_argument("--heartbeat", type=float, default=15, help="seconds between session stream heartbeats")
+    ap.add_argument("--whisper-cli", help="pinned static whisper-cli: enables POST transcribe (push-to-talk)")
+    ap.add_argument("--whisper-model", help="pinned ggml whisper model for --whisper-cli")
+    ap.add_argument("--ffmpeg", default="/usr/bin/ffmpeg", help="Opus decoder for POST transcribe (sandboxed)")
+    ap.add_argument("--transcribe-threads", type=int, default=4)
+    ap.add_argument("--transcribe-cap", type=int, default=1, help="transcriptions at once (503 busy beyond)")
+    ap.add_argument("--transcribe-max-bytes", type=int, default=1 << 20)
     args = ap.parse_args()
     host, _, port = args.listen.rpartition(":")
     if host in ("", "0.0.0.0", "::"):
@@ -2187,6 +2343,7 @@ def main():
             time.sleep(args.stats_every)
             app.chat_rate.sweep()
             app.omega_rate.sweep()
+            app.transcribe_rate.sweep()
             app.relay_rate.sweep()
             app.handoff_rate.sweep()
             app.live.sweep()
@@ -2203,6 +2360,8 @@ def main():
         threading.Thread(target=app.note_writer, daemon=True).start()
     if args.warm_every > 0:
         threading.Thread(target=app.warm, daemon=True).start()
+    if app.answers is not None and args.regen_per_hour > 0:
+        threading.Thread(target=app.regen, daemon=True).start()
     print("allen-chat listening on %s, upstream %s, cap %d, system prompt sha256 %s, console %s"
           % (args.listen, args.upstream, args.cap, app.system_sha, args.console_listen or "off"), flush=True)
     srv.serve_forever()
