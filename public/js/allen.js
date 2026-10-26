@@ -989,7 +989,7 @@
   }
   function volunteerModel(value) {
     const oh = value && typeof value.oh === 'object' && value.oh !== null && !Array.isArray(value.oh) ? value.oh : null;
-    if (!oh) return '';
+    if (!oh || oh.answered_by !== 'volunteer') return '';
     return typeof oh.model === 'string' && oh.model ? oh.model.slice(0, 80) : 'model not reported';
   }
   /* The badge says which mode the chat is in; its one button switches. */
@@ -1762,7 +1762,9 @@
       } else if (!response.body || !(response.headers.get('content-type') || '').includes('text/event-stream')) {
         clock.outcome = 'Allen answered in a form this page does not read.';
       } else {
-        const header = response.headers.get('X-OH-Volunteer');
+        /* The coordinator names the volunteer's model in X-OH-Model, and the
+           final chunk's oh object says the same. */
+        const header = response.headers.get('X-OH-Model') || response.headers.get('X-OH-Volunteer');
         if (header) clock.volunteer = /^[\x20-\x7e]{1,80}$/.test(header) && header !== '1' ? header : 'model not reported';
         await stream(response.body, clock, render);
       }

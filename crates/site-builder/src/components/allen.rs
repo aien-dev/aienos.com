@@ -231,7 +231,7 @@ mod tests {
         // and a volunteer's reply says so.
         let script = include_str!("../../../../public/js/allen.js");
         assert!(SKELETON.contains("<input type=\"checkbox\" id=\"allen-volunteer\"> <span>Let a volunteer&#39;s Spark answer me when Drake&#39;s is busy.</span>"));
-        assert!(SKELETON.contains("If you tick this and my Spark is full, your messages in this chat go to a computer owned by a volunteer, outside my house. It gets only this anonymous conversation: no name, contact details or memories. I check a sample of volunteer replies, not every one. A volunteer could still send a wrong or bad reply that I don&#39;t catch. Each reply says which machine answered."));
+        assert!(SKELETON.contains("If you tick this and my Spark is full, your messages in this chat go to a computer owned by a volunteer, outside my house. It gets only the text of this anonymous conversation. I add no visitor key, stored memories, contact record or IP address, but anything you type here is sent as you typed it. I check a sample of volunteer replies, not every one. A volunteer could still send a wrong or bad reply that I don&#39;t catch. Each reply says which machine answered."));
         assert!(!SKELETON.contains("id=\"allen-volunteer\" checked"));
         assert_eq!(script.matches("'X-Allen-Volunteer'").count(), 1);
         let headers = function_body(script, "volunteerHeaders");
@@ -241,6 +241,8 @@ mod tests {
         // Remembered chat carries the key, so the volunteer header is never beside it.
         assert!(function_body(script, "keyHeaders").contains("if (!remembered) return { 'X-Allen-Anonymous': '1' };"));
         assert!(script.contains("`answered by a volunteer's Spark (${clock.volunteer})`"));
+        assert!(function_body(script, "volunteerModel").contains("oh.answered_by !== 'volunteer'"));
+        assert!(script.contains("response.headers.get('X-OH-Model')"));
     }
 
     #[test]
