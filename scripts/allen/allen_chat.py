@@ -71,6 +71,11 @@ try:
 except ImportError:
     allen_memory = None
 
+try:
+    import allen_voice  # noqa: E402  (Aien's pre-recorded clips; optional, missing = text only)
+except ImportError:
+    allen_voice = None
+
 KEY = re.compile(r"^[0-9a-f]{32}$")
 CONV = re.compile(r"^[0-9a-f]{16}$")
 EXTRACT_SYSTEM = (
@@ -811,6 +816,13 @@ class App:
         self.cards = allen_speed.Cards(args.catalog_detail, args.catalog_retrieve, args.learn_dir, args.catalog)
         self.answers = (allen_speed.Answers(args.answers, args.answers_state)
                         if args.answers or args.answers_state else None)
+        self.voice = None
+        if allen_voice and args.voice_catalog:
+            try:
+                self.voice = allen_voice.Voice(args.voice_catalog, features=[
+                    f.strip() for f in (args.voice_features or "").split(",") if f.strip()])
+            except (OSError, ValueError, KeyError, TypeError) as e:  # unreadable catalog: text only
+                print("allen-chat: voice catalog not loaded: %s" % type(e).__name__, file=sys.stderr, flush=True)
         self.regens = collections.deque()  # times of answer regenerations in the last hour
         secret = os.environ.get("ALLEN_VISITOR_SECRET", "").strip()
         self.visitor_secret = secret.encode() if len(secret) >= 32 else None
@@ -1373,7 +1385,7 @@ class Handler(BaseHTTPRequestHandler):
         app = self.app
         if len(messages) != 1:
             return False
-        text, source = allen_speed.static_reply(messages), "static"
+        text, source, answer_id = allen_speed.static_reply(messages), "static", None
         if text is None and app.answers is not None:
             entry, how = app.answers.lookup(messages[0]["content"], app.prefix_sha(), app.cards)
             if entry is None:
@@ -1381,17 +1393,18 @@ class Handler(BaseHTTPRequestHandler):
             if app.notes_for(app.vid(self), self.conversation() or ""):
                 app.stats.add("cache_skipped_notes")
                 return False
-            text, source = entry["a"], "cache"
+            text, source, answer_id = entry["a"], "cache", entry["id"]
             app.stats.add("cache_hit_" + how)
         if text is None:
             return False
         app.stats.add("chat_" + source)
         t0 = time.monotonic()
         parts = allen_speed.pieces(text)
+        voice = self.voice_clips(messages[0]["content"], answer_id)
         self.sse_headers(source)
         try:
             self.sse("start", {"model": MODEL, "queued_ms": 0, "remembered": False})
-            self.sse("meta", {"source": source})
+            self.sse("meta", {"source": source, "voice": voice})
             gap = 1.0 / app.args.cache_tps if app.args.cache_tps > 0 else 0.0
             for i, p in enumerate(parts):
                 if gap and i:
@@ -1403,6 +1416,24 @@ class Handler(BaseHTTPRequestHandler):
         except (BrokenPipeError, ConnectionResetError, socket.timeout, TimeoutError):
             app.stats.add("client_gone")
         return True
+
+    def voice_clips(self, user_text, answer_id):
+        """Pre-recorded clips for a first turn answered without the model, as the page player's
+        [{id, file, text, duration}]; [] keeps the reply text only. The page may send the
+        visitor's local hour (0-23) in X-Allen-Hour for a time-of-day greeting."""
+        app = self.app
+        if app.voice is None:
+            return []
+        hour = self.headers.get("X-Allen-Hour", "").strip()
+        hour = int(hour) if hour.isdigit() and int(hour) < 24 else None
+        try:
+            clips = app.voice.files(app.voice.pick(user_text, answer_id=answer_id, turn=0, hour=hour))
+        except Exception as e:  # noqa: BLE001  a clip-picking bug must never cost the visitor the answer
+            app.stats.add("voice_error")
+            print("allen-chat: voice pick failed: %s" % type(e).__name__, file=sys.stderr, flush=True)
+            return []
+        app.stats.add("voice_clips" if clips else "voice_none")
+        return clips
 
     def conversation(self):
         conv = self.headers.get("X-Allen-Conversation", "").strip()
@@ -2483,6 +2514,11 @@ def main():
     ap.add_argument("--answers-state", help="writable directory where regenerated cache answers are kept")
     ap.add_argument("--cache-tps", type=float, default=40,
                     help="pieces per second when streaming a cached or static answer (the model's pace)")
+    ap.add_argument("--voice-catalog", help="public/aien/voice/catalog.json: Aien's pre-recorded clips, "
+                    "offered in the meta event of static and cached replies (unset: text only)")
+    ap.add_argument("--voice-features", default="",
+                    help="comma list of live features that unlock gated clips (repo-coach, projects-github, "
+                    "pwa-install, voice-input); default none")
     ap.add_argument("--regen-per-hour", type=int, default=6,
                     help="answer-cache entries regenerated per hour at most, only while the server is idle")
     ap.add_argument("--warm-every", type=float, default=30,
