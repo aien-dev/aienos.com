@@ -28,14 +28,14 @@ pub fn render_start_page() -> Markup {
                         a href="/learn/" { "Start with a practical working method" }
                         ", then visit "
                         a href="/hive/" { "Hive" }
-                        " to watch Drake and the coding agents use it, including the corrections and failed attempts."
+                        " to watch me work with my coding agents, the wins and the retries both, because that is what building really looks like."
                     }
                 }
 
                 section class="narr-section" id="what" {
                     h2 { "1. What it is" }
                     p {
-                        "AIEN proposes structure. Omega makes that structure explicit and checkable. The machine tests it against reality under authority. The Turing measures what was learned. Cortex keeps the evidence, and the next search begins from what survived."
+                        "In Aien the AI suggests, the program explains, and a check confirms the result, so you can see exactly why it works. Omega is the language that makes each suggestion explicit and checkable. The Turing measures what was learned, and Cortex keeps the evidence for the next search."
                     }
                     p { (SLOGAN) }
                     p {
@@ -112,7 +112,7 @@ pub fn render_start_page() -> Markup {
                 section class="narr-section" id="boundaries" {
                     h2 { "5. Who and what is around it" }
                     p {
-                        "AienOS is built by M. Drake Stapleton. His "
+                        "I am M. Drake Stapleton, and I build AienOS. My "
                         a href="/engineer/" { "About the engineer" }
                         " section is the record of the person, not the project."
                     }
