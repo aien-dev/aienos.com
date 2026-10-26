@@ -176,6 +176,16 @@ rate-limit keys are salted BLAKE2 hashes held in memory. The journal gets one
 aggregate counter line every ten minutes. Introductions are the only personal
 data kept, only with consent, as described above.
 
+Every public POST passes a cross-site gate first: a request with an `Origin`
+header must come from `https://www.aienos.com` or `https://aienos.com` (more
+with `--allow-origin`), or it is refused 403; one without `Origin` but with
+`Sec-Fetch-Site` is a browser and refused 403 too; one with neither is a
+server-side client (the X bot, tests, curl) and is allowed. Then the body must
+be `Content-Type: application/json` (415 otherwise), except `transcribe`, which
+checks its own audio type. A cross-site "simple" request (text/plain or a form)
+therefore never runs on a visitor's IP allowance. The hub snippet applies the
+same rules before proxying.
+
 ## Reaching me (relay, live takeover, console)
 
 - `POST relay` drops a visitor-confirmed message into
@@ -198,7 +208,10 @@ data kept, only with consent, as described above.
   atlas-vault as `ALLEN_CONSOLE_TOKEN`; the gateway holds only its sha256
   (`ALLEN_CONSOLE_TOKEN_SHA256` in `/etc/allen-chat/env`). Sessions use an
   HttpOnly SameSite=Strict cookie that lasts 12 h, with a CSRF token on every
-  POST, no CORS and a pinned Host. Availability is kept in
+  POST, no CORS and a pinned Host. The cookie has no `Secure` flag on purpose:
+  the console is plain HTTP inside the tailnet (WireGuard-encrypted), where a
+  Secure cookie would never come back; the nft rule above is the compensating
+  control. Availability is kept in
   `/var/lib/allen-chat/console/presence.json`.
 - Anonymous mode: `X-Allen-Anonymous: 1` means no recall and no notes, whatever
   key is sent, and `introduce` answers 409 `anonymous`.

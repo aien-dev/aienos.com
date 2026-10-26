@@ -24,7 +24,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import allen_chat  # noqa: E402
 import allen_speed  # noqa: E402
 
-OPEN = "Hello Allen. I am measuring speed."
+OPEN = "Hello Aien. I am measuring speed."
 QUESTIONS = [
     ("What is CUDApp?", "What does omega-bridge do?"),
     ("Tell me about omnet.", "What is the atlas repo?"),

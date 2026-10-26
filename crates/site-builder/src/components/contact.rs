@@ -16,7 +16,7 @@ use maud::{html, Markup, PreEscaped};
 use crate::seo::{X_HANDLE, X_URL};
 
 pub const TITLE: &str = "Where I am and how to reach me | AienOS";
-pub const DESCRIPTION: &str = "How to reach Drake Stapleton: X @mdrakestapleton, email drake@aienos.com, Allen (who can pass a message to me or put you through when I'm online) and the aien-dev repositories on GitHub.";
+pub const DESCRIPTION: &str = "How to reach Drake Stapleton: X @mdrakestapleton, email drake@aienos.com, Aien (who can pass a message to me or put you through when I'm online) and the aien-dev repositories on GitHub.";
 pub const URL: &str = "https://www.aienos.com/contact/";
 pub const PATH: &str = "/contact/";
 pub const EMAIL: &str = "drake@aienos.com";

@@ -46,9 +46,10 @@ EXTERNAL = [
         r"EventSource", r"sendBeacon", r"\bimport\s*\(", r"\bimportScripts\b", r"\bwindow\.open\b",
     )
 ]
-# The lookbehind starts a match only at the beginning of a run of local-part characters,
-# so a long run without '@' is scanned once (linear), not once per start position.
-EMAIL = re.compile(r"(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+# Bounded by the RFC 5321 limits (local part 64, domain 253, label 63): every start
+# position scans at most ~380 characters, so the search is linear in the text length
+# (CodeQL py/polynomial-redos). A longer local part still matches on its last 64 chars.
+EMAIL = re.compile(r"[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,253}\.[A-Za-z]{2,63}")
 PHONE = re.compile(r"(?<![\w.])\+?\d[\d ().-]{7,}\d(?!\w|\.\d)")
 
 

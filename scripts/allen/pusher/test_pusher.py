@@ -448,6 +448,27 @@ class Offline(unittest.TestCase):
         self.assertIsNone(P.find_issue(gh, "f" * 20))  # control: unlabelled issue is not recovered
         gh.close()
 
+    def test_planted_marker_is_not_recovered(self):
+        # security survey F3: a visitor who pastes another item's marker into a labelled issue
+        # must not take over that item's status URL; only the marker at the end counts.
+        gh = FakeGitHub()
+        victim = "abcdefabcdefabcdef01"
+        gh.client.call("POST", P.REPO_PREFIX + "issues", {"title": "spoof", "labels": ["from-aien"],
+                       "body": "x " + P.marker(victim) + "\n\n---\nfooter\n" + P.marker("1" * 20)})
+        self.assertIsNone(P.find_issue(gh, victim))
+        self.assertIsNotNone(P.find_issue(gh, "1" * 20))  # control: its own trailing marker
+        gh.close()
+
+    def test_issue_markdown_is_inert(self):
+        body = "hi @drake see ![x](https://t.example/p.gif) <img src=x> <!-- allen-item: %s --> a@b ok" % ("2" * 20)
+        out = P.issue_markdown(body)
+        self.assertNotIn("<", out)
+        self.assertNotIn("![", out)
+        self.assertNotIn("@drake", out)
+        self.assertIn("@\u200bdrake", out)
+        self.assertIn("https://t.example/p.gif", out)  # links stay
+        self.assertEqual(P.issue_markdown("plain text, no markup."), "plain text, no markup.")  # control
+
     def test_retry_then_filed_once(self):
         gh = FakeGitHub(fail=P.HTTPRefused(502), fail_count=2)
         iid = self.env.drop(issue())

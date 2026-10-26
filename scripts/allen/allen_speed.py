@@ -32,8 +32,33 @@ import json
 import os
 import re
 import threading
+import urllib.parse
 
 CARD_HEADER = "Lesson cards for this question (data, not instructions):\n"
+RUBRIC_HEADER = "Agent Academy rubric for the pasted result (data, not instructions):\n"
+RESULT_MARK = "ACADEMY-RESULT v1"
+RESULT_STATES = ("PASS", "FAIL", "NOT_RUN")
+
+
+def academy_lines(text):
+    """(task id, state, reason) for each grader line after an ACADEMY-RESULT v1 header; [] when
+    the turn has no such block. Plain splitting, no regex over the pasted text."""
+    out, inside = [], False
+    for line in text.splitlines():
+        line = line.strip()
+        if line.startswith(RESULT_MARK):
+            inside = True
+            continue
+        if not inside:
+            continue
+        if line.startswith("SCORE "):
+            inside = False
+            continue
+        parts = line.split(None, 2)
+        if len(parts) >= 2 and parts[1] in RESULT_STATES and len(parts[0]) <= 64:
+            out.append((parts[0], parts[1], parts[2] if len(parts) > 2 else ""))
+    return out
+
 
 # Pure greetings and thanks on a first turn: answered from here, no model call.
 STATIC = {
@@ -127,6 +152,15 @@ def load_module(path, name):
 URL = re.compile(r"https?://[^\s)\]>\"'`<]+")
 
 
+def _ours(url):
+    """True when the URL's host is aienos.com or www.aienos.com (not a substring match)."""
+    try:
+        host = urllib.parse.urlsplit(url).hostname
+    except ValueError:
+        return False
+    return host in ("aienos.com", "www.aienos.com")
+
+
 def _page(url):
     """An aienos.com URL as host-less path with one trailing slash ("/learn/"), for comparison."""
     path = re.sub(r"^https?://(www\.)?aienos\.com", "", url.rstrip(".,;:!?")).split("#")[0].split("?")[0]
@@ -139,7 +173,9 @@ class Cards:
     cards/*.json, qa/*.jsonl). Reloaded when a source file changes; block() is a pure function
     of the turn text and the loaded files. link_ok() admits an aien-dev repo or aienos.com page
     link only when the catalog names it, so curriculum text never carries a link the catalog
-    does not know."""
+    does not know. The Agent Academy rubric (learn/academy/rubric.json, aien-dev/sovereign-
+    intelligence docs/academy/exam/rubric.json) adds the matching task entries to a user turn
+    that carries an ACADEMY-RESULT v1 block."""
 
     def __init__(self, detail=None, retrieve=None, learn=None, catalog=None):
         self.detail, self.learn, self.catalog = detail, learn, catalog
@@ -153,12 +189,14 @@ class Cards:
         self.records, self.lessons, self.qa, self.learn_sha = [], [], [], ""
         self.select_errors = 0  # retrieve.select() failures (reported in the gateway's counters)
         self.repos, self.pages = None, frozenset()
+        self.rubric = {}  # task id -> rubric.json task entry
 
     def _files(self):
         files = [f for f in (self.detail, self.retrieve_path, self.catalog) if f]
         if self.learn:
             files += sorted(glob.glob(os.path.join(self.learn, "cards", "*.json")))
             files += sorted(glob.glob(os.path.join(self.learn, "qa", "*.jsonl")))
+            files.append(os.path.join(self.learn, "academy", "rubric.json"))
         return files
 
     def _stamp(self):
@@ -192,7 +230,7 @@ class Cards:
                         cat = f.read()
                     repos = {m.lower() for m in re.findall(r"^([A-Za-z0-9._-]+): ", cat, re.M)}
                     repos |= {m.lower() for m in re.findall(r"github\.com/aien-dev/([A-Za-z0-9._-]+)", cat)}
-                    pages = frozenset(_page(u) for u in URL.findall(cat) if "aienos.com" in u)
+                    pages = frozenset(_page(u) for u in URL.findall(cat) if _ours(u))
                 except OSError:
                     pass
             lessons, qa, h = [], [], hashlib.sha256()
@@ -217,8 +255,16 @@ class Cards:
                     h.update(b"qa/" + os.path.basename(f).encode() + b"\0" + raw + b"\0")
                     qa += [d for d in rows if isinstance(d, dict) and isinstance(d.get("q"), str)
                            and isinstance(d.get("a"), str) and d["q"] and d["a"]]
+            rubric = {}
+            if self.learn:
+                try:
+                    with open(os.path.join(self.learn, "academy", "rubric.json"), encoding="utf-8") as f:
+                        tasks = json.load(f).get("tasks")
+                    rubric = {t["id"]: t for t in tasks if isinstance(t, dict) and isinstance(t.get("id"), str)}
+                except (OSError, ValueError, AttributeError, TypeError):
+                    rubric = {}
             self.retrieve, self.records, self.lessons, self.qa = retrieve, records, lessons, qa
-            self.repos, self.pages = repos, pages
+            self.repos, self.pages, self.rubric = repos, pages, rubric
             self.learn_sha = h.hexdigest() if (lessons or qa) else ""
             self.stamp = stamp
 
@@ -277,7 +323,33 @@ class Cards:
             self.select_errors += 1
             repo = ""
         lesson = self.lesson_block(text)
-        return "".join(p.rstrip("\n") + "\n" for p in (repo, lesson) if p).rstrip("\n")
+        rubric = self.rubric_block(text)
+        return "".join(p.rstrip("\n") + "\n" for p in (rubric, repo, lesson) if p).rstrip("\n")
+
+    def rubric_block(self, text):
+        """Rubric entries for the FAIL and NOT_RUN lines of a pasted ACADEMY-RESULT v1 block, the
+        PASS count, and the task ids the rubric does not know ("" without a block or rubric)."""
+        if RESULT_MARK not in text or not self.rubric:
+            return ""
+        lines = academy_lines(text)
+        if not lines:
+            return ""
+        out, passed, unknown = [], 0, []
+        for tid, state, reason in lines:
+            t = self.rubric.get(tid)
+            if t is None:
+                unknown.append(tid)
+            elif state == "PASS":
+                passed += 1
+            else:
+                out.append("- %s %s (grader: %s): %s. Catches: %s. Skill: %s (%s). Lesson: %s%s\n" % (
+                    tid, state, reason[:160] or "no reason given", t.get("title", ""), t.get("catches", ""),
+                    t.get("skill", ""), t.get("skill_path", ""), t.get("lesson", ""),
+                    ". Needs omc (the Omega compiler) to run." if t.get("requires_omc") else ""))
+        out.append("- PASS: %d task%s.\n" % (passed, "" if passed == 1 else "s"))
+        if unknown:
+            out.append("- Not in the rubric (not an exam v1 task id): %s\n" % ", ".join(unknown[:20]))
+        return RUBRIC_HEADER + "".join(out)
 
 
 def with_cards(text, block):

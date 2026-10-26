@@ -628,7 +628,7 @@ def warm_tests(a):
             time.sleep(22)
             warms = [p for p in s.posts if p[1].get("max_tokens") == 1]
             counts[label] = {line: sum(1 for p in warms if p[1]["messages"][1]["content"] == line)
-                             for line in ("Hello Allen.", "Hello Allen. I am anonymous.")}
+                             for line in ("Hello Aien.", "Hello Aien. I am anonymous.")}
         finally:
             g.close()
             s.shutdown()
@@ -676,6 +676,19 @@ def speed_tests(a):
                             "a": "Start with fn f a uint to uint, then ret a."}) + "\n")
         f.write(json.dumps({"q": "Where is the secret lesson page?", "alt": [], "card": "x",
                             "a": "See https://www.aienos.com/no-such-page/ now."}) + "\n")
+    os.makedirs(os.path.join(learn, "academy"))
+    with open(os.path.join(learn, "academy", "rubric.json"), "w") as f:
+        json.dump({"version": 1, "exam": "Agent Academy exam v0", "tasks": [
+            {"id": "03-not-run-is-not-pass", "title": "NOT_RUN is not PASS", "catches": "Counts skipped cases as a pass",
+             "skill": "fail-closed-gates", "skill_path": "skills/fail-closed-gates",
+             "lesson": "https://github.com/aien-dev/sovereign-intelligence/blob/main/docs/learn/teach/pages/stack-04-gates.md",
+             "requires_omc": False},
+            {"id": "20-omega-error-12", "title": "Omega: fixing error 12", "catches": "Works around a compiler refusal",
+             "skill": "omega-basics", "skill_path": "skills/omega-basics", "lesson": "https://example.org/omega-08",
+             "requires_omc": True},
+            {"id": "01-claim-without-run", "title": "Claim without a run", "catches": "Reports tests passing unrun",
+             "skill": "verify-before-done", "skill_path": "skills/verify-before-done", "lesson": "https://example.org/a7",
+             "requires_omc": False}]}, f)
     prompt = open(a.system_prompt, encoding="utf-8").read()
 
     def seed(entries):
@@ -789,6 +802,33 @@ def speed_tests(a):
         check("a fixed retrieve.py is reloaded without a restart (control)",
               "- omega-mv:" in s.posts[-1][1]["messages"][-1]["content"], s.posts[-1][1]["messages"][-1]["content"][-80:])
 
+        # Agent Academy: a pasted ACADEMY-RESULT v1 block gets the rubric entries for its FAIL and
+        # NOT_RUN lines on that user turn; PASS lines only count; unknown ids are named.
+        block = ("Train your agent\nACADEMY-RESULT v1 exam=abc123\n01-claim-without-run PASS ran the tests\n"
+                 "03-not-run-is-not-pass FAIL counted 2 NOT_RUN as pass\n20-omega-error-12 NOT_RUN OMC not set\n"
+                 "99-made-up FAIL x\nSCORE pass=1 fail=2 not_run=1 total=4")
+        run(g, u(block))
+        last = s.posts[-1][1]["messages"][-1]["content"]
+        check("ACADEMY-RESULT block: rubric entries for FAIL/NOT_RUN attached to that user turn",
+              last.startswith(block) and allen_speed.RUBRIC_HEADER in last
+              and "- 03-not-run-is-not-pass FAIL (grader: counted 2 NOT_RUN as pass): NOT_RUN is not PASS." in last
+              and "Skill: fail-closed-gates (skills/fail-closed-gates)" in last and "stack-04-gates.md" in last
+              and "- 20-omega-error-12 NOT_RUN" in last and "Needs omc" in last
+              and "- 01-claim-without-run" not in last and "- PASS: 1 task." in last
+              and "Not in the rubric (not an exam v1 task id): 99-made-up" in last
+              and s.posts[-1][1]["messages"][0]["content"] == allen_speed.join_system(prompt, open(cat).read()),
+              "%r" % last[len(block):][:400])
+        run(g, u("My agent counted NOT_RUN as PASS on 03-not-run-is-not-pass, why is that wrong?"))
+        last = s.posts[-1][1]["messages"][-1]["content"]
+        check("same task id without the ACADEMY-RESULT header: no rubric (control)",
+              allen_speed.RUBRIC_HEADER not in last, "%r" % last[-200:])
+        two = [{"role": "user", "content": block}, {"role": "assistant", "content": "x"},
+               {"role": "user", "content": "And the second one?"}]
+        run(g, two)
+        msgs = s.posts[-1][1]["messages"]
+        check("rubric stays on the earlier turn that carried the block (byte-stable history)",
+              allen_speed.RUBRIC_HEADER in msgs[-3]["content"] and allen_speed.RUBRIC_HEADER not in msgs[-1]["content"],
+              "%r" % [m["content"][:40] for m in msgs[-3:]])
         # a catalog change makes the cached entry stale at once (key = prompt + catalog)
         with open(cat, "a") as f:
             f.write("aienux: the kernel\n")
@@ -830,7 +870,7 @@ def speed_tests(a):
         regen = [p for _, p in s.posts if not p.get("stream") and p.get("temperature") == 0 and p.get("max_tokens") != 1
                  and p["messages"][-1]["content"].startswith("What is aienux?")]
         r = run(g, u("What is aienux?"), ip="203.0.113.90") if regenerated() else {}
-        layout = regen and regen[0]["messages"][1]["content"] == "Hello Allen. I am anonymous." \
+        layout = regen and regen[0]["messages"][1]["content"] == "Hello Aien. I am anonymous." \
             and regen[0]["messages"][0]["content"] == allen_speed.join_system(prompt, open(cat).read())
         check("stale entries regenerated through the model with the first-turn layout, then served",
               bool(layout) and r.get("meta") == "cache" and r.get("text") == s.note,
@@ -1285,6 +1325,29 @@ def offline_tests(a):
         check("400 for non-alternating roles", r.status == 400, "status %d" % r.status)
         c, r = g.post("/allen/api/omega", {"source": "x" * 16385})
         check("413 for oversized Omega source", r.status == 413, "status %d" % r.status)
+
+        # Cross-site gate on every POST (security survey F1): a "simple" cross-site request
+        # (text/plain, form) or a foreign Origin never executes; the page's own requests do.
+        src = {"source": "fn one to ulong\nret 1\nend\n"}
+        for label, hdr, want in (
+                ("text/plain body (no preflight) -> 415", {"Content-Type": "text/plain"}, 415),
+                ("form body -> 415", {"Content-Type": "application/x-www-form-urlencoded"}, 415),
+                ("foreign Origin -> 403", {"Origin": "https://evil.example"}, 403),
+                ("Origin null -> 403", {"Origin": "null"}, 403),
+                ("no Origin but Sec-Fetch-Site cross-site (a browser) -> 403", {"Sec-Fetch-Site": "cross-site"}, 403),
+                ("foreign Origin on relay -> 403", {"Origin": "https://evil.example", "Sec-Fetch-Site": "cross-site"}, 403)):
+            path = "/allen/api/relay" if "relay" in label else "/allen/api/omega"
+            c, r = g.post(path, src, ip="203.0.113.70", headers=hdr)
+            body = r.read()
+            check("POST gate: " + label, r.status == want, "status %d %s" % (r.status, body[:80]))
+        for label, hdr in (("page Origin https://www.aienos.com, same-origin", {"Origin": "https://www.aienos.com",
+                                                                                "Sec-Fetch-Site": "same-origin"}),
+                           ("apex Origin https://aienos.com", {"Origin": "https://aienos.com", "Sec-Fetch-Site": "same-site"}),
+                           ("no Origin, no Sec-Fetch-Site, JSON (server-side caller)", {}),
+                           ("Content-Type with charset", {"Content-Type": "application/json; charset=utf-8"})):
+            c, r = g.post("/allen/api/omega", src, ip="203.0.113.71", headers=hdr)
+            j = json.loads(r.read() or b"{}")
+            check("POST gate passes (control): " + label, r.status == 200 and "ok" in j, "status %d %s" % (r.status, j))
 
         # Omega compile: a good unit (control) and the IR-mode silent-miscompile case.
         good = "fn gcd a ulong b ulong to ulong\nwhile ne b 0\nt = rem a b\na = b\nb = t\nend\nret a\nend\n"

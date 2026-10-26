@@ -48,6 +48,7 @@ TIMEOUT = 30
 
 PURPOSE_MAX = 110  # characters of a repo's one-line purpose
 PAGE_MAX = 65      # characters of a page title plus its description
+NESTED_MAX = 200   # description of a nested page in catalog-detail.jsonl
 # Entry points Allen sends visitors and agents to keep more of their seo.rs text.
 ENTRY_PAGES = {"/agents/": 180, "/start/": 180}
 STATUS_MAX = 140  # a repo's own status/evidence statement
@@ -79,6 +80,13 @@ REACH = ("Reach Drake: X https://x.com/mdrakestapleton, email drake@aienos.com, 
          "or talk to Allen at " + SITE + "/allen/.")
 
 PLURAL = re.compile(r"\b(we|our|ours|ourselves|us)\b", re.I)
+AIEN_WORD = re.compile(r"\bAIEN\b")
+
+
+def aien_case(s):
+    """Drake's spelling of the project name in descriptive text (2026-10-26): Aien, never AIEN.
+    Only descriptions pass through here; page titles, status lines and commit subjects stay verbatim."""
+    return AIEN_WORD.sub("Aien", s)
 
 
 class FetchError(Exception):
@@ -378,6 +386,7 @@ def repo_record(r):
         purpose = clip(sentence, START_MAX if name == START else PURPOSE_MAX) or clip(desc, PURPOSE_MAX)
     else:
         purpose = clip(desc or sentence, PURPOSE_MAX)
+    purpose = aien_case(purpose)
     url = "https://github.com/%s/%s" % (ORG, name)
     branch = r.get("default_branch") or "main"
     docs = []
@@ -497,12 +506,26 @@ def build():
     L.append("Archived: %s. Forks of outside projects: %s." % (", ".join(archived), ", ".join(forks)))
     L.append("")
     L.append("Pages on Drake's site (URL, title: what). These are pages, not repos:")
+    nested_pages = []
     for path in sorted(pages):
         name, what = pages[path]
         name = ascii_text(name)
+        what = ascii_text(re.sub(r"\s*\([^)]*\)", "", what))
+        if path.count("/") > 2 and path not in ENTRY_PAGES:
+            # nested pages (/engineer/works/x/, /research/x/) go to retrieval: the prefix stays compact
+            # state/last_push/evidence/docs keep the repo-record shape, so a reader that predates
+            # page records (a gateway with an older retrieve.py loaded) cannot fail on them
+            nested_pages.append({"name": path, "kind": "page", "url": SITE + path, "title": name,
+                                 "purpose": aien_case(clip(what, NESTED_MAX)), "state": "page",
+                                 "last_push": "-", "evidence": "not stated", "docs": []})
+            continue
         room = (ENTRY_PAGES.get(path) or PAGE_MAX) - len(name)
-        what = clip(ascii_text(re.sub(r"\s*\([^)]*\)", "", what)), room) if room >= 30 else ""
+        what = aien_case(clip(what, room)) if room >= 30 else ""
         L.append("%s%s %s%s" % (SITE, path, name, ": " + what if what else ""))
+    parents = sorted({"/" + p["name"].split("/")[1] + "/" for p in nested_pages})
+    if parents:
+        L.append("More pages under %s are looked up per question; cite only URLs given to you."
+                 % ", ".join(SITE + p for p in parents))
     L.append("")
     L.append(OMEGA_BRIEF)
     L.append(REACH)
@@ -513,7 +536,7 @@ def build():
     head = {"name": "_sources", "org": ORG, "site_repo": SITE_REPO, "site_head": site_sha,
             "page_source": page_src, "page_source_sha256": page_digest, "forks": forks}
     detail = "".join(json.dumps(d, sort_keys=True, ensure_ascii=True) + "\n"
-                     for d in [head] + [rec["detail"] for rec in everything])
+                     for d in [head] + [rec["detail"] for rec in everything] + nested_pages)
     return catalog, areas, detail
 
 

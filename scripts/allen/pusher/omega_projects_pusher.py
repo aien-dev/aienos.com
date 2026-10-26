@@ -295,7 +295,7 @@ def check_item(raw, iid, areas):
         if isinstance(raw, dict) and raw.get("kind") == "issue":
             item = spool.validate(raw, areas=areas)
             item["title"] = spool.scrub(item["title"])
-            item["body"] = spool.scrub(item["body"])
+            item["body"] = issue_markdown(spool.scrub(item["body"]))
             return item
         item = build.validate(raw)
     except spool.Invalid as e:
@@ -306,6 +306,15 @@ def check_item(raw, iid, areas):
 
 
 # ---------------------------------------------------------------- filing
+
+def issue_markdown(text):
+    """Visitor text made inert as GitHub markdown before it is filed under the org: '<' is
+    escaped, so no raw HTML, HTML comment (no planted item marker) or <img>; '![' is escaped, so
+    no markdown image (no tracking pixel); '@' before a name gets a zero-width space, so no
+    mention notifies anyone. Plain links stay, as the security survey F3 allows."""
+    text = text.replace("<", "&lt;").replace("![", "!\\[")
+    return re.sub(r"@(?=[A-Za-z0-9])", "@\u200b", text)
+
 
 def marker(iid):
     return "<!-- allen-item: %s -->" % iid
@@ -331,12 +340,15 @@ def ensure_label(gh, name, cache):
 
 def find_issue(gh, iid):
     """Recover an issue filed before a crash: search recent issues for the id marker. Issues
-    filed before the Aien rename carry from-allen, so a crash across the switch is found too."""
+    filed before the Aien rename carry from-allen, so a crash across the switch is found too.
+    Only labelled issues (labels need triage rights, so the pusher or a maintainer set them)
+    whose body ENDS with the marker count: file_issue writes it last, and visitor text can no
+    longer carry one (issue_markdown), nor could an older planted one sit at the end."""
     for label in ("from-aien", "from-allen"):
         found = gh.call("GET", REPO_PREFIX + "issues?labels=%s&state=all&per_page=100&sort=created&direction=desc"
                         % label)
         for it in found or []:
-            if marker(iid) in (it.get("body") or "") and "pull_request" not in it:
+            if (it.get("body") or "").rstrip().endswith(marker(iid)) and "pull_request" not in it:
                 return it["html_url"]
     return None
 

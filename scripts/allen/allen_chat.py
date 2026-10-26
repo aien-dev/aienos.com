@@ -94,8 +94,8 @@ GREETING_REMEMBER = ("Hi, I'm Aien (you say it like Ian). It's nice to meet you!
                      "you come back, I can remember who you are and we can pick up where we left off. We can "
                      "talk about all kinds of good things in the universe.")
 GREETING_ANON = "Hi, I'm Aien (you say it like Ian). It's nice to meet you! We can talk about all kinds of good things in the universe."
-OPEN_USER = "Hello Allen."
-OPEN_USER_ANON = "Hello Allen. I am anonymous."
+OPEN_USER = "Hello Aien."
+OPEN_USER_ANON = "Hello Aien. I am anonymous."
 
 MODEL = "qwen3.6-35b-a3b-fp8"
 BWRAP = "/usr/bin/bwrap"
@@ -1314,6 +1314,8 @@ class Handler(BaseHTTPRequestHandler):
         except ValueError:
             self.body_read = False
         r = self.route()
+        if not self.post_allowed(r):
+            return
         if r == "chat":
             return self.chat()
         if r == "omega":
@@ -1339,6 +1341,28 @@ class Handler(BaseHTTPRequestHandler):
         if allen_projects.post(self, r):
             return
         self.send_json(404, {"error": "not_found"})
+
+    def post_allowed(self, r):
+        """Cross-site gate for every POST (security survey F1). A browser always sends Origin on a
+        POST: it must be one of the site's origins (--allow-origin). Without Origin, a request
+        that still carries Sec-Fetch-Site is a browser and refused; with neither it is a
+        non-browser client (server-side callers, tests), which the Content-Type rule still binds.
+        Content-Type must be application/json, except transcribe, which checks its audio type
+        itself; so a cross-site "simple" request (text/plain, form) never executes."""
+        origin = self.headers.get("Origin")
+        if origin is not None:
+            ok = origin in self.app.args.allow_origin
+        else:
+            ok = self.headers.get("Sec-Fetch-Site") is None
+        if not ok:
+            self.refuse(403, "origin", "Requests come from the aienos.com page only.")
+            return False
+        if r != "transcribe":
+            ctype = self.headers.get("Content-Type", "").split(";")[0].strip().lower()
+            if ctype != "application/json":
+                self.refuse(415, "content_type", "Send the request as application/json.")
+                return False
+        return True
 
     def validate(self, req):
         msgs = req.get("messages") if isinstance(req, dict) else None
@@ -2435,6 +2459,10 @@ class ConsoleHandler(BaseHTTPRequestHandler):
             if app.console.check(f.get("token", "")):
                 sid = app.console.login()
                 app.stats.add("console_login")
+                # No Secure flag (security survey F6, accepted): the console is plain HTTP on the
+                # tailnet, where a Secure cookie would never be sent back. The compensating controls
+                # are the nft rule (only 100.64.0.1/.4 and loopback reach :18112) and WireGuard
+                # encryption on the tailnet path; the hub never proxies the console.
                 return self.redirect("/", (("Set-Cookie", "%s=%s; HttpOnly; SameSite=Strict; Path=/; Max-Age=%d"
                                             % (CONSOLE_COOKIE, sid, CONSOLE_TTL)),))
             app.console.fails.take(peer)
@@ -2497,6 +2525,8 @@ def main():
     ap.add_argument("--irwasm", required=True)
     ap.add_argument("--trusted-proxy", action="append", default=[],
                     help="peer address whose X-Real-IP is believed (hub nginx)")
+    ap.add_argument("--allow-origin", action="append", default=["https://www.aienos.com", "https://aienos.com"],
+                    help="extra Origin allowed on POST (the two site origins are always allowed)")
     ap.add_argument("--cap", type=int, default=2)
     ap.add_argument("--queue", type=int, default=6)
     ap.add_argument("--queue-wait", type=float, default=90)

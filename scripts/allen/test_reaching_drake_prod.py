@@ -109,7 +109,8 @@ def main():
           "login %d, dashboard %d" % (st, st2))
     c, r = public("GET", "/allen/api/presence")
     pres = json.loads(r.read())
-    check("public presence route", r.status == 200 and set(pres) == {"online", "hours", "handoff"}, "%s" % pres)
+    check("public presence route", r.status == 200 and set(pres) == {"online", "hours", "handoff", "transcribe"}
+          and isinstance(pres["transcribe"], bool), "%s" % pres)
     prev_online, prev_hours = pres["online"], pres["hours"]
 
     # Real relay email.
@@ -192,9 +193,9 @@ def main():
         states = [d["drake"] for e, d in evs if e == "state"]
         check("state events waiting, joined, left", st == 303 and states == ["waiting", "joined", "left"],
               "%s" % states)
+        t0 = time.monotonic()
         c, r = public("POST", "/allen/api/chat", {"messages": [{"role": "user", "content":
                                                                 "Reply with the single word ok."}]}, H, timeout=200)
-        t0 = time.monotonic()
         chat_ev = list(sse(r)) if r.status == 200 else [("http", r.status)]
         text = "".join(d for e, d in chat_ev if e is None)
         check("after hand back chat works again", chat_ev and chat_ev[-1][0] == "done" and text.strip() != "",
