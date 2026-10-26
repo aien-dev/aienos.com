@@ -252,6 +252,28 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     );
     fs::create_dir_all(dist.join("aien")).expect("Create Aien directory");
     fs::write(dist.join("aien/index.html"), allen_page.into_string()).expect("Write Aien page");
+    // Old addresses (seo::REDIRECTS) forward visitors, with any ?query and #hash, to the new one.
+    for (old, new) in seo::REDIRECTS {
+        let page = render_page_layout(
+            &format!("Moved to {new} | AienOS"),
+            &format!("This page moved to {new}."),
+            &format!("https://www.aienos.com{new}"),
+            "website",
+            html! {
+                meta name="robots" content="noindex";
+                meta http-equiv="refresh" content=(format!("0; url={new}"));
+                script { (maud::PreEscaped(format!("location.replace('{new}' + location.search + location.hash);"))) }
+            },
+            html! {
+                section class="container" {
+                    p { "This page moved to " a href=(new) { "aienos.com" (new) } "." }
+                }
+            },
+        );
+        let dir = dist.join(old.trim_matches('/'));
+        fs::create_dir_all(&dir).expect("Create redirect directory");
+        fs::write(dir.join("index.html"), page.into_string()).expect("Write redirect page");
+    }
     let alpha_page = render_page_layout(
         components::alpha::TITLE,
         components::alpha::DESCRIPTION,

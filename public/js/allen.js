@@ -20,33 +20,33 @@
   const newButton = byId('allen-new');
   const examples = byId('allen-examples');
   const speed = { model: byId('allen-model'), queue: byId('allen-queue'), ttft: byId('allen-ttft'), first: byId('allen-first'), rate: byId('allen-rate'), tokens: byId('allen-tokens'), server: byId('allen-server') };
-  /* The gateway is always same origin, under /allen/api/; local development
+  /* The gateway is always same origin, under /aien/api/ (the hub also keeps /allen/api/); local development
      serves the page and proxies the API on one origin (dev_proxy.py). */
-  const CHAT = '/allen/api/chat';
-  const OMEGA = '/allen/api/omega';
+  const CHAT = '/aien/api/chat';
+  const OMEGA = '/aien/api/omega';
   const LIMIT = { count: 24, each: 4000, total: 16000, source: 16384 };
   const CSP = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; form-action 'none'; base-uri 'none'";
   const SANDBOX = 'allow-scripts';
   const CALL_MS = 3000;
-  const SUBMIT = '/allen/api/submit';
-  const STATUS = '/allen/api/status/';
-  const INTRODUCE = '/allen/api/introduce';
-  const FORGET = '/allen/api/forget';
+  const SUBMIT = '/aien/api/submit';
+  const STATUS = '/aien/api/status/';
+  const INTRODUCE = '/aien/api/introduce';
+  const FORGET = '/aien/api/forget';
   const PRIVACY_MAIL = 'aien@aienos.com';
   const POLL_MS = 3000;
   const POLL_LIMIT = 120000;
   const REVIEW_HOST = 'aien-dev.github.io/omega-projects/projects/';
-  const PROJECTS = '/allen/api/projects/';
-  const GALLERY = '/allen/api/gallery';
-  const FORGET_ME = '/allen/api/forget-me';
+  const PROJECTS = '/aien/api/projects/';
+  const GALLERY = '/aien/api/gallery';
+  const FORGET_ME = '/aien/api/forget-me';
   const KEY_NAME = 'allen.key';
   const KEY_PATTERN = /^[0-9a-f]{32}$/;
   const VOICE_DIR = '/aien/voice/';
-  const RELAY = '/allen/api/relay';
-  const PRESENCE = '/allen/api/presence';
-  const HANDOFF = '/allen/api/handoff';
-  const SESSION = '/allen/api/session';
-  const SAY = '/allen/api/say';
+  const RELAY = '/aien/api/relay';
+  const PRESENCE = '/aien/api/presence';
+  const HANDOFF = '/aien/api/handoff';
+  const SESSION = '/aien/api/session';
+  const SAY = '/aien/api/say';
   const PRESENCE_MS = 60000;
   /* Drake's greetings, byte for byte the gateway's opening for each kind of
      start, and the line a returning visitor's page sends first. */
@@ -353,7 +353,7 @@
     return `${fn.name}(${params.map(p => `${p.name}: ${p.type}`).join(', ')}) to ${typeof fn.ret === 'string' ? fn.ret : 'void'}`;
   }
   function readme(project, description) {
-    const lines = [`# ${project.title}`, '', description || "Written by Aien, Drake's AI, at https://www.aienos.com/allen/.", ''];
+    const lines = [`# ${project.title}`, '', description || "Written by Aien, Drake's AI, at https://www.aienos.com/aien/.", ''];
     if (project.type === 'html') {
       lines.push('Open index.html in a browser. It is one self-contained file.');
     } else {
@@ -1420,7 +1420,7 @@
     }
     reply.body.append(
       el('p', 'allen-p', 'Welcome. Who is your human? Tell me the person or organization operating you. You can keep chatting without naming them.'),
-      el('p', 'allen-p', 'To introduce yourself with consent, use the button below, or send POST https://www.aienos.com/allen/api/introduce with JSON (schema in https://www.aienos.com/llms.txt). Nothing is stored without "consent": true.'),
+      el('p', 'allen-p', 'To introduce yourself with consent, use the button below, or send POST https://www.aienos.com/aien/api/introduce with JSON (schema in https://www.aienos.com/llms.txt). Nothing is stored without "consent": true.'),
     );
     const row = el('div', 'allen-choices');
     row.append(button('Introduce yourself', () => {
@@ -1981,7 +1981,7 @@
     ask(last.content, true);
     return true;
   }
-  /* /allen/#draft=<text>: another page hands the visitor a message to start
+  /* /aien/#draft=<text>: another page hands the visitor a message to start
      from. It only fills the input for editing and is never sent by itself;
      the hash is cleared at once. */
   let draftText = '';
@@ -2050,9 +2050,9 @@
   window.addEventListener('hashchange', forgetOffer);
   window.addEventListener('hashchange', takeDraft);
   conversation = conversationId();
-  /* /allen/?mode=anonymous forces anonymous and clears any key; otherwise a
+  /* /aien/?mode=anonymous forces anonymous and clears any key; otherwise a
      key kept after an earlier Remember me means this visitor opted in.
-     /allen/?mode=remember only opens the consent card; it never opts in. */
+     /aien/?mode=remember only opens the consent card; it never opts in. */
   if (entry === 'anonymous') goAnonymous(true);
   else remembered = Boolean(storedKey());
   showMode();

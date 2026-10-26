@@ -283,7 +283,12 @@ impl Emitted {
     }
 }
 
-/// Every `index.html` under dist, as site paths. The 404 page is not a page.
+/// Old addresses kept as small redirect pages (old, new). They are not pages:
+/// no sitemap, feed, llms or markdown entry, and each says `noindex`.
+pub const REDIRECTS: &[(&str, &str)] = &[("/allen/", "/aien/")];
+
+/// Every `index.html` under dist, as site paths. The 404 page and the
+/// `REDIRECTS` stubs are not pages.
 pub fn walk_pages(dist: &Path, ctx: &BuildCtx) -> Vec<Emitted> {
     let mut out = Vec::new();
     fn walk(dir: &Path, dist: &Path, ctx: &BuildCtx, out: &mut Vec<Emitted>) {
@@ -303,7 +308,9 @@ pub fn walk_pages(dist: &Path, ctx: &BuildCtx) -> Vec<Emitted> {
                 }
                 let lang = if path.starts_with("/zh-CN/") { "zh-CN" } else { "en" }.to_string();
                 let lastmod = lastmod_for(&path, ctx);
-                out.push(Emitted { path, file: p, lang, lastmod });
+                if !REDIRECTS.iter().any(|(old, _)| *old == path) {
+                    out.push(Emitted { path, file: p, lang, lastmod });
+                }
             }
         }
     }
@@ -1141,17 +1148,20 @@ fn check_script_boundary(html: &str) -> Result<(), String> {
 }
 
 fn verify_consent_boundary(dist: &Path) {
-    fn walk(dir: &Path) {
+    fn walk(dist: &Path, dir: &Path) {
         for entry in fs::read_dir(dir).expect("read consent boundary directory") {
             let path = entry.expect("consent boundary entry").path();
             if path.is_dir() {
-                walk(&path);
+                walk(dist, &path);
             } else if path.extension().and_then(|e| e.to_str()) == Some("html") {
                 let html = fs::read_to_string(&path).expect("read consent boundary HTML");
                 check_script_boundary(&html).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
-                assert_eq!(html.matches("src=\"/js/allen-intro.js\"").count(), 1, "{} must have exactly one first-party consent loader", path.display());
-                assert_eq!(html.matches("id=\"aien-allen-intro\"").count(), 1, "{} must have exactly one consent dialog", path.display());
-                assert!(html.contains("href=\"/privacy/\""), "{} must link privacy", path.display());
+                // A redirect stub leaves at once: it loads no consent dialog and no pixel.
+                let rel = path.strip_prefix(dist).expect("under dist").to_string_lossy().replace('\\', "/");
+                let consent = if REDIRECTS.iter().any(|(old, _)| format!("{}index.html", &old[1..]) == rel) { 0 } else { 1 };
+                assert_eq!(html.matches("src=\"/js/allen-intro.js\"").count(), consent, "{} must have exactly {consent} first-party consent loader", path.display());
+                assert_eq!(html.matches("id=\"aien-allen-intro\"").count(), consent, "{} must have exactly {consent} consent dialog", path.display());
+                assert!(consent == 0 || html.contains("href=\"/privacy/\""), "{} must link privacy", path.display());
             } else if path.extension().and_then(|e| e.to_str()) == Some("js") {
                 let js = fs::read_to_string(&path).expect("read script");
                 if js.contains("uwt.js") || js.contains("twq(") {
@@ -1160,7 +1170,7 @@ fn verify_consent_boundary(dist: &Path) {
             }
         }
     }
-    walk(dist);
+    walk(dist, dist);
     let js = fs::read_to_string(dist.join("js/allen-intro.js")).expect("first-party consent script");
     assert_eq!(js.matches("https://static.ads-twitter.com/uwt.js").count(), 1);
     assert_eq!(js.matches("twq('config','rfrlz')").count(), 1);

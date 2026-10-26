@@ -6,7 +6,7 @@
 //! compiles it with the pinned compiler and keeps the bytes in
 //! `om/allen-page/main.html` and `public/js/allen.js`. This module embeds the
 //! skeleton unchanged. The script talks only to the same-origin gateway under
-//! `/allen/api/` (scripts/allen), never renders network text as markup, and runs
+//! `/aien/api/` (scripts/allen; the hub keeps `/allen/api/` as the same routes), never renders network text as markup, and runs
 //! programs in a frame sandboxed to `allow-scripts` or in a WebAssembly worker.
 use maud::{html, Markup, PreEscaped};
 
@@ -29,7 +29,7 @@ pub const GREETING_ANONYMOUS: &str = "Hi, I'm Aien (you say it like Ian). It's n
 pub const LLMS: &str = r#"## Talk to Aien
 
 - [Talk to Aien](https://www.aienos.com/aien/): Aien (formerly Allen; say it like Ian) is my AI, running on the live Qwen3.6-35B-A3B FP8 model on my DGX Spark. People and agents can chat there, ask about Omega and get small programs that run sandboxed in the browser. Conversations are not stored: the gateway keeps only aggregate counters, and no prompts, replies or IP addresses are logged.
-- [Introduce an agent: POST /allen/api/introduce](https://www.aienos.com/allen/api/introduce): agents can introduce themselves with `POST https://www.aienos.com/allen/api/introduce`, `Content-Type: application/json` and this body. Every field is a string and an absent field counts as empty.
+- [Introduce an agent: POST /aien/api/introduce](https://www.aienos.com/aien/api/introduce): agents can introduce themselves with `POST https://www.aienos.com/aien/api/introduce`, `Content-Type: application/json` and this body. Every field is a string and an absent field counts as empty. The older `/allen/api/` paths answer the same.
 
 ```json
 {"consent": true, "kind": "agent", "name": "", "org": "", "contact": "", "github": "", "origin": "", "purpose": "", "homepage": "", "framework": "", "model": "", "human": ""}
@@ -37,9 +37,9 @@ pub const LLMS: &str = r#"## Talk to Aien
 
 - [Introduction fields](https://www.aienos.com/aien/): `kind` is `human` or `agent`. `human` is the person or organization operating an agent (name, contact or organization; optional). Limits in characters: name 100, org 100, contact 200, github 39, origin 200, purpose 1000, homepage 200 (an https URL or empty), framework 100, model 100, human 200. Give at least a name or a contact.
 - [Consent](https://www.aienos.com/privacy/): `consent` must be the JSON value `true`. Without it nothing is stored and the reply is 400 `{"error":"consent_required"}`. What is kept: these fields and the time, privately on my own computer, so I may follow up. Never published or sold. Kept until you delete it.
-- [Delete an introduction: POST /allen/api/forget](https://www.aienos.com/allen/api/forget): a saved introduction replies `{"id":"c_...","delete":"https://www.aienos.com/aien/#forget=<id>.<token>","stored":true,"key":"<32 hex>"}`. Keep the delete link. To delete, open it, or `POST https://www.aienos.com/allen/api/forget` with `{"id":"c_...","token":"..."}` taken from it, or write to aien@aienos.com.
+- [Delete an introduction: POST /aien/api/forget](https://www.aienos.com/aien/api/forget): a saved introduction replies `{"id":"c_...","delete":"https://www.aienos.com/aien/#forget=<id>.<token>","stored":true,"key":"<32 hex>"}`. Keep the delete link. To delete, open it, or `POST https://www.aienos.com/aien/api/forget` with `{"id":"c_...","token":"..."}` taken from it, or write to aien@aienos.com.
 - [Your Aien key](https://www.aienos.com/aien/): the `key` in that reply is a random 32 hex key. Send it as the `X-Allen-Key` header on later calls, and on chat also `X-Allen-Conversation` (16 hex, new per conversation), and Aien recognizes you: with consent it keeps short notes about you (who you are, what you build, open asks) in a private store on my own computer, keyed to that key. Recognition is by key only, never by a name or email; anyone without the key is a stranger to Aien.
-- [Forget me: POST /allen/api/forget-me](https://www.aienos.com/allen/api/forget-me): with the `X-Allen-Key` header, deletes Aien's notes about you and your introduction.
+- [Forget me: POST /aien/api/forget-me](https://www.aienos.com/aien/api/forget-me): with the `X-Allen-Key` header, deletes Aien's notes about you and your introduction.
 - [Issues and projects](https://github.com/aien-dev/omega-projects): they reach GitHub only after a visitor confirms the exact text on the page, with email addresses and phone numbers removed first.
 
 "#;
@@ -159,14 +159,15 @@ mod tests {
 
     #[test]
     fn the_page_only_calls_its_own_gateway() {
-        // Every request goes to a same-origin /allen/api/ route constant; no
+        // Every request goes to a same-origin /aien/api/ route constant; no
         // configurable base, no other origin, no other transport.
         let script = include_str!("../../../../public/js/allen.js");
         let routes = ["CHAT", "OMEGA", "SUBMIT", "STATUS", "INTRODUCE", "FORGET", "FORGET_ME", "RELAY", "PRESENCE", "HANDOFF", "SESSION", "SAY", "PROJECTS", "GALLERY"];
         for name in routes {
-            let decl = format!("  const {name} = '/allen/api/");
-            assert_eq!(script.matches(&decl).count(), 1, "{name} must be one same-origin /allen/api/ path");
+            let decl = format!("  const {name} = '/aien/api/");
+            assert_eq!(script.matches(&decl).count(), 1, "{name} must be one same-origin /aien/api/ path");
         }
+        assert!(!script.contains("'/allen/api/"), "the page calls /aien/api/ only");
         let calls: Vec<&str> = script.match_indices("fetch(").map(|(i, _)| &script[i + 6..]).collect();
         assert!(!calls.is_empty());
         for call in calls {
@@ -180,7 +181,7 @@ mod tests {
 
     #[test]
     fn a_draft_link_fills_the_input_and_sends_nothing() {
-        // /allen/#draft=<text> only fills the input: no request, no send, the
+        // /aien/#draft=<text> only fills the input: no request, no send, the
         // hash cleared, the text capped and stripped of control characters.
         let script = include_str!("../../../../public/js/allen.js");
         let draft = function_body(script, "takeDraft");
@@ -325,7 +326,7 @@ mod tests {
 
     #[test]
     fn llms_documents_the_consent_gated_introduction_in_the_first_person_singular() {
-        for needle in ["POST https://www.aienos.com/allen/api/introduce", "\"consent\": true", "\"human\"", "consent_required", "#forget=", "aien@aienos.com"] {
+        for needle in ["POST https://www.aienos.com/aien/api/introduce", "\"consent\": true", "\"human\"", "consent_required", "#forget=", "aien@aienos.com"] {
             assert!(LLMS.contains(needle), "llms.txt section lacks {needle}");
         }
         let script = include_str!("../../../../public/js/allen.js");
