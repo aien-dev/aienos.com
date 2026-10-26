@@ -1,0 +1,33 @@
+name: Omega compiler pin
+# The deploy (pages.yml) runs only on main. This runs the same compiler check on
+# every pull request and branch push that touches the vendored compiler, its
+# lock or the check, so a swapped binary fails before review, not at deploy.
+on:
+  pull_request:
+    paths:
+      - om/site/omc
+      - om/site/omc.*
+      - om/site/verify-omc.sh
+      - .github/workflows/omc-pin.yml
+  push:
+    paths:
+      - om/site/omc
+      - om/site/omc.*
+      - om/site/verify-omc.sh
+      - .github/workflows/omc-pin.yml
+permissions:
+  contents: read
+jobs:
+  verify:
+    # The seed chain emits Linux AArch64 executables.
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Verify the vendored compiler against omega-mv
+        run: |
+          set -euo pipefail
+          sh om/site/verify-omc.sh
+          sha256sum -c om/site/omc.sha256

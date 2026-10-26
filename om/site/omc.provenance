@@ -4,5 +4,5 @@ path seed/out/omc
 sha256 189ada82e00bb440cb41351bd252cc68c54a1b1050051cc42a1df700081c3b54
 profile OM-2
 host Linux AArch64
-role seeded Omega compiler; extracted unchanged from the committed source revision, not rebuilt by this site migration
+role seeded Omega compiler; extracted unchanged from the committed source revision. om/site/verify-omc.sh requires the revision on omega-mv main, its seed/out/omc.sha256 to name this digest, its seed/out/omc to equal the vendored binary and seed/omega-from-seed.sh to rebuild it byte for byte
 capacity 4096 functions, 8192 names (omega-mv #768 batch); qualification receipt evidence/BATCH-189ada82/README.md at that revision
