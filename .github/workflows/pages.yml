@@ -54,6 +54,8 @@ jobs:
           else
             echo "no data/now branch yet; /now/ renders empty"
           fi
+      - name: Refuse an unprojected public ledger
+        run: cargo run --release -p site-builder -- ledger-check public/data/now.tsv
       # The collector walks the public GitHub record; a slow or rate-limited
       # API must not hold the whole deploy (it did twice on 2026-10-25). It is
       # bounded, written to a temp file, and the committed file stays in place

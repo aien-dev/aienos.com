@@ -1,10 +1,12 @@
 mod collector;
 mod components;
 mod facts;
+mod ledger_public;
 mod layouts;
 mod seo;
 
 use std::fs;
+use std::io::Write;
 use std::path::Path;
 use std::time::Instant;
 
@@ -49,6 +51,11 @@ fn strip_legacy_progress_dataset(dist: &Path) {
 }
 
 fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
+    if let Ok(ledger) = fs::read_to_string("public/data/now.tsv") {
+        ledger_public::check_public(&ledger).expect("refusing to build with an unprojected public ledger");
+    } else if Path::new("public/data/now.tsv").exists() {
+        panic!("refusing unreadable public ledger");
+    }
     let facts = facts::Facts::load(facts_path)
         .unwrap_or_else(|e| panic!("Cannot build without facts: {e}. Run `site-builder facts {}` first.", facts_path.display()));
     println!("  [FACTS] Using facts gathered at {} from {}", facts.generated_at, facts_path.display());
@@ -355,6 +362,11 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
 
 fn verify_site(dist: &Path) {
     let index_file = dist.join("index.html");
+    let ledger_path = dist.join("data/now.tsv");
+    if ledger_path.exists() {
+        let ledger = fs::read_to_string(&ledger_path).expect("unreadable published ledger");
+        ledger_public::check_public(&ledger).expect("refusing unprojected published ledger");
+    }
     assert!(index_file.exists(), "Required index.html missing in {}", dist.display());
 
     let content = fs::read_to_string(&index_file).expect("Failed to read index.html");
@@ -613,6 +625,27 @@ const GENERATED_PAGES: &[(&str, usize)] = &[
 fn main() {
     let start = Instant::now();
     let first_arg = std::env::args().nth(1).unwrap_or_else(|| "build".to_string());
+    if first_arg == "ledger-project" || first_arg == "ledger-check" {
+        let path = std::env::args().nth(2).filter(|_| std::env::args().nth(3).is_none())
+            .unwrap_or_else(|| { eprintln!("{first_arg}: expected one TSV path"); std::process::exit(2) });
+        let input = fs::read_to_string(&path).unwrap_or_else(|_| {
+            eprintln!("{first_arg}: unreadable ledger");
+            std::process::exit(1);
+        });
+        let result = if first_arg == "ledger-project" {
+            ledger_public::project(&input)
+        } else {
+            ledger_public::check_public(&input).map(|()| String::new())
+        };
+        let output = result.unwrap_or_else(|e| {
+            eprintln!("{first_arg}: {e}");
+            std::process::exit(1);
+        });
+        if first_arg == "ledger-project" {
+            std::io::stdout().write_all(output.as_bytes()).expect("cannot write projected ledger");
+        }
+        return;
+    }
 
     // `facts [facts.json]`: read the public GitHub record and write the facts file. Read-only,
     // needs `gh`. Run by the workflow before every build so the page never goes stale by hand.
