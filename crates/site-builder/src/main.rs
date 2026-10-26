@@ -863,6 +863,43 @@ mod tests {
         }
     }
 
+    /// `uses: owner/action@<40 hex> # vX.Y.Z`: a moving tag lets whoever controls
+    /// the action change what runs in this repository's CI.
+    fn unpinned_uses(text: &str) -> Vec<String> {
+        text.lines()
+            .filter_map(|l| l.trim_start().trim_start_matches("- ").strip_prefix("uses:"))
+            .map(str::trim)
+            .filter(|u| {
+                let Some((spec, comment)) = u.split_once(" # v") else { return true };
+                let Some((_, sha)) = spec.split_once('@') else { return true };
+                sha.len() != 40 || !sha.bytes().all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase()) || comment.trim().is_empty()
+            })
+            .map(str::to_string)
+            .collect()
+    }
+
+    #[test]
+    fn workflow_actions_are_pinned_to_commit_shas() {
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../.github/workflows");
+        let mut seen = 0;
+        for entry in fs::read_dir(&dir).expect("workflows directory") {
+            let path = entry.unwrap().path();
+            if !matches!(path.extension().and_then(|e| e.to_str()), Some("yml" | "yaml")) {
+                continue;
+            }
+            let text = fs::read_to_string(&path).unwrap();
+            seen += text.lines().filter(|l| l.trim_start().trim_start_matches("- ").starts_with("uses:")).count();
+            let bad = unpinned_uses(&text);
+            assert!(bad.is_empty(), "{}: unpinned actions {bad:?}", path.display());
+        }
+        assert!(seen > 0, "no uses: lines found; the scan is not reading the workflows");
+        // Negative controls: a moving tag, a short sha and a missing version comment are refused.
+        assert_eq!(unpinned_uses("      - uses: actions/checkout@v4").len(), 1);
+        assert_eq!(unpinned_uses("        uses: actions/checkout@11d5960a # v4.4.0").len(), 1);
+        assert_eq!(unpinned_uses("      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262").len(), 1);
+        assert!(unpinned_uses("      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0").is_empty());
+    }
+
     #[test]
     fn test_layout_rendering() {
         let markup = render_base_layout(html! { p { "Test" } });
