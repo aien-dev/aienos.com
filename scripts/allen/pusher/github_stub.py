@@ -86,6 +86,13 @@ class StubHandler(http.server.BaseHTTPRequestHandler):
         pass
 
     def reply(self, code, obj=None, headers=()):
+        # Record the request before the client can see the answer, so a client that has
+        # its reply always finds the request (with its status) in /_stub/state.
+        entry = getattr(self, "entry", None)
+        if entry is not None:
+            self.entry = None
+            entry["status"] = code
+            self.server.record(entry)
         raw = json.dumps(obj).encode() if obj is not None else b""
         try:
             self.send_response(code)
@@ -127,10 +134,14 @@ class StubHandler(http.server.BaseHTTPRequestHandler):
             return self.control(method, body or {})
         entry = {"t": round(time.time(), 3), "method": method, "path": self.path,
                  "auth_ok": self.headers.get("Authorization") == "Bearer " + s.token}
-        entry["status"] = self.route(method, body, entry)
         if method == "POST" and isinstance(body, dict) and "title" in body:
             entry["title"] = body["title"]
-        s.record(entry)
+        self.entry = entry
+        status = self.route(method, body, entry)
+        if self.entry is not None:  # route answered without reply()
+            self.entry = None
+            entry["status"] = status
+            s.record(entry)
 
     def route(self, method, body, entry):
         s = self.server
