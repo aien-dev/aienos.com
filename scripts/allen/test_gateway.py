@@ -656,6 +656,7 @@ def speed_tests(a):
     cat, det, ret = (os.path.join(d, n) for n in ("catalog.txt", "detail.jsonl", "retrieve.py"))
     learn, state = os.path.join(d, "learn"), os.path.join(d, "state")
     os.makedirs(os.path.join(learn, "cards"))
+    os.makedirs(os.path.join(learn, "qa"))
     os.makedirs(state)
     with open(cat, "w") as f:
         f.write("Drake's public repos:\nomega-mv: the Omega compiler (Apache-2.0)\n")
@@ -668,9 +669,11 @@ def speed_tests(a):
     with open(os.path.join(learn, "cards", "omega-01-hello.json"), "w") as f:
         json.dump({"id": "omega-01-hello", "title": "Your first Omega function", "keywords": ["first function", "fn"],
                    "summary": "Write fn f a uint to uint.", "evidence_level": "EXERCISED"}, f)
-    with open(os.path.join(learn, "qa.jsonl"), "w") as f:
+    with open(os.path.join(learn, "qa", "omega.jsonl"), "w") as f:
         f.write(json.dumps({"q": "How do I write my first Omega function?", "alt": [], "card": "omega-01-hello",
                             "a": "Start with fn f a uint to uint, then ret a."}) + "\n")
+        f.write(json.dumps({"q": "Where is the secret lesson page?", "alt": [], "card": "x",
+                            "a": "See https://www.aienos.com/no-such-page/ now."}) + "\n")
     prompt = open(a.system_prompt, encoding="utf-8").read()
 
     def seed(entries):
@@ -680,7 +683,7 @@ def speed_tests(a):
         return p
 
     def entry(id, q, ans, catalog_text=None, alt=()):
-        cards = allen_speed.Cards(det, ret, learn)
+        cards = allen_speed.Cards(det, ret, learn, cat)
         cards.refresh()
         psha = allen_speed.sha256_bytes(allen_speed.join_system(
             prompt, catalog_text or open(cat).read()).encode())
@@ -741,6 +744,9 @@ def speed_tests(a):
               and r["text"] == "from model", "%s" % r["meta"])
         r = run(g, u("What is Omega?"), headers={"X-Allen-Key": key, "X-Allen-Anonymous": "1"})
         check("same visitor anonymous: cache (control)", r["meta"] == "cache", "%s" % r["meta"])
+        r = run(g, u("Where is the secret lesson page?"))
+        check("curriculum answer with a link the catalog lacks is not served", r["meta"] != "cache"
+              and r["text"] == "from model", "%s" % r["meta"])
         # curriculum answers verbatim; lesson cards and repo cards appended to the user turn
         r = run(g, u("How do I write my first Omega function?"))
         check("lesson Q&A served verbatim from the curriculum", r["meta"] == "cache"

@@ -807,7 +807,7 @@ class App:
         # Whether the warm thread last left that variant's opening snapshot in a free row (set
         # by a completed warm, cleared when a first turn takes it): meta "warm" versus "cold".
         self.ready = {"remember": False, "anon": False}
-        self.cards = allen_speed.Cards(args.catalog_detail, args.catalog_retrieve, args.learn_dir)
+        self.cards = allen_speed.Cards(args.catalog_detail, args.catalog_retrieve, args.learn_dir, args.catalog)
         self.answers = (allen_speed.Answers(args.answers, args.answers_state)
                         if args.answers or args.answers_state else None)
         self.regens = collections.deque()  # times of answer regenerations in the last hour

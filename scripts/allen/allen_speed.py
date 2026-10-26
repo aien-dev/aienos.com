@@ -123,32 +123,48 @@ def load_module(path, name):
     return mod
 
 
+URL = re.compile(r"https?://[^\s)\]>\"'`<]+")
+
+
+def _page(url):
+    """An aienos.com URL as host-less path with one trailing slash ("/learn/"), for comparison."""
+    path = re.sub(r"^https?://(www\.)?aienos\.com", "", url.rstrip(".,;:!?")).split("#")[0].split("?")[0]
+    return "/" + path.strip("/") + "/" if path.strip("/") else "/"
+
+
 class Cards:
     """Repo detail cards (the catalog's retrieve.py over catalog-detail.jsonl) and lesson cards
-    (teach curriculum JSON). Reloaded when a source file changes; select() is a pure function
-    of the turn text and the loaded files."""
+    and Q&A from the teach curriculum (aien-dev/sovereign-intelligence docs/learn/teach:
+    cards/*.json, qa/*.jsonl). Reloaded when a source file changes; block() is a pure function
+    of the turn text and the loaded files. link_ok() admits an aien-dev repo or aienos.com page
+    link only when the catalog names it, so curriculum text never carries a link the catalog
+    does not know."""
 
-    def __init__(self, detail=None, retrieve=None, learn=None):
-        self.detail, self.learn = detail, learn
+    def __init__(self, detail=None, retrieve=None, learn=None, catalog=None):
+        self.detail, self.learn, self.catalog = detail, learn, catalog
         self.retrieve = load_module(retrieve, "allen_catalog_retrieve") if detail and retrieve else None
         self.lock = threading.Lock()
         self.stamp = None
         self.records, self.lessons, self.qa, self.learn_sha = [], [], [], ""
+        self.repos, self.pages = None, frozenset()
 
-    def _stamp(self):
-        files = []
-        if self.detail:
-            files.append(self.detail)
+    def _files(self):
+        files = [f for f in (self.detail, self.catalog) if f]
         if self.learn:
             files += sorted(glob.glob(os.path.join(self.learn, "cards", "*.json")))
-            files.append(os.path.join(self.learn, "qa.jsonl"))
+            files += sorted(glob.glob(os.path.join(self.learn, "qa", "*.jsonl")))
+        return files
+
+    def _stamp(self):
         out = []
-        for f in files:
+        for f in self._files():
             try:
                 st = os.stat(f)
                 out.append((f, st.st_mtime_ns, st.st_size))
             except OSError:
                 out.append((f, None, None))
+        if self.learn:  # a new or removed file changes the listing itself
+            out.append(("dirs", tuple(sorted(glob.glob(os.path.join(self.learn, "*", "*"))))))
         return tuple(out)
 
     def refresh(self):
@@ -162,6 +178,16 @@ class Cards:
                     records = self.retrieve.load(self.detail)
                 except (OSError, ValueError):
                     records = []
+            repos, pages = None, frozenset()
+            if self.catalog:
+                try:
+                    with open(self.catalog, encoding="utf-8") as f:
+                        cat = f.read()
+                    repos = {m.lower() for m in re.findall(r"^([A-Za-z0-9._-]+): ", cat, re.M)}
+                    repos |= {m.lower() for m in re.findall(r"github\.com/aien-dev/([A-Za-z0-9._-]+)", cat)}
+                    pages = frozenset(_page(u) for u in URL.findall(cat) if "aienos.com" in u)
+                except OSError:
+                    pass
             lessons, qa, h = [], [], hashlib.sha256()
             if self.learn:
                 for f in sorted(glob.glob(os.path.join(self.learn, "cards", "*.json"))):
@@ -172,22 +198,36 @@ class Cards:
                     except (OSError, ValueError):
                         continue
                     if isinstance(card, dict) and card.get("id") and card.get("title"):
-                        h.update(os.path.basename(f).encode() + b"\0" + raw + b"\0")
+                        h.update(b"cards/" + os.path.basename(f).encode() + b"\0" + raw + b"\0")
                         lessons.append(card)
-                try:
-                    with open(os.path.join(self.learn, "qa.jsonl"), "rb") as fh:
-                        raw = fh.read()
-                    h.update(b"qa.jsonl\0" + raw)
-                    for line in raw.decode("utf-8").splitlines():
-                        if line.strip():
-                            d = json.loads(line)
-                            if isinstance(d, dict) and d.get("q") and d.get("a"):
-                                qa.append(d)
-                except (OSError, ValueError):
-                    pass
+                for f in sorted(glob.glob(os.path.join(self.learn, "qa", "*.jsonl"))):
+                    try:
+                        with open(f, "rb") as fh:
+                            raw = fh.read()
+                        rows = [json.loads(line) for line in raw.decode("utf-8").splitlines() if line.strip()]
+                    except (OSError, ValueError):
+                        continue
+                    h.update(b"qa/" + os.path.basename(f).encode() + b"\0" + raw + b"\0")
+                    qa += [d for d in rows if isinstance(d, dict) and isinstance(d.get("q"), str)
+                           and isinstance(d.get("a"), str) and d["q"] and d["a"]]
             self.records, self.lessons, self.qa = records, lessons, qa
+            self.repos, self.pages = repos, pages
             self.learn_sha = h.hexdigest() if (lessons or qa) else ""
             self.stamp = stamp
+
+    def link_ok(self, url):
+        """True unless the URL names an aien-dev repo or an aienos.com page the catalog lacks
+        (other hosts pass). Without a catalog no aien-dev or aienos.com link passes."""
+        u = url.rstrip(".,;:!?")
+        m = re.match(r"https?://github\.com/aien-dev/([A-Za-z0-9._-]+)", u)
+        if m:
+            return self.repos is not None and m.group(1).lower().removesuffix(".git") in self.repos
+        if re.match(r"https?://(www\.)?aienos\.com(/|$)", u):
+            return _page(u) in self.pages
+        return True
+
+    def text_ok(self, text):
+        return all(self.link_ok(u) for u in URL.findall(text))
 
     def lesson_block(self, text, k=2):
         words = content_words(normalize(text))
@@ -198,7 +238,7 @@ class Cards:
             score = sum(3 if (" %s " % kw) in low else 0 for kw in kws if " " in kw)
             score += sum(2 for kw in kws if " " not in kw and _stem(kw) in words)
             score += len(words & content_words(normalize(c.get("title", ""))))
-            if score >= 3:
+            if score >= 4:
                 scored.append((-score, c["id"], c))
         if not scored:
             return ""
@@ -211,7 +251,7 @@ class Cards:
                 parts.append("Steps: " + " | ".join(str(s) for s in c["key_steps"][:6]))
             if c.get("common_mistake"):
                 parts.append("Common mistake: %s" % c["common_mistake"])
-            if c.get("page_url"):
+            if c.get("page_url") and self.link_ok(c["page_url"]):
                 parts.append(c["page_url"])
             out.append("- " + " ".join(parts) + "\n")
         return CARD_HEADER + "".join(out)
@@ -327,9 +367,10 @@ class Answers:
         with self.lock:
             entries = list(self.entries.values())
         # the curriculum's own answers first: on an exact collision the curated answer wins
+        # never serve an answer carrying an aien-dev or aienos.com link the catalog does not name
         rows = [({"id": "learn:%d:%s" % (i, d.get("card") or ""), "q": d["q"], "alt": d.get("alt") or [],
-                  "a": d["a"]}, "learn") for i, d in enumerate(cards.qa)]
-        rows += [(e, "generated") for e in entries if self.valid(e, prefix_sha, cards)]
+                  "a": d["a"]}, "learn") for i, d in enumerate(cards.qa) if cards.text_ok(d["a"])]
+        rows += [(e, "generated") for e in entries if self.valid(e, prefix_sha, cards) and cards.text_ok(e["a"])]
 
         def claim(table, k, e, kind):
             """Two different answers for one form: neither, unless the first is the curriculum's."""

@@ -76,7 +76,7 @@ def main():
     with open(a.catalog, encoding="utf-8") as f:
         text = allen_speed.join_system(prompt, f.read())
     psha = allen_speed.prefix_key(allen_speed.sha256_bytes(text.encode()), specs)
-    cards = allen_speed.Cards(a.catalog_detail, a.catalog_retrieve, a.learn_dir)
+    cards = allen_speed.Cards(a.catalog_detail, a.catalog_retrieve, a.learn_dir, a.catalog)
     cards.refresh()
     opening = [{"role": "user", "content": allen_chat.OPEN_USER_ANON},
                {"role": "assistant", "content": allen_chat.GREETING_ANON}]
