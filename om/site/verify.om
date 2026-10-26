@@ -1,0 +1,64 @@
+note verify.om: the Omega site verifier's only fn main. Usage (exit 0 pass, 1 a rule failed,
+note 2 usage, 70 a capacity or I/O refusal from the runtime, 100+ a trap):
+note   verify DIST QUOTES ENGINEER     every dist gate (O1-O7, D1-D5, C1-C8, V1-V19, H, E, F, G, N1)
+note   verify --sources                B1-B4 over the repository (run from the repository root)
+note   verify --data KIND PATH         one data gate; KIND machines omega cuda research facts agents
+note                                   progress status index pages now quotes ledger engineer
+note Failures go to stderr as `verify: FAIL <RULE> <path>: <reason> [excerpt]`; stdout gets one line,
+note `SITE-VERIFY PASS` or `SITE-VERIFY FAIL failures=N`.
+text vmsrc "--sources"
+text vmdat "--data"
+text vmuse "usage: verify DIST QUOTES ENGINEER | verify --sources | verify --data KIND PATH\n"
+text vmpass "SITE-VERIFY PASS\n"
+text vmfail "SITE-VERIFY FAIL failures="
+fn sv_arg i ulong a edit uchar * to ulong
+wk = argread i a 0 len a
+if lt wk 0
+sr_diag vmuse
+exit 2
+end
+ret ulong wk
+end
+fn main to int
+sr_init
+wc = argcnt
+a1 = new uchar 4096 0
+a2 = new uchar 4096 0
+a3 = new uchar 4096 0
+wok = false
+if lt wc 2
+sr_diag vmuse
+ret 2
+end
+n1 = sv_arg 1 a1
+if eq wc 2
+if not sr_equal view part a1 0 n1 vmsrc
+sr_diag vmuse
+ret 2
+end
+wok = sv_pregen
+else
+if ne wc 4
+sr_diag vmuse
+ret 2
+end
+n2 = sv_arg 2 a2
+n3 = sv_arg 3 a3
+if sr_equal view part a1 0 n1 vmdat
+sv_vinit
+wok = sv_vdata view part a2 0 n2 view part a3 0 n3
+else
+wok = sv_dist view part a1 0 n1 view part a2 0 n2 view part a3 0 n3
+end
+end
+if and wok eq get vfail 0 0
+sr_raw vmpass
+sr_flush
+ret 0
+end
+sr_raw vmfail
+sr_num get vfail 0
+sr_raw vtnl
+sr_flush
+ret 1
+end

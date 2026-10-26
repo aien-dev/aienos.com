@@ -1,0 +1,975 @@
+note verify-core.om: the Omega site verifier's arena, file tree, byte search, Unicode classes
+note and failure report. Port of crates/site-builder `verify` (Rust oracle kept independent).
+note Composition (one OM-2 program unit, leading om2 line supplied by the composer):
+note   om2, runtime.om, json.om, verify-unicode.om, verify-core.om, verify-data.om,
+note   verify-text.om, verify-seo.om, verify-site.om, verify.om (the only fn main).
+note The site generator may compose verify-unicode.om, verify-core.om and verify-data.om alone
+note and call sv_vinit then sv_vdata before writing output (pre-generation B1-B4 gate).
+note Names: functions sv_*, globals/texts/consts v*/V*, locals w*. No global is passed as an
+note argument (OM-1/OM-2 error 19); arena helpers name the arena global directly.
+note Files are read whole into the arena `va` as numbered slots (stack discipline: sv_drop pops
+note a slot and every later one). Every text read is strict UTF-8, the same refusal as Rust
+note fs::read_to_string. Failures are counted and reported to stderr as
+note   verify: FAIL <RULE> <path>: <reason> [excerpt]
+note and the verifier exits 1 when any rule failed. Capacity or I/O refusals exit 70 (runtime).
+note Linux AArch64 constants: O_DIRECTORY 040000 = 16384, O_CLOEXEC 02000000 = 524288
+note (/usr/include/aarch64-linux-gnu/asm/fcntl.h); st_mode is the u32 at byte 16 of the
+note 128-byte stat; S_IFMT 61440, S_IFDIR 16384, S_IFREG 32768; linux_dirent64 d_reclen u16 at
+note 16, name at 19 (NUL-terminated).
+const VNONE ulong 18446744073709551615
+const VACAP ulong 16777216
+const VSLOTS ulong 4096
+const VFILES ulong 65536
+const VPOOL ulong 4194304
+global va uchar 16777216
+global vtop ulong 1
+global vso ulong 4096
+global vsn ulong 4096
+global vns ulong 1
+global vpath uchar 4352
+global vpn ulong 1
+global vroot uchar 4096
+global vrn ulong 1
+global vctx uchar 4352
+global vcn ulong 1
+global vfail ulong 1
+global vst uchar 128
+global vdb uchar 32768
+global vuwr ulong 1592
+global vudr ulong 142
+global vusr ulong 20
+global vfp uchar 4194304
+global vfpn ulong 1
+global vfo ulong 65536
+global vfl ulong 65536
+global vfk uchar 65536
+global vfc ulong 1
+text vtfail "verify: FAIL "
+text vtsp " "
+text vtcol ": "
+text vtnl "\n"
+text vtxo " ["
+text vtxc "]"
+text vtcap "ARENA_CAPACITY"
+text vtslot "SLOT_CAPACITY"
+text vtpth "PATH_CAPACITY"
+text vtfil "TREE_CAPACITY"
+text vtdir "DIRECTORY_READ"
+text vtrd "FILE_READ"
+text vtu8 "U8"
+text vtu8w "not valid UTF-8 (Rust read_to_string refuses it)"
+text vtopn "unreadable (not a missing file)"
+text vtdot "."
+text vtdd ".."
+text vtsl "/"
+
+note ---------------------------------------------------------------- report
+fn sv_errv off ulong cnt ulong to void
+wp = ulong 0
+while lt wp cnt bound 65536
+wk = write 2 va add off wp sub cnt wp
+if le wk 0
+exit 70
+end
+wp = add wp ulong wk
+end
+end
+fn sv_errc to void
+wp = ulong 0
+while lt wp get vcn 0 bound 4352
+wk = write 2 vctx wp sub get vcn 0 wp
+if le wk 0
+exit 70
+end
+wp = add wp ulong wk
+end
+end
+fn sv_errn n ulong to void
+wb = new uchar 20 0
+wp = ulong 20
+while true bound 20
+wp = sub wp 1
+put wb wp uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+while lt wp 20 bound 20
+wk = write 2 wb wp sub ulong 20 wp
+if le wk 0
+exit 70
+end
+wp = add wp ulong wk
+end
+end
+fn sv_head rule view uchar * to void
+sr_diag vtfail
+sr_diag rule
+sr_diag vtsp
+sv_errc
+sr_diag vtcol
+put vfail 0 add get vfail 0 1
+end
+fn sv_fail rule view uchar * why view uchar * to void
+sv_head rule
+sr_diag why
+sr_diag vtnl
+end
+note sv_failx: the failure plus an excerpt of at most 160 arena bytes from off.
+fn sv_failx rule view uchar * why view uchar * off ulong cnt ulong to void
+sv_head rule
+sr_diag why
+sr_diag vtxo
+wn = cnt
+if gt wn 160
+wn = 160
+end
+sv_errv off wn
+sr_diag vtxc
+sr_diag vtnl
+end
+note sv_failn: the failure plus a decimal count (bookkeeping only).
+fn sv_failn rule view uchar * why view uchar * n ulong to void
+sv_head rule
+sr_diag why
+sr_diag vtxo
+sv_errn n
+sr_diag vtxc
+sr_diag vtnl
+end
+fn sv_ctxt s view uchar * to void
+if gt len s len vctx
+sr_fail vtpth
+end
+for wj ulong len s
+put vctx wj get s wj
+end
+put vcn 0 len s
+end
+fn sv_ctxp to void
+for wj ulong get vpn 0
+put vctx wj get vpath wj
+end
+put vcn 0 get vpn 0
+end
+
+note ---------------------------------------------------------------- paths
+fn sv_pch c uchar to void
+wn = get vpn 0
+if ge wn 4095
+sr_fail vtpth
+end
+put vpath wn c
+put vpn 0 add wn 1
+end
+fn sv_padd s view uchar * to void
+for wj ulong len s
+sv_pch get s wj
+end
+end
+fn sv_pva off ulong cnt ulong to void
+for wj ulong cnt
+sv_pch get va add off wj
+end
+end
+note sv_proot: vpath = the root directory followed by exactly one '/'.
+fn sv_proot to void
+put vpn 0 0
+for wj ulong get vrn 0
+sv_pch get vroot wj
+end
+wn = get vpn 0
+if gt wn 0
+if ne get vpath sub wn 1 47
+sv_pch 47
+end
+end
+end
+fn sv_prel rel view uchar * to void
+sv_proot
+sv_padd rel
+sv_ctxp
+end
+fn sv_setroot s view uchar * to void
+if or eq len s 0 gt len s 4000
+sr_fail vtpth
+end
+for wj ulong len s
+put vroot wj get s wj
+end
+put vrn 0 len s
+end
+
+note ---------------------------------------------------------------- metadata
+fn sv_mode to ulong
+if eq get vpn 0 0
+ret 0
+end
+wk = stat vpath 0 get vpn 0 vst 0 128
+if lt wk 0
+ret 0
+end
+wm = or ulong get vst 16 shl ulong get vst 17 8
+ret or wm or shl ulong get vst 18 16 shl ulong get vst 19 24
+end
+fn sv_exists to bool
+ret ne sv_mode 0
+end
+fn sv_isdir to bool
+ret eq and sv_mode 61440 16384
+end
+fn sv_isreg to bool
+ret eq and sv_mode 61440 32768
+end
+fn sv_there rel view uchar * to bool
+sv_prel rel
+ret sv_exists
+end
+
+note ---------------------------------------------------------------- slots
+fn sv_snew to ulong
+wn = get vns 0
+if ge wn VSLOTS
+sr_fail vtslot
+end
+put vso wn get vtop 0
+put vsn wn 0
+put vns 0 add wn 1
+ret wn
+end
+fn sv_drop s ulong to void
+if or eq s 0 ge s get vns 0
+sr_fail vtslot
+end
+put vtop 0 get vso s
+put vns 0 s
+end
+fn sv_off s ulong to ulong
+ret get vso s
+end
+fn sv_n s ulong to ulong
+ret get vsn s
+end
+note sv_push: append one byte to the newest slot.
+fn sv_push c uchar to void
+wt = get vtop 0
+if ge wt VACAP
+sr_fail vtcap
+end
+put va wt c
+put vtop 0 add wt 1
+ws = sub get vns 0 1
+put vsn ws add get vsn ws 1
+end
+fn sv_pusht s view uchar * to void
+for wj ulong len s
+sv_push get s wj
+end
+end
+fn sv_pusha off ulong cnt ulong to void
+for wj ulong cnt
+sv_push get va add off wj
+end
+end
+note sv_trunc: the newest slot s keeps its first n bytes (in-place transforms shrink it).
+fn sv_trunc s ulong n ulong to void
+if ne s sub get vns 0 1
+sr_fail vtslot
+end
+if gt n get vsn s
+sr_fail vtslot
+end
+put vsn s n
+put vtop 0 add get vso s n
+end
+
+note ---------------------------------------------------------------- reading
+note sv_load reads vpath whole into a new slot. Missing or unopenable: 0 (callers report the
+note rule). Open but unreadable, a directory, or invalid UTF-8: rule U8/FILE_READ and 0.
+fn sv_rawload to ulong
+wpr = new uchar 1 0
+wfd = fopen vpath 0 get vpn 0 524288 0
+if lt wfd 0
+ret 0
+end
+ws = sv_snew
+wb = get vtop 0
+wt = wb
+wok = true
+while true bound 999999
+if ge wt VACAP
+break
+end
+wk = read int wfd va wt sub VACAP wt
+if lt wk 0
+wok = false
+break
+end
+if eq wk 0
+break
+end
+wt = add wt ulong wk
+end
+if and wok ge wt VACAP
+wk = read int wfd wpr 0 1
+if ne wk 0
+wk = fclose int wfd
+sr_fail vtcap
+end
+end
+wk = fclose int wfd
+if not wok
+sv_drop ws
+sv_fail vtrd vtopn
+ret 0
+end
+put vsn ws sub wt wb
+put vtop 0 wt
+ret ws
+end
+fn sv_load to ulong
+ws = sv_rawload
+if eq ws 0
+ret 0
+end
+if not sv_utf8 ws
+sv_drop ws
+sv_fail vtu8 vtu8w
+ret 0
+end
+ret ws
+end
+fn sv_loadrel rel view uchar * to ulong
+sv_prel rel
+ret sv_load
+end
+
+note ---------------------------------------------------------------- bytes
+fn sv_b s ulong i ulong to uchar
+ret get va add get vso s i
+end
+fn sv_eqm off ulong pat view uchar * to bool
+for wj ulong len pat
+if ne get va add off wj get pat wj
+ret false
+end
+end
+ret true
+end
+fn sv_lc c uchar to uchar
+if and ge c 65 le c 90
+ret add c 32
+end
+ret c
+end
+note sv_eqmc: ASCII case-insensitive; pat is already lowercase (Rust to_ascii_lowercase + find).
+fn sv_eqmc off ulong pat view uchar * to bool
+for wj ulong len pat
+if ne sv_lc get va add off wj get pat wj
+ret false
+end
+end
+ret true
+end
+fn sv_eqat s ulong i ulong pat view uchar * to bool
+if gt len pat get vsn s
+ret false
+end
+if gt i sub get vsn s len pat
+ret false
+end
+ret sv_eqm add get vso s i pat
+end
+fn sv_eqatc s ulong i ulong pat view uchar * to bool
+if gt len pat get vsn s
+ret false
+end
+if gt i sub get vsn s len pat
+ret false
+end
+ret sv_eqmc add get vso s i pat
+end
+note sv_findn: first i in [from, lim - len pat] where pat starts; VNONE when none. ci selects
+note ASCII case-insensitive matching. Two-level loop: 64 x 262144 >= the 16 MiB arena.
+fn sv_findx s ulong pat view uchar * from ulong lim ulong ci bool to ulong
+if gt lim get vsn s
+lim = get vsn s
+end
+if gt len pat lim
+ret VNONE
+end
+wl = sub lim len pat
+wb = get vso s
+wi = from
+while le wi wl bound 64
+wk = ulong 0
+while and le wi wl lt wk 262144 bound 262144
+if ci
+if sv_eqmc add wb wi pat
+ret wi
+end
+else
+if sv_eqm add wb wi pat
+ret wi
+end
+end
+wi = add wi 1
+wk = add wk 1
+end
+end
+ret VNONE
+end
+fn sv_findn s ulong pat view uchar * from ulong lim ulong to ulong
+ret sv_findx s pat from lim false
+end
+fn sv_find s ulong pat view uchar * from ulong to ulong
+ret sv_findx s pat from get vsn s false
+end
+fn sv_findc s ulong pat view uchar * from ulong to ulong
+ret sv_findx s pat from get vsn s true
+end
+fn sv_has s ulong pat view uchar * to bool
+ret ne sv_find s pat 0 VNONE
+end
+fn sv_hasc s ulong pat view uchar * to bool
+ret ne sv_findc s pat 0 VNONE
+end
+fn sv_hasn s ulong pat view uchar * from ulong lim ulong to bool
+ret ne sv_findn s pat from lim VNONE
+end
+note sv_count: non-overlapping occurrences (Rust str::matches().count()).
+fn sv_count s ulong pat view uchar * to ulong
+wc = ulong 0
+wi = ulong 0
+wstep = len pat
+if eq wstep 0
+wstep = 1
+end
+while true bound 999999
+wf = sv_find s pat wi
+if eq wf VNONE
+ret wc
+end
+wc = add wc 1
+wi = add wf wstep
+end
+ret wc
+end
+fn sv_rfind s ulong pat view uchar * to ulong
+wl = VNONE
+wi = ulong 0
+while true bound 999999
+wf = sv_find s pat wi
+if eq wf VNONE
+ret wl
+end
+wl = wf
+wi = add wf 1
+end
+ret wl
+end
+note sv_finda: first i in [from, lim - an] where the arena bytes [aoff, aoff + an) occur.
+fn sv_finda s ulong from ulong lim ulong aoff ulong an ulong to ulong
+if gt lim get vsn s
+lim = get vsn s
+end
+if gt an lim
+ret VNONE
+end
+wl = sub lim an
+wb = get vso s
+wi = from
+while le wi wl bound 64
+wk = ulong 0
+while and le wi wl lt wk 262144 bound 262144
+wm = true
+for wj ulong an
+if ne get va add add wb wi wj get va add aoff wj
+wm = false
+break
+end
+end
+if wm
+ret wi
+end
+wi = add wi 1
+wk = add wk 1
+end
+end
+ret VNONE
+end
+note sv_findb: first index of byte c in slot s, VNONE when absent.
+fn sv_findb s ulong c uchar to ulong
+wn = get vsn s
+wb = get vso s
+wi = ulong 0
+while lt wi wn bound 64
+wk = ulong 0
+while and lt wi wn lt wk 262144 bound 262144
+if eq get va add wb wi c
+ret wi
+end
+wi = add wi 1
+wk = add wk 1
+end
+end
+ret VNONE
+end
+fn sv_starts s ulong pat view uchar * to bool
+ret sv_eqat s 0 pat
+end
+fn sv_ends s ulong pat view uchar * to bool
+if gt len pat get vsn s
+ret false
+end
+ret sv_eqat s sub get vsn s len pat pat
+end
+note sv_dash: U+2014 (E2 80 94) or U+2013 (E2 80 93) anywhere in [from, lim).
+fn sv_dashn s ulong from ulong lim ulong to bool
+if gt lim get vsn s
+lim = get vsn s
+end
+wb = get vso s
+wi = from
+while lt add wi 2 lim bound 64
+wk = ulong 0
+while and lt add wi 2 lim lt wk 262144 bound 262144
+if eq get va add wb wi 226
+if eq get va add add wb wi 1 128
+wc = get va add add wb wi 2
+if or eq wc 148 eq wc 147
+ret true
+end
+end
+end
+wi = add wi 1
+wk = add wk 1
+end
+end
+ret false
+end
+fn sv_dash s ulong to bool
+ret sv_dashn s 0 get vsn s
+end
+
+note ---------------------------------------------------------------- UTF-8
+note Strict RFC 3629: no overlongs, no surrogates, nothing above U+10FFFF, no truncation.
+fn sv_u8one s ulong i ulong n ulong to ulong
+c = sv_b s i
+if lt c 128
+ret 1
+end
+wl = ulong 0
+wlo = uchar 128
+whi = uchar 191
+if and ge c 194 le c 223
+wl = 2
+end
+if and ge c 224 le c 239
+wl = 3
+if eq c 224
+wlo = 160
+end
+if eq c 237
+whi = 159
+end
+end
+if and ge c 240 le c 244
+wl = 4
+if eq c 240
+wlo = 144
+end
+if eq c 244
+whi = 143
+end
+end
+if eq wl 0
+ret 0
+end
+if gt add i wl n
+ret 0
+end
+wc = sv_b s add i 1
+if or lt wc wlo gt wc whi
+ret 0
+end
+for wj ulong sub wl 2
+wc = sv_b s add add i 2 wj
+if or lt wc 128 gt wc 191
+ret 0
+end
+end
+ret wl
+end
+fn sv_utf8 s ulong to bool
+wn = get vsn s
+wi = ulong 0
+while lt wi wn bound 64
+wk = ulong 0
+while and lt wi wn lt wk 262144 bound 262144
+wl = sv_u8one s wi wn
+if eq wl 0
+ret false
+end
+wi = add wi wl
+wk = add wk 1
+end
+end
+ret true
+end
+note sv_cp: the code point at i (the slot is valid UTF-8; i is a character start).
+fn sv_cp s ulong i ulong to ulong
+c = ulong sv_b s i
+if lt c 128
+ret c
+end
+if lt c 224
+ret or shl and c 31 6 and ulong sv_b s add i 1 63
+end
+if lt c 240
+wv = or shl and c 15 12 shl and ulong sv_b s add i 1 63 6
+ret or wv and ulong sv_b s add i 2 63
+end
+wv = or shl and c 7 18 shl and ulong sv_b s add i 1 63 12
+wv = or wv shl and ulong sv_b s add i 2 63 6
+ret or wv and ulong sv_b s add i 3 63
+end
+fn sv_cpl s ulong i ulong to ulong
+c = sv_b s i
+if lt c 128
+ret 1
+end
+if lt c 224
+ret 2
+end
+if lt c 240
+ret 3
+end
+ret 4
+end
+note sv_pv: start of the character before i (i > 0).
+fn sv_pv s ulong i ulong to ulong
+wi = sub i 1
+while gt wi 0 bound 3
+if ne and sv_b s wi 192 128
+ret wi
+end
+wi = sub wi 1
+end
+ret wi
+end
+
+note ---------------------------------------------------------------- Unicode classes
+fn sv_upar src view uchar * which uchar to void
+wv = ulong 0
+wd = false
+wk = ulong 0
+for wj ulong len src
+c = get src wj
+if and ge c 48 le c 57
+wv = add mul wv 10 ulong sub c 48
+wd = true
+else
+if wd
+if eq which 0
+put vuwr wk wv
+end
+if eq which 1
+put vudr wk wv
+end
+if eq which 2
+put vusr wk wv
+end
+wk = add wk 1
+end
+wv = 0
+wd = false
+end
+end
+if wd
+if eq which 0
+put vuwr wk wv
+end
+if eq which 1
+put vudr wk wv
+end
+if eq which 2
+put vusr wk wv
+end
+end
+end
+fn sv_uinit to void
+sv_upar vuw 0
+sv_upar vud 1
+sv_upar vus 2
+end
+note Binary search of sorted disjoint ranges; one function per table (globals are not passed).
+fn sv_inw cp ulong to bool
+if lt cp 128
+ret or or and ge cp 48 le cp 57 and ge cp 65 le cp 90 or eq cp 95 and ge cp 97 le cp 122
+end
+wlo = ulong 0
+whi = VUWN
+while lt wlo whi bound 20
+wm = div add wlo whi 2
+if lt cp get vuwr mul wm 2
+whi = wm
+else
+if gt cp get vuwr add mul wm 2 1
+wlo = add wm 1
+else
+ret true
+end
+end
+end
+ret false
+end
+fn sv_ind cp ulong to bool
+if lt cp 128
+ret and ge cp 48 le cp 57
+end
+wlo = ulong 0
+whi = VUDN
+while lt wlo whi bound 20
+wm = div add wlo whi 2
+if lt cp get vudr mul wm 2
+whi = wm
+else
+if gt cp get vudr add mul wm 2 1
+wlo = add wm 1
+else
+ret true
+end
+end
+end
+ret false
+end
+fn sv_ins cp ulong to bool
+for wj ulong VUSN
+if and ge cp get vusr mul wj 2 le cp get vusr add mul wj 2 1
+ret true
+end
+end
+ret false
+end
+note sv_fold: simple case folding onto ASCII as regex (?i) does: A-Z, U+212A KELVIN SIGN -> k,
+note U+017F LATIN SMALL LETTER LONG S -> s (regex-syntax case_folding_simple.rs).
+fn sv_fold cp ulong to ulong
+if and ge cp 65 le cp 90
+ret add cp 32
+end
+if eq cp 8490
+ret 107
+end
+if eq cp 383
+ret 115
+end
+ret cp
+end
+fn sv_wat s ulong i ulong to bool
+if ge i get vsn s
+ret false
+end
+ret sv_inw sv_cp s i
+end
+fn sv_wbef s ulong i ulong to bool
+if eq i 0
+ret false
+end
+ret sv_inw sv_cp s sv_pv s i
+end
+note sv_wb: regex \b (Unicode word boundary) at byte index i, a character start.
+fn sv_wb s ulong i ulong to bool
+ret ne sv_wbef s i sv_wat s i
+end
+fn sv_sat s ulong i ulong to bool
+if ge i get vsn s
+ret false
+end
+ret sv_ins sv_cp s i
+end
+
+note ---------------------------------------------------------------- tree
+note sv_walk lists every entry under the root once (directories followed through symlinks,
+note as Rust Path::is_dir does). Entry 0 is the root itself. An unreadable directory refuses
+note the run (DIRECTORY_READ), never a silently shorter list.
+fn sv_fadd rel0 ulong reln ulong name ulong namen ulong to ulong
+wq = get vfc 0
+if ge wq VFILES
+sr_fail vtfil
+end
+wo = get vfpn 0
+wneed = add add reln namen 1
+if gt wneed sub VPOOL wo
+sr_fail vtfil
+end
+for wj ulong reln
+put vfp add wo wj get vfp add rel0 wj
+end
+wp = add wo reln
+if gt reln 0
+put vfp wp 47
+wp = add wp 1
+end
+for wj ulong namen
+put vfp add wp wj get vdb add name wj
+end
+wp = add wp namen
+put vfo wq wo
+put vfl wq sub wp wo
+put vfpn 0 wp
+put vfc 0 add wq 1
+ret wq
+end
+fn sv_pfile q ulong to void
+sv_proot
+for wj ulong get vfl q
+sv_pch get vfp add get vfo q wj
+end
+sv_ctxp
+end
+fn sv_kind q ulong to void
+sv_pfile q
+if sv_isdir
+put vfk q 2
+else
+put vfk q 1
+end
+end
+fn sv_dirent q ulong wa ulong to ulong
+wr = or ulong get vdb add wa 16 shl ulong get vdb add wa 17 8
+wn = ulong 0
+while lt add add wa 19 wn add wa wr bound 4096
+if eq get vdb add add wa 19 wn 0
+break
+end
+wn = add wn 1
+end
+wdot = and eq wn 1 eq get vdb add wa 19 46
+wdd = and eq wn 2 and eq get vdb add wa 19 46 eq get vdb add wa 20 46
+if not or wdot wdd
+wc = sv_fadd get vfo q get vfl q add wa 19 wn
+sv_kind wc
+end
+ret wr
+end
+fn sv_readdir q ulong to void
+sv_pfile q
+wfd = fopen vpath 0 get vpn 0 540672 0
+if lt wfd 0
+sr_fail vtdir
+end
+while true bound 65536
+wk = getdnts int wfd vdb 0 len vdb
+if lt wk 0
+sr_fail vtdir
+end
+if eq wk 0
+break
+end
+wat = ulong 0
+while lt wat ulong wk bound 32768
+wr = sv_dirent q wat
+if eq wr 0
+sr_fail vtdir
+end
+wat = add wat wr
+end
+end
+wk = fclose int wfd
+if ne wk 0
+sr_fail vtdir
+end
+end
+fn sv_walk to void
+put vfc 0 0
+put vfpn 0 0
+put vfo 0 0
+put vfl 0 0
+put vfc 0 1
+put vfk 0 2
+wq = ulong 0
+while lt wq get vfc 0 bound 65536
+if eq get vfk wq 2
+sv_readdir wq
+end
+wq = add wq 1
+end
+end
+fn sv_fext q ulong ext view uchar * to bool
+wl = get vfl q
+if gt len ext wl
+ret false
+end
+wo = add get vfo q sub wl len ext
+for wj ulong len ext
+if ne get vfp add wo wj get ext wj
+ret false
+end
+end
+ret true
+end
+fn sv_fis q ulong rel view uchar * to bool
+if ne len rel get vfl q
+ret false
+end
+for wj ulong len rel
+if ne get vfp add get vfo q wj get rel wj
+ret false
+end
+end
+ret true
+end
+fn sv_fload q ulong to ulong
+sv_pfile q
+ret sv_load
+end
+
+note ---------------------------------------------------------------- tables
+note A table is a text of entries separated by LF; sv_tcount / sv_tent read it. Entries are
+note passed on as `part` views of the table (OM-2 part of a text is a view).
+fn sv_tcount t view uchar * to ulong
+wc = ulong 0
+for wj ulong len t
+if eq get t wj 10
+wc = add wc 1
+end
+end
+ret wc
+end
+note sv_tat: byte offset of entry k (entries end with LF).
+fn sv_tat t view uchar * k ulong to ulong
+wc = ulong 0
+if eq k 0
+ret 0
+end
+for wj ulong len t
+if eq get t wj 10
+wc = add wc 1
+if eq wc k
+ret add wj 1
+end
+end
+end
+ret len t
+end
+fn sv_tlen t view uchar * wa ulong to ulong
+wn = ulong 0
+while lt add wa wn len t bound 65536
+if eq get t add wa wn 10
+ret wn
+end
+wn = add wn 1
+end
+ret wn
+end
+fn sv_vinit to void
+put vtop 0 0
+put vns 0 1
+put vso 0 0
+put vsn 0 0
+put vfail 0 0
+put vcn 0 0
+sv_uinit
+end

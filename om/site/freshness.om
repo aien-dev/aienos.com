@@ -1,0 +1,53 @@
+note Metadata clocks are source observations, not new measured performance or qualification.
+global sfdate uchar 64
+global sfdaten ulong 1
+text sfkey "generated_at"
+text sfprog "/progress/"
+text sfnow "/now/"
+text sfdash "/dash/"
+text sfhive "/hive/"
+
+fn sf_safe value view uchar * to void
+if lt len value 20
+trap 10
+end
+for i ulong len value
+c = get value i
+if not or or or or or or and ge c 48 le c 57 eq c 45 eq c 58 eq c 46 eq c 43 eq c 84 eq c 90
+trap 10
+end
+end
+end
+
+fn sf_load to void
+buf = new uchar 64 0
+root = sj_load stfacts
+node = sj_find root sfkey
+n = sj_string node buf
+sf_safe part buf 0 n
+for i ulong n
+put sfdate i get buf i
+end
+put sfdaten 0 n
+end
+
+fn sf_facts to void
+buf = new uchar 64 0
+n = get sfdaten 0
+for i ulong n
+put buf i get sfdate i
+end
+sr_raw part buf 0 n
+end
+
+fn ss_modified row ulong to void
+if or or st_match row 0 stroot st_match row 0 stclass st_match row 0 sfprog
+sf_facts
+ret
+end
+if or or st_match row 0 sfnow st_match row 0 sfdash st_match row 0 sfhive
+sp_ledger_stamp
+ret
+end
+st_stamp
+end

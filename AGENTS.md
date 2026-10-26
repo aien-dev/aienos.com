@@ -11,6 +11,18 @@ Shared rules: read https://www.aienos.com/agents/RULES.md first. This file adds 
 - `dist/` is generated output. Never edit it by hand; rebuild it.
 - `crates/hive-feed` is opt-in Rust website telemetry tooling. It does not run during static builds. `scripts/hive/` holds its service and exact-route edge templates; README documents installation and the publication boundary.
 
+### Whole-site Omega migration (draft PR #122)
+
+`om/site/` is the replacement generator, not yet the deployed build. Keep production on the existing Pages command until the independent Rust oracle, Omega verifier with negative controls, old-sitemap HTTP crawl and real-browser acceptance all pass. Compilation alone is not cutover evidence.
+
+The approved experience is Allen-first: `/` presents the native Allen scene, with no navigation bar. `/classic/` retains the full source-backed homepage, and all existing pages remain readable at their URLs. Classic pages use a quiet index, not a top navigation bar. The native first-visit intro is silent on load; sound starts only from the first tap or Enter. Skip and Escape remain available, returning visitors skip the intro, and a quiet replay control is retained. The remembered interface choice is separate from memory and X-pixel consent.
+
+`om/site/pages.json` is the authored Omega page registry. `/data/pages.json` is the complete generated catalog, including imported engineer pages. The Rust oracle keeps its own explicit registry and validators: never make it trust the candidate registry as its expected result. The captured `om/site/old-sitemap.xml` is the pre-cutover URL set; never regenerate it from candidate output.
+
+Source browser assets are Omega units, including `legacy-assets.om`; the corresponding public CSS/JS are generated artifacts. Do not hand-edit generated output. Existing Hive, Allen, Alpha and consent generators retain their own pins and artifact checks. `om/site/omc.provenance` records the site compiler separately; changing it does not silently change the other generator pins.
+
+The native `om/site/build.om` conductor composes a source manifest and invokes the pinned seeded compiler. Run host builds at low priority with at most two workers. Never run a candidate binary left behind by a failed compiler. See `DEPENDENCIES.md` for retained collection tools, browser dependencies and verification-only oracles. Draft quotations and teaching copy may not be published until the operator approves them.
+
 ## Installation
 
 ```bash

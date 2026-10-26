@@ -1,0 +1,103 @@
+note Incoming engineer pages contribute registry metadata from their current canonical JSON each build.
+text stefile "public/data/engineer.json"
+text stepages "pages"
+text stemode "engineer"
+text stearea "Learn"
+text stepage "Page"
+text stecoll "Collection"
+text steart "Article"
+text steimage "/og.png"
+text stedate "2026-10-26"
+text stework "work"
+text stehome "home"
+text stegroup "collection"
+text steinfo "infographic"
+text stepath "/engineer/"
+text ssra "[\n"
+text ssrb ",\n"
+text ssrc "{\"path\":"
+text ssrd ",\"title\":"
+text ssre ",\"description\":"
+text ssrf ",\"area\":"
+text ssrg "}"
+text ssrh "\n]\n"
+
+fn st_value value view uchar * slot ulong to void
+p = get stused 0
+if gt len value sub len stpool p
+trap 3
+end
+put stoff slot p
+put stlens slot len value
+for i ulong len value
+put stpool add p i get value i
+end
+put stused 0 add p len value
+end
+
+fn st_engineer_row node ulong to void
+if not sj_prefix sj_find node stk0 stepath
+trap 10
+end
+row = get stcount 0
+if ge row STCAP
+trap 3
+end
+base = mul row STFIELDS
+st_store node stk0 base
+st_store node stk1 add base 1
+st_store node stk2 add base 2
+st_value stearea add base 3
+st_value stemode add base 4
+st_value stefile add base 5
+kind = sj_find node stk6
+if or sj_eq kind stework sj_eq kind steinfo
+st_value steart add base 6
+else
+if or sj_eq kind stehome sj_eq kind stegroup
+st_value stecoll add base 6
+else
+st_value stepage add base 6
+end
+end
+st_value stedate add base 7
+st_value steimage add base 8
+st_value stempty add base 9
+st_store node stk0 add base 10
+put stcount 0 add row 1
+end
+
+fn st_engineer_registry to void
+root = sj_load stefile
+arr = sj_find root stepages
+if ne sj_kind arr 2
+trap 10
+end
+if eq sj_len arr 0
+trap 10
+end
+node = sj_first arr
+while ne node 0 bound 128
+st_engineer_row node
+node = sj_next node
+end
+end
+
+fn ss_page_registry to void
+sr_raw ssra
+for i ulong get steng 0
+if gt i 0
+sr_raw ssrb
+end
+sr_raw ssrc
+ss_qfield i 0
+sr_raw ssrd
+ss_qfield i 1
+sr_raw ssre
+ss_qfield i 2
+sr_raw ssrf
+ss_qfield i 3
+sr_raw ssrg
+end
+sr_raw ssrh
+end

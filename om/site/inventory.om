@@ -1,0 +1,221 @@
+note Expected inventory is derived from source assets plus the registry, not a Rust build or output scan.
+text siexpect "expected-files.txt"
+text sinow "now.json"
+text sinowfd "now/feed.xml"
+text sifull "llms-full.txt"
+text sicss "assets/site.css"
+text sijs "js/site.js"
+text sitokens "assets/site-tokens.css"
+text sidoor "assets/site-door.css"
+
+fn si_line path view uchar * to void
+sr_raw path
+sr_raw ssnl
+end
+
+fn si_generated path view uchar * to bool
+if sr_equal path sap0
+ret true
+end
+if sr_equal path sap1
+ret true
+end
+if sr_equal path sap2
+ret true
+end
+if sr_equal path sap3
+ret true
+end
+if sr_equal path sap4
+ret true
+end
+if sr_equal path sap5
+ret true
+end
+if sr_equal path sap6
+ret true
+end
+if sr_equal path sap7
+ret true
+end
+if sr_equal path sap8
+ret true
+end
+if sr_equal path sap9
+ret true
+end
+if sr_equal path sap10
+ret true
+end
+if sr_equal path sap11
+ret true
+end
+if sr_equal path sap12
+ret true
+end
+if sr_equal path sap13
+ret true
+end
+if sr_equal path sicss
+ret true
+end
+if sr_equal path sijs
+ret true
+end
+if sr_equal path sitokens
+ret true
+end
+if sr_equal path sidoor
+ret true
+end
+if sr_equal path stfacts
+ret true
+end
+if sr_equal path stagents
+ret true
+end
+if sr_equal path ST0004
+ret true
+end
+if sr_equal path ST0006
+ret true
+end
+if sr_equal path ST0008
+ret true
+end
+if sr_equal path ST0010
+ret true
+end
+if sr_equal path ST0012
+ret true
+end
+if sr_equal path ST0014
+ret true
+end
+if sr_equal path ssmap
+ret true
+end
+if sr_equal path ssmapmd
+ret true
+end
+if sr_equal path ssllms
+ret true
+end
+if sr_equal path ssfull
+ret true
+end
+if sr_equal path ssfeed
+ret true
+end
+if sr_equal path ssnow
+ret true
+end
+if sr_equal path ssnowfd
+ret true
+end
+if sr_equal path ssrobots
+ret true
+end
+if sr_equal path ssdata
+ret true
+end
+if sr_equal path sshumans
+ret true
+end
+if sr_equal path ss404
+ret true
+end
+if sr_equal path sxinv
+ret true
+end
+if sr_equal path siexpect
+ret true
+end
+ret false
+end
+
+fn si_fixed to void
+si_line sap0
+si_line sap1
+si_line sap2
+si_line sap3
+si_line sap4
+si_line sap5
+si_line sap6
+si_line sap7
+si_line sap8
+si_line sap9
+si_line sap10
+si_line sap11
+si_line sap12
+si_line sap13
+si_line sicss
+si_line sijs
+si_line sitokens
+si_line sidoor
+si_line stfacts
+si_line stagents
+si_line ST0004
+si_line ST0006
+si_line ST0008
+si_line ST0010
+si_line ST0012
+si_line ST0014
+si_line ssmap
+si_line ssmapmd
+si_line ssllms
+si_line ssfull
+si_line ssfeed
+si_line ssnow
+si_line ssnowfd
+si_line ssrobots
+si_line ssdata
+si_line sshumans
+si_line ss404
+si_line sxinv
+si_line siexpect
+end
+
+fn si_page row ulong to void
+buf = new uchar 1024 0
+aliasbuf = new uchar 1024 0
+n = st_html_path row buf
+si_line part buf 1 sub n 1
+n = ss_mdpath row buf
+si_line part buf 1 sub n 1
+an = st_field row 0 aliasbuf
+an = st_append aliasbuf ssmdidx an
+if not sr_equal part buf 0 n part aliasbuf 0 an
+si_line part aliasbuf 1 sub an 1
+end
+end
+
+fn si_expected to void
+st_open siexpect
+si_fixed
+for i ulong get stcount 0
+si_page i
+end
+put sxmode 0 2
+sx_tree stpub 0
+put sxmode 0 0
+sr_close
+end
+
+fn si_required_data to void
+pathbuf = new uchar 4096 0
+fullbuf = new uchar 8192 0
+root = sj_load ssfields
+node = sj_first root
+while ne node 0 bound 1024
+n = sj_string sj_find node stk0 pathbuf
+sn = st_path part pathbuf 0 n fullbuf
+r = faccess fullbuf 0 sn 4
+if ne r 0
+sr_diag part pathbuf 0 n
+sr_diag ssnl
+trap 10
+end
+node = sj_next node
+end
+end

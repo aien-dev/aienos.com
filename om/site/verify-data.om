@@ -1,0 +1,1403 @@
+note verify-data.om: fail-closed validation of every published data file and the source inputs
+note the generator reads (rules B1-B4 plus the oracle.rs verify_data gates). Callable before any
+note output is written: sv_vinit, then sv_vdata kind path (kinds below); it returns true when
+note the file passes and reports every failure as `verify: FAIL <RULE> <path>: ...`.
+note Ports, with their Rust sources at baseline 3d36bd7 + the RustOracle lane (oracle.rs):
+note   machines   components/machines.rs parse(): serde deny_unknown_fields, check_text,
+note              check_link, positive ceilings, speed <= its ceiling, on_main/branch, unique ids
+note   omega      components/omega.rs parse()+validate(), expand() short links
+note   cuda       components/cudaplusplus.rs parse()+validate()+check_status(), pinned expand()
+note   research   components/research_status.rs parse()+validate()
+note   facts      facts.rs Facts::load (serde shape; unknown fields allowed, known ones once)
+note   agents     components/agents.rs Repos::load
+note   progress   collector.rs validate_snapshot
+note   status     oracle.rs check_status
+note   index      oracle.rs check_data_index (exact DATA_FILES set, www url each)
+note   pages      oracle.rs check_pages_json (exact PAGES set, each once, title/description,
+note              english == path)
+note   now        now.json parses
+note   quotes     data/quotes.json shape (ids unique) for the voice exemption
+note   ledger     ledger_public.rs check_public (project(x) == x)
+note Numbers stay lexical (json.om). Where serde would round through f64 this port accepts only
+note the exact cases and refuses the rest (documented per check): stricter, never looser.
+note Serde strings are any JSON string; sj_load already decoded escapes, so dash checks run on the
+note raw file bytes (Rust RAW.contains) AND on decoded strings (a \u2014 escape cannot slip by).
+text vrb1 "B1"
+text vrb2 "B2"
+text vrb3 "B3"
+text vrb4 "B4"
+text vrv1 "V1"
+text vrd1 "D1"
+text vrd2 "D2"
+text vrd3 "D3"
+text vrd4 "D4"
+text vrd5 "D5"
+text vrq "Q"
+text vrl "L"
+text vtjr "verify: reading "
+text vtnf "missing or unreadable file"
+text vtnob "not a JSON object"
+text vtnar "not a JSON array"
+text vtmis "missing field"
+text vtdup "duplicate field"
+text vtunk "unknown field (deny_unknown_fields)"
+text vttyp "field has the wrong JSON type"
+text vtdsh "em or en dash"
+text vtfor "forbidden comparison word"
+text vthttps "link must be a public https URL"
+text vtcpos "ceiling tok_s must be a positive plain decimal"
+text vtplain "tok_s must be a plain decimal (exponent forms are refused: no float rounding here)"
+text vtnomach "no machines"
+text vtnospd "no speeds"
+text vtedate "evidence_date must be YYYY-MM-DD (10 bytes)"
+text vtuceil "speed names an unknown ceiling"
+text vtnceil "a ceiling needs a numeric tok_s"
+text vtaceil "tok/s is above its ceiling"
+text vtonm "on_main is true but branch is not main"
+text vtdupid "duplicate id"
+text vtlay "the CUDA map needs at least 13 rows"
+text vtstat "unknown status"
+text vtempty "empty cell"
+text vtbarc "the bar must be C1 to C6 in order"
+text vtbarp "the performance bar must be P0 to P4 in order"
+text vtpassr "PASS without a receipt"
+text vtpassu "PASS receipt must be under omega evidence/"
+text vtnpr "receipt on a row that is not PASS"
+text vtboxg "box link off GitHub"
+text vtlink "bad or unknown short link"
+text vtodoc "source.doc must be omega docs/OMEGA.md"
+text vthops "the path needs at least 8 hops"
+text vtinp "IN PROGRESS needs its ledger id"
+text vtpasse "PASS needs a receipt under evidence/"
+text vtpain "a pain or swap row is PASS or IN PROGRESS"
+text vtcmd "a fixed row shows the command that proves it"
+text vtvis "source.visibility is private or public"
+text vtpin "a file on a branch must be pinned to a full commit"
+text vtallow "allowed list differs from the fixed set"
+text vtlevels "ladder levels must be exactly L0..L7+"
+text vtlstate "ladder step has an unknown state"
+text vtrlink "link must be on github.com/aien-dev"
+text vtcur "current_level does not match the highest unbroken achieved step"
+text vtgap "ladder step achieved above an unachieved step"
+text vtrstat "turing row status outside the allowed set"
+text vtrcls "implementation row class outside the allowed set"
+text vtatt "attempt does not match its row, level or successor"
+text vtu64 "not an unsigned 64-bit integer"
+text vtsnap "Empty or invalid snapshot"
+text vtsord "Unordered snapshot dates"
+text vtsmet "Missing or invalid metric"
+text vtsrec "Snapshot totals do not reconcile"
+text vtslang "Language total mismatch"
+text vtssum "Summary differs from the latest snapshot"
+text vtsrepo "Duplicate repositories"
+text vtsprs "PR totals do not reconcile"
+text vtsci "CI totals do not reconcile"
+text vtscic "CI conclusions do not reconcile"
+text vtshead "Missing pinned head"
+text vtsurl "Invalid repository link"
+text vtst5 "statuses differ from the fixed set"
+text vtstl "no layers"
+text vtstn "layer without a name"
+text vtsts "layer has an unknown status"
+text vtstno "layer has no note"
+text vtstr "receipt must be null or an https URL"
+text vtixp "entry without a path"
+text vtixu "entry url must be https://www.aienos.com + path"
+text vtixd "path listed twice"
+text vtixm "differs from DATA_FILES"
+text vtpgm "differs from PAGES"
+text vtpgt "page without a title or description"
+text vtpge "english must equal path"
+text vtqid "quote id missing, empty or repeated"
+text vtqq "quote text missing or empty"
+text vtlh "ledger must be newline-terminated TSV with the exact header and no CR"
+text vtlc "ledger row has fewer than five or more than eight columns"
+text vtls "credential-shaped value in ledger"
+text vtle "email-shaped value in ledger"
+text vtlx "control character in ledger field"
+text vtlp "ledger is not its public projection"
+text vtsetx "data kind unknown"
+
+note ---------------------------------------------------------------- kinds and registries
+text vkmach "machines"
+text vkomega "omega"
+text vkcuda "cuda"
+text vkres "research"
+text vkfacts "facts"
+text vkagent "agents"
+text vkprog "progress"
+text vkstat "status"
+text vkindex "index"
+text vkpages "pages"
+text vknow "now"
+text vkquote "quotes"
+text vkledg "ledger"
+text vkengr "engineer"
+text vhost "https://www.aienos.com"
+note seo::PAGES (Rust oracle, RustOracle lane 2026-10-26): the 36 baseline pages plus /allen/,
+note /alpha/, the frozen profiles, /discoveries/ and /classic/. Every old URL stays listed.
+text vpages "/\n/start/\n/contact/\n/allen/\n/alpha/\n/privacy/\n/machine/\n/omega/\n/cudaplusplus/\n/now/\n/dash/\n/hive/\n/learn/\n/agents/\n/progress/\n/turing/\n/research/\n/research/computing-machinery-and-understanding/\n/research/computing-machinery-and-understanding/profiles/\n/research/computing-machinery-and-understanding-emergence/\n/research/the-turing-brief/\n/research/turing-discovery-gap-conjecture/\n/research/crumb-doctrine/\n/research/omega-language/\n/research/atemporal-aien-postulate/\n/research/the-aien-papers/\n/experiments/\n/discovery/\n/discoveries/\n/evidence/\n/research/status/\n/philosophy/\n/research/the-stapleton-doctrine/\n/post-llm-case/\n/owned/\n/call-to-humanity/\n/blog/\n/blog/aien-v3-research-plan/\n/glossary/\n/licensing/\n/classic/\n"
+note seo::DATA_FILES: the 26 baseline machine-readable files plus /data/pages.json.
+text vdfiles "/data/index.json\n/llms.txt\n/llms-full.txt\n/now.json\n/now/feed.xml\n/machines.json\n/omega.json\n/cudaplusplus.json\n/facts.json\n/status.json\n/research-status.json\n/data/project-progress.json\n/data/now.tsv\n/data/accounts.tsv\n/data/routing.tsv\n/feed.xml\n/sitemap.xml\n/sitemap.md\n/AGENTS.md\n/agents/RULES.md\n/data/agent-repos.json\n/index.md\n/research/CITATION.cff\n/research/aien-research-plan.md\n/humans.txt\n/robots.txt\n/data/pages.json\n"
+
+note ---------------------------------------------------------------- serde shapes
+note One field per line: a type code, then the JSON key. s string, S Option<String> (missing,
+note null or string), a array, T array of strings, o object, O Option<object>, b bool,
+note B #[serde(default)] bool (missing or bool), n f64 (any number), N Option<f64>,
+note u u64 (non-negative integer token), L Vec<(String, String)> (arrays of exactly two strings).
+text vsmt "sas_of\nssource\nsjudging\naceilings\namachines\naspeeds\n"
+text vsmc "sid\nsmodel\nsmachine\nntok_s\nshow\nslink\nsreceipt\nsbranch\nbon_main\n"
+text vsml "slabel\nslink\n"
+text vsmm "sid\nsname\nsdetail\nsrole\nstoday\nsevidence_date\nsevidence\nslink\nsbranch\nbon_main\namore\n"
+text vsms "sid\nswhat\nsmodel\nsmachine\nsengine\nsvalue\nsdetail\nNtok_s\nsceiling\nsprevious\nsdate\nslink\nsreceipt\nsbranch\nbon_main\nsverdict\nsnote\n"
+text vctop "as_of\nsource\njudging\n"
+text vccei "model\nmachine\nhow\nreceipt\nbranch\n"
+text vcmac "name\ndetail\nrole\ntoday\nevidence_date\nevidence\nbranch\n"
+text vclnk "label\n"
+text vcspd "what\nmodel\nmachine\nengine\nvalue\ndetail\nprevious\ndate\nreceipt\nbranch\nverdict\nnote\n"
+note machines.rs FORBIDDEN, compared against the ASCII-lowercased text.
+text vforbid "faster than\nx faster\nllama.cpp\nvllm\nollama\nbeats \nbeat the\n"
+text vsot "osource\nsclaim\nTclaim_rest\nstrue_today\nsnot_true_yet\naparts\nobelow\nalayers\noreceipt\nanot_yet\nabar\nabeyond\noperformance\n"
+text vsop "sstand\nshow\nsbox\nsrule\nabar\n"
+text vsos "sdoc\nsbranch\nscommit\nschecked\nsledger\nsissue\n"
+text vsoc "sname\nswhat\nLlinks\nsbox\n"
+text vsol "scuda\nsjob\nsomega\nsstatus\nsnote\nLlinks\nsbox\n"
+text vsor "stitle\nstaken\nswhat\nLfacts\nsbox\n"
+text vsog "stitle\nstext\nLlinks\nsbox\n"
+text vsob "sid\nstitle\nsdone_when\nsstatus\nsnow\nSreceipt\nLlinks\n"
+text vsct "osource\nsclaim\nTclaim_rest\nspurpose_title\nspurpose\nspurpose_link\nsprivate_note\nsaudit_link\nahops\nshow_lead\nasteps\nTdid_not\nsdid_not_box\nspain_lead\napains\nsswap_lead\naswaps\n"
+text vscs "srepo\nsreadme\nshow\nshow_branch\nshow_commit\nsmain_commit\nsomega_doc\nsomega_branch\nsomega_commit\nschecked\nsledger\nsvisibility\nsowner_ledger\n"
+text vsch "sstep\nscuda\nsours\nsstatus\nsnote\nSledger\nLlinks\nsbox\n"
+text vscc "stitle\nstext\nLlinks\nsbox\n"
+text vscr "stitle\nstext\nsstatus\nSledger\nScommand\nSreceipt\nLlinks\nsbox\n"
+text vsrt "sas_of\nssource_table\nosource_commits\nsevidence_hierarchy\naabbreviations\nTcaveats\nsturing_definition\nTallowed_statuses\nTallowed_ladder_states\nTallowed_classes\nocurrent_level\naladder\naattempts\naturing_rows\naimplementation_rows\n"
+text vsrsc "somega\nsaienos\nsaien_architecture\nsaienos_com\n"
+text vsrab "sshort\nslong\n"
+text vsrcl "slevel\nssummary\nsoutside_scope\nsnote\nsmeaning\nslimitations\nsevidence\n"
+text vsrld "slevel\nsname\nsstate\nsdetail\nsbasis\nSlink\n"
+text vsrat "sid\nsbeside\nsoutcome\nssummary\nsled_to\n"
+text vsrtr "sid\nstitle\nsstatus\nsstatus_detail\nsplain\nSheadline\nSnot_yield\nsscope\nsclaim_level\nsreceipt\nscommit\nsdate\nslimitations\nsnext_dependency\nsevidence\nSlink\n"
+text vsrim "sid\nsclass\nsstatus_detail\nsscope\nsclaim_level\nsreceipt\nscommit\nsdate\nslimitations\nsnext_dependency\nsevidence\nSlink\n"
+text vsft "sgenerated_at\nacomponents\nadecisions\noreceipt\n"
+text vsfc "skey\nsname\nsrepo\nsrole\nsurl\nspushed_at\nuopen_prs\nOlast_merge\n"
+text vsfm "unumber\nstitle\nsmerged_at\nsurl\n"
+text vsfd "sid\nstitle\nsurl\n"
+text vsfr "srepo\nssha\nscommit_title\nscommitted_at\nsstate\nsdescription\nstarget_url\nsupdated_at\n"
+text vsat "sgenerated_at\nsorg\narepos\n"
+text vsar "sname\nsdescription\nsurl\nsdefault_branch\nbfork\nspushed_at\nBarchived\nSbrief\n"
+text vkid "id"
+text vkstatus "status"
+text vkrcpt "receipt"
+text vkbox "box"
+text vklinks "links"
+text vkfacts2 "facts"
+text vkledger "ledger"
+text vkcmd "command"
+text vktok "tok_s"
+text vkceil "ceiling"
+text vkceils "ceilings"
+text vkmachs "machines"
+text vkspeeds "speeds"
+text vkmore "more"
+text vklink "link"
+text vkedate "evidence_date"
+text vkonmain "on_main"
+text vkbranch "branch"
+text vkmain "main"
+text vkhttps "https://"
+text vkparts "parts"
+text vkbelow "below"
+text vklayers "layers"
+text vkcuda2 "cuda"
+text vkomg "omega"
+text vkjob "job"
+text vknotyet "not_yet"
+text vkbeyond "beyond"
+text vkbar "bar"
+text vkperf "performance"
+text vksource "source"
+text vkdoc "doc"
+text vkissue "issue"
+text vkodoc "o:docs/OMEGA.md"
+text vkoev "o:evidence/"
+text vkoev2 "o/:evidence/"
+text vkpass "PASS"
+text vkpart "PARTIAL"
+text vkmiss "MISSING"
+text vknotr "NOT REPLACEABLE"
+text vkinpr "IN PROGRESS"
+text vknv "NVIDIA"
+text vbarc "C1\nC2\nC3\nC4\nC5\nC6\n"
+text vbarp "P0\nP1\nP2\nP3\nP4\n"
+text vkhops "hops"
+text vksteps "steps"
+text vkpains "pains"
+text vkswaps "swaps"
+text vkreadme "readme"
+text vkhow "how"
+text vkodoc2 "omega_doc"
+text vkplink "purpose_link"
+text vkalink "audit_link"
+text vkdnb "did_not_box"
+text vkvis "visibility"
+text vkpriv "private"
+text vkpub "public"
+text vkevid "evidence/"
+text vomap "o/:\nob:\no:\np:\nc:\na:\nb:\nissue:\n"
+text vcmap "cp/:\ncp@:\ncp:\nom@:\nax@:\nsc@/:\ns:\n"
+text vcpin "0\n1\n0\n1\n1\n1\n0\n"
+text vdotdot ".."
+text vsp1 " "
+text vrstat "PASS\nFAIL\nINCOMPLETE\nBLOCKED\nPARTIAL\nNOT ESTABLISHED\nNOT STARTED\n"
+text vrlad "achieved\npartial\nnot achieved\nnot attempted\n"
+text vrcls "Implemented\nPartially implemented\nExperimental\nPlanned\nResearch hypothesis\n"
+text vrlev "L0\nL1\nL2\nL3\nL4\nL5\nL6\nL7+\n"
+text vkals "allowed_statuses"
+text vkall "allowed_ladder_states"
+text vkalc "allowed_classes"
+text vkladder "ladder"
+text vklevel "level"
+text vkstate "state"
+text vkach "achieved"
+text vkcur "current_level"
+text vktrows "turing_rows"
+text vkirows "implementation_rows"
+text vkclass "class"
+text vkatt "attempts"
+text vkbeside "beside"
+text vkoutc "outcome"
+text vkledto "led_to"
+text vkabbr "abbreviations"
+text vkscom "source_commits"
+text vkgh "https://github.com/aien-dev/"
+text vkgh2 "https://github.com/"
+text vkcomp "components"
+text vkdec "decisions"
+text vklm "last_merge"
+text vkrepos "repos"
+text vkseries "series"
+text vksum "summary"
+text vkasof "asof"
+text vkdate "date"
+text vklangs "langs"
+text vkname "name"
+text vkprc "prCount"
+text vkcic "ciCount"
+text vkcico "ciConclusions"
+text vkhead "head"
+text vkurl "url"
+text vmet "source\ntest\ndocs\nloc\nfiles\ntestfiles\ndocfiles\nrepos\ncommits\nprs\nmerged\nci\n"
+text vkloc "loc"
+text vktest "test"
+text vkmerged "merged"
+text vkprs "prs"
+text vktfiles "testfiles"
+text vkfiles "files"
+text vkci "ci"
+text vkghp "https://github.com/"
+text vst5 "IMPLEMENTED\nQUALIFIED\nEXPERIMENTAL\nBLOCKED\nPLANNED\n"
+text vkstats "statuses"
+text vknote "note"
+text vkpath "path"
+text vktitle "title"
+text vkdesc "description"
+text vkeng "english"
+text vkquotes "quotes"
+text vkqtxt "quote"
+text vlhead "id\topened_utc\towner\tstatus\titem\tdone_when\tevidence\tupdated_utc\n"
+text vrfcctx "rfc 8032 7.1 test 1"
+text vrfcval "secret is 9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60;"
+global vdec ulong 12
+global vlx ulong 3
+global vseen ulong 4096
+global vqo ulong 512
+global vqn ulong 512
+global vqio ulong 512
+global vqin ulong 512
+global vqc ulong 1
+
+note ---------------------------------------------------------------- report and load
+fn sv_failt rule view uchar * why view uchar * extra view uchar * to void
+sv_head rule
+sr_diag why
+sr_diag vtxo
+sr_diag extra
+sr_diag vtxc
+sr_diag vtnl
+end
+fn sv_jload to ulong
+wp = new uchar 4352 0
+for wj ulong get vpn 0
+put wp wj get vpath wj
+end
+sv_ctxp
+sr_diag vtjr
+sv_errc
+sr_diag vtnl
+ret sj_load view part wp 0 get vpn 0
+end
+note sv_jsl: a decoded JSON string copied into a new slot (0 when the node is not a string).
+fn sv_jsl node ulong to ulong
+if ne sj_kind node 3
+ret 0
+end
+ws = sv_snew
+for wj ulong sj_size node
+sv_push sj_byte node wj
+end
+ret ws
+end
+fn sv_jnum node ulong to ulong
+ws = sv_snew
+for wj ulong sj_numsize node
+sv_push sj_numbyte node wj
+end
+ret ws
+end
+fn sv_teq node ulong t view uchar * k ulong to bool
+wa = sv_tat t k
+ret sj_eq node part t wa sv_tlen t wa
+end
+fn sv_tin node ulong t view uchar * to bool
+for wk ulong sv_tcount t
+if sv_teq node t wk
+ret true
+end
+end
+ret false
+end
+fn sv_fld node ulong t view uchar * k ulong to ulong
+wa = sv_tat t k
+ret sj_find node part t wa sv_tlen t wa
+end
+
+note ---------------------------------------------------------------- numbers (lexical)
+fn sv_isdig c uchar to bool
+ret and ge c 48 le c 57
+end
+note sv_u64: a JSON integer token without sign, fraction or exponent, at most 2^64-1
+note (WolframLanguageEvaluator: 2^64 - 1 -> 18446744073709551615).
+text vu64max "18446744073709551615"
+fn sv_u64 node ulong to bool
+if ne sj_kind node 4
+ret false
+end
+wn = sj_numsize node
+for wj ulong wn
+if not sv_isdig sj_numbyte node wj
+ret false
+end
+end
+if lt wn 20
+ret true
+end
+if gt wn 20
+ret false
+end
+for wj ulong 20
+wc = sj_numbyte node wj
+if lt wc get vu64max wj
+ret true
+end
+if gt wc get vu64max wj
+ret false
+end
+end
+ret true
+end
+note sv_safe: collector.rs safe_count: a non-negative integral value at most 2^53 - 1
+note (WolframLanguageEvaluator: 2^53 - 1 -> 9007199254740991). Every digit of the token
+note (integer and fraction) is read into one integer m with f fraction digits and exponent e, so the
+note value is m * 10^(e - f), evaluated exactly. A value that is not an exact integer is refused;
+note so is a token with more than 16 significant digits (serde would round it through f64; this
+note port refuses instead: stricter, never looser). Returns VNONE when not safe.
+const VSAFE ulong 9007199254740991
+fn sv_safe node ulong to ulong
+if ne sj_kind node 4
+ret VNONE
+end
+wn = sj_numsize node
+wi = ulong 0
+wneg = false
+if eq sj_numbyte node 0 45
+wneg = true
+wi = 1
+end
+wm = ulong 0
+wfr = ulong 0
+wfx = false
+wbig = false
+while lt wi wn bound 400
+c = sj_numbyte node wi
+if or eq c 101 eq c 69
+break
+end
+if eq c 46
+wfx = true
+else
+if wfx
+wfr = add wfr 1
+end
+if gt wm 900719925474099
+wbig = true
+else
+wm = add mul wm 10 ulong sub c 48
+end
+end
+wi = add wi 1
+end
+wex = long 0
+if lt wi wn
+wi = add wi 1
+wes = long 1
+if eq sj_numbyte node wi 45
+wes = -1
+wi = add wi 1
+else
+if eq sj_numbyte node wi 43
+wi = add wi 1
+end
+end
+while lt wi wn bound 400
+if gt wex 100000
+ret VNONE
+end
+wex = add mul wex 10 long sub sj_numbyte node wi 48
+wi = add wi 1
+end
+wex = mul wex wes
+end
+if wbig
+ret VNONE
+end
+ret sv_safe2 wm sub wex long wfr wneg
+end
+fn sv_safe2 wm ulong wsc long wneg bool to ulong
+while lt wsc 0 bound 200100
+if eq wm 0
+break
+end
+if ne rem wm 10 0
+ret VNONE
+end
+wm = div wm 10
+wsc = add wsc 1
+end
+while and gt wsc 0 ne wm 0 bound 200100
+if gt wm 900719925474099
+ret VNONE
+end
+wm = mul wm 10
+wsc = sub wsc 1
+end
+if gt wm VSAFE
+ret VNONE
+end
+if and wneg ne wm 0
+ret VNONE
+end
+ret wm
+end
+note sv_decp: parse a plain JSON decimal (no exponent) in slot s into vdec[6k .. 6k+5]:
+note negative, int offset, int length, fraction offset, fraction length, is-zero. False when an
+note exponent is present (refused: lexical comparison only, never float rounding).
+fn sv_decp s ulong k ulong to bool
+wn = sv_n s
+wi = ulong 0
+wneg = ulong 0
+if and gt wn 0 eq sv_b s 0 45
+wneg = 1
+wi = 1
+end
+wi0 = wi
+while and lt wi wn sv_isdig sv_b s wi bound 400
+wi = add wi 1
+end
+wil = sub wi wi0
+wf0 = wi
+wfl = ulong 0
+if and lt wi wn eq sv_b s wi 46
+wi = add wi 1
+wf0 = wi
+while and lt wi wn sv_isdig sv_b s wi bound 400
+wi = add wi 1
+end
+wfl = sub wi wf0
+end
+if ne wi wn
+ret false
+end
+wz = ulong 1
+for wj ulong wil
+if ne sv_b s add wi0 wj 48
+wz = 0
+end
+end
+for wj ulong wfl
+if ne sv_b s add wf0 wj 48
+wz = 0
+end
+end
+wb = mul k 6
+put vdec wb wneg
+put vdec add wb 1 wi0
+put vdec add wb 2 wil
+put vdec add wb 3 wf0
+put vdec add wb 4 wfl
+put vdec add wb 5 wz
+ret true
+end
+note sv_magcmp: compare magnitudes of parsed decimals 0 (slot a) and 1 (slot b): 0 less, 1 equal,
+note 2 greater. JSON forbids leading zeros except a lone 0, so integer length orders first.
+fn sv_magcmp a ulong b ulong to ulong
+if ne get vdec 2 get vdec 8
+if lt get vdec 2 get vdec 8
+ret 0
+end
+ret 2
+end
+for wj ulong get vdec 2
+wx = sv_b a add get vdec 1 wj
+wy = sv_b b add get vdec 7 wj
+if lt wx wy
+ret 0
+end
+if gt wx wy
+ret 2
+end
+end
+wl = get vdec 4
+if gt get vdec 10 wl
+wl = get vdec 10
+end
+for wj ulong wl
+wx = uchar 48
+wy = uchar 48
+if lt wj get vdec 4
+wx = sv_b a add get vdec 3 wj
+end
+if lt wj get vdec 10
+wy = sv_b b add get vdec 9 wj
+end
+if lt wx wy
+ret 0
+end
+if gt wx wy
+ret 2
+end
+end
+ret 1
+end
+note sv_deccmp: a <=> b for two plain decimal slots; 3 when either is not plain.
+fn sv_deccmp a ulong b ulong to ulong
+if not sv_decp a 0
+ret 3
+end
+if not sv_decp b 1
+ret 3
+end
+wna = and eq get vdec 0 1 eq get vdec 5 0
+wnb = and eq get vdec 6 1 eq get vdec 11 0
+if and wna not wnb
+ret 0
+end
+if and wnb not wna
+ret 2
+end
+wm = sv_magcmp a b
+if wna
+ret sub 2 wm
+end
+ret wm
+end
+
+note ---------------------------------------------------------------- shapes
+fn sv_lpair node ulong to bool
+if ne sj_kind node 2
+ret false
+end
+wc = sj_first node
+while ne wc 0 bound 65536
+if ne sj_kind wc 2
+ret false
+end
+if ne sj_len wc 2
+ret false
+end
+wx = sj_first wc
+if ne sj_kind wx 3
+ret false
+end
+if ne sj_kind sj_next wx 3
+ret false
+end
+wc = sj_next wc
+end
+ret true
+end
+fn sv_strs node ulong to bool
+if ne sj_kind node 2
+ret false
+end
+wc = sj_first node
+while ne wc 0 bound 65536
+if ne sj_kind wc 3
+ret false
+end
+wc = sj_next wc
+end
+ret true
+end
+fn sv_ty node ulong code uchar to bool
+wk = sj_kind node
+if eq code 115
+ret eq wk 3
+end
+if eq code 83
+ret or eq wk 3 eq wk 7
+end
+if eq code 97
+ret eq wk 2
+end
+if eq code 84
+ret sv_strs node
+end
+if eq code 111
+ret eq wk 1
+end
+if eq code 79
+ret or eq wk 1 eq wk 7
+end
+if or eq code 98 eq code 66
+ret or eq wk 5 eq wk 6
+end
+if eq code 110
+ret eq wk 4
+end
+if eq code 78
+ret or eq wk 4 eq wk 7
+end
+if eq code 117
+ret sv_u64 node
+end
+if eq code 76
+ret sv_lpair node
+end
+ret false
+end
+fn sv_opt code uchar to bool
+ret or or eq code 83 eq code 79 or or eq code 66 eq code 78 false
+end
+note sv_keycnt: how many members of object node carry key (serde: a known field twice is an error).
+fn sv_keycnt node ulong key view uchar * to ulong
+wn = ulong 0
+wc = sj_first node
+while ne wc 0 bound 65536
+if sj_keyis wc key
+wn = add wn 1
+end
+wc = sj_next wc
+end
+ret wn
+end
+note sv_shape: serde derive for one struct. deny adds deny_unknown_fields: every member must be
+note a listed field (members counted against distinct listed keys found, each at most once).
+fn sv_shape node ulong spec view uchar * deny bool to bool
+if ne sj_kind node 1
+sv_fail vrb4 vtnob
+ret false
+end
+wok = true
+wfound = ulong 0
+for wk ulong sv_tcount spec
+wa = sv_tat spec wk
+wl = sv_tlen spec wa
+wcode = get spec wa
+wcn = sv_keycnt node part spec add wa 1 sub wl 1
+if gt wcn 1
+sv_failt vrb4 vtdup part spec add wa 1 sub wl 1
+wok = false
+end
+if eq wcn 0
+if not sv_opt wcode
+sv_failt vrb4 vtmis part spec add wa 1 sub wl 1
+wok = false
+end
+else
+wfound = add wfound wcn
+wf = sj_find node part spec add wa 1 sub wl 1
+if not sv_ty wf wcode
+sv_failt vrb4 vttyp part spec add wa 1 sub wl 1
+wok = false
+end
+end
+end
+if and deny ne wfound sj_len node
+sv_fail vrb4 vtunk
+wok = false
+end
+ret wok
+end
+fn sv_shapeat node ulong key view uchar * spec view uchar * deny bool to bool
+ret sv_shape sj_find node key spec deny
+end
+note sv_each: every item of the array under key has the struct shape.
+fn sv_each node ulong key view uchar * spec view uchar * deny bool to bool
+wa = sj_find node key
+if ne sj_kind wa 2
+ret false
+end
+wok = true
+wc = sj_first wa
+while ne wc 0 bound 65536
+if not sv_shape wc spec deny
+wok = false
+end
+wc = sj_next wc
+end
+ret wok
+end
+
+note ---------------------------------------------------------------- text checks
+fn sv_sdash node ulong to bool
+ws = sv_jsl node
+if eq ws 0
+ret false
+end
+wd = sv_dash ws
+sv_drop ws
+ret wd
+end
+note machines.rs check_text: no em/en dash, no FORBIDDEN word in the ASCII-lowercased text.
+fn sv_ctext node ulong to void
+ws = sv_jsl node
+if eq ws 0
+ret
+end
+if sv_dash ws
+sv_failx vrb4 vtdsh get vso ws get vsn ws
+end
+for wk ulong sv_tcount vforbid
+wa = sv_tat vforbid wk
+if sv_hasc ws part vforbid wa sv_tlen vforbid wa
+sv_failx vrb4 vtfor get vso ws get vsn ws
+end
+end
+sv_drop ws
+end
+fn sv_ctexts node ulong fields view uchar * to void
+for wk ulong sv_tcount fields
+sv_ctext sv_fld node fields wk
+end
+end
+fn sv_https node ulong to void
+if not sj_prefix node vkhttps
+ws = sv_jsl node
+if eq ws 0
+sv_fail vrb4 vthttps
+ret
+end
+sv_failx vrb4 vthttps get vso ws get vsn ws
+sv_drop ws
+end
+end
+fn sv_rawdash rule view uchar * to void
+ws = sv_load
+if eq ws 0
+ret
+end
+if sv_dash ws
+sv_fail rule vtdsh
+end
+sv_drop ws
+end
+
+note ---------------------------------------------------------------- machines.json
+fn sv_vceil root ulong to void
+wa = sj_find root vkceils
+wc = sj_first wa
+while ne wc 0 bound 65536
+sv_https sj_find wc vklink
+sv_ctexts wc vccei
+wt = sj_find wc vktok
+if eq sj_kind wt 4
+ws = sv_jnum wt
+wz = sv_snew
+sv_push 48
+if ne sv_deccmp ws wz 2
+sv_failx vrb4 vtcpos get vso ws get vsn ws
+end
+sv_drop ws
+end
+wc = sj_next wc
+end
+end
+fn sv_vmachs root ulong to void
+wa = sj_find root vkmachs
+if eq sj_len wa 0
+sv_fail vrb4 vtnomach
+end
+wc = sj_first wa
+while ne wc 0 bound 65536
+sv_https sj_find wc vklink
+sv_ctexts wc vcmac
+if ne sj_size sj_find wc vkedate 10
+sv_fail vrb4 vtedate
+end
+wm = sj_first sj_find wc vkmore
+while ne wm 0 bound 65536
+sv_https sj_find wm vklink
+sv_ctexts wm vclnk
+wm = sj_next wm
+end
+wc = sj_next wc
+end
+end
+note sv_ceilof: the first ceiling with this id (Data::ceiling); 0 for an empty or unknown id.
+fn sv_ceilof root ulong id ulong to ulong
+if eq sj_size id 0
+ret 0
+end
+wc = sj_first sj_find root vkceils
+while ne wc 0 bound 65536
+if sj_same sj_find wc vkid id
+ret wc
+end
+wc = sj_next wc
+end
+ret 0
+end
+fn sv_vspeed root ulong sp ulong to void
+sv_https sj_find sp vklink
+sv_ctexts sp vcspd
+wid = sj_find sp vkceil
+wt = sj_find sp vktok
+wce = sv_ceilof root wid
+if and gt sj_size wid 0 eq wce 0
+sv_fail vrb4 vtuceil
+end
+if and gt sj_size wid 0 ne sj_kind wt 4
+sv_fail vrb4 vtnceil
+end
+if and eq sj_kind wt 4 ne wce 0
+ws = sv_jnum wt
+wz = sv_jnum sj_find wce vktok
+wr = sv_deccmp ws wz
+if eq wr 3
+sv_failx vrb4 vtplain get vso ws get vsn ws
+end
+if eq wr 2
+sv_failx vrb4 vtaceil get vso ws get vsn ws
+end
+sv_drop ws
+end
+if and eq sj_kind sj_find sp vkonmain 5 not sj_eq sj_find sp vkbranch vkmain
+sv_fail vrb4 vtonm
+end
+end
+fn sv_vspeeds root ulong to void
+wa = sj_find root vkspeeds
+if eq sj_len wa 0
+sv_fail vrb4 vtnospd
+end
+wc = sj_first wa
+wi = ulong 0
+while ne wc 0 bound 4096
+sv_vspeed root wc
+put vseen wi sj_find wc vkid
+for wj ulong wi
+if sj_same get vseen wj get vseen wi
+sv_fail vrb4 vtdupid
+end
+end
+wi = add wi 1
+wc = sj_next wc
+end
+end
+fn sv_vmach to bool
+wf = get vfail 0
+sv_ctxp
+wr = sv_jload
+if not sv_shape wr vsmt true
+ret false
+end
+wok = sv_each wr vkceils vsmc true
+wok = and wok sv_each wr vkmachs vsmm true
+wok = and wok sv_each wr vkspeeds vsms true
+wm = sj_first sj_find wr vkmachs
+while ne wm 0 bound 65536
+if eq sj_kind wm 1
+wok = and wok sv_each wm vkmore vsml true
+end
+wm = sj_next wm
+end
+if not wok
+ret false
+end
+sv_ctexts wr vctop
+sv_vceil wr
+sv_vmachs wr
+sv_vspeeds wr
+ret eq get vfail 0 wf
+end
+
+note ---------------------------------------------------------------- short links
+note sv_xlink: omega.rs / cudaplusplus.rs expand(). map is a prefix table, pin marks the prefixes
+note that must name a full 40-hex commit. Box links must expand onto github.com (every base is
+note https://github.com/...; a site-relative / or # link is not a box link).
+fn sv_xlink node ulong map view uchar * pin view uchar * box bool to void
+ws = sv_jsl node
+if eq ws 0
+sv_fail vrb4 vtlink
+ret
+end
+wn = sv_n ws
+if and gt wn 0 or eq sv_b ws 0 47 eq sv_b ws 0 35
+if box
+sv_failx vrb4 vtboxg get vso ws wn
+end
+sv_drop ws
+ret
+end
+for wk ulong sv_tcount map
+wa = sv_tat map wk
+wl = sv_tlen map wa
+if sv_eqat ws 0 part map wa wl
+sv_xrest ws wl eq get pin sv_tat pin wk 49
+sv_drop ws
+ret
+end
+end
+sv_failx vrb4 vtlink get vso ws wn
+sv_drop ws
+end
+fn sv_xrest ws ulong wl ulong pinned bool to void
+wn = sv_n ws
+wrn = sub wn wl
+wbad = or eq wrn 0 or sv_hasn ws vdotdot wl wn sv_hasn ws vsp1 wl wn
+if wbad
+sv_failx vrb4 vtlink get vso ws wn
+ret
+end
+if pinned
+wok = ge wrn 41
+if wok
+for wj ulong 40
+wc = sv_b ws add wl wj
+wh = or sv_isdig wc or and ge wc 97 le wc 102 and ge wc 65 le wc 70
+if not wh
+wok = false
+end
+end
+end
+if wok
+wok = eq sv_b ws add wl 40 47
+end
+if not wok
+sv_failx vrb4 vtpin get vso ws wn
+end
+end
+end
+fn sv_xlinks node ulong map view uchar * pin view uchar * to void
+wc = sj_first sj_find node vklinks
+while ne wc 0 bound 65536
+sv_xlink sj_next sj_first wc map pin false
+wc = sj_next wc
+end
+end
+fn sv_obox node ulong to void
+sv_xlink node vomap vomap true
+end
+note vomap doubles as its own pin table: no omega prefix is pinned and every entry starts with a
+note byte other than 49 ('1'), so sv_xlink's pin lookup reads false for each.
+
+note ---------------------------------------------------------------- omega.json
+fn sv_vobar node ulong ids view uchar * why view uchar * to void
+wc = sj_first node
+wk = ulong 0
+wok = eq sj_len node sv_tcount ids
+while ne wc 0 bound 64
+if lt wk sv_tcount ids
+if not sv_teq sj_find wc vkid ids wk
+wok = false
+end
+end
+wst = sj_find wc vkstatus
+if not or or sj_eq wst vkpass sj_eq wst vkpart sj_eq wst vkmiss
+sv_failt vrb4 vtstat vkbar
+end
+wr = sj_find wc vkrcpt
+whas = eq sj_kind wr 3
+if sj_eq wst vkpass
+if not whas
+sv_fail vrb4 vtpassr
+else
+if not or sj_prefix wr vkoev sj_prefix wr vkoev2
+sv_fail vrb4 vtpassu
+end
+end
+else
+if whas
+sv_fail vrb4 vtnpr
+end
+end
+if whas
+sv_obox wr
+end
+sv_xlinks wc vomap vomap
+wk = add wk 1
+wc = sj_next wc
+end
+if not wok
+sv_fail vrb4 why
+end
+end
+fn sv_vocards node ulong to void
+wc = sj_first node
+while ne wc 0 bound 65536
+sv_obox sj_find wc vkbox
+sv_xlinks wc vomap vomap
+wc = sj_next wc
+end
+end
+fn sv_volayers node ulong to void
+if lt sj_len node 13
+sv_fail vrb4 vtlay
+end
+wc = sj_first node
+while ne wc 0 bound 65536
+wst = sj_find wc vkstatus
+if not or or sj_eq wst vkpass sj_eq wst vkpart or sj_eq wst vkmiss sj_eq wst vknotr
+sv_failt vrb4 vtstat vklayers
+end
+wz = or eq sj_size sj_find wc vkcuda2 0 or eq sj_size sj_find wc vkomg 0 eq sj_size sj_find wc vkjob 0
+if wz
+sv_fail vrb4 vtempty
+end
+sv_obox sj_find wc vkbox
+sv_xlinks wc vomap vomap
+wc = sj_next wc
+end
+end
+fn sv_vomega to bool
+wf = get vfail 0
+sv_ctxp
+sv_rawdash vrb4
+wr = sv_jload
+if not sv_shape wr vsot true
+ret false
+end
+wok = sv_shapeat wr vksource vsos true
+wok = and wok sv_each wr vkparts vsoc true
+wok = and wok sv_shapeat wr vkbelow vsoc true
+wok = and wok sv_each wr vklayers vsol true
+wok = and wok sv_shapeat wr vkrcpt vsor true
+wok = and wok sv_each wr vknotyet vsog true
+wok = and wok sv_each wr vkbar vsob true
+wok = and wok sv_each wr vkbeyond vsog true
+wok = and wok sv_shapeat wr vkperf vsop true
+if wok
+wok = sv_each sj_find wr vkperf vkbar vsob true
+end
+if not wok
+ret false
+end
+wsrc = sj_find wr vksource
+sv_obox sj_find wsrc vkdoc
+sv_obox sj_find wsrc vkissue
+sv_obox sj_find sj_find wr vkbelow vkbox
+sv_xlinks sj_find wr vkbelow vomap vomap
+sv_obox sj_find sj_find wr vkrcpt vkbox
+sv_vocards sj_find wr vkparts
+sv_volayers sj_find wr vklayers
+sv_vocards sj_find wr vknotyet
+sv_vocards sj_find wr vkbeyond
+sv_vobar sj_find wr vkbar vbarc vtbarc
+sv_vobar sj_find sj_find wr vkperf vkbar vbarp vtbarp
+sv_obox sj_find sj_find wr vkperf vkbox
+if not sj_prefix sj_find wsrc vkdoc vkodoc
+sv_fail vrb4 vtodoc
+end
+ret eq get vfail 0 wf
+end
+
+note ---------------------------------------------------------------- cudaplusplus.json
+fn sv_cbox node ulong to void
+sv_xlink node vcmap vcpin true
+end
+note check_status(what, status, ledger, receipt): status in STATUSES; IN PROGRESS needs a
+note ledger id L<digits>; PASS needs a receipt containing evidence/.
+fn sv_cstat st ulong ledger ulong rcpt ulong to void
+wok = or or sj_eq st vkpass sj_eq st vkpart or sj_eq st vkinpr sj_eq st vknv
+if not wok
+sv_failt vrb4 vtstat vkstatus
+ret
+end
+if sj_eq st vkinpr
+wl = false
+if eq sj_kind ledger 3
+wn = sj_size ledger
+if and gt wn 1 eq sj_byte ledger 0 76
+wl = true
+for wj ulong sub wn 1
+if not sv_isdig sj_byte ledger add wj 1
+wl = false
+end
+end
+end
+end
+if not wl
+sv_fail vrb4 vtinp
+end
+end
+if sj_eq st vkpass
+wr = false
+ws = sv_jsl rcpt
+if ne ws 0
+wr = sv_has ws vkevid
+sv_drop ws
+end
+if not wr
+sv_fail vrb4 vtpasse
+end
+end
+end
+fn sv_chops node ulong to void
+if lt sj_len node 8
+sv_fail vrb4 vthops
+end
+wc = sj_first node
+while ne wc 0 bound 65536
+sv_cstat sj_find wc vkstatus sj_find wc vkledger sj_find wc vkbox
+sv_cbox sj_find wc vkbox
+sv_xlinks wc vcmap vcpin
+wc = sj_next wc
+end
+end
+fn sv_ccards node ulong to void
+wc = sj_first node
+while ne wc 0 bound 65536
+sv_cbox sj_find wc vkbox
+sv_xlinks wc vcmap vcpin
+wc = sj_next wc
+end
+end
+fn sv_crows node ulong to void
+wc = sj_first node
+while ne wc 0 bound 65536
+wst = sj_find wc vkstatus
+if or sj_eq wst vknv sj_eq wst vkpart
+sv_fail vrb4 vtpain
+end
+sv_cstat wst sj_find wc vkledger sj_find wc vkrcpt
+if and sj_eq wst vkpass ne sj_kind sj_find wc vkcmd 3
+sv_fail vrb4 vtcmd
+end
+sv_cbox sj_find wc vkbox
+wr = sj_find wc vkrcpt
+if eq sj_kind wr 3
+sv_cbox wr
+end
+sv_xlinks wc vcmap vcpin
+wc = sj_next wc
+end
+end
+fn sv_vcuda to bool
+wf = get vfail 0
+sv_ctxp
+sv_rawdash vrb4
+wr = sv_jload
+if not sv_shape wr vsct true
+ret false
+end
+wok = sv_shapeat wr vksource vscs true
+wok = and wok sv_each wr vkhops vsch true
+wok = and wok sv_each wr vksteps vscc true
+wok = and wok sv_each wr vkpains vscr true
+wok = and wok sv_each wr vkswaps vscr true
+if not wok
+ret false
+end
+wsrc = sj_find wr vksource
+sv_cbox sj_find wsrc vkreadme
+sv_cbox sj_find wsrc vkhow
+sv_cbox sj_find wsrc vkodoc2
+sv_cbox sj_find wr vkplink
+sv_cbox sj_find wr vkalink
+sv_cbox sj_find wr vkdnb
+sv_chops sj_find wr vkhops
+sv_ccards sj_find wr vksteps
+sv_crows sj_find wr vkpains
+sv_crows sj_find wr vkswaps
+wv = sj_find wsrc vkvis
+if not or sj_eq wv vkpriv sj_eq wv vkpub
+sv_fail vrb4 vtvis
+end
+ret eq get vfail 0 wf
+end
+
+note ---------------------------------------------------------------- research-status.json
+fn sv_texact node ulong t view uchar * to bool
+if ne sj_len node sv_tcount t
+ret false
+end
+wc = sj_first node
+wk = ulong 0
+while ne wc 0 bound 64
+if not sv_teq wc t wk
+ret false
+end
+wk = add wk 1
+wc = sj_next wc
+end
+ret true
+end
+fn sv_rlinks node ulong to void
+wc = sj_first node
+while ne wc 0 bound 65536
+wl = sj_find wc vklink
+if eq sj_kind wl 3
+if not sj_prefix wl vkgh
+sv_fail vrb4 vtrlink
+end
+end
+wc = sj_next wc
+end
+end
+fn sv_rladder root ulong to void
+wl = sj_find root vkladder
+wc = sj_first wl
+wk = ulong 0
+wlev = true
+wrun = true
+wtop = ulong 0
+wgap = false
+while ne wc 0 bound 64
+if lt wk sv_tcount vrlev
+if not sv_teq sj_find wc vklevel vrlev wk
+wlev = false
+end
+end
+wst = sj_find wc vkstate
+if not sv_tin wst vrlad
+sv_fail vrb4 vtlstate
+end
+if sj_eq wst vkach
+if wrun
+wtop = sj_find wc vklevel
+end
+if wgap
+sv_fail vrb4 vtgap
+end
+else
+wrun = false
+wgap = true
+end
+wk = add wk 1
+wc = sj_next wc
+end
+if or not wlev ne wk sv_tcount vrlev
+sv_fail vrb4 vtlevels
+end
+wcl = sj_find sj_find root vkcur vklevel
+if eq wtop 0
+sv_fail vrb4 vtcur
+else
+if not sj_same wtop wcl
+sv_fail vrb4 vtcur
+end
+end
+end
+note sv_rowid: the turing row whose id equals the string node id (0 when none).
+fn sv_rowid root ulong id ulong to ulong
+if ne sj_kind id 3
+ret 0
+end
+wc = sj_first sj_find root vktrows
+while ne wc 0 bound 65536
+if sj_same sj_find wc vkid id
+ret wc
+end
+wc = sj_next wc
+end
+ret 0
+end
+fn sv_rlevel root ulong id ulong to bool
+wc = sj_first sj_find root vkladder
+while ne wc 0 bound 64
+if sj_same sj_find wc vklevel id
+ret true
+end
+wc = sj_next wc
+end
+ret false
+end
+fn sv_runiq node ulong tset view uchar * key view uchar * why view uchar * to void
+wc = sj_first node
+wi = ulong 0
+while ne wc 0 bound 4096
+put vseen wi sj_find wc vkid
+for wj ulong wi
+if sj_same get vseen wj get vseen wi
+sv_failt vrb4 vtdupid why
+end
+end
+if not sv_tin sj_find wc key tset
+sv_fail vrb4 why
+end
+wi = add wi 1
+wc = sj_next wc
+end
+end
+fn sv_rattempts root ulong to void
+wc = sj_first sj_find root vkatt
+while ne wc 0 bound 65536
+wrow = sv_rowid root sj_find wc vkid
+wok = ne wrow 0
+if wok
+wok = sj_same sj_find wrow vkstatus sj_find wc vkoutc
+end
+wok = and wok sv_rlevel root sj_find wc vkbeside
+wok = and wok ne sv_rowid root sj_find wc vkledto 0
+if not wok
+sv_fail vrb4 vtatt
+end
+wc = sj_next wc
+end
+end
+fn sv_vres to bool
+wf = get vfail 0
+sv_ctxp
+sv_rawdash vrb4
+wr = sv_jload
+if not sv_shape wr vsrt true
+ret false
+end
+wok = sv_shapeat wr vkscom vsrsc true
+wok = and wok sv_each wr vkabbr vsrab true
+wok = and wok sv_shapeat wr vkcur vsrcl true
+wok = and wok sv_each wr vkladder vsrld true
+wok = and wok sv_each wr vkatt vsrat true
+wok = and wok sv_each wr vktrows vsrtr true
+wok = and wok sv_each wr vkirows vsrim true
+if not wok
+ret false
+end
+if not sv_texact sj_find wr vkals vrstat
+sv_failt vrb4 vtallow vkals
+end
+if not sv_texact sj_find wr vkall vrlad
+sv_failt vrb4 vtallow vkall
+end
+if not sv_texact sj_find wr vkalc vrcls
+sv_failt vrb4 vtallow vkalc
+end
+sv_rladder wr
+sv_rlinks sj_find wr vkladder
+sv_rlinks sj_find wr vktrows
+sv_rlinks sj_find wr vkirows
+sv_runiq sj_find wr vktrows vrstat vkstatus vtrstat
+sv_runiq sj_find wr vkirows vrcls vkclass vtrcls
+sv_rattempts wr
+ret eq get vfail 0 wf
+end

@@ -203,8 +203,8 @@ k = makedir path 0 n 493
 if and lt k 0 ne k -17
 sr_fail sremk
 end
-note EEXIST alone is not success: O_DIRECTORY proves this prefix is a directory.
-k = fopen path 0 n 65536 0
+note EEXIST alone is not success: Linux AArch64 O_DIRECTORY (16384) proves a directory.
+k = fopen path 0 n 16384 0
 if lt k 0
 sr_fail sremk
 end

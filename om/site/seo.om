@@ -1,0 +1,583 @@
+note All machine surfaces derive from the same saved registry and just-emitted HTML.
+text ssmap "sitemap.xml"
+text ssmapmd "sitemap.md"
+text ssllms "llms.txt"
+text ssfull "llms-full.txt"
+text ssfeed "feed.xml"
+text ssnow "now.json"
+text ssnowfd "now/feed.xml"
+text ssrobots "robots.txt"
+text ssdata "data/index.json"
+text sshumans "humans.txt"
+text ss404 "404.html"
+text ssmd ".md"
+text ssmdidx "index.md"
+text ssquote "\""
+text ssqesc "\\\""
+text ssbesc "\\\\"
+text ssnesc "\\n"
+text ssresc "\\r"
+text sstesc "\\t"
+text ssltesc "\\u003c"
+text ssspace " "
+text sscolon ": "
+text ssdash "- "
+text ssnl "\n"
+text ssnn "\n\n"
+text ssopen "["
+text ssmid "](https://www.aienos.com"
+text ssclose ")"
+text sspaper "Paper"
+text ssart "Article"
+text ssfields "om/site/data-files.json"
+
+text SS0001 "\n## "
+text SS0002 "Omega"
+text SS0003 "Machine"
+text SS0004 "Discoveries"
+text SS0005 "Learn"
+text SS0006 "Allen"
+text SS0007 "# Sitemap\n\n> Every page on aienos.com. The crawler index is [sitemap.xml](https://www.aienos.com/sitemap.xml); machine-readable files are in [data/index.json](https://www.aienos.com/data/index.json).\n"
+text SS0008 "\n## Simplified Chinese\n\n"
+text SS0009 "\n## For agents\n\n- [llms.txt](https://www.aienos.com/llms.txt): the site for AI readers.\n- [llms-full.txt](https://www.aienos.com/llms-full.txt): every English page in full.\n- [AGENTS.md](https://www.aienos.com/AGENTS.md): how to build and change this site.\n- [data/index.json](https://www.aienos.com/data/index.json): machine-readable files, schemas and cadence.\n"
+text SS0010 "---\ntitle: "
+text SS0011 "\ndescription: "
+text SS0012 "\nlast_updated: \""
+text SS0013 "\"\ncanonical_url: \""
+text SS0014 "\"\n---\n\n"
+text SS0015 "\n\n## Sitemap\n\n"
+text SS0016 "<link rel=\"alternate\" hreflang=\"en\" href=\"https://www.aienos.com"
+text SS0017 "\"><link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.aienos.com"
+text SS0018 "\"><link rel=\"alternate\" hreflang=\"zh-CN\" href=\"https://www.aienos.com"
+text SS0019 "\">"
+text SS0020 "<xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.aienos.com"
+text SS0021 "\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.aienos.com"
+text SS0022 "\"/><xhtml:link rel=\"alternate\" hreflang=\"zh-CN\" href=\"https://www.aienos.com"
+text SS0023 "\"/>"
+text SS0024 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:xhtml=\"http://www.w3.org/1999/xhtml\">\n"
+text SS0025 "<url><loc>"
+text SS0026 "</loc><lastmod>"
+text SS0027 "</lastmod>"
+text SS0028 "</url>\n"
+text SS0029 "</urlset>\n"
+text SS0030 "<meta property=\"article:published_time\" content=\""
+text SS0031 "T00:00:00Z\">"
+text SS0032 "<meta name=\"citation_doi\" content=\""
+text SS0033 "\">"
+text SS0034 "crates/site-builder/data/status.json"
+text SS0035 "layers"
+text SS0036 "name"
+text SS0037 "status"
+text SS0038 "note"
+text SS0039 "receipt"
+text SS0040 "\n## Current state\n\nRecorded layer states (the source dates and receipts are authoritative; these are not a new qualification):\n\n"
+text SS0041 "crates/site-builder/data/research_status.json"
+text SS0042 "current_level"
+text SS0043 "summary"
+text SS0044 "outside_scope"
+text SS0045 "note"
+text SS0046 "meaning"
+text SS0047 "- [Research status](https://www.aienos.com/research/status/): "
+text SS0048 "\n## Machine-readable files\n\n"
+text SS0049 "path"
+text SS0050 "purpose"
+text SS0051 "cadence"
+text SS0052 " Updated: "
+text SS0053 "# Sovereign Intelligence\n\n> Sovereign Intelligence, built on AienOS. Persistent machine intelligence on a machine you own. AienOS is an experimental, open-source machine for turning search into verified understanding: AIEN proposes, Omega makes the proposal explicit and verifiable, the machine tests it against reality, the Turing measures what was learned, Cortex keeps the evidence. Source and dated evidence distinguish implemented, exercised, qualified and deployed. Built by M. Drake Stapleton with AI agents.\n\nRules the site keeps: every speed stands beside the physical ceiling of its own machine, failures stay on the record, no outside fonts or unsolicited tracking. X pixel rfrlz requires its own consent; memory consent is separate. Privacy and refusal: /privacy/. The film on /turing/ is an outside embed. AI agents are welcome to read, cite, argue and correct. Contact Drake: drake@aienos.com or https://x.com/mdrakestapleton; every contact route is at https://www.aienos.com/contact/. Project mail: aien@aienos.com. Source: https://github.com/aien-dev.\n"
+text SS0054 "\n## Optional\n\n- [简体中文](https://www.aienos.com/zh-CN/): the retained Simplified Chinese pages.\n- [Papers as PDF](https://www.aienos.com/research/): each preprint links paper.pdf, paper.tex and SHA256SUMS.\n- [Drake on X (@mdrakestapleton)](https://x.com/mdrakestapleton): where the work is posted.\n"
+text SS0055 "# AienOS: every page in one file\n\nGenerated from the same current sources as the HTML. Page list: https://www.aienos.com/llms.txt. Machine-readable files: https://www.aienos.com/data/index.json.\n"
+text SS0056 "\n---\n\n# "
+text SS0057 "\n\nSource: "
+text SS0058 "\nPublished: "
+text SS0059 ". Last changed: "
+text SS0060 "<entry><title>"
+text SS0061 "</title><link rel=\"alternate\" type=\"text/html\" href=\""
+text SS0062 "\"/><id>"
+text SS0063 "</id><published>"
+text SS0064 "T00:00:00Z</published><updated>"
+text SS0065 "</updated><summary>"
+text SS0066 "</summary><category term=\""
+text SS0067 "research"
+text SS0068 "blog"
+text SS0069 "\"/></entry>\n"
+text SS0070 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<feed xmlns=\"http://www.w3.org/2005/Atom\"><title>AienOS: blog and research</title><subtitle>Research notes and preprints from the AIEN project, with receipts.</subtitle><link href=\"https://www.aienos.com/feed.xml\" rel=\"self\" type=\"application/atom+xml\"/><link href=\"https://www.aienos.com/\" rel=\"alternate\" type=\"text/html\"/><id>https://www.aienos.com/feed.xml</id><updated>"
+text SS0071 "</updated><author><name>M. Drake Stapleton</name><uri>https://www.drakestapleton.com</uri></author><rights>Apache-2.0 WITH LLVM-exception</rights><icon>https://www.aienos.com/logo.png</icon><logo>https://www.aienos.com/og.png</logo>\n"
+text SS0072 "</feed>\n"
+text SS0073 "{\"site\":\"https://www.aienos.com/\",\"generated\":\""
+text SS0074 "\",\"license\":\"Apache-2.0 WITH LLVM-exception\",\"license_url\":\"https://www.aienos.com/licensing/\",\"contact\":\"aien@aienos.com\",\"source\":\"https://github.com/aien-dev\",\"rules\":[\"Every number stands beside the physical ceiling of its own machine.\",\"Every claim links its receipt. Failures stay on the record.\",\"No outside fonts or unsolicited tracking; separate explicit X pixel consent is required.\"],\"files\":"
+text SS0075 "}\n"
+text SS0076 "<section class=\"research-wrap\"><h1>Frozen experiment profiles</h1><p>These are the published source profiles accompanying <a href=\"/research/computing-machinery-and-understanding/\">Computing Machinery and Understanding</a>. A profile is a protocol artifact, not a new experimental verdict.</p><ul><li><a href=\"EXP-001.json\">EXP-001.json</a></li><li><a href=\"EXP-002.json\">EXP-002.json</a></li><li><a href=\"EXP-003.json\">EXP-003.json</a></li></ul><p><a href=\"/research/status/\">Read the dated research status and limitations.</a></p></section>"
+text SS0077 "404: no receipt for this address"
+text SS0078 "The address is not present. Every page is listed in the sitemap."
+text SS0079 "/404.html"
+text SS0080 "<section class=\"world\"><p>404: no receipt for this address</p><h1>There is nothing at this address.</h1><p>The page may have moved, or the link was never right. Every page is listed in <a href=\"/llms.txt\">llms.txt</a> and the <a href=\"/sitemap.xml\">sitemap</a>.</p><ul><li><a href=\"/\">The front page</a>: the loop, the machines, the evidence.</li><li><a href=\"/machine/\">The Machine</a>: what AienOS is and what runs today.</li><li><a href=\"/now/\">Now</a>: what every agent is doing.</li><li><a href=\"/research/\">Research</a>: preprints and papers.</li><li><a href=\"/evidence/\">Evidence</a>: receipts over claims.</li></ul><p>Found a broken link? <a href=\"https://github.com/aien-dev/aienos.com/issues\">Open an issue.</a></p></section>"
+text SS0081 "/* OWNER */\nBuilder and owner: M. Drake Stapleton\nSite: https://www.drakestapleton.com\nX: @mdrakestapleton\nGitHub: https://github.com/drakestapleton\nContact: drake@aienos.com\n\n/* AGENTS */\nI write code with AI coding agents working under my direction. Public receipts distinguish source, host checks and hardware qualification. Agents are welcome to read, cite, argue and correct: https://www.aienos.com/llms.txt\n\n/* MACHINES */\nThe dated machine inventory, current roles and measured speeds: https://www.aienos.com/machines.json\nThe readable machine world: https://www.aienos.com/machine/\n\n/* SITE */\nFirst-party generator: seeded Omega. Local assets; no outside fonts. X tracking requires explicit consent.\nLicense: Apache-2.0 WITH LLVM-exception\nSource commit time: "
+text SS0082 "# www.aienos.com is open to every reader, human or machine.\n# No crawler is blocked, no CAPTCHA, no bot wall. Cite freely; every page carries receipts.\n\nUser-agent: *\nAllow: /\n\nUser-agent: GPTBot\nAllow: /\n\nUser-agent: ChatGPT-User\nAllow: /\n\nUser-agent: OAI-SearchBot\nAllow: /\n\nUser-agent: ClaudeBot\nAllow: /\n\nUser-agent: Claude-Web\nAllow: /\n\nUser-agent: Claude-SearchBot\nAllow: /\n\nUser-agent: anthropic-ai\nAllow: /\n\nUser-agent: PerplexityBot\nAllow: /\n\nUser-agent: Perplexity-User\nAllow: /\n\nUser-agent: Google-Extended\nAllow: /\n\nUser-agent: Googlebot\nAllow: /\n\nUser-agent: Applebot\nAllow: /\n\nUser-agent: Applebot-Extended\nAllow: /\n\nUser-agent: Bingbot\nAllow: /\n\nUser-agent: Bytespider\nAllow: /\n\nUser-agent: CCBot\nAllow: /\n\nUser-agent: Amazonbot\nAllow: /\n\nUser-agent: cohere-ai\nAllow: /\n\nUser-agent: Meta-ExternalAgent\nAllow: /\n\nUser-agent: Meta-ExternalFetcher\nAllow: /\n\nUser-agent: DuckAssistBot\nAllow: /\n\nUser-agent: YouBot\nAllow: /\n\nUser-agent: MistralAI-User\nAllow: /\n\nUser-agent: Twitterbot\nAllow: /\n\nUser-agent: facebookexternalhit\nAllow: /\n\nUser-agent: LinkedInBot\nAllow: /\n\nSitemap: https://www.aienos.com/sitemap.xml\n"
+
+fn ss_quote value view uchar * to void
+sr_raw ssquote
+for i ulong len value
+c = get value i
+if eq c 34
+sr_raw ssqesc
+else
+if eq c 92
+sr_raw ssbesc
+else
+if eq c 10
+sr_raw ssnesc
+else
+if eq c 13
+sr_raw ssresc
+else
+if eq c 9
+sr_raw sstesc
+else
+ss_literal part value i 1
+end
+end
+end
+end
+end
+end
+sr_raw ssquote
+end
+
+fn ss_qfield row ulong col ulong to void
+buf = new uchar 4096 0
+n = st_field row col buf
+ss_quote part buf 0 n
+end
+
+fn ss_node node ulong to void
+buf = new uchar 4096 0
+n = sj_string node buf
+sr_raw part buf 0 n
+end
+
+fn ss_url row ulong to void
+sr_raw shhost
+st_emit row 0 false
+end
+
+fn ss_mdpath row ulong dst edit uchar * to ulong
+n = st_field row 0 dst
+if or st_match row 0 stroot st_match row 0 shzh
+ret st_append dst ssmdidx n
+end
+ret st_append dst ssmd sub n 1
+end
+
+fn ss_link row ulong to void
+sr_raw ssdash
+sr_raw ssopen
+st_emit row 1 false
+sr_raw ssmid
+st_emit row 0 false
+sr_raw ssclose
+sr_raw sscolon
+st_emit row 2 false
+sr_raw ssnl
+end
+
+fn ss_group area view uchar * to void
+sr_raw SS0001
+sr_raw area
+sr_raw ssnn
+for i ulong get steng 0
+if st_match i 3 area
+ss_link i
+end
+end
+end
+
+fn ss_groups to void
+ss_group stsi
+ss_group SS0002
+ss_group SS0003
+ss_group SS0004
+ss_group SS0005
+ss_group SS0006
+end
+
+fn ss_sitemap_md to void
+sr_raw SS0007
+ss_groups
+sr_raw SS0008
+i = get steng 0
+while lt i get stcount 0 bound 128
+ss_link i
+i = add i 1
+end
+sr_raw SS0009
+end
+
+fn ss_mirror row ulong to void
+src = new uchar 8192 0
+route = new uchar 1024 0
+mirror = new uchar 1024 0
+aliasbuf = new uchar 1024 0
+n = st_html_path row route
+sn = st_path part route 0 n src
+mn = ss_mdpath row mirror
+st_open part mirror 0 mn
+sr_raw SS0010
+ss_qfield row 1
+sr_raw SS0011
+ss_qfield row 2
+sr_raw SS0012
+ss_modified row
+sr_raw SS0013
+ss_url row
+sr_raw SS0014
+sh_markdown part src 0 sn row
+sr_raw SS0015
+for i ulong get steng 0
+ss_link i
+end
+sr_close
+an = st_field row 0 aliasbuf
+an = st_append aliasbuf ssmdidx an
+if not sr_equal part mirror 0 mn part aliasbuf 0 an
+sn = st_path part mirror 0 mn src
+st_copy part src 0 sn part aliasbuf 0 an
+end
+end
+
+fn ss_alternates row ulong to void
+engbuf = new uchar 512 0
+n = st_field row 10 engbuf
+other = get stcount 0
+for i ulong get stcount 0
+if ne i row
+if st_match i 10 part engbuf 0 n
+other = i
+end
+end
+end
+if eq other get stcount 0
+ret
+end
+sr_raw SS0016
+sr_esc part engbuf 0 n
+sr_raw SS0017
+sr_esc part engbuf 0 n
+sr_raw SS0018
+if ge row get steng 0
+st_emit row 0 true
+else
+st_emit other 0 true
+end
+sr_raw SS0019
+end
+
+fn ss_xml_alternates row ulong to void
+engbuf = new uchar 512 0
+n = st_field row 10 engbuf
+other = get stcount 0
+for i ulong get stcount 0
+if ne i row
+if st_match i 10 part engbuf 0 n
+other = i
+end
+end
+end
+if eq other get stcount 0
+ret
+end
+sr_raw SS0020
+sr_esc part engbuf 0 n
+sr_raw SS0021
+sr_esc part engbuf 0 n
+sr_raw SS0022
+if ge row get steng 0
+st_emit row 0 true
+else
+st_emit other 0 true
+end
+sr_raw SS0023
+end
+
+fn ss_xml to void
+sr_raw SS0024
+for i ulong get stcount 0
+sr_raw SS0025
+ss_url i
+sr_raw SS0026
+ss_modified i
+sr_raw SS0027
+ss_xml_alternates i
+sr_raw SS0028
+end
+sr_raw SS0029
+end
+
+fn ss_head_row row ulong to void
+buf = new uchar 4096 0
+ss_alternates row
+sg_graph row
+ss_route_assets row
+ss_head_extra row
+if or st_match row 6 sspaper st_match row 6 ssart
+sr_raw SS0030
+st_emit row 7 true
+sr_raw SS0031
+end
+n = st_field row 9 buf
+if gt n 0
+sr_raw SS0032
+sr_esc part buf 0 n
+sr_raw SS0033
+end
+if st_match row 4 sthtml
+n = st_field row 5 buf
+sh_load part buf 0 n
+h = sh_find shhead 0
+sh_extra 0 h
+end
+end
+
+fn sc_extrahead route view uchar * to void
+for i ulong get stcount 0
+if st_match i 0 route
+ss_head_row i
+ret
+end
+end
+end
+
+fn ss_state to void
+sr_raw SS0040
+root = sj_load SS0034
+arr = sj_find root SS0035
+node = sj_first arr
+while ne node 0 bound 1024
+sr_raw ssdash
+ss_node sj_find node SS0036
+sr_raw sscolon
+ss_node sj_find node SS0037
+sr_raw sscolon
+ss_node sj_find node SS0038
+sr_raw ssspace
+receipt = sj_find node SS0039
+if eq sj_kind receipt 3
+ss_node receipt
+end
+sr_raw ssnl
+node = sj_next node
+end
+ss_research_state
+end
+
+fn ss_research_state to void
+root = sj_load SS0041
+node = sj_find root SS0042
+sr_raw SS0047
+ss_node sj_find node SS0043
+sr_raw ssspace
+ss_node sj_find node SS0044
+sr_raw ssspace
+ss_node sj_find node SS0045
+sr_raw ssspace
+ss_node sj_find node SS0046
+sr_raw ssnn
+end
+
+fn ss_data_links to void
+sr_raw SS0048
+root = sj_load ssfields
+node = sj_first root
+while ne node 0 bound 1024
+sr_raw ssdash
+sr_raw ssopen
+ss_node sj_find node SS0049
+sr_raw ssmid
+ss_node sj_find node SS0049
+sr_raw ssclose
+sr_raw sscolon
+ss_node sj_find node SS0050
+sr_raw SS0052
+ss_node sj_find node SS0051
+sr_raw ssnl
+node = sj_next node
+end
+end
+
+fn ss_llms_txt to void
+sr_raw SS0053
+ss_state
+ss_groups
+ss_data_links
+sr_raw SS0054
+end
+
+fn ss_full_txt to void
+buf = new uchar 1024 0
+src = new uchar 8192 0
+sr_raw SS0055
+for i ulong get steng 0
+sr_raw SS0056
+st_emit i 1 false
+sr_raw SS0057
+ss_url i
+sr_raw SS0058
+st_emit i 7 false
+sr_raw SS0059
+ss_modified i
+sr_raw ssnn
+n = st_html_path i buf
+sn = st_path part buf 0 n src
+sh_markdown part src 0 sn i
+end
+end
+
+fn ss_feed_entry row ulong to void
+sr_raw SS0060
+st_emit row 1 true
+sr_raw SS0061
+ss_url row
+sr_raw SS0062
+ss_url row
+sr_raw SS0063
+st_emit row 7 true
+sr_raw SS0064
+ss_modified row
+sr_raw SS0065
+st_emit row 2 true
+sr_raw SS0066
+if st_match row 6 sspaper
+sr_raw SS0067
+else
+sr_raw SS0068
+end
+sr_raw SS0069
+end
+
+fn ss_feed_xml to void
+sr_raw SS0070
+st_stamp
+sr_raw SS0071
+ss_feed_sorted
+sr_raw SS0072
+end
+
+fn ss_newer a ulong b ulong to bool
+pa = get stoff add mul a STFIELDS 7
+pb = get stoff add mul b STFIELDS 7
+for i ulong 10
+ca = get stpool add pa i
+cb = get stpool add pb i
+if ne ca cb
+ret gt ca cb
+end
+end
+ret lt a b
+end
+
+fn ss_feed_sorted to void
+seen = new uchar 128 0
+for i ulong get steng 0
+best = get steng 0
+for j ulong get steng 0
+if eq get seen j 0
+if or st_match j 6 sspaper st_match j 6 ssart
+if eq best get steng 0
+best = j
+else
+if ss_newer j best
+best = j
+end
+end
+end
+end
+end
+if eq best get steng 0
+break
+end
+put seen best 1
+ss_feed_entry best
+end
+end
+
+fn ss_data_index to void
+sr_raw SS0073
+st_stamp
+sr_raw SS0074
+sr_file ssfields
+sr_raw SS0075
+end
+
+fn ss_profiles to void
+sr_raw SS0076
+end
+
+fn ss_not_found to void
+sc_begin SS0077 SS0078
+sc_route SS0079 stsi
+sr_raw SS0080
+sc_end
+end
+
+fn ss_humans_txt to void
+sr_raw SS0081
+st_stamp
+sr_raw ssnl
+end
+
+fn ss_surfaces to void
+st_open ssmap
+ss_xml
+sr_close
+st_open ssmapmd
+ss_sitemap_md
+sr_close
+st_open ssllms
+ss_llms_txt
+sr_close
+st_open ssfull
+ss_full_txt
+sr_close
+st_open ssfeed
+ss_feed_xml
+sr_close
+st_open ssnow
+sp_now_json
+sr_close
+st_open ssnowfd
+sp_now_feed
+sr_close
+st_open ssdata
+ss_data_index
+sr_close
+st_open ssrobots
+ss_robots_txt
+sr_close
+st_open sshumans
+ss_humans_txt
+sr_close
+st_open ss404
+ss_not_found
+sr_close
+for i ulong get stcount 0
+ss_mirror i
+end
+si_required_data
+si_expected
+sx_inventory
+end
+
+fn ss_robots_txt to void
+sr_raw SS0082
+end
+
+fn ss_literal value view uchar * to void
+c = get value 0
+if lt c 32
+trap 10
+end
+if eq c 60
+sr_raw ssltesc
+else
+sr_raw value
+end
+end

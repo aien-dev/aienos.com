@@ -325,11 +325,7 @@ fn check_hub_document(hub: &Hub, page: &str) -> Result<(), String> {
         return Err("forbidden em or en dash".to_string());
     }
     crate::components::boxlink::check_boxes(page)?;
-    for (label, href) in crate::components::navbar::NAV_PRIMARY {
-        if !page.contains(&crate::components::navbar::primary_link_markup(label, href)) {
-            return Err(format!("nav item {label} missing"));
-        }
-    }
+    crate::components::navbar::check_destinations(page)?;
     match hub.status {
         StatusSource::Absent => {
             for status in rs::ALLOWED_STATUSES {

@@ -81,9 +81,12 @@ pub struct PageInfo {
 /// Every English page of the site. The build fails if dist holds a page
 /// that is not here, or if a page here was not written.
 pub const PAGES: &[PageInfo] = &[
-    PageInfo { path: "/", name: "AienOS", what: "The front page: the loop, the five real machines and their measured speeds beside the physical ceiling, the evidence cards, the current status of every layer.", section: Section::Machine, kind: Kind::Home, image: "/og.png", published: "2026-09-23", doi: None },
+    PageInfo { path: "/", name: "Sovereign Intelligence", what: "The front door: Allen at the centre, a short introduction, and a link to the classic site with all of its content.", section: Section::Start, kind: Kind::Home, image: "/og.png", published: "2026-09-23", doi: None },
+    PageInfo { path: "/classic/", name: "Sovereign Intelligence, the classic site", what: "The former front page, whole: the loop, the five real machines and their measured speeds beside the physical ceiling, the evidence cards, the current status of every layer.", section: Section::Machine, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/start/", name: "Start here", what: "The shortest route through AienOS: what it is, what exists today, how to check the evidence, how to reproduce or contribute, and where the author and Interplane fit.", section: Section::Start, kind: Kind::Page, image: "/og.png", published: "2026-10-24", doi: None },
     PageInfo { path: "/contact/", name: "Where I am and how to reach me", what: "How to reach Drake: X @mdrakestapleton, email drake@aienos.com, Allen at /allen/ (who can pass a message on or put you through when Drake is online) and the aien-dev repositories on GitHub.", section: Section::Start, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/allen/", name: "Allen", what: "Allen, Drake's AI, full screen: meet him, explore the universe around him and talk with him, anonymously unless you choose otherwise. Links back to the site and to every way of reaching Drake.", section: Section::Start, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/alpha/", name: "Sovereign Intelligence Alpha", what: "Sovereign Intelligence, built on AienOS, as a download: the alpha release, the one-command installer, the hardware and evidence boundaries, and the way back.", section: Section::Start, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/privacy/", name: "Privacy & saying hello to Allen", what: "Your choice about the consent-only X pixel, what X receives, what I keep and how to refuse.", section: Section::Optional, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/machine/", name: "The Machine", what: "One machine across five physical bodies: the closed epistemic loop, the Turing as its accounting layer, and an honest list of what exists.", section: Section::Machine, kind: Kind::Article, image: "/og-machine.png", published: "2026-10-01", doi: None },
     PageInfo { path: "/omega/", name: "What Omega is", what: "Omega is AIEN's language for all computing, GPU to CPU; on the GPU it is the replacement for CUDA. The CUDA stack piece by piece with status, the receipt for the live server running with zero CUDA libraries, what is not true yet, and the bar C1 to C6.", section: Section::Machine, kind: Kind::Page, image: "/og-machine.png", published: "2026-10-21", doi: None },
@@ -97,6 +100,7 @@ pub const PAGES: &[PageInfo] = &[
     PageInfo { path: "/turing/", name: "The Turing: an interactive field guide", what: "What the Turing measures (net held-out explanatory compression), with games, live calculations and the theories behind it.", section: Section::Turing, kind: Kind::Article, image: "/og-turing.png", published: "2026-09-30", doi: None },
     PageInfo { path: "/research/", name: "AIEN Research", what: "The index of preprints and public evidence.", section: Section::Turing, kind: Kind::Collection, image: "/og-research.png", published: "2026-09-30", doi: None },
     PageInfo { path: "/research/computing-machinery-and-understanding/", name: "Computing Machinery and Understanding: From the Imitation Game to the Turing", what: "The formal preprint defining the Turing as an operational measure of generalized explanatory compression. DOI 10.5281/zenodo.23437498.", section: Section::Turing, kind: Kind::Paper, image: "/og-turing.png", published: "2026-09-30", doi: Some("10.5281/zenodo.23437498") },
+    PageInfo { path: "/research/computing-machinery-and-understanding/profiles/", name: "Frozen experiment profiles", what: "The frozen EXP-001, EXP-002 and EXP-003 profiles published with Computing Machinery and Understanding.", section: Section::Turing, kind: Kind::Collection, image: "/og-research.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/research/computing-machinery-and-understanding-emergence/", name: "Computing Machinery and Understanding: The Turing as a Measure Emerging from AIEN", what: "The companion engineering paper: how the Turing emerged from building AIEN. DOI 10.5281/zenodo.23437568.", section: Section::Turing, kind: Kind::Paper, image: "/og-turing.png", published: "2026-09-30", doi: Some("10.5281/zenodo.23437568") },
     PageInfo { path: "/research/the-turing-brief/", name: "The Turing: A Unit of Verified Explanatory Gain", what: "The three-page plain-language brief: what the Turing measures, what it does not, and what would prove it wrong.", section: Section::Turing, kind: Kind::Paper, image: "/og-turing.png", published: "2026-10-02", doi: None },
     PageInfo { path: "/research/turing-discovery-gap-conjecture/", name: "The Turing Discovery Gap Conjecture", what: "Available versus accessible explanatory value: worlds with compact explanations that no efficient learner can reach.", section: Section::Turing, kind: Kind::Paper, image: "/og-research.png", published: "2026-10-02", doi: None },
@@ -106,6 +110,7 @@ pub const PAGES: &[PageInfo] = &[
     PageInfo { path: "/research/the-aien-papers/", name: "The AIEN Papers: The Complete Collection", what: "The Turing unit, the evidence doctrine, the language design and the philosophy in one document.", section: Section::Turing, kind: Kind::Paper, image: "/og-research.png", published: "2026-10-02", doi: None },
     PageInfo { path: "/experiments/", name: "Experiments", what: "Every experiment on the research ladder, failures included, rendered from one canonical status source.", section: Section::Evidence, kind: Kind::Collection, image: "/og-experiments.png", published: "2026-10-10", doi: None },
     PageInfo { path: "/discovery/", name: "Scientific Discovery", what: "Physics Zero, Dirac, Zeta and supersymmetry as examinations of representation discovery; the machine is never given the named answer.", section: Section::Evidence, kind: Kind::Article, image: "/og-discovery.png", published: "2026-10-10", doi: None },
+    PageInfo { path: "/discoveries/", name: "Discoveries", what: "The research dashboard: the Turing, the papers, every experiment with its verdict, the evidence behind them and the questions still open.", section: Section::Evidence, kind: Kind::Collection, image: "/og-research.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/evidence/", name: "Evidence", what: "What counts as evidence, which source wins when two disagree, and where the receipts, frozen profiles and status records live.", section: Section::Evidence, kind: Kind::Collection, image: "/og-evidence.png", published: "2026-10-10", doi: None },
     PageInfo { path: "/research/status/", name: "Research status", what: "The qualification ladder, every experiment with its verdict, receipt and limits, and what is built versus still a hypothesis.", section: Section::Evidence, kind: Kind::Live, image: "/og-evidence.png", published: "2026-10-05", doi: None },
     PageInfo { path: "/philosophy/", name: "Philosophy", what: "The position papers behind AIEN. These argue a stance and are not experimental results.", section: Section::Philosophy, kind: Kind::Collection, image: "/og-philosophy.png", published: "2026-10-10", doi: None },
@@ -150,6 +155,8 @@ pub const DATA_FILES: &[DataFile] = &[
     DataFile { path: "/AGENTS.md", purpose: "The repository brief for coding agents: installation, configuration, usage, conventions and approval boundaries.", schema: "Markdown: H1, Installation, Configuration, Usage, Conventions, Safety and approvals.", cadence: "when the build or conventions change", media_type: "text/markdown" },
     DataFile { path: "/agents/RULES.md", purpose: "The working rules every AIEN agent follows, public edition: read first by any agent working on an aien-dev repository, before that repository's own AGENTS.md.", schema: "Markdown: H1, blockquote scope, numbered H2 sections, Where to go next.", cadence: "when the rules change", media_type: "text/markdown" },
     DataFile { path: "/data/agent-repos.json", purpose: "Every public, unarchived aien-dev repository with its description, default branch and the agent brief it carries (AGENTS.md or CLAUDE.md).", schema: "{ generated_at, org, repos: [{ name, description, url, default_branch, fork, pushed_at, brief }] }; brief is null when the repository has none", cadence: "hourly", media_type: "application/json" },
+    DataFile { path: "/data/pages.json", purpose: "Every English page of the site with its title, description, area, kind and publication date, for catalog readers.", schema: "[{ path, title, description, area, mode, source, kind, published, image, doi, english }]", cadence: "every build", media_type: "application/json" },
+    DataFile { path: "/data/engineer.json", purpose: "The complete migrated engineer page record, including source provenance, old paths and full authored bodies.", schema: "{ source, note, pages: [{ path, old, name, title, description, kind, body_html }] }", cadence: "when the authored record changes", media_type: "application/json" },
     DataFile { path: "/index.md", purpose: "The front page as Markdown: the same content as the HTML, with frontmatter, the page body and a sitemap section. Every page has a mirror at the same path with .md.", schema: "Markdown: YAML frontmatter (title, description, last_updated, canonical_url), body, Sitemap section.", cadence: "every build", media_type: "text/markdown" },
     DataFile { path: "/research/CITATION.cff", purpose: "Citation metadata for the Turing preprints.", schema: "Citation File Format 1.2.0", cadence: "when a paper is revised", media_type: "text/yaml" },
     DataFile { path: "/research/aien-research-plan.md", purpose: "The ratified V3 research plan in Markdown.", schema: "Markdown", cadence: "when the plan is revised", media_type: "text/markdown" },
@@ -310,14 +317,11 @@ pub fn md_path(path: &str) -> String {
     }
 }
 
-/// Fails the build when dist and PAGES disagree.
+/// Fails the build when dist and PAGES disagree. The same check runs in
+/// `verify` through [`crate::oracle::verify`], on any generated tree.
 pub fn check_registry(pages: &[Emitted]) {
-    for p in pages.iter().filter(|p| !p.is_zh()) {
-        assert!(info_for(&p.path).is_some(), "{} was written but is not listed in seo::PAGES (add it so llms.txt, the sitemap and the feeds know it)", p.path);
-    }
-    for info in PAGES {
-        assert!(pages.iter().any(|p| p.path == info.path), "seo::PAGES lists {} but no such page was written", info.path);
-    }
+    let paths: Vec<String> = pages.iter().map(|p| p.path.clone()).collect();
+    crate::oracle::check_registry(&paths).unwrap_or_else(|e| panic!("{e}"));
 }
 
 // ------------------------------------------------------------------ head
@@ -332,7 +336,7 @@ struct HeadFacts {
     og_type: String,
 }
 
-fn attr<'a>(tag: &'a str, name: &str) -> Option<String> {
+pub(crate) fn attr(tag: &str, name: &str) -> Option<String> {
     // name="value" or name='value', any attribute order, any spacing.
     let mut i = 0;
     let bytes = tag.as_bytes();
@@ -355,7 +359,7 @@ fn attr<'a>(tag: &'a str, name: &str) -> Option<String> {
     None
 }
 
-fn tag_name(tag: &str) -> String {
+pub(crate) fn tag_name(tag: &str) -> String {
     tag.trim_start_matches('<').trim_start_matches('/').chars().take_while(|c| c.is_ascii_alphanumeric()).collect::<String>().to_ascii_lowercase()
 }
 

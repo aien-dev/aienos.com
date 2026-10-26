@@ -1,5 +1,6 @@
 note Whole-site orchestrator. Compose after runtime/json/chrome/content/copy/markdown/seo.
 note Metadata is copied once before any renderer can replace the JSON arena.
+note WolframLanguageEvaluator: {128*11,FromDigits["170000",8],FromDigits["040000",8],FromDigits["100000",8],FromDigits["200000",8]} -> {1408,61440,16384,32768,65536}.
 const STCAP ulong 128
 const STFIELDS ulong 11
 global stpool uchar 262144
@@ -32,14 +33,40 @@ text sthtml "html"
 text startif "artifact"
 text strender "render"
 text stprof "profiles"
+text stfront "front"
+text stclass "/classic/"
+text stnoscr "<noscript><section><h1>Sovereign Intelligence, built on AienOS</h1><p>Allen's interactive universe needs JavaScript. Every page remains readable without it: <a href=\"/classic/\">open the complete Classic site</a>, <a href=\"/research/\">research</a>, <a href=\"/learn/\">Learn</a>, or <a href=\"/contact/\">contact Drake</a>.</p></section></noscript>"
 text stempty ""
 text stroot "/"
+text stfacts "facts.json"
+text stagents "AGENTS.md"
 text stsi "SI"
 
+text ST0001 "site: registry has no renderer\n"
+text ST0002 "facts.json"
+text ST0003 "crates/site-builder/data/status.json"
+text ST0004 "status.json"
+text ST0005 "crates/site-builder/data/machines.json"
+text ST0006 "machines.json"
+text ST0007 "crates/site-builder/data/omega.json"
+text ST0008 "omega.json"
+text ST0009 "crates/site-builder/data/cudaplusplus.json"
+text ST0010 "cudaplusplus.json"
+text ST0011 "crates/site-builder/data/research_status.json"
+text ST0012 "research-status.json"
+text ST0013 "AGENTS.md"
+text ST0014 "data/pages.json"
+text ST0015 "assets/site.css"
+text ST0016 "js/site.js"
+text ST0017 "assets/site-tokens.css"
+text stdoor "assets/site-door.css"
+text ST0018 "usage: site SOURCE_ROOT ABSOLUTE_OUTPUT SOURCE_COMMIT_RFC3339\n"
+text ST0019 "site: output must be an absolute directory\n"
+text ST0020 "site: output must be a new directory; use a fresh staging path\n"
+text ST0021 "site: cannot open explicit source root\n"
+
 fn st_fail message view uchar * to void
-sr_flush
-n = write 2 message 0 len message
-exit 71
+sr_fail message
 end
 
 fn st_append dst edit uchar * src view uchar * pos ulong to ulong
@@ -54,11 +81,11 @@ end
 
 fn st_store node ulong key view uchar * slot ulong to void
 buf = new uchar 4096 0
-field = sj_find node key
-if eq field 0
+fnode = sj_find node key
+if eq fnode 0
 trap 10
 end
-n = sj_string field buf
+n = sj_string fnode buf
 p = get stused 0
 if gt n sub len stpool p
 trap 3
@@ -184,6 +211,14 @@ end
 
 fn st_route_ok row ulong to void
 buf = new uchar 512 0
+for fieldno ulong 4
+if eq get stlens add mul row STFIELDS fieldno 0
+trap 10
+end
+end
+if ne get stlens add mul row STFIELDS 7 10
+trap 10
+end
 n = st_field row 0 buf
 if eq n 0
 trap 10
@@ -204,7 +239,7 @@ end
 end
 else
 if not or or and ge c 97 le c 122 and ge c 48 le c 57 eq c 45
-if lt row get steng 0
+if not and ge row get steng 0 or and eq i 4 eq c 67 and eq i 5 eq c 78
 trap 10
 end
 end
@@ -225,6 +260,12 @@ end
 fn st_page_body row ulong route view uchar * to void
 src = new uchar 4096 0
 n = st_field row 5 src
+if st_match row 4 stfront
+door_home
+sh_allen_home part src 0 n
+sr_raw stnoscr
+ret
+end
 if st_match row 4 sthtml
 sh_body part src 0 n route
 ret
@@ -237,11 +278,14 @@ if st_match row 4 stprof
 ss_profiles
 ret
 end
+if st_match row 4 stemode
+if not se_page route
+st_fail ST0001
+end
+ret
+end
 if not st_match row 4 strender
 trap 10
-end
-if sr_equal route stroot
-door_home
 end
 if sm_page route
 ret
@@ -252,8 +296,7 @@ end
 if sd_page route
 ret
 end
-text missing "site: registry has no renderer\n"
-st_fail missing
+st_fail ST0001
 end
 
 fn st_page row ulong to void
@@ -276,36 +319,29 @@ sr_close
 end
 
 fn st_export to void
-text a "facts.json"
-text b "crates/site-builder/data/status.json"
-text c "status.json"
-text d "crates/site-builder/data/machines.json"
-text e "machines.json"
-text f "crates/site-builder/data/omega.json"
-text g "omega.json"
-text h "crates/site-builder/data/cudaplusplus.json"
-text j "cudaplusplus.json"
-text k "crates/site-builder/data/research_status.json"
-text l "research-status.json"
-text m "AGENTS.md"
-text p "data/pages.json"
-st_copy a a
-st_copy b c
-st_copy d e
-st_copy f g
-st_copy h j
-st_copy k l
-st_copy m m
-st_copy streg p
+st_copy ST0002 stfacts
+st_copy ST0003 ST0004
+st_copy ST0005 ST0006
+st_copy ST0007 ST0008
+st_copy ST0009 ST0010
+st_copy ST0011 ST0012
+st_copy ST0013 stagents
+st_open ST0014
+ss_page_registry
+sr_close
 end
 
 fn st_assets to void
-text css "assets/site.css"
-text js "js/site.js"
-st_open css
+st_open stdoor
+door_css
+sr_close
+st_open ST0017
+css_tokens
+sr_close
+st_open ST0015
 css_emit
 sr_close
-st_open js
+st_open ST0016
 client_emit
 sr_close
 end
@@ -315,8 +351,7 @@ src = new uchar 4096 0
 outbuf = new uchar 4096 0
 datebuf = new uchar 64 0
 if ne argcnt 4
-text usage "usage: site SOURCE_ROOT ABSOLUTE_OUTPUT SOURCE_COMMIT_RFC3339\n"
-st_fail usage
+st_fail ST0018
 end
 sn = argread 1 src 0 len src
 on = argread 2 outbuf 0 len outbuf
@@ -325,8 +360,14 @@ if or or le sn 0 le on 1 le dn 0
 trap 10
 end
 if ne get outbuf 0 47
-text absolute "site: output must be an absolute directory\n"
-st_fail absolute
+st_fail ST0019
+end
+existing = faccess outbuf 0 ulong on 0
+if eq existing 0
+st_fail ST0020
+end
+if ne existing -2
+trap 10
 end
 n = ulong on
 if eq get outbuf sub n 1 47
@@ -336,28 +377,31 @@ for i ulong n
 put stout i get outbuf i
 end
 put stoutn 0 n
+sf_safe part datebuf 0 ulong dn
 for j ulong ulong dn
 put stdate j get datebuf j
 end
 put stdaten 0 ulong dn
 r = chdir src 0 ulong sn
 if ne r 0
-text badroot "site: cannot open explicit source root\n"
-st_fail badroot
+st_fail ST0021
 end
 end
 
 fn main to int
 st_args
 st_registry streg
+st_engineer_registry
 put steng 0 get stcount 0
 st_registry sttrans
+sf_load
 for i ulong get stcount 0
 st_route_ok i
 end
 sp_ledger_check
 sx_tree stpub 0
 st_export
+sa_emit
 st_assets
 for j ulong get stcount 0
 st_page j

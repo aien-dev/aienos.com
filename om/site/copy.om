@@ -1,10 +1,19 @@
 note Checked public-tree copy and emitted-file inventory. No symlinks, private crumbs, or stale HTML.
+note Linux ARM64 stat mode at byte 16; getdents64 record length at 16 and filename at 19.
+note WolframLanguageEvaluator: {128*11,FromDigits["170000",8],FromDigits["040000",8],FromDigits["100000",8],FromDigits["200000",8]} -> {1408,61440,16384,32768,65536}.
 global sxmode uchar 1
 text sxcrumb ".crumb"
 text sxlocal ".crumb.local"
 text sxsuf ".html"
 text sxindex "index.html"
 text sxinv "inventory.txt"
+
+text SX0001 ".well-known"
+text SX0002 ".nojekyll"
+text SX0003 "\n"
+text SX0004 "site: public HTML absent from canonical registry\n"
+text SX0005 "site: public assets must be regular files or directories\n"
+text SX0006 "site: cannot read asset directory\n"
 
 fn sx_private name view uchar * to bool
 if eq len name 0
@@ -17,12 +26,10 @@ if sr_equal name sxlocal
 ret true
 end
 if eq get name 0 46
-text well ".well-known"
-text nojek ".nojekyll"
-if sr_equal name well
+if sr_equal name SX0001
 ret false
 end
-if sr_equal name nojek
+if sr_equal name SX0002
 ret false
 end
 ret true
@@ -38,8 +45,16 @@ ret sr_equal part path sub len path len sxsuf len sxsuf sxsuf
 end
 
 fn sx_registered path view uchar * to bool
+buf = new uchar 8192 0
+routebuf = new uchar 1024 0
 for i ulong get stcount 0
 if st_match i 5 path
+ret true
+end
+n = st_html_path i routebuf
+m = st_append buf stpub 0
+m = st_append buf part routebuf 0 n m
+if sr_equal path part buf 0 m
 ret true
 end
 end
@@ -47,24 +62,31 @@ ret false
 end
 
 fn sx_file path view uchar * to void
+dest = new uchar 8192 0
 if eq get sxmode 0 1
 n = add get stoutn 0 1
 sr_raw part path n sub len path n
-text nl "\n"
-sr_raw nl
+sr_raw SX0003
 ret
 end
 if sx_html path
 if not sx_registered path
-text unlisted "site: public HTML absent from canonical registry\n"
-st_fail unlisted
+st_fail SX0004
 end
 ret
 end
 if lt len path 7
 trap 10
 end
-st_copy path part path 7 sub len path 7
+dn = st_append dest part path 7 sub len path 7 0
+if si_generated part dest 0 dn
+ret
+end
+if eq get sxmode 0 2
+si_line part dest 0 dn
+ret
+end
+st_copy path part dest 0 dn
 end
 
 fn sx_entry parent view uchar * name view uchar * depth ulong to void
@@ -82,8 +104,7 @@ if eq mode 16384
 sx_tree part pathbuf 0 n add depth 1
 else
 if ne mode 32768
-text badtype "site: public assets must be regular files or directories\n"
-st_fail badtype
+st_fail SX0005
 end
 sx_file part pathbuf 0 n
 end
@@ -113,10 +134,10 @@ entries = new uchar 65536 0
 if gt depth 16
 trap 3
 end
-fd = fopen path 0 len path 65536 0
+note arm64 O_DIRECTORY is octal 040000 (16384); generic 0200000 is O_DIRECT here.
+fd = fopen path 0 len path 16384 0
 if lt fd 0
-text badtree "site: cannot read asset directory\n"
-st_fail badtree
+st_fail SX0006
 end
 while true bound 65536
 n = getdnts int fd entries 0 len entries

@@ -211,8 +211,16 @@
     "path": "/data/pages.json",
     "url": "https://www.aienos.com/data/pages.json",
     "purpose": "Canonical English page registry for live catalog consumers.",
-    "schema": "[{path,title,description,area,mode,source,kind,published,image,doi,english}]",
+    "schema": "[{path,title,description,area}]",
     "cadence": "every build",
+    "media_type": "application/json"
+  },
+  {
+    "path": "/data/engineer.json",
+    "url": "https://www.aienos.com/data/engineer.json",
+    "purpose": "The complete migrated engineer page record, including source provenance, old paths and full authored bodies.",
+    "schema": "{source,note,pages:[{path,old,name,title,description,kind,body_html}]}",
+    "cadence": "when the authored record changes",
     "media_type": "application/json"
   }
 ]

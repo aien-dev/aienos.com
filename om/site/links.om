@@ -1,0 +1,100 @@
+note Preserve old root bookmarks without treating consent/refusal fragments as Classic navigation.
+text slids "top|home-lead|loop-title|story|machines|machines-title|speed|speed-title|evidence|architecture|research|turing-game|tg-round|tg-stream|tg-zero|tg-one|tg-score|tg-reset|tg-msg|terminal|terminal-clear-btn|terminal-output|terminal-form|terminal-input|status|live|follow|follow-reach"
+text slmach "machine-"
+text slspeed "speed-"
+
+fn sl_known value view uchar * to bool
+if ge len value len slmach
+if sr_equal part value 0 len slmach slmach
+ret true
+end
+end
+if ge len value len slspeed
+if sr_equal part value 0 len slspeed slspeed
+ret true
+end
+end
+p = ulong 0
+while lt p len slids bound 4096
+q = p
+while lt q len slids bound 4096
+if eq get slids q 124
+break
+end
+q = add q 1
+end
+if sr_equal value part slids p sub q p
+ret true
+end
+p = add q 1
+end
+ret false
+end
+
+fn sl_probe pos ulong to bool
+buf = new uchar 128 0
+if not sh_at shref pos
+ret false
+end
+p = add pos len shref
+if ge add p 3 get shlen 0
+ret false
+end
+quote = get shbuf p
+if not or eq quote 34 eq quote 39
+ret false
+end
+if ne get shbuf add p 1 47
+ret false
+end
+if ne get shbuf add p 2 35
+ret false
+end
+p = add p 3
+n = ulong 0
+while lt p get shlen 0 bound 256
+if eq get shbuf p quote
+ret sl_known part buf 0 n
+end
+if eq n len buf
+ret false
+end
+put buf n get shbuf p
+n = add n 1
+p = add p 1
+end
+ret false
+end
+
+fn sl_emit pos ulong to ulong
+p = add pos len shref
+sh_range pos add p 1
+sr_raw stclass
+ret add p 2
+end
+
+fn sl_scheme value view uchar * to bool
+for i ulong len value
+if eq get value i 58
+ret true
+end
+if or or eq get value i 47 eq get value i 35 eq get value i 63
+ret false
+end
+end
+ret false
+end
+
+fn sl_markdown_url value view uchar * to void
+routebuf = new uchar 512 0
+if sl_scheme value
+sr_raw value
+ret
+end
+sr_raw shhost
+if ne get value 0 47
+n = st_field get shrrow 0 0 routebuf
+sr_raw part routebuf 0 n
+end
+sr_raw value
+end

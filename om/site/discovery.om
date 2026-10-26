@@ -4,7 +4,6 @@ note All counts are source-record bookkeeping, never claims of current activity 
 text dpath "crates/site-builder/data/research_status.json"
 text dcopy "om/site/discovery.json"
 text dsource "https://github.com/aien-dev/aienos.com/blob/main/crates/site-builder/data/research_status.json"
-text downsrc "https://github.com/aien-dev/aienos.com/blob/main/om/site/discovery.json"
 text dqs "https://github.com/aien-dev/omega-mv/blob/main/docs/turing/TURING_SCIENTIFIC_QUALIFICATION_STATE.md"
 text dgit "https://github.com/aien-dev/"
 text dblob "/blob/main/"
@@ -21,7 +20,6 @@ text dcurpth "docs/turing/TURING_CURRENT_STATE.md"
 text dqsword "QS"
 text dqscolon "QS:"
 text dline "#L"
-text ddotdot ".."
 text dslash "/"
 text dhttps "https://"
 text deh ".h"
@@ -96,7 +94,7 @@ text dkexams "exams"
 text dkrecid "record_id"
 text dkcaps "capabilities"
 text dkrcpts "receipts"
-text dkverdict "verdict"
+text dkverd "verdict"
 text dkfigure "figure"
 text dkenv "environment"
 text dkgate "gate"
@@ -154,8 +152,6 @@ text ddd "</dt><dd>"
 text dddend "</dd></div>"
 text danchor "<a href=\""
 text dclose "\">"
-text daend "</a>"
-text dquote "\""
 text dfoot "<a class=\"box-link\" href=\""
 text dfsrc "<a class=\"box-link box-link-source\" href=\""
 text dfoote "\" target=\"_blank\" rel=\"noopener noreferrer\">Evidence on GitHub <span class=\"box-arrow\" aria-hidden=\"true\">↗</span></a>"
@@ -622,9 +618,23 @@ end
 ret sd_pathfoot part txt start sub finish start repo
 end
 
+fn sd_optional_link node ulong to ulong
+url = sj_find node dklink
+if eq url 0
+ret 0
+end
+if eq sj_kind url 7
+ret 0
+end
+if ne sj_kind url 3
+exit 72
+end
+ret url
+end
+
 fn sd_evidence node ulong key view uchar * to void
 buf = new uchar 4096 0
-url = sj_find node dklink
+url = sd_optional_link node
 if ne url 0
 sd_urlfoot url true
 ret
@@ -902,12 +912,15 @@ sr_raw dulend
 sr_raw dsecend
 end
 
+text dimplbox "<div class=\"rs-impl\">"
 fn sd_implementation_data root ulong to void
+sr_raw dimplbox
 item = sj_first sd_arr root dkacls
 while ne item 0 bound 999999
 sd_group sd_arr root dkimpl item
 item = sj_next item
 end
+sr_raw ddivend
 end
 
 fn sd_implementation to void
@@ -970,4 +983,353 @@ end
 sr_raw ddlend
 sd_source
 sr_raw dsecend
+end
+
+text dhubcard "<article class=\"hub-card panel\">"
+text dcardhead "</a></h3>"
+text dcardgrid "<div class=\"dashboard-grid\">"
+fn sd_content_card node ulong to void
+sr_raw dhubcard
+label = sj_find node dklabel
+if ne label 0
+sr_raw dp
+sj_emit label
+sr_raw dpend
+end
+sr_raw dh3
+sr_raw danchor
+sd_safehref sd_get node dkhref false
+sr_raw dclose
+sd_value node dktitle
+sr_raw dcardhead
+sr_raw dp
+sd_value node dkdesc
+sr_raw dpend
+url = sd_optional_link node
+if ne url 0
+sd_urlfoot url true
+else
+sd_urlfoot sd_get node dksource false
+end
+sr_raw dartend
+end
+
+fn sd_content_cards arr ulong to void
+sr_raw dcardgrid
+item = sj_first arr
+while ne item 0 bound 999999
+sd_content_card item
+item = sj_next item
+end
+sr_raw ddivend
+end
+
+fn sd_paragraphs arr ulong to void
+item = sj_first arr
+while ne item 0 bound 999999
+sr_raw dp
+sj_emit item
+sr_raw dpend
+item = sj_next item
+end
+end
+
+text dhubhead "<header class=\"page-intro\"><p class=\"eyebrow\">Discoveries</p><h1>"
+text dhubmid "</h1><p class=\"lede\">"
+text dhubend "</p></header>"
+text dphiloh "<section class=\"section prose\"><h2>What these papers argue</h2>"
+text dphilol "<p><a href=\"/evidence/\">Evidence</a> · <a href=\"/research/status/\">Research status record</a></p></section>"
+fn sd_philosophy to void
+root = sj_load dcopy
+node = sj_find root dkphilo
+sr_raw dhubhead
+sd_value node dktitle
+sr_raw dhubmid
+sd_value node dklabel
+sr_raw dhubend
+sr_raw dp
+sd_value node dkintro
+sr_raw dpend
+sr_raw dphiloh
+sd_paragraphs sd_arr node dkparas
+sr_raw dphilol
+sd_content_cards sd_arr node dkcards
+end
+
+text deorder "<section class=\"section\"><h2 id=\"evidence-order\">What counts as evidence</h2><ol class=\"evidence-ladder\">"
+text deordend "</ol><p>Website prose never overrides code, tests, or receipts.</p></section><section class=\"section\"><h2>Where to inspect it</h2>"
+text defailure "<section class=\"section prose\" aria-labelledby=\"evidence-failure\"><h2 id=\"evidence-failure\">Failure is evidence.</h2><p>Failed and incomplete experiments stay on the record. They are never deleted, hidden, or rewritten into success. A meter you cannot fail is not a meter.</p><p><a href=\"/discoveries/#receipts\">Dated receipt trail</a> · <a href=\"/hive/\">The Hive</a>. Activity is not qualification; each receipt keeps its own date, scope and limits.</p></section>"
+fn sd_evidence_hub to void
+root = sj_load dcopy
+node = sj_find root dkehub
+sr_raw dhubhead
+sd_value node dktitle
+sr_raw dhubmid
+sd_value node dkintro
+sr_raw dhubend
+sr_raw deorder
+item = sj_first sd_arr node dkorder
+while ne item 0 bound 999999
+sr_raw dli
+sr_raw dstrong
+sd_value item dktitle
+sr_raw dstend
+sr_raw dspace
+sd_value item dkdesc
+sr_raw dliend
+item = sj_next item
+end
+sr_raw deordend
+sd_content_cards sd_arr node dkcards
+sr_raw dsecend
+sr_raw defailure
+end
+
+text drshead "<header class=\"page-intro\"><p class=\"eyebrow\">Research status</p><h1>Where the research stands</h1><p class=\"lede\">"
+text drsasof "<p>Every status on this page is rendered from one data file, built from the consolidated research status table. Failed and incomplete experiments are shown, not hidden. As of "
+text drstoc "</p><nav class=\"cluster\" aria-label=\"On this page\"><a href=\"#ladder\">The ladder</a><a href=\"#experiments\">Experiments</a><a href=\"#implementation\">What is built</a><a href=\"#sources\">Sources</a><a href=\"/research-status.json\">Data file (JSON)</a></nav></header>"
+text dladsect "<section id=\"ladder\" class=\"section\"><h2>The research ladder</h2>"
+text dexpsect "<section id=\"experiments\" class=\"section\"><h2>Experiment status</h2><p>One card per result. The badge is the verdict; the lines below say what it covers, what it does not, and what it waits on.</p>"
+text dimplsec "<section id=\"implementation\" class=\"section\"><h2>What is built and what is still an idea</h2><p>Implemented work and research hypotheses are kept apart. A hypothesis listed here is a question, not a feature.</p>"
+fn sd_status_page to void
+root = sd_load
+sr_raw drshead
+sd_value root dkdefine
+sr_raw dpend
+sr_raw drsasof
+sd_value root dkasof
+sr_raw drstoc
+sr_raw dladsect
+sd_ladder_data root
+sr_raw dsecend
+sr_raw dexpsect
+sd_cards root
+sr_raw dsecend
+sr_raw dimplsec
+sd_implementation_data root
+sr_raw dsecend
+sd_sources root
+end
+
+text dexphead "<header class=\"page-intro\"><p class=\"eyebrow\">Experiments</p><h1>Experiments</h1><p class=\"lede\">Every experiment on the AIEN research ladder, with its scope, its receipt and its outcome, failures included. Everything below is rendered from one data file, so this page cannot drift from the record.</p></header><section class=\"section\" aria-labelledby=\"experiments-ladder\"><h2 id=\"experiments-ladder\">Where the research stands</h2>"
+text dexpopen "<section id=\"experiment-cards\" class=\"section\" data-source=\"research_status.json\" aria-labelledby=\"experiment-cards-title\"><h2 id=\"experiment-cards-title\">Experiment cards</h2><p>One card per result. The badge is the verdict; the lines below say what it covers, what it does not, and what it waits on.</p>"
+text dexpfoot "<p><a class=\"hub-button\" href=\"/research/status/\">Open the full research status record</a></p></section><section class=\"section prose\"><h2>Check it yourself</h2><p>An experiment is frozen before it is scored, and its record stays public whatever the outcome. The same record is published as <a href=\"/research-status.json\">machine-readable data</a>, the protocols sit with the <a href=\"/research/computing-machinery-and-understanding/\">Turing paper</a>, and the <a href=\"/evidence/\">Evidence</a> page explains which sources count and where to find them.</p></section>"
+fn sd_experiments to void
+root = sd_load
+sr_raw dexphead
+sd_ladder_data root
+sr_raw dsecend
+sr_raw dexpopen
+sd_cards root
+sr_raw dexpfoot
+sd_sources root
+end
+
+text dclassop "<span class=\"rs-badge rs-class--"
+text dclassid "\" data-impl=\""
+text dclassvh "\"><span class=\"visually-hidden\">Status: </span>"
+fn sd_record_badge ident view uchar * to void
+root = sd_load
+row = sd_named sd_arr root dkimpl ident
+sr_raw dclassop
+sd_slug sd_get row dkclass
+sr_raw dclassid
+sd_value row dkid
+sr_raw dclassvh
+sd_value row dkclass
+sr_raw dspend
+end
+
+text dexamop "<section class=\"section prose narr-exam\" id=\""
+text dnorec "<p class=\"narr-norecord\">Not on the status record yet.</p>"
+text dcaphead "<h3>Generic capabilities it will receive</h3>"
+fn sd_exam idx ulong to void
+buf = new uchar 4096 0
+root = sj_load dcopy
+row = sd_nth sd_arr root dkexams idx
+sr_raw dexamop
+sd_value row dkid
+sr_raw dclose
+sr_raw dh2
+sd_value row dktitle
+ident = sj_find row dkrecid
+hasrec = eq sj_kind ident 3
+if hasrec
+n = sj_string ident buf
+sr_raw dspace
+sd_record_badge part buf 0 n
+end
+sr_raw dh2end
+if not hasrec
+sr_raw dnorec
+end
+root = sj_load dcopy
+row = sd_nth sd_arr root dkexams idx
+sd_paragraphs sd_arr row dksum
+caps = sd_arr row dkcaps
+if gt sj_len caps 0
+sr_raw dcaphead
+sr_raw dul
+item = sj_first caps
+while ne item 0 bound 999999
+sr_raw dli
+sj_emit item
+sr_raw dliend
+item = sj_next item
+end
+sr_raw dulend
+end
+sr_raw dsecend
+end
+
+text dexamsin "<article class=\"prose\"><header class=\"page-intro\"><p class=\"eyebrow\">Scientific Discovery</p><h1>Examinations of representation discovery</h1><p class=\"lede\">Physics Zero, Dirac, Zeta and supersymmetry are examinations the program means to run. None of them is an AIEN feature. Each one will test whether the machine can find a representation because it explains unseen observations better, after paying for its own complexity.</p></header><section id=\"rule\" class=\"section\"><h2>The rule</h2><blockquote><p>Never give AIEN the named answer when the experiment is intended to test discovery.</p></blockquote><p>Each exam will supply generic mathematical machinery instead of the answer. A structure that emerges will count only if it earns positive Turings on held-out data. <a href=\"/machine/#turing\">How the Turing scores.</a></p><p>Each exam carries its entry from the <a href=\"/research/status/#implementation\">research status record</a>, where one exists.</p></section>"
+text dexamsen "<section id=\"later\" class=\"section\"><h2>When</h2><p>The full design of these exams belongs to a later phase of the program, after the general mathematical machinery exists. Until then they remain designs and open questions. <a href=\"/machine/#today\">See what exists today.</a></p><p><a href=\"/research/status/#implementation\">Read the complete implementation record</a>, including the separate Dirac workstream record and its limits. The exam mapping above is preserved from its authored source; a missing exam badge is not an assertion that the workstream has no record.</p><a class=\"source-link\" href=\"https://github.com/aien-dev/aienos.com/blob/main/om/site/discovery.json\">Exam design source</a></section></article>"
+fn sd_discovery to void
+sr_raw dexamsin
+root = sj_load dcopy
+count = sj_len sd_arr root dkexams
+for idx ulong count
+sd_exam idx
+end
+sr_raw dexamsen
+end
+
+text drcptop "<article class=\"receipt panel\"><p class=\"badge\">"
+text drcptfig "</p><p class=\"stat\">"
+fn sd_receipt row ulong to void
+sr_raw drcptop
+sd_value row dkverd
+sr_raw drcptfig
+sd_value row dkfigure
+sr_raw dpend
+sr_raw dh3
+sd_value row dktitle
+sr_raw dh3end
+sr_raw dp
+sd_value row dkdesc
+sr_raw dpend
+sr_raw ddlist
+sd_field row dkproves dlproves
+sd_field row dknotpr dlnotpr
+sd_field row dkdate dldate
+sd_field row dkenv dlenv
+sd_field row dkgate dlgate
+sd_field row dksource dlsource
+sr_raw ddlend
+sd_urlfoot sd_get row dklink true
+sr_raw dartend
+end
+
+text drcptin "<section id=\"receipts\" class=\"section\"><header><p class=\"eyebrow\">Proof, not promises</p><h2>Every claim carries a receipt</h2><p>This project does not ask to be believed. Each card names its environment, its gate, its date, and its verdict, and states plainly what the receipt proves and what it does not prove. That includes the failures, especially the failures.</p><p class=\"muted\">Dated evidence, not a live dashboard: these preserved receipt cards describe the runs and branch states recorded in the site inventory of 2026-10-19. Words such as today and newest inside a card refer to that dated record, not the current machine. Research results below retain the canonical record's own date.</p></header>"
+text dtyenv "<p>Environment: Omega verification suite, turing-yield CI on main. Receipt source: <a href=\"https://github.com/aien-dev/omega/pull/88\">aien-dev/omega · PR #88</a>.</p>"
+fn sd_receipts to void
+sr_raw drcptin
+root = sj_load dcopy
+sr_raw dcardgrid
+item = sj_first sd_arr root dkrcpts
+while ne item 0 bound 999999
+sd_receipt item
+item = sj_next item
+end
+sr_raw ddivend
+root = sd_load
+sr_raw dtyenv
+sd_turing_card sd_named sd_arr root dkturing dty2
+sr_raw dsecend
+end
+
+text dresearch "<section id=\"research\" class=\"section\"><header><p class=\"eyebrow\">Published research</p><h2>Do not take my word for it. Check the receipts.</h2><p>Most AI asks you to trust a demo and a promise. This project publishes its science in the open instead: the Turing, a unit of net held-out explanatory compression (one operational component of machine understanding), plus the papers behind it and the data anyone can recheck. It starts with the Turing.</p></header><article class=\"hub-card panel\"><p class=\"eyebrow\">The Turing (T)</p><h3>A unit of net held-out explanatory compression</h3><p>One Turing is one bit of net held-out description-length improvement: a short explanation that predicts things it has never seen earns Turings. Guessing earns nothing. Memorizing earns nothing, because the test data is new.</p>"
+text drlinks "<p class=\"cluster\"><a class=\"button\" href=\"/turing/\">Explore the Turing</a><a href=\"/research/computing-machinery-and-understanding\">Read the formal paper</a><a href=\"/research/status/\">See the full research ladder.</a></p>"
+text dgame "<div id=\"turing-game\" class=\"panel\"><h3>Try it: earn your first Turings</h3><p id=\"tg-round\">Round 0 / 12</p><p>A hidden rule is generating this stream of bits. Watch it, find the pattern, and call the next bit before it lands.</p><div id=\"tg-stream\" aria-live=\"polite\"></div><div class=\"cluster\"><button type=\"button\" id=\"tg-zero\">0</button><button type=\"button\" id=\"tg-one\">1</button></div><p>Score: <span id=\"tg-score\">0 T</span></p><button type=\"button\" id=\"tg-reset\">New stream</button><p id=\"tg-msg\" aria-live=\"polite\">Each call you get right earns 1 T, each miss costs 1 T. A coin flip averages zero.</p><noscript><p>The interactive stream needs JavaScript. <a href=\"/turing/\">Read the Turing explanation</a> or <a href=\"/research/computing-machinery-and-understanding/\">inspect the paper and protocols</a> without it.</p></noscript></div>"
+text drend "<p>Everything, including protocols, sealed experiment profiles, and source files: <a href=\"/research/\">the full research index</a> · <a href=\"https://github.com/aien-dev\">the public code and receipts on GitHub</a>.</p></section>"
+fn sd_research_home to void
+root = sd_load
+sr_raw dresearch
+sr_raw dp
+sd_value root dkdefine
+sr_raw dpend
+sd_current root
+sr_raw drlinks
+sr_raw dfoot
+sr_raw dqs
+sr_raw dfoote
+sr_raw dartend
+sr_raw dgame
+root = sj_load dcopy
+sd_content_cards sd_arr root dkpapers
+sr_raw drend
+end
+
+text ddiscint "<header class=\"page-intro\"><p class=\"eyebrow\">Discoveries</p><h1>Follow a question all the way to its evidence.</h1><p class=\"lede\">I keep the experiments, the failures and the limits together. Start with the research record, inspect a receipt, or follow the work through the Hive.</p></header><nav class=\"cluster\" aria-label=\"Discovery trails\"><a href=\"/research/\">Papers and protocols</a><a href=\"/experiments/\">Experiments</a><a href=\"/evidence/\">Evidence rules</a><a href=\"/discovery/\">Future examinations</a><a href=\"/philosophy/\">Philosophy</a><a href=\"/hive/\">Hive activity</a></nav><section class=\"section\" aria-labelledby=\"discovery-record\"><h2 id=\"discovery-record\">The recorded research state</h2><p>Read from <a href=\"/research-status.json\">research-status.json</a> at build time. Record as of "
+text ddiscage "</p><p class=\"muted\">These are counts of records, not successful discoveries, live agents, or hardware qualifications. The Hive publishes its own observation time and freshness state. Activity there does not promote a research verdict here.</p><div class=\"stat-grid\">"
+text dstatop "<div class=\"stat\"><strong>"
+text dstature "</strong> experiment and instrument records</div>"
+text dstaimpl "</strong> implementation and hypothesis records</div>"
+text dstaladd "</strong> ladder steps</div>"
+text ddashend "</section><section class=\"section\"><h2>Take the next trail</h2><div class=\"dashboard-grid\"><article class=\"hub-card panel\"><h3><a href=\"/research/\">Read the science</a></h3><p>The formal paper, emergence companion, protocols, profiles and source artifacts remain fully readable.</p><a class=\"box-link box-link-source\" href=\"https://github.com/aien-dev/aienos.com/tree/main/public/research\">Source on GitHub</a></article><article class=\"hub-card panel\"><h3><a href=\"/evidence/\">Inspect the evidence</a></h3><p>Code, tests and receipts outrank a website. Check the scope and the limits before drawing a conclusion.</p><a class=\"box-link box-link-source\" href=\"https://github.com/aien-dev/aienos.com/blob/main/om/site/discovery.json\">Source on GitHub</a></article><article class=\"hub-card panel\"><h3><a href=\"/hive/\">Follow the Hive</a></h3><p>Open the observation board for source-timestamped activity and evidence trails. A stale observation remains stale; this dashboard makes no live count claim.</p><p><a href=\"/hive/board/\">Open the no-JavaScript board</a></p><a class=\"box-link box-link-source\" href=\"https://github.com/aien-dev/aienos.com/blob/main/om/hive-render/render.om\">Source on GitHub</a></article></div></section>"
+text ddashmore "<details class=\"section\"><summary>Every experiment, including failures</summary>"
+text ddashimpl "<details class=\"section\"><summary>Every implementation record and research hypothesis</summary><p>Hypothesis, implementation, exercise, qualification, merge and deployment are different claims. A badge never erases the row's scope or limitations.</p>"
+text ddashsrc "<p><a class=\"hub-button\" href=\"/research/status/\">Open the full research status record</a> · <a href=\"/research-status.json\">Canonical data</a></p>"
+fn sd_dashboard to void
+root = sd_load
+sr_raw ddiscint
+sd_value root dkasof
+sr_raw ddiscage
+sr_raw dstatop
+sr_num sj_len sd_arr root dkturing
+sr_raw dstature
+sr_raw dstatop
+sr_num sj_len sd_arr root dkimpl
+sr_raw dstaimpl
+sr_raw dstatop
+sr_num sj_len sd_arr root dkladder
+sr_raw dstaladd
+sr_raw ddivend
+sd_source
+sd_ladder_data root
+sr_raw ddashsrc
+sr_raw ddashend
+sr_raw ddashmore
+sd_cards root
+sr_raw dmend
+sr_raw ddashimpl
+sd_implementation_data root
+sr_raw dmend
+sd_sources root
+sd_receipts
+end
+
+text drdash "/discoveries/"
+text drstatus "/research/status/"
+text drexp "/experiments/"
+text drdiscov "/discovery/"
+text drevid "/evidence/"
+text drphilo "/philosophy/"
+fn sd_page route view uchar * to bool
+if sr_equal route drdash
+sd_dashboard
+ret true
+end
+if sr_equal route drstatus
+sd_status_page
+ret true
+end
+if sr_equal route drexp
+sd_experiments
+ret true
+end
+if sr_equal route drdiscov
+sd_discovery
+ret true
+end
+if sr_equal route drevid
+sd_evidence_hub
+ret true
+end
+if sr_equal route drphilo
+sd_philosophy
+ret true
+end
+note /research/ and all static paper bodies remain core-owned, with their complete assets.
+ret false
 end

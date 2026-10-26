@@ -1,0 +1,272 @@
+note Structured page graph complements shared site identity without copying rendered snapshots.
+text sgpaper "ScholarlyArticle"
+text sgartype "Article"
+text sgcoltyp "CollectionPage"
+text sgweb "WebPage"
+text sgcoll "Collection"
+text sglive "/now/"
+text sgopen "<script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"@graph\":["
+text sgclose "]}</script>"
+text sgid "{\"@type\":"
+text sgurl ",\"@id\":\"https://www.aienos.com"
+text sgurl2 "\",\"url\":\"https://www.aienos.com"
+text sgname "\",\"name\":"
+text sghl ",\"headline\":"
+text sgdesc ",\"description\":"
+text sglang ",\"inLanguage\":"
+text sgen "en"
+text sgzh "zh-CN"
+text sgpub ",\"datePublished\":"
+text sgmod ",\"dateModified\":\""
+text sgimage "\",\"image\":{\"@type\":\"ImageObject\",\"url\":\"https://www.aienos.com"
+text sgdim "\",\"width\":1200,\"height\":630},\"isPartOf\":{\"@id\":\"https://www.aienos.com/#website\"},\"publisher\":{\"@id\":\"https://www.aienos.com/#organization\"},\"license\":\"https://www.aienos.com/licensing/\",\"isAccessibleForFree\":true"
+text sgauthor ",\"author\":{\"@id\":\"https://www.aienos.com/#drake\"},\"mainEntityOfPage\":\"https://www.aienos.com"
+text sgpre ",\"creativeWorkStatus\":\"Preprint, not peer reviewed\""
+text sgdoi ",\"identifier\":{\"@type\":\"PropertyValue\",\"propertyID\":\"DOI\",\"value\":"
+text sgsame "},\"sameAs\":\"https://doi.org/"
+text sgenc ",\"encoding\":[{\"@type\":\"MediaObject\",\"encodingFormat\":\"application/pdf\",\"contentUrl\":\"https://www.aienos.com"
+text sgpdf "paper.pdf\"}]"
+text sgtrof ",\"translationOfWork\":{\"@id\":\"https://www.aienos.com"
+text sgtrans ",\"workTranslation\":{\"@id\":\"https://www.aienos.com"
+text sgobj "\"}"
+text sgbrace "}"
+text sgcomma ","
+text sgbread ",\"breadcrumb\":{\"@id\":\"https://www.aienos.com"
+text sgbend "#breadcrumb\"}"
+text sgbstart ",{\"@type\":\"BreadcrumbList\",\"@id\":\"https://www.aienos.com"
+text sgbitems "#breadcrumb\",\"itemListElement\":[{\"@type\":\"ListItem\",\"position\":1,\"name\":\"Sovereign Intelligence\",\"item\":\"https://www.aienos.com/\"}"
+text sgbitem ",{\"@type\":\"ListItem\",\"position\":2,\"name\":"
+text sgburl ",\"item\":\"https://www.aienos.com"
+text sgbclose "]}"
+text sgident ",{\"@type\":\"Person\",\"@id\":\"https://www.aienos.com/#drake\",\"name\":\"M. Drake Stapleton\",\"url\":\"https://www.drakestapleton.com\",\"sameAs\":[\"https://github.com/drakestapleton\",\"https://x.com/mdrakestapleton\"]},{\"@type\":\"Organization\",\"@id\":\"https://www.aienos.com/#organization\",\"name\":\"AIEN (aien-dev)\",\"url\":\"https://github.com/aien-dev\",\"email\":\"aien@aienos.com\",\"founder\":{\"@id\":\"https://www.aienos.com/#drake\"}}"
+text sgsite ",{\"@type\":\"WebSite\",\"@id\":\"https://www.aienos.com/#website\",\"url\":\"https://www.aienos.com/\",\"name\":\"Sovereign Intelligence, built on AienOS\",\"inLanguage\":[\"en\",\"zh-CN\"],\"publisher\":{\"@id\":\"https://www.aienos.com/#organization\"},\"license\":\"https://www.aienos.com/licensing/\",\"isAccessibleForFree\":true}"
+
+text SG0001 ",{\"@type\":\"Dataset\",\"@id\":\"https://www.aienos.com"
+text SG0002 "\",\"url\":\"https://www.aienos.com"
+text SG0003 "\",\"name\":"
+text SG0004 ",\"description\":"
+text SG0005 ",\"dateModified\":\""
+text SG0006 "\",\"license\":\"https://www.aienos.com/licensing/\",\"creator\":{\"@id\":\"https://www.aienos.com/#organization\"},\"isAccessibleForFree\":true}"
+text SG0007 "path"
+text SG0008 "purpose"
+text SG0009 "/machines.json"
+text SG0010 "/facts.json"
+text SG0011 "/status.json"
+text SG0012 "/research-status.json"
+text SG0013 "/now.json"
+text SG0014 "/omega.json"
+text SG0015 "/cudaplusplus.json"
+text SG0016 "/machine/"
+text SG0017 "/omega/"
+text SG0018 "/cudaplusplus/"
+text SG0019 "/evidence/"
+text SG0020 "/research/status/"
+text SG0021 "facts.json"
+text SG0022 "components"
+text SG0023 "name"
+text SG0024 "role"
+text SG0025 "url"
+text SG0026 ",{\"@type\":\"SoftwareSourceCode\",\"name\":"
+text SG0027 ",\"description\":"
+text SG0028 ",\"codeRepository\":"
+text SG0029 ",\"license\":\"https://www.aienos.com/licensing/\",\"author\":{\"@id\":\"https://www.aienos.com/#organization\"}}"
+
+fn sg_kind row ulong to void
+if st_match row 6 sspaper
+ss_quote sgpaper
+else
+if st_match row 6 ssart
+ss_quote sgartype
+else
+if st_match row 6 sgcoll
+ss_quote sgcoltyp
+else
+ss_quote sgweb
+end
+end
+end
+end
+
+fn sg_basic row ulong to void
+sr_raw sgid
+sg_kind row
+sr_raw sgurl
+st_emit row 0 false
+sr_raw sgurl2
+st_emit row 0 false
+sr_raw sgname
+ss_qfield row 1
+sr_raw sghl
+ss_qfield row 1
+sr_raw sgdesc
+ss_qfield row 2
+sr_raw sglang
+if lt row get steng 0
+ss_quote sgen
+else
+ss_quote sgzh
+end
+sr_raw sgpub
+ss_qfield row 7
+sr_raw sgmod
+ss_modified row
+sr_raw sgimage
+st_emit row 8 false
+sr_raw sgdim
+if or st_match row 6 sspaper st_match row 6 ssart
+sr_raw sgauthor
+st_emit row 0 false
+sr_raw ssquote
+else
+sr_raw sgbread
+st_emit row 0 false
+sr_raw sgbend
+end
+end
+
+fn sg_paper row ulong to void
+buf = new uchar 4096 0
+sr_raw sgpre
+n = st_field row 9 buf
+if gt n 0
+sr_raw sgdoi
+ss_quote part buf 0 n
+sr_raw sgsame
+sr_raw part buf 0 n
+sr_raw ssquote
+end
+sr_raw sgenc
+st_emit row 10 false
+sr_raw sgpdf
+end
+
+fn sg_translation row ulong to void
+buf = new uchar 512 0
+n = st_field row 10 buf
+for i ulong get stcount 0
+if ne i row
+if st_match i 10 part buf 0 n
+if ge row get steng 0
+sr_raw sgtrof
+else
+sr_raw sgtrans
+end
+st_emit i 0 false
+sr_raw sgobj
+ret
+end
+end
+end
+end
+
+fn sg_breadcrumb row ulong to void
+sr_raw sgbstart
+st_emit row 0 false
+sr_raw sgbitems
+if not st_match row 0 stroot
+sr_raw sgbitem
+ss_qfield row 1
+sr_raw sgburl
+st_emit row 0 false
+sr_raw sgobj
+end
+sr_raw sgbclose
+end
+
+fn sg_dataset path view uchar * to void
+root = sj_load ssfields
+node = sj_first root
+while ne node 0 bound 1024
+if sj_eq sj_find node SG0007 path
+sr_raw SG0001
+sr_raw path
+sr_raw SG0002
+sr_raw path
+sr_raw SG0003
+ss_quote path
+sr_raw SG0004
+sg_qnode sj_find node SG0008
+sr_raw SG0005
+sg_dataset_stamp path
+sr_raw SG0006
+ret
+end
+node = sj_next node
+end
+trap 10
+end
+
+fn sg_qnode node ulong to void
+buf = new uchar 4096 0
+n = sj_string node buf
+ss_quote part buf 0 n
+end
+
+fn sg_datasets row ulong to void
+if st_match row 10 sglive
+sg_dataset SG0013
+end
+if or st_match row 10 stroot st_match row 10 stclass
+sg_dataset SG0013
+sg_dataset SG0009
+sg_dataset SG0010
+sg_dataset SG0011
+sg_dataset SG0012
+sg_software
+end
+if st_match row 10 SG0016
+sg_dataset SG0009
+end
+if st_match row 10 SG0017
+sg_dataset SG0014
+end
+if st_match row 10 SG0018
+sg_dataset SG0015
+end
+if or st_match row 10 SG0019 st_match row 10 SG0020
+sg_dataset SG0012
+end
+end
+
+fn sg_software to void
+root = sj_load SG0021
+arr = sj_find root SG0022
+node = sj_first arr
+while ne node 0 bound 1024
+sr_raw SG0026
+sg_qnode sj_find node SG0023
+sr_raw SG0027
+sg_qnode sj_find node SG0024
+sr_raw SG0028
+sg_qnode sj_find node SG0025
+sr_raw SG0029
+node = sj_next node
+end
+end
+
+fn sg_graph row ulong to void
+sr_raw sgopen
+sg_basic row
+if st_match row 6 sspaper
+sg_paper row
+end
+sg_translation row
+sr_raw sgbrace
+sg_breadcrumb row
+sr_raw sgident
+sr_raw sgsite
+sg_datasets row
+sr_raw sgclose
+end
+
+fn sg_dataset_stamp path view uchar * to void
+if sr_equal path SG0010
+sf_facts
+ret
+end
+if sr_equal path SG0013
+sp_ledger_stamp
+ret
+end
+st_stamp
+end

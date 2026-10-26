@@ -1,3 +1,32 @@
+text smclasc "/classic/"
+text smk0 "status_detail"
+text sml0 "Evidence status"
+text smk1 "claim_level"
+text sml1 "Claim scope"
+text smk2 "not_proves"
+text sml2 "Does not prove"
+text smk3 "on_main"
+text sml3 "On the default branch at the recorded date"
+text smk4 "evidence_date"
+text sml4 "Evidence date"
+text smk5 "next_dependency"
+text sml5 "Next dependency"
+text smk6 "done_when"
+text sml6 "Completion criterion"
+text smk7 "now"
+text sml7 "Recorded state"
+text smk8 "class"
+text sml8 "Implementation class"
+text smk9 "box"
+text sml9 "Source / receipt location"
+text smk10 "tok_s"
+text sml10 "Tokens per second"
+text smk11 "not_yield"
+text sml11 "Measurement limitation"
+text smk12 "links"
+text smk13 "more"
+text smk14 "link"
+text smk15 "label"
 text smxgame "<script defer src=\"/js/turing-game.js\"></script>"
 text smxev "\">Receipt on GitHub</a>"
 text smxep "evidence/"
@@ -173,7 +202,7 @@ text smt163 "<p>A DGX Spark, an Intel iMac, a Raspberry Pi 5, QEMU and a Windows
 text smt164 "as_of"
 text smt165 ". Each card states its environment, evidence date, branch and limitations.</p><div class=\"dashboard-grid\">"
 text smt166 "<div id=\"machine-"
-text smt167 "</div><p><a href=\"/#speed\">The speeds measured on them, with receipts</a> · <a href=\"/machines.json\">The inventory data</a></p></section>"
+text smt167 "</div><p><a href=\"/classic/#speed\">The speeds measured on them, with receipts</a> · <a href=\"/machines.json\">The inventory data</a></p></section>"
 text smt168 "speed"
 text smt169 "Speed, with receipts"
 text smt170 "<p>Recorded model and engine runs, not a claim about the server answering today. Each row preserves its date, environment, previous run, ceiling, branch, verdict and exclusions. A faster candidate that fails its gate remains a failure.</p>"
@@ -193,7 +222,7 @@ text smt183 "paragraphs"
 text smt184 "links"
 text smt185 "loop"
 text smt186 "loop_steps"
-text smt187 "<p><a href=\"/#loop-title\">See the loop diagram on the homepage.</a></p>"
+text smt187 "<p><a href=\"/classic/#loop-title\">See the loop diagram in the classic dashboard.</a></p>"
 text smt188 "turing"
 text smt189 "<pre><code>"
 text smt190 "formula"
@@ -300,7 +329,7 @@ text smt290 "name|what|links|box"
 text smt291 "cuda|job|omega|status|note|links|box"
 text smt292 "title|taken|what|facts|box"
 text smt293 "title|text|links|box"
-text smt294 "id|title|done_when|status|now|receipt|links"
+text smt294 "id|title|done_when|status|now|?receipt|links"
 text smt295 "C1|C2|C3|C4|C5|C6"
 text smt296 "stand|how|box|rule|bar"
 text smt297 "P0|P1|P2|P3|P4"
@@ -551,18 +580,18 @@ it = sj_first nd
 while ne it 0 bound 100000
 if ne it omit
 sr_raw smt46
-if eq it sj_find nd smt47
-sr_raw smt48
-else
-sj_key it
-end
+sm_label nd it
 sr_raw smt49
-if eq it sj_find nd smt50
+if or eq it sj_find nd smt50 eq it sj_find nd smk8
 sr_raw smt51
 sj_emit it
 sr_raw smt52
 else
+if or eq it sj_find nd smk12 eq it sj_find nd smk13
+sm_links it
+else
 sm_value it
+end
 end
 sr_raw smt53
 end
@@ -1092,6 +1121,10 @@ sm_follow
 end
 
 fn sm_page route view uchar * to bool
+if sr_equal route smclasc
+sm_home
+ret true
+end
 if sr_equal route smt1
 sm_home
 ret true
@@ -1330,4 +1363,80 @@ if sj_eq ident smt325
 sr_raw smt326
 ret
 end
+end
+
+fn sm_alias nd ulong fld ulong key view uchar * label view uchar * to bool
+if eq fld sj_find nd key
+sr_raw label
+ret true
+end
+ret false
+end
+
+fn sm_label nd ulong fld ulong to void
+if sm_alias nd fld smk0 sml0
+ret
+end
+if sm_alias nd fld smk1 sml1
+ret
+end
+if sm_alias nd fld smk2 sml2
+ret
+end
+if sm_alias nd fld smk3 sml3
+ret
+end
+if sm_alias nd fld smk4 sml4
+ret
+end
+if sm_alias nd fld smk5 sml5
+ret
+end
+if sm_alias nd fld smk6 sml6
+ret
+end
+if sm_alias nd fld smk7 sml7
+ret
+end
+if sm_alias nd fld smk8 sml8
+ret
+end
+if sm_alias nd fld smk9 sml9
+ret
+end
+if sm_alias nd fld smk10 sml10
+ret
+end
+if sm_alias nd fld smk11 sml11
+ret
+end
+if sm_alias nd fld smt47 smt48
+ret
+end
+sj_key fld
+end
+
+fn sm_links nd ulong to void
+sr_raw smt41
+it = sj_first nd
+while ne it 0 bound 100000
+lab = ulong 0
+url = ulong 0
+if eq sj_kind it 2
+lab = sj_first it
+url = sj_next lab
+else
+lab = sm_need it smk15
+url = sm_need it smk14
+end
+sr_raw smt42
+sr_raw smt34
+sm_url url
+sr_raw smt35
+sj_emit lab
+sr_raw smt36
+sr_raw smt43
+it = sj_next it
+end
+sr_raw smt44
 end

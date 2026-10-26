@@ -1,0 +1,212 @@
+note Native build conductor: ./build-tool MODULE_MANIFEST OUTPUT_BINARY
+note Run from the repository root. The pinned omc is the sole compiler dependency.
+note Manifest is newline-separated relative .om source paths. One OM-2 directive is prepended.
+note Compilation writes only the requested new output; a failed compile removes that incomplete file.
+global bline uchar 4096
+global blen ulong 1
+global bout uchar 4096
+global boutn ulong 1
+global bargs uchar 4096
+global bbuf uchar 65536
+global bstat uchar 4
+text bcomp "om/site/omc"
+text bunit "build/site-unit.om"
+text bdir "build"
+text bmode "om2\n"
+text bfail "SITE-BUILD refused input or failed I/O\n"
+text bok "SITE-BUILD compiled\n"
+
+fn build_fail to void
+n = write 2 bfail 0 len bfail
+exit 80
+end
+
+fn build_write fd int n ulong to void
+p = ulong 0
+while lt p n bound 65536
+k = write fd bbuf p sub n p
+if le k 0
+build_fail
+end
+p = add p ulong k
+end
+end
+
+fn build_source fd int to void
+n = get blen 0
+if eq n 0
+build_fail
+end
+if eq get bline 0 47
+build_fail
+end
+for i ulong n
+c = get bline i
+if or eq c 0 eq c 92
+build_fail
+end
+if eq c 46
+if lt add i 1 n
+if eq get bline add i 1 46
+build_fail
+end
+end
+end
+end
+src = fopen bline 0 n 0 0
+if lt src 0
+build_fail
+end
+more = true
+while more bound 65536
+k = read int src bbuf 0 len bbuf
+if lt k 0
+build_fail
+end
+if eq k 0
+more = false
+else
+build_write fd ulong k
+end
+end
+rc = fclose int src
+if ne rc 0
+build_fail
+end
+put bbuf 0 10
+build_write fd 1
+put blen 0 0
+end
+
+fn build_manifest fd int mf int to void
+one = new uchar 1 0
+more = true
+while more bound 65536
+k = read mf one 0 1
+if lt k 0
+build_fail
+end
+if eq k 0
+if ne get blen 0 0
+build_fail
+end
+more = false
+else
+c = get one 0
+if eq c 10
+build_source fd
+else
+n = get blen 0
+if ge n len bline
+build_fail
+end
+put bline n c
+put blen 0 add n 1
+end
+end
+end
+end
+
+fn build_child infd int outfd int to void
+rc = dupfd infd 0 0
+if lt rc 0
+build_fail
+end
+rc = dupfd outfd 1 0
+if lt rc 0
+build_fail
+end
+put bargs 0 1
+put bargs 1 0
+put bargs 2 uchar len bcomp
+put bargs 3 0
+for i ulong len bcomp
+put bargs add i 4 get bcomp i
+end
+rc = execprog bargs 0 add len bcomp 4
+build_fail
+end
+
+fn build_compile to int
+inf = fopen bunit 0 len bunit 0 0
+if lt inf 0
+build_fail
+end
+outf = fopen bout 0 get boutn 0 193 493
+if lt outf 0
+build_fail
+end
+pid = fork
+if lt pid 0
+build_fail
+end
+if eq pid 0
+build_child int inf int outf
+end
+rc = fclose int inf
+if ne rc 0
+build_fail
+end
+rc = fclose int outf
+if ne rc 0
+build_fail
+end
+rc = waitpid int pid bstat 0 len bstat 0
+if ne rc pid
+build_fail
+end
+status = or uint get bstat 0 shl uint get bstat 1 8
+if ne status 0
+rc = unlink bout 0 get boutn 0
+if ne rc 0
+build_fail
+end
+ret 81
+end
+n = write 1 bok 0 len bok
+if ne n long len bok
+build_fail
+end
+ret 0
+end
+
+fn main to int
+if ne argcnt 3
+build_fail
+end
+n = argread 1 bline 0 len bline
+if le n 0
+build_fail
+end
+mf = fopen bline 0 ulong n 0 0
+if lt mf 0
+build_fail
+end
+n = argread 2 bout 0 len bout
+if le n 0
+build_fail
+end
+put boutn 0 ulong n
+rc = makedir bdir 0 len bdir 493
+if and ne rc 0 ne rc -17
+build_fail
+end
+unit = fopen bunit 0 len bunit 577 420
+if lt unit 0
+build_fail
+end
+n = write int unit bmode 0 len bmode
+if ne n long len bmode
+build_fail
+end
+build_manifest int unit int mf
+rc = fclose int mf
+if ne rc 0
+build_fail
+end
+rc = fclose int unit
+if ne rc 0
+build_fail
+end
+ret build_compile
+end

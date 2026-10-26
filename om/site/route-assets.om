@@ -1,0 +1,109 @@
+note Shared chrome owns palette/consent/site scripts; each renderer owns only its content assets.
+text srhive "/hive/"
+text sralpha "/alpha/"
+text srallen "/allen/"
+text sromega "/omega/"
+text srcuda "/cudaplusplus/"
+text srmach "/machine/"
+text srlearn "/learn/"
+text srnow "/now/"
+text srdash "/dash/"
+text srhasset "<link rel=\"stylesheet\" href=\"/assets/hive.css\"><script defer src=\"/js/hive.js\"></script>"
+text sraasset "<link rel=\"stylesheet\" href=\"/assets/alpha.css\"><script defer src=\"/js/alpha.js\"></script>"
+text srnative "<link rel=\"stylesheet\" href=\"/assets/allen.css\"><link rel=\"stylesheet\" href=\"/assets/allen-panes.css\"><link rel=\"stylesheet\" href=\"/assets/allen-install.css\"><script defer src=\"/js/allen-audio.js\"></script><script defer src=\"/js/allen-scene.js\"></script><script defer src=\"/js/allen-panes.js\"></script><script defer src=\"/js/allen.js\"></script><script defer src=\"/js/allen-voice.js\"></script><script defer src=\"/js/allen-install.js\"></script><script defer src=\"/js/allen-presence.js\"></script>"
+text sromcss "<link rel=\"stylesheet\" href=\"/assets/omega.css\">"
+text srcucss "<link rel=\"stylesheet\" href=\"/assets/cudaplusplus.css\">"
+text srmccss "<link rel=\"stylesheet\" href=\"/assets/machines.css\">"
+text srlrcss "<link rel=\"stylesheet\" href=\"/assets/learn.css\">"
+text srnwcss "<link rel=\"stylesheet\" href=\"/assets/now.css\">"
+text srdacss "<link rel=\"stylesheet\" href=\"/assets/dash.css\">"
+text srdefimg "/og.png"
+text srimgver "?v=20261025b"
+text srartype "article"
+text srwebtyp "website"
+text srlocen "<meta property=\"og:locale\" content=\"en_US\">"
+text srloczh "<meta property=\"og:locale\" content=\"zh_CN\">"
+text srdimen "<meta property=\"og:image:width\" content=\"1200\"><meta property=\"og:image:height\" content=\"630\"><meta name=\"twitter:creator\" content=\"@mdrakestapleton\"><meta property=\"og:image:alt\" content=\"AienOS: "
+text srendtag "\">"
+text srtwalt "<meta name=\"twitter:image:alt\" content=\"AienOS: "
+text srartmod "<meta property=\"article:modified_time\" content=\""
+text srartaut "\"><meta property=\"article:author\" content=\"https://www.drakestapleton.com\">"
+
+fn ss_route_assets row ulong to void
+if st_match row 4 sthtml
+ret
+end
+if or st_match row 0 stroot st_match row 0 srallen
+sr_raw srnative
+ret
+end
+if st_match row 0 srhive
+sr_raw srhasset
+ret
+end
+if st_match row 0 sralpha
+sr_raw sraasset
+ret
+end
+if or st_match row 0 sromega st_match row 0 srcuda
+sr_raw sromcss
+end
+if st_match row 0 srcuda
+sr_raw srcucss
+end
+if or st_match row 0 srmach st_match row 0 stclass
+sr_raw srmccss
+end
+if st_match row 0 srlearn
+sr_raw srlrcss
+end
+if or st_match row 0 srnow st_match row 0 srdash
+sr_raw srnwcss
+end
+if st_match row 0 srdash
+sr_raw srdacss
+end
+end
+
+fn ss_image route view uchar * to void
+for i ulong get stcount 0
+if st_match i 0 route
+st_emit i 8 true
+sr_raw srimgver
+ret
+end
+end
+sr_raw srdefimg
+sr_raw srimgver
+end
+
+fn ss_ogtype route view uchar * to void
+for i ulong get stcount 0
+if st_match i 0 route
+if or st_match i 6 sspaper st_match i 6 ssart
+sr_raw srartype
+ret
+end
+end
+end
+sr_raw srwebtyp
+end
+
+fn ss_head_extra row ulong to void
+if lt row get steng 0
+sr_raw srlocen
+else
+sr_raw srloczh
+end
+sr_raw srdimen
+st_emit row 1 true
+sr_raw srendtag
+sr_raw srtwalt
+st_emit row 1 true
+sr_raw srendtag
+if or st_match row 6 sspaper st_match row 6 ssart
+sr_raw srartmod
+ss_modified row
+sr_raw srartaut
+end
+end

@@ -1,0 +1,368 @@
+note About the engineer (/engineer/): drakestapleton.com, merged into aienos.com on 2026-10-26.
+note Source: public/data/engineer.json, read afresh for every page (aien-dev/aienos.com main c81942e).
+note Each page: path, old[], name, title, description, kind, body_html. body_html is repository-authored
+note HTML (the ported drakestapleton.com bodies), emitted unescaped like hand-written public pages.
+note Two markers in a body are filled from facts.json: <!--engineer:live--> and <!--engineer:verdict-->.
+note Every load replaces the JSON state, so the body is emitted in spans: emit up to a marker, load
+note facts.json and render its block, reload engineer.json, find the page again, continue after it.
+note Oracle: aienos.com crates/site-builder/src/components/engineer.rs (render, verify).
+note No directive here: the composed site unit starts with om2. Requires runtime.om and json.om before it.
+
+text egfile "public/data/engineer.json"
+text egfacts "facts.json"
+text egpages "pages"
+text egpath "path"
+text egname "name"
+text egdesc "description"
+text egkind "kind"
+text egbody "body_html"
+text eghome "home"
+text eginfo "infographic"
+text egroot "/engineer/"
+text eglive "<!--engineer:live-->"
+text egverd "<!--engineer:verdict-->"
+text egcss "<link rel=\"stylesheet\" href=\"/assets/engineer.css\">"
+text egigcss "<link rel=\"stylesheet\" href=\"/assets/engineer-infographic.css\">"
+text eguni "<script defer src=\"/js/engineer-universe.js\"></script>"
+text egopen "<div class=\"engineer\">"
+text egclose "</div>"
+text egback "<p class=\"engineer-back\"><a href=\"/engineer/\">About the engineer</a></p>"
+text egixa "<section class=\"engineer-index\" id=\"index\" aria-labelledby=\"engineer-index-title\"><h2 id=\"engineer-index-title\">Everything in this section</h2><ul>"
+text egixb "<li><a href=\""
+text egixc "\">"
+text egixd "</a> <span>"
+text egixe "</span></li>"
+text egixf "</ul></section>"
+text egrcpt "receipt"
+text egstate "state"
+text egsha "sha"
+text egdescr "description"
+text egturl "target_url"
+text egcomps "components"
+text egrepo "repo"
+text egprs "open_prs"
+text eglast "last_merge"
+text egtitle "title"
+text egurl "url"
+text eggen "generated_at"
+text egsucc "success"
+text egfail "failure"
+text egpend "pending"
+text egblk "BLOCKED"
+text egnotrun "NOT_RUN"
+text egwpass "PASS"
+text egwblk "BLOCKED"
+text egwfail "FAIL"
+text egwrun "RUNNING"
+text egwnone "NO VERDICT"
+text eghttps "https://"
+text egvda "<div class=\"stat-card\"><p class=\"stat-value tabular-nums verdict-"
+text egvdb "\">"
+text egvdc "</p><p class=\"stat-unit\">Spark judge, sovereign core</p><p class=\"stat-label\">Verdict for commit "
+text egvdd " of the host runtime: "
+text egvde ". "
+text egvdf "<a href=\""
+text egvdg "\">Receipt</a>"
+text egvdh "</p></div>"
+text eglva "<section class=\"live-record\" id=\"live\"><h2>AIEN today</h2><p>This block is not typed by hand. It is read from the record <a href=\"https://www.aienos.com/facts.json\">facts.json</a> that this site gathers from GitHub every hour, when the page is built.</p><div class=\"grid stats-grid\">"
+text eglvb "</div>"
+text eglvc "<table class=\"live-table\"><thead><tr><th>Component</th><th>Last merged change</th><th>Open proposals</th></tr></thead><tbody>"
+text eglvd "<tr><td><a href=\"https://github.com/"
+text eglve "\">"
+text eglvf "</a></td><td>"
+text eglvg "</td><td class=\"tabular-nums\">"
+text eglvh "</td></tr>"
+text eglvi "</tbody></table>"
+text eglvj "<p class=\"live-generated\">Record generated "
+text eglvk ".</p></section>"
+text egnone "none recorded"
+text egaa "<a href=\""
+text egab "\">"
+text egac "</a>"
+
+note The page object for route, or 0. Loads engineer.json (replacing any JSON state).
+fn eg_find route view uchar * to ulong
+root = sj_load egfile
+arr = sj_find root egpages
+if ne sj_kind arr 2
+trap 10
+end
+node = sj_first arr
+while ne node 0 bound 256
+if sj_eq sj_find node egpath route
+ret node
+end
+node = sj_next node
+end
+ret 0
+end
+
+note True when string node holds the bytes of mk starting at byte i.
+fn eg_textat node ulong i ulong mk view uchar * to bool
+m = len mk
+if gt add i m sj_size node
+ret false
+end
+for k ulong m
+if ne sj_byte node add i k get mk k
+ret false
+end
+end
+ret true
+end
+
+note True when node is a string that contains s.
+fn eg_has node ulong s view uchar * to bool
+if ne sj_kind node 3
+ret false
+end
+n = sj_size node
+if gt len s n
+ret false
+end
+for i ulong add sub n len s 1
+if eg_textat node i s
+ret true
+end
+end
+ret false
+end
+
+note 1 when the live marker starts at byte i of body, 2 for the verdict marker, else 0.
+fn eg_marker body ulong i ulong to uchar
+if ne sj_byte body i 60
+ret 0
+end
+if eg_textat body i eglive
+ret 1
+end
+if eg_textat body i egverd
+ret 2
+end
+ret 0
+end
+
+fn eg_word state ulong descr ulong to void
+if sj_eq state egsucc
+sr_raw egwpass
+ret
+end
+if sj_eq state egfail
+if and sj_prefix descr egblk eg_has descr egnotrun
+sr_raw egwblk
+ret
+end
+sr_raw egwfail
+ret
+end
+if sj_eq state egpend
+sr_raw egwrun
+ret
+end
+sr_raw egwnone
+end
+
+note Escaped decoded bytes [0, min(cnt, size)) of a string node.
+fn eg_head node ulong cnt ulong to void
+k = cnt
+if lt sj_size node k
+k = sj_size node
+end
+for j ulong k
+sr_escape sj_byte node j
+end
+end
+
+fn eg_https node ulong to void
+if not sj_prefix node eghttps
+trap 10
+end
+sj_href node
+end
+
+note The Spark judge's verdict card, from the current facts.json state.
+fn eg_verdict root ulong to void
+r = sj_find root egrcpt
+state = sj_find r egstate
+descr = sj_find r egdescr
+sr_raw egvda
+sj_emit state
+sr_raw egvdb
+eg_word state descr
+sr_raw egvdc
+eg_head sj_find r egsha 7
+sr_raw egvdd
+sj_emit descr
+sr_raw egvde
+url = sj_find r egturl
+if gt sj_size url 0
+sr_raw egvdf
+eg_https url
+sr_raw egvdg
+end
+sr_raw egvdh
+end
+
+fn eg_merge c ulong to void
+last = sj_find c eglast
+if ne sj_kind last 1
+sr_raw egnone
+ret
+end
+url = sj_find last egurl
+if and eq sj_kind url 3 gt sj_size url 0
+sr_raw egaa
+eg_https url
+sr_raw egab
+sj_emit sj_find last egtitle
+sr_raw egac
+ret
+end
+sj_emit sj_find last egtitle
+end
+
+fn eg_row c ulong to void
+sr_raw eglvd
+sj_emit sj_find c egrepo
+sr_raw eglve
+sj_emit sj_find c egname
+sr_raw eglvf
+eg_merge c
+sr_raw eglvg
+sj_emit sj_find c egprs
+sr_raw eglvh
+end
+
+note The AIEN-today block: verdict, one row per component, the record time.
+fn eg_live root ulong to void
+sr_raw eglva
+eg_verdict root
+sr_raw eglvb
+comps = sj_find root egcomps
+if gt sj_len comps 0
+sr_raw eglvc
+c = sj_first comps
+while ne c 0 bound 256
+eg_row c
+c = sj_next c
+end
+sr_raw eglvi
+end
+sr_raw eglvj
+sj_emit sj_find root eggen
+sr_raw eglvk
+end
+
+fn eg_block which uchar to void
+root = sj_load egfacts
+if eq which 1
+eg_live root
+ret
+end
+eg_verdict root
+end
+
+note Emits body bytes from pos up to the next marker (or the end) and returns where it stopped.
+fn eg_span route view uchar * pos ulong to ulong
+page = eg_find route
+body = sj_find page egbody
+n = sj_size body
+if ge pos n
+ret n
+end
+for j ulong sub n pos
+i = add pos j
+if ne eg_marker body i 0
+ret i
+end
+sr_byte sj_byte body i
+end
+ret n
+end
+
+note The marker at pos (page reloaded); returns 1 or 2, or 0 at the end of the body.
+fn eg_at route view uchar * pos ulong to uchar
+page = eg_find route
+body = sj_find page egbody
+if ge pos sj_size body
+ret 0
+end
+ret eg_marker body pos
+end
+
+fn eg_body route view uchar * to void
+pos = ulong 0
+more = true
+while more bound 64
+pos = eg_span route pos
+which = eg_at route pos
+if eq which 0
+more = false
+else
+eg_block which
+if eq which 1
+pos = add pos len eglive
+else
+pos = add pos len egverd
+end
+end
+end
+end
+
+fn eg_index_item node ulong to void
+if sj_eq sj_find node egkind eghome
+ret
+end
+p = sj_find node egpath
+if not sj_prefix p egroot
+trap 10
+end
+sr_raw egixb
+sj_href p
+sr_raw egixc
+sj_emit sj_find node egname
+sr_raw egixd
+sj_emit sj_find node egdesc
+sr_raw egixe
+end
+
+note The foot of /engineer/: every other page of the section, from the data file.
+fn eg_index to void
+root = sj_load egfile
+arr = sj_find root egpages
+sr_raw egixa
+node = sj_first arr
+while ne node 0 bound 256
+eg_index_item node
+node = sj_next node
+end
+sr_raw egixf
+end
+
+note Renders the main body of an /engineer/ route; false when engineer.json has no such page.
+fn se_page route view uchar * to bool
+page = eg_find route
+if eq page 0
+ret false
+end
+kind = sj_find page egkind
+home = sj_eq kind eghome
+info = sj_eq kind eginfo
+sr_raw egcss
+if info
+sr_raw egigcss
+end
+if home
+sr_raw eguni
+end
+sr_raw egopen
+if not home
+sr_raw egback
+end
+eg_body route
+if home
+eg_index
+end
+sr_raw egclose
+ret true
+end

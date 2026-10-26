@@ -628,8 +628,12 @@ cnt = get sjcnt a
 if ne cnt get sjcnt b
 ret false
 end
+a = ulong get sjoff a
+b = ulong get sjoff b
 for j ulong ulong cnt
-if ne get sjdec add ulong get sjoff a j get sjdec add ulong get sjoff b j
+x = get sjdec add a j
+y = get sjdec add b j
+if ne x y
 ret false
 end
 end

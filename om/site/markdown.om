@@ -4,6 +4,7 @@ global shbuf uchar 1048576
 global shlen ulong 1
 global shhref uchar 4096
 global shhn ulong 1
+global shrrow ulong 1
 text shmain "<main"
 text shmc "</main>"
 text shbody "<body"
@@ -43,14 +44,58 @@ text shprof "./profiles/"
 text shprof2 "profiles/"
 text shstyles "<link"
 text shrel "stylesheet"
-text shbasecss "/assets/style.css"
+text shbcss "/assets/style.css"
 text shnavcss "/assets/site-nav.css"
 text shnewcss "/assets/site.css"
 text shnewjs "/js/site.js"
 text shintro "/js/allen-intro.js"
-text shintrocss "/assets/allen-intro.css"
-text shintrold "id=\"allen-intro"
-text shintrold2 "id='allen-intro"
+text shicss "/assets/allen-intro.css"
+
+text SH0001 "&amp;"
+text shchrome "aien-header"
+text shfchr "aien-footer"
+text shnchr "aien-nav"
+text shaid "id=\"allen\""
+text shaid2 "id='allen'"
+text shdoor " data-home-door=\"true\""
+text SH0002 "&lt;"
+text SH0003 "&gt;"
+text SH0004 "&quot;"
+text SH0005 "&#39;"
+text SH0006 "&#x27;"
+text SH0007 "&nbsp;"
+text SH0008 "&"
+text SH0009 "<"
+text SH0010 ">"
+text SH0011 "\""
+text SH0012 "'"
+text SH0013 " "
+text SH0014 "["
+text SH0015 "]("
+text SH0016 ")"
+text SH0017 "<h1"
+text SH0018 "<h2"
+text SH0019 "<h3"
+text SH0020 "<h4"
+text SH0021 "<a "
+text SH0022 "</a>"
+text SH0023 "<li"
+text SH0024 "<br"
+text SH0025 "<p"
+text SH0026 "<div"
+text SH0027 "<section"
+text SH0028 "<tr"
+text SH0029 "<td"
+text SH0030 "<th"
+text SH0031 "<pre"
+text SH0032 "</p"
+text SH0033 "</li"
+text SH0034 "</h"
+text SH0035 "\n\n# "
+text SH0036 "\n\n## "
+text SH0037 "\n\n### "
+text SH0038 "\n- "
+text SH0039 " "
 
 fn sh_load path view uchar * to void
 fd = fopen path 0 len path 0 0
@@ -58,7 +103,7 @@ if lt fd 0
 trap 10
 end
 n = ulong 0
-while true bound 1048576
+while true bound 999999
 r = read int fd shbuf n sub len shbuf n
 if lt r 0
 trap 10
@@ -67,7 +112,7 @@ if eq r 0
 break
 end
 n = add n ulong r
-if eq n len shbuf
+if gt n 900000
 trap 3
 end
 end
@@ -95,7 +140,7 @@ end
 
 fn sh_find pattern view uchar * pos ulong to ulong
 p = pos
-while lt p get shlen 0 bound 1048576
+while lt p get shlen 0 bound 999999
 if sh_at pattern p
 ret p
 end
@@ -107,7 +152,7 @@ end
 fn sh_end pos ulong to ulong
 p = pos
 quote = uchar 0
-while lt p get shlen 0 bound 1048576
+while lt p get shlen 0 bound 999999
 c = get shbuf p
 if ne quote 0
 if eq c quote
@@ -130,7 +175,7 @@ end
 fn sh_range start ulong finish ulong to void
 buf = new uchar 8192 0
 p = start
-while lt p finish bound 1048576
+while lt p finish bound 999999
 n = sub finish p
 if gt n len buf
 n = len buf
@@ -169,14 +214,9 @@ end
 if sh_at shsvg pos
 ret sh_after shsvgc pos
 end
-if sh_at shheader pos
-ret sh_after shhedc pos
-end
-if sh_at shnav pos
-ret sh_after shnavc pos
-end
-if sh_at shfoot pos
-ret sh_after shftc pos
+q = sh_shared pos
+if ne q pos
+ret q
 end
 if sh_at shtemp pos
 ret sh_after shtempc pos
@@ -186,7 +226,7 @@ end
 
 fn sh_extra start ulong finish ulong to void
 p = start
-while lt p finish bound 1048576
+while lt p finish bound 999999
 if sh_at shstyle p
 q = sh_after shstyc p
 sh_range p q
@@ -202,7 +242,7 @@ else
 if sh_at shstyles p
 q = sh_end p
 if sh_contains shrel p q
-if not or or sh_contains shbasecss p q sh_contains shnavcss p q sh_contains shintrocss p q
+if not or or sh_contains shbcss p q sh_contains shnavcss p q sh_contains shicss p q
 sh_range p q
 end
 end
@@ -216,6 +256,9 @@ end
 end
 
 fn sh_relink pos ulong route view uchar * to ulong
+if sl_probe pos
+ret sl_emit pos
+end
 if lt len route len shzh
 ret pos
 end
@@ -246,7 +289,7 @@ end
 fn sh_preserve start ulong finish ulong route view uchar * to void
 p = start
 mark = start
-while lt p finish bound 1048576
+while lt p finish bound 999999
 if sh_at shscript p
 q = sh_end p
 if or sh_contains shag p q sh_contains shagr p q
@@ -272,6 +315,9 @@ sh_range mark finish
 end
 
 fn sh_relink_probe pos ulong route view uchar * to ulong
+if sl_probe pos
+ret add pos 1
+end
 if lt len route len shzh
 ret pos
 end
@@ -290,8 +336,6 @@ end
 
 fn sh_body source view uchar * route view uchar * to void
 sh_load source
-h = sh_find shhead 0
-sh_extra 0 h
 p = sh_find shmain 0
 if lt p get shlen 0
 q = sh_end p
@@ -308,13 +352,14 @@ else
 p = sh_find shbody 0
 p = sh_end p
 finish = sh_find shbc p
-while lt p finish bound 1048576
-if or or sh_at shheader p sh_at shnav p sh_at shfoot p
-p = sh_skip p
+while lt p finish bound 999999
+z = sh_shared p
+if ne z p
+p = z
 else
 q = add p 1
-while lt q finish bound 1048576
-if or or sh_at shheader q sh_at shnav q sh_at shfoot q
+while lt q finish bound 999999
+if ne sh_shared q q
 break
 end
 q = add q 1
@@ -333,46 +378,33 @@ sr_raw buf
 end
 
 fn sh_entity pos ulong to ulong
-text amp "&amp;"
-text ltent "&lt;"
-text gtent "&gt;"
-text quot "&quot;"
-text apos "&#39;"
-text apos2 "&#x27;"
-text nbsp "&nbsp;"
-text ampc "&"
-text ltc "<"
-text gtc ">"
-text quotc "\""
-text aposc "'"
-text space " "
-if sh_at amp pos
-sr_raw ampc
-ret add pos len amp
+if sh_at SH0001 pos
+sr_raw SH0008
+ret add pos len SH0001
 end
-if sh_at ltent pos
-sr_raw ltc
-ret add pos len ltent
+if sh_at SH0002 pos
+sr_raw SH0009
+ret add pos len SH0002
 end
-if sh_at gtent pos
-sr_raw gtc
-ret add pos len gtent
+if sh_at SH0003 pos
+sr_raw SH0010
+ret add pos len SH0003
 end
-if sh_at quot pos
-sr_raw quotc
-ret add pos len quot
+if sh_at SH0004 pos
+sr_raw SH0011
+ret add pos len SH0004
 end
-if sh_at apos pos
-sr_raw aposc
-ret add pos len apos
+if sh_at SH0005 pos
+sr_raw SH0012
+ret add pos len SH0005
 end
-if sh_at apos2 pos
-sr_raw aposc
-ret add pos len apos2
+if sh_at SH0006 pos
+sr_raw SH0012
+ret add pos len SH0006
 end
-if sh_at nbsp pos
-sr_raw space
-ret add pos len nbsp
+if sh_at SH0007 pos
+sr_raw SH0013
+ret add pos len SH0007
 end
 sh_char pos
 ret add pos 1
@@ -400,9 +432,8 @@ n = add n 1
 p = add p 1
 end
 put shhn 0 n
-text op "["
 if gt n 0
-sr_raw op
+sr_raw SH0014
 end
 end
 
@@ -415,76 +446,49 @@ end
 for i ulong n
 put buf i get shhref i
 end
-text mid "]("
-text cl ")"
-sr_raw mid
-if eq get buf 0 47
-sr_raw shhost
-end
-sr_raw part buf 0 n
-sr_raw cl
+sr_raw SH0015
+sl_markdown_url part buf 0 n
+sr_raw SH0016
 put shhn 0 0
 end
 
 fn sh_mdtag pos ulong finish ulong to void
-text h1 "<h1"
-text h2 "<h2"
-text h3 "<h3"
-text h4 "<h4"
-text a "<a "
-text ac "</a>"
-text li "<li"
-text b "<br"
-text p "<p"
-text div "<div"
-text sect "<section"
-text tr "<tr"
-text td "<td"
-text th "<th"
-text pre "<pre"
-text pc "</p"
-text lc "</li"
-text hc "</h"
-text title1 "\n\n# "
-text title2 "\n\n## "
-text title3 "\n\n### "
-text bullet "\n- "
-text space " "
-if sh_at h1 pos
-sr_raw title1
+if sh_at SH0017 pos
+sr_raw SH0035
 ret
 end
-if sh_at h2 pos
-sr_raw title2
+if sh_at SH0018 pos
+sr_raw SH0036
 ret
 end
-if or sh_at h3 pos sh_at h4 pos
-sr_raw title3
+if or sh_at SH0019 pos sh_at SH0020 pos
+sr_raw SH0037
 ret
 end
-if sh_at a pos
+if sh_at SH0021 pos
 sh_link pos finish
 ret
 end
-if sh_at ac pos
+if sh_at SH0022 pos
 sh_link_end
 ret
 end
-if sh_at li pos
-sr_raw bullet
+if sh_at SH0023 pos
+sr_raw SH0038
 ret
 end
-if or sh_at td pos sh_at th pos
-sr_raw space
+if or sh_at SH0029 pos sh_at SH0030 pos
+sr_raw SH0039
 ret
 end
-if or or or or or or or or sh_at b pos sh_at p pos sh_at div pos sh_at sect pos sh_at tr pos sh_at pre pos sh_at pc pos sh_at lc pos sh_at hc pos
+if or or or or or or or or sh_at SH0024 pos sh_at SH0025 pos sh_at SH0026 pos sh_at SH0027 pos sh_at SH0028 pos sh_at SH0031 pos sh_at SH0032 pos sh_at SH0033 pos sh_at SH0034 pos
 sr_raw shnl
 end
 end
 
-fn sh_markdown source view uchar * to void
+fn sh_markdown source view uchar * row ulong to void
 sh_load source
+put shrrow 0 row
 p = sh_find shmain 0
 if eq p get shlen 0
 p = sh_find shbody 0
@@ -495,7 +499,7 @@ if eq finish get shlen 0
 finish = sh_find shbc p
 end
 put shhn 0 0
-while lt p finish bound 1048576
+while lt p finish bound 999999
 if eq get shbuf p 60
 q = sh_skip p
 if ne q p
@@ -510,4 +514,41 @@ p = sh_entity p
 end
 end
 sr_raw shnl
+end
+
+fn sh_shared pos ulong to ulong
+if sh_at shheader pos
+q = sh_end pos
+if sh_contains shchrome pos q
+ret sh_after shhedc pos
+end
+end
+if sh_at shfoot pos
+q = sh_end pos
+if sh_contains shfchr pos q
+ret sh_after shftc pos
+end
+end
+if sh_at shnav pos
+q = sh_end pos
+if sh_contains shnchr pos q
+ret sh_after shnavc pos
+end
+end
+ret pos
+end
+
+fn sh_allen_home source view uchar * to void
+sh_load source
+p = sh_find shaid 0
+if eq p get shlen 0
+p = sh_find shaid2 0
+end
+if eq p get shlen 0
+trap 10
+end
+p = add p len shaid
+sh_range 0 p
+sr_raw shdoor
+sh_range p get shlen 0
 end
