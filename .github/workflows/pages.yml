@@ -1,6 +1,6 @@
 name: pages
-# Builds and deploys www.aienos.com. No tests run on GitHub-hosted runners (2026-10-18):
-# site-builder tests run on the Spark, and pull requests get no hosted build.
+# Builds and deploys www.aienos.com. The full site-builder suite runs on Spark;
+# generated-hive.yml separately checks committed Hive artifact hashes on x86_64.
 on:
   schedule:
     - cron: "17 * * * *"

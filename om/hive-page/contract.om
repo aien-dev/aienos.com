@@ -1,0 +1,70 @@
+note Shared Hive browser contract; table index is the interpolation token ~N~.
+note Served ids, data-f slots and freshness/poll policy occur only in this table.
+note hive.om and hive-js.om are concatenated with this unit, never compiled independently.
+note Source language checked at omega-mv 55f9b0af47de70a3d06357985cf99ae3e45c016f.
+text wires "hive-strip|hive-strip-title|hive-tree-section|hive-tree-section-title|hive-manifest|hive-manifest-title|hive-manifest-name|hive-chat-section|hive-chat-section-title|hive|hive-source-time|hive-fetch-time|hive-connection|hive-freshness|hive-counts|hive-coverage|hive-motion|hive-search|hive-search-count|hive-tree-empty|hive-tree|hive-manifest-context|hive-manifest-empty|hive-manifest-body|hive-manifest-state|hive-manifest-identity|hive-manifest-task|hive-manifest-action-label|hive-manifest-action|hive-manifest-times|hive-manifest-family|hive-show-selected|hive-chat-all|hive-chat-selected|hive-conversation-range|hive-chat-empty|hive-chat|hive-chat-latest|hive-tpl-row|hive-tpl-child|hive-tpl-msg|hive-tpl-field|hive-tpl-family|hive-content-type|hive-date|disclose|branch|select|state|model|elapsed|activity|children|speaker|at|text|label|value|time|1000|120000|2000|4500|hive-board|hive-manifest-cards|15000|/hive/board/|"
+global output uchar 65536
+global used ulong 1
+global target int 1
+global marker ulong 2
+
+fn flush to void
+p = ulong 0
+while lt p get used 0 bound 65536
+n = write get target 0 output p sub get used 0 p
+if le n 0
+trap 3
+end
+p = add p ulong n
+end
+put used 0 0
+end
+
+fn raw c uchar to void
+if eq get used 0 len output
+flush
+end
+put output get used 0 c
+put used 0 add get used 0 1
+end
+
+fn wire k ulong to void
+p = ulong 0
+i = ulong 0
+while lt p len wires
+c = get wires p
+if eq c 124
+if eq i k
+ret
+end
+i = add i 1
+else
+if eq i k
+raw c
+end
+end
+p = add p 1
+end
+trap 3
+end
+
+fn byteput c uchar to void
+if eq c 126
+if eq get marker 0 0
+put marker 0 1
+put marker 1 0
+else
+wire get marker 1
+put marker 0 0
+end
+else
+if eq get marker 0 1
+if or lt c 48 gt c 57
+trap 3
+end
+put marker 1 add mul get marker 1 10 ulong sub c 48
+else
+raw c
+end
+end
+end

@@ -254,8 +254,8 @@ class CosmicChecks(unittest.TestCase):
             self.assertIn(f'animation:{name} var(--hive-cycle) linear infinite', inside,
                           f'{name} must be attached inside the motion gate')
         self.assertEqual(inside.count('animation:'), 8)
-        # The page's own control is the second key: the rule only fires on data-motion="on".
-        self.assertEqual(inside.count('.hive[data-motion="on"]'), 8)
+        # The native checkbox, not browser code, owns the second motion key.
+        self.assertEqual(inside.count('.hive:has(#hive-motion:checked)'), 8)
         # Every animation in the artifact is inside the gate: one place to look.
         self.assertEqual(flat.count('animation:'), inside.count('animation:'),
                          'an animation escaped the prefers-reduced-motion gate')
@@ -272,7 +272,7 @@ class CosmicChecks(unittest.TestCase):
         self.assertIn("url('/assets/hive-universe.svg')", sheet)
         self.assertIn('pointer-events:none', sheet)
         self.assertIn('prefers-reduced-motion', sheet)
-        self.assertIn('.hive[data-motion="off"]', sheet)
+        self.assertIn('.hive:not(:has(#hive-motion:checked))', sheet)
         self.assertNotRegex(sheet, r'#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?\b')
         self.assertIn(':focus-visible', sheet)
         for part in ['.hive-masthead > .hive-scene', '.hive-stage', '.hive-bend', '.hive-plate',
@@ -285,6 +285,14 @@ class CosmicChecks(unittest.TestCase):
         self.assertIn('will-change:transform', sheet)
         self.assertIn('transform:translateZ(0)', sheet)
         self.assertIn('/ cover no-repeat', sheet)
+        # The sky is one fixed, viewport-sized layer behind the whole page, not a band.
+        sky = re.search(r'\.hive::before \{([^}]*)\}', sheet)
+        self.assertIsNotNone(sky, 'the sky lives on .hive::before')
+        for decl in ['position:fixed', 'inset:0', 'z-index:0', "url('/assets/hive-universe.svg')", 'transform:translateZ(0)']:
+            self.assertIn(decl, sky.group(1))
+        self.assertNotIn('.hive-masthead::before', sheet)
+        self.assertIn('.hive > * { position:relative; z-index:1; }', sheet)
+        self.assertIn('.aien-footer { position:relative; z-index:1; }', sheet)
         self.assertNotIn('auto 120%', sheet)
         # The scene's own layer sits at 0, the scrim at 1, the prose at 2.
         self.assertIn('.hive-masthead > * { position:relative; z-index:2; }', sheet)
@@ -293,9 +301,9 @@ class CosmicChecks(unittest.TestCase):
     def test_scrim_and_provenance_stay(self):
         sheet = CSS.read_text()
         for stop in ['92%, transparent) 0%', '90%, transparent) 68%',
-                     '55%, transparent) 86%', '12%, transparent) 100%',
-                     '94%, transparent) 0%', '90%, transparent) 74%',
-                     '60%, transparent) 92%', '30%, transparent) 100%']:
+                     '55%, transparent) 86%',
+                     '94%, transparent) 0%', '90%, transparent) 55%',
+                     '60%, transparent) 80%']:
             self.assertIn(stop, sheet, f'the scrim stop {stop} is a contrast contract')
         page = PAGE.read_text()
         self.assertIn('hive-omega', page)

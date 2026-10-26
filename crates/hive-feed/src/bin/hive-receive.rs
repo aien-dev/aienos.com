@@ -6,6 +6,7 @@ use std::fs::{self, OpenOptions};
 use std::io::{self, BufRead, Read, Write};
 use std::os::unix::fs::OpenOptionsExt;
 use std::path::Path;
+use std::process::{Command, Stdio};
 
 const MAX: u64 = 2 * 1024 * 1024;
 // Collectors truncate to 180 and 4000 characters, which is at most this many
@@ -99,13 +100,28 @@ fn stamp_of(v: &Value) -> Option<i64> {
     chrono::DateTime::parse_from_rfc3339(v["generated_at"].as_str()?).ok().map(|t| t.timestamp_millis())
 }
 
+// Unfinished Rust migration: replace process orchestration with Omega's native
+// fork/dupfd/execprog/waitpid host words (introduced by omega-mv PR #678).
+// No renderer path or arguments ever come from the SSH client or feed.
+fn render_board(dir: &Path, renderer: &Path) -> io::Result<()> {
+    let tmp = dir.join(format!(".board-tmp-{}", std::process::id()));
+    let result = (|| {
+        let input = fs::File::open(dir.join("live.json"))?;
+        let output = OpenOptions::new().write(true).create_new(true).mode(0o644).open(&tmp)?;
+        let status = Command::new(renderer)
+            .stdin(Stdio::from(input)).stdout(Stdio::from(output)).status()?;
+        if !status.success() || fs::metadata(&tmp)?.len() == 0 {
+            return Err(io::Error::other(format!("renderer failed: {status} or empty output")));
+        }
+        fs::rename(&tmp, dir.join("board.html"))
+    })();
+    if result.is_err() { let _ = fs::remove_file(&tmp); }
+    result
+}
+
 fn receive(dir: &Path) -> Result<(), ()> {
     let metadata = fs::symlink_metadata(dir).map_err(|_| ())?;
     if !metadata.is_dir() || metadata.file_type().is_symlink() { return Err(()); }
-    // Never let a replayed or delayed upload replace a newer observation.
-    let mut latest = fs::read(dir.join("live.json")).ok()
-        .and_then(|bytes| serde_json::from_slice::<Value>(&bytes).ok())
-        .and_then(|v| stamp_of(&v));
     let stdin = io::stdin();
     let mut input = stdin.lock();
     let mut line = Vec::new();
@@ -117,6 +133,20 @@ fn receive(dir: &Path) -> Result<(), ()> {
         if n as u64 > MAX || line.last() != Some(&b'\n') { return Err(()); }
         let (data, bytes) = canonical(&line)?;
         let stamp = stamp_of(&data).ok_or(())?;
+        // A forced-command process lives for one SSH stream. Serialize the
+        // compare/install/render transaction across streams, never stdin waits.
+        // File locking is std-only unfinished migration to Omega lock orchestration.
+        let publication_lock = OpenOptions::new().read(true).write(true).create(true)
+            .truncate(false).mode(0o600).open(dir.join(".publication-lock")).map_err(|_| ())?;
+        publication_lock.lock().map_err(|_| ())?;
+        let latest = match fs::read(dir.join("live.json")) {
+            Ok(bytes) => {
+                let previous: Value = serde_json::from_slice(&bytes).map_err(|_| ())?;
+                Some(stamp_of(&previous).ok_or(())?)
+            }
+            Err(error) if error.kind() == io::ErrorKind::NotFound => None,
+            Err(_) => return Err(()),
+        };
         if let Some(previous) = latest { if stamp < previous { return Err(()); } }
         let mut out = OpenOptions::new().write(true).create_new(true).mode(0o644).open(&tmp).map_err(|_| ())?;
         // Ephemeral feed: write_all plus same-directory rename gives runtime atomicity.
@@ -128,7 +158,10 @@ fn receive(dir: &Path) -> Result<(), ()> {
         })();
         if result.is_err() { let _ = fs::remove_file(&tmp); }
         result?;
-        latest = Some(stamp);
+        let renderer = std::env::var_os("HIVE_RENDER").unwrap_or_else(|| "/usr/local/bin/hive-render".into());
+        if let Err(error) = render_board(dir, Path::new(&renderer)) {
+            eprintln!("Hive board retained previous observation: {error}");
+        }
     }
 }
 fn main() {
@@ -188,5 +221,28 @@ mod tests {
         assert!(!text.contains("private-canary"));
         assert!(!text.contains("password"));
         assert_eq!(serde_json::from_str::<Value>(&text).unwrap(), empty());
+    }
+    #[test]
+    fn renderer_failure_and_empty_output_retain_previous_board() {
+        let dir = std::env::temp_dir().join(format!("hive-board-test-{}", std::process::id()));
+        fs::create_dir(&dir).unwrap();
+        fs::write(dir.join("live.json"), b"checked snapshot\n").unwrap();
+        fs::write(dir.join("board.html"), b"last useful board").unwrap();
+        // Fake renderer executable: all outcomes consume stdin, never consult a shell.
+        for (name, source, success) in [
+            ("fail", "#!/bin/sh\ncat >/dev/null\nprintf partial\nexit 7\n", false),
+            ("empty", "#!/bin/sh\ncat >/dev/null\nexit 0\n", false),
+            ("ok", "#!/bin/sh\ncat\n", true),
+        ] {
+            use std::os::unix::fs::PermissionsExt;
+            let renderer = dir.join(name);
+            fs::write(&renderer, source).unwrap();
+            fs::set_permissions(&renderer, fs::Permissions::from_mode(0o700)).unwrap();
+            assert_eq!(render_board(&dir, &renderer).is_ok(), success);
+            assert_eq!(fs::read(dir.join("board.html")).unwrap(),
+                if success { b"checked snapshot\n".as_slice() } else { b"last useful board".as_slice() });
+            assert!(!dir.join(format!(".board-tmp-{}", std::process::id())).exists());
+        }
+        fs::remove_dir_all(dir).unwrap();
     }
 }
