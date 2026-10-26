@@ -22,6 +22,8 @@ pub const PATH: &str = "/contact/";
 pub const EMAIL: &str = "drake@aienos.com";
 pub const ALLEN: &str = "/allen/";
 pub const GITHUB: &str = "https://github.com/aien-dev";
+/// The front door: install command, releases and a hub of every part.
+pub const SI: &str = "https://github.com/aien-dev/sovereign-intelligence";
 
 /// The X mark (Simple Icons, CC0), drawn in the link's text colour.
 const X_MARK: &str = r#"<svg class="aien-x-mark" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg>"#;
@@ -197,6 +199,11 @@ pub fn render_contact() -> Markup {
                     }, html! {
                         "All of the code is public. Open an issue or a pull request on any repository."
                     }))
+                    (route("Sovereign Intelligence", html! {
+                        a href=(SI) target="_blank" rel="noopener noreferrer" { "github.com/aien-dev/sovereign-intelligence" }
+                    }, html! {
+                        "The front door to everything I build: the install command, the releases and a link to every part. Sovereign Intelligence, built on AienOS."
+                    }))
                 }
                 p class="contact-note" {
                     "Want to see what I'm doing right now? "
@@ -251,6 +258,7 @@ mod tests {
             "href=\"mailto:drake@aienos.com\"",
             "href=\"/allen/\"",
             "href=\"https://github.com/aien-dev\"",
+            "href=\"https://github.com/aien-dev/sovereign-intelligence\"",
         ] {
             assert!(html.contains(needle), "contact page lacks {needle}");
         }
