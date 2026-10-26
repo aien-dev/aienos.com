@@ -31,7 +31,9 @@ pub const LLMS: &str = r#"## Talk to Allen
 
 - [Introduction fields](https://www.aienos.com/allen/): `kind` is `human` or `agent`. `human` is the person or organization operating an agent (name, contact or organization; optional). Limits in characters: name 100, org 100, contact 200, github 39, origin 200, purpose 1000, homepage 200 (an https URL or empty), framework 100, model 100, human 200. Give at least a name or a contact.
 - [Consent](https://www.aienos.com/privacy/): `consent` must be the JSON value `true`. Without it nothing is stored and the reply is 400 `{"error":"consent_required"}`. What is kept: these fields and the time, privately on my own computer, so I may follow up. Never published or sold. Kept until you delete it.
-- [Delete an introduction: POST /allen/api/forget](https://www.aienos.com/allen/api/forget): a saved introduction replies `{"id":"c_...","delete":"https://www.aienos.com/allen/#forget=<id>.<token>","stored":true}`. Keep the delete link. To delete, open it, or `POST https://www.aienos.com/allen/api/forget` with `{"id":"c_...","token":"..."}` taken from it, or write to aien@aienos.com.
+- [Delete an introduction: POST /allen/api/forget](https://www.aienos.com/allen/api/forget): a saved introduction replies `{"id":"c_...","delete":"https://www.aienos.com/allen/#forget=<id>.<token>","stored":true,"key":"<32 hex>"}`. Keep the delete link. To delete, open it, or `POST https://www.aienos.com/allen/api/forget` with `{"id":"c_...","token":"..."}` taken from it, or write to aien@aienos.com.
+- [Your Allen key](https://www.aienos.com/allen/): the `key` in that reply is a random 32 hex key. Send it as the `X-Allen-Key` header on later calls, and on chat also `X-Allen-Conversation` (16 hex, new per conversation), and Allen recognizes you: with consent it keeps short notes about you (who you are, what you build, open asks) in a private store on my own computer, keyed to that key. Recognition is by key only, never by a name or email; anyone without the key is a stranger to Allen.
+- [Forget me: POST /allen/api/forget-me](https://www.aienos.com/allen/api/forget-me): with the `X-Allen-Key` header, deletes Allen's notes about you and your introduction.
 - [Issues and projects](https://github.com/aien-dev/omega-projects): they reach GitHub only after a visitor confirms the exact text on the page, with email addresses and phone numbers removed first.
 
 "#;
@@ -73,11 +75,22 @@ mod tests {
     #[test]
     fn the_script_never_parses_network_text_as_markup() {
         let script = include_str!("../../../../public/js/allen.js");
-        for banned in ["innerHTML", "outerHTML", "insertAdjacentHTML", "document.write", "createContextualFragment", "localStorage", "sessionStorage", "document.cookie", "eval("] {
+        for banned in ["innerHTML", "outerHTML", "insertAdjacentHTML", "document.write", "createContextualFragment", "sessionStorage", "document.cookie", "eval("] {
             assert!(!script.contains(banned), "allen.js must not use {banned}");
         }
         assert!(script.contains("const SANDBOX = 'allow-scripts';"), "the program frame must be sandboxed to allow-scripts alone");
         assert!(script.contains("default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; form-action 'none'; base-uri 'none'"));
+        // Local storage holds one thing: the visitor key, under allen.key, written
+        // only by keepKey (after a consented introduction or a pasted key).
+        assert!(script.contains("const KEY_NAME = 'allen.key';"));
+        let uses: Vec<&str> = script.match_indices("localStorage").map(|(i, _)| &script[i..]).collect();
+        assert_eq!(uses.len(), 3, "localStorage appears only in storedKey, keepKey and dropKey");
+        for (call, n) in [("localStorage.getItem(KEY_NAME)", 1), ("localStorage.setItem(KEY_NAME, value)", 1), ("localStorage.removeItem(KEY_NAME)", 1)] {
+            assert_eq!(script.matches(call).count(), n, "{call}");
+        }
+        assert_eq!(script.matches("keepKey(").count(), 3, "keepKey is defined once and called only after consent or a paste");
+        // The gateway's opening exchange depends on this exact greeting.
+        assert!(script.contains("\"Hello, I am Allen, Drake's AI. Are you a human or an agent?\""));
     }
 
     #[test]
@@ -85,6 +98,7 @@ mod tests {
         for id in [
             "allen", "allen-log", "allen-form", "allen-input", "allen-send", "allen-stop", "allen-status", "allen-new",
             "allen-model", "allen-queue", "allen-ttft", "allen-first", "allen-rate", "allen-tokens", "allen-server", "allen-examples",
+            "allen-key", "allen-key-body", "allen-introduce",
         ] {
             assert_eq!(SKELETON.matches(&format!(" id=\"{id}\"")).count(), 1, "exactly one #{id} in the skeleton");
         }

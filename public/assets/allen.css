@@ -314,6 +314,25 @@
 .allen-meet code { font-family: var(--font-mono); font-size: 12px; }
 .allen-meet .allen-tool { margin-right: 6px; }
 
+/* Your Allen key. */
+.allen-keypanel {
+  margin-top: 4px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--bg-card);
+}
+.allen-keypanel > summary {
+  cursor: pointer;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.allen-keybody { display: flex; flex-direction: column; gap: 8px; padding: 0 10px 10px; }
+.allen-keyline { font-size: 14px; overflow-wrap: anywhere; }
+.allen-keyline code { font-family: var(--font-mono); color: var(--accent-green); }
+.allen-paste { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; }
+.allen-paste .allen-field input { width: 22rem; font-family: var(--font-mono); }
+
 /* Buttons. */
 .allen-tool,
 .allen-example,

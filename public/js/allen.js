@@ -34,6 +34,9 @@
   const POLL_MS = 3000;
   const POLL_LIMIT = 120000;
   const REVIEW_HOST = 'aien-dev.github.io/omega-projects/projects/';
+  const FORGET_ME = '/allen/api/forget-me';
+  const KEY_NAME = 'allen.key';
+  const KEY_PATTERN = /^[0-9a-f]{32}$/;
   const turns = [];
   const runners = new Set();
   let active = null;
@@ -43,6 +46,9 @@
      this closure and sent to the model as one short first line. */
   let kind = '';
   let choices = null;
+  /* A fresh random id per page load and per new conversation, sent with chat
+     only when this browser holds an Allen key. */
+  let conversation = '';
   function el(tag, className, text) {
     const node = document.createElement(tag);
     if (className) node.className = className;
@@ -438,7 +444,7 @@
     return input;
   }
   function post(body, extra) {
-    return { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...extra }, body: JSON.stringify(body), cache: 'no-store', credentials: 'omit' };
+    return { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...keyHeaders(false), ...extra }, body: JSON.stringify(body), cache: 'no-store', credentials: 'omit' };
   }
   function failure(response, reply, tail) {
     const said = reply && typeof reply.message === 'string' ? reply.message.slice(0, 300) : '';
@@ -605,7 +611,7 @@
       }
       await new Promise(done => setTimeout(done, POLL_MS));
       try {
-        const response = await fetch(STATUS + id, { cache: 'no-store', credentials: 'omit', headers: { Accept: 'application/json' } });
+        const response = await fetch(STATUS + id, { cache: 'no-store', credentials: 'omit', headers: { Accept: 'application/json', ...keyHeaders(false) } });
         const reply = response.ok ? await response.json() : null;
         if (reply && typeof reply === 'object') current = reply;
       } catch (_) {
@@ -649,8 +655,9 @@
     notice.append(
       el('p', '', 'What is kept if you save: the fields above and the time you sent them.'),
       el('p', '', 'Why: so Drake can follow up with you.'),
+      el('p', '', 'Allen also keeps short notes about you from your chats (who you are, what you build, your open asks), keyed to a random Allen key saved in this browser. Anyone without the key is a stranger to Allen.'),
       el('p', '', "Where: privately on Drake's own computer. Never published, never sold."),
-      el('p', '', `For how long: until you delete it, with the delete link shown after saving, or by writing to ${PRIVACY_MAIL}.`),
+      el('p', '', `For how long: until you delete it, with the delete link shown after saving, with Forget me in Your Allen key, or by writing to ${PRIVACY_MAIL}.`),
       el('p', '', 'Declining changes nothing: you can keep chatting and nothing is saved.'),
     );
     const agreeWrap = el('label', 'allen-agree');
@@ -701,17 +708,21 @@
     }
     for (const control of form.querySelectorAll('input, textarea, select')) control.disabled = true;
     keep.hidden = true;
+    /* The gateway hands out the visitor key only with a consented introduction. */
+    const remembered = typeof reply.key === 'string' && KEY_PATTERN.test(reply.key) && keepKey(reply.key);
+    if (remembered) keyPanel();
+    const memo = el('p', 'allen-note', remembered ? 'Allen will remember you in this browser by your Allen key; see Your Allen key below the chat to copy it or forget it.' : 'Allen will not recognize you on a later visit: no key was kept in this browser.');
     const link = typeof reply.delete === 'string' && /^https:\/\/www\.aienos\.com\/allen\/#forget=c_[0-9a-f]{16}\.[A-Za-z0-9_-]{20,64}$/.test(reply.delete) ? reply.delete : '';
     if (!link) {
-      state.replaceChildren(el('p', 'allen-ok', `Saved. The delete link did not arrive intact; write to ${PRIVACY_MAIL} to have it deleted.`));
+      state.replaceChildren(el('p', 'allen-ok', `Saved. The delete link did not arrive intact; write to ${PRIVACY_MAIL} to have it deleted.`), memo);
       return;
     }
-    const kept = el('p', 'allen-ok', 'Saved. Keep this delete link; it is the only key to your introduction: ');
+    const kept = el('p', 'allen-ok', 'Saved. Keep this delete link; it deletes your introduction: ');
     const anchor = el('a', '', link);
     anchor.href = link;
     kept.append(anchor);
     const copy = button('Copy link', () => copyText(link, copy));
-    state.replaceChildren(kept, copy, el('p', 'allen-note', `Or write to ${PRIVACY_MAIL} to have it deleted.`));
+    state.replaceChildren(kept, copy, el('p', 'allen-note', `Or write to ${PRIVACY_MAIL} to have it deleted.`), memo);
   }
   /* A delete link opens this page at #forget=<id>.<token>; nothing is sent
      until the visitor confirms, and the token leaves the address afterwards. */
@@ -754,6 +765,105 @@
     });
     row.append(remove, decline);
     note.body.append(row, state);
+  }
+  /* The visitor key: 32 hex from the gateway, kept under KEY_NAME in local
+     storage only after a consented introduction or when the visitor pastes
+     their own key. Nothing else is ever stored in this browser. */
+  function storedKey() {
+    try {
+      const value = localStorage.getItem(KEY_NAME);
+      return value && KEY_PATTERN.test(value) ? value : '';
+    } catch (_) {
+      return '';
+    }
+  }
+  function keepKey(value) {
+    try {
+      localStorage.setItem(KEY_NAME, value);
+      return storedKey() === value;
+    } catch (_) {
+      return false;
+    }
+  }
+  function dropKey() {
+    try {
+      localStorage.removeItem(KEY_NAME);
+    } catch (_) {
+      /* Nothing was stored. */
+    }
+  }
+  function conversationId() {
+    const bytes = new Uint8Array(8);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+  }
+  function keyHeaders(chat) {
+    const key = storedKey();
+    if (!key) return {};
+    return chat ? { 'X-Allen-Key': key, 'X-Allen-Conversation': conversation } : { 'X-Allen-Key': key };
+  }
+  function keyPanel(said) {
+    const body = byId('allen-key-body');
+    if (!body) return;
+    const key = storedKey();
+    const state = el('p', 'allen-card-state', said || '');
+    const parts = [];
+    if (key) {
+      const line = el('p', 'allen-keyline');
+      line.append(el('span', '', 'Your Allen key: '), el('code', '', key));
+      const row = el('div', 'allen-choices');
+      const copy = button('Copy', () => copyText(key, copy));
+      const forget = button('Forget me', () => forgetMe(forget, state));
+      row.append(copy, forget);
+      parts.push(line, row, el('p', 'allen-note', "Allen recognizes you only by this key, never by a name or email you give. Keep it private, and paste it on another device to be recognized there. Forget me deletes Allen's notes about you and your introduction, then removes the key from this browser."));
+    } else {
+      parts.push(el('p', 'allen-note', 'This browser holds no Allen key, so Allen treats you as a stranger. You get a key when you introduce yourself with consent.'));
+    }
+    const paste = el('form', 'allen-paste');
+    paste.noValidate = true;
+    const pasted = field(paste, 'Use a key from another device (32 characters, 0 to 9 and a to f)', 'input', 32);
+    const use = el('button', 'allen-tool', 'Use this key');
+    use.type = 'submit';
+    paste.append(use);
+    paste.addEventListener('submit', event => {
+      event.preventDefault();
+      const value = pasted.value.trim().toLowerCase();
+      if (!KEY_PATTERN.test(value)) {
+        setText(state, 'An Allen key is exactly 32 characters, 0 to 9 and a to f.');
+        return;
+      }
+      if (!keepKey(value)) {
+        setText(state, 'This browser refused to store the key.');
+        return;
+      }
+      conversation = conversationId();
+      keyPanel('Key saved in this browser. Allen will recognize you from your next message.');
+    });
+    parts.push(paste, state);
+    body.replaceChildren(...parts);
+    const panel = byId('allen-key');
+    if (panel) panel.dataset.key = key ? 'yes' : 'no';
+  }
+  async function forgetMe(trigger, state) {
+    if (!storedKey()) {
+      keyPanel();
+      return;
+    }
+    trigger.disabled = true;
+    setText(state, 'Sending.');
+    try {
+      const response = await fetch(FORGET_ME, post({}));
+      const reply = await response.json().catch(() => null);
+      if (response.ok) {
+        dropKey();
+        keyPanel("Forgotten: Allen's notes about you and your introduction are being deleted, and the key is gone from this browser.");
+        return;
+      }
+      setText(state, failure(response, reply, 'Nothing was deleted; your key is still here so you can try again.'));
+    } catch (_) {
+      setText(state, 'Could not reach Allen. Nothing was deleted; your key is still here so you can try again.');
+    }
+    trigger.disabled = false;
   }
   /* Allen's first message is written here, not by the model: zero latency,
      no request. The answer stays in this closure. */
@@ -1171,7 +1281,7 @@
     let wait = 0;
     notice('Sending.');
     try {
-      const response = await fetch(CHAT, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' }, body: JSON.stringify({ messages: fit(turns) }), cache: 'no-store', credentials: 'omit', signal: controller.signal });
+      const response = await fetch(CHAT, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream', ...keyHeaders(true) }, body: JSON.stringify({ messages: fit(turns) }), cache: 'no-store', credentials: 'omit', signal: controller.signal });
       if (!response.ok) {
         const body = await response.json().catch(() => null);
         wait = retryAfter(response, body);
@@ -1189,7 +1299,7 @@
     if (active === controller) active = null;
     busy(false);
     if (mine !== epoch) return;
-    if (said) {
+    if (said.trim()) {
       turns.push({ role: 'assistant', content: said });
     } else {
       turns.pop();
@@ -1223,6 +1333,7 @@
     if (active) active.abort();
     turns.length = 0;
     kind = '';
+    conversation = conversationId();
     for (const machine of runners) machine.stop();
     runners.clear();
     log.replaceChildren();
@@ -1236,6 +1347,8 @@
   }
   byId('allen-introduce').addEventListener('click', () => openIntro());
   window.addEventListener('hashchange', forgetOffer);
+  conversation = conversationId();
+  keyPanel();
   greeting();
   forgetOffer();
   root.dataset.ready = 'true';
