@@ -3,6 +3,7 @@ import http.client
 import json
 import socket
 from science_protocol import MAX_BYTES, TOOLS as TOOL_NAMES, event, packed, parse_call, validate
+from science_protocol import content as validate_content
 
 PANE_EVENTS = frozenset(('pane.open','pane.update','pane.close'))
 MAX_ROUNDS = 3
@@ -48,11 +49,24 @@ def call(name, args, timeout=15):
             raise ValueError('Invalid compute reply')
         if not isinstance(output['result'],str) or len(output['result']) > 8000:
             raise ValueError('Invalid compute result')
+        opened = {}
         for item in output['events']:
             if type(item) is not dict or set(item) != {'event','data'} or item['event'] not in PANE_EVENTS:
                 raise ValueError('Unapproved science event')
             event(item['event'],item['data'])
             if len(packed(item['data']).encode()) > MAX_BYTES: raise ValueError('Pane event too large')
+            data = item['data']
+            if item['event'] == 'pane.open':
+                if data['id'] in opened: raise ValueError('Duplicate pane open')
+                opened[data['id']] = (data['kind'],0)
+            elif item['event'] == 'pane.update':
+                if data['id'] not in opened: raise ValueError('Update without open')
+                kind, revision = opened[data['id']]
+                if data['revision'] <= revision: raise ValueError('Stale pane revision')
+                validate_content(kind,data['content'])
+                opened[data['id']] = (kind,data['revision'])
+            elif data['id'] in opened:
+                del opened[data['id']]
         return output
     except (OSError, socket.timeout, ValueError, json.JSONDecodeError) as exc:
         # Do not return private exception/response strings to the model or visitor.

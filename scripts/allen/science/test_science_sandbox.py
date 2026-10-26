@@ -37,6 +37,7 @@ ap.add_argument("--busybox", default="/usr/bin/busybox")
 ap.add_argument("--service-port", type=int, default=0)
 A = ap.parse_args()
 ss.AIEN_MATH, ss.OMC, ss.IRWASM, ss.MATH_ADMIT = A.engine, A.omc, A.irwasm, A.math_admit
+ss.ENGINE_MANIFEST = os.path.join(HERE, "engine.json")
 
 results = []
 
@@ -86,24 +87,31 @@ def aien_math_procs():
 
 
 def E(expr):
-    """The engine sandbox alone (no gate). math-admit refuses most probes below; the sandbox must
-    hold even for an expression the gate wrongly admitted."""
-    return ss.evaluate(expr, expr.encode())
+    """The raw engine in its sandbox: no gate, no wrapper. math-admit refuses most probes below;
+    the sandbox must hold even for an expression the gate wrongly admitted."""
+    text, failed = ss.engine_text(expr.encode())
+    if failed:
+        return failed
+    at = text.rfind(ss.OUT_MARK)
+    value = text[at + len(ss.OUT_MARK):].rstrip("\n") if at >= 0 else ""
+    messages = [ln for ln in text.splitlines() if "::" in ln]
+    ok = at >= 0 and not messages and "$Failed" not in value
+    return {"ok": ok, "status": "ok" if ok else "unsupported", "output": value, "messages": messages}
 
 
 # ---------------------------------------------------------------- 1. engine results
 r = ss.run_math(ss.SELFTEST_MATH[0])
 check("symbolic fixture admitted and evaluated (control)", r["ok"] and r["output"] == ss.SELFTEST_MATH[1], r)
 r = E("FooBar[x]")
-check("undefined symbol is unsupported, not ok", not r["ok"] and r["status"] == "unsupported"
-      and any(m.startswith("Symbol::undefined") for m in r["messages"]), r.get("error"))
+check("raw engine: undefined symbol carries a message", not r["ok"]
+      and any(m.startswith("Symbol::undefined") for m in r["messages"]), r)
 r = ss.run_math("Sin[x]")
-check("unevaluated echo of the head is unsupported", not r["ok"] and "unevaluated" in r.get("error", ""),
-      r)
+check("unevaluated Sin[x] is unsupported", not r["ok"] and "unevaluated" in r.get("error", ""), r)
 r = E("f[x_] := x^2; f[3]")
-check("compound statement judged by its last statement (control)", r["ok"] and r["output"] == "9", r)
+check("raw engine evaluates a compound statement (control for the probes below)",
+      r["ok"] and r["output"] == "9", r)
 r = E("1+")
-check("syntax error is unsupported", not r["ok"], r)
+check("raw engine: syntax error is not ok", not r["ok"], r)
 
 # ---------------------------------------------------------------- 1b. admission gate (math-admit)
 fixtures = json.load(open(os.path.join(HERE, "admission-tests.json")))
@@ -119,13 +127,58 @@ for case in fixtures["negative"]:
 check("run_math and the gate alone refuse every unsafe fixture (%d)" % len(fixtures["negative"]),
       not wrong and fixtures["negative"], wrong)
 for unsafe in ("Pause[30]", 'ReadString["/etc/hostname"]', 'Export["/tmp/x", 1]', 'Environment["HOME"]',
-               "FooBar[x]", "f[x_] := x^2; f[3]", "While[True, 1]", 'ToExpression["Run"]'):
+               "FooBar[x]", "f[x_] := x^2; f[3]", "While[True, 1]", 'ToExpression["Run"]', "x++", "--x"):
     r = ss.run_math(unsafe)
-    check("gate refuses %s before the engine" % unsafe, r["status"] == "refused"
-          and r.get("error") == ss.ADMIT_REFUSAL, r)
+    check("refused before the engine: %s" % unsafe, r["status"] == "refused", r)
 for safe in ("Integrate[x^2, {x, 0, 1}]", "D[x^3, x]", "Factor[x^2 - 1]"):
     r = ss.run_math(safe)
     check("gate admits %s (control)" % safe, r["status"] not in ("refused", "error"), r)
+for safe in ("x+1", "x-1"):
+    g = ss.admit(safe.encode())
+    r = ss.run_math(safe)
+    check("gate alone admits %s (control for ++/--)" % safe, g is None and r["ok"], (g, r))
+for unsafe in ("x++", "--x"):
+    g = ss.admit(unsafe.encode())
+    check("gate alone refuses %s" % unsafe, g is not None and g.get("error") == ss.ADMIT_REFUSAL, g)
+
+# ---------------------------------------------------------------- 1c. result classifier
+def wrapped_out(value):
+    return "Out[1]= %s%s%s\n" % (ss.COMPUTED[0], value, ss.COMPUTED[1])
+
+
+cases = [
+    ("Out[1]= aienUnsupported\n", "unsupported"),
+    (wrapped_out("{Sin[x], Integrate[E^x^3, x]}"), "unsupported"),
+    (wrapped_out("{{x -> 1}, Solve[q, x]}"), "unsupported"),
+    (wrapped_out("$Failed"), "unsupported"),
+    ("Power::infy: Infinite expression 1/0 encountered.\n\n" + wrapped_out("ComplexInfinity"), "unsupported"),
+    ("Out[1]= {Sin[x]}\n", "unsupported"),
+    ("Out[1]= aienComputed[x\n", "unsupported"),
+    ("Out[1]= aienComputed[" + "a" * 4986 + " ... " + "b" * 4996 + "]\n", "unsupported"),
+    (wrapped_out("Sin[x]"), "ok"),
+    (wrapped_out("2*Cos[x]*Sin[x]"), "ok"),
+    (wrapped_out("c" * 9985), "ok"),
+]
+got = [ss.parse_engine(t)[0] for t, _ in cases]
+check("wrapper classifier: only a complete aienComputed[...] without messages, $Failed, residual "
+      "operations or printer cut is ok", got == [w for _, w in cases], got)
+r = ss.run_math("Range[3000]")
+check("real engine truncation (Range[3000]) is unsupported, not exact", r["status"] == "unsupported"
+      and r["output"] == "" and "cut" in r.get("error", ""), r)
+for echo in ("{Sin[x]}", "List[Sin[x]]", "{ Sin[ x ] , 2 }", "List[Sin[x], 2]"):
+    r = ss.run_math(echo)
+    check("real structural echo %s is unsupported" % echo, r["status"] == "unsupported"
+          and "unevaluated" in r.get("error", ""), r)
+for computed in (("D[Sin[x]^2, x]", "Sin[x]"), ("Plus[x, x]", "2*x"), ("List[Sin[x], 1+1]", "{Sin[x], 2}"),
+                 ("x+1", "x"), ("Plus[x, 0]", "x"), ("x+0", "x"), ("Times[x, 1]", "x")):
+    r = ss.run_math(computed[0])
+    check("real computed result %s is ok (control)" % computed[0], r["ok"] and computed[1] in r["output"], r)
+for bad in ("x, y", "Sin[x]]", "{x", "Sin[x); y", "aienR", 'f["]'):
+    check("not one expression refused before any process: %r" % bad, not ss.single_expression(bad), bad)
+check("one expression with commas inside brackets and strings passes (control)",
+      ss.single_expression('{Sin[x], 2, ","}') and ss.single_expression("Plus[x, 0]"), "")
+check("wrapper text is internal: the computed output is the bare value", "aien" not in
+      ss.run_math("Plus[x, x]")["output"], "")
 
 # ---------------------------------------------------------------- 2. input bounds never spawn
 real_popen = subprocess.Popen
@@ -215,7 +268,7 @@ def in_engine_sandbox(script, wall=6):
     argv = ss.math_argv(A.busybox, ["sh", "-c", PRE + script])
     i = argv.index("--")
     argv[i:i] = ["--argv0", "busybox"]
-    st, out, err, rc = ss.run_bounded(argv, b"", wall, 1 << 16, 4096, ss.math_limits)
+    st, out, err, rc = ss.run_bounded(ss.limited(ss.MATH_LIMITS, argv), b"", wall, 1 << 16, 4096)
     return out.decode("utf-8", "replace")
 
 
@@ -238,6 +291,36 @@ check("engine sandbox root holds only the engine and tmp, no /proc, /dev",
       ("aien-math\ntmp" in o and "/proc" in o and "No such file" in o), repr(o[:200]))
 o = in_engine_sandbox("b unshare -U b echo NESTED 2>&1; echo END")
 check("nested user namespaces disabled", "NESTED" not in o.replace("b echo NESTED", ""), repr(o[:120]))
+o = in_engine_sandbox("ulimit -t; ulimit -n; echo END")
+check("prlimit applied the CPU and descriptor limits in the leaf", o.split()[:2] == ["5", "32"], repr(o))
+check("no Python pre-exec callback anywhere in the helper", "preexec" not in inspect.getsource(ss), "")
+
+# ---------------------------------------------------------------- 6b. bounded collection (compiler path)
+BB_PRE = 'b() { (exec -a busybox /tool "$@"); }; '
+
+
+def busybox_procs():
+    return subprocess.run(["pgrep", "-f", "^busybox (yes|sleep 5|sh -c b)"], capture_output=True).stdout.split()
+
+
+t0 = time.monotonic()
+out, err, rc = ss.sandboxed(A.busybox, b"", 5, 1 << 20, args=("yes",), argv0="busybox")
+check("compiler-path stdout flood stopped at the cap", out is None and err == b"output too large"
+      and time.monotonic() - t0 < 4, "%r %r %.1fs" % (err, rc, time.monotonic() - t0))
+t0 = time.monotonic()
+st, out, err, rc = ss.run_bounded(ss.limited(ss.OMEGA_LIMITS, ss.sandbox_argv(
+    A.busybox, ("sh", "-c", BB_PRE + "b yes >&2"), "busybox")), b"", 2, 1 << 20, 4096)
+check("stderr flood: kept to 4096 bytes and killed at the deadline", st == "timeout" and len(err) == 4096
+      and not out and time.monotonic() - t0 < 4, "%s err=%d %.1fs" % (st, len(err), time.monotonic() - t0))
+big = b"x" * (8 << 20)
+out, err, rc = ss.sandboxed(A.busybox, big, 10, 1 << 20, args=("wc", "-c"), argv0="busybox")
+check("8 MiB stdin fed without deadlock (control)", out is not None and out.strip() == b"8388608", (out, err, rc))
+t0 = time.monotonic()
+out, err, rc = ss.sandboxed(A.busybox, big, 2, 1 << 20, args=("sleep", "5"), argv0="busybox")
+check("unread 8 MiB stdin does not block past the deadline", out is None and err == b"timeout"
+      and time.monotonic() - t0 < 4, "%r %.1fs" % (err, time.monotonic() - t0))
+time.sleep(0.5)
+check("no flood or sleep process survives", not busybox_procs(), busybox_procs())
 
 # ---------------------------------------------------------------- 7. Omega compile path parity
 sys.path.insert(0, A.gateway)
@@ -246,10 +329,38 @@ same = {k: getattr(gw, k) == getattr(ss, k) for k in
         ("BWRAP", "OMC_PIN", "IRWASM_PIN", "MAX_SOURCE", "OMC_HINTS", "TYPES")}
 same["OMC_ERR"] = gw.OMC_ERR.pattern == ss.OMC_ERR.pattern
 same["NAME"] = gw.NAME.pattern == ss.NAME.pattern
-for fn in ("sandbox_limits", "sandboxed", "signatures"):
-    same[fn] = inspect.getsource(getattr(gw, fn)) == inspect.getsource(getattr(ss, fn))
-check("omega helper is the gateway's code and pins", all(same.values()),
-      [k for k, v in same.items() if not v] or "all equal")
+same["signatures"] = inspect.getsource(gw.signatures) == inspect.getsource(ss.signatures)
+
+
+class Spawned(Exception):
+    pass
+
+
+def record(argv, **kw):
+    seen_argv.append(argv)
+    raise Spawned()
+
+
+seen_argv = []
+
+
+def spawned_argv(mod):
+    seen_argv.clear()
+    real_popen = mod.subprocess.Popen
+    mod.subprocess.Popen = record
+    try:
+        mod.sandboxed("/x/tool", b"", 1, 1, args=("a", "b"), argv0="busybox")
+    except Spawned:
+        pass
+    finally:
+        mod.subprocess.Popen = real_popen
+    return list(seen_argv)
+
+
+gw_argv, ss_argv = spawned_argv(gw), spawned_argv(ss)
+same["argv"] = len(gw_argv) == 1 and gw_argv == ss_argv
+check("omega path spawns exactly the gateway's argv (prlimit limits + bwrap) with its pins and hints",
+      all(same.values()), [k for k, v in same.items() if not v] or " ".join(ss_argv[0][:7]))
 handler = inspect.getsource(gw.Handler.omega) if hasattr(gw, "Handler") else ""
 check("gateway handler still uses sandboxed(app.omc/irwasm) as copied",
       "sandboxed(app.omc, data, 5, 4 << 20)" in handler and "sandboxed(app.irwasm, ir, 5, 1 << 20)" in handler,
@@ -282,14 +393,94 @@ os.unlink(bad.name)
 check("unpinned admission gate is refused (fail closed)", r["status"] == "error" and "gate" in r["error"]
       and problems, problems)
 
+# ---------------------------------------------------------------- 8b. engine provenance manifest
+check("shipped engine.json names the pinned engine (control)", ss.manifest_problem() is None,
+      ss.manifest_problem())
+good_manifest = json.load(open(ss.ENGINE_MANIFEST))
+bad_manifests = {"missing": None, "not JSON": "{", "stale commit": dict(good_manifest, commit="0" * 40),
+                 "other binary": dict(good_manifest, binary_sha256="0" * 64), "array": []}
+tmpdir = tempfile.mkdtemp(prefix="science-manifest-")
+keep_manifest = ss.ENGINE_MANIFEST
+for label, content in bad_manifests.items():
+    path = os.path.join(tmpdir, label.replace(" ", "-") + ".json")
+    if content is not None:
+        with open(path, "w") as fh:
+            fh.write(content if isinstance(content, str) else json.dumps(content))
+    ss.ENGINE_MANIFEST = path
+    ss._manifest.clear()
+    problems = ss.selftest()
+    r = ss.run_math(ss.SELFTEST_MATH[0])
+    check("%s manifest refuses startup and every math request" % label,
+          any("manifest" in p for p in problems) and r["status"] == "error" and "manifest" in r["error"],
+          (problems, r.get("error")))
+ss.ENGINE_MANIFEST = keep_manifest
+ss._manifest.clear()
+shutil.rmtree(tmpdir)
+
+# ---------------------------------------------------------------- 8c. installer (DESTDIR, no root)
+def install(src_dir, destdir, engine=None):
+    env = {"PATH": "/usr/bin:/bin"}
+    if destdir is not None:
+        env["DESTDIR"] = destdir
+    return subprocess.run(["sh", os.path.join(src_dir, "install.sh"), engine or A.engine, A.omc, A.irwasm,
+                           A.math_admit], capture_output=True, env=env, timeout=60)
+
+
+def tree(d):
+    return sorted(os.path.relpath(os.path.join(p, n), d) for p, _, ns in os.walk(d) for n in ns)
+
+
+inst = tempfile.mkdtemp(prefix="science-install-")
+p = install(HERE, inst)
+opt, gwdir = os.path.join(inst, "opt/allen-science"), os.path.join(inst, "opt/allen-chat")
+same_bytes = lambda a, b: open(a, "rb").read() == open(b, "rb").read()
+ok_pins = p.returncode == 0 and all(ss.sha256_file(os.path.join(opt, n)) == pin for n, pin in (
+    ("aien-math", ss.AIEN_MATH_PIN), ("math-admit", ss.MATH_ADMIT_PIN), ("omc", ss.OMC_PIN), ("irwasm", ss.IRWASM_PIN)))
+check("install places pinned tools and a valid manifest (control)",
+      ok_pins and ss.manifest_problem(os.path.join(opt, "engine.json")) is None, p.stderr.decode()[-200:])
+check("installed service and gateway science_protocol.py are byte-identical to the source (copies, not links)",
+      p.returncode == 0 and same_bytes(os.path.join(opt, "science_protocol.py"), os.path.join(HERE, "science_protocol.py"))
+      and same_bytes(os.path.join(gwdir, "science_protocol.py"), os.path.join(HERE, "science_protocol.py"))
+      and not os.path.islink(os.path.join(gwdir, "science_protocol.py")), tree(inst))
+stale_src = tempfile.mkdtemp(prefix="science-stale-")
+for n in os.listdir(HERE):
+    if os.path.isfile(os.path.join(HERE, n)):
+        shutil.copy2(os.path.join(HERE, n), os.path.join(stale_src, n))
+with open(os.path.join(stale_src, "engine.json"), "w") as fh:
+    json.dump(dict(good_manifest, commit="0" * 40), fh)
+dest2 = tempfile.mkdtemp(prefix="science-install-")
+p = install(stale_src, dest2)
+check("install refuses a stale manifest and writes nothing", p.returncode != 0 and b"manifest" in p.stderr
+      and tree(dest2) == [], p.stderr.decode().strip()[-160:])
+os.unlink(os.path.join(stale_src, "engine.json"))
+p = install(stale_src, dest2)
+check("install refuses a missing manifest and writes nothing", p.returncode != 0 and b"manifest" in p.stderr
+      and tree(dest2) == [], p.stderr.decode().strip()[-160:])
+p = install(HERE, dest2, engine=A.math_admit)
+check("install refuses an engine that is not the pinned one", p.returncode != 0 and b"pinned" in p.stderr
+      and tree(dest2) == [], p.stderr.decode().strip()[-160:])
+p = install(HERE, None)
+check("install without DESTDIR requires root", (os.getuid() == 0) or (p.returncode != 0 and b"root" in p.stderr),
+      p.stderr.decode().strip())
+for d in (inst, stale_src, dest2):
+    shutil.rmtree(d)
+
 # ---------------------------------------------------------------- 9. service sandbox (launch.py)
 PROBE_SERVICE = r'''
-import json, os, socket, sys
+import os
+def is_open(n):
+    try:
+        os.fstat(n)
+        return True
+    except OSError:
+        return False
+open_fds = [n for n in range(1024) if is_open(n)]
+import json, socket, sys
 sys.path.insert(0, "/opt/allen-science")
 import science_sandbox as ss
 fd = int(sys.argv[sys.argv.index("--listen-fd") + 1])
 lo_port, tn_host, tn_port = int(sys.argv[-3]), sys.argv[-2], int(sys.argv[-1])
-f = {}
+f = {"fds": open_fds}
 def attempt(fn):
     try:
         return fn()
@@ -369,16 +560,33 @@ def stop(proc):
 
 root = tempfile.mkdtemp(prefix="science-root-")
 for src, name in ((os.path.join(HERE, "science_sandbox.py"), "science_sandbox.py"), (A.engine, "aien-math"),
-                  (A.omc, "omc"), (A.irwasm, "irwasm"), (A.math_admit, "math-admit")):
+                  (A.omc, "omc"), (A.irwasm, "irwasm"), (A.math_admit, "math-admit"),
+                  (os.path.join(HERE, "engine.json"), "engine.json")):
     shutil.copy2(src, os.path.join(root, name))
 with open(os.path.join(root, "allen_science.py"), "w") as fh:
     fh.write(PROBE_SERVICE)
 os.chmod(root, 0o755)
 port = free_port()
 canary_env = dict(os.environ, SCIENCE_CANARY="should-not-leak", ALLEN_UPSTREAM_TOKEN="should-not-leak")
-proc = subprocess.Popen([sys.executable, "-I", os.path.join(HERE, "launch.py"), "--listen", "127.0.0.1:%d" % port,
-                         "--root", root, "--", str(lo_port), tip or "", str(tn_port)],
-                        env=canary_env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+canary_r, canary_w = os.pipe()
+canary_sock = socket.socket()
+HIGH_FD = 900
+os.dup2(canary_r, HIGH_FD)
+# The launcher starts with soft RLIMIT_NOFILE 64 and a descriptor numbered 900 above it: a
+# closerange up to the soft limit would leave it open.
+launch_argv = ["/usr/bin/prlimit", "--nofile=64:4096", "--", sys.executable, "-I",
+               os.path.join(HERE, "launch.py"), "--listen", "127.0.0.1:%d" % port,
+               "--root", root, "--", str(lo_port), tip or "", str(tn_port)]
+ctl = subprocess.run(["/usr/bin/prlimit", "--nofile=64:4096", "--", sys.executable, "-I", "-c",
+                      "import os, resource; print(os.path.exists('/proc/self/fd/%d'), "
+                      "resource.getrlimit(resource.RLIMIT_NOFILE)[0])" % HIGH_FD],
+                     capture_output=True, text=True, pass_fds=(HIGH_FD,)).stdout.split()
+check("high fd control: fd %d is open in a child whose soft limit is lower" % HIGH_FD,
+      ctl == ["True", "64"], ctl)
+proc = subprocess.Popen(launch_argv, env=canary_env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                        pass_fds=(canary_r, canary_w, canary_sock.fileno(), HIGH_FD))
+passed_fds = sorted((canary_r, canary_w, canary_sock.fileno(), HIGH_FD))
+os.close(HIGH_FD)
 data = wait_body(port, proc)
 stop(proc)
 log = proc.stdout.read().decode("utf-8", "replace")
@@ -389,6 +597,8 @@ if f:
     check("service runs unprivileged, same uid, no capabilities, no_new_privs",
           f["uid"] == os.getuid() and f["capeff"] == "0000000000000000" and f["nnp"] == "1",
           "uid=%s capeff=%s nnp=%s" % (f["uid"], f["capeff"], f["nnp"]))
+    check("only stdin, stdout, stderr and the listener reach the service (canary fds %s passed in)" % passed_fds,
+          f["fds"] == [0, 1, 2, 3] and all(n > 3 for n in passed_fds), f["fds"])
     # bwrap sets PWD for --chdir; it holds the private home, nothing from the host.
     check("environment is only HOME, LANG, PATH, PWD (launcher canaries absent)",
           f["env"] == {"HOME": "/home/allen-science", "LANG": "C.UTF-8", "PATH": "/usr/bin:/bin",
@@ -454,10 +664,41 @@ if A.service_port:
                 time.sleep(0.2)
         time.sleep(2)
         alive = proc.poll() is None
+
+        def compute(tool, arguments):
+            body = json.dumps({"tool": tool, "arguments": arguments}).encode()
+            c = socket.create_connection(("127.0.0.1", A.service_port), timeout=30)
+            c.sendall(b"POST /compute HTTP/1.1\r\nHost: x\r\nContent-Type: application/json\r\n"
+                      b"Connection: close\r\nContent-Length: %d\r\n\r\n" % len(body) + body)
+            data = b""
+            while True:
+                d = c.recv(65536)
+                if not d:
+                    break
+                data += d
+            c.close()
+            head, _, payload = data.partition(b"\r\n\r\n")
+            return head.split(b"\r\n")[0].decode(), payload.decode("utf-8", "replace")
+
+        computed = unsupported = refused = compiled = ("", "")
+        if up and alive:
+            computed = compute("math_compute", {"title": "fixture", "expression": ss.SELFTEST_MATH[0]})
+            unsupported = compute("math_compute", {"title": "nested echo", "expression": "{Sin[x]}"})
+            refused = compute("math_compute", {"title": "unsafe", "expression": "Run[x]"})
+            compiled = compute("omega_compile", {"title": "f", "source": ss.SELFTEST_OMEGA})
         stop(proc)
         out = proc.stdout.read().decode("utf-8", "replace")
         check("real allen_science.py starts in the launcher sandbox (selftest passed, accepting)",
               up and alive, "output=%r" % out[-400:])
+        check("real /compute math: computed with the pinned commit", " 200 " in computed[0]
+              and '"computed"' in computed[1] and ss.SELFTEST_MATH[1] in computed[1]
+              and ss.ENGINE_COMMIT in computed[1], computed[0] + " " + computed[1][:300])
+        check("real /compute nested echo {Sin[x]} is not computed", '"computed"' not in unsupported[1]
+              and '"unsupported"' in unsupported[1], unsupported[0] + " " + unsupported[1][:200])
+        check("real /compute Run[x] is refused, never computed", '"computed"' not in refused[1]
+              and refused[0] != "", refused[0] + " " + refused[1][:200])
+        check("real /compute omega_compile returns wasm", " 200 " in compiled[0] and '"wasm"' in compiled[1],
+              compiled[0] + " " + compiled[1][:200])
         shutil.rmtree(real)
 shutil.rmtree(root)
 lo.close()

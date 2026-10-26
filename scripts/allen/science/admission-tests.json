@@ -173,8 +173,45 @@
     {
       "expression": "\"https://example.org\"",
       "exit": 2
+    },
+    {
+      "expression": "x++",
+      "exit": 2
+    },
+    {
+      "expression": "--x",
+      "exit": 2
+    },
+    {
+      "expression": "x,y",
+      "exit": 2
+    },
+    {
+      "expression": "aienR",
+      "exit": 2
+    },
+    {
+      "expression": "aienComputed[x]",
+      "exit": 2
+    },
+    {
+      "expression": "aienUnsupported",
+      "exit": 2
+    },
+    {
+      "expression": "With[x,y]",
+      "exit": 2
+    },
+    {
+      "expression": "HoldComplete[x]",
+      "exit": 2
+    },
+    {
+      "expression": "Sequence[x,y]",
+      "exit": 2
     }
   ],
   "compiler_sha256": "734f0a39319fbfa930bcc62cb30dbf06d47d78e126372b74f5baf478e6126b61",
-  "binary_sha256": "c11c1accbaee1ca184104ab50d12649e85d22047ad37458b05a59244a96a97af"
+  "binary_sha256": "04c58b6861d15f21d038aff560aa1ae6eeadd76387154f3ada208b73d43632c9",
+  "source_sha256": "d064507f70d36f1a7ac7d964f41dd711d76a71737883cfc5a7a78c0c63695931"
 }

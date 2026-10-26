@@ -1,74 +1,101 @@
 """Isolated execution for the allen-science service.
 
-run_math(expression) first runs the pinned admission gate math-admit (seeded Omega,
-math-admit.om) on the expression; only an expression it admits (exit 0, empty stdout) reaches the
-pinned aien-math engine (`aien-math eval`, code on stdin). Both run in the same bubblewrap sandbox:
+run_math(expression) first checks that the expression is exactly one bracket-balanced expression
+and runs the pinned admission gate math-admit (seeded Omega, math-admit.om) on it; only an
+expression it admits (exit 0, empty stdout) reaches the pinned aien-math engine (`aien-math eval`,
+code on stdin), spliced into the internal completeness wrapper WRAP and evaluated once. Both
+programs run in the same bubblewrap sandbox:
 every namespace unshared (no network at all, not even loopback), nested user namespaces disabled,
 cleared environment, the one binary as the only read-only bind, a small private tmpfs at /tmp, no
-/dev, no /proc, and CPU, address-space, file-size and descriptor limits. stdout is read
-incrementally and the sandbox is killed past the cap, so a large output never sits in this
-process's memory. No shell is involved anywhere: argv is a fixed list.
+/dev, no /proc. Resource limits are set by the fixed /usr/bin/prlimit argv in front of bwrap (no
+Python code runs between fork and exec, so a request thread cannot hang in the child before the
+deadline starts). stdin is fed and stdout/stderr are collected incrementally under one deadline;
+the sandbox is killed past the stdout cap and only a bounded stderr prefix is kept. No shell is
+involved anywhere: argv is a fixed list.
 
-run_omega(source) is the gateway's Omega compile path (allen_chat.py: sandboxed(), signatures(),
-the two-stage omc then omc-ir compile and irwasm), copied verbatim so the same pinned tools run
-under the same bwrap argv; test_science_sandbox.py checks the copy against the gateway.
+The engine's provenance manifest (engine.json: commit and binary sha256) is required and must name
+exactly the pinned engine; a missing or stale manifest refuses every math request and selftest().
 
-selftest() verifies the four pins, runs one fixture through each path and checks that the gate
-refuses Run[x] and URLRead[x]; the service calls it at startup and refuses to start when it returns
-problems.
+run_omega(source) is the gateway's Omega compile path (allen_chat.py): the same bwrap argv, the
+same per-process limits, the same two-stage omc then omc-ir compile and irwasm, and the same
+response dicts; only the collection differs (bounded and incremental here, where the gateway uses
+communicate()). test_science_sandbox.py checks the argv and limits against the gateway.
+
+selftest() verifies the four pins and the manifest, runs one fixture through each path and checks
+that the gate refuses Run[x] and URLRead[x]; the service calls it at startup and refuses to start
+when it returns problems.
 """
 
 import base64
 import hashlib
+import json
 import os
 import re
-import resource
 import selectors
-import signal
 import subprocess
 import threading
 import time
 
 ROOT = "/opt/allen-science"
 BWRAP = "/usr/bin/bwrap"
+PRLIMIT = "/usr/bin/prlimit"
 AIEN_MATH = ROOT + "/aien-math"
 OMC = ROOT + "/omc"
 IRWASM = ROOT + "/irwasm"
 MATH_ADMIT = ROOT + "/math-admit"
+ENGINE_MANIFEST = ROOT + "/engine.json"
 
-# aien-math main 43c629db362b48aeec3590a8f0cd30e927e5ec16 (clean tree, reproducible) built with omc
-# e623d440... (omega-mv 3d000060); frozen copy /tmp/allen-science-math-release/build/aien-math.
+# aien-math main 43c629db (clean tree, reproducible) built with omc e623d440 (omega-mv 3d000060);
+# frozen copy /tmp/allen-science-math-release/build/aien-math. The commit and the sha256 are one
+# pin: engine.json must state both exactly.
+ENGINE_COMMIT = "43c629db362b48aeec3590a8f0cd30e927e5ec16"
 AIEN_MATH_PIN = "a3c538e9e2c8b255ba3daf4cf5a486b379e2722e86a177c173ff2d097e9ddd59"
-# math-admit.om compiled with the gateway's omc (OMC_PIN); exit 0 admit, 2 refuse, 3 IO.
-MATH_ADMIT_PIN = "c11c1accbaee1ca184104ab50d12649e85d22047ad37458b05a59244a96a97af"
-ADMIT_WALL_S = 2
+ENGINE_OMC_PIN = "e623d440956b1473ca32da85a019cbb3c953d4bdd6e384952d9989e8039425e3"
+# math-admit.om (sha256 d064507f...5931) compiled with the gateway's omc (OMC_PIN); exit 0 admit,
+# 2 refuse, 3 IO. This build refuses ++/--, a top-level ',' and the wrapper's names (WRAP).
+MATH_ADMIT_PIN = "04c58b6861d15f21d038aff560aa1ae6eeadd76387154f3ada208b73d43632c9"
 # The gateway's pins (allen_chat.py OMC_PIN, IRWASM_PIN).
 OMC_PIN = "734f0a39319fbfa930bcc62cb30dbf06d47d78e126372b74f5baf478e6126b61"
 IRWASM_PIN = "2d235a70c39ac1461a09c41e10e058d962b767ae83893cdcfc693ef6c47182e6"
 
 MATH_ARGV = ("eval",)          # code on stdin: no argv quoting, nothing visible in the host's ps
 MAX_EXPR = 4096                # bytes of UTF-8 accepted from the service
-MATH_WALL_S = 8                # wall clock; the CPU limit below catches spinning first
+ADMIT_WALL_S = 2
+MATH_WALL_S = 8                # wall clock; spinning code uses about 60% CPU, so this fires first
+RUN_WALL_S = ADMIT_WALL_S + MATH_WALL_S  # one deadline for a whole run_math
 MATH_OUT_CAP = 64 << 10        # stdout bytes; past this the sandbox is killed
-MATH_ERR_CAP = 4096            # stderr bytes kept (the rest is drained and dropped)
+ERR_CAP = 4096                 # stderr bytes kept (the rest is drained and dropped)
 MATH_TMPFS = 8 << 20
 # The engine's static RW segment is about 978 MiB of zero pages (readelf: 0x3d220ee0), so the
 # address-space limit must sit above it; its pools are fixed, exhaustion exits 3.
 MATH_AS = 1152 << 20
+MATH_LIMITS = ("--cpu=5:6", "--as=%d" % MATH_AS, "--fsize=%d" % (1 << 20), "--nofile=32", "--core=0")
+# The gateway's sandbox_limits(): CPU 4/5 s, 512 MiB, 4 MiB files, 64 descriptors, no core.
+OMEGA_LIMITS = ("--cpu=4:5", "--as=%d" % (512 << 20), "--fsize=%d" % (4 << 20), "--nofile=64",
+                "--core=0")
 MATH_SLOTS = threading.BoundedSemaphore(2)
 OMEGA_SLOTS = threading.BoundedSemaphore(2)
 
 OUT_MARK = "Out[1]= "
-MESSAGE = re.compile(r"^[A-Za-z$][A-Za-z0-9$`]*::[A-Za-z0-9$]+:")
-HEAD = re.compile(r"^\s*([A-Za-z$][A-Za-z0-9$`]*)\s*\[")
+# The pinned printer (src/print/pr.om pr_trunc at 43c629db) cuts any result over 10005 code points
+# to its first 4998 and last 4997 around " ... ": exactly 10000. Anything this long may be cut.
+TRUNCATED_AT = 10000
+# Admitted heads that ask the engine to do something. One left anywhere in the result means that
+# part was not done; mathematical functions (Sin, Exp, Gamma, ...) are legitimate in results.
+EVAL_HEADS = frozenset("""
+N D Integrate NIntegrate Limit Series Normal Sum Product Solve Reduce Simplify FullSimplify Expand
+Factor Together Apart Cancel Numerator Denominator Coefficient CoefficientList Collect Det Inverse
+Transpose Eigenvalues Eigenvectors EigenSystem Eigensystem MatrixRank RowReduce LinearSolve Dot Tr
+DSolve DSolveValue NDSolve Mean Median Variance StandardDeviation Covariance Correlation PDF CDF
+Quantile Probability Expectation Length Total Range Table First Chop SingularValueList MatrixExp
+IdentityMatrix DiagonalMatrix UnitConvert UnitSimplify QuantityMagnitude QuantityUnit
+""".split())
+EVAL_HEAD = re.compile(r"(?<![A-Za-z0-9$`])(%s)\[" % "|".join(sorted(EVAL_HEADS, key=len, reverse=True)))
 
 
-def math_limits():
-    resource.setrlimit(resource.RLIMIT_CPU, (5, 6))
-    resource.setrlimit(resource.RLIMIT_AS, (MATH_AS, MATH_AS))
-    resource.setrlimit(resource.RLIMIT_FSIZE, (1 << 20, 1 << 20))
-    resource.setrlimit(resource.RLIMIT_NOFILE, (32, 32))
-    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
+def limited(limits, argv):
+    """argv run under fixed rlimits: prlimit sets them on itself, then execs argv."""
+    return [PRLIMIT] + list(limits) + ["--"] + argv
 
 
 def math_argv(tool, args=MATH_ARGV, dest="/aien-math"):
@@ -81,20 +108,22 @@ def math_argv(tool, args=MATH_ARGV, dest="/aien-math"):
     ] + list(args)
 
 
-def run_bounded(argv, data, wall_s, out_cap, err_cap, limits):
-    """Run argv with data on stdin; returns (status, stdout, stderr, rc).
-    status: "done", "timeout" or "too_large". The process group is always killed and reaped."""
+def run_bounded(argv, data, wall_s, out_cap, err_cap):
+    """Run argv with data on stdin; returns (status, stdout, stderr, rc). status is "done",
+    "timeout" or "too_large". stdin is written non-blocking alongside the reads, so any input size
+    is fed under the same deadline. The process group is always killed and reaped."""
+    deadline = time.monotonic() + wall_s
     p = subprocess.Popen(argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                         preexec_fn=limits, start_new_session=True, close_fds=True)
+                         start_new_session=True, close_fds=True)
     status, out, err = "done", bytearray(), bytearray()
+    view, pos = memoryview(data), 0
+    sel = selectors.DefaultSelector()
     try:
-        try:
-            p.stdin.write(data)  # at most MAX_EXPR bytes: fits the pipe buffer, never blocks
-        except BrokenPipeError:
-            pass
-        p.stdin.close()
-        deadline = time.monotonic() + wall_s
-        sel = selectors.DefaultSelector()
+        if data:
+            os.set_blocking(p.stdin.fileno(), False)
+            sel.register(p.stdin, selectors.EVENT_WRITE)
+        else:
+            p.stdin.close()
         sel.register(p.stdout, selectors.EVENT_READ, out)
         sel.register(p.stderr, selectors.EVENT_READ, err)
         while sel.get_map():
@@ -103,6 +132,17 @@ def run_bounded(argv, data, wall_s, out_cap, err_cap, limits):
                 status = "timeout"
                 break
             for key, _ in sel.select(left):
+                if key.fileobj is p.stdin:
+                    try:
+                        pos += os.write(key.fd, view[pos:pos + 65536])
+                    except BlockingIOError:
+                        continue
+                    except BrokenPipeError:
+                        pos = len(view)
+                    if pos >= len(view):
+                        sel.unregister(p.stdin)
+                        p.stdin.close()
+                    continue
                 chunk = os.read(key.fd, 65536)
                 if not chunk:
                     sel.unregister(key.fileobj)
@@ -115,23 +155,26 @@ def run_bounded(argv, data, wall_s, out_cap, err_cap, limits):
                     err += chunk[:err_cap - len(err)]
             if status != "done":
                 break
-        sel.close()
         if status == "done":
             try:
                 p.wait(max(0.0, deadline - time.monotonic()))
             except subprocess.TimeoutExpired:
                 status = "timeout"
     finally:
+        sel.close()
         if p.poll() is None:
-            # bwrap leads its own session; --die-with-parent and the pid namespace take the
-            # engine down with it.
+            # prlimit execs bwrap in place, so p.pid leads the sandbox's session; --die-with-parent
+            # and the pid namespace take everything inside down with it.
             try:
-                os.killpg(p.pid, signal.SIGKILL)
+                os.killpg(p.pid, 9)
             except ProcessLookupError:
                 pass
             p.wait()
-        p.stdout.close()
-        p.stderr.close()
+        for f in (p.stdin, p.stdout, p.stderr):
+            try:
+                f.close()
+            except OSError:
+                pass
     return status, bytes(out), bytes(err), p.returncode
 
 
@@ -160,9 +203,55 @@ def pinned(path, pin):
         return _pinned[key]
 
 
-def last_statement(expr):
-    """Text after the last top-level ';' (outside brackets, braces, parens and strings)."""
-    depth, quoted, cut, i = 0, False, 0, 0
+def manifest_problem(path=None):
+    """None when the engine manifest names exactly the pinned engine, else why not."""
+    path = path or ENGINE_MANIFEST
+    try:
+        with open(path, "rb") as f:
+            m = json.loads(f.read(65536))
+    except (OSError, ValueError) as e:
+        return "engine manifest %s unreadable: %s" % (path, type(e).__name__)
+    # engine.json is shared with ScienceMath's corpus receipt; these four fields are the identity.
+    want = {"engine": "aien-dev/aien-math", "commit": ENGINE_COMMIT, "binary_sha256": AIEN_MATH_PIN,
+            "omc_sha256": ENGINE_OMC_PIN}
+    if not isinstance(m, dict):
+        return "engine manifest %s is not an object" % path
+    wrong = sorted(k for k, v in want.items() if m.get(k) != v)
+    if wrong:
+        return "engine manifest %s does not match the pinned engine: %s" % (path, ", ".join(wrong))
+    return None
+
+
+_manifest = {}
+
+
+def manifest_ok():
+    with _pin_lock:
+        if ENGINE_MANIFEST not in _manifest:
+            _manifest[ENGINE_MANIFEST] = manifest_problem() is None
+        return _manifest[ENGINE_MANIFEST]
+
+
+# ScienceMath's completeness wrapper for aien-math 43c629db (no engine change): the expression is
+# evaluated once inside With; HoldComplete keeps the input's structure (List[x] and {x} alike, no
+# Evaluate or Sequence splicing) for an exact SameQ test, and the FreeQ guard marks results that
+# still hold an operation, or the derivative pattern behind the known wrong Limit answers.
+WRAP = ("With[{aienR = ", "}, If[HoldComplete[", "] =!= HoldComplete[aienR] && FreeQ[HoldComplete[aienR], "
+        "Integrate|D|DSolve|NDSolve|Limit|Sum|Product|Solve|NSolve|Series|Simplify|FullSimplify|"
+        "Expectation|Probability|Eigensystem|SingularValueDecomposition|MatrixExp|UnitConvert|"
+        "Derivative[_][Abs|Sign|Floor|Ceiling|Round|UnitStep][_]], aienComputed[aienR], aienUnsupported]]")
+COMPUTED = ("aienComputed[", "]")
+UNSUPPORTED = "aienUnsupported"
+
+
+def single_expression(expr):
+    """True when expr can be spliced into WRAP as exactly one expression: brackets balanced and
+    nested correctly outside strings, no top-level ',' or ';', no ';' anywhere, no wrapper names.
+    math-admit enforces the same; this is the helper's own boundary before splicing."""
+    if ";" in expr or "aien" in expr:
+        return False
+    stack, quoted, i = [], False, 0
+    pairs = {"]": "[", "}": "{", ")": "("}
     while i < len(expr):
         c = expr[i]
         if quoted:
@@ -173,34 +262,43 @@ def last_statement(expr):
         elif c == '"':
             quoted = True
         elif c in "[{(":
-            depth += 1
-        elif c in "]})":
-            depth -= 1
-        elif c == ";" and depth == 0:
-            cut = i + 1
+            stack.append(c)
+        elif c in pairs:
+            if not stack or stack.pop() != pairs[c]:
+                return False
+        elif c == "," and not stack:
+            return False
         i += 1
-    return expr[cut:]
+    return not stack and not quoted
 
 
-def parse_engine(expr, text):
-    """Split engine stdout into (status, value, messages, error). Success is only a value with no
-    engine message, no $Failed and not an unevaluated echo of the input's head."""
-    if text.startswith(OUT_MARK):
-        at = 0
-    else:
-        at = text.find("\n" + OUT_MARK)
-        at = at + 1 if at >= 0 else -1
-    head_text = text[:at] if at >= 0 else text
-    messages = [ln for ln in head_text.splitlines() if MESSAGE.match(ln)]
-    if at < 0:
-        return "unsupported", "", messages, "the engine printed no result"
-    value = text[at + len(OUT_MARK):].rstrip("\n")
+def wrapped(data):
+    return (WRAP[0] + "%s" + WRAP[1] + "%s" + WRAP[2]).encode() % (data, data)
+
+
+def parse_engine(text):
+    """Split the wrapper's engine stdout into (status, value, messages, error). Success is only
+    exactly "Out[1]= aienComputed[VALUE]" with no line containing "::", a value short enough that
+    the printer did not cut it, no $Failed/$Aborted and no evaluation request (Integrate[, ...)
+    left anywhere in it."""
+    messages = [ln for ln in text.splitlines() if "::" in ln]
     if messages:
-        return "unsupported", value, messages, "the engine reported: " + messages[0][:200]
-    if "$Failed" in value:
+        return "unsupported", "", messages, "the engine reported: " + messages[0][:200]
+    body = text.rstrip("\n")
+    if not body.startswith(OUT_MARK):
+        return "unsupported", "", messages, "the engine printed no result"
+    value = body[len(OUT_MARK):]
+    if value == UNSUPPORTED:
+        return "unsupported", "", messages, "the engine left the expression or an operation unevaluated"
+    if len(value) >= TRUNCATED_AT:
+        return "unsupported", "", messages, "the result is too long to print whole (the engine cut it)"
+    if not (value.startswith(COMPUTED[0]) and value.endswith(COMPUTED[1])):
+        return "unsupported", "", messages, "the engine printed an unexpected result"
+    value = value[len(COMPUTED[0]):-len(COMPUTED[1])]
+    if "$Failed" in value or "$Aborted" in value:
         return "unsupported", value, messages, "the engine returned $Failed"
-    m = HEAD.match(last_statement(expr))
-    if m and value.startswith(m.group(1) + "["):
+    m = EVAL_HEAD.search(value)
+    if m:
         return "unsupported", value, messages, "%s stayed unevaluated" % m.group(1)
     return "ok", value, messages, None
 
@@ -226,16 +324,23 @@ def checked_input(expression):
         return None, math_result("refused", error="empty expression")
     if len(data) > MAX_EXPR:
         return None, math_result("refused", error="expression longer than %d bytes" % MAX_EXPR)
+    if not single_expression(expression):
+        return None, math_result("refused", error="not exactly one bracket-balanced expression")
     return data, None
 
 
 ADMIT_REFUSAL = "outside the admitted mathematics (math-admit refused it)"
 
 
-def admit(data):
+def left_until(deadline, cap):
+    return min(cap, deadline - time.monotonic())
+
+
+def admit(data, deadline=None):
     """None when math-admit admits data (exit 0, nothing on stdout), else the refusal or error."""
-    status, out, err, rc = run_bounded(math_argv(MATH_ADMIT, (), "/math-admit"), data, ADMIT_WALL_S,
-                                       4096, MATH_ERR_CAP, math_limits)
+    deadline = deadline or time.monotonic() + RUN_WALL_S
+    status, out, err, rc = run_bounded(limited(MATH_LIMITS, math_argv(MATH_ADMIT, (), "/math-admit")),
+                                       data, left_until(deadline, ADMIT_WALL_S), 4096, ERR_CAP)
     if status != "done":
         return math_result("error", error="the admission gate failed: " + status)
     if rc == 2 and not out:
@@ -245,23 +350,36 @@ def admit(data):
     return None
 
 
-def evaluate(expression, data):
-    """The engine run alone, without the gate; run_math is the only production caller."""
-    status, out, err, rc = run_bounded(math_argv(AIEN_MATH), data, MATH_WALL_S, MATH_OUT_CAP,
-                                       MATH_ERR_CAP, math_limits)
+def engine_text(data, wall_s=MATH_WALL_S):
+    """(stdout text, None) from one engine run, or (None, failure result)."""
+    status, out, err, rc = run_bounded(limited(MATH_LIMITS, math_argv(AIEN_MATH)), data, wall_s,
+                                       MATH_OUT_CAP, ERR_CAP)
     if status == "timeout":
-        return math_result("timeout", error="the engine ran past %d s" % MATH_WALL_S)
+        return None, math_result("timeout", error="the engine ran past %d s" % MATH_WALL_S)
     if status == "too_large":
-        return math_result("too_large", error="the engine printed more than %d bytes" % MATH_OUT_CAP)
+        return None, math_result("too_large", error="the engine printed more than %d bytes" % MATH_OUT_CAP)
     if rc != 0:
         why = ("memory pool exhausted" if rc == 3 else "trap %d" % (rc - 100) if 100 <= rc < 200
-               else "CPU limit" if rc in (-signal.SIGXCPU, -signal.SIGKILL) else "exit %d" % rc)
-        return math_result("error", error="the engine stopped: " + why)
+               else "CPU limit" if rc in (-24, -9) else "exit %d" % rc)
+        return None, math_result("error", error="the engine stopped: " + why)
     try:
-        text = out.decode("utf-8")
+        return out.decode("utf-8"), None
     except UnicodeDecodeError:
-        return math_result("error", error="the engine printed invalid UTF-8")
-    st, value, messages, error = parse_engine(expression, text)
+        return None, math_result("error", error="the engine printed invalid UTF-8")
+
+
+def evaluate(expression, data, deadline=None):
+    """One engine run of the expression inside WRAP (run_math is the only production caller; the
+    caller has checked single_expression). The wrapper is internal: the expression alone is what
+    the service records as provenance."""
+    deadline = deadline or time.monotonic() + RUN_WALL_S
+    wall = left_until(deadline, MATH_WALL_S)
+    if wall <= 0:
+        return math_result("timeout", error="the request ran past its time budget")
+    text, failed = engine_text(wrapped(data), wall)
+    if failed:
+        return failed
+    st, value, messages, error = parse_engine(text)
     return math_result(st, value, error, messages)
 
 
@@ -271,22 +389,25 @@ def run_math(expression):
     data, refusal = checked_input(expression)
     if refusal:
         return refusal
-    if not os.access(BWRAP, os.X_OK):
+    if not (os.access(BWRAP, os.X_OK) and os.access(PRLIMIT, os.X_OK)):
         return math_result("error", error="sandbox missing")
     if not pinned(MATH_ADMIT, MATH_ADMIT_PIN):
         return math_result("error", error="admission gate does not match its pin")
     if not pinned(AIEN_MATH, AIEN_MATH_PIN):
         return math_result("error", error="engine does not match its pin")
+    if not manifest_ok():
+        return math_result("error", error="engine manifest missing or stale")
     if not MATH_SLOTS.acquire(blocking=False):
         return math_result("busy", error="the engine is busy")
     try:
-        return admit(data) or evaluate(expression, data)
+        deadline = time.monotonic() + RUN_WALL_S
+        return admit(data, deadline) or evaluate(expression, data, deadline)
     finally:
         MATH_SLOTS.release()
 
 
-# ---- Omega compile path: verbatim from allen_chat.py (sandbox_limits, sandboxed, signatures,
-# OMC_HINTS, OMC_ERR, TYPES, NAME, MAX_SOURCE and the omega() handler body). ----
+# ---- Omega compile path: the gateway's (allen_chat.py: sandboxed, signatures, OMC_HINTS, OMC_ERR,
+# TYPES, NAME, MAX_SOURCE and the omega() handler body), with bounded collection. ----
 
 MAX_SOURCE = 16384
 OMC_HINTS = {
@@ -317,34 +438,25 @@ TYPES = {"bool", "uchar", "ushort", "uint", "ulong", "byte", "short", "int", "lo
 NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]{0,62}$")
 
 
-def sandbox_limits():
-    os.setsid()
-    resource.setrlimit(resource.RLIMIT_CPU, (4, 5))
-    resource.setrlimit(resource.RLIMIT_AS, (512 << 20, 512 << 20))
-    resource.setrlimit(resource.RLIMIT_FSIZE, (4 << 20, 4 << 20))
-    resource.setrlimit(resource.RLIMIT_NOFILE, (64, 64))
-    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
-
-
-def sandboxed(tool, data, wall_s, out_cap, args=(), argv0=None):
-    """Run one pinned tool under bwrap: no network, no host files, read-only root,
-    a small empty tmpfs, its own pid namespace, no /proc, CPU/memory/file-size limits."""
-    argv = [
+def sandbox_argv(tool, args=(), argv0=None):
+    """The gateway's bwrap argv for omc and irwasm, unchanged."""
+    return [
         BWRAP, "--unshare-all", "--die-with-parent", "--new-session", "--clearenv",
         "--cap-drop", "ALL", "--ro-bind", tool, "/tool", "--size", str(8 << 20), "--tmpfs", "/tmp",
         "--dev", "/dev", "--remount-ro", "/", "--chdir", "/tmp",
     ] + (["--argv0", argv0] if argv0 else []) + ["--", "/tool"] + list(args)
-    p = subprocess.Popen(argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE, preexec_fn=sandbox_limits, close_fds=True)
-    try:
-        out, err = p.communicate(data, timeout=wall_s)
-    except subprocess.TimeoutExpired:
-        os.killpg(p.pid, signal.SIGKILL)
-        p.communicate()
+
+
+def sandboxed(tool, data, wall_s, out_cap, args=(), argv0=None):
+    """The gateway's sandboxed(): same argv, limits and return values (out, err, rc), with stdout
+    capped while it is read and stderr kept to its first 4096 bytes."""
+    status, out, err, rc = run_bounded(limited(OMEGA_LIMITS, sandbox_argv(tool, args, argv0)), data,
+                                       wall_s, out_cap, ERR_CAP)
+    if status == "timeout":
         return None, b"timeout", -9
-    if len(out) > out_cap:
+    if status == "too_large":
         return None, b"output too large", -1
-    return out, err[:4096], p.returncode
+    return out, err, rc
 
 
 def signatures(source):
@@ -379,7 +491,7 @@ def run_omega(source):
         return omega_refusal("input", "Send the Omega source as a string.")
     if len(source.encode("utf-8", "replace")) > MAX_SOURCE:
         return omega_refusal("input", "Omega source is limited to 16 KiB here.")
-    if not os.access(BWRAP, os.X_OK):
+    if not (os.access(BWRAP, os.X_OK) and os.access(PRLIMIT, os.X_OK)):
         return omega_refusal("sandbox", "The compile sandbox is missing.")
     if not (pinned(OMC, OMC_PIN) and pinned(IRWASM, IRWASM_PIN)):
         return omega_refusal("sandbox", "The compiler does not match its pin.")
@@ -432,13 +544,17 @@ SELFTEST_REFUSED = ("Run[x]", "URLRead[x]")
 
 def selftest():
     """Problems that must stop the service from starting; empty when both paths work."""
+    for tool in (BWRAP, PRLIMIT):
+        if not os.access(tool, os.X_OK):
+            return ["%s missing" % tool]
     problems = []
-    if not os.access(BWRAP, os.X_OK):
-        return ["%s missing" % BWRAP]
     for path, pin in ((MATH_ADMIT, MATH_ADMIT_PIN), (AIEN_MATH, AIEN_MATH_PIN), (OMC, OMC_PIN),
                       (IRWASM, IRWASM_PIN)):
         if not pinned(path, pin):
             problems.append("%s does not hash to %s" % (path, pin))
+    m = manifest_problem()
+    if m:
+        problems.append(m)
     if problems:
         return problems
     r = run_math(SELFTEST_MATH[0])

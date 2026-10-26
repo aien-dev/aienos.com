@@ -65,6 +65,8 @@ def expression(value):
         at = match.end()
         if token.startswith('"') and token[1:-1] not in UNITS:
             raise ValueError('Only approved unit strings are accepted')
+        if token == ',' and not nesting:
+            raise ValueError('Exactly one expression is required')
         if token[0].isalpha() and token not in MATH_HEADS and token not in VARIABLES:
             raise ValueError('Unsupported mathematical symbol: ' + token)
         if token in ('[', '{', '('):
@@ -78,6 +80,8 @@ def expression(value):
         raise ValueError('Expression contains disallowed syntax')
     if re.search(r'(?<![=<>])=(?!=)', value):
         raise ValueError('Assignments are not mathematical requests')
+    if '++' in value or '--' in value:
+        raise ValueError('Mutation operators are not mathematical requests')
     # Dependent variables may occur as heads in differential equations.
     # A head is a maximal letter run followed, after optional whitespace, by '['.
     # Scanned by hand: the regex form backtracks polynomially on long letter runs.

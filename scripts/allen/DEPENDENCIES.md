@@ -3,9 +3,9 @@
 First-party code belongs in seeded Omega. Everything below that is not `.om`
 is a recorded host dependency: what it does, why it is not `.om` yet, the `.om`
 program that replaces it, and the Omega feature that blocks the replacement.
-Host words for sockets, bounded HTTP and JSON are owned by OmegaNet in
-aien-dev/omega-mv#788, which explicitly excludes TLS; the TLS 1.3 client in seeded .om is owned by
-OmegaTLS; file and process host words already
+Native socket host words exist on omega-mv main; the bounded HTTP/JSON libraries on top of
+them are owned by OmegaNet in aien-dev/omega-mv#788 (pending), which explicitly excludes TLS;
+the TLS 1.3 client in seeded .om is owned by OmegaTLS; file and process host words already
 exist (OMEGESE.md section 10, native host extension).
 
 | Program | Language, version | What it does | Why not `.om` yet | `.om` successor | Blocking Omega feature |
@@ -25,6 +25,9 @@ exist (OMEGESE.md section 10, native host extension).
 | `test_*.py`, `probe.py`, `dev_proxy.py` | CPython 3.12.3 | Verification and local preview only; never deployed in the request path | Verification oracles are exempt | n/a | n/a |
 | bubblewrap | 0.9.0 (Ubuntu) | Namespace sandbox around omc and irwasm | Isolation tool around the compiler, not first-party logic | kept | n/a |
 | nginx (hub) | 1.28.3 (Ubuntu) | TLS, PROXY protocol, rate limits, routing | Existing edge | kept for now | Omega TLS server words (omega-mv#788) |
+| `science/allen_science.py`, `science/science_protocol.py`, `allen_science.py` gateway adapter | CPython 3.12.3, standard library only | Bounded loopback HTTP/JSON framing, six strict tool schemas, native function-call results and pane v1 envelopes; no external HTTP client in the service, no project store | Temporary adapter to the existing Python gateway while the bounded HTTP/JSON libraries are delivered; native Omega sockets already exist, so this is NOT a missing-socket claim | `allen-science.om` and gateway's `allen-gw.om`, using `seed/net/http.om` and `seed/json/json.om` | OmegaNet's bounded HTTP/JSON library delivery tracked by omega-mv#788; source PR/pin still pending OmegaNext's serial integration queue. Replace this issue reference with the actual merged PR before claiming the successor is available |
+| `science/science_sandbox.py`, `science/launch.py`, `science/install.sh`, `science/allen-science-fg` | CPython 3.12.3 stdlib, POSIX install/launcher glue, bubblewrap 0.9.0 and util-linux 2.39.3 | Dedicated-user empty-network-namespace service, one inherited loopback listener, fixed pinned compute binaries, bounded resources/output and read-only mounts | Host isolation boundary around native Omega units, recorded explicitly, not represented as generated Omega | `allen-science-launch.om` using native process/file/socket words plus aien-supervise's merged sandbox contract | Supervisor policy integration and inherited-listener boundary; no additional compiler word is asserted missing |
+| `science/math-admit.om` and `aien-math` | Seeded Omega; admission compiler sha256 734f0a39319fbfa930bcc62cb30dbf06d47d78e126372b74f5baf478e6126b61; aien-math uses its own tools/omc.pin | Positive mathematical symbol/unit admission, then symbolic/numeric computation in a no-network sandbox | Native Omega, not a host-language dependency | Implemented; exact source/engine pins in engine.json and sandbox constants | No Wolfram runtime, account, key or external CAS |
 
 The compiler `omc` (sha256 `734f0a39319fbfa930bcc62cb30dbf06d47d78e126372b74f5baf478e6126b61`)
 and `irwasm` (sha256 `2d235a70c39ac1461a09c41e10e058d962b767ae83893cdcfc693ef6c47182e6`)

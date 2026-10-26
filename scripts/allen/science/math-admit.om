@@ -126,6 +126,14 @@ end
 if or pairat p 47 47 or pairat p 47 42 or pairat p 42 47 or pairat p 40 42 pairat p 42 41
 ret false
 end
+if eq c 44
+if eq get level 0 0
+ret false
+end
+end
+if or pairat p 43 43 pairat p 45 45
+ret false
+end
 if or eq c 91 or eq c 93 or eq c 123 or eq c 125 or eq c 40 eq c 41
 ret brackets c
 end

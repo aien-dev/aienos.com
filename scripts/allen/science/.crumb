@@ -1,0 +1,33 @@
+{
+  "exports": [
+    "pane-contract.om",
+    "math-admit.om",
+    "science_protocol.py",
+    "allen_science.py",
+    "science_sandbox.py"
+  ],
+  "extensions": {
+    "generated": {
+      "children": [],
+      "children_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compiled_at": "2026-10-26T16:59:46Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:f01bcb9f4c09cf2ca4fe12de813480917b607bd2f6c1d6fce1b7419f5c7ddf91",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 14,
+      "generated_at_commit": "0d586245c17e51c5b2f90da113fb62429751592f",
+      "source_tree": "sha256:19df1488b3447a54adb70b25ad01daa5bc5bf4406fd4724efa18f4191bec8ea3"
+    }
+  },
+  "invariants": [
+    "No deployment, GitHub, arbitrary network, credentials or anonymous project persistence.",
+    "Math expressions pass the pure-Omega positive admission gate before the pinned aien-math engine.",
+    "Unknown tools, fields, unsupported or truncated engine results fail closed.",
+    "The service and gateway install identical copies of the one canonical science_protocol.py.",
+    "The manifest binds measured engine evidence to the exact enforced source and binary pins."
+  ],
+  "name": "science",
+  "purpose": "Isolated compute-only Allen tools and versioned glass-pane protocol; temporary host transport around pinned Omega computation.",
+  "schema_version": "1.0.0"
+}

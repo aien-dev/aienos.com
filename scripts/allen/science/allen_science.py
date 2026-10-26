@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import re
 import secrets
 import socket
 import socketserver
@@ -15,15 +16,24 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from science_protocol import MAX_BYTES, event, packed, validate
 from science_protocol import content as validate_content
-from science_sandbox import run_math, run_omega, selftest
+from science_sandbox import AIEN_MATH_PIN, run_math, run_omega, selftest
 ENGINE = 'aien-math'
-SOURCE = 'https://github.com/aien-dev/aien-math'
+SOURCE = ''  # Source publication and distribution license await the copyright holder.
 MANIFEST = Path(__file__).with_name('engine.json')
+
+
+def load_manifest():
+    manifest = json.loads(MANIFEST.read_text())
+    if type(manifest) is not dict or not re.fullmatch(r'[0-9a-f]{40}', manifest.get('commit','')):
+        raise ValueError('Missing engine source identity')
+    if manifest.get('binary_sha256') != AIEN_MATH_PIN:
+        raise ValueError('Engine provenance does not match enforced binary pin')
+    return manifest
 
 
 def evidence(status, expression='', result=''):
     # No default guessed source pin or corpus score.
-    manifest = json.loads(MANIFEST.read_text())
+    manifest = load_manifest()
     return {'status': status, 'engine': ENGINE if expression else '', 'expression': expression,
             'result': result, 'source': SOURCE if expression else '', 'commit': manifest['commit'] if expression else ''}
 
@@ -43,6 +53,8 @@ def perform(name, arguments):
         provenance = evidence('computed' if ok else 'unsupported', args['expression'], raw)
         content = {'text': answer if ok else 'Not supported yet. aien-math did not produce a supported result for this expression.'}
         result = ('aien-math exact output (not a proof of correctness): ' + answer) if ok else 'NOT SUPPORTED. Do not invent an answer or substitute model arithmetic.'
+        if len(result) > 8000:
+            result = 'The complete aien-math output is in the pane. It exceeds the model context limit; do not infer omitted values or claim to have read the full result.'
     elif name == 'omega_compile':
         outcome = run_omega(args['source'])
         content = {'source':args['source'],'language':'omega'}
@@ -72,7 +84,7 @@ def perform(name, arguments):
         event(item['event'], item['data'])
         if len(packed(item['data']).encode()) > MAX_BYTES:
             raise ValueError('Pane result exceeds output limit')
-    return {'events':events,'result':result[:8000]}
+    return {'events':events,'result':result}
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -134,6 +146,7 @@ if __name__ == '__main__':
     parser.add_argument('--listen', default='127.0.0.1:18113', choices=['127.0.0.1:18113'])
     parser.add_argument('--listen-fd', type=int)
     options = parser.parse_args()
+    load_manifest()
     problems = selftest()
     if problems:
         raise SystemExit('Science sandbox self-test refused startup: ' + '; '.join(problems))
