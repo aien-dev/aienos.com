@@ -55,6 +55,11 @@
 .allen-intro-ghost, #allen-intro-typed { grid-area: 1 / 1; }
 .allen-intro-ghost { visibility: hidden; }
 #allen-intro-typed strong, .allen-intro-ghost strong { color: var(--text-primary); }
+.allen-intro-letter { position: relative; animation: allen-letter-fade 260ms both, allen-letter-rise 360ms both, allen-letter-color 900ms both; }
+@keyframes allen-letter-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes allen-letter-rise { from { top: 6px; } to { top: 0; } }
+@keyframes allen-letter-color { from { color: rgb(255, 212, 150); } to { color: rgb(234, 238, 252); } }
+@media (prefers-reduced-motion: reduce) { .allen-intro-letter { animation: none; } }
 .allen-intro-chips { display: flex; flex-wrap: wrap; gap: .5rem; }
 .allen-intro-chips button {
   min-height: 2.5rem;

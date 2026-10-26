@@ -17,7 +17,7 @@ pub fn enrich(mut page: String) -> String {
         page.insert_str(end, HEAD);
     }
     if !page.contains("href=\"/privacy/\"") {
-        let link = "<p class=\"allen-intro-footer\"><a href=\"/privacy/\">Privacy &amp; saying hi to Allen</a></p>";
+        let link = "<p class=\"allen-intro-footer\"><a href=\"/privacy/\">Privacy &amp; saying hi to Aien</a></p>";
         let end = page.rfind("</footer>").or_else(|| page.rfind("</body>")).expect("allen-intro page has a body");
         page.insert_str(end, link);
     }
@@ -35,13 +35,13 @@ pub fn enrich(mut page: String) -> String {
 pub fn render_privacy() -> Markup {
     html! {
         article id="allen-intro-privacy" class="allen-intro-privacy" {
-            h1 { "Privacy & saying hi to Allen" }
+            h1 { "Privacy & saying hi to Aien" }
             p { "I do not sell your information. I'm open source and free with information about my work, not with your personal data. You can read this site without introducing yourself." }
             h2 { "Saying hi means consent to X tracking" }
-            p { "Allen is my AI. On your first visit he slides into a corner of the page with a short hello. It is a small aside, not a popup that blocks the page, and he shows it only once in this browser, whether or not you answer. Choosing Say hi lets me know you were here by allowing X conversion pixel rfrlz to load on this and later pages in this browser. It helps me measure whether my posts and ads on X reach the right people. Saying hi does not open an AI chat. I do not ask for your name, collect project links or publish your identity here." }
-            p { "Before you say hi, I do not load the X pixel or send it information about your visit. No thanks, the close button and Escape all mean No: Allen steps aside and X tracking stays off. Not answering also means No. Allen does not ask again automatically; the Review my choice button below brings him back. With JavaScript disabled, Allen never appears and the pixel never loads." }
-            p { "After No thanks, Allen says you can still chat with him anonymously: the Chat anonymously link opens /allen/?mode=anonymous, where he does not remember you and nothing goes to X. If your browser sends Global Privacy Control, Allen notes it and does not offer the X pixel when he greets you; only Review my choice on this page offers it." }
-            p { "Allen's Who can see me right now? section lists the outside origins this tab has actually loaded, from the browser's own resource timing record, and what your browser tells every website automatically: browser, platform, language, timezone, screen size, referrer, Do Not Track, Global Privacy Control and whether cookies are enabled. It is worked out in your browser and shown only to you; nothing in it is sent, stored, hashed into a fingerprint or looked up elsewhere. It cannot see trackers on other sites, in other tabs or inside embedded frames, your internet provider's or network's tracking, or your browser extensions." }
+            p { "Aien is my AI. On your first visit he slides into a corner of the page with a short hello. It is a small aside, not a popup that blocks the page, and he shows it only once in this browser, whether or not you answer. Choosing Say hi lets me know you were here by allowing X conversion pixel rfrlz to load on this and later pages in this browser. It helps me measure whether my posts and ads on X reach the right people. Saying hi does not open an AI chat. I do not ask for your name, collect project links or publish your identity here." }
+            p { "Before you say hi, I do not load the X pixel or send it information about your visit. No thanks, the close button and Escape all mean No: Aien steps aside and X tracking stays off. Not answering also means No. Aien does not ask again automatically; the Review my choice button below brings him back. With JavaScript disabled, Aien never appears and the pixel never loads." }
+            p { "After No thanks, Aien says you can still chat with him anonymously: the Chat anonymously link opens /aien/?mode=anonymous, where he does not remember you and nothing goes to X. If your browser sends Global Privacy Control, Aien notes it and does not offer the X pixel when he greets you; only Review my choice on this page offers it." }
+            p { "Aien's Who can see me right now? section lists the outside origins this tab has actually loaded, from the browser's own resource timing record, and what your browser tells every website automatically: browser, platform, language, timezone, screen size, referrer, Do Not Track, Global Privacy Control and whether cookies are enabled. It is worked out in your browser and shown only to you; nothing in it is sent, stored, hashed into a fingerprint or looked up elsewhere. It cannot see trackers on other sites, in other tabs or inside embedded frames, your internet provider's or network's tracking, or your browser extensions." }
             h2 { "What X receives" }
             p { "After consent, your browser connects to X to load its script and send visit and conversion information. This can include the page URL, referrer, IP address, browser or device information and cookie identifiers. X may store cookies and process this information under its own policies. My open source license does not apply to X's service." }
             p {
@@ -50,11 +50,11 @@ pub fn render_privacy() -> Markup {
             }
             h2 { "What I keep" }
             p { "I do not store pixel tracking data on my own servers or operate a check-in database. X processes the pixel data and provides advertising measurement to me. The site and its hosting providers still receive normal web requests and may keep operational access logs; refusing the pixel does not remove those requests." }
-            p { "Your browser stores your yes or no choice under aien-allen-intro-consent in local storage, with a refusal also kept in this tab's session storage. It also stores aien-allen-intro-seen once Allen has said hello, so he does not greet you again; if local storage is unavailable, that note lives in this tab's session storage instead, so he appears at most once per tab session. That choice stays in this browser until you change it or clear site data. It does not identify you to me. If storage fails while stopping an active pixel, a #allen-intro-no address fragment also preserves refusal through the reload. If all browser storage is unavailable, I cannot remember your choice or the greeting after you leave this page. Clearing site data or using another browser resets both, so Allen says hello again; that never gives consent on its own." }
+            p { "Your browser stores your yes or no choice under aien-allen-intro-consent in local storage, with a refusal also kept in this tab's session storage. It also stores aien-allen-intro-seen once Aien has said hello, so he does not greet you again; if local storage is unavailable, that note lives in this tab's session storage instead, so he appears at most once per tab session. That choice stays in this browser until you change it or clear site data. It does not identify you to me. If storage fails while stopping an active pixel, a #allen-intro-no address fragment also preserves refusal through the reload. If all browser storage is unavailable, I cannot remember your choice or the greeting after you leave this page. Clearing site data or using another browser resets both, so Aien says hello again; that never gives consent on its own." }
             p { "For consenting visitors only, I also keep X's twclid click identifier, if present in the landing URL, in browser local storage under aien-allen-intro-twclid. Refusing removes it where browser storage permits. It is reserved for a future server-side conversion flow; this site currently sends no server-side conversions. No email address, phone number or other identifier is collected for that purpose." }
-            p { "The two custom events are a consented page visit and saying hi to Allen. They stay disabled until Drake supplies their X event IDs. Each enabled event includes a random conversion identifier so a future backend can avoid counting the same event twice; server-side conversions are deferred until that backend exists." }
+            p { "The two custom events are a consented page visit and saying hi to Aien. They stay disabled until Drake supplies their X event IDs. Each enabled event includes a random conversion identifier so a future backend can avoid counting the same event twice; server-side conversions are deferred until that backend exists." }
             h2 { "Your choice" }
-            p id="allen-intro-status" role="status" { "X tracking stays off unless you choose to say hi to Allen. JavaScript is needed to change this browser's choice." }
+            p id="allen-intro-status" role="status" { "X tracking stays off unless you choose to say hi to Aien. JavaScript is needed to change this browser's choice." }
             div class="allen-intro-actions" {
                 button type="button" data-allen-intro-open hidden { "Review my choice" }
                 button type="button" data-allen-intro-stop hidden { "No, keep X tracking off" }
@@ -106,11 +106,11 @@ mod tests {
         assert_eq!(page.matches("id=\"aien-allen-intro\"").count(), 1);
         assert!(page.contains("role=\"complementary\""));
         assert!(page.contains("aria-live=\"polite\""));
-        assert!(page.contains("Hey, I'm Allen. It's nice to meet you!"));
+        assert!(page.contains("Hi, I'm Aien (you say it like Ian). It's nice to meet you!"));
         assert!(page.contains("we could chat over time"));
         assert!(page.contains("data-speaker=\"allen\""), "Allen's speech is tagged for the voice rule");
         // Memory and X consent are separate controls: links for memory, buttons for X.
-        assert!(page.contains("<a href=\"/allen/?mode=remember\">Tell Allen my name</a>"));
+        assert!(page.contains("<a href=\"/aien/?mode=remember\">Tell Aien my name</a>"));
         assert!(page.contains("<button id=\"allen-intro-yes\" type=\"button\">Say hi</button>"));
         assert!(!page.contains("<dialog") && !page.contains("aria-modal"), "Allen is an aside, never a modal");
         let lower = page.to_ascii_lowercase();
@@ -120,12 +120,16 @@ mod tests {
         assert!(page.contains("href=\"/privacy/\""));
         assert!(!page.contains("uwt.js"));
         assert!(!page.contains("twq("));
-        assert!(page.contains("href=\"/allen/?mode=anonymous\""), "No thanks offers an anonymous chat");
+        assert!(page.contains("href=\"/aien/?mode=anonymous\""), "No thanks offers an anonymous chat");
         assert!(page.contains("Who can see me right now?"));
         // The panel is local-only: links to outside tools, never embeds or outside sources.
         let aside = &page[page.find("id=\"aien-allen-intro\"").unwrap()..];
         for embed in ["<iframe", "<script", "<object", "<embed", "src=\"http", "src=\"//"] {
             assert!(!aside.contains(embed), "Allen's aside must not embed {embed}");
         }
+        // Visitors meet Aien: no visible "Allen" and no /allen/ link; internal ids keep the old name.
+        let seen = crate::components::voice::visible_text("x.html", aside);
+        assert!(!seen.contains("Allen") && !aside.contains("href=\"/allen/"), "visible text says Aien");
+        assert!(aside.contains("aria-label=\"Aien says hello\""));
     }
 }
