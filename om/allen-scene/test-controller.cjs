@@ -20,6 +20,8 @@ class Canvas extends Events {
   const document=new Events();document.hidden=false;
   const motion=new Events();motion.matches=false;
   const window=new Events(),raf=new Map(),resizes=[],intersections=[];let serial=0;
+  let drawCost=2,measurementClock=0;
+  const connection={saveData:false};
   const wasm=fs.readFileSync('public/allen/scene.wasm');
   const audio={enter:0,pause:0,resume:0,stop:0};
   window.AllenAudio={enter:()=>{audio.enter++;return Promise.resolve(true);},pause:()=>audio.pause++,resume:()=>{audio.resume++;return Promise.resolve();},stop:()=>audio.stop++};
@@ -27,6 +29,7 @@ class Canvas extends Events {
     ImageData:class{constructor(data,width,height){this.data=data;this.width=width;this.height=height;}},
     CustomEvent:class{constructor(type,options){this.type=type;Object.assign(this,options);}},
     matchMedia:()=>motion,devicePixelRatio:1,
+    navigator:{connection},performance:{now:()=>{measurementClock+=drawCost;return measurementClock;}},
     fetch:async url=>{assert.equal(url,'/allen/scene.wasm');return {ok:true,arrayBuffer:async()=>wasm};},
     requestAnimationFrame:fn=>{const id=++serial;raf.set(id,fn);return id;},cancelAnimationFrame:id=>raf.delete(id),
     ResizeObserver:class{constructor(fn){this.fn=fn;resizes.push(this);}observe(){}disconnect(){this.disconnected=true;}},
@@ -101,5 +104,63 @@ class Canvas extends Events {
   assert.ok(audio.stop>stopsBeforeSkip,'idle entry stops owned birth audio');
   assert.equal(skippedCanvas.dataset.sceneEngine,'native-wasm','skip retains live native scene');
   skipped.destroy();assert.equal(raf.size,0);
+  let wall=5000;
+  function frames(count) {
+    for(let i=0;i<count;i++) {
+      wall+=1000/60;
+      const batch=[...raf];raf.clear();for(const [,fn] of batch)fn(wall);
+    }
+  }
+  const adaptiveCanvas=new Canvas();adaptiveCanvas.box={width:320,height:200};
+  const adaptive=window.AllenScene.mount(adaptiveCanvas,{opening:'idle',interactive:true});
+  await adaptive.ready;
+  assert.equal(adaptiveCanvas.dataset.sceneQuality,'full-60');
+  const firstDraw=adaptiveCanvas.draws;
+  frames(5);assert.equal(adaptiveCanvas.draws-firstDraw,5,'capable mode draws every animation callback, not every other frame');
+  drawCost=24;
+  frames(7);assert.equal(adaptiveCanvas.dataset.sceneQuality,'full-60','isolated slow samples do not lower quality');
+  frames(2);assert.equal(adaptiveCanvas.dataset.sceneQuality,'balanced-60','sustained measured draw cost lowers resolution first');
+  const lowerWidth=adaptiveCanvas.width;
+  frames(20);assert.equal(adaptiveCanvas.dataset.sceneQuality,'balanced-60','quality hold prevents oscillation');
+  assert.ok(lowerWidth<320);
+  drawCost=2;frames(250);
+  assert.equal(adaptiveCanvas.dataset.sceneQuality,'full-60','sustained cheap frames restore quality');
+  assert.equal(adaptiveCanvas.width,320);
+  drawCost=24;frames(260);
+  assert.equal(adaptiveCanvas.dataset.sceneQuality,'small-30','pacing decreases only after bounded resolution steps');
+  const pacedDraw=adaptiveCanvas.draws;frames(20);
+  assert.ok(adaptiveCanvas.draws-pacedDraw<20,'last quality level reduces draw cadence');
+  assert.ok(adaptiveCanvas.draws-pacedDraw>0);
+  const qualityBeforeFrame=adaptiveCanvas.dataset.sceneQuality;
+  adaptive.frame(25000);
+  assert.equal(adaptiveCanvas.dataset.sceneQuality,qualityBeforeFrame,'explicit frame does not measure or retune quality');
+  assert.equal(raf.size,0,'explicit frame remains a single draw');
+  assert.equal(adaptiveCanvas.style.touchAction,'pinch-zoom');
+  const zoomEvent={type:'wheel',ctrlKey:true,deltaY:100,preventDefault(){this.prevented=true;}};
+  adaptiveCanvas.dispatchEvent(zoomEvent);
+  assert.equal(zoomEvent.prevented,undefined,'browser pinch/Ctrl+wheel is not intercepted');
+  const sceneWheel={type:'wheel',deltaY:100,preventDefault(){this.prevented=true;}};
+  adaptiveCanvas.dispatchEvent(sceneWheel);assert.ok(sceneWheel.prevented);
+  adaptive.zoom('in');adaptive.zoom('out');
+  assert.throws(()=>adaptive.zoom('other'),/Scene zoom/);
+  for(const [pointerId,clientX] of [[1,10],[2,30]]) adaptiveCanvas.dispatchEvent({type:'pointerdown',pointerType:'touch',button:0,pointerId,clientX,clientY:10});
+  adaptiveCanvas.dispatchEvent({type:'pointermove',pointerType:'touch',pointerId:2,clientX:50,clientY:10});
+  for(const pointerId of [1,2]) adaptiveCanvas.dispatchEvent({type:'pointercancel',pointerId});
+  adaptive.calm(true);frames(2);
+  assert.equal(adaptiveCanvas.dataset.sceneQuality,'calm');
+  assert.equal(raf.size,0,'explicit calm has no continuous loop');
+  adaptive.calm(false);assert.ok(raf.size>0,'explicit resume restores animation');
+  adaptive.destroy();assert.equal(adaptiveCanvas.style.touchAction,undefined);
+  connection.saveData=true;
+  const saverCanvas=new Canvas(),saver=window.AllenScene.mount(saverCanvas);
+  await saver.ready;frames(2);
+  assert.equal(saverCanvas.dataset.sceneQuality,'calm','saveData defaults to static presence');
+  assert.equal(saverCanvas.dataset.scenePhase,'presence');assert.equal(raf.size,0);
+  saver.destroy();
+  const overrideCanvas=new Canvas(),override=window.AllenScene.mount(overrideCanvas,{calm:false,opening:'idle'});
+  await override.ready;assert.equal(overrideCanvas.dataset.sceneQuality,'full-60');assert.ok(raf.size>0);
+  override.destroy();connection.saveData=false;drawCost=2;
+  assert.equal(raf.size,0);
+  console.log('Adaptive controller: every-callback initial cadence, measured cost hysteresis, bounded resolution/pacing, explicit-frame isolation, accessible pinch, zoom API, calm/saveData');
   console.log('Controller lifecycle: ready, aliases, native rendering, keys, speech, hidden/offscreen pause, reduced motion, compact, zero-size mount, bounded opening options, teardown');
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -57,7 +57,8 @@ Scene identity and deliberate web changes
   mind and sky, with the native bar hidden and fluid asleep. It does not pull
   browser DOM panes or arbitrary website content into the tube.
 - Flowing input glyphs, pointer/keyboard sky exploration, visibility pause,
-  reduced-motion static state and responsive sizing are deliberate web additions.
+  reduced-motion static state, responsive sizing and adaptive frame quality are
+  deliberate web additions.
 - Pane/UI text and input belong to the page, not this renderer. Native system
   hooks, microphone, model calls, identity/memory and telemetry are not copied.
 
@@ -76,7 +77,9 @@ WolframLanguageEvaluator: (256-(256 t)^2/256)^2/256/256 -> (-1+t^2)^2.
 WolframLanguageEvaluator: (256 t)^2 (768-2 (256 t))/65536/256 -> (3-2 t)t^2.
 WolframLanguageEvaluator: Log[2,(r^2+f)/r^2]/2-Log[2,Sqrt[r^2+f]/r]
 with r>0,f>=0 -> 0. The native integer law remains authoritative.
-WolframLanguageEvaluator: 1000/30 -> 100/3 ms (browser scheduling policy).
+WolframLanguageEvaluator: 1000/60 -> 50/3 ms frame budget; (1000/60)/2 -> 25/3 ms
+recovery threshold; 1280*{1,3/4,9/16} -> {1280,960,720} render bounds.
+These are scheduling policies, not device measurements.
 WolframLanguageEvaluator: 48000 (12300-11360)/1000 -> 45120 audio frames.
 
 Generation: nice -n 19 ionice -c3 sh om/allen-scene/check.sh --generate
@@ -91,8 +94,9 @@ Neither is an emulator/hardware receipt. Observed results belong to the parent
 evidence, not this provenance description. Compilation alone is not verification.
 
 Browser API
-AllenScene.mount(canvas,{compact,interactive,opening}) returns key(text), speak(text),
-mode(name), enter('idle'|'dusk'|'birth'), home(), frame(ms), destroy(), and ready.
+AllenScene.mount(canvas,{compact,interactive,opening,calm}) returns key(text),
+speak(text), mode(name), enter('idle'|'dusk'|'birth'), home(), zoom('in'|'out'),
+calm(enabled), frame(ms), destroy(), and ready.
 opening accepts only 'idle', 'dusk' or 'birth'; other provided values are refused.
 Its default is full-page dusk or compact idle. Compact remains static idle even
 with an explicit animated opening. Use opening:'idle' for the settled home shell,
@@ -109,3 +113,14 @@ the visual controller does not duplicate AudioPort's audio context. It pauses,
 resumes and stops that birth audio when its scene pauses or is destroyed.
 Compact and reduced-motion scenes are static without a continuous frame loop;
 hidden/offscreen scenes pause, preserving visible-time continuity.
+Animated full scenes start at every animation callback and full bounded resolution.
+Eight consecutive measured native draws above 50/3 ms lower one level; 180
+consecutive draws below 25/3 ms raise one level; each change holds 60 samples.
+Levels lower render scale to 3/4, then 9/16, and only then skip alternate 60 Hz
+callbacks. data-scene-quality names the level; data-scene-draw-ms reports a
+periodic local draw sample. Explicit frame(ms) is never measured.
+calm defaults to navigator.connection.saveData and gives static presence; an
+explicit calm option or calm(enabled) overrides it.
+Interactive canvases use touch-action:pinch-zoom: browser pinch and Ctrl/Cmd+wheel
+page zoom are never intercepted. Two-touch pointer streams that the browser
+still delivers zoom the sky; zoom('in'|'out') serves visible page controls.

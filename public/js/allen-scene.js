@@ -4,7 +4,7 @@
  * This source pin was staged, not hardware-confirmed by the available report.
  * Web opening reuses native dusk; enter('birth') is the original binary merger.
  * Catalogue/licences and native dependency boundary: om/allen-scene/provenance.txt.
- * WolframLanguageEvaluator: 1000/30 -> 100/3 ms;
+ * WolframLanguageEvaluator: 1000/60 -> 50/3 ms; (1000/60)/2 -> 25/3 ms;
  * 48000 (12300-11360)/1000 -> 45120 frames (native chirp non-silent window).
  */
 (() => {
@@ -32,13 +32,36 @@
     let ex, image, width = 0, height = 0, disposed = false, failed = false;
     let raf = 0, lastWall = 0, clock = 20000, kind = 0, modeValue = 0;
     let visible = true, reduced = motion.matches, dirty = true, resizePending = true;
+    const connection = typeof navigator === 'object' ? navigator.connection : null;
+    let calm = options.calm === undefined ? Boolean(connection && connection.saveData) : Boolean(options.calm);
+    let quality = 0, overBudget = 0, underBudget = 0, qualityHold = 0, samples = 0;
+    const renderScales = [1, 3/4, 9/16, 9/16];
+    const qualityNames = ['full-60','balanced-60','small-60','small-30'];
+    const frameBudget = 1000/60;
+    // Wolfram: 1000/60 -> 50/3 ms; budget/2 -> 25/3; 1280*{1,3/4,9/16} -> {1280,960,720}.
+    function still() { return reduced || compact || calm; }
+    function qualityLabel() { canvas.dataset.sceneQuality = reduced ? 'reduced' : compact ? 'compact' : calm ? 'calm' : qualityNames[quality]; }
+    function measureDraw(cost) {
+      samples++;
+      if(samples % 60 === 0) canvas.dataset.sceneDrawMs=String(cost);
+      if(qualityHold) { qualityHold--; return; }
+      overBudget=cost>frameBudget?overBudget+1:0;
+      underBudget=cost<frameBudget/2?underBudget+1:0;
+      const next=overBudget>=8?Math.min(3,quality+1):underBudget>=180?Math.max(0,quality-1):quality;
+      if(next!==quality) {
+        quality=next;qualityHold=60;overBudget=underBudget=0;
+        resizePending=dirty=true;canvas.dataset.sceneDrawMs=String(cost);qualityLabel();
+      }
+    }
     let letterHead = 0, wordRead = 0, wordWrite = 0, lastWord = -1000, speakUntil = 0, keyUntil = 0;
     let ra = 113697000, dec = -72757000, fov = 80000, viewPending = false;
-    let dragId = null, dragX = 0, dragY = 0;
+    let dragId = null, dragX = 0, dragY = 0, pinchDistance = 0;
+    const touches = [{id:null,x:0,y:0},{id:null,x:0,y:0}];
     let ownsAudio = false, completeSent = false, resolveSize, rejectSize;
     let pendingEnter = compact || opening === 'idle' ? 0 : opening === 'birth' ? 2 : 1, pendingStatic = false;
     canvas.dataset.sceneSource = PIN;
     canvas.dataset.sceneEngine = 'loading';
+    qualityLabel();
     function listen(target, name, fn, opts) {
       target.addEventListener(name, fn, opts);
       cleanup.push(() => target.removeEventListener(name, fn, opts));
@@ -49,13 +72,13 @@
     }
     function awake() { return !disposed && !failed && !document.hidden && visible; }
     function request() {
-      if (!raf && ex && awake() && (!(reduced || compact) || dirty)) raf = requestAnimationFrame(tick);
+      if (!raf && ex && awake() && (!still() || dirty)) raf = requestAnimationFrame(tick);
     }
     function size() {
       const box = canvas.getBoundingClientRect();
       if (box.width <= 0 || box.height <= 0) return false;
       // Policy bound, not a physical-resolution claim. Same aspect ratio, native design scaling.
-      const scale = Math.min(devicePixelRatio || 1, 1280 / Math.max(box.width,box.height));
+      const scale = Math.min(devicePixelRatio || 1, 1280 / Math.max(box.width,box.height))*renderScales[quality];
       const w = Math.max(64,Math.round(box.width*scale)), h = Math.max(64,Math.round(box.height*scale));
       resizePending = false;
       if (w === width && h === height) return true;
@@ -129,22 +152,27 @@
       raf=0;
       if(!awake()) {lastWall=0;return;}
       const dt=lastWall?wall-lastWall:0;
-      if(!(reduced || compact) && dt<1000/30 && !dirty) {request();return;}
+      // Lowest level skips alternate 60 Hz callbacks; 25 ms tolerates timestamp jitter around 50/3 and 100/3 ms.
+      if(!still() && quality===3 && dt<25 && !dirty) {request();return;}
       lastWall=wall;
-      if(!(reduced || compact)) clock+=dt; // source clock advances; native integrators bound their own catch-up
+      if(!still()) clock+=dt; // source clock advances; native integrators bound their own catch-up
+      const sample=!still() && !resizePending && !viewPending;
+      const began=sample?performance.now():0;
       let drawn=false;
       try { drawn=render(); } catch(err) { error(err); }
-      if(drawn && !(reduced || compact)) request();
+      if(sample && drawn) measureDraw(performance.now()-began);
+      if(drawn && !still()) request();
     }
     function motionChanged() {
       reduced=motion.matches;lastWall=0;cancelAnimationFrame(raf);raf=0;stopAudio();
-      if(reduced) { reset(0); pendingStatic=true; }
+      if(still()) { reset(0); pendingStatic=true; }
+      overBudget=underBudget=0;qualityLabel();
       dirty=true;request();
     }
     function visibility() {
       lastWall=0;
       if(!awake()) {cancelAnimationFrame(raf);raf=0;if(ownsAudio && window.AllenAudio) window.AllenAudio.pause();}
-      else {if(ownsAudio && !reduced && window.AllenAudio) void window.AllenAudio.resume();dirty=true;request();}
+      else {if(ownsAudio && !still() && window.AllenAudio) void window.AllenAudio.resume();overBudget=underBudget=0;dirty=true;request();}
     }
     function changeView(dx,dy,zoom) {
       if(!interactive || kind===1 && clock<4200) return;
@@ -186,7 +214,7 @@
       },
       enter(name='dusk') {
         if(disposed) return;
-        const next=compact || reduced || name==='idle'?0:(name==='birth' || name==='boot' || name==='night')?2:1;
+        const next=still() || name==='idle'?0:(name==='birth' || name==='boot' || name==='night')?2:1;
         if(next===2) ownsAudio=false; // caller starts audio in this same gesture before entering
         pendingEnter=next;reset(next);
         if(next===2 && window.AllenAudio) {
@@ -197,6 +225,16 @@
         request();
       },
       home,
+      zoom(direction) {
+        if(direction!=='in' && direction!=='out') throw new RangeError('Scene zoom must be in or out');
+        changeView(0,0,direction==='in'?1/1.1:1.1);
+      },
+      calm(enabled) {
+        if(disposed) return;
+        calm=Boolean(enabled);lastWall=0;cancelAnimationFrame(raf);raf=0;
+        if(calm) reset(0);
+        overBudget=underBudget=0;qualityLabel();dirty=true;request();
+      },
       frame(ms) {
         if(!Number.isFinite(ms) || ms<0 || ms>86400000) throw new RangeError('Scene time outside one day');
         cancelAnimationFrame(raf);raf=0;lastWall=0;
@@ -223,21 +261,46 @@
       const observer=new IntersectionObserver(entries => {visible=entries[0].isIntersecting;visibility();});observer.observe(canvas);cleanup.push(() => observer.disconnect());
     }
     if(interactive) {
-      const oldTouch=canvas.style.touchAction;canvas.style.touchAction='none';cleanup.push(() => {canvas.style.touchAction=oldTouch;});
+      const oldTouch=canvas.style.touchAction;canvas.style.touchAction='pinch-zoom';cleanup.push(() => {canvas.style.touchAction=oldTouch;});
       listen(canvas,'pointerdown',event => {
         if(event.button!==0) return;
+        if(event.pointerType==='touch') {
+          const slot=touches.find(touch => touch.id===null);
+          if(!slot) return;
+          slot.id=event.pointerId;slot.x=event.clientX;slot.y=event.clientY;
+          if(touches[0].id!==null && touches[1].id!==null) pinchDistance=Math.hypot(touches[0].x-touches[1].x,touches[0].y-touches[1].y);
+        }
         dragId=event.pointerId;dragX=event.clientX;dragY=event.clientY;
         canvas.setPointerCapture(dragId);canvas.focus({preventScroll:true});
       });
       listen(canvas,'pointermove',event => {
+        if(event.pointerType==='touch') {
+          const touch=touches.find(touch => touch.id===event.pointerId);
+          if(!touch) return;
+          touch.x=event.clientX;touch.y=event.clientY;
+          if(touches[0].id!==null && touches[1].id!==null) {
+            const distance=Math.hypot(touches[0].x-touches[1].x,touches[0].y-touches[1].y);
+            if(distance>0 && pinchDistance>0) changeView(0,0,pinchDistance/distance);
+            pinchDistance=distance;return;
+          }
+        }
         if(event.pointerId!==dragId) return;
         const box=canvas.getBoundingClientRect();
         changeView(-(event.clientX-dragX)*fov*1000/Math.max(1,box.width),(event.clientY-dragY)*fov*1000/Math.max(1,box.width),1);
         dragX=event.clientX;dragY=event.clientY;
       });
-      const release=event => {if(event.pointerId===dragId) {if(canvas.hasPointerCapture(dragId)) canvas.releasePointerCapture(dragId);dragId=null;}};
-      listen(canvas,'pointerup',release);listen(canvas,'pointercancel',release);listen(canvas,'lostpointercapture',() => {dragId=null;});
-      listen(canvas,'wheel',event => {event.preventDefault();changeView(0,0,Math.pow(2,Math.max(-600,Math.min(600,event.deltaY))/600));},{passive:false});
+      const release=event => {
+        for(const touch of touches) if(touch.id===event.pointerId) touch.id=null;
+        pinchDistance=0;
+        if(event.pointerId===dragId) {
+          dragId=null;
+          if(canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+          const remaining=touches.find(touch => touch.id!==null);
+          if(remaining) {dragId=remaining.id;dragX=remaining.x;dragY=remaining.y;}
+        }
+      };
+      listen(canvas,'pointerup',release);listen(canvas,'pointercancel',release);listen(canvas,'lostpointercapture',release);
+      listen(canvas,'wheel',event => {if(event.ctrlKey || event.metaKey) return;event.preventDefault();changeView(0,0,Math.pow(2,Math.max(-600,Math.min(600,event.deltaY))/600));},{passive:false});
       listen(canvas,'keydown',event => {
         const step=fov*1000/20;
         switch(event.key) {
@@ -256,13 +319,13 @@
     api.ready=module().then(module => WebAssembly.instantiate(module,{})).then(async instance => {
       if(disposed) return api;
       ex=instance.exports;
-      const initial=reduced?0:pendingEnter===null?0:pendingEnter;
+      const initial=still()?0:pendingEnter===null?0:pendingEnter;
       // Preserve an audio gesture made before compilation completes.
       const audioOwner=ownsAudio;ownsAudio=false;reset(initial);ownsAudio=audioOwner;
       pendingEnter=null;
       if(!size()) await new Promise((resolve,reject) => {resolveSize=resolve;rejectSize=reject;});
       if(disposed) return api;
-      if(reduced || pendingStatic) {clock=20000;ex.scene_step(20000,0,0);pendingStatic=false;}
+      if(still() || pendingStatic) {clock=20000;ex.scene_step(20000,0,0);pendingStatic=false;}
       render();request();
       canvas.dispatchEvent(new CustomEvent('allen-scene-initialized',{bubbles:true,detail:{source:PIN}}));
       return api;
