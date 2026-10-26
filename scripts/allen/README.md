@@ -213,7 +213,7 @@ python3 scripts/allen/test_sandbox.py              # compile sandbox escape test
 python3 scripts/allen/test_gateway.py --omc om/hive-page/omc --irwasm om/hive-page/irwasm \
     --system-prompt scripts/allen/system-prompt.txt [--skip-model]
 python3 scripts/allen/probe.py                     # run inside the unit's properties (systemd-run) and outside
-python3 scripts/allen/test_relay_mailer.py         # relay mailer against a loopback SMTP stub, each with a control
+python3 scripts/allen/relay/test_relay_mailer.py      # relay mailer against a loopback SMTP stub, each with a control
 python3 scripts/allen/test_reaching_drake_prod.py  # production: console reachability, one real TEST relay email, live takeover
 ```
 

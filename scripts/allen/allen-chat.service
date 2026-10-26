@@ -12,7 +12,7 @@ Wants=network-online.target
 Type=simple
 User=allen-chat
 Group=allen-chat
-SupplementaryGroups=allen-spool allen-drop
+SupplementaryGroups=allen-spool allen-drop allen-relaydrop
 EnvironmentFile=-/etc/allen-chat/env
 ExecStart=/usr/bin/python3 -I /opt/allen-chat/allen_chat.py \
   --listen 100.64.0.2:18110 \
@@ -26,14 +26,19 @@ ExecStart=/usr/bin/python3 -I /opt/allen-chat/allen_chat.py \
   --spool-in /var/lib/allen-chat/spool-in \
   --spool-status /var/lib/allen-chat/spool-status \
   --contacts-drop /var/lib/allen-chat/contacts-drop \
-  --memory-url http://127.0.0.1:18096
+  --memory-url http://127.0.0.1:18096 \
+  --relay-drop /var/lib/allen-chat/relay-drop \
+  --console-listen 100.64.0.2:18112 \
+  --console-state /var/lib/allen-chat/console
 Environment=PATH=/usr/bin:/bin
 Restart=on-failure
 RestartSec=5
 UMask=0027
 Nice=5
 
-# What public Allen cannot do (README): no credentials, no home, writes only into two drop dirs.
+# What public Allen cannot do (README): no credentials, no home, writes only into the drop dirs
+# (spool, contacts, relay) and the console's presence.json. The console listener (18112) is
+# tailnet only; nft admits it only from Drake's devices 100.64.0.1/100.64.0.4 and the Spark.
 NoNewPrivileges=yes
 CapabilityBoundingSet=
 AmbientCapabilities=
@@ -41,8 +46,8 @@ PrivateUsers=yes
 ProtectProc=invisible
 ProtectSystem=strict
 ProtectHome=yes
-ReadWritePaths=/var/lib/allen-chat/spool-in /var/lib/allen-chat/contacts-drop
-InaccessiblePaths=-/var/lib/allen-contacts -/var/lib/omega-pusher
+ReadWritePaths=/var/lib/allen-chat/spool-in /var/lib/allen-chat/contacts-drop /var/lib/allen-chat/relay-drop /var/lib/allen-chat/console
+InaccessiblePaths=-/var/lib/allen-contacts -/var/lib/omega-pusher -/var/lib/allen-relay
 PrivateTmp=yes
 PrivateDevices=yes
 ProtectKernelTunables=yes
@@ -59,7 +64,7 @@ MemoryDenyWriteExecute=yes
 # empty network namespace over NETLINK_ROUTE; without CAP_NET_ADMIN it can change nothing.
 RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX AF_NETLINK
 IPAddressDeny=any
-IPAddressAllow=127.0.0.1 100.64.0.2 100.64.0.3
+IPAddressAllow=127.0.0.1 100.64.0.1 100.64.0.2 100.64.0.3 100.64.0.4
 SystemCallFilter=@system-service @mount unshare setns
 SystemCallArchitectures=native
 MemoryMax=1G

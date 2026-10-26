@@ -175,3 +175,77 @@ def read_status(spool_status, iid):
         url = None
     return {"id": iid, "state": st.get("state") if st.get("state") in ("queued", "filed", "rejected")
             else "queued", "url": url, "reason": st.get("reason") if isinstance(st.get("reason"), str) else None}
+
+
+# Reaching Drake: relay messages (gateway writes, allen-relay mailer reads) and live text.
+RELAY_MESSAGE = 4000
+RELAY_FIELD = 200
+TRANSCRIPT_MSGS = 24
+TRANSCRIPT_CHARS = 16000
+RELAY_ID = re.compile(r"^r_[0-9a-f]{16}$")
+CONV = re.compile(r"^[0-9a-f]{16}$")
+RECEIVED = re.compile(r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$")
+
+
+def validate_transcript(t):
+    """A conversation the visitor chose to include: [] or up to 24 user/assistant messages."""
+    if t is None:
+        return []
+    if not isinstance(t, list):
+        raise Invalid("transcript must be a list of messages")
+    if len(t) > TRANSCRIPT_MSGS:
+        raise Invalid("transcript is limited to %d messages" % TRANSCRIPT_MSGS)
+    out, total = [], 0
+    for m in t:
+        if not isinstance(m, dict) or set(m) != {"role", "content"} or m.get("role") not in ("user", "assistant"):
+            raise Invalid("each transcript message has a role (user or assistant) and a content")
+        c = _text(m["content"], "transcript message", 0, RELAY_MESSAGE)
+        total += len(c)
+        out.append({"role": m["role"], "content": c})
+    if total > TRANSCRIPT_CHARS:
+        raise Invalid("transcript is limited to %d characters" % TRANSCRIPT_CHARS)
+    return out
+
+
+def validate_relay(req):
+    """{"message", "name", "contact", "transcript"} -> canonical relay fields or Invalid."""
+    if not isinstance(req, dict):
+        raise Invalid("send a JSON object")
+    extra = set(req) - {"message", "name", "contact", "transcript"}
+    if extra:
+        raise Invalid("unknown fields: " + ", ".join(sorted(extra))[:200])
+    message = _text(req.get("message"), "message", 1, RELAY_MESSAGE).strip()
+    if not message:
+        raise Invalid("message is empty")
+    name = req.get("name") or ""
+    contact = req.get("contact") or ""
+    return {"message": message,
+            "name": _text(name, "name", 0, RELAY_FIELD, line=True).strip(),
+            "contact": _text(contact, "contact", 0, RELAY_FIELD, line=True).strip(),
+            "transcript": validate_transcript(req.get("transcript"))}
+
+
+def validate_relay_record(rec):
+    """A relay drop file as the gateway writes it; the mailer re-checks every field."""
+    if not isinstance(rec, dict) or rec.get("v") != 1 or rec.get("type") != "relay":
+        raise Invalid("not a version 1 relay record")
+    if set(rec) != {"v", "type", "id", "received", "conv", "message", "name", "contact", "transcript"}:
+        raise Invalid("relay record fields do not match")
+    if not isinstance(rec["id"], str) or not RELAY_ID.match(rec["id"]):
+        raise Invalid("bad relay id")
+    if not isinstance(rec["received"], str) or not RECEIVED.match(rec["received"]):
+        raise Invalid("bad received time")
+    if not isinstance(rec["conv"], str) or not (rec["conv"] == "" or CONV.match(rec["conv"])):
+        raise Invalid("bad conversation id")
+    item = validate_relay({k: rec[k] for k in ("message", "name", "contact", "transcript")})
+    return dict(item, v=1, type="relay", id=rec["id"], received=rec["received"], conv=rec["conv"])
+
+
+def validate_say(req):
+    """{"text"} the visitor types while Drake is there."""
+    if not isinstance(req, dict) or set(req) != {"text"}:
+        raise Invalid("say takes only text")
+    text = _text(req["text"], "text", 1, RELAY_MESSAGE).strip()
+    if not text:
+        raise Invalid("text is empty")
+    return text
