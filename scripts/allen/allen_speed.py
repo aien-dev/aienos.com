@@ -73,6 +73,14 @@ def sha256_bytes(b):
     return hashlib.sha256(b).hexdigest()
 
 
+def prefix_key(text_sha, tool_specs=None):
+    """The answer cache's prefix key: sha256 of the system text, combined with the tools array
+    when there is one (the server renders it into the system turn)."""
+    if not tool_specs:
+        return text_sha
+    return sha256_bytes((text_sha + json.dumps(tool_specs, sort_keys=True)).encode())
+
+
 def normalize(text):
     t = text.lower().replace("\u2019", "'").replace("\u2018", "'").strip()
     t = TRAIL.sub("", LEAD.sub("", t))
@@ -94,14 +102,17 @@ def content_words(norm):
     return frozenset(_stem(w) for w in words if w and (w in NEGATIONS or w not in STOP))
 
 
+MAX_MATCH = 300  # longest visitor text the answer cache is matched against (questions are short)
+
+
 def static_reply(messages):
     """The fixed reply for a pure greeting or thanks on the first turn, else None."""
-    if len(messages) != 1:
+    if len(messages) != 1 or len(messages[0]["content"]) > 60:
         return None
-    raw = messages[0]["content"].lower().strip()
-    raw = re.sub(r"[\s!.,:)(-]+$", "", re.sub(r"^[\s!.,:-]+", "", raw))
-    raw = re.sub(r"\s*,?\s*allen$", "", raw)
-    kind = STATIC_FORMS.get(re.sub(r"\s+", " ", raw))
+    raw = messages[0]["content"].lower().strip(" \t\r\n!.,:;-()")
+    if raw.endswith("allen"):
+        raw = raw[:-5].rstrip(" ,")
+    kind = STATIC_FORMS.get(" ".join(raw.split()))
     return STATIC[kind] if kind else None
 
 
@@ -221,14 +232,10 @@ def with_cards(text, block):
 
 
 def augment(messages, cards, stable=False):
-    """Visitor messages with each user turn's cards appended (same function every turn)."""
-    out = []
-    for m in messages:
-        if m["role"] == "user" and cards is not None:
-            out.append({"role": "user", "content": with_cards(m["content"], cards.block(m["content"], stable))})
-        else:
-            out.append({"role": m["role"], "content": m["content"]})
-    return out
+    """Visitor messages with each user turn's cards appended (same function every turn). Other
+    messages (assistant turns, tool calls and results) pass through with all their fields."""
+    return [dict(m, content=with_cards(m["content"], cards.block(m["content"], stable)))
+            if m.get("role") == "user" and isinstance(m.get("content"), str) else dict(m) for m in messages]
 
 
 def entry_forms(e):
@@ -345,6 +352,8 @@ class Answers:
 
     def lookup(self, text, prefix_sha, cards):
         """(entry, how) for a visitor's first message, or (None, None)."""
+        if len(text) > MAX_MATCH:
+            return None, None
         self.reload()
         cards.refresh()
         key = (prefix_sha, cards.learn_sha, cards.stamp, self.stamp)

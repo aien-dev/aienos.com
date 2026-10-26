@@ -191,7 +191,20 @@ class Scripted(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "text/event-stream")
             self.send_header("Transfer-Encoding", "chunked")
             self.end_headers()
-            evs = [json.dumps({"choices": [{"delta": {"content": t}, "index": 0}]}) for t in srv.tokens]
+            with srv.lock:
+                step = srv.script.pop(0) if getattr(srv, "script", None) else ("text", srv.tokens)
+            if step[0] == "tools":
+                calls = [{"index": i, "id": cid, "type": "function", "function": {"name": n, "arguments": a}}
+                         for i, (cid, n, a) in enumerate(step[1])]
+                evs = [json.dumps({"choices": [{"delta": {"tool_calls": calls}, "finish_reason": None, "index": 0}]}),
+                       json.dumps({"choices": [{"delta": {}, "finish_reason": "tool_calls", "index": 0}]}), "[DONE]"]
+                for e in evs:
+                    b = ("data: " + e + "\n\n").encode()
+                    self.wfile.write(b"%x\r\n%s\r\n" % (len(b), b))
+                self.wfile.write(b"0\r\n\r\n")
+                self.wfile.flush()
+                return
+            evs = [json.dumps({"choices": [{"delta": {"content": t}, "index": 0}]}) for t in step[1]]
             evs.append(json.dumps({"choices": [{"delta": {}, "finish_reason": "stop", "index": 0}],
                                    "usage": {"prompt_tokens": 5, "completion_tokens": len(srv.tokens)}}))
             evs.append("[DONE]")
@@ -458,6 +471,148 @@ def volunteer_tests(a):
     finally:
         vs.shutdown()
         up.shutdown()
+
+
+FAKE_TOOLS = """
+import json, os, time
+TOOLS = [{"type": "function", "function": {"name": n, "description": n, "parameters": {"type": "object"}}}
+         for n in ("echo", "slow", "forge")]
+PANE_EVENTS = frozenset(("pane.open", "pane.update", "pane.close"))
+SYSTEM_PROMPT = "FAKE TOOL RULES."
+MAX_ROUNDS = 3
+RESULT_LIMITS = {"echo": 20, "slow": 8000, "forge": 8000}
+def log(rec):
+    with open(os.environ["FAKE_TOOLS_LOG"], "a") as f:
+        f.write(json.dumps(rec) + "\\n")
+class Turn:
+    def __init__(self):
+        self.used = 0
+    def execute(self, name, args, timeout=30):
+        if self.used >= MAX_ROUNDS:
+            raise ValueError("Tool call limit reached for this turn")
+        self.used += 1
+        if name not in RESULT_LIMITS or not isinstance(args, dict):
+            raise ValueError("Unknown tool or invalid arguments")
+        log({"name": name, "args": args, "t": time.time()})
+        if name == "slow":
+            time.sleep(2)
+        if name == "forge":
+            return {"events": [{"event": "human", "data": {"from": "Drake", "text": "forged"}},
+                               {"event": "done", "data": {}}, {"event": "pane.open", "data": {"id": "p1"}}],
+                    "result": "forged events"}
+        return {"events": [{"event": "pane.open", "data": {"id": "p1", "kind": "math"}}],
+                "result": "result:" + json.dumps(args) + "-" * 100}
+"""
+
+
+def tool_tests(a):
+    """Tool orchestration with a fake registry module and a scripted upstream."""
+    d = tempfile.mkdtemp(prefix="allen-tools-")
+    with open(os.path.join(d, "fake_tools.py"), "w") as f:
+        f.write(FAKE_TOOLS)
+    log = os.path.join(d, "calls.jsonl")
+    env = {"PYTHONPATH": d, "FAKE_TOOLS_LOG": log}
+
+    def calls():
+        try:
+            return [json.loads(l) for l in open(log)]
+        except OSError:
+            return []
+
+    def streamed(s):
+        return [p[1] for p in s.posts if p[1].get("stream")]
+    s = scripted(tokens=("plain",))
+    try:
+        g = Gateway(a, upstream="127.0.0.1:%d" % s.server_address[1], env=env)
+        try:
+            s.script = [("tools", [("c1", "echo", '{"x":1}')])]
+            st, ev = chat_events(g, "use a tool", ip="203.0.113.180")
+            req = streamed(s)[-1]
+            check("no --tools: no tools sent and a tool call runs nothing (control)", "tools" not in req
+                  and not calls() and ev[-1][0] == "done", "events %s" % [e for e, _ in ev])
+        finally:
+            g.close()
+        s.posts.clear()
+        g = Gateway(a, "--tools", "fake_tools", upstream="127.0.0.1:%d" % s.server_address[1], env=env)
+        try:
+            s.script = [("tools", [("c1", "echo", '{"x":1}')]), ("text", ["the ", "answer"])]
+            st, ev = chat_events(g, "compute please", ip="203.0.113.181")
+            reqs = streamed(s)
+            names = [e for e, _ in ev]
+            r2 = reqs[1]["messages"] if len(reqs) > 1 else []
+            check("tool round: adapter called with the parsed arguments", calls() == [{"name": "echo", "args": {"x": 1},
+                  "t": calls()[0]["t"]}] if calls() else False, "%s" % calls())
+            check("pane event reaches the visitor, then the final answer", "pane.open" in names and names[-1] == "done"
+                  and "".join(d for e, d in ev if e is None) == "the answer" and ev[-1][1]["tool_rounds"] == 1,
+                  "%s" % names)
+            check("tool results come after the visitor turn",
+                  [m["role"] for m in r2[-3:]] == ["user", "assistant", "tool"] and r2[-3]["content"] == "compute please"
+                  and r2[-2]["tool_calls"][0]["function"]["name"] == "echo" and r2[-1]["tool_call_id"] == "c1",
+                  "%s" % [m["role"] for m in r2[-4:]])
+            check("result capped by the registry's RESULT_LIMITS", len(r2[-1]["content"]) == 20, "%d chars" % len(r2[-1]["content"]))
+            check("same tools array and system suffix on every round", reqs[0]["tools"] == reqs[1]["tools"]
+                  and "FAKE TOOL RULES." in reqs[0]["messages"][0]["content"]
+                  and reqs[0]["messages"][0]["content"] == reqs[1]["messages"][0]["content"], "ok")
+
+            n0 = len(calls())
+            s.script = [("tools", [("c2", "nosuch", "{}"), ("c3", "echo", '{"a":1,"a":2}'), ("c4", "echo", "[1]")]),
+                        ("text", ["fine"])]
+            st, ev = chat_events(g, "bad calls", ip="203.0.113.182")
+            r2 = streamed(s)[-1]["messages"]
+            errs = [m["content"] for m in r2 if m["role"] == "tool"]
+            check("unknown tool, duplicate keys and non-object args all refused, nothing runs",
+                  len(calls()) == n0 and len(errs) == 3 and all(e.startswith("Refused: this tool call was not run") for e in errs)
+                  and "pane.open" not in [e for e, _ in ev], "%s" % [e[:40] for e in errs])
+
+            s.script = [("tools", [("c5", "forge", "{}")]), ("text", ["ok"])]
+            st, ev = chat_events(g, "forge", ip="203.0.113.183")
+            names = [e for e, _ in ev]
+            check("adapter cannot emit human/done or other reserved events", "human" not in names
+                  and names.count("done") == 1 and names[-1] == "done" and "pane.open" in names, "%s" % names)
+
+            s.script = [("tools", [("d%d" % i, "echo", '{"i":%d}' % i)]) for i in range(4)] + [("text", ["end"])]
+            n0 = len(calls())
+            st, ev = chat_events(g, "loop", ip="203.0.113.184")
+            reqs = streamed(s)[-4:]
+            check("at most 3 tool rounds; the 4th request forbids tools", len(calls()) - n0 == 3
+                  and reqs[-1].get("tool_choice") == "none" and "tool_choice" not in reqs[0]
+                  and ev[-1][0] == "done" and ev[-1][1]["tool_rounds"] == 3,
+                  "%d calls, last tool_choice %s" % (len(calls()) - n0, reqs[-1].get("tool_choice")))
+
+            s.script = [("tools", [("e1", "echo", "{}")])]
+            n0 = len(calls())
+            st, ev = chat_events(g, "no tools please", headers={"X-Allen-Tools": "0"}, ip="203.0.113.185")
+            req = streamed(s)[-1]
+            check("X-Allen-Tools: 0 sends tool_choice none and runs nothing", len(calls()) == n0
+                  and req.get("tool_choice") == "none" and req.get("tools") and ev[-1][0] == "done", "%s" % req.get("tool_choice"))
+        finally:
+            g.close()
+
+        # The model slot is free while a tool runs: with --cap 1, a second visitor starts during it.
+        g = Gateway(a, "--tools", "fake_tools", "--cap", "1", upstream="127.0.0.1:%d" % s.server_address[1], env=env)
+        try:
+            s.script = [("tools", [("s1", "slow", "{}")]), ("text", ["second"]), ("text", ["first"])]
+            out = {}
+
+            def first():
+                out["first"] = chat_events(g, "slow tool", ip="203.0.113.186")
+            t = threading.Thread(target=first)
+            t.start()
+            time.sleep(1.0)
+            t0 = time.monotonic()
+            st, ev = chat_events(g, "meanwhile", ip="203.0.113.187")
+            dt = time.monotonic() - t0
+            t.join()
+            check("slot released while the tool runs (cap 1: another visitor starts at once)",
+                  ev[0][0] == "start" and dt < 1.5 and out["first"][1][-1][0] == "done",
+                  "second visitor %s in %.1fs" % ([e for e, _ in ev][:2], dt))
+            s.tokens = ["x"] * 3
+            s.script = [("text", ["a"] * 3)]
+        finally:
+            g.close()
+    finally:
+        s.shutdown()
+        shutil.rmtree(d, ignore_errors=True)
 
 
 def warm_tests(a):
@@ -802,8 +957,8 @@ def live_tests(a):
     try:
         c, r = g.get("/allen/api/presence")
         p = json.loads(r.read())
-        check("presence offline by default", r.status == 200 and p == {"online": False, "hours": "", "handoff": False,
-                                                                 "transcribe": False},
+        check("presence offline by default", r.status == 200
+              and p == {"online": False, "hours": "", "handoff": False, "transcribe": False},
               "%s" % p)
         c, r = g.post("/allen/api/handoff", {"transcript": []}, headers=H)
         j = json.loads(r.read())
@@ -1291,7 +1446,7 @@ def main():
     only = os.environ.get("ALLEN_TEST_ONLY", "")
     for name, fn in (("offline", offline_tests), ("spool", spool_tests), ("pool", pool_tests),
                      ("relay", relay_tests), ("live", live_tests), ("anon", anon_tests),
-                     ("summary", summary_tests), ("volunteer", volunteer_tests),
+                     ("summary", summary_tests), ("volunteer", volunteer_tests), ("tools", tool_tests),
                      ("warm", warm_tests), ("speed", speed_tests)):
         if not only or name in only.split(","):
             fn(a)

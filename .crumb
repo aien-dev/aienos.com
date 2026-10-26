@@ -24,7 +24,7 @@
         },
         {
           "digest": "8aa9e1be2bd6af1db584091a29407310d415ffee70c19d58dd822ac9d0360677",
-          "last_commit": "940cc43",
+          "last_commit": "bb19a13",
           "name": "crates",
           "purpose": "Native Rust website crates"
         },
@@ -42,7 +42,7 @@
         },
         {
           "digest": "708f3a6dbc0d4acb89e259fbbd0dfea075bfdfe527bc63c774902e2102522c86",
-          "last_commit": "940cc43",
+          "last_commit": "bb19a13",
           "name": "public",
           "purpose": "Static public website assets"
         },
@@ -54,14 +54,14 @@
         }
       ],
       "children_root": "sha256:ffe913b7bebca9f0587f7e55f3dc1f1d3c34cffbc1b2725b6929117f34d5699f",
-      "compiled_at": "2026-10-26T17:16:43Z",
+      "compiled_at": "2026-10-26T17:22:35Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:ebe71f01b9f22537aa404b2efe9a5502932bd5c25d7709b06610d11ab3811494",
+      "digest": "sha256:46282cd5b728c4b478e3735aa2c82edce4bedaa03309228cbedc40d91f8f0a8d",
       "evidence_files": 6,
       "evidence_root": "sha256:eba834d719fe051a5d5fb50d42f573b5bdb55491f895a8b758006022fc42c637",
-      "files": 330,
-      "generated_at_commit": "094079f409f978eafb87e59cea0a23003e48ed7c",
-      "source_tree": "sha256:29005f8f842b175161c9f46eb23a2a8f8bcdeecadd9fdfd349fab040d8d4418d"
+      "files": 337,
+      "generated_at_commit": "bb19a13e8b59ca50be6b53943d6123c869e657d9",
+      "source_tree": "sha256:6a22decb07a79c96e0e65310e497f229970060da58a4b8b83e050967797cb9ec"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",
