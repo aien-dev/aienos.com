@@ -197,7 +197,7 @@ pub fn render_contact() -> Markup {
                     (route("GitHub", html! {
                         a href=(GITHUB) target="_blank" rel="noopener noreferrer" { "github.com/aien-dev" }
                     }, html! {
-                        "All of the code is public. Open an issue or a pull request on any repository."
+                        "My code is on GitHub. Open an issue or a pull request on any public repository."
                     }))
                     (route("Sovereign Intelligence", html! {
                         a href=(SI) target="_blank" rel="noopener noreferrer" { "github.com/aien-dev/sovereign-intelligence" }
