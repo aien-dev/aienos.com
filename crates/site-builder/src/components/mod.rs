@@ -1,3 +1,4 @@
+pub mod allen;
 pub mod blog;
 pub mod boxlink;
 pub mod discovery;

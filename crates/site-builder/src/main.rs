@@ -230,6 +230,19 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     );
     fs::create_dir_all(dist.join("hive")).expect("Create Hive directory");
     fs::write(dist.join("hive/index.html"), hive_page.into_string()).expect("Write Hive page");
+    let allen_page = render_page_layout(
+        components::allen::TITLE,
+        components::allen::DESCRIPTION,
+        components::allen::URL,
+        "website",
+        html! {
+            link rel="stylesheet" href="/assets/allen.css";
+            script defer src="/js/allen.js" {}
+        },
+        components::allen::render_allen_page(),
+    );
+    fs::create_dir_all(dist.join("allen")).expect("Create Allen directory");
+    fs::write(dist.join("allen/index.html"), allen_page.into_string()).expect("Write Allen page");
     let learn_page = render_page_layout(
         components::learn::TITLE,
         components::learn::DESCRIPTION,
@@ -601,6 +614,7 @@ const GENERATED_PAGES: &[(&str, usize)] = &[
     ("now/index.html", 0),
     ("dash/index.html", 0),
     ("hive/index.html", 0),
+    ("allen/index.html", 0),
     ("learn/index.html", 0),
     ("omega/index.html", 30),
     ("cudaplusplus/index.html", 12),
