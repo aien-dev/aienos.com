@@ -51,10 +51,10 @@ STATIC_FORMS = {
 
 # Leading fillers, and Allen's name only when set off by a comma ("hey Allen, ..." / "..., Allen?"):
 # "what is allen" stays a question about Allen.
-LEAD = re.compile(r"^\s*(?:(?:hi|hey|hello|yo)\s+allen\b[\s,!.:-]*)?"
+LEAD = re.compile(r"^\s*(?:(?:hi|hey|hello|yo)\s+(?:allen|aien)\b[\s,!.:-]*)?"
                   r"(?:(?:hi|hey|hello|yo|ok|okay|so|um|uh|well|please|quick question)\b[\s,!.:-]*)*"
-                  r"(?:allen\s*[,:!.-]\s*)?")
-TRAIL = re.compile(r"(?:\s*,\s*allen|[\s,]+(?:please|thanks|thank you|thx))+(?=[\s?!.]*$)")
+                  r"(?:(?:allen|aien)\s*[,:!.-]\s*)?")
+TRAIL = re.compile(r"(?:\s*,\s*(?:allen|aien)|[\s,]+(?:please|thanks|thank you|thx))+(?=[\s?!.]*$)")
 STOP = frozenset("""
 a an the is are was were be been am do does did i me my we our it its this that these
 those of to in on for at by with about from as and or but so can could would will should may
@@ -110,8 +110,9 @@ def static_reply(messages):
     if len(messages) != 1 or len(messages[0]["content"]) > 60:
         return None
     raw = messages[0]["content"].lower().strip(" \t\r\n!.,:;-()")
-    if raw.endswith("allen"):
-        raw = raw[:-5].rstrip(" ,")
+    for name in ("allen", "aien"):  # the visitor-facing name is Aien; Allen still greets fine
+        if raw.endswith(name):
+            raw = raw[:-len(name)].rstrip(" ,")
     kind = STATIC_FORMS.get(" ".join(raw.split()))
     return STATIC[kind] if kind else None
 
