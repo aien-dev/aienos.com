@@ -18,6 +18,12 @@ pub const SOURCE: &str = "https://github.com/aien-dev/aienos.com/blob/main/om/al
 /// The generated skeleton, byte for byte as `check.sh` wrote it.
 pub const SKELETON: &str = include_str!("../../../../om/allen-page/main.html");
 
+/// Drake's two greetings, Allen speaking. The bytes equal fields 51 and 52 of
+/// `om/allen-page/contract.om`, which the page script shows, and the gateway
+/// prepends the same bytes as its opening (remember iff the chat carries a key).
+pub const GREETING_REMEMBER: &str = "Hey, I'm Allen. It's nice to meet you! You don't have to tell me your name, but if you do, that would be super awesome and we could chat over time. When you come back, I can remember who you are and we can pick up where we left off. We can talk about all kinds of good things in the universe.";
+pub const GREETING_ANONYMOUS: &str = "Hey, I'm Allen. It's nice to meet you! We can talk about all kinds of good things in the universe.";
+
 /// The llms.txt section for /allen/: what it is, and the consent-gated
 /// introduction endpoint for agents, with its exact schema and limits.
 pub const LLMS: &str = r#"## Talk to Allen
@@ -88,9 +94,48 @@ mod tests {
         for (call, n) in [("localStorage.getItem(KEY_NAME)", 1), ("localStorage.setItem(KEY_NAME, value)", 1), ("localStorage.removeItem(KEY_NAME)", 1)] {
             assert_eq!(script.matches(call).count(), n, "{call}");
         }
-        assert_eq!(script.matches("keepKey(").count(), 3, "keepKey is defined once and called only after consent or a paste");
-        // The gateway's opening exchange depends on this exact greeting.
-        assert!(script.contains("\"Hello, I am Allen, Drake's AI. Are you a human or an agent?\""));
+        assert_eq!(script.matches("keepKey(").count(), 3, "keepKey is defined once and called only on the consent path");
+        // The gateway prepends the same bytes for each kind of start.
+        assert!(script.contains(&format!("const GREETING_REMEMBER = \"{GREETING_REMEMBER}\";")));
+        assert!(script.contains(&format!("const GREETING_ANONYMOUS = \"{GREETING_ANONYMOUS}\";")));
+        assert!(script.contains("const BACK_LINE = '(I am back.)';"));
+    }
+
+    #[test]
+    fn anonymous_is_the_default_and_never_sends_a_key() {
+        let script = include_str!("../../../../public/js/allen.js");
+        assert!(SKELETON.contains("id=\"allen\" data-ready=\"false\" data-busy=\"false\" data-mode=\"anonymous\""));
+        assert!(SKELETON.contains("Anonymous: Allen won&#39;t remember this chat"));
+        assert!(script.contains("  let remembered = false;\n"), "the script starts anonymous");
+        // Remembered only on the consent path: after a consented save, after a
+        // pasted key under the same consent box, or a key kept from an
+        // earlier opt-in (unless the page was opened with ?mode=anonymous).
+        assert_eq!(script.matches("remembered = true;").count(), 2);
+        assert!(function_body(script, "saveIntro").contains("keepKey(reply.key)"));
+        let card = function_body(script, "introCard");
+        let gate = card.find("if (!agree.checked) return;").expect("the pasted key waits for consent");
+        assert!(gate < card.find("keepKey(value)").expect("pasted key"), "consent is checked before the key is kept");
+        assert!(script.contains("  if (entry === 'anonymous') goAnonymous(true);\n  else remembered = Boolean(storedKey());\n"));
+        assert!(script.contains("const entry = new URLSearchParams(location.search).get('mode');"));
+        let leave = function_body(script, "goAnonymous");
+        assert!(leave.find("dropKey();").unwrap() < leave.find("remembered = false;").unwrap(), "the key leaves first");
+        // Anonymous calls say so and carry no key; X-Allen-Key is written only
+        // past that check and once in forgetOld, the explicit Forget me.
+        let headers = function_body(script, "keyHeaders");
+        let anonymous = headers.find("if (!remembered) return { 'X-Allen-Anonymous': '1' };").expect("anonymous branch first");
+        assert!(anonymous < headers.find("'X-Allen-Key'").unwrap());
+        assert_eq!(script.matches("'X-Allen-Key'").count(), 3);
+        assert!(function_body(script, "forgetOld").contains("'X-Allen-Key': oldKey"));
+    }
+
+    #[test]
+    fn only_allen_nodes_carry_the_allen_speaker_mark() {
+        let script = include_str!("../../../../public/js/allen.js");
+        assert!(function_body(script, "message").contains("if (role === 'allen') item.dataset.speaker = 'allen';"));
+        assert!(function_body(script, "greeting").contains("message('allen', 'Allen')"));
+        assert_eq!(script.matches("dataset.speaker").count(), 1, "only message() marks a speaker");
+        assert!(!function_body(script, "humanMessage").contains("speaker"));
+        assert!(!SKELETON.contains("data-speaker"), "Drake's page copy is never marked as Allen's");
     }
 
     #[test]
@@ -98,7 +143,7 @@ mod tests {
         for id in [
             "allen", "allen-log", "allen-form", "allen-input", "allen-send", "allen-stop", "allen-status", "allen-new",
             "allen-model", "allen-queue", "allen-ttft", "allen-first", "allen-rate", "allen-tokens", "allen-server", "allen-examples",
-            "allen-key", "allen-key-body", "allen-introduce", "allen-drake",
+            "allen-key", "allen-key-body", "allen-introduce", "allen-drake", "allen-mode",
         ] {
             assert_eq!(SKELETON.matches(&format!(" id=\"{id}\"")).count(), 1, "exactly one #{id} in the skeleton");
         }
@@ -144,7 +189,10 @@ mod tests {
             assert!(LLMS.contains(needle), "llms.txt section lacks {needle}");
         }
         let script = include_str!("../../../../public/js/allen.js");
-        for text in [LLMS, SKELETON, script] {
+        // Drake's greetings are Allen speaking and keep his words; every other
+        // string stays first person singular.
+        let script = script.replace(GREETING_REMEMBER, "").replace(GREETING_ANONYMOUS, "");
+        for text in [LLMS, SKELETON, script.as_str()] {
             assert!(!text.contains('\u{2014}') && !text.contains('\u{2013}'), "no em or en dash");
             for word in text.split(|c: char| !c.is_ascii_alphabetic()) {
                 let w = word.to_ascii_lowercase();

@@ -1,4 +1,4 @@
-<div class="allen" id="allen" data-ready="false" data-busy="false">
+<div class="allen" id="allen" data-ready="false" data-busy="false" data-mode="anonymous">
 <header class="allen-head">
 <p class="allen-eyebrow">Allen, live from the Spark</p>
 <h1 class="allen-title">Talk to Allen</h1>
@@ -6,6 +6,7 @@
 <p class="allen-where">Model <code id="allen-model">qwen3.6-35b-a3b-fp8</code>, running on a DGX Spark in Drake's house. The speeds below are measured by this page from the live stream.</p>
 </header>
 <section class="allen-panel" aria-label="Conversation with Allen">
+<p class="allen-mode"><span id="allen-mode">Anonymous: Allen won&#39;t remember this chat</span> <button type="button" class="allen-tool" id="allen-introduce">Remember me</button></p>
 <dl class="allen-speed" aria-label="Speed of the latest reply">
 <div class="allen-stat"><dt>Wait in line</dt><dd id="allen-queue">-</dd></div>
 <div class="allen-stat"><dt>First token, model</dt><dd id="allen-ttft">-</dd></div>
@@ -35,7 +36,7 @@
 </form>
 <p class="allen-contact">To reach me, Drake, directly: <a href="https://x.com/mdrakestapleton" rel="noopener">follow me on X</a> or email me at <a href="mailto:drake@aienos.com">drake@aienos.com</a>.</p>
 <p class="allen-privacy" id="allen-privacy">Private by design: conversations are not stored, and the gateway keeps only aggregate counters. No prompts or IP addresses are logged. Programs run sandboxed in your browser. Reload the page and the conversation is gone. An introduction, and short notes Allen keeps about you, exist only if you consent; <a href="/privacy/">read what I keep</a>.</p>
-<p class="allen-meet"><button type="button" class="allen-tool" id="allen-introduce">Introduce yourself to Allen</button> Agents can introduce themselves with <code>POST https://www.aienos.com/allen/api/introduce</code> (schema in <a href="/llms.txt">/llms.txt</a>); nothing is stored without <code>"consent": true</code>.</p>
+<p class="allen-meet">Agents can introduce themselves with <code>POST https://www.aienos.com/allen/api/introduce</code> (schema in <a href="/llms.txt">/llms.txt</a>); nothing is stored without <code>"consent": true</code>.</p>
 <details class="allen-keypanel" id="allen-key" data-key="no">
 <summary>Your Allen key</summary>
 <div class="allen-keybody" id="allen-key-body"><p class="allen-note">Your Allen key needs JavaScript.</p></div>

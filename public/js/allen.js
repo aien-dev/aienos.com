@@ -43,6 +43,12 @@
   const SESSION = '/allen/api/session';
   const SAY = '/allen/api/say';
   const PRESENCE_MS = 60000;
+  /* Drake's greetings, byte for byte the gateway's opening for each kind of
+     start, and the line a returning visitor's page sends first. */
+  const GREETING_REMEMBER = "Hey, I'm Allen. It's nice to meet you! You don't have to tell me your name, but if you do, that would be super awesome and we could chat over time. When you come back, I can remember who you are and we can pick up where we left off. We can talk about all kinds of good things in the universe.";
+  const GREETING_ANONYMOUS = "Hey, I'm Allen. It's nice to meet you! We can talk about all kinds of good things in the universe.";
+  const BACK_LINE = '(I am back.)';
+  const entry = new URLSearchParams(location.search).get('mode');
   const turns = [];
   const runners = new Set();
   let active = null;
@@ -264,7 +270,7 @@
       wrap.append(out);
       if (type === 'issue') issueCard(cardFields(source), out);
       else if (type === 'relay') relayCard(cardFields(source), out);
-      else out.append(introCard(introLines(cardFields(source).fields)));
+      else out.append(remembered ? introCard(introLines(cardFields(source).fields)) : rememberOffer(introLines(cardFields(source).fields)));
       return;
     }
     let view = null;
@@ -450,8 +456,8 @@
     parent.append(wrap);
     return input;
   }
-  function post(body, extra) {
-    return { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...keyHeaders(false), ...extra }, body: JSON.stringify(body), cache: 'no-store', credentials: 'omit' };
+  function post(body, extra, identity = true) {
+    return { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...(identity ? keyHeaders(false) : {}), ...extra }, body: JSON.stringify(body), cache: 'no-store', credentials: 'omit' };
   }
   function failure(response, reply, tail) {
     const said = reply && typeof reply.message === 'string' ? reply.message.slice(0, 300) : '';
@@ -678,7 +684,32 @@
       keep.disabled = !agree.checked;
     });
     const state = el('div', 'allen-card-state');
-    form.append(notice, agreeWrap, keep, state);
+    const paste = el('div', 'allen-paste');
+    const pasted = field(paste, 'Introduced before on another device? Paste your Allen key instead (32 characters, 0 to 9 and a to f)', 'input', 32);
+    const use = button('Use this key', () => {
+      if (!agree.checked) return;
+      const value = pasted.value.trim().toLowerCase();
+      if (!KEY_PATTERN.test(value)) {
+        state.replaceChildren(el('p', 'allen-err', 'An Allen key is exactly 32 characters, 0 to 9 and a to f.'));
+        return;
+      }
+      if (!keepKey(value)) {
+        state.replaceChildren(el('p', 'allen-err', 'This browser refused to store the key.'));
+        return;
+      }
+      remembered = true;
+      conversation = conversationId();
+      showMode();
+      keyPanel();
+      for (const control of form.querySelectorAll('input, textarea, select, button')) control.disabled = true;
+      state.replaceChildren(el('p', 'allen-ok', 'Key saved in this browser. Allen will recognize you from your next message.'));
+    });
+    use.disabled = true;
+    paste.append(use);
+    agree.addEventListener('change', () => {
+      use.disabled = !agree.checked;
+    });
+    form.append(notice, agreeWrap, keep, paste, state);
     form.addEventListener('submit', event => {
       event.preventDefault();
       if (agree.checked) saveIntro(who.value, inputs, state, keep, form);
@@ -701,7 +732,7 @@
     let response;
     let reply;
     try {
-      response = await fetch(INTRODUCE, post(record, { 'X-Allen-Via': 'chat' }));
+      response = await fetch(INTRODUCE, post(record, { 'X-Allen-Via': 'chat' }, false));
       reply = await response.json().catch(() => null);
     } catch (_) {
       state.replaceChildren(el('p', 'allen-err', 'Could not reach Allen. Nothing was saved.'));
@@ -716,9 +747,14 @@
     for (const control of form.querySelectorAll('input, textarea, select')) control.disabled = true;
     keep.hidden = true;
     /* The gateway hands out the visitor key only with a consented introduction. */
-    const remembered = typeof reply.key === 'string' && KEY_PATTERN.test(reply.key) && keepKey(reply.key);
-    if (remembered) keyPanel();
-    const memo = el('p', 'allen-note', remembered ? 'Allen will remember you in this browser by your Allen key; see Your Allen key below the chat to copy it or forget it.' : 'Allen will not recognize you on a later visit: no key was kept in this browser.');
+    const kept_ = typeof reply.key === 'string' && KEY_PATTERN.test(reply.key) && keepKey(reply.key);
+    if (kept_) {
+      remembered = true;
+      conversation = conversationId();
+      showMode();
+      keyPanel();
+    }
+    const memo = el('p', 'allen-note', kept_ ? 'Allen will remember you in this browser by your Allen key; see Your Allen key below the chat to copy it or forget it.' : 'Allen will not recognize you on a later visit: no key was kept in this browser.');
     const link = typeof reply.delete === 'string' && /^https:\/\/www\.aienos\.com\/allen\/#forget=c_[0-9a-f]{16}\.[A-Za-z0-9_-]{20,64}$/.test(reply.delete) ? reply.delete : '';
     if (!link) {
       state.replaceChildren(el('p', 'allen-ok', `Saved. The delete link did not arrive intact; write to ${PRIVACY_MAIL} to have it deleted.`), memo);
@@ -804,15 +840,20 @@
     crypto.getRandomValues(bytes);
     return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
   }
+  /* Anonymous is the default: a visitor is remembered only after Remember me,
+     through the consent card. Anonymous calls say so and never carry a key. */
+  let remembered = false;
+  let oldKey = '';
   function keyHeaders(chat) {
+    if (!remembered) return { 'X-Allen-Anonymous': '1' };
     const key = storedKey();
-    if (!key) return {};
+    if (!key) return { 'X-Allen-Anonymous': '1' };
     return chat ? { 'X-Allen-Key': key, 'X-Allen-Conversation': conversation } : { 'X-Allen-Key': key };
   }
   function keyPanel(said) {
     const body = byId('allen-key-body');
     if (!body) return;
-    const key = storedKey();
+    const key = remembered ? storedKey() : '';
     const state = el('p', 'allen-card-state', said || '');
     const parts = [];
     if (key) {
@@ -822,31 +863,15 @@
       const copy = button('Copy', () => copyText(key, copy));
       const forget = button('Forget me', () => forgetMe(forget, state));
       row.append(copy, forget);
-      parts.push(line, row, el('p', 'allen-note', "Allen recognizes you only by this key, never by a name or email you give. Keep it private, and paste it on another device to be recognized there. Forget me deletes Allen's notes about you and your introduction, then removes the key from this browser."));
+      parts.push(line, row, el('p', 'allen-note', "Allen recognizes you only by this key, never by a name or email you give. Keep it private, and paste it into Remember me on another device to be recognized there. Forget me deletes Allen's notes about you and your introduction, then removes the key from this browser."));
     } else {
-      parts.push(el('p', 'allen-note', 'This browser holds no Allen key, so Allen treats you as a stranger. You get a key when you introduce yourself with consent.'));
+      parts.push(el('p', 'allen-note', "Anonymous: this browser holds no Allen key, so Allen won't remember this chat. Remember me asks for your consent first."));
+      if (oldKey) {
+        const forget = button('Forget me', () => forgetOld(forget, state));
+        parts.push(el('p', 'allen-note', 'Notes Allen kept about you before you went anonymous stay on Drake\'s computer until you delete them.'), forget);
+      }
     }
-    const paste = el('form', 'allen-paste');
-    paste.noValidate = true;
-    const pasted = field(paste, 'Use a key from another device (32 characters, 0 to 9 and a to f)', 'input', 32);
-    const use = el('button', 'allen-tool', 'Use this key');
-    use.type = 'submit';
-    paste.append(use);
-    paste.addEventListener('submit', event => {
-      event.preventDefault();
-      const value = pasted.value.trim().toLowerCase();
-      if (!KEY_PATTERN.test(value)) {
-        setText(state, 'An Allen key is exactly 32 characters, 0 to 9 and a to f.');
-        return;
-      }
-      if (!keepKey(value)) {
-        setText(state, 'This browser refused to store the key.');
-        return;
-      }
-      conversation = conversationId();
-      keyPanel('Key saved in this browser. Allen will recognize you from your next message.');
-    });
-    parts.push(paste, state);
+    parts.push(state);
     body.replaceChildren(...parts);
     const panel = byId('allen-key');
     if (panel) panel.dataset.key = key ? 'yes' : 'no';
@@ -863,6 +888,8 @@
       const reply = await response.json().catch(() => null);
       if (response.ok) {
         dropKey();
+        remembered = false;
+        showMode();
         keyPanel("Forgotten: Allen's notes about you and your introduction are being deleted, and the key is gone from this browser.");
         return;
       }
@@ -871,6 +898,65 @@
       setText(state, 'Could not reach Allen. Nothing was deleted; your key is still here so you can try again.');
     }
     trigger.disabled = false;
+  }
+  /* The badge says which mode the chat is in; its one button switches. */
+  function showMode() {
+    root.dataset.mode = remembered ? 'remembered' : 'anonymous';
+    setText(byId('allen-mode'), remembered ? 'Remembered: Allen knows you by your Allen key' : "Anonymous: Allen won't remember this chat");
+    setText(byId('allen-introduce'), remembered ? 'Go anonymous' : 'Remember me');
+  }
+  function switchMode() {
+    if (remembered) goAnonymous(false);
+    else openIntro();
+  }
+  /* Go anonymous: the key leaves this browser at once and calls say
+     X-Allen-Anonymous from now on. The old key stays in memory only so Forget
+     me can still delete notes kept under it; that one call carries it. */
+  function goAnonymous(fromLink) {
+    const key = storedKey();
+    dropKey();
+    remembered = false;
+    conversation = conversationId();
+    if (key) oldKey = key;
+    showMode();
+    keyPanel();
+    if (fromLink) return;
+    if (key) offerForget();
+    else notice("Anonymous: Allen won't remember this chat.");
+  }
+  function offerForget() {
+    const note = message('allen', 'Allen');
+    const state = el('div', 'allen-card-state');
+    const forget = button('Forget me', () => forgetOld(forget, state));
+    note.body.append(el('p', 'allen-p', "You are anonymous now: this browser no longer holds your Allen key, and Allen won't recognize you. Notes kept about you earlier stay on Drake's computer unless you delete them."), forget, state);
+  }
+  async function forgetOld(trigger, state) {
+    if (!oldKey) return;
+    trigger.disabled = true;
+    setText(state, 'Sending.');
+    try {
+      const response = await fetch(FORGET_ME, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-Allen-Key': oldKey }, body: '{}', cache: 'no-store', credentials: 'omit' });
+      const reply = await response.json().catch(() => null);
+      if (response.ok) {
+        oldKey = '';
+        trigger.hidden = true;
+        setText(state, "Forgotten: Allen's notes about you and your introduction are being deleted.");
+        keyPanel();
+        return;
+      }
+      setText(state, failure(response, reply, 'Nothing was deleted yet.'));
+    } catch (_) {
+      setText(state, 'Could not reach Allen. Nothing was deleted yet.');
+    }
+    trigger.disabled = false;
+  }
+  /* What an introduce block becomes while anonymous: an offer, nothing more. */
+  function rememberOffer(prefill) {
+    const card = el('div', 'allen-card');
+    card.append(el('p', 'allen-card-h', 'Remember me'), el('p', 'allen-note', "Allen offered to remember you. This chat is anonymous, so nothing about you is kept unless you choose Remember me and agree."));
+    const offer = button('Remember me', () => card.replaceWith(introCard(prefill)));
+    card.append(offer);
+    return card;
   }
   /* A message Allen offers to pass on. The exact text is shown and goes out
      only when the visitor presses Send to Drake; the conversation is attached
@@ -881,13 +967,15 @@
     const contact = String(parsed.fields.contact || '').slice(0, 200);
     const card = el('div', 'allen-card allen-relay');
     card.append(el('p', 'allen-card-h', 'Message for Drake'));
-    if (name || contact) {
+    if (name) {
       const facts = el('dl', 'allen-kv');
-      if (name) facts.append(el('dt', '', 'Name'), el('dd', '', name));
-      if (contact) facts.append(el('dt', '', 'Contact'), el('dd', '', contact));
+      facts.append(el('dt', '', 'Name'), el('dd', '', name));
       card.append(facts);
     }
     card.append(el('pre', 'allen-card-body', text));
+    const reach = field(card, 'Your contact, for this one message (optional)', 'input', 200);
+    reach.value = contact;
+    card.append(el('p', 'allen-note', remembered ? 'The contact goes only into the email to Drake.' : "You are anonymous: the contact goes only into this one email to Drake, and Allen won't keep it."));
     const state = el('div', 'allen-card-state');
     if (!text) {
       state.append(el('p', 'allen-err', 'There is no message to send. Ask Allen to write it again.'));
@@ -899,7 +987,7 @@
     const include = el('input');
     include.type = 'checkbox';
     includeWrap.append(include, el('span', '', 'include this conversation'));
-    const send = button('Send to Drake', () => sendRelay({ text, name, contact }, include, send, state));
+    const send = button('Send to Drake', () => sendRelay({ text, name, contact: reach.value.trim().slice(0, 200) }, include, send, state));
     card.append(el('p', 'allen-note', 'Exactly this text goes to Drake by email. Nothing is sent until you press Send to Drake.'), includeWrap, send, state);
     out.replaceChildren(card);
   }
@@ -1073,11 +1161,24 @@
       notice('That message did not reach Drake. Check your connection.');
     }
   }
+  /* A returning visitor (Allen key kept, not anonymous) gets no static
+     greeting: the page sends BACK_LINE as the first turn, unshown, so the
+     gateway can bring that visitor's notes and Allen greets them himself. */
+  function start() {
+    if (remembered && storedKey()) {
+      ask(BACK_LINE, true);
+      return;
+    }
+    greeting();
+  }
   /* Allen's first message is written here, not by the model: zero latency,
      no request. The answer stays in this closure. */
   function greeting() {
     const hello = message('allen', 'Allen');
-    hello.body.append(el('p', 'allen-p', "Hello, I am Allen, Drake's AI. Are you a human or an agent?"));
+    /* The gateway prepends the remember opening exactly when the chat carries
+       a key and no X-Allen-Anonymous, so the page shows the same one. */
+    const greet = remembered && storedKey() ? GREETING_REMEMBER : GREETING_ANONYMOUS;
+    hello.body.append(el('p', 'allen-p', greet), el('p', 'allen-p', 'Are you a human or an agent?'));
     const row = el('div', 'allen-choices');
     row.append(button('Human', () => answer('human')), button('Agent', () => answer('agent')), button('Skip', () => answer('')));
     hello.body.append(row, el('p', 'allen-note', 'Or just type below. The answer only tells Allen who is asking.'));
@@ -1389,6 +1490,8 @@
   }
   function message(role, label) {
     const item = el('li', `allen-msg allen-msg-${role}`);
+    /* Allen's own words, in his voice, as opposed to Drake's page copy. */
+    if (role === 'allen') item.dataset.speaker = 'allen';
     item.append(el('p', 'allen-who', label));
     const body = el('div', 'allen-body');
     item.append(body);
@@ -1464,7 +1567,7 @@
     parser.end();
     if (!clock.finished && !clock.outcome) clock.outcome = 'The connection closed before Allen finished.';
   }
-  async function ask(raw) {
+  async function ask(raw, silent = false) {
     const text = cut(String(raw).trim(), LIMIT.each);
     if (!text) return;
     if (choices) {
@@ -1485,7 +1588,7 @@
     busy(true);
     speedReset();
     turns.push({ role: 'user', content: text });
-    message('user', 'You').body.append(el('p', 'allen-p', text));
+    if (!silent) message('user', 'You').body.append(el('p', 'allen-p', text));
     const reply = message('allen', 'Allen');
     reply.item.setAttribute('aria-busy', 'true');
     const render = renderer(reply.body);
@@ -1551,18 +1654,26 @@
     runners.clear();
     log.replaceChildren();
     speedReset();
-    greeting();
+    start();
     notice('New conversation. Nothing from the last one was kept.');
     input.focus();
   });
   for (const example of examples.querySelectorAll('button')) {
     example.addEventListener('click', () => ask(example.textContent));
   }
-  byId('allen-introduce').addEventListener('click', () => openIntro());
+  byId('allen-introduce').addEventListener('click', switchMode);
   window.addEventListener('hashchange', forgetOffer);
   conversation = conversationId();
+  /* /allen/?mode=anonymous forces anonymous and clears any key; otherwise a
+     key kept after an earlier Remember me means this visitor opted in.
+     /allen/?mode=remember only opens the consent card; it never opts in. */
+  if (entry === 'anonymous') goAnonymous(true);
+  else remembered = Boolean(storedKey());
+  showMode();
   keyPanel();
-  greeting();
+  start();
+  if (entry === 'anonymous' && oldKey) offerForget();
+  if (entry === 'remember' && !remembered) openIntro();
   forgetOffer();
   presence();
   setInterval(presence, PRESENCE_MS);
