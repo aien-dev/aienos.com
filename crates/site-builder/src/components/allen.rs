@@ -225,6 +225,25 @@ mod tests {
     }
 
     #[test]
+    fn volunteer_inference_is_an_anonymous_opt_in() {
+        // Open Humanity disclosure (aien-dev/open-humanity PR #41): the box is
+        // unticked in the markup, only anonymous chat sends X-Allen-Volunteer,
+        // and a volunteer's reply says so.
+        let script = include_str!("../../../../public/js/allen.js");
+        assert!(SKELETON.contains("<input type=\"checkbox\" id=\"allen-volunteer\"> <span>Let a volunteer&#39;s Spark answer me when Drake&#39;s is busy.</span>"));
+        assert!(SKELETON.contains("If you tick this and my Spark is full, your messages in this chat go to a computer owned by a volunteer, outside my house. It gets only this anonymous conversation: no name, contact details or memories. I check a sample of volunteer replies, not every one. A volunteer could still send a wrong or bad reply that I don&#39;t catch. Each reply says which machine answered."));
+        assert!(!SKELETON.contains("id=\"allen-volunteer\" checked"));
+        assert_eq!(script.matches("'X-Allen-Volunteer'").count(), 1);
+        let headers = function_body(script, "volunteerHeaders");
+        assert!(headers.contains("if (remembered || !tick || !tick.checked) return {};"));
+        assert!(function_body(script, "setVolunteer").contains("tick.checked = Boolean(on) && !remembered;"));
+        assert!(function_body(script, "showMode").contains("if (remembered) setVolunteer(false);"));
+        // Remembered chat carries the key, so the volunteer header is never beside it.
+        assert!(function_body(script, "keyHeaders").contains("if (!remembered) return { 'X-Allen-Anonymous': '1' };"));
+        assert!(script.contains("`answered by a volunteer's Spark (${clock.volunteer})`"));
+    }
+
+    #[test]
     fn only_allen_nodes_carry_the_allen_speaker_mark() {
         let script = include_str!("../../../../public/js/allen.js");
         assert!(function_body(script, "message").contains("if (role === 'allen') item.dataset.speaker = 'allen';"));
@@ -239,7 +258,7 @@ mod tests {
         for id in [
             "allen", "allen-log", "allen-form", "allen-input", "allen-send", "allen-stop", "allen-status", "allen-new",
             "allen-model", "allen-queue", "allen-ttft", "allen-first", "allen-rate", "allen-tokens", "allen-server", "allen-examples",
-            "allen-key", "allen-key-body", "allen-introduce", "allen-drake", "allen-mode",
+            "allen-key", "allen-key-body", "allen-introduce", "allen-drake", "allen-mode", "allen-volunteer", "allen-volunteer-box",
         ] {
             assert_eq!(SKELETON.matches(&format!(" id=\"{id}\"")).count(), 1, "exactly one #{id} in the skeleton");
         }

@@ -975,11 +975,32 @@
     }
     trigger.disabled = false;
   }
+  /* Open Humanity volunteer inference: an anonymous visitor may tick the box
+     to let a volunteer's Spark answer when Drake's is full. Never with a key,
+     never in remember-me mode, never ticked by the page. */
+  function volunteerHeaders() {
+    const tick = byId('allen-volunteer');
+    if (remembered || !tick || !tick.checked) return {};
+    return { 'X-Allen-Volunteer': '1' };
+  }
+  function setVolunteer(on) {
+    const tick = byId('allen-volunteer');
+    if (tick) tick.checked = Boolean(on) && !remembered;
+  }
+  function volunteerModel(value) {
+    const oh = value && typeof value.oh === 'object' && value.oh !== null && !Array.isArray(value.oh) ? value.oh : null;
+    if (!oh) return '';
+    return typeof oh.model === 'string' && oh.model ? oh.model.slice(0, 80) : 'model not reported';
+  }
   /* The badge says which mode the chat is in; its one button switches. */
   function showMode() {
     root.dataset.mode = remembered ? 'remembered' : 'anonymous';
     setText(byId('allen-mode'), remembered ? 'Remembered: Allen knows you by your Allen key' : "Anonymous: Allen won't remember this chat");
     setText(byId('allen-introduce'), remembered ? 'Go anonymous' : 'Remember me');
+    /* The volunteer opt-in belongs to anonymous chat only, and starts off. */
+    const box = byId('allen-volunteer-box');
+    if (box) box.hidden = remembered;
+    if (remembered) setVolunteer(false);
     emit('mode', { mode: remembered ? 'remembered' : 'anonymous' });
   }
   function switchMode() {
@@ -1668,12 +1689,14 @@
       notice(`In line: ${value.position} ${value.position === 1 ? 'request' : 'requests'} ahead of you.`);
       emit('queue', { position: value.position });
     } else if (name === 'start' && value) {
+      if (volunteerModel(value)) clock.volunteer = volunteerModel(value);
       clock.start = now;
       setText(speed.queue, `${ms(now - clock.sent)} (server ${count(value.queued_ms)} ms)`);
       if (typeof value.model === 'string' && value.model.length <= 80) setText(speed.model, value.model);
       notice('The model has your message.');
       emit('start', { model: typeof value.model === 'string' ? value.model.slice(0, 80) : '', queuedMs: Number.isFinite(value.queued_ms) ? value.queued_ms : NaN, queueWaitMs: now - clock.sent });
     } else if (name === 'done' && value) {
+      if (volunteerModel(value)) clock.volunteer = volunteerModel(value);
       clock.finished = true;
       setText(speed.server, `prompt ${count(value.prompt_tokens)}, completion ${count(value.completion_tokens)} tokens; first token ${count(value.upstream_ttft_ms)} ms, whole reply ${count(value.upstream_ms)} ms`);
       if (value.finish === 'length') clock.outcome = 'The reply reached its length limit and was cut off.';
@@ -1727,11 +1750,11 @@
     reply.item.setAttribute('aria-busy', 'true');
     const render = renderer(reply.body);
     emit('send', { text, silent });
-    const clock = { sent: performance.now(), start: NaN, first: NaN, last: NaN, tokens: 0, after: 0, finished: false, outcome: '' };
+    const clock = { sent: performance.now(), start: NaN, first: NaN, last: NaN, tokens: 0, after: 0, finished: false, outcome: '', volunteer: '' };
     let wait = 0;
     notice('Sending.');
     try {
-      const response = await fetch(CHAT, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream', ...keyHeaders(true) }, body: JSON.stringify({ messages: fit(turns) }), cache: 'no-store', credentials: 'omit', signal: controller.signal });
+      const response = await fetch(CHAT, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream', ...keyHeaders(true), ...volunteerHeaders() }, body: JSON.stringify({ messages: fit(turns) }), cache: 'no-store', credentials: 'omit', signal: controller.signal });
       if (!response.ok) {
         const body = await response.json().catch(() => null);
         wait = retryAfter(response, body);
@@ -1739,6 +1762,8 @@
       } else if (!response.body || !(response.headers.get('content-type') || '').includes('text/event-stream')) {
         clock.outcome = 'Allen answered in a form this page does not read.';
       } else {
+        const header = response.headers.get('X-OH-Volunteer');
+        if (header) clock.volunteer = /^[\x20-\x7e]{1,80}$/.test(header) && header !== '1' ? header : 'model not reported';
         await stream(response.body, clock, render);
       }
     } catch (error) {
@@ -1755,9 +1780,10 @@
       turns.pop();
       if (!input.value) input.value = text;
     }
+    if (clock.volunteer) reply.item.append(el('p', 'allen-note allen-volunteer-note', `answered by a volunteer's Spark (${clock.volunteer})`));
     if (clock.outcome) reply.item.append(el('p', 'allen-err', clock.outcome));
     notice(clock.outcome && !said ? clock.outcome : '', wait);
-    emit('reply', { text: said, outcome: clock.outcome });
+    emit('reply', { text: said, outcome: clock.outcome, volunteer: clock.volunteer });
   }
   /* Ask again for the last reply: the last answer leaves the history and the
      same user turn is sent once more, unshown, so it is never duplicated. */
@@ -1882,6 +1908,11 @@
       return drake.state === 'waiting';
     },
     draft: () => draftText,
+    volunteer: on => {
+      if (on !== undefined) setVolunteer(on);
+      const tick = byId('allen-volunteer');
+      return Boolean(tick && tick.checked && !remembered);
+    },
     say: text => {
       const said = cut(String(text).trim(), LIMIT.each);
       if (said && drake.state === 'joined') sayToDrake(said);
