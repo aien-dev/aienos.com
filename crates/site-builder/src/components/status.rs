@@ -77,10 +77,10 @@ pub fn layer_states() -> Vec<LayerState> {
         },
         LayerState {
             name: "Public release",
-            status: "PLANNED",
-            note: "Pre-alpha. No supported release or installer yet. When there is one, it ships with versions, hashes, and signatures, inspectable before it runs.",
-            receipt_label: None,
-            receipt_url: None,
+            status: "EXPERIMENTAL",
+            note: "Alpha testing for Linux arm64 and NVIDIA GB10. The side-by-side Omega installer is experimental. This release binary: GPU NOT_RUN. A real install through first token and three-pass physical qualification are NOT_RUN. Inspect versions, hashes, signatures and limits before running.",
+            receipt_label: Some("Alpha release and evidence"),
+            receipt_url: Some("https://github.com/aien-dev/sovereign-intelligence/releases/tag/alpha-20261026.1"),
         },
     ]
 }
@@ -250,7 +250,7 @@ mod wording_tests {
         // The receipt aside and the live rows render too; count only up to the live block.
         let before_live = page.split("id=\"live\"").next().unwrap();
         assert_eq!(crate::components::boxlink::check_boxes(before_live), Ok(rows), "every layer row links to GitHub");
-        assert_eq!(before_live.matches("box-link-source").count(), 1, "only the release row, which has no receipt, is a source link");
+        assert_eq!(before_live.matches("box-link-source").count(), 0, "every layer now carries an evidence or release link");
     }
 
     #[test]

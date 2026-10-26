@@ -163,7 +163,7 @@ pub fn render_owned() -> Markup {
                     }
                     h3 { "What is not true yet" }
                     p {
-                        "AIEN is pre-alpha. The model I serve was trained by others and keeps its maker's licence. I have not trained a model of my own. The install guide failed its first test. Speed is below the ceiling. I would rather you read that here than discover it later."
+                        "Sovereign Intelligence, built on AienOS, is in alpha testing. The model I serve was trained by others and keeps its maker's licence. I have not trained a model of my own. The install guide failed its first test. Speed is below the ceiling. I would rather you read that here than discover it later."
                     }
                 }
 
