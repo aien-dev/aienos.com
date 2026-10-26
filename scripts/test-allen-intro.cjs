@@ -15,7 +15,7 @@ const GPC_NOTE = "Your browser sends Global Privacy Control, so I'm not offering
 const AFTER_NO = "No problem. You can still chat with me anonymously; I won't remember you or tell X anything.";
 const X_ORIGINS = ['https://static.ads-twitter.com', 'https://analytics.twitter.com', 'https://t.co'];
 
-function page({ stored, privacy = false, blocked = false, blockedLocal = blocked, session, local, hash = '', search = '', failNo = false, configured = false, motion = false, gpc = false, chat, resources = [] } = {}) {
+function page({ stored, privacy = false, blocked = false, blockedLocal = blocked, session, local, hash = '', search = '', failNo = false, configured = false, motion = false, gpc = false, chat, defer = false, resources = [] } = {}) {
   // Fixture event IDs exist only in this isolated VM, never in deployed config.
   const code = configured ? source.replace("pageVisit: '', introducedToAllen: ''", "pageVisit: 'tw-rfrlz-testvisit', introducedToAllen: 'tw-rfrlz-testintro'") : source;
   const storage = local || new Map(stored === undefined ? [] : [[key, stored]]);
@@ -69,6 +69,7 @@ function page({ stored, privacy = false, blocked = false, blockedLocal = blocked
       return node(id);
     },
     querySelectorAll(selector) { return privacy ? [node(selector)] : []; },
+    querySelector(selector) { assert.equal(selector, '[data-allen-intro-defer]'); return defer ? node('door') : null; },
     addEventListener(name, fn) { docEvents[name] = fn; },
     dispatchEvent(event) { announced.push(event.detail); },
     createElement(tag) {
@@ -371,7 +372,7 @@ test('anonymous chat on /allen/ never loads the pixel, and the chat page gets no
 test('presence API: X consent only, events for the visual layer, memory consent absent', () => {
   const p = page();
   const api = p.api();
-  assert.deepEqual(plain(Object.keys(api).sort()), ['dismiss', 'noThanks', 'onTrackers', 'review', 'sayHi', 'status', 'text', 'who']);
+  assert.deepEqual(plain(Object.keys(api).sort()), ['dismiss', 'greet', 'noThanks', 'onTrackers', 'review', 'sayHi', 'status', 'text', 'who']);
   assert.deepEqual(plain(api.text), { greeting: GREETING, intro: INTRO, offer: OFFER, gpcNote: GPC_NOTE, afterNo: AFTER_NO });
   assert.deepEqual(plain(api.status()), { choice: null, gpc: false, offering: true, pixelLoaded: false, shown: true });
   const seen = [];
@@ -386,4 +387,17 @@ test('presence API: X consent only, events for the visual layer, memory consent 
   assert.equal(q.storage.get(key), 'no');
   assert.equal(q.aside.hidden, true);
   noPixel(q);
+});
+test('a page door defers the greeting until it calls greet(), which still runs only once', () => {
+  const p = page({ defer: true });
+  assert.equal(p.aside.hidden, true, 'no greeting over the door');
+  assert.equal(p.storage.has(seenKey), false, 'deferral does not spend the once-only greeting');
+  assert.equal(p.api().greet(), true);
+  assert.equal(p.shown(), true);
+  assert.equal(p.storage.get(seenKey), '1');
+  noPixel(p);
+  const next = page({ defer: true, local: p.storage });
+  assert.equal(next.api().greet(), false, 'once per browser, even when called again');
+  assert.equal(next.aside.hidden, true);
+  assert.equal(page({ defer: true, stored: 'no' }).api().greet(), false);
 });
