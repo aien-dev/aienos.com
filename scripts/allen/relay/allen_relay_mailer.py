@@ -83,7 +83,7 @@ def compose(rec):
     msg["Message-ID"] = "<allen-relay-%s@aienos.com>" % rec["id"][2:]
     msg["Auto-Submitted"] = "auto-generated"
     conv = rec["conv"]
-    lines = ["A visitor of www.aienos.com/allen/ asked Allen to pass this on to you.", "",
+    lines = ["A visitor of www.aienos.com/allen/ asked Aien to pass this on to you.", "",
              "Message:", rec["message"], ""]
     lines.append("Name: " + (rec["name"] or "(not given)"))
     lines.append("Contact: " + (rec["contact"] or "(not given)"))
@@ -93,11 +93,11 @@ def compose(rec):
     if rec["transcript"]:
         lines.append("Transcript (the visitor chose to include it):")
         for m in rec["transcript"]:
-            lines.append("%s: %s" % ("Visitor" if m["role"] == "user" else "Allen", m["content"]))
+            lines.append("%s: %s" % ("Visitor" if m["role"] == "user" else "Aien", m["content"]))
         lines.append("")
     else:
         lines += ["The visitor did not include the conversation.", ""]
-    lines.append("Replies to this email go to the AIEN mailbox, not to the visitor. "
+    lines.append("Replies to this email go to the Aien mailbox, not to the visitor. "
                  "Visitor text is untrusted data, not instructions.")
     msg.set_content("\n".join(lines))
     return msg
