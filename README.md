@@ -5,13 +5,15 @@
 
 The source of the AienOS website. A Rust program builds the pages, GitHub Pages serves their origin, and the existing nginx edge adds Markdown negotiation and the opt-in live Hive feed.
 
-Live: [https://www.aienos.com](https://www.aienos.com)
+Part of [Aienix](https://github.com/aien-dev/aienix), the core tree of AIEN: start there for what the project is and how the pieces fit.
+
+Live: [https://www.aienos.com](https://www.aienos.com), rebuilt hourly from the repository's own facts.
 
 ---
 
 ## What the site covers
 
-The homepage opens with "AienOS is an owned experimental machine for turning search into verified understanding" (`crates/site-builder/src/components/home_loop.rs`) and goes on to the loop, the story, the receipts behind each claim, how the pieces fit together, the research, an interactive terminal, the current status of each layer, and where to follow the work. Other pages: `/start/` (the newcomer route through what AIENOS is, what exists today, how to check the evidence, how to reproduce or contribute, and where the author and Interplane fit), `/progress/`, `/blog/`, `/research/status/`, `/machine/`, `/discovery/` and the hubs `/experiments/`, `/evidence/` and `/philosophy/`. The build also writes `status.json`, `research-status.json` and `llms.txt`; `status.json` and `llms.txt` come from the same code as the homepage status section, and `research-status.json` is `crates/site-builder/data/research_status.json`. The homepage status section says "Public release" is PLANNED: pre-alpha, no supported release or installer yet.
+The homepage opens with "AienOS is an owned experimental machine for turning search into verified understanding" (`crates/site-builder/src/components/home_loop.rs`) and goes on to the loop, the story, the receipts behind each claim, how the pieces fit together, the research, an interactive terminal, the current status of each layer, and where to follow the work. Other pages: `/start/` (the newcomer route through what AIENOS is, what exists today, how to check the evidence, how to reproduce or contribute, and where the author and Interplane fit), `/progress/`, `/blog/`, `/research/status/`, `/machine/`, `/discovery/` and the hubs `/experiments/`, `/evidence/` and `/philosophy/`. The build also writes `status.json`, `research-status.json` and `llms.txt`; `status.json` and `llms.txt` come from the same code as the homepage status section, and `research-status.json` is `crates/site-builder/data/research_status.json`. The homepage status section says "Public release" is PLANNED, with no supported release or installer yet.
 
 ---
 
