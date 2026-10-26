@@ -1,0 +1,26 @@
+name: Generated Allen audio
+on:
+  pull_request:
+    paths:
+      - 'om/allen-audio/**'
+      - 'public/audio/allen-chirp.wav'
+      - 'public/js/allen-audio.js'
+      - '.github/workflows/generated-allen-audio.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'om/allen-audio/**'
+      - 'public/audio/allen-chirp.wav'
+      - 'public/js/allen-audio.js'
+      - '.github/workflows/generated-allen-audio.yml'
+permissions:
+  contents: read
+jobs:
+  artifact-hashes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Hashes committed bytes only; the arm64 omc pin and the aienux oracle run in om/allen-audio/check.sh.
+      - name: Check the Omega-generated sound and script against their sidecars
+        working-directory: om/allen-audio
+        run: sha256sum -c allen-chirp.wav.sha256 allen-audio.js.sha256
