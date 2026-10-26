@@ -275,10 +275,13 @@ end
 ret 4
 end
 
+note lk_utf8: slot is well-formed UTF-8. A for loop traps (4) at 1000000 passes and a raw slot may
+note hold up to 4 MiB, so the scan is two-level: 64 x 262144 passes, each advancing at least 1 byte.
 fn lk_utf8 slot ulong to bool
 xp = lk_roff slot
 xe = add xp lk_rlen slot
-for xi ulong lk_rlen slot
+while lt xp xe bound 64
+for xi ulong 262144
 if ge xp xe
 ret true
 end
@@ -287,6 +290,7 @@ if eq xk 0
 ret false
 end
 xp = add xp xk
+end
 end
 ret true
 end
@@ -515,12 +519,18 @@ end
 ret xv
 end
 
+note lk_find: first p in [p, e) holding byte c, else e. Two-level (64 x 262144 passes): a region
+note may span the whole 4 MiB raw buffer, past the 1000000-pass loop trap.
 fn lk_find sel uchar p ulong e ulong c uchar to ulong
-while lt p e bound 999999
+while lt p e bound 64
+xk = ulong 0
+while and lt p e lt xk 262144 bound 262144
 if eq lk_by sel p c
 ret p
 end
 p = add p 1
+xk = add xk 1
+end
 end
 ret e
 end
@@ -1715,10 +1725,9 @@ end
 if ne get lkraw sub xe 1 10
 lk_fail lkemnl 0
 end
-for xi ulong xn
-if eq get lkraw add xp xi 13
+note no CR anywhere in the region (lk_find scans the whole slot; a for loop traps at 1000000).
+if lt lk_find 0 xp xe 13 xe
 lk_fail lkemnl 0
-end
 end
 xl = lk_find 0 xp xe 10
 if not lk_rawis xp xl lkhead

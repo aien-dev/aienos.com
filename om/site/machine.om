@@ -368,6 +368,8 @@ note Data is loaded at render time. Historical observations retain their dates a
 fn sm_need obj ulong key view uchar * to ulong
 nd = sj_find obj key
 if eq nd 0
+sr_flush
+sr_diag key
 exit 65
 end
 ret nd

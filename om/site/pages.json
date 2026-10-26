@@ -52,6 +52,19 @@
     "english": "/contact/"
   },
   {
+    "path": "/support/",
+    "title": "Support my open source work",
+    "description": "Help me keep building free and open source software through X Money. US-only eligibility, the exact recipient and the steps to send support.",
+    "area": "Learn",
+    "mode": "artifact",
+    "source": "om/support-page/main.html",
+    "kind": "Page",
+    "published": "2026-10-26",
+    "image": "/og.png",
+    "doi": "",
+    "english": "/support/"
+  },
+  {
     "path": "/privacy/",
     "title": "Privacy & saying hello to Allen",
     "description": "Your choice about the consent-only X pixel, what X receives, what I keep and how to refuse.",

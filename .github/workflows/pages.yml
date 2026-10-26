@@ -16,7 +16,10 @@ concurrency:
   cancel-in-progress: false
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # The seeded Omega compiler emits Linux AArch64 executables, so the site
+    # builds on GitHub's arm64 runner. The Rust crate remains the independent
+    # verification oracle and the public-data collectors (DEPENDENCIES.md).
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -55,7 +58,7 @@ jobs:
           else
             echo "no data/now branch yet; /now/ renders empty"
           fi
-      - name: Refuse an unprojected public ledger
+      - name: Refuse an unprojected public ledger (Rust oracle)
         run: cargo run --release -p site-builder -- ledger-check public/data/now.tsv
       # The collector walks the public GitHub record; a slow or rate-limited
       # API must not hold the whole deploy (it did twice on 2026-10-25). It is
@@ -95,12 +98,29 @@ jobs:
             rm -f "$tmp"
             echo "agents: collector timed out or failed; keeping the committed agent-repos.json"
           fi
-      - name: Check the committed Hive skeleton digest
-        run: cargo test --release -p site-builder the_embedded_skeleton_matches_its_recorded_sha256
-      - name: Check the committed Alpha artifacts
-        run: cargo test --release -p site-builder components::alpha::tests
-      - name: Build static site with pure Rust engine
-        run: cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist
+      - name: Check the committed Omega artifact digests
+        run: |
+          set -euo pipefail
+          sha256sum -c om/site/omc.sha256
+          cargo test --release -p site-builder the_embedded_skeleton_matches_its_recorded_sha256
+          cargo test --release -p site-builder components::alpha::tests
+          sha256sum -c om/support-page/main.html.sha256 om/support-page/entry.html.sha256 om/support-page/support.css.sha256
+      - name: Compile the Omega site generator and verifier
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          om/site/omc < om/site/build.om > build/build-tool
+          chmod +x build/build-tool
+          build/build-tool om/site/modules.txt build/site
+          build/build-tool om/site/verify.manifest build/verify
+      - name: Validate the source data (Omega)
+        run: build/verify --sources
+      - name: Generate the site with Omega
+        run: build/site "$PWD" "$PWD/dist" "$(git log -1 --format=%cI)"
+      - name: Verify the output (Omega verifier)
+        run: build/verify dist data/quotes.json public/data/engineer.json
+      - name: Verify the output (independent Rust oracle)
+        run: cargo run --release --manifest-path crates/site-builder/Cargo.toml -- verify dist
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/data/now'
         uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1

@@ -41,15 +41,15 @@ text scmdend "\"><link rel=\"describedby\" href=\"https://www.aienos.com/llms.tx
 text scerr "/404.html"
 text scrobots "<meta name=\"robots\" content=\"index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1\">"
 text scnoidx "<meta name=\"robots\" content=\"noindex,follow\">"
-text scstyles "<link rel=\"stylesheet\" href=\"/assets/style.css\"><link rel=\"stylesheet\" href=\"/assets/site.css\">"
-text sctokens "<link rel=\"stylesheet\" href=\"/assets/site-tokens.css\"><link rel=\"stylesheet\" href=\"/assets/site-door.css\">"
+text scstyles "<link rel=\"stylesheet\" href=\"/assets/style.css\"><link rel=\"stylesheet\" href=\"/assets/site.css\"><link rel=\"stylesheet\" href=\"/assets/support.css\">"
+text sctokens "<link rel=\"stylesheet\" href=\"/assets/site-tokens.css\"><link rel=\"stylesheet\" href=\"/assets/site-door.css\"><link rel=\"stylesheet\" href=\"/assets/support.css\">"
 text scconsjs "<link rel=\"stylesheet\" href=\"/assets/allen-intro.css\"><script defer src=\"/js/allen-intro.js\"></script>"
 text scnative "<script defer src=\"/js/allen-audio.js\"></script><script defer src=\"/js/allen-scene.js\"></script><script defer src=\"/js/allen-presence.js\"></script>"
 text scclient "<script defer src=\"/js/site.js\"></script>"
 text scbody "</head><body class=\"site\" data-site-area=\""
 text scendat "\">"
 text scskip "<a class=\"skip-link\" href=\"#main-content\">Skip to content</a>"
-text scutil0 "<div class=\"site-utility\"><a href=\"https://x.com/mdrakestapleton\" rel=\"noopener noreferrer\">Follow me on X</a><a href=\"/contact/\">Contact</a>"
+text scutil0 "<div class=\"site-utility\"><a href=\"https://x.com/mdrakestapleton\" rel=\"noopener noreferrer\">Follow me on X</a><a href=\"/contact/\">Contact</a><a class=\"aien-support-button\" href=\"/support/\">Support</a>"
 text scutnat "<a href=\"/classic/\" data-site-mode=\"classic\">Classic site</a>"
 text scutcls "<a href=\"/\" data-site-mode=\"allen\">Switch to Allen</a>"
 text scutile "</div>"
@@ -64,8 +64,11 @@ text schmain "<main id=\"main-content\" class=\"site-native\" data-home-door=\"t
 text scclose "</main>"
 text scfoot0 "<footer class=\"aien-footer\"><div class=\"container\"><div class=\"footer-intro\"><a class=\"site-brand\" href=\"/classic/\">Sovereign Intelligence</a><p>Built on AienOS. Made by Drake Stapleton.</p><p class=\"aien-reach-foot\"><a href=\"https://x.com/mdrakestapleton\" rel=\"noopener noreferrer\">X @mdrakestapleton</a> <a href=\"mailto:drake@aienos.com\">drake@aienos.com</a> <a href=\"/allen/\">Speak to Allen</a> <a href=\"https://github.com/aien-dev\">GitHub</a></p></div>"
 text scfoot1 "<div class=\"footer-links\"><a href=\"/turing/\">The Turing</a><a href=\"/experiments/\">Experiments</a><a href=\"/research/\">Research</a><a href=\"/evidence/\">Evidence</a><a href=\"/research/status/\">Research status</a><a href=\"/philosophy/\">Philosophy</a><a href=\"/post-llm-case/\">The Post-LLM Case</a><a href=\"/start/\">Start here</a><a href=\"/progress/\">Progress</a><a href=\"/blog/\">Blog</a><a href=\"/glossary/\">Glossary</a><a href=\"/contact/\">Contact</a><a href=\"/agents/\">Agent instructions</a><a href=\"https://interplane.io/\">Interplane</a><a href=\"https://www.drakestapleton.com\">Drake Stapleton</a></div><p class=\"aien-footer-machines\">For machines: <a href=\"/data/index.json\">data index</a> · <a href=\"/llms.txt\">llms.txt</a> · <a href=\"/llms-full.txt\">full text</a> · <a href=\"/sitemap.md\">sitemap.md</a> · <a href=\"/AGENTS.md\">AGENTS.md</a> · <a href=\"/feed.xml\">feed</a> · <a href=\"/now/feed.xml\">ledger feed</a></p><p class=\"footer-quiet\"><a href=\"/#replay-intro\" data-site-replay data-site-mode=\"allen\">Replay the introduction</a> <a href=\"/\" data-site-mode=\"allen\">Switch to Allen</a> <a href=\"/privacy/\">Privacy &amp; choices</a> <a href=\"/licensing/\">Apache-2.0 WITH LLVM-exception</a></p><p class=\"muted\">AIEN © 2026. No outside fonts. X tracking and Allen memory each need their own choice. Reading does not require either.</p></div></footer>"
-text sccons "om/site/consent.html"
-text sclaunch "om/site/launcher.html"
+text sccons "om/allen-intro/intro.html"
+text sclaunch "om/allen-presence/launcher.html"
+text scsupent "om/support-page/entry.html"
+text sccontct "/contact/"
+text scalph "/alpha/"
 text scdone "</body></html>\n"
 text scnext0 "<aside class=\"next-stops container\" aria-labelledby=\"next-stop-title\"><p class=\"eyebrow\">Keep exploring</p><h2 id=\"next-stop-title\">A next stop, not a locked door</h2><div class=\"cluster\">"
 text scnext1 "<a class=\"button button-secondary\" href=\"/omega/\">Read the language</a><a class=\"button button-secondary\" href=\"/learn/\">Build something with AI</a>"
@@ -251,6 +254,9 @@ sr_raw sccrumbb
 sc_title
 sr_raw sccrumbe
 sr_raw scmain
+if or or sr_equal route sclass sr_equal route sccontct sr_equal route scalph
+sr_file scsupent
+end
 end
 end
 fn sc_next to void
