@@ -244,6 +244,9 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
         "website",
         html! {
             link rel="stylesheet" href="/assets/allen.css";
+            link rel="stylesheet" href="/assets/allen-panes.css";
+            script defer src="/js/allen-audio.js" {}
+            script defer src="/js/allen-panes.js" {}
             script defer src="/js/allen.js" {}
         },
         components::allen::render_allen_page(),

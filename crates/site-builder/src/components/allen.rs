@@ -185,7 +185,8 @@ mod tests {
         assert!(function_body(script, "greeting").contains("message('allen', 'Allen')"));
         assert_eq!(script.matches("dataset.speaker").count(), 1, "only message() marks a speaker");
         assert!(!function_body(script, "humanMessage").contains("speaker"));
-        assert!(!SKELETON.contains("data-speaker"), "Drake's page copy is never marked as Allen's");
+        assert_eq!(SKELETON.matches("data-speaker=\"allen\"").count(), 1, "only the initially empty live reply is marked as Allen's");
+        assert!(SKELETON.contains("id=\"allen-answer\" class=\"allen-answer\" data-speaker=\"allen\""));
     }
 
     #[test]
@@ -197,8 +198,8 @@ mod tests {
         ] {
             assert_eq!(SKELETON.matches(&format!(" id=\"{id}\"")).count(), 1, "exactly one #{id} in the skeleton");
         }
-        assert!(SKELETON.contains("running on a DGX Spark in Drake's house"));
-        assert!(SKELETON.contains("No prompts or IP addresses are logged."));
+        assert!(SKELETON.contains("Timing below is measured from this reply."));
+        assert!(SKELETON.contains("Remembering you is a separate choice"));
         assert!(!SKELETON.contains('\u{2014}') && !SKELETON.contains('\u{2013}'), "no em or en dash");
     }
 
@@ -261,6 +262,26 @@ mod tests {
         assert!(!css.contains('#'), "allen.css takes its colours from the style.css tokens, not hex literals");
         for line in css.lines().filter(|l| l.contains("transition") || l.contains("animation")) {
             assert!(!line.contains("filter") && !line.contains("box-shadow") && !line.contains("transition: all"), "compositor-only motion: {line}");
+        }
+    }
+
+    #[test]
+    fn the_presence_keeps_transport_and_consent_boundaries() {
+        let script = include_str!("../../../../public/js/allen-presence.js");
+        let want = recorded(include_str!("../../../../om/allen-presence/presence.sha256"));
+        assert_eq!(format!("{:x}", Sha256::digest(script.as_bytes())), want);
+        for banned in ["innerHTML", "outerHTML", "insertAdjacentHTML", "fetch(", "localStorage", "sessionStorage", "eval("] {
+            assert!(!script.contains(banned), "the presence delegates effects, never uses {banned}");
+        }
+        assert!(script.contains("api.on('human', event => replaceReply(event.text, 'Drake'))"));
+        assert_eq!(script.matches("replaceReply(event.text, 'Drake')").count(), 1);
+        assert!(script.contains("api.on('card', event =>"));
+        assert!(script.contains("node:event.node"));
+        assert!(script.contains("prefers-reduced-motion: reduce"));
+        assert!(script.contains("window.AllenAudio.enter()"));
+        assert!(SKELETON.contains("id=\"allen-session\" class=\"allen-session\" aria-label=\"Session history and privacy\" hidden"));
+        for id in ["allen-universe", "allen-enter", "allen-copy", "allen-regenerate", "allen-history", "allen-projects", "allen-mute"] {
+            assert_eq!(SKELETON.matches(&format!("id=\"{id}\"")).count(), 1);
         }
     }
 }

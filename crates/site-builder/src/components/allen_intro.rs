@@ -1,6 +1,6 @@
 use maud::{html, Markup};
 
-pub const HEAD: &str = "<link rel=\"stylesheet\" href=\"/assets/allen-intro.css\"><script defer src=\"/js/allen-intro.js\"></script>";
+pub const HEAD: &str = "<link rel=\"stylesheet\" href=\"/assets/allen-intro.css\"><script defer src=\"/js/allen-intro.js\"></script><script defer src=\"/js/allen-scene.js\"></script><script defer src=\"/js/allen-presence.js\"></script>";
 
 /// Allen's greeting (Drake's words), static and client-rendered so it appears instantly.
 /// Allen's speech carries `data-speaker="allen"`: his "we" means Allen and the visitor,
@@ -18,7 +18,6 @@ pub const AFTER_NO: &str = "No problem. You can still chat with me anonymously; 
 fn dialog() -> Markup {
     html! {
         aside id="aien-allen-intro" role="complementary" aria-label="Allen says hello" aria-live="polite" hidden {
-            img class="allen-intro-avatar" src="/assets/allen-avatar.svg" alt="" width="48" height="48";
             div class="allen-intro-bubble" {
                 p class="allen-intro-name" { "Allen" }
                 button id="allen-intro-close" class="allen-intro-close" type="button" aria-label="Close, no thanks" { "\u{00d7}" }
@@ -92,6 +91,10 @@ pub fn enrich(mut page: String) -> String {
     if !page.contains("id=\"aien-allen-intro\"") {
         let end = page.rfind("</body>").expect("allen-intro page has a body");
         page.insert_str(end, &dialog().into_string());
+    }
+    if !page.contains("id=\"aien-allen-launcher\"") {
+        let end = page.rfind("</body>").expect("Allen presence page has a body");
+        page.insert_str(end, include_str!("../../../../om/allen-presence/launcher.html"));
     }
     page
 }

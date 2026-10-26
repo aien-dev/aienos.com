@@ -1,0 +1,73 @@
+Allen scene source boundary
+
+Selected reference: aien-dev/aienux commit da55660ea7337f2b6a42095fcd1fb6ddebe1cc7c.
+https://github.com/aien-dev/aienux/tree/da55660ea7337f2b6a42095fcd1fb6ddebe1cc7c/native/kernel/ui
+
+native/ contains unchanged copies of mind, night, paint, flow, sky_real,
+sky_data, allen_font and chirp sources/headers. native.sha256 binds their bytes.
+The selected scene was built and staged. Available historical physical-machine
+reports do not establish that this source revision was booted on the iMac.
+The selection follows the operator's current description of the galaxy/tube
+experience. Do not promote a source match to physical deployment evidence.
+
+The browser controller is authored in scene.om and emitted by the pinned
+om/hive-page/omc (sha256 recorded in that directory). The renderer is NOT an
+Omega renderer: it temporarily reuses the native C implementation, with explicit
+operator authorization, as self-contained wasm32. adapter.c only owns the web
+entry/lifecycle/framebuffer boundary and copied allen_ui.c flash/horizon laws.
+There are no WASM imports, syscalls, third-party scripts, fonts or network
+services in the renderer. It loads only /allen/scene.wasm from this origin.
+
+Build dependency: Ubuntu clang and wasm-ld 18.1.3 (1ubuntu1), package version
+1:18.1.3-1ubuntu1; -nostdlib -ffreestanding wasm32. No compiler/library is loaded
+by the web page. check.sh refuses other compiler versions and uses the existing
+pinned Omega compiler for the browser controller. The replacement is a genuine
+seeded Omega implementation of these scene units through irwasm, accepted only
+after the same native frame/audio oracle. No missing Omega feature is asserted,
+and no Omega replacement PR or completed migration is claimed by this change.
+
+Scene identity and deliberate web changes
+- Native mind: 120 points, 300 edge capacity, 64 sparks; exact fixed-point home
+  lattice, nearest-neighbor graph, glow/thread/pulse functions and mode timing.
+- Native sky: Yale Bright Star Catalogue V/50 positions moved to epoch 2026.8,
+  Gaia DR3 integrated-light/extinction grid, OpenNGC Magellanic Cloud records,
+  canonical GW150914 direction. No invented replacement stars or backdrop.
+- Native default view is copied exactly, not regenerated from rounded angles.
+  Exploration uses the native sky camera; the supplied star table covers the
+  canonical view and its margin, NOT all catalogue stars across the whole sky.
+  The Gaia grid covers the full sphere. Do not claim all-sky stellar completeness.
+- Full render keeps native centre (half width, 40 percent height), scale and
+  native fluid. Browser resolution is bounded and composited to the CSS size;
+  this is not a claim of physical iMac-resolution pixel equality.
+- Compact uses a native-scale crop centred in the icon, no full-screen fluid.
+- The WEB opening reuses the native dusk accretion-tube law (4200 ms), then
+  native-duration dawn (900 ms) and mind formation. This is a web-specific
+  ordering. enter('birth') replays the original two-hole boot and merger.
+- Flowing input glyphs, pointer/keyboard sky exploration, visibility pause,
+  reduced-motion static state and responsive sizing are deliberate web additions.
+- Pane/UI text and input belong to the page, not this renderer. Native system
+  hooks, microphone, model calls, identity/memory and telemetry are not copied.
+
+Data attribution (not relicensed by this repository)
+Stars: Yale Bright Star Catalogue, 5th revised ed., Hoffleit & Warren 1991,
+CDS V/50. Credit the catalogue authors.
+Gaia: ESA/Gaia/DPAC, CC BY-NC 3.0 IGO, including source counts, integrated
+G-band flux and astrophysical_parameters extinction data.
+OpenNGC: Mattia Verga, CC BY-SA 4.0.
+GW150914 sky map: LIGO/Virgo GWTC-1, LIGO-P1800381-v7.
+Input URLs/digests and generation settings remain in native/sky_data.txt and
+native/sky_data.c. Preserve the data-specific terms and attribution on publication.
+
+Mathematical translation checks (not measurements)
+WolframLanguageEvaluator: (256-(256 t)^2/256)^2/256/256 -> (-1+t^2)^2.
+WolframLanguageEvaluator: (256 t)^2 (768-2 (256 t))/65536/256 -> (3-2 t)t^2.
+WolframLanguageEvaluator: Log[2,(r^2+f)/r^2]/2-Log[2,Sqrt[r^2+f]/r]
+with r>0,f>=0 -> 0. The native integer law remains authoritative.
+WolframLanguageEvaluator: 1000/30 -> 100/3 ms (browser scheduling policy).
+WolframLanguageEvaluator: 48000 (12300-11360)/1000 -> 45120 audio frames.
+
+Generation: sh om/allen-scene/check.sh --generate
+Determinism/artifact check: sh om/allen-scene/check.sh
+Use ALLEN_CLANG and ALLEN_WASM_LD to select the exact isolated compiler paths.
+Host/WASM parity oracle commands and observations belong to the parent evidence,
+not this provenance description. Compilation alone is not scene verification.

@@ -1,32 +1,38 @@
-/* Allen's hello: a non-blocking aside in a bottom corner, never a modal or backdrop. */
+/* The same native Allen floats in the corner. Consent is a non-blocking
+   text surface above him, never a modal, notification card or speech bubble. */
+.allen-launcher { position: fixed; right: 18px; bottom: max(16px, env(safe-area-inset-bottom)); z-index: 999; width: 180px; display: flex; flex-direction: column; align-items: center; text-decoration: none; transform-origin: 50% 40%; }
+.allen-launcher canvas { width: 180px; height: 150px; display: block; pointer-events: none; }
+.allen-launcher-bar { color: var(--text-secondary); font: 11px var(--font-sans); text-align: center; width: 148px; padding: 7px 12px; border: 1px solid var(--border-subtle); border-radius: 999px; background: linear-gradient(var(--bg-card-hover), var(--bg-base)); box-shadow: inset 0 1px 0 color-mix(in srgb, var(--text-primary) 12%, transparent); }
+.allen-launcher:focus-visible { outline: 2px solid var(--accent-blue); outline-offset: 4px; border-radius: 20px; }
+.allen-launcher:hover .allen-launcher-bar { color: var(--text-primary); border-color: var(--accent-blue); }
+.allen-launch-enter { transform: scale(8); opacity: 0; pointer-events: none; }
 #aien-allen-intro {
   position: fixed;
-  right: 1.25rem;
-  bottom: 1.25rem;
+  right: 24px;
+  bottom: 202px;
   z-index: 1000;
-  display: flex;
-  align-items: flex-end;
-  gap: .75rem;
-  width: min(23rem, calc(100vw - 2.5rem));
+  width: min(380px, calc(100vw - 32px));
+  max-height: calc(100dvh - 230px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   color: var(--text-primary);
   font-family: var(--font-sans);
   opacity: 0;
-  transform: translateY(1.5rem);
+  transform: translateY(16px);
 }
 #aien-allen-intro[hidden] { display: none; }
 #aien-allen-intro.allen-intro-in { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: no-preference) {
   #aien-allen-intro { transition: transform .35s ease-out, opacity .35s ease-out; }
+  .allen-launcher { transition: transform .45s ease-in, opacity .45s ease-in; }
 }
-.allen-intro-avatar { flex: none; width: 3rem; height: 3rem; border-radius: 50%; }
 .allen-intro-bubble {
   position: relative;
-  flex: 1;
   min-width: 0;
-  padding: .75rem 1rem .875rem;
-  border: 1px solid var(--border-subtle);
-  border-radius: 1rem 1rem 1rem .25rem;
-  background: var(--bg-surface);
+  padding: 12px 18px 18px;
+  border: 0;
+  border-radius: 0;
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--bg-base) 97%, transparent) 45%, color-mix(in srgb, var(--bg-base) 85%, transparent));
 }
 .allen-intro-name { margin: 0 2rem .25rem 0; font-size: .8rem; font-weight: 600; color: var(--accent-green); }
 .allen-intro-close {
@@ -44,7 +50,7 @@
   cursor: pointer;
 }
 .allen-intro-close:hover { background: var(--bg-card-hover); color: var(--text-primary); }
-/* The invisible full text reserves the bubble's size, so typing never reflows it. */
+/* Reserve the words' space while the native-cadence greeting appears. */
 .allen-intro-message { display: grid; margin: 0 0 .75rem; font-size: .95rem; line-height: 1.45; color: var(--text-secondary); }
 .allen-intro-ghost, #allen-intro-typed { grid-area: 1 / 1; }
 .allen-intro-ghost { visibility: hidden; }
@@ -88,8 +94,10 @@
 .allen-intro-who dd { margin: 0; overflow-wrap: anywhere; color: var(--text-primary); }
 .allen-intro-who a { color: var(--text-secondary); text-decoration: underline; }
 @media (max-width: 600px) {
-  #aien-allen-intro { left: .75rem; right: .75rem; bottom: .75rem; width: auto; }
-  .allen-intro-avatar { width: 2.5rem; height: 2.5rem; }
+  #aien-allen-intro { right: 12px; bottom: 142px; max-height: calc(100dvh - 166px); }
+  .allen-launcher { width: 120px; right: 12px; bottom: 12px; }
+  .allen-launcher canvas { width: 120px; height: 100px; }
+  .allen-launcher-bar { width: 116px; font-size: 10px; padding: 6px; }
 }
 .allen-intro-links a, .allen-intro-privacy a, .allen-intro-footer a { text-decoration: underline; }
 .allen-intro-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-block: 1rem; }
