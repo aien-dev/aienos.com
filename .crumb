@@ -24,32 +24,32 @@
         },
         {
           "digest": "38d08598e946eeb99cd962e22ff09a34bf5df62e22bd303552ba43a156aa09c8",
-          "last_commit": "164e30a",
+          "last_commit": "21dc7ea",
           "name": "crates",
           "purpose": "Native Rust website crates"
         },
         {
-          "digest": "aba3cf2e93dea1c3cf8f64d085f60f36b57c1d969f7ae2e0e52ba5c40ced2e86",
-          "last_commit": "2e4ca8a",
+          "digest": "faf427696ff35902ea0ce655180d4d4aa54db23cd4374a3f7db3925c2ef084c7",
+          "last_commit": "21dc7ea",
           "name": "om/hive-render",
           "purpose": "Seeded Omega edge rendering of validated canonical Hive JSON with fail-closed escaping and deter"
         },
         {
           "digest": "8717981052fdf4e0b9dde2febd12abf5505c3c77debd9034ba890d653413db82",
-          "last_commit": "ad1cd71",
+          "last_commit": "21dc7ea",
           "name": "public",
           "purpose": "Static public website assets"
         }
       ],
-      "children_root": "sha256:8a35eb998a55ea7fa439408c2ac62e0926ea8e8909e1d7207d008c28cd4e9f85",
-      "compiled_at": "2026-10-26T14:21:05Z",
+      "children_root": "sha256:2508431c429b62989336e9750981f0ef40df12169da9ffb5e501de446f963f29",
+      "compiled_at": "2026-10-26T14:21:23Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:9d44ec10b59cffaa628609d913f48aec6ffd0b16d4080c1b3b0b0f015b28b9fc",
+      "digest": "sha256:3bca5dd317906744bd762bd450b609100b32f2a7fd318ebacad91aec46075ed6",
       "evidence_files": 1,
       "evidence_root": "sha256:1f6f4b14373405a3b91d0e7aa6ba11d0dd332d4543ad01421a5451cca3e7de0c",
-      "files": 219,
-      "generated_at_commit": "1ad8d3e4982e0dc7e78f2c42acd9ba0b5681b0be",
-      "source_tree": "sha256:ef78ee296fb1f1dc9eb99edcae606cf5279b5f237f56a97532648e3cac1e9ef6"
+      "files": 224,
+      "generated_at_commit": "21dc7ea613770b6c60274af5c958b831b4bc6cec",
+      "source_tree": "sha256:91c4e426155bf0ccb764e3cdedbb57ef98fbbf30d256c1365af15dfb2af752ce"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",
