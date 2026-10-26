@@ -11,8 +11,9 @@
 //!   publisher never writes an email, account id, org or project name.
 //! * `routing.tsv`: `role|agent|seat, name, model selector`.
 //!
-//! Everything read here passes `word`, so even a publisher fault cannot put
-//! an email address or a markup character on the page.
+//! The publisher refuses to write a file holding an identifier. As a second
+//! guard, every field read here passes `word`: a row with an email-, domain-
+//! or UUID-shaped field is dropped whole, and markup characters are removed.
 
 use std::fs;
 use std::path::Path;
@@ -73,15 +74,34 @@ pub struct Dash {
     pub routing: Routing,
 }
 
-/// The only characters a published field may carry: no `@`, no markup, no
-/// separators, at most 48 of them.
-fn word(s: &str) -> String {
-    s.chars()
-        .filter(|c| c.is_ascii_alphanumeric() || " .:_/&()+-".contains(*c))
-        .take(48)
-        .collect::<String>()
-        .trim()
-        .to_string()
+/// True when a field looks like an identifier that must never be published:
+/// anything with `@`, a UUID-shaped run (8 hex, hyphen, 4 hex), or a token
+/// that ends in a mail domain (`name.com`).
+fn looks_private(s: &str) -> bool {
+    if s.contains('@') {
+        return true;
+    }
+    let b = s.as_bytes();
+    let uuid = (0..b.len().saturating_sub(12)).any(|i| {
+        b[i..i + 8].iter().all(u8::is_ascii_hexdigit) && b[i + 8] == b'-' && b[i + 9..i + 13].iter().all(u8::is_ascii_hexdigit)
+    });
+    let domain = s.split(|c: char| !(c.is_ascii_alphanumeric() || c == '.' || c == '-')).any(|tok| {
+        let tok = tok.to_ascii_lowercase();
+        ["com", "org", "net", "io", "ai", "dev", "co", "us"].iter().any(|tld| {
+            tok.strip_suffix(tld).and_then(|t| t.strip_suffix('.')).is_some_and(|host| host.chars().any(|c| c.is_ascii_alphabetic()))
+        })
+    });
+    uuid || domain
+}
+
+/// A published field, or None when it looks like an identifier (the whole
+/// row is then dropped). Kept characters: letters, digits and ` .:_/&()+-`,
+/// at most 48 of them, so no markup and no separators.
+fn word(s: &str) -> Option<String> {
+    if looks_private(s) {
+        return None;
+    }
+    Some(s.chars().filter(|c| c.is_ascii_alphanumeric() || " .:_/&()+-".contains(*c)).take(48).collect::<String>().trim().to_string())
 }
 
 pub fn parse_accounts(tsv: &str) -> Quota {
@@ -97,16 +117,17 @@ pub fn parse_accounts(tsv: &str) -> Quota {
                     "5h" | "week" => window.to_string(),
                     _ => continue,
                 };
+                let (Some(label), Some(plan)) = (word(label), word(plan)) else { continue };
                 let limit = Limit {
                     window,
-                    label: word(label),
+                    label,
                     used_pct: used.round().clamp(0.0, 100.0) as u32,
                     resets_utc: parse_utc(resets).map(fmt_utc).unwrap_or_default(),
                     exhausted: *state == "exhausted",
                 };
                 match q.accounts.iter_mut().find(|a| a.provider == provider && a.n == n) {
                     Some(a) => a.limits.push(limit),
-                    None => q.accounts.push(Account { provider, n, plan: word(plan), limits: vec![limit] }),
+                    None => q.accounts.push(Account { provider, n, plan, limits: vec![limit] }),
                 }
             }
             _ => {}
@@ -125,16 +146,22 @@ pub fn parse_routing(tsv: &str) -> Routing {
     for line in tsv.lines() {
         let f: Vec<&str> = line.split('\t').collect();
         let [kind, name, model, ..] = f.as_slice() else { continue };
-        let pair = (word(name), word(model));
-        if pair.0.is_empty() || pair.1.is_empty() {
+        let (Some(name), Some(model)) = (word(name), word(model)) else { continue };
+        if name.is_empty() || model.is_empty() {
             continue;
         }
+        let pair = (name, model);
         match *kind {
             "role" => r.roles.push(pair),
             "agent" => r.agents.push(pair),
             "seat" => r.seats.push(pair),
             _ => {}
         }
+    }
+    // Every advisor seat names its own model, which wins over the `advisor`
+    // role; showing the role then would name a model no reviewer uses.
+    if !r.seats.is_empty() {
+        r.roles.retain(|(name, _)| name != "advisor");
     }
     r
 }
@@ -267,15 +294,11 @@ pub fn render_dash_page(d: &Dash, now: &Now) -> Markup {
                     }
                     (foot_labelled(LEDGER_URL, "Ledger on GitHub", Target::Evidence))
                 }
-            }
-            section class="dash-sec" aria-labelledby="dash-routing-h" {
                 article class="dash-card" {
-                    h2 id="dash-routing-h" class="dash-h" { "Which model does what" }
-                    div class="dash-cols" {
-                        (pairs("Roles", &d.routing.roles))
-                        (pairs("Subagents", &d.routing.agents))
-                        (pairs("Advisor seats", &d.routing.seats))
-                    }
+                    h2 class="dash-h" { "Which model does what" }
+                    (pairs("Roles", &d.routing.roles))
+                    (pairs("Subagents", &d.routing.agents))
+                    (pairs("Advisor seats", &d.routing.seats))
                     (foot_labelled(ROUTING_URL, "Routing on GitHub", Target::Evidence))
                 }
             }
@@ -315,21 +338,30 @@ limit\tAnthropic\t1\t\tweek\tClaude 7 Day\tlots\t\tok\n";
     }
 
     #[test]
-    fn a_publisher_fault_cannot_put_an_email_or_markup_on_the_page() {
-        let q = parse_accounts("limit\tAnthropic\t1\tdrake@example.com\tweek\t<b>x</b>@y.z\t5\t\tok\n");
-        let a = &q.accounts[0];
-        assert!(!a.plan.contains('@') && !a.limits[0].label.contains('@'));
-        assert!(!a.limits[0].label.contains('<'));
-        let r = parse_routing("role\tdefault\tme@example.com/model\n");
-        assert!(!r.roles[0].1.contains('@'));
+    fn rows_carrying_an_identifier_are_dropped_whole() {
+        let leaks = [
+            "limit\tAnthropic\t1\tdrake@example.com\tweek\tClaude 7 Day\t5\t\tok",
+            "limit\tAnthropic\t2\t\tweek\tdhgmonkey94 at gmail.com\t5\t\tok",
+            "limit\txAI Grok\t1\t\tweek\tCredits 79011004-5560-4db9\t5\t\tok",
+            "limit\tOpenAI Codex\t1\tpro\tweek\tdrakeexample.org\t5\t\tok",
+        ];
+        for row in leaks {
+            assert!(parse_accounts(row).accounts.is_empty(), "kept: {row}");
+        }
+        let q = parse_accounts("limit\tAnthropic\t1\t\tweek\t<b>7 Day</b>\t5\t\tok\n");
+        assert_eq!(q.accounts[0].limits[0].label, "b7 Day/b", "markup characters are removed");
+        let r = parse_routing("role\tdefault\tme@example.com/model\nrole\tsmol\topenai-codex/gpt-6.1-sol\n");
+        assert_eq!(r.roles, [("smol".into(), "openai-codex/gpt-6.1-sol".into())], "model ids with dots survive");
     }
 
     #[test]
-    fn routing_sorts_rows_by_kind() {
-        let r = parse_routing("role\tdefault\tanthropic/claude-opus-5-5\nagent\tscout\tdeepseek/deepseek-flash\nseat\tWitness\tdeepseek/deepseek-flash:max\nbogus\tx\ty\nrole\t\tz\n");
+    fn routing_sorts_rows_by_kind_and_hides_an_advisor_role_the_seats_override() {
+        let r = parse_routing("role\tdefault\tanthropic/claude-opus-5-5\nrole\tadvisor\topenai-codex/gpt-6.1-sol\nagent\tscout\tdeepseek/deepseek-flash\nseat\tWitness\tdeepseek/deepseek-flash:max\nbogus\tx\ty\nrole\t\tz\n");
         assert_eq!(r.roles, [("default".into(), "anthropic/claude-opus-5-5".into())]);
         assert_eq!(r.agents.len(), 1);
         assert_eq!(r.seats[0].0, "Witness");
+        let no_seats = parse_routing("role\tadvisor\topenai-codex/gpt-6.1-sol\n");
+        assert_eq!(no_seats.roles.len(), 1, "with no seats the advisor role is the model in use");
     }
 
     #[test]
