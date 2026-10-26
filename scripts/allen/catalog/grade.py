@@ -83,8 +83,7 @@ def grade(ans, key, names, pages):
         if m.rstrip(".") not in names:
             problems.append("repo not in catalog: " + m)
     for m in set(IDENT.findall(re.sub(r"https?://\S+", " ", ans))):
-        if m.rstrip(".") not in names and m.lower() not in ("aienos.com", "www.aienos.com", "aien-dev") \
-                and not m.lower().startswith("aienos.com"):
+        if m.rstrip(".") not in names and m.lower() not in ("aienos.com", "www.aienos.com", "aien-dev"):
             problems.append("name not in catalog: " + m)
     if PLURAL.search(ans):
         problems.append("plural first person: " + PLURAL.search(ans).group(0))
