@@ -1,0 +1,14 @@
+{
+  "generated_at": "2026-10-26T13:52:31.022Z",
+  "agents": 19,
+  "interactions": 100,
+  "input_bytes": 37356,
+  "board_bytes": 68828,
+  "board_gzip_bytes": 9972,
+  "spark_render_ns": 1348200,
+  "board_sha256": "b7c9888b1b5198f3b2eab89eb1f6a37b4069666425f59e439d5df6b9f6380854",
+  "renderer_sha256": "dd801708d443c2fe3d9305e027bde4476f7d915fe90b175e82f4486404224ac0",
+  "hub_render_ns": 2126314,
+  "hub_board_bytes": 68828,
+  "hub_board_sha256": "b7c9888b1b5198f3b2eab89eb1f6a37b4069666425f59e439d5df6b9f6380854"
+}
