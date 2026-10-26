@@ -1,6 +1,7 @@
 name: pages
-# Builds and deploys www.aienos.com. The committed Hive skeleton digest is
-# checked before publication; the remaining suite runs on the Spark.
+# Builds and deploys www.aienos.com. The full site-builder suite runs on Spark;
+# generated-hive.yml separately checks committed Hive artifact hashes on x86_64,
+# and the committed Hive skeleton digest is checked again before publication.
 on:
   schedule:
     - cron: "17 * * * *"

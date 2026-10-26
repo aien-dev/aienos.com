@@ -1,0 +1,15 @@
+repository https://github.com/aien-dev/omega-mv
+source_commit a84f1e80020dede868b103605484529a9395ad69
+source_path seed/wasm/irwasm.om
+source_sha256 8dc7bf602eb882e26a18b9e2dc4cacdd3ad68827215e71874b14c4acb237ccf8
+source_draft https://github.com/aien-dev/omega-mv/pull/787
+build_compiler om/hive-page/omc
+build_compiler_sha256 734f0a39319fbfa930bcc62cb30dbf06d47d78e126372b74f5baf478e6126b61
+build_command nice -n 19 om/hive-page/omc < omega-mv/seed/wasm/irwasm.om > irwasm
+build_compile_exit 0
+binary_sha256 2d235a70c39ac1461a09c41e10e058d962b767ae83893cdcfc693ef6c47182e6
+binary_platform Linux aarch64
+upstream_build_compiler_sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+upstream_binary_sha256 2d235a70c39ac1461a09c41e10e058d962b767ae83893cdcfc693ef6c47182e6
+note Existing site omc pin compiles irwasm to bytes identical to the upstream PR build. No pin bump.
+note IR translator and WebAssembly writer are seeded Omega. No C or Node in build/generation.

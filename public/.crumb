@@ -7,19 +7,19 @@
     "generated": {
       "children": [
         {
-          "digest": "21262ed07adc9c27128d72ca9536922acd37d0f3dfb8897a3a880f46113b3986",
+          "digest": "6a3d8918da8f7a94b6f6b3cf2fa16226c08bea42a86bec010327386803d2b016",
           "last_commit": "c1021f8",
           "name": "assets",
           "purpose": "Website styles including the project dashboard"
         },
         {
-          "digest": "7af608379b00a1915e582f580a8e957e1cb41a70276a53492b6ddcc2871751e3",
+          "digest": "4fa432b7882d4865c9d0312966020dc29c627c69e2301b117e221144ea9b0037",
           "last_commit": "e245891",
           "name": "data",
           "purpose": "Published generated project measurements with pinned sources"
         },
         {
-          "digest": "a181f47413341ecad5298449f8a61a37ae1bf4379c7bbed613ab3d662e9e043a",
+          "digest": "30278dfeca2d1dd231eaee967baae5b5ecfd6e746e50fcfb70e401bc6f2678f5",
           "last_commit": "c3a98f3",
           "name": "js",
           "purpose": "Browser interactions using public data only"
@@ -43,15 +43,15 @@
           "purpose": "Public static research or licensing pages using the shared website navigation"
         }
       ],
-      "children_root": "sha256:859eeb2587b64a125bdb193e59f83f457058e7eabeb66f82a8451449d6c899f4",
-      "compiled_at": "2026-10-26T15:02:08Z",
+      "children_root": "sha256:bbe94a705a753916311fb4e15fa60c021a9da2a03bac243f19b7db1a81f1c2b3",
+      "compiled_at": "2026-10-26T15:14:23Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:5489213aca41ac53b1a65e290439153b3569da886b87449d1c12f4bee2d699e1",
+      "digest": "sha256:c14b44004bf4dda991b3892515494055d411f4fccb63d9a94e7ebd9e878a18f3",
       "evidence_files": 1,
       "evidence_root": "sha256:1f6f4b14373405a3b91d0e7aa6ba11d0dd332d4543ad01421a5451cca3e7de0c",
-      "files": 119,
-      "generated_at_commit": "98d871645c41c3d0b515fbfe09177fc706cf3b1b",
-      "source_tree": "sha256:4d578cfc1798bb4d05c0ef92bab3bcc82f00cd5845482963195c2f70d03b84f7"
+      "files": 123,
+      "generated_at_commit": "600d6009ba83e79c6de3dec2526c3ff2458284c9",
+      "source_tree": "sha256:52b2fc750e14fbbaea97b878d1286c40911c7281f6eb45f3e949b632a5e203e6"
     }
   },
   "invariants": [
