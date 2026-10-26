@@ -300,7 +300,7 @@
   ],
   "receipt": {
     "title": "The live 35B server ran with zero CUDA libraries",
-    "taken": "2026-10-21T21:50:23Z on spark-b87b",
+    "taken": "2026-10-21T21:50:23Z on the DGX Spark",
     "what": "The 35B model AIEN serves on the Spark runs on Omega with no NVIDIA user-space software at all. On 2026-10-21 the live server (port 18091, --engine omega) had only libc, libm, libgcc_s and the loader mapped: zero CUDA libraries. It held /dev/nvidia0, /dev/nvidiactl and /dev/nvidia-uvm open, which is the open kernel module and nothing above it.",
     "facts": [
       [

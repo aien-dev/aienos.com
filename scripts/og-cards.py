@@ -138,7 +138,7 @@ def card(file, kicker, claim, sub, address):
         y += 38
     # Badges along the bottom.
     bx = 80
-    for label, col in (("Open source, Apache-2.0", GREEN), ("Experimental, pre-alpha", (245, 166, 35)), ("Receipts over claims", BLUE)):
+    for label, col in (("Open source, Apache-2.0", GREEN), ("Alpha testing", (245, 166, 35)), ("Receipts over claims", BLUE)):
         tw = d.textlength(label, font=fm)
         d.rounded_rectangle((bx, 518, bx + tw + 30, 558), radius=6, outline=col, width=1, fill=(14, 18, 25, 255))
         d.text((bx + 15, 526), label, font=fm, fill=col)

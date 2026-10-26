@@ -47,7 +47,7 @@ To bind `aienos.com` on Gandi.net to the live site:
 | `AAAA` | `@` | `2606:50c0:8001::153` | 1800 |
 | `AAAA` | `@` | `2606:50c0:8002::153` | 1800 |
 | `AAAA` | `@` | `2606:50c0:8003::153` | 1800 |
-| `A` | `www` | `74.167.84.120` | 300 |
+| `A` | `www` | hub public IPv4 (see live DNS) | 300 |
 
 `www` terminates on the hub nginx edge, which proxies GitHub Pages as the origin. The edge exists because GitHub Pages cannot negotiate `Accept: text/markdown` or emit a `Link` header on a `.md` response. The apex still points at GitHub Pages and canonicalises to `www`.
 
