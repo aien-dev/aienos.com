@@ -21,7 +21,7 @@ pub fn render_start_page() -> Markup {
                     p class="narr-kicker" { "New to AienOS" }
                     h1 class="narr-title" { "Start here" }
                     p class="narr-standfirst" {
-                        "AienOS is an experimental, pre-alpha machine for turning search into verified understanding. This page is the shortest route from what it is to what exists today, how to check the evidence, and how to take part."
+                        "AienOS is an experimental machine in alpha testing for turning search into verified understanding. This page is the shortest route from what it is to what exists today, how to check the evidence, and how to take part."
                     }
                     p class="narr-standfirst" {
                         "Here to learn to build with AI? "
@@ -57,8 +57,8 @@ pub fn render_start_page() -> Markup {
                         "."
                     }
                     p {
-                        "Release state: pre-alpha, with no supported release or installer yet. The canonical record is "
-                        a href="/status.json" { "status.json" }
+                        "Release state: alpha testing for Linux arm64 and NVIDIA GB10. The installer and its evidence boundaries are at "
+                        a href="/alpha/" { "/alpha/" }
                         "."
                     }
                 }
@@ -103,7 +103,7 @@ pub fn render_start_page() -> Markup {
                         ": the rules our agents follow and each repository's own instructions."
                     }
                     p {
-                        "There is no supported installer for the runtime yet. To reproduce a result, follow the receipt on its evidence card. To reproduce the site, build it from the repository."
+                        "The experimental installer targets Linux arm64 and NVIDIA GB10 only; read its limits on the alpha page. To reproduce a result, follow the receipt on its evidence card. To reproduce the site, build it from the repository."
                     }
                 }
 

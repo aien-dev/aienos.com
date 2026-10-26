@@ -172,7 +172,7 @@ pub fn render_home_loop() -> Markup {
             div class="container" {
                 div class="home-column" {
                     div class="home-badges" {
-                        span class="badge badge-amber" { "Experimental · pre-alpha" }
+                        span class="badge badge-amber" { "Experimental · alpha testing" }
                         span class="badge badge-blue" { "Open source · Apache-2.0 WITH LLVM-exception" }
                     }
 

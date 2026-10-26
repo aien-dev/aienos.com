@@ -1,0 +1,6 @@
+{
+  "schema_version": "1.0.0",
+  "name": "alpha-page",
+  "layer": "website",
+  "purpose": "Seeded Omega alpha landing page and client, with pinned wizard source and real terminal capture"
+}
