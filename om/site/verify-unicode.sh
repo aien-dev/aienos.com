@@ -56,6 +56,8 @@ for tag, name, uni, rs in rows:
 for tag, name, uni, rs in rows:
     print(f"const {tag.upper()}N ulong {len(rs)}")
 for tag, name, uni, rs in rows:
+    print(f"global {tag}r ulong {2 * len(rs)}")
+for tag, name, uni, rs in rows:
     print(f'text {tag} "' + " ".join(f"{lo} {hi}" for lo, hi in rs) + '"')
 PY
 }

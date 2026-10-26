@@ -5,7 +5,7 @@ note Native root and Allen scripts come from Core; consent artifacts remain Popu
 global sctitle uchar 2048
 global scdesc uchar 8192
 global sclens ulong 2
-global scstate bool 2
+global scstate uchar 2
 global scarea ulong 1
 text scroot "/"
 text sclass "/classic/"
@@ -191,8 +191,14 @@ end
 end
 end
 fn sc_route route view uchar * area view uchar * to void
-put scstate 0 sr_equal route scroot
-put scstate 1 or sr_equal route scroot sr_equal route scallen
+put scstate 0 0
+put scstate 1 0
+if sr_equal route scroot
+put scstate 0 1
+end
+if or sr_equal route scroot sr_equal route scallen
+put scstate 1 1
+end
 put scarea 0 1
 if sr_equal area scomega
 put scarea 0 2
@@ -207,14 +213,14 @@ if sr_equal area sclearn
 put scarea 0 5
 end
 sc_meta route
-if get scstate 1
+if eq get scstate 1 1
 sr_raw sctokens
 else
 sr_raw scstyles
 end
 sr_raw scconsjs
 sc_extrahead route
-if not get scstate 1
+if ne get scstate 1 1
 sr_raw scnative
 end
 sr_raw scclient
@@ -223,15 +229,15 @@ sr_esc area
 sr_raw scendat
 sr_raw scskip
 sr_raw scutil0
-if get scstate 1
+if eq get scstate 1 1
 sr_raw scutnat
 else
 sr_raw scutcls
 end
 sr_raw scutile
-if get scstate 1
+if eq get scstate 1 1
 sr_raw scind0
-if get scstate 0
+if eq get scstate 0 1
 sr_raw schmain
 else
 sr_raw scnmain
@@ -268,7 +274,7 @@ sr_raw scnexte
 end
 fn sc_end to void
 sr_raw scclose
-if not get scstate 1
+if ne get scstate 1 1
 sc_next
 door_trail
 sr_raw scfoot0

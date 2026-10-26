@@ -146,7 +146,7 @@ note ---------------------------------------------------------------- V1-V18
 fn sv_v1v2 to void
 if sv_there vfnow
 sv_prel vfnow
-sv_vledger
+wled = sv_vledger
 end
 wz = sv_pg vfzhp vrv2
 if ne wz 0
@@ -422,13 +422,13 @@ sv_boxfail s wbx vtnobox rule
 end
 ret wn
 end
-fn sv_boxfail s ulong at ulong why view uchar * rule view uchar * to void
-wg = sv_tagend s at
-wn = sub add wg 1 at
+fn sv_boxfail s ulong wpos ulong why view uchar * rule view uchar * to void
+wg = sv_tagend s wpos
+wn = sub add wg 1 wpos
 if gt wn 90
 wn = 90
 end
-sv_failx rule why add sv_off s at wn
+sv_failx rule why add sv_off s wpos wn
 end
 
 note ---------------------------------------------------------------- H hubs

@@ -35,9 +35,6 @@ global vcn ulong 1
 global vfail ulong 1
 global vst uchar 128
 global vdb uchar 32768
-global vuwr ulong 1592
-global vudr ulong 142
-global vusr ulong 20
 global vfp uchar 4194304
 global vfpn ulong 1
 global vfo ulong 65536
@@ -399,26 +396,27 @@ end
 if gt len pat lim
 ret VNONE
 end
-wl = sub lim len pat
+note lim becomes the last start index and from the cursor (no extra names: register budget).
+lim = sub lim len pat
 wb = get vso s
-wi = from
-while le wi wl bound 64
+while le from lim bound 64
 wk = ulong 0
-while and le wi wl lt wk 262144 bound 262144
-if ci
-if sv_eqmc add wb wi pat
-ret wi
+while and le from lim lt wk 262144 bound 262144
+if sv_eqci add wb from pat ci
+ret from
 end
-else
-if sv_eqm add wb wi pat
-ret wi
-end
-end
-wi = add wi 1
+from = add from 1
 wk = add wk 1
 end
 end
 ret VNONE
+end
+note sv_eqci: sv_eqmc when ci, else sv_eqm (split out of sv_findx for registers).
+fn sv_eqci b ulong pat view uchar * ci bool to bool
+if ci
+ret sv_eqmc b pat
+end
+ret sv_eqm b pat
 end
 fn sv_findn s ulong pat view uchar * from ulong lim ulong to ulong
 ret sv_findx s pat from lim false
@@ -483,14 +481,7 @@ wi = from
 while le wi wl bound 64
 wk = ulong 0
 while and le wi wl lt wk 262144 bound 262144
-wm = true
-for wj ulong an
-if ne get va add add wb wi wj get va add aoff wj
-wm = false
-break
-end
-end
-if wm
+if sv_amatch add wb wi aoff an
 ret wi
 end
 wi = add wi 1
@@ -498,6 +489,21 @@ wk = add wk 1
 end
 end
 ret VNONE
+end
+note sv_amatch: the an arena bytes at bp equal those at aoff (split out of sv_finda for registers).
+fn sv_amatch bp ulong aoff ulong an ulong to bool
+for wj ulong an
+if ne get va add bp wj get va add aoff wj
+ret false
+end
+end
+ret true
+end
+note sv_amove: forward byte copy of n arena bytes from src to dst (dst <= src, or no overlap).
+fn sv_amove dst ulong src ulong n ulong to void
+for wj ulong n
+put va add dst wj get va add src wj
+end
 end
 note sv_findb: first index of byte c in slot s, VNONE when absent.
 fn sv_findb s ulong c uchar to ulong
@@ -812,15 +818,19 @@ if gt reln 0
 put vfp wp 47
 wp = add wp 1
 end
-for wj ulong namen
-put vfp add wp wj get vdb add name wj
-end
+sv_fname wp name namen
 wp = add wp namen
 put vfo wq wo
 put vfl wq sub wp wo
 put vfpn 0 wp
 put vfc 0 add wq 1
 ret wq
+end
+note sv_fname: copy namen dirent-name bytes from vdb at name to vfp at wp (split out of sv_fadd).
+fn sv_fname wp ulong name ulong namen ulong to void
+for wj ulong namen
+put vfp add wp wj get vdb add name wj
+end
 end
 fn sv_pfile q ulong to void
 sv_proot
@@ -847,7 +857,8 @@ end
 wn = add wn 1
 end
 wdot = and eq wn 1 eq get vdb add wa 19 46
-wdd = and eq wn 2 and eq get vdb add wa 19 46 eq get vdb add wa 20 46
+wdd = and eq wn 2 eq get vdb add wa 19 46
+wdd = and wdd eq get vdb add wa 20 46
 if not or wdot wdd
 wc = sv_fadd get vfo q get vfl q add wa 19 wn
 sv_kind wc

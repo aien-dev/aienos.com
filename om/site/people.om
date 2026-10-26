@@ -307,7 +307,7 @@ end
 
 fn sp_rule_headings to void
 buf = new uchar 65536 0
-fd = open pp0389 0 len pp0389 0 0
+fd = fopen pp0389 0 len pp0389 0 0
 if lt fd 0
 exit 66
 end
@@ -328,7 +328,7 @@ if ne n 0
 exit 66
 end
 end
-closed = close int fd
+closed = fclose int fd
 if ne closed 0
 exit 66
 end

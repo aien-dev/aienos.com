@@ -105,6 +105,8 @@ text vtixp "entry without a path"
 text vtixu "entry url must be https://www.aienos.com + path"
 text vtixd "path listed twice"
 text vtixm "differs from DATA_FILES"
+note vtixm2: the same words as vtixm, a distinct name because omc error 19 refuses one array in two params.
+text vtixm2 "differs from DATA_FILES"
 text vtpgm "differs from PAGES"
 text vtpgt "page without a title or description"
 text vtpge "english must equal path"
@@ -244,6 +246,8 @@ text vkpriv "private"
 text vkpub "public"
 text vkevid "evidence/"
 text vomap "o/:\nob:\no:\np:\nc:\na:\nb:\nissue:\n"
+note vopin: vomap's pin table (byte-identical; omc error 19 refuses vomap in both params, see sv_xlinks).
+text vopin "o/:\nob:\no:\np:\nc:\na:\nb:\nissue:\n"
 text vcmap "cp/:\ncp@:\ncp:\nom@:\nax@:\nsc@/:\ns:\n"
 text vcpin "0\n1\n0\n1\n1\n1\n0\n"
 text vdotdot ".."
@@ -700,6 +704,15 @@ wc = sj_next wc
 end
 ret wn
 end
+note sv_shty: one present key's JSON type check for sv_shape (split out for registers).
+fn sv_shty node ulong spec view uchar * wa ulong wl ulong wcode uchar to bool
+wf = sj_find node part spec add wa 1 sub wl 1
+if not sv_ty wf wcode
+sv_failt vrb4 vttyp part spec add wa 1 sub wl 1
+ret false
+end
+ret true
+end
 note sv_shape: serde derive for one struct. deny adds deny_unknown_fields: every member must be
 note a listed field (members counted against distinct listed keys found, each at most once).
 fn sv_shape node ulong spec view uchar * deny bool to bool
@@ -725,9 +738,7 @@ wok = false
 end
 else
 wfound = add wfound wcn
-wf = sj_find node part spec add wa 1 sub wl 1
-if not sv_ty wf wcode
-sv_failt vrb4 vttyp part spec add wa 1 sub wl 1
+if not sv_shty node spec wa wl wcode
 wok = false
 end
 end
@@ -984,7 +995,9 @@ wok = ge wrn 41
 if wok
 for wj ulong 40
 wc = sv_b ws add wl wj
-wh = or sv_isdig wc or and ge wc 97 le wc 102 and ge wc 65 le wc 70
+wh = and ge wc 97 le wc 102
+wh = or wh and ge wc 65 le wc 70
+wh = or sv_isdig wc wh
 if not wh
 wok = false
 end
@@ -1006,9 +1019,9 @@ wc = sj_next wc
 end
 end
 fn sv_obox node ulong to void
-sv_xlink node vomap vomap true
+sv_xlink node vomap vopin true
 end
-note vomap doubles as its own pin table: no omega prefix is pinned and every entry starts with a
+note vopin (a byte copy of vomap) is the omega pin table: no omega prefix is pinned and every entry starts with a
 note byte other than 49 ('1'), so sv_xlink's pin lookup reads false for each.
 
 note ---------------------------------------------------------------- omega.json
@@ -1044,7 +1057,7 @@ end
 if whas
 sv_obox wr
 end
-sv_xlinks wc vomap vomap
+sv_xlinks wc vomap vopin
 wk = add wk 1
 wc = sj_next wc
 end
@@ -1056,7 +1069,7 @@ fn sv_vocards node ulong to void
 wc = sj_first node
 while ne wc 0 bound 65536
 sv_obox sj_find wc vkbox
-sv_xlinks wc vomap vomap
+sv_xlinks wc vomap vopin
 wc = sj_next wc
 end
 end
@@ -1075,7 +1088,7 @@ if wz
 sv_fail vrb4 vtempty
 end
 sv_obox sj_find wc vkbox
-sv_xlinks wc vomap vomap
+sv_xlinks wc vomap vopin
 wc = sj_next wc
 end
 end
@@ -1106,7 +1119,7 @@ wsrc = sj_find wr vksource
 sv_obox sj_find wsrc vkdoc
 sv_obox sj_find wsrc vkissue
 sv_obox sj_find sj_find wr vkbelow vkbox
-sv_xlinks sj_find wr vkbelow vomap vomap
+sv_xlinks sj_find wr vkbelow vomap vopin
 sv_obox sj_find sj_find wr vkrcpt vkbox
 sv_vocards sj_find wr vkparts
 sv_volayers sj_find wr vklayers
@@ -1332,18 +1345,26 @@ wc = sj_next wc
 end
 ret false
 end
-fn sv_runiq node ulong tset view uchar * key view uchar * why view uchar * to void
+note sv_runiq: ids unique and the status (sel 0, turing rows) or class (sel 1, implementation rows)
+note in its fixed set.
+fn sv_runiq node ulong sel ulong to void
 wc = sj_first node
 wi = ulong 0
 while ne wc 0 bound 4096
 put vseen wi sj_find wc vkid
 for wj ulong wi
 if sj_same get vseen wj get vseen wi
-sv_failt vrb4 vtdupid why
+sv_fail vrb4 vtdupid
 end
 end
-if not sv_tin sj_find wc key tset
-sv_fail vrb4 why
+if eq sel 0
+if not sv_tin sj_find wc vkstatus vrstat
+sv_fail vrb4 vtrstat
+end
+else
+if not sv_tin sj_find wc vkclass vrcls
+sv_fail vrb4 vtrcls
+end
 end
 wi = add wi 1
 wc = sj_next wc
@@ -1396,8 +1417,8 @@ sv_rladder wr
 sv_rlinks sj_find wr vkladder
 sv_rlinks sj_find wr vktrows
 sv_rlinks sj_find wr vkirows
-sv_runiq sj_find wr vktrows vrstat vkstatus vtrstat
-sv_runiq sj_find wr vkirows vrcls vkclass vtrcls
+sv_runiq sj_find wr vktrows 0
+sv_runiq sj_find wr vkirows 1
 sv_rattempts wr
 ret eq get vfail 0 wf
 end

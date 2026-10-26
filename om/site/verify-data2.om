@@ -319,7 +319,12 @@ wseg = add wseg 1
 wnl = 0
 wdots = true
 else
-wv = or or sv_isdig c or and ge c 65 le c 90 and ge c 97 le c 122 or or eq c 46 eq c 95 eq c 45
+wv = sv_isdig c
+wv = or wv and ge c 65 le c 90
+wv = or wv and ge c 97 le c 122
+wv = or wv eq c 46
+wv = or wv eq c 95
+wv = or wv eq c 45
 if not wv
 wok = false
 end
@@ -484,28 +489,28 @@ end
 end
 ret true
 end
-note sv_setchk: the string nodes in vseen[0..n) are distinct members of table t and cover it.
-fn sv_setchk n ulong t view uchar * rule view uchar * why view uchar * to void
+note sv_setchk: the string nodes in vseen[0..n) are distinct members of DATA_FILES and cover it.
+fn sv_setchk n ulong to void
 for wi ulong n
 for wj ulong wi
 if sj_same get vseen wj get vseen wi
-sv_failt rule vtixd why
+sv_failt vrd3 vtixd vtixm
 end
 end
-if not sv_tin get vseen wi t
-sv_failt rule why vtixm
+if not sv_tin get vseen wi vdfiles
+sv_failt vrd3 vtixm vtixm2
 end
 end
-for wk ulong sv_tcount t
+for wk ulong sv_tcount vdfiles
 wfound = false
 for wi ulong n
-if sv_teq get vseen wi t wk
+if sv_teq get vseen wi vdfiles wk
 wfound = true
 end
 end
 if not wfound
-wa = sv_tat t wk
-sv_failt rule why part t wa sv_tlen t wa
+wa = sv_tat vdfiles wk
+sv_failt vrd3 vtixm part vdfiles wa sv_tlen vdfiles wa
 end
 end
 end
@@ -533,7 +538,7 @@ put vseen wn wp
 wn = add wn 1
 wc = sj_next wc
 end
-sv_setchk wn vdfiles vrd3 vtixm
+sv_setchk wn
 ret eq get vfail 0 wf
 end
 fn sv_vpages to bool
@@ -584,8 +589,12 @@ fn sv_vquote to bool
 wf = get vfail 0
 sv_ctxp
 wr = sv_jload
+if ne sj_kind wr 1
+sv_fail vrq vtnob
+ret false
+end
 wq = sj_find wr vkquotes
-if or ne sj_kind wr 1 ne sj_kind wq 2
+if ne sj_kind wq 2
 sv_fail vrq vtnob
 ret false
 end
@@ -655,10 +664,8 @@ put va add wo wout 32
 wout = add wout 1
 wpend = false
 end
-for wj ulong wl
-put va add wo wout get va add wo add wi wj
-wout = add wout 1
-end
+sv_amove add wo wout add wo wi wl
+wout = add wout wl
 end
 wi = add wi wl
 wk = add wk 1

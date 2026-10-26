@@ -297,7 +297,9 @@ wx = sj_first wo
 while ne wx 0 bound 65536
 wok = sj_prefix wx vshome
 if wok
-wok = not and gt sj_size wx 1 eq sj_byte wx 1 47
+if gt sj_size wx 1
+wok = ne sj_byte wx 1 47
+end
 end
 if not wok
 sv_failx vro7 vtengo sv_off ws sv_n ws
@@ -313,6 +315,10 @@ fn sv_vengine to bool
 wf = get vfail 0
 sv_ctxp
 wr = sv_jload
+if ne sj_kind wr 1
+sv_fail vro7 vtengn
+ret false
+end
 wpg = sj_find wr vkpages2
 if or ne sj_kind wpg 2 eq sj_len wpg 0
 sv_fail vro7 vtengn
@@ -372,8 +378,10 @@ if ne get vfp add add wo wb wj get vixh wj
 ret 0
 end
 end
-if and gt wb 0 ne get vfp add wo sub wb 1 47
+if gt wb 0
+if ne get vfp add wo sub wb 1 47
 ret 0
+end
 end
 ws = sv_snew
 sv_push 47
@@ -467,6 +475,7 @@ put vhd 0 add wg 1
 put vhd 1 we
 ret true
 end
+text vtgt ">"
 note sv_hnext: the next head tag at or after i (oracle read_head's tag list), its '<'; vax[0] its '>',
 note vax[1] where the scan resumes. Title, script and style bodies are skipped to "</name".
 note VNONE at the end, or when the head is malformed (vhd[2] = 1).
@@ -483,7 +492,7 @@ put vhd 2 1
 ret VNONE
 end
 wc = sv_bat h add wl 1
-sv_tname h wl
+wtn = sv_tname h wl
 wsk = and ne wc 47 or or sv_tnis vxtitle sv_tnis vxscr sv_tnis vxsty
 if wsk
 wz = sv_hclose h add wg 1
@@ -504,7 +513,6 @@ i = add wg 1
 end
 ret VNONE
 end
-text vtgt ">"
 fn sv_hclose h ulong from ulong to ulong
 we = get vhd 1
 wi = from
@@ -541,7 +549,7 @@ wl = sv_hnext h wi
 if eq wl VNONE
 break
 end
-sv_tname h wl
+wtn = sv_tname h wl
 if and ne sv_bat h add wl 1 47 sv_tnis vxtitle
 wn = add wn 1
 wz = sv_hclose h add get vax 0 1
@@ -574,7 +582,7 @@ ret VNONE
 end
 wg = get vax 0
 wi = get vax 1
-sv_tname h wl
+wtn = sv_tname h wl
 if sv_tnis vxmeta
 wk = sv_attr h wl wg vxname
 if eq wk VNONE
@@ -621,8 +629,8 @@ break
 end
 wg = get vax 0
 wi = get vax 1
-sv_tname h wl
-if and sv_tnis vxlink sv_attreq h wl wg vxrel vxcanon
+wtn = sv_tname h wl
+if and sv_tnis vxlink sv_aeq h sv_attr h wl wg vxrel vxcanon
 wv = sv_attr h wl wg vxhref
 if ne wv VNONE
 wn = add wn 1
@@ -643,9 +651,9 @@ ret VNONE
 end
 wg = get vax 0
 wi = get vax 1
-sv_tname h wl
-if and sv_tnis vxlink sv_attreq h wl wg vxrel vxalt
-if sv_attreq h wl wg vxhl code
+wtn = sv_tname h wl
+if and sv_tnis vxlink sv_aeq h sv_attr h wl wg vxrel vxalt
+if sv_aeq h sv_attr h wl wg vxhl code
 ret sv_attr h wl wg vxhref
 end
 end
@@ -695,7 +703,9 @@ wa = sv_hlang h vxen
 wan = get vav 0
 wb = sv_hlang h vxzhl
 wbn = get vav 0
-if or not sv_heq h wa wan wue not sv_heq h wb wbn wuz
+whok = sv_heq h wa wan wue
+whok = and whok sv_heq h wb wbn wuz
+if not whok
 sv_fail vro2 vthrp
 end
 sv_drop wue
@@ -752,7 +762,8 @@ wi = ulong 0
 for wk ulong sv_tcount vdlab
 wa = sv_tat vdhref wk
 wb = sv_tat vdlab wk
-wi = sv_alink wr wi sv_n wr part vdhref wa sv_tlen vdhref wa 2 part vdlab wb sv_tlen vdlab wb
+sv_setlab part vdlab wb sv_tlen vdlab wb
+wi = sv_alink wr wi sv_n wr part vdhref wa sv_tlen vdhref wa 2
 if eq wi VNONE
 sv_failt vro3 vtdest part vdlab wb sv_tlen vdlab wb
 sv_drop wr
@@ -768,7 +779,7 @@ sv_fail vro4 vtrid
 end
 sv_drop wm
 wr = sv_strip h 31
-if eq sv_alink wr 0 sv_n wr vclas 0 vclas VNONE
+if eq sv_alink wr 0 sv_n wr vclas 0 VNONE
 sv_fail vro4 vtrcl
 end
 sv_drop wr
@@ -800,7 +811,7 @@ end
 ret false
 end
 fn sv_nosc1 wm ulong body ulong to bool
-sv_tname wm sub body 1
+wtn = sv_tname wm sub body 1
 note vtn must hold "noscript" for sv_eend: set it from the opening tag
 put vtnn 0 8
 for wj ulong 8
@@ -814,7 +825,7 @@ we = sub we len vxnosc
 end
 wf = sv_slot1 body we wm
 wg = sv_strip wf 16
-wr = sv_alink wg 0 sv_n wg vclas 0 vclas
+wr = sv_alink wg 0 sv_n wg vclas 0
 sv_drop wf
 ret ne wr VNONE
 end
@@ -895,7 +906,7 @@ end
 sv_drop wm
 end
 fn sv_asset1 wm ulong wl ulong wg ulong to ulong
-sv_tname wm wl
+wtn = sv_tname wm wl
 wv = VNONE
 wscr = sv_tnis vxscr
 if wscr
@@ -919,7 +930,7 @@ end
 end
 end
 end
-sv_tname wm wl
+wtn = sv_tname wm wl
 if or wscr sv_tnis vxsty
 wz = sv_eend wm add wg 1
 if eq wz VNONE
@@ -1042,7 +1053,7 @@ end
 note ---------------------------------------------------------------- G contact (per .html)
 fn sv_contact q ulong h ulong to void
 wr = sv_strip h 31
-if eq sv_alink wr 0 sv_n wr vsx 1 vsx VNONE
+if eq sv_alink wr 0 sv_n wr vsx 1 VNONE
 sv_fail vrg vtnox
 sv_drop wr
 ret
@@ -1050,21 +1061,21 @@ end
 if ne sv_mains wr 1
 sv_fail vrg vtmain
 else
-if eq sv_alink wr 0 get vax 0 vsx 1 vsx VNONE
+if eq sv_alink wr 0 get vax 0 vsx 1 VNONE
 sv_fail vrg vtxbm
 end
 end
-if eq sv_alink wr 0 sv_n wr vscon 0 vscon VNONE
+if eq sv_alink wr 0 sv_n wr vscon 0 VNONE
 sv_fail vrg vtnoc
 end
-if eq sv_alink wr 0 sv_n wr vsmail 0 vsmail VNONE
+if eq sv_alink wr 0 sv_n wr vsmail 0 VNONE
 sv_fail vrg vtnom
 end
 wroot = or sv_fis q vixh sv_fis q v404
 if not wroot
-wh = ne sv_alink wr 0 sv_n wr vshome 0 vshome VNONE
+wh = ne sv_alink wr 0 sv_n wr vshome 0 VNONE
 if and not wh sv_frelzh q
-wh = ne sv_alink wr 0 sv_n wr vzh 0 vzh VNONE
+wh = ne sv_alink wr 0 sv_n wr vzh 0 VNONE
 end
 if not wh
 sv_fail vrg vtnoh
@@ -1099,8 +1110,8 @@ if eq wlast VNONE
 sv_fail vrg vtnof
 ret
 end
-wx = ne sv_alink wr wlast sv_n wr vsx 1 vsx VNONE
-wm = ne sv_alink wr wlast sv_n wr vsmail 0 vsmail VNONE
+wx = ne sv_alink wr wlast sv_n wr vsx 1 VNONE
+wm = ne sv_alink wr wlast sv_n wr vsmail 0 VNONE
 if not and wx wm
 sv_fail vrg vtnof
 end
@@ -1134,13 +1145,23 @@ wo = sv_off s
 wn = sv_n s
 put va add wo a 32
 wd = add a 1
-for wj ulong sub wn b
-put va add wo add wd wj get va add wo add b wj
-end
+sv_amove add wo wd add wo b sub wn b
 sv_trunc s add wd sub wn b
 end
-fn sv_rlt s ulong at ulong to ulong
-wi = at
+note sv_sleq: slots a and b hold the same bytes (split out of sv_quote1 for registers).
+fn sv_sleq a ulong b ulong to bool
+if ne sv_n a sv_n b
+ret false
+end
+for wj ulong sv_n a
+if ne sv_b a wj sv_b b wj
+ret false
+end
+end
+ret true
+end
+fn sv_rlt s ulong wpos ulong to ulong
+wi = wpos
 while gt wi 0 bound 999999
 wi = sub wi 1
 if eq sv_b s wi 60
@@ -1189,7 +1210,7 @@ if eq wk VNONE
 sv_failx vrf vtquo add sv_off s wid sub wq wid
 ret false
 end
-sv_tname s wop
+wtn = sv_tname s wop
 wnl = get vtnn 0
 we = sv_eend s add wg 1
 if eq we VNONE
@@ -1198,14 +1219,7 @@ ret false
 end
 wt = sv_rtext s add wg 1 sub we add wnl 3
 wqs = get vqo wk
-wok = eq sv_n wt sv_n wqs
-if wok
-for wj ulong sv_n wt
-if ne sv_b wt wj sv_b wqs wj
-wok = false
-end
-end
-end
+wok = sv_sleq wt wqs
 sv_drop wt
 if not wok
 sv_failx vrf vtquo add sv_off s wid sub wq wid
@@ -1677,6 +1691,7 @@ if ne sj_len sj_find wr vkfiles2 sv_tcount vdfiles
 sv_fail vrc5 vtdfn
 end
 end
+text vxtmd "index.md"
 note sv_mdpath: seo.rs md_path of site path slot p, as a new slot ("/" -> "/index.md", "/a/" -> "/a.md").
 fn sv_mdpath p ulong to ulong
 ws = sv_snew
@@ -1693,7 +1708,6 @@ sv_pusha sv_off p wn
 sv_pusht vxmd
 ret ws
 end
-text vxtmd "index.md"
 note sv_c6: one PAGES entry k (its path pushed into slot p).
 fn sv_c6 p ulong wsm ulong wll ulong to void
 wn = sv_snew

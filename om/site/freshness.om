@@ -13,7 +13,14 @@ trap 10
 end
 for i ulong len value
 c = get value i
-if not or or or or or or and ge c 48 le c 57 eq c 45 eq c 58 eq c 46 eq c 43 eq c 84 eq c 90
+sfok = and ge c 48 le c 57
+sfok = or sfok eq c 45
+sfok = or sfok eq c 58
+sfok = or sfok eq c 46
+sfok = or sfok eq c 43
+sfok = or sfok eq c 84
+sfok = or sfok eq c 90
+if not sfok
 trap 10
 end
 end

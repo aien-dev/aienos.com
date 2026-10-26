@@ -112,7 +112,7 @@ global lkann ulong 1
 global lkrk uchar 1024
 global lkrnm ulong 2048
 global lkrmd ulong 2048
-global lkrn2 ulong 1
+global lkrcnt ulong 1
 global lkseat uchar 1
 text lkp0 "public/data/now.tsv"
 text lkp1 "public/data/now-pulse.tsv"
@@ -309,7 +309,8 @@ ret or or shl and xc 15 12 shl and xb 63 6 and xd 63
 end
 xf = uint get lkraw add p 3
 put lkdl 0 4
-ret or or or shl and xc 7 18 shl and xb 63 12 shl and xd 63 6 and xf 63
+xc = or shl and xc 7 18 shl and xb 63 12
+ret or or xc shl and xd 63 6 and xf 63
 end
 
 note Fresh read, guard and parse of every input; each public surface calls this first.
@@ -550,7 +551,8 @@ ret 0
 end
 xd = lk_days get lkt 0 get lkt 1 get lkt 2
 put lkok 0 1
-ret add add add mul xd 86400 mul get lkt 3 3600 mul get lkt 4 60 get lkt 5
+xd = add mul xd 86400 mul get lkt 3 3600
+ret add add xd mul get lkt 4 60 get lkt 5
 end
 
 fn lk_utcd sel uchar p ulong e ulong to bool
@@ -607,7 +609,9 @@ end
 xera = lk_fdiv xy 400
 xyoe = sub xy mul xera 400
 xdoy = sub add div add mul 153 xm 2 5 d 1
-xdoe = add sub add mul xyoe 365 div xyoe 4 div xyoe 100 xdoy
+xdoe = add mul xyoe 365 div xyoe 4
+xdoe = sub xdoe div xyoe 100
+xdoe = add xdoe xdoy
 ret sub add mul xera 146097 xdoe 719468
 end
 
@@ -621,7 +625,8 @@ xdoe = sub xz mul xera 146097
 xyoe = div sub add sub xdoe div xdoe 1460 div xdoe 36524 div xdoe 146096 365
 xdoy = sub xdoe sub add mul 365 xyoe div xyoe 4 div xyoe 100
 xmp = div add mul 5 xdoy 2 153
-put lkt 2 add sub xdoy div add mul 153 xmp 2 5 1
+xdd = div add mul 153 xmp 2 5
+put lkt 2 add sub xdoy xdd 1
 xm = sub xmp 9
 if lt xmp 10
 xm = add xmp 3
@@ -1968,8 +1973,12 @@ end
 
 fn lk_nsep p ulong e ulong to ulong
 while le add p 3 e bound 999999
-if and eq get lkcl p 32 and eq get lkcl add p 1 124 eq get lkcl add p 2 32
+if eq get lkcl p 32
+if eq get lkcl add p 1 124
+if eq get lkcl add p 2 32
 ret p
+end
+end
 end
 p = add p 1
 end
@@ -2576,7 +2585,7 @@ ret false
 end
 
 note dash word(): None when private; the kept string otherwise. lkok 0 for None.
-fn lk_word p ulong e ulong to ulong
+fn lk_dword p ulong e ulong to ulong
 if lk_priv p e
 put lkok 0 0
 put lklast 0 0
@@ -2691,12 +2700,12 @@ end
 if eq xw 255
 ret
 end
-xlo = lk_word get fs 5 get fe 5
+xlo = lk_dword get fs 5 get fe 5
 if eq get lkok 0 0
 ret
 end
 xll = get lklast 0
-xpo = lk_word get fs 3 get fe 3
+xpo = lk_dword get fs 3 get fe 3
 if eq get lkok 0 0
 ret
 end
@@ -2704,14 +2713,19 @@ xi = get lkann 0
 if ge xi 1024
 lk_fail lkemrow 0
 end
-put lkapl mul xi 2 xpo
-put lkapl add mul xi 2 1 get lklast 0
-put lkal mul xi 2 xlo
-put lkal add mul xi 2 1 xll
+lk_apput xi xpo xlo xll
 lk_alast xi fs fe pv an
 put lkaw xi xw
 put lkapc xi xpc
 put lkann 0 add xi 1
+end
+
+note lk_apput: the four lkapl/lkal cells of limit row i (split out of lk_alimit for registers).
+fn lk_apput i ulong po ulong lo ulong ll ulong to void
+put lkapl mul i 2 po
+put lkapl add mul i 2 1 get lklast 0
+put lkal mul i 2 lo
+put lkal add mul i 2 1 ll
 end
 
 fn lk_alast i ulong fs view ulong 16 fe view ulong 16 pv uchar an ulong to void
@@ -2726,7 +2740,7 @@ end
 end
 
 fn lk_routes to void
-put lkrn2 0 0
+put lkrcnt 0 0
 put lkseat 0 0
 if eq get lkhas 5 0
 ret
@@ -2746,12 +2760,12 @@ end
 end
 
 fn lk_rline fs view ulong 16 fe view ulong 16 to void
-xno = lk_word get fs 1 get fe 1
+xno = lk_dword get fs 1 get fe 1
 if eq get lkok 0 0
 ret
 end
 xnl = get lklast 0
-xmo = lk_word get fs 2 get fe 2
+xmo = lk_dword get fs 2 get fe 2
 if eq get lkok 0 0
 ret
 end
@@ -2773,7 +2787,7 @@ end
 if eq xk 255
 ret
 end
-xi = get lkrn2 0
+xi = get lkrcnt 0
 if ge xi 1024
 lk_fail lkemrow 0
 end
@@ -2782,7 +2796,7 @@ put lkrnm mul xi 2 xno
 put lkrnm add mul xi 2 1 xnl
 put lkrmd mul xi 2 xmo
 put lkrmd add mul xi 2 1 xml
-put lkrn2 0 add xi 1
+put lkrcnt 0 add xi 1
 end
 
 note ---------------------------------------------------------------- emit
@@ -4222,6 +4236,8 @@ end
 ret true
 end
 
+text lkgh0 "https://github.com/"
+
 fn lk_url n ulong to void
 if not sj_prefix n lkgh0
 lk_fail lkemrj 0
@@ -4229,7 +4245,6 @@ end
 sj_href n
 end
 
-text lkgh0 "https://github.com/"
 
 fn lk_mfoot root ulong m ulong to void
 xi = lk_itemid sj_find m lkmj8
@@ -5141,8 +5156,12 @@ end
 sr_raw ld14
 for xw uchar 2
 for xi ulong get lkann 0
-if and and eq get lkap xi p eq get lkan xi n eq get lkaw xi xw
+if eq get lkap xi p
+if eq get lkan xi n
+if eq get lkaw xi xw
 lk_dlimit xi
+end
+end
 end
 end
 end
@@ -5261,12 +5280,19 @@ end
 ret false
 end
 
+note lk_pairv: one route pair's name and mode cells (split out of lk_pairs for registers).
+fn lk_pairv j ulong to void
+lk_e get lkrnm mul j 2 get lkrnm add mul j 2 1
+sr_raw ld44
+lk_e get lkrmd mul j 2 get lkrmd add mul j 2 1
+end
+
 fn lk_pairs k uchar title view uchar * to void
 sr_raw ld40
 sr_raw title
 sr_raw ld41
 xn = ulong 0
-for xi ulong get lkrn2 0
+for xi ulong get lkrcnt 0
 if not lk_rskip k xi
 xn = add xn 1
 end
@@ -5275,12 +5301,10 @@ if eq xn 0
 sr_raw ld42
 else
 sr_raw ld43
-for xj ulong get lkrn2 0
+for xj ulong get lkrcnt 0
 if not lk_rskip k xj
 sr_raw ld37
-lk_e get lkrnm mul xj 2 get lkrnm add mul xj 2 1
-sr_raw ld44
-lk_e get lkrmd mul xj 2 get lkrmd add mul xj 2 1
+lk_pairv xj
 sr_raw ld29
 end
 end

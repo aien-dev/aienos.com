@@ -152,7 +152,8 @@ while lt p ulong n bound 4096
 if lt sub ulong n p 20
 trap 10
 end
-size = or ulong get entries add p 16 shl ulong get entries add p 17 8
+size = ulong get entries add p 16
+size = or size shl ulong get entries add p 17 8
 if or lt size 20 gt size sub ulong n p
 trap 10
 end

@@ -1,69 +1,5 @@
 note Whole-site orchestrator. Compose after runtime/json/chrome/content/copy/markdown/seo.
 note Metadata is copied once before any renderer can replace the JSON arena.
-note WolframLanguageEvaluator: {128*11,FromDigits["170000",8],FromDigits["040000",8],FromDigits["100000",8],FromDigits["200000",8]} -> {1408,61440,16384,32768,65536}.
-const STCAP ulong 128
-const STFIELDS ulong 11
-global stpool uchar 262144
-global stoff ulong 1408
-global stlens ulong 1408
-global stused ulong 1
-global stcount ulong 1
-global steng ulong 1
-global stout uchar 4096
-global stoutn ulong 1
-global stdate uchar 64
-global stdaten ulong 1
-text stk0 "path"
-text stk1 "title"
-text stk2 "description"
-text stk3 "area"
-text stk4 "mode"
-text stk5 "source"
-text stk6 "kind"
-text stk7 "published"
-text stk8 "image"
-text stk9 "doi"
-text stk10 "english"
-text streg "om/site/pages.json"
-text sttrans "om/site/translations.json"
-text stpub "public"
-text stslash "/"
-text stindex "index.html"
-text sthtml "html"
-text startif "artifact"
-text strender "render"
-text stprof "profiles"
-text stfront "front"
-text stclass "/classic/"
-text stnoscr "<noscript><section><h1>Sovereign Intelligence, built on AienOS</h1><p>Allen's interactive universe needs JavaScript. Every page remains readable without it: <a href=\"/classic/\">open the complete Classic site</a>, <a href=\"/research/\">research</a>, <a href=\"/learn/\">Learn</a>, or <a href=\"/contact/\">contact Drake</a>.</p></section></noscript>"
-text stempty ""
-text stroot "/"
-text stfacts "facts.json"
-text stagents "AGENTS.md"
-text stsi "SI"
-
-text ST0001 "site: registry has no renderer\n"
-text ST0002 "facts.json"
-text ST0003 "crates/site-builder/data/status.json"
-text ST0004 "status.json"
-text ST0005 "crates/site-builder/data/machines.json"
-text ST0006 "machines.json"
-text ST0007 "crates/site-builder/data/omega.json"
-text ST0008 "omega.json"
-text ST0009 "crates/site-builder/data/cudaplusplus.json"
-text ST0010 "cudaplusplus.json"
-text ST0011 "crates/site-builder/data/research_status.json"
-text ST0012 "research-status.json"
-text ST0013 "AGENTS.md"
-text ST0014 "data/pages.json"
-text ST0015 "assets/site.css"
-text ST0016 "js/site.js"
-text ST0017 "assets/site-tokens.css"
-text stdoor "assets/site-door.css"
-text ST0018 "usage: site SOURCE_ROOT ABSOLUTE_OUTPUT SOURCE_COMMIT_RFC3339\n"
-text ST0019 "site: output must be an absolute directory\n"
-text ST0020 "site: output must be a new directory; use a fresh staging path\n"
-text ST0021 "site: cannot open explicit source root\n"
 
 fn st_fail message view uchar * to void
 sr_fail message
@@ -239,7 +175,10 @@ end
 end
 else
 if not or or and ge c 97 le c 122 and ge c 48 le c 57 eq c 45
-if not and ge row get steng 0 or and eq i 4 eq c 67 and eq i 5 eq c 78
+xpok = and eq i 4 eq c 67
+xpok = or xpok and eq i 5 eq c 78
+xpok = and ge row get steng 0 xpok
+if not xpok
 trap 10
 end
 end
@@ -304,18 +243,23 @@ route = new uchar 512 0
 titlebuf = new uchar 4096 0
 descbuf = new uchar 4096 0
 areabuf = new uchar 32 0
-filebuf = new uchar 1024 0
 rn = st_field row 0 route
 tn = st_field row 1 titlebuf
 dn = st_field row 2 descbuf
 an = st_field row 3 areabuf
-fnn = st_html_path row filebuf
-st_open part filebuf 0 fnn
+st_popen row
 sc_begin part titlebuf 0 tn part descbuf 0 dn
 sc_route part route 0 rn part areabuf 0 an
 st_page_body row part route 0 rn
 sc_end
 sr_close
+end
+
+note st_popen: the page's output file (split out of st_page for registers).
+fn st_popen row ulong to void
+filebuf = new uchar 1024 0
+fnn = st_html_path row filebuf
+st_open part filebuf 0 fnn
 end
 
 fn st_export to void

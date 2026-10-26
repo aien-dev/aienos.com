@@ -6,6 +6,8 @@ global vtn uchar 64
 global vtnn ulong 1
 global vav ulong 2
 global vax ulong 4
+global vlab uchar 64
+global vlabn ulong 1
 text vxscr "script"
 text vxsty "style"
 text vxtpl "template"
@@ -107,6 +109,20 @@ end
 end
 ret false
 end
+note sv_aqval: the quoted value opening at wj (< we) for sv_attr: its start (>= 1, length in
+note vav[0]); VNONE when unterminated before we; 0 when wj holds no quote (keep scanning).
+fn sv_aqval s ulong wj ulong we ulong to ulong
+wq = sv_bat s wj
+if and lt wj we or eq wq 34 eq wq 39
+wz = sv_findb2 s wq add wj 1
+if or eq wz VNONE ge wz we
+ret VNONE
+end
+put vav 0 sub wz add wj 1
+ret add wj 1
+end
+ret 0
+end
 note sv_attr: seo.rs attr(tag, name) over the tag bytes [t0, t1] ('>' at t1). Found: value offset,
 note vav[0] its length. Missing: VNONE. A value whose closing quote is missing ends the search
 note (Rust's `?`).
@@ -128,35 +144,40 @@ wj = add wj 1
 while and lt wj we sv_aws sv_bat s wj bound 999999
 wj = add wj 1
 end
-wq = sv_bat s wj
-if and lt wj we or eq wq 34 eq wq 39
-wz = sv_findb2 s wq add wj 1
-if or eq wz VNONE ge wz we
-ret VNONE
-end
-put vav 0 sub wz add wj 1
-ret add wj 1
+wv = sv_aqval s wj we
+if ne wv 0
+ret wv
 end
 end
 wi = add wst len name
 end
 ret VNONE
 end
-fn sv_attreq s ulong t0 ulong t1 ulong name view uchar * want view uchar * to bool
-wv = sv_attr s t0 t1 name
-if eq wv VNONE
+note sv_aeq: the attribute value at v (length vav[0], from sv_attr) equals want; v VNONE is false.
+fn sv_aeq s ulong v ulong want view uchar * to bool
+if eq v VNONE
 ret false
 end
 if ne get vav 0 len want
 ret false
 end
-ret sv_eqat s wv want
+ret sv_eqat s v want
+end
+note sv_anstp: byte i of slot s ends an attribute-name run (space, '>' or '/').
+fn sv_anstp s ulong i ulong to bool
+c = sv_bat s i
+ret or or sv_aws c eq c 62 eq c 47
+end
+note sv_anend: byte i of slot s ends an attribute name (space, '=', '>' or '/').
+fn sv_anend s ulong i ulong to bool
+c = sv_bat s i
+ret or or sv_aws c eq c 61 or eq c 62 eq c 47
 end
 note sv_anames: oracle.rs attr_names(tag) contains the lowercase name.
 fn sv_anames s ulong t0 ulong t1 ulong name view uchar * to bool
 we = add t1 1
 wi = add t0 1
-while and lt wi we not or or sv_aws sv_bat s wi eq sv_bat s wi 62 eq sv_bat s wi 47 bound 999999
+while and lt wi we not sv_anstp s wi bound 999999
 wi = add wi 1
 end
 while true bound 999999
@@ -167,7 +188,7 @@ if or ge wi we eq sv_bat s wi 62
 ret false
 end
 wst = wi
-while and lt wi we not or or sv_aws sv_bat s wi eq sv_bat s wi 61 or eq sv_bat s wi 62 eq sv_bat s wi 47 bound 999999
+while and lt wi we not sv_anend s wi bound 999999
 wi = add wi 1
 end
 if eq sub wi wst len name
@@ -314,7 +335,7 @@ whide = false
 if wop
 whide = sv_dropn fl
 if and not whide ne and fl 16 0
-whide = or sv_anames s wl wg vxhid sv_attreq s wl wg vxah vxtrue
+whide = or sv_anames s wl wg vxhid sv_aeq s sv_attr s wl wg vxah vxtrue
 end
 end
 if whide
@@ -375,23 +396,26 @@ end
 end
 sv_trunc s wout
 end
+note sv_aput: copy rep into the arena at dst (split out of sv_repl for registers).
+fn sv_aput dst ulong rep view uchar * to void
+for wj ulong len rep
+put va add dst wj get rep wj
+end
+end
 note sv_repl: in place, every non-overlapping pat (left to right) becomes rep (len rep <= len pat).
 fn sv_repl s ulong pat view uchar * rep view uchar * to void
-wo = sv_off s
-wn = sv_n s
+note the slot offset and length are read per use (unchanged until sv_trunc): register budget.
 wout = ulong 0
 wi = ulong 0
-while lt wi wn bound 64
+while lt wi sv_n s bound 64
 wk = ulong 0
-while and lt wi wn lt wk 262144 bound 262144
+while and lt wi sv_n s lt wk 262144 bound 262144
 if sv_eqat s wi pat
-for wj ulong len rep
-put va add wo wout get rep wj
-wout = add wout 1
-end
+sv_aput add sv_off s wout rep
+wout = add wout len rep
 wi = add wi len pat
 else
-put va add wo wout get va add wo wi
+sv_amove add sv_off s wout add sv_off s wi 1
 wout = add wout 1
 wi = add wi 1
 end
@@ -402,10 +426,19 @@ sv_trunc s wout
 end
 fn sv_ents s ulong t view uchar * to void
 wk = ulong 0
+note wrep: the replacement half of one pair; omc error 19 refuses two parts of t in one call.
+wrep = new uchar 64 0
 while lt wk sv_tcount t bound 64
 wa = sv_tat t wk
 wb = sv_tat t add wk 1
-sv_repl s part t wa sv_tlen t wa part t wb sv_tlen t wb
+wn = sv_tlen t wb
+if gt wn 64
+trap 10
+end
+for wj ulong wn
+put wrep wj get t add wb wj
+end
+sv_repl s part t wa sv_tlen t wa part wrep 0 wn
 wk = add wk 2
 end
 end
@@ -461,8 +494,29 @@ end
 ret sv_eqat r get vax 2 want
 end
 note sv_alink: first anchor from i in r[..lim] with href == want whose reader text satisfies mode:
-note 0 not empty, 1 contains 'X', 2 equals label. Returns the index after it (its close), VNONE.
-fn sv_alink r ulong i ulong lim ulong want view uchar * mode ulong label view uchar * to ulong
+note 0 not empty, 1 contains 'X', 2 equals the label set by sv_setlab. Returns the index after it
+note (its close) or VNONE.
+fn sv_setlab label view uchar * to void
+if gt len label len vlab
+sr_fail vtcap
+end
+for wj ulong len label
+put vlab wj get label wj
+end
+put vlabn 0 len label
+end
+fn sv_labis t ulong to bool
+if ne sv_n t get vlabn 0
+ret false
+end
+for wj ulong sv_n t
+if ne sv_b t wj get vlab wj
+ret false
+end
+end
+ret true
+end
+fn sv_alink r ulong i ulong lim ulong want view uchar * mode ulong to ulong
 while true bound 999999
 wa = sv_anx r i lim
 if eq wa VNONE
@@ -476,7 +530,7 @@ if eq mode 1
 wok = ne sv_findb wt 88 VNONE
 end
 if eq mode 2
-wok = and eq sv_n wt len label sv_eqat wt 0 label
+wok = sv_labis wt
 end
 sv_drop wt
 if wok
@@ -554,7 +608,7 @@ if eq wg VNONE
 ret false
 end
 if ne sv_bat m add wl 1 47
-if sv_attreq m wl wg vxid id
+if sv_aeq m sv_attr m wl wg vxid id
 ret true
 end
 end

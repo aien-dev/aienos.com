@@ -274,7 +274,13 @@ if not or eq quote 34 eq quote 39
 ret pos
 end
 p = add p 1
-if not or or or or or sh_at shpaper p sh_at shpaper2 p sh_at shsha p sh_at shsha2 p sh_at shprof p sh_at shprof2 p
+xhit = sh_at shpaper p
+xhit = or xhit sh_at shpaper2 p
+xhit = or xhit sh_at shsha p
+xhit = or xhit sh_at shsha2 p
+xhit = or xhit sh_at shprof p
+xhit = or xhit sh_at shprof2 p
+if not xhit
 ret pos
 end
 sh_range pos p
@@ -481,7 +487,16 @@ if or sh_at SH0029 pos sh_at SH0030 pos
 sr_raw SH0039
 ret
 end
-if or or or or or or or or sh_at SH0024 pos sh_at SH0025 pos sh_at SH0026 pos sh_at SH0027 pos sh_at SH0028 pos sh_at SH0031 pos sh_at SH0032 pos sh_at SH0033 pos sh_at SH0034 pos
+xhit = sh_at SH0024 pos
+xhit = or xhit sh_at SH0025 pos
+xhit = or xhit sh_at SH0026 pos
+xhit = or xhit sh_at SH0027 pos
+xhit = or xhit sh_at SH0028 pos
+xhit = or xhit sh_at SH0031 pos
+xhit = or xhit sh_at SH0032 pos
+xhit = or xhit sh_at SH0033 pos
+xhit = or xhit sh_at SH0034 pos
+if xhit
 sr_raw shnl
 end
 end
