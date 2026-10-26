@@ -490,7 +490,7 @@
     },
     {
       "title": "The runtime written in Omega",
-      "text": "The GPU runtime and libraries are mostly C today: 87 C files in the live server's build. The move into Omega has started. Since 2026-10-25 the SHA-256 in that library is Omega: src/sha256.c keeps only its entry points, and the algorithm is om/sha256/sha256.om, compiled by the seed-born compiler and called in place through the native call ABI, with byte parity against the C it replaced. The rest follows file by file, each checked byte for byte against the C it replaces. The language rule (aien-architecture ADR 0024) keeps C only where hardware, boot, ABI or measurement justifies it.",
+      "text": "The GPU runtime and libraries are mostly C today. The move into Omega has started. Since 2026-10-25 the SHA-256 in that library is Omega: src/sha256.c is deleted, src/sha256.h keeps the declarations, and the algorithm is om/sha256/sha256-om2.om, compiled by the seed-born compiler into src/omega_om_units.c by om/units.sh, with byte parity against the C it replaced. The rest follows file by file, each checked byte for byte against the C it replaces. The language rule (aien-architecture ADR 0024) keeps C only where hardware, boot, ABI or measurement justifies it.",
       "links": [
         [
           "SHA-256 in Omega",
@@ -501,7 +501,7 @@
     },
     {
       "title": "The CPU",
-      "text": "The OSC and Omegese backends emit AArch64 machine code today (src/compiler/osc_a64.c). Code the seed-born compiler writes now runs inside C and Rust programs through the native call ABI (omega-bridge), and the GPU library calls it for SHA-256. The live server is still a gcc and Rust build linked against glibc; it picks up each Omega replacement when it is next rebuilt, and moves to Omega-compiled code file by file.",
+      "text": "The OSC and Omegese backends emit AArch64 machine code today (src/compiler/osc_a64.c). Code the seed-born compiler writes now runs inside C and Rust programs through the native call ABI (omega-bridge), and the GPU library ships its Omega SHA-256 as generated C in src/omega_om_units.c. The live server is still a gcc and Rust build linked against glibc; it picks up each Omega replacement when it is next rebuilt, and moves to Omega-compiled code file by file.",
       "links": [
         [
           "native call ABI",
