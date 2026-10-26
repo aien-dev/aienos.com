@@ -23,11 +23,11 @@ pub const SITE_CLAIM: &str = "Persistent machine intelligence on a machine you o
 pub const ORG_NAME: &str = "AIEN (aien-dev)";
 pub const ORG_URL: &str = "https://github.com/aien-dev";
 pub const ORG_EMAIL: &str = "aien@aienos.com";
-/// Drake's X account, from his GitHub profile and www.drakestapleton.com.
+/// Drake's X account, from his GitHub profile and /engineer/.
 pub const X_HANDLE: &str = "@mdrakestapleton";
 pub const X_URL: &str = "https://x.com/mdrakestapleton";
 pub const AUTHOR: &str = "M. Drake Stapleton";
-pub const AUTHOR_URL: &str = "https://www.drakestapleton.com";
+pub const AUTHOR_URL: &str = "https://www.aienos.com/engineer/";
 pub const AUTHOR_GITHUB: &str = "https://github.com/drakestapleton";
 pub const LICENSE_NAME: &str = "Apache-2.0 WITH LLVM-exception";
 pub const LICENSE_URL: &str = "https://www.aienos.com/licensing/";
@@ -62,6 +62,7 @@ pub enum Section {
     Evidence,
     Philosophy,
     Blog,
+    Engineer,
     Optional,
 }
 
@@ -116,6 +117,38 @@ pub const PAGES: &[PageInfo] = &[
     PageInfo { path: "/call-to-humanity/", name: "A Call to Humanity", what: "An open letter on breaking the CUDA stranglehold on the hardware market: a clean-room replacement for the CUDA user stack, built in the open, with public receipts. DOI 10.5281/zenodo.23614947.", section: Section::Philosophy, kind: Kind::Article, image: "/og-philosophy.png", published: "2026-10-24", doi: Some("10.5281/zenodo.23614947") },
     PageInfo { path: "/blog/", name: "Blog", what: "Research notes on building AIEN: what shipped, what the evidence says, what remains open.", section: Section::Blog, kind: Kind::Collection, image: "/og-blog.png", published: "2026-09-27", doi: None },
     PageInfo { path: "/blog/aien-v3-research-plan/", name: "The AIEN V3 Research Plan", what: "The ratified V3 research plan, the Substrate Edition, with six falsifiable hypotheses.", section: Section::Blog, kind: Kind::Article, image: "/og-blog.png", published: "2026-09-27", doi: None },
+    // About the engineer: drakestapleton.com, merged here on 2026-10-26 (components::engineer, public/data/engineer.json).
+    PageInfo { path: "/engineer/", name: "About the engineer", what: "The personal project record of Drake Stapleton, Freedom Fighter, AI Architect & Operator: model training, research, Atlas, and what my generation can build with AI.", section: Section::Engineer, kind: Kind::Collection, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/path/", name: "AI Architect Career Path", what: "Follow Drake Stapleton's career from industrial chemist to manufacturing engineer to AI Architect through a documented personal record.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/what-i-learned/", name: "What I Learned", what: "The experiences, production lessons, and disciplined returns that shaped Drake Stapleton's work as an AI operator.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/philosophy/", name: "Philosophy", what: "How Drake Stapleton approaches projects, duties, difficult things, and setbacks. The working philosophy behind everything he builds: there is always a way, and giving up is not one of the options.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/software/", name: "AI Orchestration & Architecture", what: "Drake Stapleton's AI orchestration frameworks, architectural patterns, operational methods, and verifiable systems history.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/evidence/", name: "Canonical Evidence Hub & Verified Claims", what: "Inspect the canonical evidence hub, structured claims index, physical Grace Blackwell silicon telemetry, and historical audit packages.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/atlas/", name: "Why Atlas Exists", what: "Explore Atlas, Drake Stapleton's personal R&D program in accountable AI architecture, continuity, model training, and orchestration.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/scholar/", name: "Scholar: Academic Work", what: "The published record: a master's thesis and a peer-reviewed semiconductor nanorod paper from Western Kentucky University, with links to the current AIEN research.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/interest/", name: "Start a Conversation", what: "Leave Drake Stapleton a note about a question, an idea, the documented journey, or research that advances what my generation can build with AI.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/donate/", name: "Donate", what: "Back independent AienOS development on Manifund and keep the work public and free for everyone.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/glossary/", name: "Glossary", what: "Definitions of AIEN, AienOS, Omega, CUDA++, Atlas, Symphony, AEGIS, and verification terms used in this project record.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/symphony/", name: "Multi-Model AI Orchestration", what: "Atlas Symphony is Drake Stapleton's operator-led process for coordinating multiple AI models through bounded work lanes and evidence-bearing reviews.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/symphony/first/", name: "First Multi-Model Symphony Run", what: "Review the first documented Atlas Symphony run, its operator, participating AI runtimes, work lanes, and independent reviewers.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/symphony/workflow/", name: "AI Orchestration Workflow", what: "Explore the Atlas Symphony command tree and operator cycle for bounded multi-model AI orchestration.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/symphony/map/", name: "AI Orchestration Map", what: "Explore a six-track operator map of Atlas development and multi-model orchestration from June through August 2026.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/works/", name: "Works", what: "A public catalog of Drake Stapleton's shipped systems: Atlas Symphony, Atlas Harness, MobDev and Panel Arena, DefiantMob, BeltBrain, DHG Hive, the 2025 foundations, AIEN, CUDA++, AEGIS, and inference research.", section: Section::Engineer, kind: Kind::Collection, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/works/aegis/", name: "AEGIS", what: "AEGIS extends Atlas into on-prem cyber defense for authorized networks, with containment, evidence preservation, and a verified project evaluation.", section: Section::Engineer, kind: Kind::Article, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/works/aien/", name: "AIEN", what: "AIEN is a sovereign computing stack built in the open on one machine: AienOS, Omega, the sovereign core runtime and the Spark verification pipeline, gathered into the Aienix core tree.", section: Section::Engineer, kind: Kind::Article, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/works/atlas-harness/", name: "Atlas Harness", what: "Atlas Harness is the operating desk that turns prose rules into typed policy, clear work lanes, completion checks, source records, recovery, and evaluation.", section: Section::Engineer, kind: Kind::Article, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/works/atlas-symphony/", name: "Atlas Symphony", what: "Atlas Symphony is the named process for exclusive lanes, a gatekeeper, cost-aware model routing, and an operator who still owns the final GO.", section: Section::Engineer, kind: Kind::Article, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/works/beltbrain/", name: "BeltBrain", what: "BeltBrain is a local-first decision engine for planning, inventory intelligence, and execution on a durable system of record.", section: Section::Engineer, kind: Kind::Article, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/works/chatgpt-vs-aien/", name: "Guesses vs. Proofs", what: "Why my AI is different from ChatGPT and the other LLMs: it does not guess the next word, it runs real work, checks the results, and shows its receipts.", section: Section::Engineer, kind: Kind::Article, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/works/cudaplusplus/", name: "CUDA++", what: "CUDA++ is the GPU half of Omega, its own MIT project: everything CUDA gives you plus the motor, with no NVIDIA user-space software, and how it was built.", section: Section::Engineer, kind: Kind::Article, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/works/defiantmob/", name: "DefiantMob", what: "DefiantMob is production operator software for member operations, ledgers, training-desk automation, and payout tracking.", section: Section::Engineer, kind: Kind::Article, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/works/dhg-hive/", name: "DHG Hive", what: "DHG Hive is the community platform and toolbox where the hive operating pattern took shape and later settled inside Atlas.", section: Section::Engineer, kind: Kind::Article, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/works/endless-symphony/", name: "The Endless Symphony", what: "The Endless Symphony is my system for building software with AI agents. It assumes every claim is wrong until proven, writes the test before the fix, and verifies everything twice. The models change. The Symphony remains.", section: Section::Engineer, kind: Kind::Article, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/works/foundations-2025/", name: "2025 Foundations", what: "The 2025 foundations cover the financial ledger, ParseSDS, CRM, meetings, and DMAIC systems that preceded model orchestration.", section: Section::Engineer, kind: Kind::Article, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/works/mobdev-panel-arena/", name: "MobDev and Panel Arena", what: "MobDev turns community tasks into build briefs, and Panel Arena runs a multi-vendor review before implementation.", section: Section::Engineer, kind: Kind::Article, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/works/research/", name: "Research", what: "What the AIEN research program measures today: Turing yield, verified understanding, and distance to the hardware ceiling, and why the earlier inference study was withdrawn.", section: Section::Engineer, kind: Kind::Article, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/works/the-continuation-test/", name: "The Continuation Test", what: "A proposal for the evaluation of machine intelligence. Can a machine take up its position on the spectrum and keep moving? Includes the first measured run.", section: Section::Engineer, kind: Kind::Article, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/works/chatgpt-vs-aien/infographic/", name: "Same chat box, different machine", what: "An infographic that separates the layers: an LLM predicts language, ChatGPT wraps a model in a hosted product, and AIEN is being built as a sovereign, evidence-first system that leaves receipts.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/glossary/", name: "Glossary", what: "The terms AienOS uses in its own sense, each linked to the page where it does real work.", section: Section::Optional, kind: Kind::Page, image: "/og.png", published: "2026-10-23", doi: None },
     PageInfo { path: "/licensing/", name: "Licensing", what: "The one canonical licensing statement: Apache-2.0 WITH LLVM-exception for compiler and runtime repositories; plain Apache-2.0 for protocols and benchmarks.", section: Section::Optional, kind: Kind::Page, image: "/og.png", published: "2026-10-01", doi: None },
 ];
@@ -154,6 +187,7 @@ pub const DATA_FILES: &[DataFile] = &[
     DataFile { path: "/index.md", purpose: "The front page as Markdown: the same content as the HTML, with frontmatter, the page body and a sitemap section. Every page has a mirror at the same path with .md.", schema: "Markdown: YAML frontmatter (title, description, last_updated, canonical_url), body, Sitemap section.", cadence: "every build", media_type: "text/markdown" },
     DataFile { path: "/research/CITATION.cff", purpose: "Citation metadata for the Turing preprints.", schema: "Citation File Format 1.2.0", cadence: "when a paper is revised", media_type: "text/yaml" },
     DataFile { path: "/research/aien-research-plan.md", purpose: "The ratified V3 research plan in Markdown.", schema: "Markdown", cadence: "when the plan is revised", media_type: "text/markdown" },
+    DataFile { path: "/data/engineer.json", purpose: "About the engineer: every page of /engineer/ (drakestapleton.com, merged here) with its title, description, body and the old drakestapleton.com paths that redirect to it.", schema: "{ source, note, pages: [{ path, old[], name, title, description, kind, body_html }] }", cadence: "when a page of the section changes", media_type: "application/json" },
     DataFile { path: "/humans.txt", purpose: "Who builds this: the person, the agents and the machines.", schema: "humanstxt.org", cadence: "rarely", media_type: "text/plain" },
     DataFile { path: "/robots.txt", purpose: "Every crawler and AI agent is allowed everywhere; points at the sitemap.", schema: "robots.txt", cadence: "every build", media_type: "text/plain" },
 ];
@@ -848,6 +882,7 @@ fn section_title(s: Section) -> &'static str {
         Section::Evidence => "Evidence and status",
         Section::Philosophy => "Philosophy",
         Section::Blog => "Blog",
+        Section::Engineer => "About the engineer",
         Section::Optional => "Optional",
     }
 }
@@ -864,7 +899,7 @@ pub fn llms_txt(status_lines: &[String], research_sentence: &str) -> String {
         s.push_str(&format!("- {l}\n"));
     }
     s.push_str(&format!("- [Research status]({HOST}/research/status/): {research_sentence}\n\n"));
-    for sec in [Section::Start, Section::Machine, Section::Turing, Section::Evidence, Section::Philosophy, Section::Blog] {
+    for sec in [Section::Start, Section::Machine, Section::Turing, Section::Evidence, Section::Philosophy, Section::Blog, Section::Engineer] {
         s.push_str(&format!("## {}\n\n", section_title(sec)));
         for p in PAGES.iter().filter(|p| p.section == sec) {
             s.push_str(&format!("- [{}]({HOST}{}): {}\n", p.name, p.path, p.what));
@@ -891,7 +926,7 @@ pub fn llms_txt(status_lines: &[String], research_sentence: &str) -> String {
 pub fn sitemap_md(pages: &[Emitted]) -> String {
     let mut s = String::from("# Sitemap\n\n");
     s.push_str(&format!("> Every page on aienos.com, grouped the way the site is. The crawler index is [sitemap.xml]({HOST}/sitemap.xml); the file list is [data/index.json]({HOST}/data/index.json).\n\n"));
-    for sec in [Section::Start, Section::Machine, Section::Turing, Section::Evidence, Section::Philosophy, Section::Blog, Section::Optional] {
+    for sec in [Section::Start, Section::Machine, Section::Turing, Section::Evidence, Section::Philosophy, Section::Blog, Section::Engineer, Section::Optional] {
         s.push_str(&format!("## {}\n\n", section_title(sec)));
         for p in PAGES.iter().filter(|p| p.section == sec) {
             s.push_str(&format!("- [{}]({HOST}{}): {}\n", p.name, p.path, p.what));

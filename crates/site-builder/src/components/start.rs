@@ -113,8 +113,8 @@ pub fn render_start_page() -> Markup {
                     h2 { "5. Who and what is around it" }
                     p {
                         "AienOS is built by M. Drake Stapleton. His "
-                        a href="https://www.drakestapleton.com" { "personal site" }
-                        " is the record of the person, not the project."
+                        a href="/engineer/" { "About the engineer" }
+                        " section is the record of the person, not the project."
                     }
                     p {
                         a href="https://interplane.io/" { "Interplane" }
@@ -158,7 +158,7 @@ mod tests {
     #[test]
     fn names_the_cross_project_boundaries() {
         let s = page();
-        assert!(s.contains("https://www.drakestapleton.com"), "author link missing");
+        assert!(s.contains("href=\"/engineer/\""), "author link missing");
         assert!(s.contains("not the project"), "author boundary missing");
         assert!(s.contains("https://interplane.io/"), "Interplane link missing");
         assert!(s.contains("not AienOS"), "Interplane boundary missing");

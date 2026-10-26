@@ -261,6 +261,8 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     );
     fs::create_dir_all(dist.join("learn")).expect("Create learning directory");
     fs::write(dist.join("learn/index.html"), learn_page.into_string()).expect("Write learning page");
+    // /engineer/: About the engineer, drakestapleton.com merged into this site.
+    components::engineer::emit(dist, &facts);
     // /agents/: every public repository with its agent instructions, from
     // public/data/agent-repos.json (refreshed by `site-builder agents`).
     let agent_repos = components::agents::Repos::load(Path::new(components::agents::DATA_PATH))
@@ -607,7 +609,7 @@ fn verify_site(dist: &Path) {
         "/research/status/#implementation",
         "/evidence/",
         "/AGENTS.md",
-        "https://www.drakestapleton.com",
+        "/engineer/",
         "https://interplane.io/",
     ] {
         assert!(start.contains(needle), "/start/ is missing {needle}");
@@ -629,6 +631,8 @@ fn verify_site(dist: &Path) {
         fs::read_to_string(dist.join("assets/turing-look.css")).expect("read turing-look.css").contains(".box-link::after"),
         "assets/turing-look.css must stretch .box-link over its box"
     );
+    // About the engineer: every page written, filled and self-contained.
+    components::engineer::verify(dist);
     // Drake writes alone: no we, us, our, ours or ourselves in rendered copy.
     components::voice::verify_singular_voice(dist);
     // Every page shows Follow me on X in its header and the contact line in its footer.

@@ -1,0 +1,129 @@
+/* The ChatGPT vs AIEN infographic (/engineer/works/chatgpt-vs-aien/infographic/),
+   scoped under .engineer-infographic; its dark palette always applies. */
+.engineer-infographic{color-scheme: light dark; --paper:#f3f5f3; --ink:#101816; --muted:#4d5c58; --line:#bcc7c2; --panel:#ffffff; --soft:#e7ece9; --llm:#5d6b67; --chat:#b9612e; --aien:#087864; --aien-soft:#d6eee8; --dark:#101816; --cream:#fff7e8; --shadow:0 18px 45px rgba(18,31,27,.09);}
+@media all{
+.engineer-infographic{--paper:#0d1412; --ink:#edf4f1; --muted:#aebbb6; --line:#34423d; --panel:#151f1c; --soft:#1c2925; --llm:#aab7b2; --chat:#ed9158; --aien:#4dd0b4; --aien-soft:#153c34; --dark:#e8f1ee; --cream:#2a2119; --shadow:0 18px 45px rgba(0,0,0,.22);}
+}
+.engineer-infographic *{box-sizing:border-box}
+.engineer-infographic{scroll-behavior:smooth}
+.engineer-infographic{margin:0; background:var(--paper); color:var(--ink); font-family:var(--font-sans); line-height:1.5; -webkit-font-smoothing:antialiased;}
+.engineer-infographic a{color:inherit}
+.engineer-infographic .wrap{width:min(1180px,calc(100% - 40px));margin:auto}
+.engineer-infographic .mast{padding:clamp(58px,9vw,112px) 0 62px; border-bottom:1px solid var(--line); position:relative; overflow:hidden;}
+.engineer-infographic .mast::after{content:""; position:absolute; width:340px;height:340px;border:68px solid var(--aien); border-radius:50%;right:-160px;top:-190px;opacity:.10;}
+.engineer-infographic .kicker, .engineer-infographic .eyebrow, .engineer-infographic .step-no, .engineer-infographic .label, .engineer-infographic .snapshot-label{font-family:var(--font-mono); text-transform:uppercase; letter-spacing:.09em; font-size:.72rem; font-weight:600;}
+.engineer-infographic .kicker{color:var(--aien);margin:0 0 18px}
+.engineer-infographic h1{font-size:clamp(3rem,8vw,6.6rem);line-height:.92;letter-spacing:-.065em;margin:0;max-width:940px;font-weight:700}
+.engineer-infographic .lead{font-size:clamp(1.08rem,2.2vw,1.45rem);max-width:710px;margin:30px 0 0;color:var(--muted);line-height:1.55}
+.engineer-infographic .lead strong{color:var(--ink)}
+.engineer-infographic .orientation{padding:24px 0;border-bottom:1px solid var(--line)}
+.engineer-infographic .orientation .wrap{display:flex;gap:16px;align-items:flex-start}
+.engineer-infographic .orientation svg{flex:0 0 22px;margin-top:2px;color:var(--chat)}
+.engineer-infographic .orientation p{margin:0;max-width:910px;font-size:.94rem;color:var(--muted)}
+.engineer-infographic .orientation strong{color:var(--ink)}
+.engineer-infographic section{padding:clamp(58px,8vw,96px) 0;border-bottom:1px solid var(--line)}
+.engineer-infographic h2{font-size:clamp(1.9rem,4vw,3.2rem);line-height:1.08;letter-spacing:-.04em;margin:0 0 14px}
+.engineer-infographic .section-intro{margin:0 0 38px;color:var(--muted);max-width:680px}
+.engineer-infographic .three{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.engineer-infographic .identity{background:var(--panel);border-top:6px solid;padding:28px;min-height:340px;box-shadow:var(--shadow)}
+.engineer-infographic .identity.llm{border-color:var(--llm)}
+.engineer-infographic .identity.chat{border-color:var(--chat)}
+.engineer-infographic .identity.aien{border-color:var(--aien)}
+.engineer-infographic .identity .eyebrow{display:flex;justify-content:space-between;color:var(--muted);margin-bottom:44px}
+.engineer-infographic .identity .symbol{font-size:1.2rem;color:var(--line);letter-spacing:-.18em}
+.engineer-infographic .identity h3{font-size:1.65rem;margin:0 0 8px;letter-spacing:-.03em}
+.engineer-infographic .identity .definition{font-size:1.02rem;color:var(--muted);margin:0 0 26px}
+.engineer-infographic .identity .bottom{border-top:1px solid var(--line);padding-top:18px;margin-top:auto}
+.engineer-infographic .identity .bottom b{display:block;font-size:.8rem;margin-bottom:6px}
+.engineer-infographic .identity .bottom p{margin:0;font-size:.88rem;color:var(--muted)}
+.engineer-infographic .flows{display:grid;gap:18px}
+.engineer-infographic .flow{display:grid;grid-template-columns:130px 1fr;gap:24px;align-items:center;padding:24px 0;border-top:1px solid var(--line)}
+.engineer-infographic .flow:last-child{border-bottom:1px solid var(--line)}
+.engineer-infographic .flow-name{font-weight:700;font-size:1.05rem}
+.engineer-infographic .flow-name small{display:block;font-family:var(--font-mono);font-weight:400;color:var(--muted);font-size:.68rem;margin-top:3px}
+.engineer-infographic .track{display:flex;align-items:center;gap:7px;min-width:0}
+.engineer-infographic .node{padding:10px 12px;background:var(--panel);border:1px solid var(--line);font-family:var(--font-mono);font-size:.74rem;white-space:nowrap}
+.engineer-infographic .arrow{color:var(--muted);font-size:1rem;flex:0 0 auto}
+.engineer-infographic .flow.aien-row .node{border-color:var(--aien);background:var(--aien-soft)}
+.engineer-infographic .flow.aien-row .track{flex-wrap:wrap}
+.engineer-infographic .flow.aien-row .arrow{color:var(--aien)}
+.engineer-infographic .truth{background:var(--dark);color:var(--paper);position:relative;overflow:hidden}
+@media (prefers-color-scheme: dark){
+.engineer-infographic .truth{background:var(--panel);color:var(--ink)}
+.engineer-infographic .truth .truth-cell.aien-cell{background:var(--aien-soft);color:var(--ink)}
+}
+.engineer-infographic .truth .section-intro{color:inherit;opacity:.72}
+.engineer-infographic .truth-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid currentColor;border-bottom:1px solid currentColor}
+.engineer-infographic .truth-cell{padding:32px 28px 36px;border-right:1px solid currentColor}
+.engineer-infographic .truth-cell:last-child{border-right:0}
+.engineer-infographic .truth-cell .label{opacity:.65}
+.engineer-infographic .truth-cell h3{font-size:1.4rem;line-height:1.2;margin:25px 0 12px}
+.engineer-infographic .truth-cell p{font-size:.93rem;margin:0;opacity:.76}
+.engineer-infographic .truth-cell.aien-cell{background:var(--aien);color:#fff}
+.engineer-infographic .matrix{display:grid;gap:0;border-top:1px solid var(--line)}
+.engineer-infographic .matrix-row{display:grid;grid-template-columns:1.1fr repeat(3,1fr);border-bottom:1px solid var(--line)}
+.engineer-infographic .matrix-row>div{padding:19px 18px;border-right:1px solid var(--line);font-size:.91rem}
+.engineer-infographic .matrix-row>div:last-child{border-right:0}
+.engineer-infographic .matrix-row.head>div{font-family:var(--font-mono);font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.engineer-infographic .metric{font-weight:600}
+.engineer-infographic .yes{color:var(--aien);font-weight:600}
+.engineer-infographic .partial{color:var(--chat);font-weight:600}
+.engineer-infographic .no{color:var(--muted)}
+.engineer-infographic .receipt-layout{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(28px,6vw,76px);align-items:start}
+.engineer-infographic .quote{font-size:clamp(2.05rem,4.8vw,4.2rem);line-height:1.02;letter-spacing:-.055em;margin:0}
+.engineer-infographic .quote .guess{color:var(--chat)}
+.engineer-infographic .quote .prove{color:var(--aien)}
+.engineer-infographic .receipt{background:var(--panel);box-shadow:var(--shadow);padding:28px;border:1px solid var(--line)}
+.engineer-infographic .receipt-head{display:flex;justify-content:space-between;gap:12px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.engineer-infographic .receipt-head strong{font-size:1rem}
+.engineer-infographic .pass{font-family:var(--font-mono);color:var(--aien);font-weight:600;font-size:.78rem}
+.engineer-infographic .receipt ul{list-style:none;margin:20px 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px 18px}
+.engineer-infographic .receipt li{font-size:.88rem;display:flex;gap:9px;color:var(--muted)}
+.engineer-infographic .receipt li::before{content:"✓";color:var(--aien);font-weight:700}
+.engineer-infographic .receipt .fine{margin:22px 0 0;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:.78rem}
+.engineer-infographic .receipt a{color:var(--aien);font-weight:600;text-decoration-thickness:1px;text-underline-offset:3px}
+.engineer-infographic .bottom-line{padding:70px 0 84px}
+.engineer-infographic .bottom-line .wrap{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:end}
+.engineer-infographic .bottom-line h2{margin:0;font-size:clamp(2.7rem,7vw,6rem)}
+.engineer-infographic .bottom-copy{border-top:4px solid var(--aien);padding-top:18px}
+.engineer-infographic .bottom-copy p{margin:0 0 16px;color:var(--muted)}
+.engineer-infographic .bottom-copy strong{color:var(--ink)}
+.engineer-infographic .stamp{font-family:var(--font-mono);color:var(--muted);font-size:.68rem;margin-top:34px}
+@media (max-width:860px){
+.engineer-infographic .three{grid-template-columns:1fr}
+.engineer-infographic .identity{min-height:0}
+.engineer-infographic .identity .eyebrow{margin-bottom:28px}
+.engineer-infographic .flow{grid-template-columns:1fr;gap:10px}
+.engineer-infographic .track{overflow:visible;flex-wrap:wrap}
+.engineer-infographic .truth-grid{grid-template-columns:1fr}
+.engineer-infographic .truth-cell{border-right:0;border-bottom:1px solid currentColor}
+.engineer-infographic .truth-cell:last-child{border-bottom:0}
+.engineer-infographic .receipt-layout, .engineer-infographic .bottom-line .wrap{grid-template-columns:1fr}
+.engineer-infographic .matrix-row{grid-template-columns:1fr}
+.engineer-infographic .matrix-row.head{display:none}
+.engineer-infographic .matrix-row>div{border-right:0;border-bottom:1px dashed var(--line);padding:14px 16px 14px 44%}
+.engineer-infographic .matrix-row>div:last-child{border-bottom:0}
+.engineer-infographic .matrix-row .metric{padding-left:16px;background:var(--soft)}
+.engineer-infographic .matrix-row>div:not(.metric){position:relative}
+.engineer-infographic .matrix-row>div:not(.metric)::before{position:absolute;left:16px;font-family:var(--font-mono);font-size:.67rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.engineer-infographic .matrix-row>div:nth-child(2)::before{content:"Base LLM"}
+.engineer-infographic .matrix-row>div:nth-child(3)::before{content:"ChatGPT"}
+.engineer-infographic .matrix-row>div:nth-child(4)::before{content:"AIEN"}
+}
+@media (max-width:560px){
+.engineer-infographic .wrap{width:min(100% - 28px,1180px)}
+.engineer-infographic .mast{padding-top:48px}
+.engineer-infographic h1{font-size:3.15rem}
+.engineer-infographic .identity{padding:22px}
+.engineer-infographic .node{white-space:normal}
+.engineer-infographic .receipt ul{grid-template-columns:1fr}
+.engineer-infographic .bottom-line{padding-bottom:58px}
+}
+@media (prefers-reduced-motion:reduce){
+.engineer-infographic{scroll-behavior:auto}
+}
+@media print{
+.engineer-infographic{background:#fff;color:#111}
+.engineer-infographic .mast, .engineer-infographic section{break-inside:avoid}
+.engineer-infographic .identity, .engineer-infographic .receipt{box-shadow:none}
+}

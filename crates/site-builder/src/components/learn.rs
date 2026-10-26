@@ -62,6 +62,7 @@ pub fn render_learn_page() -> Markup {
                     a href="#workflow" { "The working loop" }
                     a href="#brief" { "A brief to copy" }
                     a href="/hive/" { "Watch the Hive" }
+                    a href="/engineer/" { "About the engineer" }
                 }
                 div class="learn-orbit" aria-hidden="true" {
                     span class="learn-orbit-ring" {}
@@ -173,6 +174,24 @@ pub fn render_learn_page() -> Markup {
                     p { "Read the Hive's coverage and freshness notices. Unknown identity is unknown, not an invitation to guess. A fresh snapshot does not mean every task just advanced, and a working agent is not a successful result." }
                     p { "The interaction view is a filtered public record, not the entire session. It does not expose hidden reasoning, private tool payloads, secrets, or automatic system context. An absent message is not evidence that no discussion happened." }
                     p { "For a broader view of the project, use " a href="/now/" { "Now" } ". For the project introduction, use " a href="/start/" { "Start here" } "." }
+                }
+            }
+
+            section class="learn-section" id="engineer" aria-labelledby="engineer-title" {
+                div class="learn-margin" {
+                    p class="learn-eyebrow" { "05 / Who is teaching" }
+                    h2 id="engineer-title" { "About the engineer." }
+                    a class="learn-text-link" href="/engineer/" { "Meet the engineer" }
+                }
+                div class="learn-watch" {
+                    p { "I am Drake Stapleton. I grew up on a farm, worked the line at Taco Bell, became a chemist, then an engineer, and now I build a whole computer from the ground up with AI agents. I learned all of it the way this guide describes: one checked step at a time." }
+                    p {
+                        "My story, my philosophy, the work I have shipped and the glossary of my terms are in "
+                        a href="/engineer/" { "About the engineer" }
+                        ". Start with " a href="/engineer/path/" { "my path" } ", "
+                        a href="/engineer/philosophy/" { "my philosophy" } " or "
+                        a href="/engineer/works/" { "my works" } "."
+                    }
                 }
             }
 
