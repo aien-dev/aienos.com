@@ -83,6 +83,7 @@ pub struct PageInfo {
 pub const PAGES: &[PageInfo] = &[
     PageInfo { path: "/", name: "AienOS", what: "The front page: the loop, the five real machines and their measured speeds beside the physical ceiling, the evidence cards, the current status of every layer.", section: Section::Machine, kind: Kind::Home, image: "/og.png", published: "2026-09-23", doi: None },
     PageInfo { path: "/start/", name: "Start here", what: "The shortest route through AienOS: what it is, what exists today, how to check the evidence, how to reproduce or contribute, and where the author and Interplane fit.", section: Section::Start, kind: Kind::Page, image: "/og.png", published: "2026-10-24", doi: None },
+    PageInfo { path: "/contact/", name: "Where I am and how to reach me", what: "How to reach Drake: X @mdrakestapleton, email drake@aienos.com, Allen at /allen/ (who can pass a message on or put you through when Drake is online) and the aien-dev repositories on GitHub.", section: Section::Start, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/privacy/", name: "Privacy & saying hello to Allen", what: "Your choice about the consent-only X pixel, what X receives, what I keep and how to refuse.", section: Section::Optional, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/machine/", name: "The Machine", what: "One machine across five physical bodies: the closed epistemic loop, the Turing as its accounting layer, and an honest list of what exists.", section: Section::Machine, kind: Kind::Article, image: "/og-machine.png", published: "2026-10-01", doi: None },
     PageInfo { path: "/omega/", name: "What Omega is", what: "Omega is AIEN's language for all computing, GPU to CPU; on the GPU it is the replacement for CUDA. The CUDA stack piece by piece with status, the receipt for the live server running with zero CUDA libraries, what is not true yet, and the bar C1 to C6.", section: Section::Machine, kind: Kind::Page, image: "/og-machine.png", published: "2026-10-21", doi: None },
@@ -740,7 +741,7 @@ pub fn enrich(dist: &Path, ctx: &BuildCtx) -> Vec<Emitted> {
         out.push('\n');
         out.push_str(&block);
         out.push_str(&html[head_end..]);
-        let out = crate::components::allen_intro::enrich(ensure_glossary_link(out));
+        let out = crate::components::allen_intro::enrich(crate::components::contact::enrich(ensure_glossary_link(out), page.is_zh()));
         write_markdown_mirror(dist, page, &facts, &out);
         fs::write(&page.file, out).unwrap_or_else(|e| panic!("write {}: {e}", page.file.display()));
     }
@@ -856,7 +857,7 @@ pub fn llms_txt(status_lines: &[String], research_sentence: &str) -> String {
     let mut s = String::new();
     s.push_str("# AienOS\n\n");
     s.push_str(&format!("> {SITE_CLAIM}. AienOS is an experimental, open source (Apache-2.0 WITH LLVM-exception) machine for turning search into verified understanding: AIEN proposes, Omega makes the proposal explicit and verifiable, the machine tests it against reality, the Turing measures what was learned, Cortex keeps the evidence. Every claim on the site carries a public receipt. Status: experimental, pre-alpha. Built by {AUTHOR} with AI agents on five real machines.\n\n"));
-    s.push_str("Rules the site keeps: no comparisons with other systems (every speed stands beside the physical ceiling of its own machine only), failures stay on the record, no outside fonts or unsolicited tracking (X pixel rfrlz loads only after saying hello to Allen; privacy and refusal at /privacy/; the film on /turing/ is an outside embed), and AI agents are welcome to read, cite, argue and correct. Contact: aien@aienos.com. Source: https://github.com/aien-dev.\n\n");
+    s.push_str("Rules the site keeps: no comparisons with other systems (every speed stands beside the physical ceiling of its own machine only), failures stay on the record, no outside fonts or unsolicited tracking (X pixel rfrlz loads only after saying hello to Allen; privacy and refusal at /privacy/; the film on /turing/ is an outside embed), and AI agents are welcome to read, cite, argue and correct. Contact Drake: drake@aienos.com or X @mdrakestapleton; every route, Allen included, is at https://www.aienos.com/contact/. Project mail: aien@aienos.com. Source: https://github.com/aien-dev.\n\n");
     s.push_str("## Current state\n\n");
     for l in status_lines {
         s.push_str(&format!("- {l}\n"));
@@ -880,7 +881,7 @@ pub fn llms_txt(status_lines: &[String], research_sentence: &str) -> String {
     }
     s.push_str(&format!("- [简体中文]({HOST}/zh-CN/): the same site in Simplified Chinese (every page has a /zh-CN/ mirror).\n"));
     s.push_str(&format!("- [Papers as PDF]({HOST}/research/): each research page links its paper.pdf, paper.tex and SHA256SUMS.\n"));
-    s.push_str(&format!("- [X]({X_URL}): where the project posts.\n"));
+    s.push_str(&format!("- [Drake on X ({X_HANDLE})]({X_URL}): where the work is posted as it happens.\n"));
     s
 }
 

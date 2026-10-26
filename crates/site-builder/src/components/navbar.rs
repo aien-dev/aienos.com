@@ -66,6 +66,7 @@ pub fn render_navbar() -> Markup {
                             li { a class="aien-nav-minor" href=(format!("/{code}/")) hreflang=(code) lang=(code) { (name) } }
                         }
                     }
+                    (crate::components::contact::nav_reach(false))
                 }
             }
         }
@@ -135,6 +136,15 @@ mod tests {
             assert!(page.contains("/assets/site-nav.css"), "{rel}: missing shared nav stylesheet");
             assert_six_in_order(&page, rel);
         }
+    }
+
+    #[test]
+    fn header_links_x_and_the_contact_page() {
+        let html = render_navbar().into_string();
+        assert!(html.contains("class=\"aien-x-link\" href=\"https://x.com/mdrakestapleton\""), "header must link X");
+        assert!(html.contains(">Follow me on X<") && html.contains(">@mdrakestapleton<"));
+        assert!(html.contains("href=\"/contact/\""), "header must link /contact/");
+        assert!(!html.contains("<script"), "the X link is a plain link");
     }
 
     #[test]

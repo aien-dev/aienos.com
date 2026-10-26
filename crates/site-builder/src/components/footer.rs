@@ -59,11 +59,12 @@ pub const FOOTER_GROUPS: [(&str, &[FooterLink]); 6] = [
 ];
 
 /// Secondary links, after the six sections.
-const FOOTER_MORE: [FooterLink; 10] = [
+const FOOTER_MORE: [FooterLink; 11] = [
     ("Start here", "/start/", false),
     ("Progress", "/progress/", false),
     ("Blog", "/blog", false),
     ("Follow", "/#follow", false),
+    ("Contact", "/contact/", false),
     ("Glossary", "/glossary/", false),
     ("Licensing", "/licensing/", false),
     ("Privacy & saying hello to Allen", "/privacy/", false),
@@ -98,6 +99,7 @@ pub fn render_footer() -> Markup {
                         p {
                             "Persistent machine intelligence on hardware you own. Experimental, open source, and verified in public, receipts and all."
                         }
+                        (crate::components::contact::footer_reach(false))
                         p class="aien-footer-machines" {
                             span class="aien-footer-machines-k" { "For machines: " }
                             a href="/data/index.json" { "data index" }
@@ -202,6 +204,14 @@ mod tests {
         let hrefs: Vec<&str> = links.iter().map(|l| l.1).collect();
         assert!(hrefs.contains(&"/research/status/"), "Evidence group must link /research/status/");
         assert!(hrefs.contains(&"/research-status.json"), "Evidence group must link /research-status.json");
+    }
+
+    #[test]
+    fn footer_reaches_drake() {
+        let html = render_footer().into_string();
+        for needle in ["href=\"https://x.com/mdrakestapleton\"", "href=\"mailto:drake@aienos.com\"", "href=\"/contact/\"", "href=\"/allen/\""] {
+            assert!(html.contains(needle), "footer lacks {needle}");
+        }
     }
 
     #[test]
