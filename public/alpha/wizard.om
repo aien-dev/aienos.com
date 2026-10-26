@@ -1685,7 +1685,9 @@ verdict 3 2
 dstr d_m4
 ret
 end
-if lt fr 50684928
+note 35B load need (Core qwen36_batch at 59b05a71, live load log): 37254 MiB model + 8 rows x 1982.85 MiB
+note + 8192 MiB kept free = 61309 MiB = 62780416 kB (Wolfram: Ceiling[37254+8*1982.85+8192]*1024).
+if lt fr 62780416
 verdict 3 1
 dstr d_m3
 ret
@@ -3485,7 +3487,7 @@ r = renames pk 0 get pkn 0 0
 ret eq r 0
 end
 note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-note engine.om: start, watch and stop the engine (aien-serve-http from Core, engine omega) on
+note engine.om: start, watch and stop the engine (aien-serve-http, Core ship/motor-l387, engine omega) on
 note 127.0.0.1, check from /proc that it loaded no CUDA library, the first-chat screen, the done
 note screen, the uninstaller and the rollback.
 
@@ -3496,11 +3498,13 @@ text e_omega "omega"
 text e_mdir "--model-dir"
 text e_port "--port"
 text e_ctx "--max-context"
-text e_ctxv "131072"
+text e_ctxv "49152"
 text e_cap "--max-tokens-cap"
 text e_capv "16384"
 text e_thk "--thinking"
 text e_off "off"
+text e_slot "--batch-slots"
+text e_slotv "8"
 text e_log "/engine.log"
 text e_pid "/engine.pid"
 text e_null "/dev/null"
@@ -3516,8 +3520,8 @@ text f_skip1 "I am not starting the engine now: "
 text f_mem "another model is using this GB10's memory."
 text f_lock "another process holds the GB10 lock."
 text f_skip2 "Your model is installed. When the GPU is free, run:  aienos chat"
-text f_load1 "Starting the engine from Core cf239078 and loading the model onto the GB10."
-text f_load2 "The first load reads about 31 GB, so it can take a few minutes."
+text f_load1 "Starting the engine (Core ship/motor-l387 59b05a71) and loading the 35B onto the GB10."
+text f_load2 "The first load reads about 37.5 GB, so it can take a few minutes."
 text f_fail1 "The engine stopped before it was ready. Its log: ~/.local/share/aienos/engine.log"
 text f_q "Say hello in one short sentence, and tell me what you are."
 text f_you "you    "
@@ -3552,7 +3556,7 @@ text r_pre "releases/"
 text r_none "There is no other release to roll back to."
 text r_ok "current now points to "
 
-note The packed argument list of the receipted serve command (Core tools/serve-27b.sh), on PORT.
+note The packed argument list of the live 35B server's command (same flags), on PORT.
 fn eargs to void
 pkclr
 pclr
@@ -3572,6 +3576,8 @@ pkstr e_cap
 pkstr e_capv
 pkstr e_thk
 pkstr e_off
+pkstr e_slot
+pkstr e_slotv
 end
 
 note Start the engine in its own session, output appended to engine.log, pid in engine.pid.
@@ -4154,20 +4160,20 @@ note "doctor", "chat", "start", "stop", "verify", "source", "about", "uninstall"
 note small commands beside it. Build: concatenate sha256.om lib.om hole.om doctor.om net.om steps.om
 note engine.om main.om, in that order, and compile the result with the pinned omc (see build.sh).
 
-text v_tag "alpha-20261026.1"
-text a_l1 "Sovereign Intelligence alpha-20261026.1: the installer and the aienos command"
+text v_tag "alpha-20261026.2"
+text a_l1 "Sovereign Intelligence alpha-20261026.2: the installer and the aienos command"
 text a_l2 "written in Omega (.om), compiled by omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d"
 text a_l3 "  (aien-dev/omega-mv 3364a1dfd0ca50c1b82bf19ba34932d8bc10a7a9, seed/out/omc)"
-text a_l4 "engine: aien-serve-http, aien-dev/aien-sovereign-core-mv tag alpha/20261025.1 = cf239078d05a47d84353c1508a08663273f00c3e"
-text a_l5 "  receipt: aien-dev/aien-receipts aien-sovereign-core/cf239078d05a47d84353c1508a08663273f00c3e/bundle.json"
-text a_l6 "  (bundle sha256 44edcc9aa10cb7669093d8dfed3399374a6aaa312fc89beace8e39f934938687: 35 checks PASS,"
-text a_l7 "   including SC-GB10-SERVE-CHAT on a GB10 and SC-ZERO-CUDA)"
-text a_l8 "GPU path: the engine's statically linked libomega_gpu.a (omega-mv 18f8fdd9) talks to"
+text a_l4 "engine: aien-serve-http sha256 19173f9ec3b609fe79af644f84741d8808b92ea8eb3ecec4bc945af6f22b3aeb,"
+text a_l5 "  the build that serves the Spark's 35B: aien-dev/aien-sovereign-core-mv branch ship/motor-l387"
+text a_l6 "  commit 59b05a71a33e4a2f1324db2f2b6407ee82b8c2c3 (a development build, not a Core release tag)"
+text a_l7 "  evidence: Core evidence/l387-motor-ship (merge train 20261022T0244Z-bfc41659, timing runs)"
+text a_l8 "GPU path: the engine's statically linked libomega_gpu.a (omega ship/motor-l387 6de999da) talks to"
 text a_l9 "  /dev/nvidiactl, /dev/nvidia0 and /dev/nvidia-uvm. There is no separate CUDA++ runtime."
-text a_l10 "model: Qwen/Qwen3.8-27B-FP8 revision 017b9c7af6b5689d5dd426a76e0bc077eb5ca20a (30.9 GB)"
-text a_l11 "  The Qwen3.6-35B the Spark serves is not offered yet: it runs on an engine branch that is not merged."
-text a_l12 "evidence: GB10 serve and chat EXERCISED by the Core receipt above; this installer's full GPU run"
-text a_l13 "  and first token on a GB10, and the 3x physical qualification: NOT_RUN."
+text a_l10 "model: Qwen/Qwen3.6-35B-A3B-FP8 revision 95a723d08a9490559dae23d0cff1d9466213d989 (37.5 GB)"
+text a_l11 "  This is the only model offered. A 27B is to come; it is not offered in this release."
+text a_l12 "evidence: this engine binary serving the 35B on a GB10 EXERCISED (it is the live server's build);"
+text a_l13 "  this installer's GB10 install and first token, and the 3x physical qualification: NOT_RUN."
 text a_l14 "signature: Ed25519 alpha release key ff949504b427680039d53c33c85c448546b57d590eb1ecee3bb2ed6c2eaaf54a"
 text a_l15 "  (an alpha key; it is rotated to a ceremony key before beta)"
 text s_l1 "My Omega source ships with this release:"
