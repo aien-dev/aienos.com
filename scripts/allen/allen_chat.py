@@ -62,6 +62,7 @@ from urllib.parse import parse_qs, urlsplit
 # python3 -I drops the script directory from sys.path; the directory is a read-only bind.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import allen_spool  # noqa: E402
+import allen_projects  # noqa: E402  (build loop: homes, save, publish, gallery)
 import allen_speed  # noqa: E402
 import allen_transcribe  # noqa: E402  (POST transcribe: push-to-talk, off unless --whisper-cli)
 
@@ -835,6 +836,7 @@ class App:
         self.say_rate = Buckets(10, 6)
         self.session_rate = Buckets(10, 30)
         self.live = Live()
+        allen_projects.init(self, Buckets)
         self.tools = load_tools(args.tools) if args.tools else None
         self.tool_specs = list(self.tools.TOOLS) if self.tools else []
         self.tool_prompt = self.tools.SYSTEM_PROMPT.strip() if self.tools else ""
@@ -1281,6 +1283,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.presence()
         if r == "session":
             return self.session()
+        if allen_projects.get(self, r):
+            return
         self.send_json(404, {"error": "not_found"})
 
     def not_found(self):
@@ -1316,6 +1320,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.project_summary()
         if r == "transcribe":
             return allen_transcribe.handle(self)
+        if allen_projects.post(self, r):
+            return
         self.send_json(404, {"error": "not_found"})
 
     def validate(self, req):
@@ -2317,11 +2323,11 @@ class ConsoleHandler(BaseHTTPRequestHandler):
                 "<button>Save</button></form></section>"
                 "<section><h2>People who asked for me</h2>%s</section>"
                 "<section><h2>Relayed messages (in memory since the gateway started)</h2>%s</section>"
-                "<form method=post action=/logout>%s<button>Sign out</button></form>") % (
+                "%s<form method=post action=/logout>%s<button>Sign out</button></form>") % (
             self.csrf_field(csrf), " checked" if online else "", esc(hours),
             "<table><tr><th>Conversation</th><th>State</th><th>Asked</th><th>Idle</th><th>Listening</th></tr>%s</table>"
             % rows if rows else "<p>Nobody right now.</p>",
-            self.relay_html(list(app.relays)), self.csrf_field(csrf))
+            self.relay_html(list(app.relays)), allen_projects.console_html(self, csrf), self.csrf_field(csrf))
         self.page(200, "Allen console", body)
 
     def session_page(self, conv, csrf):
@@ -2407,6 +2413,8 @@ class ConsoleHandler(BaseHTTPRequestHandler):
             app.presence.set(f.get("online") == "on", hours)
             app.stats.add("console_presence")
             return self.redirect("/")
+        if allen_projects.console_post(self, path, f):
+            return
         m = re.match(r"^/session/([0-9a-f]{16})/(join|reply|handback)$", path)
         if not m:
             return self.send_body(404, b"not found\n", "text/plain")
