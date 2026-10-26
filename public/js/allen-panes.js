@@ -445,7 +445,7 @@
   function cells(line) {
     return line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(s => s.trim());
   }
-  function markdown(source, box) {
+  function markdown(source, box, fenceTool) {
     const lines = source.split(/\r?\n/);
     let para = [];
     let list = null;
@@ -465,6 +465,8 @@
         if (fence[2]) pre.dataset.lang = fence[2];
         pre.append(el('code', '', body.join('\n')));
         box.append(pre);
+        const tool = fenceTool ? fenceTool(fence[2], body.join('\n')) : null;
+        if (tool) box.append(tool);
         continue;
       }
       if (/^\s*\$\$/.test(line)) {
@@ -991,6 +993,7 @@
       rec.max.setAttribute('aria-label', `Maximize ${rec.title}`);
       rec.max.setAttribute('aria-pressed', String(rec.maximized));
       rec.shut.setAttribute('aria-label', `Close ${rec.title}`);
+      rec.grab.setAttribute('aria-label', `Minimize ${rec.title}. On a touch screen, swipe the top of the sheet down to minimize, or sideways for the next pane.`);
       chipState(rec);
     }
     function create(key, kind, title) {
@@ -1023,17 +1026,26 @@
       const foot = el('div', 'allen-pane-foot');
       foot.hidden = true;
       const size = button('allen-pane-size', '', '', null);
-      pane.append(head, notice, body, source, foot, size);
+      const grab = button('allen-pane-grab', '', '', () => minimize(rec));
+      pane.append(grab, head, notice, body, source, foot, size);
       const item = el('li', 'allen-panes-item');
       const chip = button('allen-panes-chip', '', '', () => chipClick(rec));
       const chipTitle = el('span', 'allen-panes-chip-title');
       chip.append(el('span', 'allen-panes-chip-kind', NAMES[kind]), chipTitle);
       item.append(chip);
-      Object.assign(rec, { el: pane, heading, badge, notice, body, source, foot, move, size, min, max, shut, item, chip, chipTitle });
+      Object.assign(rec, { el: pane, heading, badge, notice, body, source, foot, move, size, grab, min, max, shut, item, chip, chipTitle, swallow: 0 });
       label(rec);
       pane.addEventListener('pointerdown', () => raise(rec), true);
       pane.addEventListener('focusin', () => raise(rec));
       drag(rec, head, 'move');
+      swipe(rec, head);
+      swipe(rec, grab);
+      pane.addEventListener('click', event => {
+        if (event.timeStamp > rec.swallow) return;
+        rec.swallow = 0;
+        event.preventDefault();
+        event.stopPropagation();
+      }, true);
       drag(rec, size, 'size');
       keyed(rec, move, 'move');
       keyed(rec, size, 'size');
@@ -1044,6 +1056,76 @@
       initial(rec);
       stack();
       return rec;
+    }
+    /* Bottom sheet gestures, only on the grab strip and the title bar, so the
+       content keeps its own scrolling, selection and editing. Down past a
+       quarter of the sheet (or a quick flick) minimizes; sideways shows the
+       neighbouring pane. A swipe never reaches the button it started on. */
+    function swipe(rec, zone) {
+      zone.addEventListener('pointerdown', event => {
+        if (!sheet() || !event.isPrimary || event.button !== 0) return;
+        const start = { x: event.clientX, y: event.clientY, t: event.timeStamp };
+        const height = Math.max(1, rec.el.getBoundingClientRect().height);
+        let mode = '';
+        let last = event;
+        let frame = 0;
+        const paint = () => {
+          frame = 0;
+          if (!alive || !mode) return;
+          const dx = last.clientX - start.x;
+          const dy = last.clientY - start.y;
+          rec.el.style.setProperty('--allen-pane-swipe-x', mode === 'side' ? `${Math.round(dx / 2)}px` : '0px');
+          rec.el.style.setProperty('--allen-pane-swipe-y', mode === 'down' ? `${Math.round(Math.max(0, dy))}px` : '0px');
+        };
+        const settle = () => {
+          rec.el.classList.remove('is-swiping');
+          rec.el.style.removeProperty('--allen-pane-swipe-x');
+          rec.el.style.removeProperty('--allen-pane-swipe-y');
+        };
+        const onMove = e => {
+          if (e.pointerId !== event.pointerId) return;
+          last = e;
+          const dx = e.clientX - start.x;
+          const dy = e.clientY - start.y;
+          if (!mode) {
+            if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+            mode = Math.abs(dy) >= Math.abs(dx) ? (dy > 0 ? 'down' : 'up') : 'side';
+            try {
+              zone.setPointerCapture(e.pointerId);
+            } catch (_) {}
+            rec.el.classList.add('is-swiping');
+          }
+          if (mode !== 'up' && !frame) frame = requestAnimationFrame(paint);
+        };
+        const onEnd = e => {
+          if (e.pointerId !== event.pointerId) return;
+          zone.removeEventListener('pointermove', onMove);
+          zone.removeEventListener('pointerup', onEnd);
+          zone.removeEventListener('pointercancel', onEnd);
+          if (frame) cancelAnimationFrame(frame);
+          frame = 0;
+          settle();
+          if (!mode) return;
+          rec.swallow = e.timeStamp + 500;
+          if (e.type === 'pointercancel' || !alive) return;
+          const dx = e.clientX - start.x;
+          const dy = e.clientY - start.y;
+          const speed = Math.max(Math.abs(dx), Math.abs(dy)) / Math.max(1, e.timeStamp - start.t);
+          if (mode === 'down' && (dy > height / 4 || (dy > 24 && speed > 0.6))) minimize(rec);
+          else if (mode === 'side' && (Math.abs(dx) > 72 || (Math.abs(dx) > 24 && speed > 0.6))) neighbour(rec, dx < 0 ? 1 : -1);
+        };
+        zone.addEventListener('pointermove', onMove);
+        zone.addEventListener('pointerup', onEnd);
+        zone.addEventListener('pointercancel', onEnd);
+      });
+    }
+    function neighbour(rec, dir) {
+      const all = [...panes.values()];
+      if (all.length < 2) return;
+      const next = all[(all.indexOf(rec) + dir + all.length) % all.length];
+      const had = rec.el.contains(document.activeElement);
+      restore(next, had);
+      say(`${next.title}, pane ${all.indexOf(next) + 1} of ${all.length}.`);
     }
     function drag(rec, handle, mode) {
       handle.addEventListener('pointerdown', event => {
@@ -1226,6 +1308,20 @@
       box.append(list, el('p', 'allen-pane-label', 'Links are shown as given; this page never fetched or checked them.'));
       return box;
     }
+    /* A diff or patch fence gets its own Copy and Download patch. The patch
+       is only ever a downloaded file; nothing here applies it. */
+    function patchTool(rec) {
+      let n = 0;
+      return (lang, text) => {
+        if (!/^(diff|patch)$/i.test(lang) || !text.trim()) return null;
+        n += 1;
+        const name = `${slug(rec.title) || 'allen'}${n > 1 ? `-${n}` : ''}.patch`;
+        const bar = el('div', 'allen-pane-bar allen-md-tools');
+        const copyButton = button('allen-pane-act', `Copy patch ${n} of ${rec.title}`, 'Copy patch', () => copyText(`${text}\n`, copyButton));
+        bar.append(copyButton, button('allen-pane-act', `Download patch ${n} of ${rec.title} as ${name}; it is not applied anywhere`, 'Download patch', () => download(name, `${text}\n`)));
+        return bar;
+      };
+    }
     function render(rec) {
       const c = rec.content;
       const body = rec.body;
@@ -1240,7 +1336,7 @@
         rec.svg = drawn.svg;
         body.append(drawn.figure);
       } else if (rec.kind === 'doc') {
-        body.append(markdown(c.markdown, el('div', 'allen-md')));
+        body.append(markdown(c.markdown, el('div', 'allen-md'), patchTool(rec)));
         if (c.citations.length) body.append(refList('Citations', c.citations));
       } else if (rec.kind === 'code' || rec.kind === 'omega') {
         body.append(el('p', 'allen-pane-label', rec.kind === 'omega' ? 'Omega source' : `${clean(c.language, 40) || 'Code'} source`));
@@ -1276,7 +1372,7 @@
         rec.app = { frame: null, run, stop };
       } else if (rec.kind === 'research') {
         const notes = section('Notes');
-        notes.append(markdown(c.notes, el('div', 'allen-md')));
+        notes.append(markdown(c.notes, el('div', 'allen-md'), patchTool(rec)));
         body.append(notes);
         if (c.hypotheses.length) {
           const box = section('Hypotheses');
