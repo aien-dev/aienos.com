@@ -37,7 +37,7 @@
     {
       "step": "Compile to machine code",
       "cuda": "nvcc, NVVM, PTX, ptxas",
-      "ours": "Our own sm_121 encoder and register allocator: 59 instruction kinds, launch descriptors.",
+      "ours": "My own sm_121 encoder and register allocator: 59 instruction kinds, launch descriptors.",
       "status": "PASS",
       "note": "every kernel the live server runs is encoded by it",
       "links": [["encoder", "cp:src/omega_blackwell_encoder.c"]],
@@ -46,7 +46,7 @@
     {
       "step": "Talk to the driver",
       "cuda": "libcuda",
-      "ours": "Our own client for the open kernel module's ioctls, written from its MIT headers.",
+      "ours": "My own client for the open kernel module's ioctls, written from its MIT headers.",
       "status": "PASS",
       "note": "no libcuda linked",
       "links": [["nvrm client", "cp/:nvrm"], ["open headers", "cp/:third_party/nvidia-open-580.173.02"]],
@@ -66,7 +66,7 @@
       "cuda": "cuBLAS, cuDNN, CUB",
       "ours": "Matrix multiply (BF16, FP8, 4 bit, ternary), decode and prefill attention, frozen-order reductions.",
       "status": "PARTIAL",
-      "note": "shaped for the models we run; no any-shape GEMM yet",
+      "note": "shaped for the models I run; no any-shape GEMM yet",
       "links": [["reductions receipt", "cp/:evidence/E1-CLOSURE"]],
       "box": "cp:ROADMAP.md#1-nvidia-software-on-the-spark-today"
     },
@@ -99,38 +99,38 @@
       "box": "cp:ROADMAP.md#1-nvidia-software-on-the-spark-today"
     }
   ],
-  "how_lead": "One person and a team of AI coding agents, one DGX Spark, four weeks. NVIDIA publishes the source of its Linux kernel module, but not its compiler, its driver library or the GPU's machine code. So we skipped every closed layer.",
+  "how_lead": "I build this with AI coding agents, on one DGX Spark, in four weeks. NVIDIA publishes the source of its Linux kernel module, but not its compiler, its driver library or the GPU's machine code. So I skipped every closed layer.",
   "steps": [
     {
       "title": "1. The driver client, from the open kernel module's headers",
-      "text": "libcuda is closed, but everything it does to the hardware goes through ioctls that the open kernel module defines in its public headers. We copied 67 of those headers unchanged (MIT) and wrote our own client against them: client, device, address space, memory, command ring, compute object, doorbell, completion.",
+      "text": "libcuda is closed, but everything it does to the hardware goes through ioctls that the open kernel module defines in its public headers. I copied 67 of those headers unchanged (MIT) and wrote my own client against them: client, device, address space, memory, command ring, compute object, doorbell, completion.",
       "links": [["nvrm client", "cp/:nvrm"], ["the 67 headers", "cp/:third_party/nvidia-open-580.173.02"], ["no libcuda receipt", "cp:evidence/m16-blackwell-native-path-requalification-receipt.json"]],
       "box": "cp@:62ea5a214d46f36e88cb7b892cecebf1f3e8a172/docs/HOW_WE_DID_IT.md#step-1-talk-to-the-kernel-module-without-libcuda"
     },
     {
       "title": "2. The machine code, reverse engineered",
-      "text": "NVIDIA does not publish the GPU's instruction encoding. We compiled small probe kernels of our own once with NVIDIA's compiler, read the machine code back with NVIDIA's disassembler as an offline oracle, and compared kernels that differ in one detail to see which bits mean what. We cross-checked against Mesa's open NVIDIA compiler, NAK, and believed nothing until the chip ran it and gave the right answer. The tensor-core arithmetic was measured on the chip over 2,048 cases until one model matched every output bit.",
+      "text": "NVIDIA does not publish the GPU's instruction encoding. I compiled small probe kernels of my own once with NVIDIA's compiler, read the machine code back with NVIDIA's disassembler as an offline oracle, and compared kernels that differ in one detail to see which bits mean what. I cross-checked against Mesa's open NVIDIA compiler, NAK, and believed nothing until the chip ran it and gave the right answer. The tensor-core arithmetic was measured on the chip over 2,048 cases until one model matched every output bit.",
       "links": [["encoder", "cp:src/omega_blackwell_encoder.c"], ["tensor-core probe", "cp:tests/gpu_tc_probe_test.c"], ["third-party notices", "cp:THIRD_PARTY.md"]],
       "box": "cp@:62ea5a214d46f36e88cb7b892cecebf1f3e8a172/docs/HOW_WE_DID_IT.md#step-2-learn-the-machine-code-the-reverse-engineering"
     },
     {
       "title": "3. Launches in NVK's order",
-      "text": "A launch on Blackwell is a short list of commands in the channel ring. We took their order from Mesa's NVK Vulkan driver and the method offsets from the open headers, built our own command lists, and measured them: about 24 to 31 microseconds per extra dependent launch.",
+      "text": "A launch on Blackwell is a short list of commands in the channel ring. I took their order from Mesa's NVK Vulkan driver and the method offsets from the open headers, built my own command lists, and measured them: about 24 to 31 microseconds per extra dependent launch.",
       "links": [["command lists", "cp:src/omega_gpu_cmdlist.c"], ["launch cost receipt", "cp/:evidence/OWN30B-LAUNCH-COST-20261014T0120Z"]],
       "box": "cp@:62ea5a214d46f36e88cb7b892cecebf1f3e8a172/docs/HOW_WE_DID_IT.md#step-3-launch-work-like-the-driver-does"
     },
     {
       "title": "4. Built up, nothing counts until the chip agrees",
-      "text": "2026-09-26 vector add on the GB10. 2026-10-02 numerics closed on the chip. 2026-10-13 our own probes measured the tensor cores at 115.14 TFLOPS and memory reads at 195.1 GB/s. 2026-10-21 a 35B model served on this code with zero CUDA libraries in the process.",
+      "text": "2026-09-26 vector add on the GB10. 2026-10-02 numerics closed on the chip. 2026-10-13 my own probes measured the tensor cores at 115.14 TFLOPS and memory reads at 195.1 GB/s. 2026-10-21 a 35B model served on this code with zero CUDA libraries in the process.",
       "links": [["numerics receipt", "cp/:evidence/E1-CLOSURE"], ["ceiling receipt", "cp/:evidence/OWN30B-T3-TC-PEAK-BW-5faa0f70-20261013T2236Z"]],
       "box": "cp@:62ea5a214d46f36e88cb7b892cecebf1f3e8a172/docs/HOW_WE_DID_IT.md#step-4-build-up-checking-everything"
     }
   ],
   "did_not": [
     "No NVIDIA source code other than the open kernel module headers, and no NVIDIA binary. No libcuda, cubin, PTX or firmware in the repository or its history.",
-    "We did not take apart libcuda, nvcc or any other NVIDIA program. We ran NVIDIA's compiler and disassembler on our own small kernels and read what they printed.",
-    "We did not touch the GPU's firmware. It is still NVIDIA's, and the chip checks its signature.",
-    "We did not translate CUDA programs to run on other hardware. CUDA++ runs on NVIDIA GPUs, the ones people already paid for."
+    "I did not take apart libcuda, nvcc or any other NVIDIA program. I ran NVIDIA's compiler and disassembler on my own small kernels and read what they printed.",
+    "I did not touch the GPU's firmware. It is still NVIDIA's, and the chip checks its signature.",
+    "I did not translate CUDA programs to run on other hardware. CUDA++ runs on NVIDIA GPUs, the ones people already paid for."
   ],
   "did_not_box": "cp@:62ea5a214d46f36e88cb7b892cecebf1f3e8a172/docs/HOW_WE_DID_IT.md#what-we-did-not-do",
   "pain_lead": "What makes CUDA hard to use and hard to leave, how CUDA++ fixes each one, and the command that shows it. A row is marked fixed only with its receipt.",
