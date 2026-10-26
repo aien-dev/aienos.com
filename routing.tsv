@@ -1,7 +1,7 @@
 role	web	web/duckduckgo
 role	smol	anthropic/claude-opus-5-5:low
-role	judge	anthropic/claude-opus-5-5:xhigh
-role	advisor	anthropic/claude-opus-5-5:xhigh
+role	judge	openai-codex/gpt-6-astra:xhigh
+role	advisor	openai-codex/gpt-6-astra:xhigh
 role	slow	anthropic/claude-opus-5-5:high
 role	consult_claude	anthropic/claude-fable-5-1:xhigh
 role	consult_codex	openai-codex/gpt-6-astra:xhigh
