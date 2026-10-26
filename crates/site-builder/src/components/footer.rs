@@ -209,7 +209,7 @@ mod tests {
     #[test]
     fn footer_reaches_drake() {
         let html = render_footer().into_string();
-        for needle in ["href=\"https://x.com/mdrakestapleton\"", "href=\"mailto:drake@aienos.com\"", "href=\"/contact/\"", "href=\"/allen/\""] {
+        for needle in ["href=\"https://x.com/mdrakestapleton\"", "href=\"mailto:drake@aienos.com\"", "href=\"/contact/\"", "href=\"/aien/\""] {
             assert!(html.contains(needle), "footer lacks {needle}");
         }
     }

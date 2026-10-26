@@ -239,6 +239,41 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     );
     fs::create_dir_all(dist.join("hive")).expect("Create Hive directory");
     fs::write(dist.join("hive/index.html"), hive_page.into_string()).expect("Write Hive page");
+    let allen_page = render_page_layout(
+        components::allen::TITLE,
+        components::allen::DESCRIPTION,
+        components::allen::URL,
+        "website",
+        html! {
+            link rel="stylesheet" href="/assets/allen.css";
+            script defer src="/js/allen.js" {}
+        },
+        components::allen::render_allen_page(),
+    );
+    fs::create_dir_all(dist.join("aien")).expect("Create Aien directory");
+    fs::write(dist.join("aien/index.html"), allen_page.into_string()).expect("Write Aien page");
+    // Old addresses (seo::REDIRECTS) forward visitors, with any ?query and #hash, to the new one.
+    for (old, new) in seo::REDIRECTS {
+        let page = render_page_layout(
+            &format!("Moved to {new} | AienOS"),
+            &format!("This page moved to {new}."),
+            &format!("https://www.aienos.com{new}"),
+            "website",
+            html! {
+                meta name="robots" content="noindex";
+                meta http-equiv="refresh" content=(format!("0; url={new}"));
+                script { (maud::PreEscaped(format!("location.replace('{new}' + location.search + location.hash);"))) }
+            },
+            html! {
+                section class="container" {
+                    p { "This page moved to " a href=(new) { "aienos.com" (new) } "." }
+                }
+            },
+        );
+        let dir = dist.join(old.trim_matches('/'));
+        fs::create_dir_all(&dir).expect("Create redirect directory");
+        fs::write(dir.join("index.html"), page.into_string()).expect("Write redirect page");
+    }
     let alpha_page = render_page_layout(
         components::alpha::TITLE,
         components::alpha::DESCRIPTION,
@@ -676,6 +711,7 @@ const GENERATED_PAGES: &[(&str, usize)] = &[
     ("now/index.html", 0),
     ("dash/index.html", 0),
     ("hive/index.html", 0),
+    ("aien/index.html", 0),
     ("alpha/index.html", 0),
     ("learn/index.html", 0),
     ("omega/index.html", 30),

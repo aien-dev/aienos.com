@@ -1,0 +1,16 @@
+test_deploy_prompt_has_no_dispatch (test_science_protocol.Admission.test_deploy_prompt_has_no_dispatch) ... ok
+test_duplicate_keys_refused (test_science_protocol.Admission.test_duplicate_keys_refused) ... ok
+test_dynamic_syntax_refused (test_science_protocol.Admission.test_dynamic_syntax_refused) ... ok
+test_effect_symbols_refused (test_science_protocol.Admission.test_effect_symbols_refused) ... ok
+test_no_finite_or_boolean_point_bypass (test_science_protocol.Admission.test_no_finite_or_boolean_point_bypass) ... ok
+test_pane_authority_separation (test_science_protocol.Admission.test_pane_authority_separation) ... ok
+test_positive_math (test_science_protocol.Admission.test_positive_math) ... ok
+test_schema_unknown_and_oversize (test_science_protocol.Admission.test_schema_unknown_and_oversize) ... ok
+test_sources_never_unsafe_urls (test_science_protocol.Admission.test_sources_never_unsafe_urls) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.001s
+
+OK
+
+EXIT 0

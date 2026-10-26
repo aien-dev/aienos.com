@@ -1,0 +1,122 @@
+note /allen/ page skeleton generator. Every structural decision for the chat window lives in this
+note unit: the masthead, the speed table and its order, the message log, the example prompts, the
+note form controls, the privacy note and the source links. allen-js.om only fills these slots.
+note
+note Program mode, composed with contract.om and allen-js.om by check.sh. The pinned compiler emits
+note a static AArch64 ELF: skeleton on stdout, browser script on fd 3, shared ~N~ contract tokens.
+note check.sh runs it twice and commits deterministic HTML and JavaScript with sha256 sidecars.
+note
+note speeds holds label and id fields alternately, separated by byte 124: each pair becomes one
+note dt and dd row in table order. prompts holds the example prompts, one button each, in order.
+note No field may contain byte 124 or a newline.
+
+text pg1 "<div class=\"allen\" id=\"~0~\" data-ready=\"false\" data-busy=\"false\" data-mode=\"anonymous\">\n<header class=\"allen-head\">\n<p class=\"allen-eyebrow\">Aien, live from the Spark</p>\n<h1 class=\"allen-title\">Talk to Aien</h1>\n<p class=\"allen-lede\" id=\"~26~\">Aien is Drake's AI. Ask it anything, ask what Omega is (Aien's own language for all computing, GPU to CPU), or ask for a small program. An HTML mini app runs right here in a sandboxed frame; an Omega function is compiled to WebAssembly on the Spark and runs in your browser.</p>\n<p class=\"allen-where\">Model <code id=\"~8~\">~24~</code>, running on a DGX Spark in Drake's house. The speeds below are measured by this page from the live stream.</p>\n</header>\n<section class=\"allen-panel\" aria-label=\"Conversation with Aien\">\n<p class=\"allen-mode\"><span id=\"~50~\">Anonymous: Aien won&#39;t remember this chat</span> <button type=\"button\" class=\"allen-tool\" id=\"~35~\">Remember me</button> <button type=\"button\" class=\"allen-tool\" id=\"~58~\" aria-pressed=\"false\">Voice: off</button> <button type=\"button\" class=\"allen-tool\" id=\"~59~\" hidden>Next clip</button></p>\n<div class=\"allen-volunteer\" id=\"~55~\">\n<label class=\"allen-agree\"><input type=\"checkbox\" id=\"~54~\"> <span>Let a volunteer&#39;s Spark answer me when Drake&#39;s is busy.</span></label>\n<p class=\"allen-note\">If you tick this and my Spark is full, your messages in this chat go to a computer owned by a volunteer, outside my house. It gets only the text of this anonymous conversation. I add no visitor key, stored memories, contact record or IP address, but anything you type here is sent as you typed it. I check a sample of volunteer replies, not every one. A volunteer could still send a wrong or bad reply that I don&#39;t catch. Each reply says which machine answered.</p>\n</div>\n<dl class=\"allen-speed\" aria-label=\"Speed of the latest reply\">\n"
+text speeds "Wait in line|~9~|First token, model|~10~|First token, from Send|~11~|Tokens per second|~12~|Tokens streamed|~13~|Server count|~14~"
+text rowa "<div class=\"allen-stat\"><dt>"
+text rowb "</dt><dd id=\""
+text rowc "\">-</dd></div>\n"
+text pg2 "</dl>\n<div class=\"allen-scroll\"><ol class=\"allen-log\" id=\"~1~\" role=\"log\" aria-live=\"polite\" aria-label=\"Messages\"></ol></div>\n<noscript><p class=\"allen-status\">This chat needs JavaScript: replies stream into the page as the model writes them.</p></noscript>\n<div class=\"allen-examples\" id=\"~15~\" role=\"group\" aria-label=\"Example questions\">\n"
+text prompts "What is Omega?|Make me a calculator|Write an Omega gcd function|How fast are you?"
+text btna "<button type=\"button\" class=\"allen-example\">"
+text btnb "</button>\n"
+text pg3 "</div>\n<p class=\"allen-drake\" id=\"~47~\" aria-live=\"polite\" hidden></p>\n<p class=\"allen-status\" id=\"~6~\" role=\"status\" aria-live=\"polite\"></p>\n<form class=\"allen-form\" id=\"~2~\">\n<label class=\"allen-sr\" for=\"~3~\">Message to Aien</label>\n<textarea id=\"~3~\" rows=\"3\" maxlength=\"~19~\" placeholder=\"Ask Aien something. Enter sends; Shift+Enter starts a new line.\" autocomplete=\"off\"></textarea>\n<div class=\"allen-actions\">\n<button type=\"submit\" class=\"allen-send\" id=\"~4~\">Send</button>\n<button type=\"button\" class=\"allen-stop\" id=\"~5~\" disabled>Stop</button>\n<button type=\"button\" class=\"allen-new\" id=\"~7~\">New conversation</button>\n</div>\n</form>\n<p class=\"allen-contact\">To reach me, Drake, directly: <a href=\"~48~\" rel=\"noopener\">follow me on X</a> or email me at <a href=\"mailto:~49~\">~49~</a>.</p>\n<p class=\"allen-privacy\" id=\"~27~\">Private by design: conversations are not stored, and the gateway keeps only aggregate counters. No prompts or IP addresses are logged. Programs run sandboxed in your browser. Reload the page and the conversation is gone. An introduction, and short notes Aien keeps about you, exist only if you consent; <a href=\"/privacy/\">read what I keep</a>.</p>\n<p class=\"allen-meet\">Agents can introduce themselves with <code>POST https://www.aienos.com/aien/api/introduce</code> (schema in <a href=\"/llms.txt\">/llms.txt</a>); nothing is stored without <code>\"consent\": true</code>.</p>\n<details class=\"allen-keypanel\" id=\"~39~\" data-key=\"no\">\n<summary>Your Aien key</summary>\n<div class=\"allen-keybody\" id=\"~40~\"><p class=\"allen-note\">Your Aien key needs JavaScript.</p></div>\n</details>\n</section>\n<footer class=\"allen-foot\">\n<p>New to Omega? <a href=\"/omega/\">Read what Omega is</a>. This page and its script are generated by seeded Omega: read the <a href=\"https://github.com/aien-dev/aienos.com/blob/main/om/allen-page/allen.om\" rel=\"noopener\">page source</a> and the <a href=\"https://github.com/aien-dev/aienos.com/blob/main/om/allen-page/allen-js.om\" rel=\"noopener\">script source</a>.</p>\n</footer>\n</div>\n"
+
+fn emit1 to void
+for b ulong len pg1
+byteput get pg1 b
+end
+end
+
+fn emit2 to void
+for b ulong len pg2
+byteput get pg2 b
+end
+end
+
+fn emit3 to void
+for b ulong len pg3
+byteput get pg3 b
+end
+end
+
+fn rowopen to void
+for b ulong len rowa
+byteput get rowa b
+end
+end
+
+fn rowmid to void
+for b ulong len rowb
+byteput get rowb b
+end
+end
+
+fn rowend to void
+for b ulong len rowc
+byteput get rowc b
+end
+end
+
+fn btnopen to void
+for b ulong len btna
+byteput get btna b
+end
+end
+
+fn btnend to void
+for b ulong len btnb
+byteput get btnb b
+end
+end
+
+note Even fields are labels, odd fields are ids: a separator after a label opens the dd, a
+note separator after an id closes the row and opens the next one.
+fn statrows to void
+p = ulong 0
+k = ulong 0
+rowopen
+while lt p len speeds
+c = get speeds p
+if eq c 124
+if eq rem k 2 0
+rowmid
+else
+rowend
+rowopen
+end
+k = add k 1
+else
+byteput c
+end
+p = add p 1
+end
+rowend
+end
+
+fn examples to void
+p = ulong 0
+btnopen
+while lt p len prompts
+c = get prompts p
+if eq c 124
+btnend
+btnopen
+else
+byteput c
+end
+p = add p 1
+end
+btnend
+end
+
+fn main to int
+put target 0 1
+emit1
+statrows
+emit2
+examples
+emit3
+flush
+javascript
+ret 0
+end

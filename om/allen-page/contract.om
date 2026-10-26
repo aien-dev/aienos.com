@@ -1,0 +1,83 @@
+note Shared /aien/ browser contract; table index is the interpolation token ~N~.
+note Served ids, gateway routes, the gateway's message limits (24 messages, 4000 characters each,
+note 16000 in all, 16384 bytes of Omega source), the policy injected into a program's frame, its
+note sandbox token, the model name shown before the stream names it, and the wasm call timeout in
+note milliseconds occur only in this table, followed by the submit, status, introduce and forget
+note routes, the privacy contact address, the status poll interval and poll limit in milliseconds,
+note the standalone introduction button id, the review host for published projects, the forget-me
+note route, the one local storage key the page may write, the key panel ids, the relay, presence,
+note handoff, session and say routes, the presence poll in milliseconds, the presence line id and
+note Drake's public X page and email address, the mode badge id, Drake's two greetings (remember
+note and anonymous; the gateway prepends the same bytes), a returning visitor's first line and the
+note volunteer opt-in checkbox and its wrapper, then the build loop's projects route prefix and
+note gallery route. Append new
+note fields; never renumber. Fields 58 to 60 are the voice toggle, its next-clip button and the
+note first-party clip directory. Every field, the last included, ends with byte 124.
+note allen.om and allen-js.om are concatenated with this unit, never compiled independently.
+note Compiled by the pinned omc of om/hive-page (sha256 in om/hive-page/omc.sha256).
+text wires "allen|allen-log|allen-form|allen-input|allen-send|allen-stop|allen-status|allen-new|allen-model|allen-queue|allen-ttft|allen-first|allen-rate|allen-tokens|allen-server|allen-examples|/aien/api/chat|/aien/api/omega|24|4000|16000|16384|default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; form-action 'none'; base-uri 'none'|allow-scripts|qwen3.6-35b-a3b-fp8|3000|allen-intro|allen-privacy|/aien/api/submit|/aien/api/status/|/aien/api/introduce|/aien/api/forget|aien@aienos.com|3000|120000|allen-introduce|aien-dev.github.io/omega-projects/projects/|/aien/api/forget-me|allen.key|allen-key|allen-key-body|/aien/api/relay|/aien/api/presence|/aien/api/handoff|/aien/api/session|/aien/api/say|60000|allen-drake|https://x.com/mdrakestapleton|drake@aienos.com|allen-mode|Hi, I'm Aien (you say it like Ian). It's nice to meet you! You don't have to tell me your name, but if you do, that would be super awesome and we could chat over time. When you come back, I can remember who you are and we can pick up where we left off. We can talk about all kinds of good things in the universe.|Hi, I'm Aien (you say it like Ian). It's nice to meet you! We can talk about all kinds of good things in the universe.|(I am back.)|allen-volunteer|allen-volunteer-box|/aien/api/projects/|/aien/api/gallery|allen-voice|allen-voice-next|/aien/voice/|"
+global output uchar 65536
+global used ulong 1
+global target int 1
+global marker ulong 2
+
+fn flush to void
+p = ulong 0
+while lt p get used 0 bound 65536
+n = write get target 0 output p sub get used 0 p
+if le n 0
+trap 3
+end
+p = add p ulong n
+end
+put used 0 0
+end
+
+fn raw c uchar to void
+if eq get used 0 len output
+flush
+end
+put output get used 0 c
+put used 0 add get used 0 1
+end
+
+fn wire k ulong to void
+p = ulong 0
+i = ulong 0
+while lt p len wires
+c = get wires p
+if eq c 124
+if eq i k
+ret
+end
+i = add i 1
+else
+if eq i k
+raw c
+end
+end
+p = add p 1
+end
+trap 3
+end
+
+fn byteput c uchar to void
+if eq c 126
+if eq get marker 0 0
+put marker 0 1
+put marker 1 0
+else
+wire get marker 1
+put marker 0 0
+end
+else
+if eq get marker 0 1
+if or lt c 48 gt c 57
+trap 3
+end
+put marker 1 add mul get marker 1 10 ulong sub c 48
+else
+raw c
+end
+end
+end

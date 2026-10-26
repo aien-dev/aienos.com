@@ -1,0 +1,54 @@
+note Allen glass pane protocol v1. Canonical transport and safety contract.
+note SSE event names are exactly pane.open, pane.update, pane.close; JSON data objects only.
+note open = {v:1,id,kind,title}; id ASCII [A-Za-z0-9_-]{1,64}; title UTF8 <=200 bytes.
+note kind = math|plot|doc|code|app|research|data|omega. Max 32 live panes in browser.
+note update = {v:1,id,revision,content,provenance}; revision integer 1..1000000.
+note update fully replaces content and provenance, never patch/append/HTML injection.
+note update before open, duplicate open and non-increasing revision are refused.
+note close = {v:1,id}; unknown close is a no-op; closed ids cannot reopen in one stream.
+note Each event <=65536 UTF8 bytes, all events <=262144 bytes per chat turn.
+note content strings <=32768 UTF8 bytes; list count <=64 unless specified below.
+note math content = {text,tex?}; only an actual successful engine result is computed.
+note plot content = {series:[{label,points:[[finite number,finite number]]}],x_label,y_label}.
+note plot <=8 series, <=512 points per series; labels <=200 bytes; data never proves itself.
+note doc content = {markdown,citations:[{title,url}]}; URLs HTTPS only and never fetched.
+note code/omega content = {source,language,wasm?,functions?}; wasm base64, never auto-run.
+note functions = [{name,params:[{name,type}],ret}] exactly matching the Omega compile endpoint.
+note app content = {html}; explicit visitor Run only; sandbox allow-scripts without same-origin.
+note app CSP denies network, external resources, forms, navigation and frame escape.
+note research content = {notes,hypotheses:[string],derivations:[string],sources:[{title,url}]}.
+note data content = {columns:[string],rows:[[string]]}; never inferred as measured data.
+note provenance = {status,engine,expression,result,source,commit}; all values strings.
+note status = computed|unsupported|unverified|input-data; exact expression/result are auditable.
+note computed means aien-math emitted a result, NOT that the result is independently correct.
+note No model-produced number is labelled computed. Unsupported math has no model fallback.
+note Model docs/research are unverified; plot literals input-data. Sources may be unverified.
+note Engine identity and full corpus score are displayed with exact source pin and receipt limits.
+note No live web access; no hidden Wolfram dependency, key, quota, or external math request.
+note Unknown fields, invalid kinds, nonfinite numbers or excess sizes refuse the complete event.
+note Browser strings are untrusted. DOM text nodes only; structured plots create SVG elements.
+note TeX is source until actually typeset; never claim a source dump is a rendered formula.
+note Projects persist in browser IndexedDB. Export is explicit. No anonymous server persistence.
+note Remember-me summaries require separate visitor action and the existing opaque visitor key.
+note Source text is never sent to Cortex automatically; sync <=1000 UTF8 bytes per summary.
+note Public gateway forwards only six strict tool schemas to loopback isolated science service.
+note math_compute, omega_compile, web_app, paper, research, plot; no arbitrary tool dispatch.
+note At most three tool rounds. Public request admission cap remains two; tools spawn no model.
+note Service has no network, credentials, writable host tree, project store or GitHub capability.
+const PANEVER uint 1
+const PANE_MAX ulong 65536
+const TURN_MAX ulong 262144
+const TEXT_MAX ulong 32768
+const TOOL_MAX uint 3
+const TITLEMAX ulong 200
+const LISTMAX ulong 64
+const SERIESMX ulong 8
+const POINTSMX ulong 512
+const REVMAX ulong 1000000
+const PANESMAX ulong 32
+const URLMAX ulong 2048
+const SYNC_MAX ulong 1000
+const PLOTMAX f64 1.0e100
+text paneevt "pane.open|pane.update|pane.close|"
+text panekind "math|plot|doc|code|app|research|data|omega|"
+text toolname "math_compute|omega_compile|web_app|paper|research|plot|"

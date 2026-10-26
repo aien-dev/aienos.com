@@ -20,7 +20,7 @@ pub const DESCRIPTION: &str = "How to reach Drake Stapleton: X @mdrakestapleton,
 pub const URL: &str = "https://www.aienos.com/contact/";
 pub const PATH: &str = "/contact/";
 pub const EMAIL: &str = "drake@aienos.com";
-pub const ALLEN: &str = "/allen/";
+pub const ALLEN: &str = "/aien/";
 pub const GITHUB: &str = "https://github.com/aien-dev";
 /// The front door: install command, releases and a hub of every part.
 pub const SI: &str = "https://github.com/aien-dev/sovereign-intelligence";
@@ -190,7 +190,7 @@ pub fn render_contact() -> Markup {
                         "For anything longer than a post, or anything private."
                     }))
                     (route("Talk to Aien", html! {
-                        a href=(ALLEN) { "aienos.com/allen/" }
+                        a href=(ALLEN) { "aienos.com/aien/" }
                     }, html! {
                         "Aien is my AI. Aien can pass a message to me, or put you through to me when I'm online."
                     }))
@@ -256,7 +256,7 @@ mod tests {
             "href=\"https://x.com/mdrakestapleton\"",
             "@mdrakestapleton",
             "href=\"mailto:drake@aienos.com\"",
-            "href=\"/allen/\"",
+            "href=\"/aien/\"",
             "href=\"https://github.com/aien-dev\"",
             "href=\"https://github.com/aien-dev/sovereign-intelligence\"",
         ] {

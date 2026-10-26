@@ -84,7 +84,7 @@ pub struct PageInfo {
 pub const PAGES: &[PageInfo] = &[
     PageInfo { path: "/", name: "AienOS", what: "The front page: the loop, the five real machines and their measured speeds beside the physical ceiling, the evidence cards, the current status of every layer.", section: Section::Machine, kind: Kind::Home, image: "/og.png", published: "2026-09-23", doi: None },
     PageInfo { path: "/start/", name: "Start here", what: "The shortest route through AienOS: what it is, what exists today, how to check the evidence, how to reproduce or contribute, and where the author and Interplane fit.", section: Section::Start, kind: Kind::Page, image: "/og.png", published: "2026-10-24", doi: None },
-    PageInfo { path: "/contact/", name: "Where I am and how to reach me", what: "How to reach Drake: X @mdrakestapleton, email drake@aienos.com, Aien at /allen/ (who can pass a message on or put you through when Drake is online) and the aien-dev repositories on GitHub.", section: Section::Start, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/contact/", name: "Where I am and how to reach me", what: "How to reach Drake: X @mdrakestapleton, email drake@aienos.com, Aien at /aien/ (who can pass a message on or put you through when Drake is online) and the aien-dev repositories on GitHub.", section: Section::Start, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/support/", name: "Support my open source work", what: "Help me keep building free and open source software through X Money. US-only eligibility, the exact recipient and the steps to send support.", section: Section::Start, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/privacy/", name: "Privacy & saying hello to Aien", what: "Your choice about the consent-only X pixel, what X receives, what I keep and how to refuse.", section: Section::Optional, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/machine/", name: "The Machine", what: "One machine across five physical bodies: the closed epistemic loop, the Turing as its accounting layer, and an honest list of what exists.", section: Section::Machine, kind: Kind::Article, image: "/og-machine.png", published: "2026-10-01", doi: None },
@@ -93,6 +93,7 @@ pub const PAGES: &[PageInfo] = &[
     PageInfo { path: "/now/", name: "Now", what: "The live coordination ledger: what every agent is doing right now, what is settled with evidence, what waits on the operator. Rebuilt whenever the ledger changes.", section: Section::Machine, kind: Kind::Live, image: "/og-now.png", published: "2026-10-19", doi: None },
     PageInfo { path: "/dash/", name: "Dashboard", what: "One screen: model quota left on every account the agents run on, the Spark's pulse, open work, and which model each role uses. Rebuilt with the ledger.", section: Section::Machine, kind: Kind::Live, image: "/og-now.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/hive/", name: "Hive", what: "Watch Drake build with coding agents: live missions, nested subagents, exact models and public conversations, with source freshness and failures visible.", section: Section::Start, kind: Kind::Live, image: "/og-now.png", published: "2026-10-25", doi: None },
+    PageInfo { path: "/aien/", name: "Talk to Aien", what: "Chat with Aien, Drake's AI (formerly Allen), on the live model on a DGX Spark: speed measured from the stream, questions about Omega, and small HTML or Omega programs that run sandboxed in your browser. Conversations are not stored.", section: Section::Start, kind: Kind::Live, image: "/og-now.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/alpha/", name: "Sovereign Intelligence", what: "Sovereign Intelligence, built on AienOS. The Omega installer, hardware and evidence boundaries, source and a reversible way back. The local Aien experience is coming in the next update.", section: Section::Start, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/learn/", name: "Build with AI", what: "A welcoming, practical guide to coding with AI: structure a task, delegate bounded work, inspect changes, verify behavior and learn from mistakes in the live Hive.", section: Section::Start, kind: Kind::Page, image: "/og-now.png", published: "2026-10-25", doi: None },
     PageInfo { path: "/agents/", name: "Agents", what: "Point your own coding agent at any public Aien repository: the shared rules every Aien agent follows and each repository's own AGENTS.md, listed from GitHub and refreshed hourly.", section: Section::Start, kind: Kind::Page, image: "/og.png", published: "2026-10-25", doi: None },
@@ -282,7 +283,12 @@ impl Emitted {
     }
 }
 
-/// Every `index.html` under dist, as site paths. The 404 page is not a page.
+/// Old addresses kept as small redirect pages (old, new). They are not pages:
+/// no sitemap, feed, llms or markdown entry, and each says `noindex`.
+pub const REDIRECTS: &[(&str, &str)] = &[("/allen/", "/aien/")];
+
+/// Every `index.html` under dist, as site paths. The 404 page and the
+/// `REDIRECTS` stubs are not pages.
 pub fn walk_pages(dist: &Path, ctx: &BuildCtx) -> Vec<Emitted> {
     let mut out = Vec::new();
     fn walk(dir: &Path, dist: &Path, ctx: &BuildCtx, out: &mut Vec<Emitted>) {
@@ -302,7 +308,9 @@ pub fn walk_pages(dist: &Path, ctx: &BuildCtx) -> Vec<Emitted> {
                 }
                 let lang = if path.starts_with("/zh-CN/") { "zh-CN" } else { "en" }.to_string();
                 let lastmod = lastmod_for(&path, ctx);
-                out.push(Emitted { path, file: p, lang, lastmod });
+                if !REDIRECTS.iter().any(|(old, _)| *old == path) {
+                    out.push(Emitted { path, file: p, lang, lastmod });
+                }
             }
         }
     }
@@ -912,6 +920,7 @@ pub fn llms_txt(status_lines: &[String], research_sentence: &str) -> String {
         s.push_str(&format!("- [{}]({HOST}{}): {} Updated: {}.\n", d.path, d.path, d.purpose, d.cadence));
     }
     s.push_str(&format!("- [{HOST}/llms-full.txt]({HOST}/llms-full.txt): every page's full text in one file.\n\n"));
+    s.push_str(crate::components::allen::LLMS);
     s.push_str("## Optional\n\n");
     for p in PAGES.iter().filter(|p| p.section == Section::Optional) {
         s.push_str(&format!("- [{}]({HOST}{}): {}\n", p.name, p.path, p.what));
@@ -1139,17 +1148,20 @@ fn check_script_boundary(html: &str) -> Result<(), String> {
 }
 
 fn verify_consent_boundary(dist: &Path) {
-    fn walk(dir: &Path) {
+    fn walk(dist: &Path, dir: &Path) {
         for entry in fs::read_dir(dir).expect("read consent boundary directory") {
             let path = entry.expect("consent boundary entry").path();
             if path.is_dir() {
-                walk(&path);
+                walk(dist, &path);
             } else if path.extension().and_then(|e| e.to_str()) == Some("html") {
                 let html = fs::read_to_string(&path).expect("read consent boundary HTML");
                 check_script_boundary(&html).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
-                assert_eq!(html.matches("src=\"/js/allen-intro.js\"").count(), 1, "{} must have exactly one first-party consent loader", path.display());
-                assert_eq!(html.matches("id=\"aien-allen-intro\"").count(), 1, "{} must have exactly one consent dialog", path.display());
-                assert!(html.contains("href=\"/privacy/\""), "{} must link privacy", path.display());
+                // A redirect stub leaves at once: it loads no consent dialog and no pixel.
+                let rel = path.strip_prefix(dist).expect("under dist").to_string_lossy().replace('\\', "/");
+                let consent = if REDIRECTS.iter().any(|(old, _)| format!("{}index.html", &old[1..]) == rel) { 0 } else { 1 };
+                assert_eq!(html.matches("src=\"/js/allen-intro.js\"").count(), consent, "{} must have exactly {consent} first-party consent loader", path.display());
+                assert_eq!(html.matches("id=\"aien-allen-intro\"").count(), consent, "{} must have exactly {consent} consent dialog", path.display());
+                assert!(consent == 0 || html.contains("href=\"/privacy/\""), "{} must link privacy", path.display());
             } else if path.extension().and_then(|e| e.to_str()) == Some("js") {
                 let js = fs::read_to_string(&path).expect("read script");
                 if js.contains("uwt.js") || js.contains("twq(") {
@@ -1158,7 +1170,7 @@ fn verify_consent_boundary(dist: &Path) {
             }
         }
     }
-    walk(dist);
+    walk(dist, dist);
     let js = fs::read_to_string(dist.join("js/allen-intro.js")).expect("first-party consent script");
     assert_eq!(js.matches("https://static.ads-twitter.com/uwt.js").count(), 1);
     assert_eq!(js.matches("twq('config','rfrlz')").count(), 1);

@@ -1,0 +1,88 @@
+# /etc/systemd/system/allen-chat.service
+# System unit with a dedicated system user (no login shell, no sudoers entry).
+# Not a --user unit: on this Spark the user manager silently skips mount
+# namespacing (AppArmor restricts unprivileged user namespaces), and not
+# drakestapleton, whose account has sudo: the sandbox is not the only layer.
+[Unit]
+Description=allen-chat: public gateway for www.aienos.com/allen/ (tailnet only, no credentials)
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=allen-chat
+Group=allen-chat
+SupplementaryGroups=allen-spool allen-drop allen-relaydrop
+EnvironmentFile=-/etc/allen-chat/env
+ExecStart=/usr/bin/python3 -I /opt/allen-chat/allen_chat.py \
+  --listen 100.64.0.2:18110 \
+  --trusted-proxy 100.64.0.3 \
+  --upstream 127.0.0.1:18091 \
+  --system-prompt /opt/allen-chat/system-prompt.txt \
+  --catalog /var/lib/allen-catalog/catalog.txt \
+  --areas-file /var/lib/allen-catalog/areas.txt \
+  --catalog-detail /var/lib/allen-catalog/catalog-detail.jsonl \
+  --catalog-retrieve /opt/allen-catalog/retrieve.py \
+  --learn-dir /opt/allen-chat/learn \
+  --answers /opt/allen-chat/answers.json \
+  --answers-state /var/lib/allen-chat/answers \
+  --omc /opt/allen-chat/omc \
+  --irwasm /opt/allen-chat/irwasm \
+  --spool-in /var/lib/allen-chat/spool-in \
+  --spool-status /var/lib/allen-chat/spool-status \
+  --contacts-drop /var/lib/allen-chat/contacts-drop \
+  --memory-url http://127.0.0.1:18096 \
+  --relay-drop /var/lib/allen-chat/relay-drop \
+  --console-listen 100.64.0.2:18112 \
+  --console-state /var/lib/allen-chat/console \
+  --whisper-cli /opt/allen-chat/whisper-cli \
+  --whisper-model /opt/allen-chat/ggml-base.en.bin \
+  --transcribe-threads 4
+Environment=PATH=/usr/bin:/bin
+Restart=on-failure
+RestartSec=5
+UMask=0027
+Nice=5
+
+# What public Allen cannot do (README): no credentials, no home, writes only into the drop dirs
+# (spool, contacts, relay) and the console's presence.json. The console listener (18112) is
+# tailnet only; nft admits it only from Drake's devices 100.64.0.1/100.64.0.4 and the Spark.
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+PrivateUsers=yes
+ProtectProc=invisible
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/allen-chat/spool-in /var/lib/allen-chat/contacts-drop /var/lib/allen-chat/relay-drop /var/lib/allen-chat/console /var/lib/allen-chat/answers
+InaccessiblePaths=-/var/lib/allen-contacts -/var/lib/omega-pusher -/var/lib/allen-relay
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+# AF_NETLINK only because bwrap configures the loopback of the compile sandbox's
+# empty network namespace over NETLINK_ROUTE; without CAP_NET_ADMIN it can change nothing.
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX AF_NETLINK
+IPAddressDeny=any
+IPAddressAllow=127.0.0.1 100.64.0.1 100.64.0.2 100.64.0.3 100.64.0.4
+SystemCallFilter=@system-service @mount unshare setns
+SystemCallArchitectures=native
+MemoryMax=1G
+TasksMax=128
+# 600%: one push-to-talk transcription (base.en, 4 threads) uses about 3.9 CPU-s per 5 s clip, so
+# 200% would stretch it to at least ~1.9 s (2 threads measured 1.95 s p50). One at a time (cap 1).
+CPUQuota=600%
+LimitNOFILE=1024
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
