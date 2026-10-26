@@ -72,6 +72,14 @@ class Gateway:
         self.p.wait(20)
         shutil.rmtree(self.tmp, ignore_errors=True)
 
+    def presence(self):
+        c = http.client.HTTPConnection("127.0.0.1", self.port, timeout=10)
+        c.request("GET", "/allen/api/presence", headers={"X-Real-IP": "203.0.113.1"})
+        r = c.getresponse()
+        obj = json.loads(r.read())
+        c.close()
+        return obj, r.getheader("Cache-Control")
+
     def post(self, body, ctype, ip="203.0.113.1", timeout=60, length=None):
         c = http.client.HTTPConnection("127.0.0.1", self.port, timeout=timeout)
         c.putrequest("POST", "/allen/api/transcribe")
@@ -126,6 +134,8 @@ def main():
     try:
         st, obj, _ = g.post(clip5_wav, "audio/wav")
         check("off_without_whisper", st == 404, "%s %s" % (st, obj))
+        obj, cc = g.presence()
+        check("presence_transcribe_false", obj.get("transcribe") is False and cc == "no-store", "%s %s" % (obj, cc))
     finally:
         g.close()
 
@@ -145,6 +155,8 @@ def main():
     g = Gateway(a, *(flags + ["--chat-burst", "40", "--chat-refill", "1"]), strace=trace)
     try:
         check("started", "listening" in g.first, g.first.strip())
+        obj, cc = g.presence()
+        check("presence_transcribe_true", obj.get("transcribe") is True and cc == "no-store", "%s %s" % (obj, cc))
         for name, body, ctype in (("webm_opus", clip5_webm, "audio/webm;codecs=opus"),
                                   ("ogg_opus", clip5_ogg, "audio/ogg; codecs=opus"),
                                   ("wav_16k_mono", clip5_wav, "audio/wav"),

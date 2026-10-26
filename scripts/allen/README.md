@@ -184,6 +184,9 @@ buffers after use; the immutable copy that `subprocess` returns for ffmpeg's
 output is dropped by reference. The transcript is returned, never logged.
 Without `--whisper-cli` the route is 404; with it, the gateway refuses to start
 unless whisper-cli and the model match their pins and both sandboxes run.
+The page detects the route without recording anything: `GET presence` carries
+`"transcribe": true` only when the gateway was started with `--whisper-cli`
+(and therefore passed its pin and sandbox checks).
 
 ## Dependencies and the Omega path
 
