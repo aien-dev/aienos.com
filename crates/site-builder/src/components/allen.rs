@@ -98,13 +98,44 @@ mod tests {
         for id in [
             "allen", "allen-log", "allen-form", "allen-input", "allen-send", "allen-stop", "allen-status", "allen-new",
             "allen-model", "allen-queue", "allen-ttft", "allen-first", "allen-rate", "allen-tokens", "allen-server", "allen-examples",
-            "allen-key", "allen-key-body", "allen-introduce",
+            "allen-key", "allen-key-body", "allen-introduce", "allen-drake",
         ] {
             assert_eq!(SKELETON.matches(&format!(" id=\"{id}\"")).count(), 1, "exactly one #{id} in the skeleton");
         }
         assert!(SKELETON.contains("running on a DGX Spark in Drake's house"));
         assert!(SKELETON.contains("No prompts or IP addresses are logged."));
         assert!(!SKELETON.contains('\u{2014}') && !SKELETON.contains('\u{2013}'), "no em or en dash");
+    }
+
+    /// The body of the top-level function `name` in the generated script.
+    fn function_body<'a>(script: &'a str, name: &str) -> &'a str {
+        let start = script.find(&format!(" function {name}(")).unwrap_or_else(|| panic!("allen.js lacks function {name}"));
+        let end = script[start..].find("\n  }\n").expect("function end") + start;
+        &script[start..end]
+    }
+
+    #[test]
+    fn only_the_session_channel_can_show_drake() {
+        // The Drake name and avatar are made in exactly one function, and that
+        // function is called only for `event: human` on the session stream,
+        // which the gateway emits only for Drake's authenticated console.
+        // Model tokens and visitor text go through message('allen'|'user').
+        let script = include_str!("../../../../public/js/allen.js");
+        let human = function_body(script, "humanMessage");
+        for marker in ["'Drake'", "allen-msg-drake", "allen-avatar"] {
+            assert_eq!(script.matches(marker).count(), 1, "{marker} must occur exactly once");
+            assert!(human.contains(marker), "{marker} must be inside humanMessage");
+        }
+        assert_eq!(script.matches("humanMessage(").count(), 2, "humanMessage is defined once and called once");
+        let session = function_body(script, "onSession");
+        assert!(session.contains("if (name === 'human' && typeof value.text === 'string') humanMessage("));
+        assert!(function_body(script, "session").contains("sse((name, data) => onSession(name, data, controller))"));
+        assert_eq!(script.matches("onSession(").count(), 2, "onSession is fed only by the session stream");
+        for (role, label) in [("user", "'You'"), ("allen", "'Allen'")] {
+            assert!(script.contains(&format!("message('{role}', {label})")));
+        }
+        assert!(!script.contains("message('drake'"), "message() never takes a Drake role");
+        assert_eq!(script.matches("message(role").count(), 1, "message(role, label) is only defined, never called with a variable role");
     }
 
     #[test]

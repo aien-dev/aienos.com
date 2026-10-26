@@ -333,6 +333,39 @@
 .allen-paste { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; }
 .allen-paste .allen-field input { width: 22rem; font-family: var(--font-mono); }
 
+/* Drake, live, and how to reach him. */
+.allen-msg-drake {
+  border-left: 3px solid var(--accent-amber);
+  padding-left: 8px;
+}
+.allen-msg-drake .allen-who { color: var(--accent-amber); display: flex; align-items: center; gap: 6px; }
+.allen-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-amber);
+  color: var(--bg-base);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.allen-drake {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+.allen-drake[hidden] { display: none; }
+.allen-drake[data-state="online"],
+.allen-drake[data-state="joined"] { color: var(--accent-amber); }
+.allen-contact { font-size: 13px; color: var(--text-muted); }
+.allen-contact a { color: var(--text-secondary); }
+
 /* Buttons. */
 .allen-tool,
 .allen-example,

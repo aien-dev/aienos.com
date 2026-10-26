@@ -37,6 +37,12 @@
   const FORGET_ME = '/allen/api/forget-me';
   const KEY_NAME = 'allen.key';
   const KEY_PATTERN = /^[0-9a-f]{32}$/;
+  const RELAY = '/allen/api/relay';
+  const PRESENCE = '/allen/api/presence';
+  const HANDOFF = '/allen/api/handoff';
+  const SESSION = '/allen/api/session';
+  const SAY = '/allen/api/say';
+  const PRESENCE_MS = 60000;
   const turns = [];
   const runners = new Set();
   let active = null;
@@ -251,12 +257,13 @@
      compiles to WebAssembly, both download and publish; issue and introduce
      blocks become cards that act only on a visitor's click. */
   function tools(lang, source, wrap, bar, pre) {
-    const type = /^html?$/.test(lang) ? 'html' : /^(omega|om)$/.test(lang) ? 'omega' : /^(issue|introduce)$/.test(lang) ? lang : '';
+    const type = /^html?$/.test(lang) ? 'html' : /^(omega|om)$/.test(lang) ? 'omega' : /^(issue|introduce|relay)$/.test(lang) ? lang : '';
     const out = el('div', 'allen-out');
-    if (type === 'issue' || type === 'introduce') {
+    if (type === 'issue' || type === 'introduce' || type === 'relay') {
       pre.hidden = true;
       wrap.append(out);
       if (type === 'issue') issueCard(cardFields(source), out);
+      else if (type === 'relay') relayCard(cardFields(source), out);
       else out.append(introCard(introLines(cardFields(source).fields)));
       return;
     }
@@ -865,6 +872,207 @@
     }
     trigger.disabled = false;
   }
+  /* A message Allen offers to pass on. The exact text is shown and goes out
+     only when the visitor presses Send to Drake; the conversation is attached
+     only if the visitor ticks the box. */
+  function relayCard(parsed, out) {
+    const text = parsed.body;
+    const name = String(parsed.fields.name || '').slice(0, 100);
+    const contact = String(parsed.fields.contact || '').slice(0, 200);
+    const card = el('div', 'allen-card allen-relay');
+    card.append(el('p', 'allen-card-h', 'Message for Drake'));
+    if (name || contact) {
+      const facts = el('dl', 'allen-kv');
+      if (name) facts.append(el('dt', '', 'Name'), el('dd', '', name));
+      if (contact) facts.append(el('dt', '', 'Contact'), el('dd', '', contact));
+      card.append(facts);
+    }
+    card.append(el('pre', 'allen-card-body', text));
+    const state = el('div', 'allen-card-state');
+    if (!text) {
+      state.append(el('p', 'allen-err', 'There is no message to send. Ask Allen to write it again.'));
+      card.append(state);
+      out.replaceChildren(card);
+      return;
+    }
+    const includeWrap = el('label', 'allen-agree');
+    const include = el('input');
+    include.type = 'checkbox';
+    includeWrap.append(include, el('span', '', 'include this conversation'));
+    const send = button('Send to Drake', () => sendRelay({ text, name, contact }, include, send, state));
+    card.append(el('p', 'allen-note', 'Exactly this text goes to Drake by email. Nothing is sent until you press Send to Drake.'), includeWrap, send, state);
+    out.replaceChildren(card);
+  }
+  function transcript() {
+    return turns.slice(-LIMIT.count).map(turn => ({ role: turn.role, content: cut(turn.content, LIMIT.each) }));
+  }
+  function sessionHeaders() {
+    return { 'X-Allen-Conversation': conversation };
+  }
+  async function sendRelay(item, include, send, state) {
+    send.disabled = true;
+    include.disabled = true;
+    state.replaceChildren(el('p', 'allen-note', 'Sending.'));
+    const body = { message: item.text, name: item.name, contact: item.contact, transcript: include.checked ? transcript() : [] };
+    let response;
+    let reply;
+    try {
+      response = await fetch(RELAY, post(body, sessionHeaders()));
+      reply = await response.json().catch(() => null);
+    } catch (_) {
+      state.replaceChildren(el('p', 'allen-err', 'Could not reach Allen. Nothing was sent.'));
+      send.disabled = false;
+      include.disabled = false;
+      return;
+    }
+    if (!response.ok || !reply || reply.sent !== true) {
+      state.replaceChildren(el('p', 'allen-err', failure(response, reply, 'Nothing was sent.')));
+      send.disabled = false;
+      include.disabled = false;
+      return;
+    }
+    send.hidden = true;
+    state.replaceChildren(el('p', 'allen-ok', reply.duplicate === true ? 'Sent before: this exact message already reached Drake in this conversation.' : 'Sent.'));
+    message('allen', 'Allen').body.append(el('p', 'allen-p', "I've sent this to Drake."));
+  }
+  /* Presence comes from the gateway every PRESENCE_MS. Talk to Drake live is
+     offered only while he is online and taking handoffs. */
+  const drake = { online: false, handoff: false, hours: '', state: '', stream: null };
+  async function presence() {
+    if (document.hidden && drake.hours) return;
+    try {
+      const response = await fetch(PRESENCE, { cache: 'no-store', credentials: 'omit', headers: { Accept: 'application/json', ...keyHeaders(false) } });
+      const reply = response.ok ? await response.json() : null;
+      if (reply && typeof reply === 'object') {
+        drake.online = reply.online === true;
+        drake.handoff = reply.handoff === true;
+        drake.hours = typeof reply.hours === 'string' ? reply.hours.slice(0, 200) : '';
+      }
+    } catch (_) {
+      /* Keep the last reading. */
+    }
+    showPresence();
+  }
+  function showPresence() {
+    const box = byId('allen-drake');
+    if (!box) return;
+    const parts = [];
+    if (drake.state === 'waiting') {
+      parts.push(el('span', '', 'Waiting for Drake to join. Allen keeps answering until he does.'));
+    } else if (drake.state === 'joined') {
+      parts.push(el('span', '', 'Drake is here: your messages go to him, not to Allen.'));
+    } else if (drake.online && drake.handoff) {
+      parts.push(el('span', '', 'Drake is online right now.'), button('Talk to Drake live', event => handoff(event.currentTarget)));
+    } else if (drake.hours) {
+      parts.push(el('span', '', `Drake's usual hours: ${drake.hours}`));
+    }
+    box.replaceChildren(...parts);
+    box.hidden = !parts.length;
+    box.dataset.state = drake.state || (drake.online && drake.handoff ? 'online' : 'away');
+  }
+  async function handoff(trigger) {
+    if (drake.state) return;
+    trigger.disabled = true;
+    try {
+      const response = await fetch(HANDOFF, post({ transcript: transcript() }, sessionHeaders()));
+      const reply = await response.json().catch(() => null);
+      if (!response.ok || !reply || reply.waiting !== true) {
+        notice(failure(response, reply, 'Allen is still with you.'));
+        trigger.disabled = false;
+        return;
+      }
+    } catch (_) {
+      notice('Could not reach Drake. Allen is still with you.');
+      trigger.disabled = false;
+      return;
+    }
+    drake.state = 'waiting';
+    showPresence();
+    session(conversation);
+  }
+  /* Holds the session stream for this conversation, reconnecting every
+     POLL_MS while Drake is waited for or present. */
+  async function session(id) {
+    const controller = new AbortController();
+    drake.stream = controller;
+    while (drake.stream === controller && drake.state) {
+      try {
+        const response = await fetch(SESSION, { cache: 'no-store', credentials: 'omit', headers: { Accept: 'text/event-stream', 'X-Allen-Conversation': id, ...keyHeaders(false) }, signal: controller.signal });
+        if (response.ok && response.body) {
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          const parser = sse((name, data) => onSession(name, data, controller));
+          for (;;) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            parser.feed(decoder.decode(value, { stream: true }));
+          }
+          parser.feed(decoder.decode());
+          parser.end();
+        } else if (response.status >= 400 && response.status < 500 && response.status !== 429) {
+          endSession('Drake is not available right now. Allen is with you again.');
+          return;
+        }
+      } catch (_) {
+        if (controller.signal.aborted) return;
+      }
+      if (drake.stream !== controller || !drake.state) return;
+      await new Promise(done => setTimeout(done, POLL_MS));
+    }
+  }
+  function onSession(name, data, controller) {
+    if (drake.stream !== controller) return;
+    let value;
+    try {
+      value = JSON.parse(data);
+    } catch (_) {
+      return;
+    }
+    if (!value || typeof value !== 'object') return;
+    if (name === 'human' && typeof value.text === 'string') humanMessage(value.text.slice(0, 8000));
+    else if (name === 'state' && ['waiting', 'joined', 'left'].includes(value.drake)) {
+      if (value.drake === 'left') {
+        endSession('Drake handed you back to Allen.');
+        return;
+      }
+      if (value.drake === 'joined' && drake.state !== 'joined') notice('Drake joined. Your messages now go to him.');
+      drake.state = value.drake;
+      showPresence();
+    }
+  }
+  function endSession(text) {
+    const stream = drake.stream;
+    drake.stream = null;
+    drake.state = '';
+    if (stream) stream.abort();
+    showPresence();
+    if (text) message('allen', 'Allen').body.append(el('p', 'allen-p', text));
+  }
+  /* The only place the Drake name and avatar are made. It is fed only by
+     event: human on the session channel, which the gateway emits only for
+     messages typed in Drake's authenticated console. Model tokens and visitor
+     text never reach it. */
+  function humanMessage(text) {
+    const item = el('li', 'allen-msg allen-msg-drake');
+    const who = el('p', 'allen-who');
+    who.append(el('span', 'allen-avatar', 'D'), document.createTextNode('Drake'));
+    const body = el('div', 'allen-body');
+    body.append(el('p', 'allen-p', text));
+    item.append(who, body);
+    log.append(item);
+  }
+  async function sayToDrake(text) {
+    message('user', 'You').body.append(el('p', 'allen-p', text));
+    try {
+      const response = await fetch(SAY, post({ text }, sessionHeaders()));
+      if (!response.ok) {
+        const reply = await response.json().catch(() => null);
+        notice(failure(response, reply, 'That message did not reach Drake.'));
+      }
+    } catch (_) {
+      notice('That message did not reach Drake. Check your connection.');
+    }
+  }
   /* Allen's first message is written here, not by the model: zero latency,
      no request. The answer stays in this closure. */
   function greeting() {
@@ -1240,7 +1448,7 @@
     } else if (name === 'error' && value) {
       clock.finished = true;
       const said = typeof value.message === 'string' ? value.message.slice(0, 300) : 'no message';
-      clock.outcome = value.code === 'busy' ? `Allen is busy: ${said}` : value.code === 'timeout' ? `The model took too long: ${said}` : `The model stopped with an error: ${said}`;
+      clock.outcome = value.code === 'human' ? 'Drake is answering you directly; Allen stays quiet until he hands you back.' : value.code === 'busy' ? `Allen is busy: ${said}` : value.code === 'timeout' ? `The model took too long: ${said}` : `The model stopped with an error: ${said}`;
     }
   }
   async function stream(body, clock, render) {
@@ -1262,6 +1470,10 @@
     if (choices) {
       choices.remove();
       choices = null;
+    }
+    if (drake.state === 'joined') {
+      sayToDrake(text);
+      return;
     }
     if (active) {
       notice('Allen is still answering. Stop that reply first, or wait for it.');
@@ -1331,6 +1543,7 @@
   newButton.addEventListener('click', () => {
     epoch += 1;
     if (active) active.abort();
+    if (drake.state) endSession('');
     turns.length = 0;
     kind = '';
     conversation = conversationId();
@@ -1351,5 +1564,7 @@
   keyPanel();
   greeting();
   forgetOffer();
+  presence();
+  setInterval(presence, PRESENCE_MS);
   root.dataset.ready = 'true';
 })();
