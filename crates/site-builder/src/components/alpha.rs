@@ -30,7 +30,7 @@ mod tests {
     }
     #[test]
     fn alpha_preserves_install_and_evidence_boundaries() {
-        for text in ["curl -fsSL https://aienos.com/install.sh | sh", "NOT_RUN", "GB10", "kernel driver stay", "alpha-uninstall", "download=\"wizard.om\"", "id=\"alpha-motion\""] {
+        for text in ["curl -fsSL https://aienos.com/install.sh | sh", "NOT_RUN", "GB10", "kernel driver stay", "alpha-uninstall", "download=\"wizard.om.txt\"", "id=\"alpha-motion\""] {
             assert!(PAGE.contains(text), "missing {text}");
         }
         let css = include_str!("../../../../public/assets/alpha.css");
