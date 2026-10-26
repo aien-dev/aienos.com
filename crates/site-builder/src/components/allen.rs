@@ -179,6 +179,22 @@ mod tests {
     }
 
     #[test]
+    fn a_draft_link_fills_the_input_and_sends_nothing() {
+        // /allen/#draft=<text> only fills the input: no request, no send, the
+        // hash cleared, the text capped and stripped of control characters.
+        let script = include_str!("../../../../public/js/allen.js");
+        let draft = function_body(script, "takeDraft");
+        for banned in ["fetch(", "ask(", "send", "submit", "click(", "say"] {
+            assert!(!draft.contains(banned), "takeDraft must not {banned}");
+        }
+        assert!(draft.contains("history.replaceState(null, '', location.pathname + location.search);"));
+        assert!(draft.contains(", 2000);"));
+        assert!(draft.contains("input.value = text;"));
+        assert!(script.contains("  takeDraft();\n})();"), "the draft is taken after allen-ready, at the end of load");
+        assert_eq!(script.matches("takeDraft").count(), 3, "defined, on hashchange, once at load");
+    }
+
+    #[test]
     fn only_allen_nodes_carry_the_allen_speaker_mark() {
         let script = include_str!("../../../../public/js/allen.js");
         assert!(function_body(script, "message").contains("if (role === 'allen') item.dataset.speaker = 'allen';"));

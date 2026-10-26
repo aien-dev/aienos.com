@@ -1678,6 +1678,30 @@
     ask(last.content, true);
     return true;
   }
+  /* /allen/#draft=<text>: another page hands the visitor a message to start
+     from. It only fills the input for editing and is never sent by itself;
+     the hash is cleared at once. */
+  let draftText = '';
+  function takeDraft() {
+    const match = /^#draft=([\s\S]*)$/.exec(location.hash);
+    if (!match) return;
+    let text = '';
+    try {
+      text = decodeURIComponent(match[1]);
+    } catch (_) {
+      text = '';
+    }
+    try {
+      history.replaceState(null, '', location.pathname + location.search);
+    } catch (_) {
+      /* The draft still fills the input. */
+    }
+    text = cut(text.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, ''), 2000);
+    if (!text.trim()) return;
+    draftText = text;
+    input.value = text;
+    emit('draft', { text });
+  }
   form.addEventListener('submit', event => {
     event.preventDefault();
     if (active) {
@@ -1718,6 +1742,7 @@
   }
   byId('allen-introduce').addEventListener('click', switchMode);
   window.addEventListener('hashchange', forgetOffer);
+  window.addEventListener('hashchange', takeDraft);
   conversation = conversationId();
   /* /allen/?mode=anonymous forces anonymous and clears any key; otherwise a
      key kept after an earlier Remember me means this visitor opted in.
@@ -1764,6 +1789,7 @@
       await handoff(el('button'));
       return drake.state === 'waiting';
     },
+    draft: () => draftText,
     say: text => {
       const said = cut(String(text).trim(), LIMIT.each);
       if (said && drake.state === 'joined') sayToDrake(said);
@@ -1771,4 +1797,5 @@
   });
   root.dataset.ready = 'true';
   document.dispatchEvent(new Event('allen-ready'));
+  takeDraft();
 })();
