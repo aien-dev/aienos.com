@@ -7,10 +7,14 @@
  * button: nothing here asks for it, or for any permission, when the page
  * loads. Recognized words go into the message box as editable text, with an
  * input event, and are never sent: the visitor presses Send. The privacy note
- * says where the audio goes before the first tap. It says on device only when
- * the browser reports an installed on-device recognizer for the language and
- * processLocally is set; otherwise it says the browser's online speech
- * service hears the audio (Chrome sends it to Google).
+ * says where the audio goes before the first tap. Three engines, chosen
+ * before any tap: the browser's on-device recognizer when it reports one
+ * installed for the language (processLocally set; the audio stays here);
+ * else Allen's server when the gateway's presence says transcribe is true
+ * (one clip per tap, POSTed once, Safari's MP4 turned into 16 kHz WAV here);
+ * else the browser's online speech service (Chrome sends audio to Google).
+ * A server failure never retries elsewhere: the browser's recognition is
+ * offered as a button, with its own note, and needs another tap.
  *
  * Replies read aloud. Off unless the visitor turns it on; the choice (on or
  * off, nothing else) is the only thing kept, in local storage. Uses the
@@ -31,6 +35,12 @@
   const STORE = 'allen-voice-speak';
   const SPEAK_MAX = 4000;
   const CHUNK = 200;
+  const PRESENCE = '/allen/api/presence';
+  const ENDPOINT = '/allen/api/transcribe';
+  const MAX_BYTES = 1048576;
+  const MAX_MS = 15000;
+  const MIN_MS = 300;
+  const RATE = 16000;
   const COPY = Object.freeze({
     cloud: "Voice typing uses your browser's online speech service: in Chrome your audio goes to Google's servers to become text, and other browsers may send it to their maker. My site never receives your audio, only the words you choose to send.",
     local: "Voice typing runs on this device: your browser turns speech into text here and your audio does not leave it. Only the words you choose to send reach Allen.",
@@ -59,6 +69,19 @@
     code: "(code block skipped)",
     link: "link",
     rest: "The rest is on the screen.",
+    server: "Voice typing records only after you tap the microphone, for up to 15 seconds. Your clip is sent to Allen's server, turned into text, and never saved: it stays in memory only and is discarded as soon as the text comes back. The text is shown to you; it is not logged.",
+    recording: "Recording. Tap the microphone again when you finish, or press Escape to cancel.",
+    sending: "Turning your words into text.",
+    short: "That clip was too short. Tap the microphone and speak a little longer.",
+    toolong: "That clip was too long for Allen's server. Try a shorter one.",
+    format: "Allen's server could not read this browser's audio format.",
+    unclear: "Allen's server could not make out any words in that clip.",
+    rate: "Allen's server is taking too many clips right now.",
+    retry: "Try again in",
+    busy: "Allen's server is busy right now. Try again in a moment.",
+    offer: "Use your browser's speech service instead",
+    switched: "Switched to your browser's speech service. Read the privacy note, then tap the microphone if that's fine.",
+    serverdown: "Allen's server could not be reached. Check your connection, or type instead.",
   });
 
   function lang() {
@@ -89,7 +112,9 @@
   const canLocal = !!Recognition && Recognition === window.SpeechRecognition
     && typeof Recognition.available === 'function' && 'processLocally' in Recognition.prototype;
   let mode = !Recognition ? 'none' : !secure ? 'insecure' : 'cloud';
+  let browserMode = mode;
   let rec = null;
+  let clip = null;
   let state = 'idle';
   let base = '';
   let wrote = null;
@@ -120,18 +145,43 @@
   }
 
   /* Only an installed on-device recognizer counts as on device. */
-  async function probe() {
-    if (!canLocal || mode !== 'cloud') return;
-    let answer = '';
+  async function probeLocal() {
+    if (!canLocal || mode !== 'cloud') return false;
     try {
-      answer = await Recognition.available({ langs: [lang()], processLocally: true });
+      return (await Recognition.available({ langs: [lang()], processLocally: true })) === 'available';
     } catch (_) {
-      answer = '';
+      return false;
     }
-    if (answer === 'available' && mode === 'cloud') {
-      mode = 'local';
-      showPrivacy();
+  }
+  /* Allen's server is used only when the gateway's presence says transcribe is
+     true and this browser can record after a tap; nothing is recorded to find
+     out. An absent or false field keeps the browser's own recognition. */
+  function canRecord() {
+    const media = window.navigator && window.navigator.mediaDevices;
+    return secure && !!media && typeof media.getUserMedia === 'function' && typeof window.MediaRecorder === 'function'
+      && (!!opusType() || typeof (window.AudioContext || window.webkitAudioContext) === 'function');
+  }
+  async function probeServer() {
+    if (!canRecord() || typeof window.fetch !== 'function') return false;
+    try {
+      const response = await window.fetch(PRESENCE, { cache: 'no-store', credentials: 'omit', headers: { Accept: 'application/json' } });
+      const reply = response.ok ? await response.json() : null;
+      return !!reply && typeof reply === 'object' && reply.transcribe === true;
+    } catch (_) {
+      return false;
     }
+  }
+  /* On device first (the audio stays here), then Allen's server, then the
+     browser's online service. Decided once, before any tap is needed. */
+  async function probe() {
+    const [local, server] = await Promise.all([probeLocal(), probeServer()]);
+    if (rec || clip || state !== 'idle') return;
+    if (local) browserMode = 'local';
+    const next = local ? 'local' : server ? 'server' : mode;
+    if (next === mode) return;
+    mode = next;
+    showPrivacy();
+    say('');
   }
 
   function joined(text) {
@@ -166,7 +216,7 @@
     'no-speech': 'nothing',
   });
 
-  function start() {
+  function startBrowser() {
     if (!Recognition || (mode !== 'cloud' && mode !== 'local') || rec) return;
     stopSpeaking();
     const r = new Recognition();
@@ -199,6 +249,7 @@
       if (code === 'aborted') return;
       if (mode === 'local' && (code === 'language-not-supported' || code === 'service-not-allowed')) {
         mode = 'cloud';
+        browserMode = 'cloud';
         showPrivacy();
         ending = ending || 'fallback';
         return;
@@ -231,10 +282,304 @@
     rec.stop();
   }
   function end(why) {
+    if (clip) {
+      dropClip(why);
+      return;
+    }
     if (!rec) return;
     ending = why;
     setState('stopping');
     rec.abort();
+  }
+
+  /* Allen's server. One clip per tap, recorded only between the taps, held in
+     memory, sent once to ENDPOINT and never anywhere else. A refused or failed
+     clip is dropped; the browser's own recognition is only offered, as a
+     button, and the visitor has to tap the microphone again after reading
+     its privacy note. */
+  function opusType() {
+    const MR = window.MediaRecorder;
+    if (typeof MR !== 'function' || typeof MR.isTypeSupported !== 'function') return '';
+    for (const type of ['audio/webm;codecs=opus', 'audio/ogg;codecs=opus']) {
+      try {
+        if (MR.isTypeSupported(type)) return type;
+      } catch (_) {
+        /* Try the next type. */
+      }
+    }
+    return '';
+  }
+  function now() {
+    return window.performance && typeof window.performance.now === 'function' ? window.performance.now() : Date.now();
+  }
+  function release(c) {
+    if (c.timer) window.clearTimeout(c.timer);
+    c.timer = 0;
+    if (c.stream) {
+      for (const track of c.stream.getTracks()) track.stop();
+    }
+    c.stream = null;
+  }
+  function dropClip(why) {
+    const c = clip;
+    clip = null;
+    c.dropped = true;
+    if (c.controller) c.controller.abort();
+    if (c.recorder && c.recorder.state !== 'inactive') {
+      try {
+        c.recorder.stop();
+      } catch (_) {
+        /* Already stopped. */
+      }
+    }
+    release(c);
+    c.chunks = [];
+    setState('idle', COPY[why] || COPY.cancelled);
+  }
+  function done(c, said) {
+    if (clip === c) clip = null;
+    setState('idle', said);
+  }
+  async function startServer() {
+    stopSpeaking();
+    const c = { stream: null, recorder: null, chunks: [], mime: '', began: 0, ms: 0, timer: 0, controller: null, dropped: false };
+    clip = c;
+    hideOffer();
+    setState('starting', COPY.starting);
+    let stream = null;
+    try {
+      stream = await window.navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } });
+    } catch (error) {
+      if (clip !== c) return;
+      const name = error && error.name;
+      done(c, name === 'NotAllowedError' || name === 'SecurityError' ? COPY.blocked : name === 'NotFoundError' || name === 'OverconstrainedError' ? COPY.nomic : COPY.failed);
+      return;
+    }
+    c.stream = stream;
+    if (clip !== c) {
+      release(c);
+      return;
+    }
+    c.mime = opusType();
+    try {
+      c.recorder = c.mime ? new window.MediaRecorder(stream, { mimeType: c.mime, audioBitsPerSecond: 32000 }) : new window.MediaRecorder(stream);
+      c.recorder.ondataavailable = event => {
+        if (event.data && event.data.size) c.chunks.push(event.data);
+      };
+      c.recorder.onstop = () => {
+        finishClip(c);
+      };
+      c.recorder.start();
+    } catch (_) {
+      release(c);
+      done(c, COPY.failed);
+      return;
+    }
+    c.began = now();
+    c.timer = window.setTimeout(() => {
+      if (clip === c && state === 'listening') stopClip();
+    }, MAX_MS);
+    setState('listening', COPY.recording);
+  }
+  function stopClip() {
+    const c = clip;
+    if (!c || !c.recorder) return;
+    c.ms = now() - c.began;
+    setState('sending', COPY.sending);
+    try {
+      c.recorder.stop();
+    } catch (_) {
+      release(c);
+      done(c, COPY.failed);
+    }
+  }
+  async function finishClip(c) {
+    release(c);
+    if (clip !== c || c.dropped) return;
+    const type = c.mime || (c.chunks[0] && c.chunks[0].type) || '';
+    const recorded = new Blob(c.chunks, { type });
+    c.chunks = [];
+    if (c.ms < MIN_MS || !recorded.size) {
+      done(c, COPY.short);
+      return;
+    }
+    let body = recorded;
+    let sent = c.mime;
+    if (!sent) {
+      let samples = null;
+      try {
+        samples = await decodeMono(recorded);
+      } catch (_) {
+        samples = null;
+      }
+      if (clip !== c) return;
+      if (!samples) {
+        done(c, COPY.format);
+        return;
+      }
+      const pcm = resample(samples.data, samples.rate);
+      if (pcm.length * 1000 < MIN_MS * RATE) {
+        done(c, COPY.short);
+        return;
+      }
+      body = new Blob([wav(pcm)], { type: 'audio/wav' });
+      sent = 'audio/wav';
+    }
+    if (body.size > MAX_BYTES) {
+      done(c, COPY.toolong);
+      return;
+    }
+    upload(c, body, sent);
+  }
+  async function upload(c, body, type) {
+    c.controller = new AbortController();
+    let response = null;
+    let reply = null;
+    try {
+      response = await window.fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': type, Accept: 'application/json' }, body, cache: 'no-store', credentials: 'omit', signal: c.controller.signal });
+      reply = await response.json().catch(() => null);
+    } catch (_) {
+      if (clip !== c) return;
+      offerBrowser();
+      done(c, COPY.serverdown);
+      return;
+    }
+    if (clip !== c) return;
+    if (response.ok && reply && typeof reply.text === 'string') {
+      const said = reply.text.trim();
+      if (!said) {
+        done(c, COPY.unclear);
+        return;
+      }
+      base = input.value;
+      write(joined(said));
+      done(c, COPY.done);
+      return;
+    }
+    offerBrowser();
+    done(c, refused(response, reply));
+  }
+  function refused(response, reply) {
+    const code = response.status;
+    if (code === 413) return COPY.toolong;
+    if (code === 415) return COPY.format;
+    if (code === 422) return COPY.unclear;
+    if (code === 503) return COPY.busy;
+    if (code === 429) {
+      const header = Number.parseInt(response.headers && response.headers.get ? response.headers.get('Retry-After') || '' : '', 10);
+      const field = reply && Number.isSafeInteger(reply.retry_after) ? reply.retry_after : NaN;
+      const wait = Number.isSafeInteger(header) && header > 0 ? header : field > 0 ? field : 0;
+      return wait && wait <= 3600 ? `${COPY.rate} ${COPY.retry} ${wait} s.` : COPY.rate;
+    }
+    return COPY.failed;
+  }
+
+  /* Safari records only AAC in MP4, which the gateway refuses: the clip is
+     decoded here, mixed to mono, resampled to RATE and sent as 16-bit PCM WAV. */
+  function decodeMono(blob) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (typeof Ctx !== 'function') return Promise.reject(new Error('no audio context'));
+    return blob.arrayBuffer().then(data => {
+      const ctx = new Ctx();
+      const closed = () => {
+        if (typeof ctx.close === 'function') ctx.close().catch(() => {});
+      };
+      return new Promise((ok, bad) => {
+        const pending = ctx.decodeAudioData(data, ok, bad);
+        if (pending && typeof pending.then === 'function') pending.then(ok, bad);
+      }).then(buffer => {
+        closed();
+        const channels = Math.max(1, buffer.numberOfChannels | 0);
+        const out = new Float32Array(buffer.length);
+        for (let ch = 0; ch < channels; ch += 1) {
+          const part = buffer.getChannelData(ch);
+          for (let i = 0; i < out.length; i += 1) out[i] += part[i] / channels;
+        }
+        return { data: out, rate: buffer.sampleRate };
+      }, error => {
+        closed();
+        throw error;
+      });
+    });
+  }
+  /* Down: each output sample is the mean of the input span it covers (a box
+     filter weighted by overlap). Up: linear interpolation. */
+  function resample(data, rate) {
+    if (!(rate > 0) || rate === RATE) return Float32Array.from(data);
+    const ratio = rate / RATE;
+    const n = Math.floor(data.length / ratio);
+    const out = new Float32Array(n);
+    if (ratio < 1) {
+      for (let i = 0; i < n; i += 1) {
+        const at = i * ratio;
+        const k = Math.floor(at);
+        const next = k + 1 < data.length ? data[k + 1] : data[k];
+        out[i] = data[k] + (next - data[k]) * (at - k);
+      }
+      return out;
+    }
+    for (let i = 0; i < n; i += 1) {
+      const from = i * ratio;
+      const to = from + ratio;
+      let sum = 0;
+      for (let k = Math.floor(from); k < to && k < data.length; k += 1) {
+        sum += data[k] * (Math.min(to, k + 1) - Math.max(from, k));
+      }
+      out[i] = sum / ratio;
+    }
+    return out;
+  }
+  /* RIFF WAVE, PCM format 1, one channel, RATE hertz, 16 bits, little-endian;
+     samples clamped to -1..1, negative scaled by 32768, positive by 32767. */
+  function wav(samples) {
+    const bytes = samples.length * 2;
+    const view = new DataView(new ArrayBuffer(44 + bytes));
+    const tag = (at, text) => {
+      for (let i = 0; i < 4; i += 1) view.setUint8(at + i, text.charCodeAt(i));
+    };
+    tag(0, 'RIFF');
+    view.setUint32(4, 36 + bytes, true);
+    tag(8, 'WAVE');
+    tag(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true);
+    view.setUint32(24, RATE, true);
+    view.setUint32(28, RATE * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    tag(36, 'data');
+    view.setUint32(40, bytes, true);
+    for (let i = 0; i < samples.length; i += 1) {
+      const s = Math.max(-1, Math.min(1, samples[i] || 0));
+      view.setInt16(44 + i * 2, s < 0 ? Math.round(s * 32768) : Math.round(s * 32767), true);
+    }
+    return view.buffer;
+  }
+
+  /* The browser's own recognition, offered after Allen's server failed. */
+  let offer = null;
+  function offerBrowser() {
+    if (!Recognition || !secure || !mic) return;
+    if (!offer) {
+      offer = document.createElement('button');
+      offer.type = 'button';
+      offer.id = 'allen-voice-browser';
+      offer.className = 'allen-tool allen-voice-browser';
+      offer.textContent = COPY.offer;
+      offer.addEventListener('click', () => {
+        if (state !== 'idle') return;
+        mode = browserMode;
+        hideOffer();
+        showPrivacy();
+        say(COPY.switched);
+      });
+      if (status.parentNode) status.parentNode.insertBefore(offer, status.nextSibling);
+    }
+    offer.hidden = false;
+  }
+  function hideOffer() {
+    if (offer) offer.hidden = true;
   }
 
   if (mic) {
@@ -243,14 +588,18 @@
     if (mode === 'none' || mode === 'insecure') say(COPY[mode]);
     mic.addEventListener('click', event => {
       event.preventDefault();
-      if (state === 'idle') start();
+      if (state === 'idle') {
+        if (mode === 'server') startServer();
+        else startBrowser();
+      } else if (clip && state === 'listening') stopClip();
+      else if (clip) dropClip('cancelled');
       else stop();
     });
     input.addEventListener('input', () => {
       if (!writing && rec && input.value !== wrote) end('typed');
     });
     document.addEventListener('keydown', event => {
-      if (event.key !== 'Escape' || !rec) return;
+      if (event.key !== 'Escape' || (!rec && !clip)) return;
       event.preventDefault();
       event.stopPropagation();
       end('cancelled');

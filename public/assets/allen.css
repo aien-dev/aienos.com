@@ -317,6 +317,9 @@ body:has([id="allen"]) [id="aien-allen-launcher"] { display: none; }
 .allen-voice-status { text-align: center; font-size: 11px; color: var(--text-secondary); margin-top: 6px; }
 .allen-voice-status:empty { display: none; }
 .allen-mic[data-state="listening"], .allen-mic[data-state="starting"] { color: var(--accent-amber); border-color: var(--accent-amber); }
+.allen-mic[data-state="sending"], .allen-mic[data-state="stopping"] { color: var(--accent-blue); border-color: var(--accent-blue); }
+.allen-voice-browser { display: block; margin: 6px auto 0; font-size: 11px; }
+.allen-voice-browser[hidden] { display: none; }
 
 .allen-privacy { font-size: 13px; color: var(--text-muted); }
 .allen-foot { margin-top: 14px; font-size: 13px; color: var(--text-muted); }

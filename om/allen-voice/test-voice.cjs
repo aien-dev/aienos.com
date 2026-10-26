@@ -161,6 +161,105 @@ function load(opts = {}) {
   const win = new Node();
   Object.assign(win, sandbox);
   win.window = win;
+  /* Allen's server: fetch, getUserMedia, MediaRecorder, AudioContext, timers
+     and the clock, all scripted. opts.server = { presence, opus, audio,
+     decoded, media, respond, hold }. */
+  const srv = { fetches: [], gum: 0, recorders: [], streams: [], timers: [], clock: 0, held: [] };
+  if (opts.server) {
+    const S = opts.server;
+    win.Blob = Blob;
+    win.AbortController = AbortController;
+    win.performance = { now: () => srv.clock };
+    win.setTimeout = (fn, ms) => {
+      srv.timers.push({ fn, ms, live: true });
+      return srv.timers.length;
+    };
+    win.clearTimeout = id => {
+      if (srv.timers[id - 1]) srv.timers[id - 1].live = false;
+    };
+    win.fetch = (url, init = {}) => {
+      const call = { url, init };
+      srv.fetches.push(call);
+      if (url === '/allen/api/presence') {
+        if (S.presence === 'throw') return Promise.reject(new TypeError('offline'));
+        if (S.presence === 'error') return Promise.resolve({ ok: false, status: 500, json: async () => ({}) });
+        return Promise.resolve({ ok: true, status: 200, json: async () => S.presence });
+      }
+      return new Promise((resolve, reject) => {
+        const answer = () => {
+          const out = S.respond ? S.respond(call) : { status: 200, body: { text: 'hello world', ms: 900, seconds: 2, model: 'whisper' } };
+          if (out === 'throw') {
+            reject(new TypeError('network'));
+            return;
+          }
+          resolve({ ok: out.status >= 200 && out.status < 300, status: out.status, headers: { get: name => (out.headers || {})[name] || null }, json: async () => out.body });
+        };
+        if (init.signal) init.signal.addEventListener('abort', () => reject(new Error('AbortError')));
+        if (S.hold) srv.held.push(answer);
+        else answer();
+      });
+    };
+    win.navigator.mediaDevices = {
+      getUserMedia: constraints => {
+        srv.gum += 1;
+        srv.constraints = constraints;
+        if (S.media && S.media !== 'ok') {
+          const error = new Error(S.media);
+          error.name = S.media;
+          return Promise.reject(error);
+        }
+        const track = { stopped: false, stop() { this.stopped = true; } };
+        const stream = { tracks: [track], getTracks() { return this.tracks; } };
+        srv.streams.push(stream);
+        return Promise.resolve(stream);
+      },
+    };
+    if (S.recorder !== false) {
+      win.MediaRecorder = class {
+        static isTypeSupported(type) {
+          return (S.opus || []).includes(type);
+        }
+        constructor(stream, options) {
+          this.stream = stream;
+          this.options = options;
+          this.state = 'inactive';
+          this.chunk = null;
+          srv.recorders.push(this);
+        }
+        start() {
+          this.state = 'recording';
+        }
+        stop() {
+          if (this.state === 'inactive') throw new Error('InvalidStateError');
+          this.state = 'inactive';
+          const type = this.options ? this.options.mimeType : 'audio/mp4';
+          this.ondataavailable({ data: this.chunk || new Blob([new Uint8Array(64)], { type }) });
+          this.onstop();
+        }
+      };
+    }
+    if (S.audio) {
+      win.AudioContext = class {
+        constructor() {
+          srv.contexts = (srv.contexts || 0) + 1;
+        }
+        decodeAudioData(data, ok, bad) {
+          srv.decodedBytes = data.byteLength;
+          const d = S.decoded;
+          const buffer = d && { sampleRate: d.rate, numberOfChannels: d.channels.length, length: d.channels[0].length, getChannelData: ch => d.channels[ch] };
+          if (S.audio === 'callback') {
+            setImmediate(() => (buffer ? ok(buffer) : bad(new Error('EncodingError'))));
+            return undefined;
+          }
+          return buffer ? Promise.resolve(buffer) : Promise.reject(new Error('EncodingError'));
+        }
+        close() {
+          srv.closed = (srv.closed || 0) + 1;
+          return Promise.resolve();
+        }
+      };
+    }
+  }
   const rec = { instances: [], availableCalls: [] };
   if (opts.recognition && opts.recognition !== 'none') {
     class Recognition {
@@ -225,7 +324,8 @@ function load(opts = {}) {
   vm.runInContext(code, context);
   const status = ids.get('allen-voice-status') || page.children.find(el => el.id === 'allen-voice-status');
   return {
-    win, document, input, form, mic, privacy, toggle, status, rec, synth, transport, guard, store, writes, emit, makeAllen,
+    win, document, input, form, mic, privacy, toggle, status, rec, synth, transport, guard, store, writes, emit, makeAllen, srv, page,
+    offer: () => page.children.find(el => el.id === 'allen-voice-browser') || null,
     inputs: () => inputs,
     last: () => rec.instances[rec.instances.length - 1],
     escape() {
@@ -242,7 +342,7 @@ function load(opts = {}) {
 }
 
 const C = {};
-for (const key of ['cloud', 'local', 'none', 'insecure', 'start', 'stop', 'starting', 'listening', 'done', 'nothing', 'cancelled', 'blocked', 'nomic', 'network', 'lang', 'failed', 'fallback', 'hidden', 'typed', 'noSpeak', 'speakOn', 'speakOff', 'remote', 'drake', 'code', 'link', 'rest']) C[key] = COPY_OF(key);
+for (const key of ['cloud', 'local', 'none', 'insecure', 'start', 'stop', 'starting', 'listening', 'done', 'nothing', 'cancelled', 'blocked', 'nomic', 'network', 'lang', 'failed', 'fallback', 'hidden', 'typed', 'noSpeak', 'speakOn', 'speakOff', 'remote', 'drake', 'code', 'link', 'rest', 'server', 'recording', 'sending', 'short', 'toolong', 'format', 'unclear', 'rate', 'retry', 'busy', 'offer', 'switched', 'serverdown']) C[key] = COPY_OF(key);
 
 const tests = [];
 const test = (name, fn) => tests.push([name, fn]);
@@ -555,6 +655,315 @@ test('a page without the mic still reads aloud; a page without the box does noth
   env.emit('reply', { text: 'Still here.', outcome: '' });
   assert.equal(env.synth.spoken.length, 1);
   assert.equal(env.rec.instances.length, 0);
+});
+
+/* Allen's server path. */
+async function settle() {
+  for (let i = 0; i < 12; i += 1) await tick();
+}
+async function serverEnv(server = {}, extra = {}) {
+  const env = load({ recognition: 'webkit', voices: [LOCAL], ...extra, server: { presence: { online: false, hours: '', handoff: false, transcribe: true }, opus: ['audio/webm;codecs=opus'], ...server } });
+  await settle();
+  return env;
+}
+async function record(env, ms, chunk) {
+  env.mic.click();
+  await settle();
+  env.srv.clock += ms;
+  const recorder = env.srv.recorders[env.srv.recorders.length - 1];
+  if (recorder && chunk) recorder.chunk = chunk;
+  env.mic.click();
+  await settle();
+  return recorder;
+}
+const posts = env => env.srv.fetches.filter(call => call.url === '/allen/api/transcribe');
+function readWav(buffer) {
+  const view = new DataView(buffer);
+  const tag = at => String.fromCharCode(...new Uint8Array(buffer, at, 4));
+  const n = view.getUint32(40, true) / 2;
+  const samples = [];
+  for (let i = 0; i < n; i += 1) samples.push(view.getInt16(44 + i * 2, true));
+  return {
+    riff: tag(0), size: view.getUint32(4, true), wave: tag(8), fmt: tag(12), fmtSize: view.getUint32(16, true),
+    format: view.getUint16(20, true), channels: view.getUint16(22, true), rate: view.getUint32(24, true),
+    byteRate: view.getUint32(28, true), align: view.getUint16(32, true), bits: view.getUint16(34, true),
+    data: tag(36), bytes: view.getUint32(40, true), total: buffer.byteLength, samples,
+  };
+}
+function constant(rate, seconds, ...values) {
+  return { rate, channels: values.map(v => new Float32Array(Math.round(rate * seconds)).fill(v)) };
+}
+
+test('server: presence transcribe true makes it primary, with its exact privacy note, and records nothing', async () => {
+  const env = await serverEnv();
+  assert.equal(env.win.AllenVoice.mode(), 'server');
+  assert.equal(env.privacy.textContent, C.server);
+  assert.ok(C.server.includes("Your clip is sent to Allen's server, turned into text, and never saved: it stays in memory only and is discarded as soon as the text comes back. The text is shown to you; it is not logged."));
+  assert.doesNotMatch(C.server, /disk/);
+  assert.equal(env.srv.fetches.length, 1);
+  assert.equal(env.srv.fetches[0].url, '/allen/api/presence');
+  assert.equal(env.srv.fetches[0].init.method, undefined, 'a plain GET, no OPTIONS');
+  assert.equal(env.srv.fetches[0].init.cache, 'no-store');
+  assert.equal(env.srv.fetches[0].init.credentials, 'omit');
+  assert.equal(env.srv.gum, 0, 'no microphone before the tap');
+  assert.equal(env.srv.recorders.length, 0);
+  assert.equal(env.rec.instances.length, 0);
+  assert.deepEqual(env.guard, { media: 0, permission: 0 });
+});
+
+test('server: false, missing, failing or unreachable presence keeps the browser path', async () => {
+  for (const presence of [{ transcribe: false }, { online: true }, { transcribe: 'true' }, 'error', 'throw']) {
+    const env = await serverEnv({ presence });
+    assert.equal(env.win.AllenVoice.mode(), 'cloud', JSON.stringify(presence));
+    assert.equal(env.privacy.textContent, C.cloud);
+  }
+  const norecorder = await serverEnv({ recorder: false });
+  assert.equal(norecorder.srv.fetches.length, 0, 'no presence request when this browser cannot record');
+  assert.equal(norecorder.win.AllenVoice.mode(), 'cloud');
+  const noformat = await serverEnv({ opus: [] });
+  assert.equal(noformat.win.AllenVoice.mode(), 'cloud', 'no opus and no AudioContext: cannot send an accepted format');
+  const insecure = await serverEnv({}, { secure: false });
+  assert.equal(insecure.win.AllenVoice.mode(), 'insecure');
+  assert.equal(insecure.srv.fetches.length, 0);
+});
+
+test('server: an installed on-device recognizer still comes first; no browser recognition still gets the server', async () => {
+  const local = await serverEnv({}, { recognition: 'standard', available: 'available' });
+  assert.equal(local.win.AllenVoice.mode(), 'local');
+  assert.equal(local.privacy.textContent, C.local);
+  const bare = await serverEnv({}, { recognition: 'none' });
+  assert.equal(bare.win.AllenVoice.mode(), 'server');
+  assert.equal(bare.mic.disabled, false);
+  assert.equal(bare.status.textContent, '');
+});
+
+test('server: tap records, tap sends one opus clip, the text fills the box and is not sent', async () => {
+  const env = await serverEnv({ hold: true });
+  env.input.value = 'Hi';
+  env.mic.click();
+  assert.equal(env.srv.gum, 1, 'microphone asked only on the tap');
+  assert.equal(env.status.textContent, C.starting);
+  await settle();
+  const recorder = env.srv.recorders[0];
+  assert.equal(recorder.options.mimeType, 'audio/webm;codecs=opus');
+  assert.equal(recorder.state, 'recording');
+  assert.equal(env.win.AllenVoice.state(), 'listening');
+  assert.equal(env.status.textContent, C.recording);
+  assert.equal(env.mic.getAttribute('aria-pressed'), 'true');
+  assert.equal(env.srv.timers[0].ms, 15000);
+  env.srv.clock += 2000;
+  recorder.chunk = new Blob([new Uint8Array(1200)], { type: 'audio/webm;codecs=opus' });
+  env.mic.click();
+  assert.equal(env.status.textContent, C.sending);
+  await settle();
+  assert.equal(env.srv.streams[0].tracks[0].stopped, true, 'microphone released');
+  assert.equal(env.srv.timers[0].live, false);
+  const sent = posts(env);
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].init.method, 'POST');
+  assert.equal(sent[0].init.headers['Content-Type'], 'audio/webm;codecs=opus');
+  assert.equal(sent[0].init.credentials, 'omit');
+  assert.equal(sent[0].init.cache, 'no-store');
+  assert.equal(sent[0].init.body.size, 1200);
+  assert.equal(env.input.value, 'Hi', 'nothing written before the reply');
+  env.srv.held.shift()();
+  await settle();
+  assert.equal(env.input.value, 'Hi hello world');
+  assert.equal(env.inputs(), 1);
+  assert.equal(env.status.textContent, C.done);
+  assert.equal(env.win.AllenVoice.state(), 'idle');
+  assert.equal(env.transport.sends, 0);
+  assert.equal(env.form.submits, 0);
+  assert.equal(env.rec.instances.length, 0, 'never also sent to the browser service');
+  assert.equal(env.writes.length, 0, 'no transcript stored');
+});
+
+test('server: 15 seconds stops and sends; too short or too big never uploads', async () => {
+  const env = await serverEnv();
+  env.mic.click();
+  await settle();
+  env.srv.clock += 15000;
+  env.srv.timers[0].fn();
+  await settle();
+  assert.equal(env.srv.recorders[0].state, 'inactive');
+  assert.equal(posts(env).length, 1);
+  const short = await serverEnv();
+  await record(short, 299);
+  assert.equal(posts(short).length, 0);
+  assert.equal(short.status.textContent, C.short);
+  const big = await serverEnv();
+  await record(big, 5000, new Blob([new Uint8Array(1048577)], { type: 'audio/webm;codecs=opus' }));
+  assert.equal(posts(big).length, 0);
+  assert.equal(big.status.textContent, C.toolong);
+});
+
+test('server: refusals are announced, never retried elsewhere; the browser service is only offered', async () => {
+  const cases = [
+    [{ status: 413, body: { error: 'too_long', message: 'x' } }, C.toolong],
+    [{ status: 415, body: { error: 'format', message: 'x' } }, C.format],
+    [{ status: 422, body: { error: 'audio', message: 'x' } }, C.unclear],
+    [{ status: 429, body: { error: 'rate', message: 'x', retry_after: 9 }, headers: { 'Retry-After': '7' } }, `${C.rate} ${C.retry} 7 s.`],
+    [{ status: 429, body: { error: 'rate', message: 'x', retry_after: 9 } }, `${C.rate} ${C.retry} 9 s.`],
+    [{ status: 503, body: { error: 'busy', message: 'x' } }, C.busy],
+    [{ status: 400, body: { error: 'bad', message: 'x' } }, C.failed],
+    [{ status: 200, body: { text: '   ' } }, C.unclear],
+    ['throw', C.serverdown],
+  ];
+  for (const [answer, said] of cases) {
+    const env = await serverEnv({ respond: () => answer });
+    await record(env, 2000);
+    assert.equal(env.status.textContent, said, JSON.stringify(answer));
+    assert.equal(posts(env).length, 1, 'uploaded once');
+    assert.equal(env.rec.instances.length, 0, 'no automatic browser fallback');
+    assert.equal(env.win.AllenVoice.mode(), 'server');
+    assert.equal(env.privacy.textContent, C.server);
+    assert.equal(env.input.value, '');
+    const offer = env.offer();
+    if (answer.status === 200) continue;
+    assert.ok(offer && offer.hidden === false, 'browser service offered');
+    assert.equal(offer.textContent, C.offer);
+  }
+  const env = await serverEnv({ respond: () => ({ status: 503, body: {} }) });
+  await record(env, 2000);
+  env.offer().click();
+  assert.equal(env.win.AllenVoice.mode(), 'cloud');
+  assert.equal(env.privacy.textContent, C.cloud, 'the online note is shown before use');
+  assert.equal(env.status.textContent, C.switched);
+  assert.equal(env.offer().hidden, true);
+  assert.equal(env.rec.instances.length, 0, 'still nothing until the visitor taps');
+  const gum = env.srv.gum;
+  env.mic.click();
+  assert.equal(env.rec.instances.length, 1);
+  assert.equal(env.srv.gum, gum, 'browser path does not record a clip');
+});
+
+test('server: a server failure offers nothing when this browser has no recognition', async () => {
+  const env = await serverEnv({ respond: () => ({ status: 503, body: {} }) }, { recognition: 'none' });
+  await record(env, 2000);
+  assert.equal(env.status.textContent, C.busy);
+  assert.equal(env.offer(), null);
+});
+
+test('server: blocked or missing microphone', async () => {
+  for (const [media, said] of [['NotAllowedError', C.blocked], ['NotFoundError', C.nomic], ['AbortError', C.failed]]) {
+    const env = await serverEnv({ media });
+    env.mic.click();
+    await settle();
+    assert.equal(env.status.textContent, said, media);
+    assert.equal(env.win.AllenVoice.state(), 'idle');
+    assert.equal(posts(env).length, 0);
+  }
+});
+
+test('server: Escape while recording or sending drops the clip; hiding drops it too', async () => {
+  const env = await serverEnv();
+  env.mic.click();
+  await settle();
+  const key = env.escape();
+  assert.equal(key.defaultPrevented, true);
+  await settle();
+  assert.equal(env.srv.streams[0].tracks[0].stopped, true);
+  assert.equal(posts(env).length, 0);
+  assert.equal(env.status.textContent, C.cancelled);
+  const sending = await serverEnv({ hold: true });
+  sending.input.value = 'mine';
+  await record(sending, 2000);
+  assert.equal(posts(sending).length, 1);
+  sending.escape();
+  await settle();
+  assert.equal(posts(sending)[0].init.signal.aborted, true);
+  sending.srv.held.shift()();
+  await settle();
+  assert.equal(sending.input.value, 'mine', 'a cancelled reply never lands');
+  assert.equal(sending.status.textContent, C.cancelled);
+  const hidden = await serverEnv();
+  hidden.mic.click();
+  await settle();
+  hidden.document.hidden = true;
+  hidden.document.dispatchEvent(new Event('visibilitychange'));
+  await settle();
+  assert.equal(posts(hidden).length, 0);
+  assert.equal(hidden.status.textContent, C.hidden);
+  assert.equal(hidden.srv.streams[0].tracks[0].stopped, true);
+});
+
+test('server: a tap while the browser is still asking for the microphone cancels and releases it', async () => {
+  const env = await serverEnv();
+  env.mic.click();
+  env.mic.click();
+  assert.equal(env.status.textContent, C.cancelled);
+  await settle();
+  assert.equal(env.srv.recorders.length, 0);
+  assert.equal(env.srv.streams[0].tracks[0].stopped, true);
+});
+
+test('Safari WAV: MP4 clip decoded, mixed to mono, resampled to 16 kHz, exact PCM16 header and samples', async () => {
+  const env = await serverEnv({ opus: [], audio: true, decoded: constant(48000, 0.5, 0.25, 0.75) });
+  assert.equal(env.win.AllenVoice.mode(), 'server');
+  const recorder = await record(env, 600, new Blob([new Uint8Array(333)], { type: 'audio/mp4' }));
+  assert.equal(recorder.options, undefined, 'recorded in the browser default format');
+  assert.equal(env.srv.decodedBytes, 333);
+  assert.equal(env.srv.closed, 1, 'audio context closed');
+  const sent = posts(env);
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].init.headers['Content-Type'], 'audio/wav');
+  const w = readWav(await sent[0].init.body.arrayBuffer());
+  assert.deepEqual(
+    { riff: w.riff, size: w.size, wave: w.wave, fmt: w.fmt, fmtSize: w.fmtSize, format: w.format, channels: w.channels, rate: w.rate, byteRate: w.byteRate, align: w.align, bits: w.bits, data: w.data, bytes: w.bytes, total: w.total },
+    { riff: 'RIFF', size: 36 + 16000, wave: 'WAVE', fmt: 'fmt ', fmtSize: 16, format: 1, channels: 1, rate: 16000, byteRate: 32000, align: 2, bits: 16, data: 'data', bytes: 16000, total: 44 + 16000 },
+  );
+  assert.equal(w.samples.length, 8000);
+  assert.ok(w.samples.every(s => s === 16384), 'mean of 0.25 and 0.75 is 0.5 -> round(0.5 * 32767) = 16384');
+  assert.equal(env.input.value, 'hello world');
+});
+
+test('Safari WAV: tone keeps its pitch and level; clamping; 44.1 kHz and 8 kHz inputs; callback decode', async () => {
+  const rate = 48000;
+  const tone = new Float32Array(rate);
+  for (let i = 0; i < rate; i += 1) tone[i] = 0.8 * Math.sin(2 * Math.PI * 440 * i / rate);
+  const env = await serverEnv({ opus: [], audio: true, decoded: { rate, channels: [tone] } });
+  await record(env, 1100);
+  const w = readWav(await posts(env)[0].init.body.arrayBuffer());
+  assert.equal(w.samples.length, 16000);
+  let crossings = 0;
+  for (let i = 1; i < w.samples.length; i += 1) if ((w.samples[i - 1] < 0) !== (w.samples[i] < 0)) crossings += 1;
+  assert.ok(Math.abs(crossings - 880) <= 2, `440 Hz has 880 sign changes per second, saw ${crossings}`);
+  const peak = Math.max(...w.samples.map(Math.abs));
+  assert.ok(peak > 0.8 * 32767 * 0.97 && peak <= 0.8 * 32767 + 1, `level kept, peak ${peak}`);
+
+  const loud = new Float32Array(16000);
+  for (let i = 0; i < loud.length; i += 1) loud[i] = i % 2 ? -1.5 : 1.5;
+  const clamp = await serverEnv({ opus: [], audio: 'callback', decoded: { rate: 16000, channels: [loud] } });
+  await record(clamp, 1100);
+  const c = readWav(await posts(clamp)[0].init.body.arrayBuffer());
+  assert.equal(c.samples[0], 32767);
+  assert.equal(c.samples[1], -32768);
+
+  const cd = await serverEnv({ opus: [], audio: true, decoded: constant(44100, 1, 0.1) });
+  await record(cd, 1100);
+  const d = readWav(await posts(cd)[0].init.body.arrayBuffer());
+  assert.equal(d.samples.length, Math.floor(44100 / (44100 / 16000)));
+  assert.ok(d.samples.every(s => Math.abs(s - 3277) <= 1), 'DC 0.1 stays round(0.1 * 32767) = 3277');
+
+  const ramp = new Float32Array(8000);
+  for (let i = 0; i < ramp.length; i += 1) ramp[i] = i / 10000;
+  const phone = await serverEnv({ opus: [], audio: true, decoded: { rate: 8000, channels: [ramp] } });
+  await record(phone, 1100);
+  const p = readWav(await posts(phone)[0].init.body.arrayBuffer());
+  assert.equal(p.samples.length, 16000);
+  assert.equal(p.samples[1], Math.round(0.00005 * 32767), 'linear midpoint between ramp samples 0 and 1');
+  assert.equal(p.samples[2], Math.round(0.0001 * 32767));
+});
+
+test('Safari WAV: undecodable or too-short audio is never uploaded', async () => {
+  const broken = await serverEnv({ opus: [], audio: true, decoded: null });
+  await record(broken, 2000);
+  assert.equal(posts(broken).length, 0);
+  assert.equal(broken.status.textContent, C.format);
+  const short = await serverEnv({ opus: [], audio: true, decoded: constant(48000, 0.2, 0.3) });
+  await record(short, 2000);
+  assert.equal(posts(short).length, 0);
+  assert.equal(short.status.textContent, C.short);
 });
 
 (async () => {

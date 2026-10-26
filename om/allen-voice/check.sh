@@ -53,11 +53,18 @@ else
         printf 'TEST FAIL: %s\n' "$artifact" >&2
         exit 7
     fi
-    # Negative controls: a controller that sends recognized words itself, and
-    # one that reads replies aloud by default, must both fail the test.
+    # Negative controls, each of which must fail the test: a controller that
+    # sends recognized words itself; one that reads replies aloud by default;
+    # one that trusts any presence without transcribe false; one that scales
+    # negative samples by 32767; one that retries a failed clip with the
+    # browser's service on its own; one that asks for the microphone at load.
     sed 's/input.dispatchEvent(new Event(.input., { bubbles: true }));/&\n    if (window.allen) window.allen.send(value);/' "$artifact" > "$work/autosend.js"
     sed 's/speaking = stored();/speaking = true;/' "$artifact" > "$work/speakon.js"
-    for mutant in autosend speakon; do
+    sed 's/reply.transcribe === true/reply.transcribe !== false/' "$artifact" > "$work/presence.js"
+    sed 's/Math.round(s \* 32768)/Math.round(s * 32767)/' "$artifact" > "$work/pcm.js"
+    sed 's/^\( *\)offerBrowser();$/\1mode = browserMode;\n\1startBrowser();/' "$artifact" > "$work/fallback.js"
+    sed 's/const \[local, server\] = await Promise.all/window.navigator.mediaDevices.getUserMedia({ audio: true }); &/' "$artifact" > "$work/earlymic.js"
+    for mutant in autosend speakon presence pcm fallback earlymic; do
         if cmp -s "$artifact" "$work/$mutant.js"; then
             printf 'NEGATIVE CONTROL %s: the mutation did not apply\n' "$mutant" >&2
             exit 8
