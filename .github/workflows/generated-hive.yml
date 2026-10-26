@@ -5,6 +5,7 @@ on:
       - 'om/hive-page/**'
       - 'public/js/hive.js'
       - 'public/js/turing-look.js'
+      - 'public/wasm/**'
       - 'crates/site-builder/**'
       - '.github/workflows/generated-hive.yml'
   push:
@@ -13,6 +14,7 @@ on:
       - 'om/hive-page/**'
       - 'public/js/hive.js'
       - 'public/js/turing-look.js'
+      - 'public/wasm/**'
       - 'crates/site-builder/**'
       - '.github/workflows/generated-hive.yml'
 permissions:
@@ -25,5 +27,5 @@ jobs:
       # These tests only hash committed bytes; never execute the arm64 omc pin.
       - name: Check generated skeleton
         run: cargo test --manifest-path crates/site-builder/Cargo.toml components::hive::tests::the_embedded_skeleton_matches_its_recorded_sha256 -- --exact
-      - name: Check generated browser scripts
+      - name: Check generated browser scripts and wasm
         run: cargo test --manifest-path crates/site-builder/Cargo.toml components::hive::tests::served_scripts_match_their_omega_generated_sha256 -- --exact

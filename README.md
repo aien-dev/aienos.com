@@ -90,6 +90,27 @@ Configuration lives on the hub at `/etc/nginx/sites-available/aienos.com` (edge 
 
 The page and assets are generated normally; `/hive/live.json` is not a build artifact or a GitHub receipt. The separate, explicitly started `hive-feed` collector observes OMP collaboration hosts and their incremental session records. Recognized live process-only workers remain visible with unknown task/activity when no reliable transcript association exists. Coverage is always disclosed as partial; neither a live process nor a fresh snapshot proves productive or successful work.
 
+Hive's browser freshness decision is compiled from `om/hive-page/fresh.om` to
+`public/wasm/hive-fresh.wasm` through the pinned, seeded Omega compiler and
+`irwasm` backend. `sh om/hive-page/check.sh` regenerates the module with the
+other committed artifacts; the existing x86_64 asset-hash test checks its
+`.sha256` without executing arm64 tools. `irwasm.provenance` pins the source,
+compiler and binary. No Node tool is involved in generation.
+
+The browser uses `WebAssembly.instantiateStreaming`, retries with an
+`arrayBuffer` for unsupported MIME/streaming, and explicitly retains the
+previous JavaScript decision if the module cannot load. The page exposes
+`data-fresh-engine="wasm|js"` and `data-fresh-state="0|1|2|3"` for fresh,
+source stale, timestamp moved backwards and fetch interrupted. Backwards
+timestamps take priority over interrupted fetches; equal timestamps are not
+regressions, and age exactly at the supplied stale threshold is not stale.
+The caller still verifies the HTTP source clock separately: wasm is not
+evidence that a browser clock or source timestamp is trusted.
+
+On AArch64, `sh om/hive-page/gate-fresh.sh` compares wasm with native Omega
+drivers over the committed boundary table. Node is solely a read-only wasm
+validation/execution oracle for this gate, not a runtime/build dependency.
+
 ```sh
 cargo test --workspace
 cargo build --release --workspace
