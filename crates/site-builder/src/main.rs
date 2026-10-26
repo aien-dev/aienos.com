@@ -339,8 +339,8 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     println!("  [PAGE] Emitted /glossary/ (index.html)");
 
     let privacy = render_page_layout(
-        "Privacy & saying hello to Allen | AienOS",
-        "Read without tracking. Saying hello to Allen consents to X pixel rfrlz; No refuses it.",
+        "Privacy & saying hi to Allen | AienOS",
+        "Read without tracking. Saying hi to Allen consents to X pixel rfrlz; No thanks refuses it.",
         "https://www.aienos.com/privacy/",
         "website",
         html! {},
