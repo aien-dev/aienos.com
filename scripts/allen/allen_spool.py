@@ -251,3 +251,20 @@ def validate_say(req):
     if not text:
         raise Invalid("text is empty")
     return text
+
+
+def validate_summary(req):
+    """{"summary", "consent"} for POST project-summary: the visitor's own short project summary,
+    text only (no code or file fields), no secrets, emails or phone numbers."""
+    if not isinstance(req, dict) or set(req) - {"summary", "consent"}:
+        raise Invalid("project-summary takes only summary and consent")
+    s = req.get("summary")
+    if not isinstance(s, str):
+        raise Invalid("summary must be text")
+    s = s.strip()
+    if not s or len(s.encode("utf-8")) > 1000:
+        raise Invalid("summary must be 1 to 1000 bytes")
+    _text(s, "summary", 1, 1000)
+    if EMAIL.search(s) or PHONE.search(s):
+        raise Invalid("summary must not contain an email address or a phone number")
+    return s

@@ -156,6 +156,9 @@ data kept, only with consent, as described above.
   `/var/lib/allen-chat/console/presence.json`.
 - Anonymous mode: `X-Allen-Anonymous: 1` means no recall and no notes, whatever
   key is sent, and `introduce` answers 409 `anonymous`.
+- `POST project-summary` {"summary" (at most 1000 bytes of text, no email,
+  phone or secret), "consent": true}, key holders only (409 in anonymous mode):
+  one Cortex note "Project summary: ..." per visitor, replacing the previous one.
 
 ## Dependencies and the Omega path
 

@@ -183,6 +183,29 @@ class Memory:
             for w in rows[CAP:]:
                 self._wipe(vid, w)
 
+    def replace_note(self, vid, prefix, text, max_chars=1100):
+        """Keep exactly one note for vid that starts with `prefix` (e.g. the visitor's project
+        summary): store prefix + text, then wipe the earlier ones. True when stored."""
+        if not self.enabled or not valid_vid(vid) or not isinstance(text, str):
+            return False
+        body = ' '.join((prefix + text).split())[:max_chars].strip()
+        head = prefix.strip()
+        try:
+            with self._lock:
+                rows = self._list(vid)
+                if rows is None:
+                    return False
+                name = 'm-' + secrets.token_hex(16)
+                if not self._put(vid, name, body):
+                    return False
+                for w in rows:
+                    if w['text'].startswith(head):
+                        self._wipe(vid, w)
+                self._trim(vid)
+                return True
+        except Exception:
+            return False
+
     def forget(self, vid):
         """Delete every entry for vid. Returns how many were deleted, only after a re-list shows
         none remain; 0 when nothing was stored or the deletion could not be verified."""

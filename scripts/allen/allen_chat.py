@@ -46,9 +46,9 @@ import http.client
 import json
 import os
 import re
-import resource
 import secrets
 import select
+import selectors
 import signal
 import socket
 import subprocess
@@ -596,34 +596,101 @@ def sha256_file(path):
     return h.hexdigest()
 
 
-def sandbox_limits():
-    os.setsid()
-    resource.setrlimit(resource.RLIMIT_CPU, (4, 5))
-    resource.setrlimit(resource.RLIMIT_AS, (512 << 20, 512 << 20))
-    resource.setrlimit(resource.RLIMIT_FSIZE, (4 << 20, 4 << 20))
-    resource.setrlimit(resource.RLIMIT_NOFILE, (64, 64))
-    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
+PRLIMIT = "/usr/bin/prlimit"
+# CPU 4 s (hard 5), 512 MiB address space, 4 MiB files, 64 fds, no core: set by a fixed prlimit
+# argv in front of bwrap (no preexec_fn in a forked child of this threaded server).
+OMEGA_LIMITS = ("--cpu=4:5", "--as=536870912", "--fsize=4194304", "--nofile=64", "--core=0")
+ERR_CAP = 4096
+
+
+def run_bounded(argv, data, wall_s, out_cap, err_cap):
+    """Run argv with data on stdin; returns (status, stdout, stderr, rc), status "done",
+    "timeout" or "too_large". stdin is written non-blocking alongside the reads, so any input
+    size is fed under the same deadline, which starts before Popen; stdout is capped while it
+    is read and stderr keeps its first err_cap bytes. The process group is always killed and
+    reaped. Ported from allen-science's science_sandbox.run_bounded (ScienceSandbox review)."""
+    deadline = time.monotonic() + wall_s
+    p = subprocess.Popen(argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                         start_new_session=True, close_fds=True)
+    status, out, err = "done", bytearray(), bytearray()
+    view, pos = memoryview(data), 0
+    sel = selectors.DefaultSelector()
+    try:
+        if data:
+            os.set_blocking(p.stdin.fileno(), False)
+            sel.register(p.stdin, selectors.EVENT_WRITE)
+        else:
+            p.stdin.close()
+        sel.register(p.stdout, selectors.EVENT_READ, out)
+        sel.register(p.stderr, selectors.EVENT_READ, err)
+        while sel.get_map():
+            left = deadline - time.monotonic()
+            if left <= 0:
+                status = "timeout"
+                break
+            for key, _ in sel.select(left):
+                if key.fileobj is p.stdin:
+                    try:
+                        pos += os.write(key.fd, view[pos:pos + 65536])
+                    except BlockingIOError:
+                        continue
+                    except BrokenPipeError:
+                        pos = len(view)
+                    if pos >= len(view):
+                        sel.unregister(p.stdin)
+                        p.stdin.close()
+                    continue
+                chunk = os.read(key.fd, 65536)
+                if not chunk:
+                    sel.unregister(key.fileobj)
+                elif key.data is out:
+                    out += chunk
+                    if len(out) > out_cap:
+                        status = "too_large"
+                        break
+                elif len(err) < err_cap:
+                    err += chunk[:err_cap - len(err)]
+            if status != "done":
+                break
+        if status == "done":
+            try:
+                p.wait(max(0.0, deadline - time.monotonic()))
+            except subprocess.TimeoutExpired:
+                status = "timeout"
+    finally:
+        sel.close()
+        if p.poll() is None:
+            # prlimit execs bwrap in place, so p.pid leads the sandbox's session; --die-with-parent
+            # and the pid namespace take everything inside down with it.
+            try:
+                os.killpg(p.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            p.wait()
+        for f in (p.stdin, p.stdout, p.stderr):
+            try:
+                f.close()
+            except OSError:
+                pass
+    return status, bytes(out), bytes(err), p.returncode
 
 
 def sandboxed(tool, data, wall_s, out_cap, args=(), argv0=None):
     """Run one pinned tool under bwrap: no network, no host files, read-only root,
-    a small empty tmpfs, its own pid namespace, no /proc, CPU/memory/file-size limits."""
+    a small empty tmpfs, its own pid namespace, no /proc, CPU/memory/file-size limits.
+    Returns (stdout, stderr, rc); (None, b"timeout", -9) or (None, b"output too large", -1)."""
     argv = [
         BWRAP, "--unshare-all", "--die-with-parent", "--new-session", "--clearenv",
         "--cap-drop", "ALL", "--ro-bind", tool, "/tool", "--size", str(8 << 20), "--tmpfs", "/tmp",
         "--dev", "/dev", "--remount-ro", "/", "--chdir", "/tmp",
     ] + (["--argv0", argv0] if argv0 else []) + ["--", "/tool"] + list(args)
-    p = subprocess.Popen(argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE, preexec_fn=sandbox_limits, close_fds=True)
-    try:
-        out, err = p.communicate(data, timeout=wall_s)
-    except subprocess.TimeoutExpired:
-        os.killpg(p.pid, signal.SIGKILL)
-        p.communicate()
+    status, out, err, rc = run_bounded([PRLIMIT] + list(OMEGA_LIMITS) + ["--"] + argv, data, wall_s,
+                                       out_cap, ERR_CAP)
+    if status == "timeout":
         return None, b"timeout", -9
-    if len(out) > out_cap:
+    if status == "too_large":
         return None, b"output too large", -1
-    return out, err[:4096], p.returncode
+    return out, err, rc
 
 
 def signatures(source):
@@ -692,6 +759,14 @@ class App:
         self.say_rate = Buckets(10, 6)
         self.session_rate = Buckets(10, 30)
         self.live = Live()
+        # Volunteer overflow (OHCompute), off unless OH_VOLUNTEER_ROUTING=1 in the environment.
+        # OH_COORDINATOR=http://host:port (default the hub's coordinator, 100.64.0.3:18137).
+        coord = urlsplit(os.environ.get("OH_COORDINATOR", "http://100.64.0.3:18137").strip())
+        self.volunteer = None
+        if os.environ.get("OH_VOLUNTEER_ROUTING", "").strip() == "1":
+            if coord.scheme != "http" or not coord.hostname or not coord.port or coord.path not in ("", "/"):
+                sys.exit("allen-chat: OH_COORDINATOR must be http://host:port")
+            self.volunteer = (coord.hostname, coord.port)
         self.presence = Presence(args.console_state)
         self.console = None
         if args.console_listen:
@@ -1062,6 +1137,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.handoff()
         if r == "say":
             return self.say()
+        if r == "project-summary":
+            return self.project_summary()
         self.send_json(404, {"error": "not_found"})
 
     def validate(self, req):
@@ -1128,6 +1205,8 @@ class Handler(BaseHTTPRequestHandler):
         retry = app.chat_rate.take(app.client_key(self))
         if retry:
             return self.refuse(429, "rate", "You are sending messages quickly. Try again shortly.", retry)
+        if app.volunteer and self.volunteer_wanted() and self.volunteer(req["messages"]):
+            return
         ticket = app.gate.enter()
         if ticket is None:
             return self.refuse(503, "busy", "Allen has a full queue right now. Try again shortly.", 10)
@@ -1166,6 +1245,111 @@ class Handler(BaseHTTPRequestHandler):
                 app.gate.done()
             else:
                 app.gate.leave_queue(ticket)
+
+    def volunteer_wanted(self):
+        """Overflow to a volunteer only when the flag is on (app.volunteer), every public slot
+        is taken, the visitor is anonymous (no X-Allen-Key at all) and ticked the volunteer
+        box on this request (X-Allen-Volunteer: 1). Headers only; model output cannot set it."""
+        if self.headers.get("X-Allen-Volunteer", "").strip() != "1" or "X-Allen-Key" in self.headers:
+            return False
+        with self.app.gate.cond:
+            return self.app.gate.running >= self.app.gate.cap
+
+    def volunteer(self, messages):
+        """Send this turn to a volunteer's Spark through the hub's overflow endpoint (OHCompute
+        contract): only Host, Content-Type and Content-Length go out, the body carries only the
+        visitor's user/assistant messages. Returns False (the normal queue then answers) when
+        the overflow is unreachable or not 200; True once it has answered the visitor."""
+        app = self.app
+        host, port = app.volunteer
+        body = json.dumps({"volunteer_consent": True, "max_tokens": app.args.max_tokens,
+                           "messages": [{"role": m["role"], "content": m["content"]} for m in messages]}).encode()
+        t0 = time.monotonic()
+        c = http.client.HTTPConnection(host, port, timeout=5)
+        try:
+            c.connect()
+            c.sock.settimeout(60)
+            c.putrequest("POST", "/v1/overflow", skip_accept_encoding=True)
+            c.putheader("Content-Type", "application/json")
+            c.putheader("Content-Length", str(len(body)))
+            c.endheaders(body)
+            r = c.getresponse()
+        except (OSError, http.client.HTTPException):
+            c.close()
+            app.stats.add("volunteer_unreachable")
+            return False
+        if r.status != 200:
+            c.close()
+            app.stats.add("volunteer_status_%d" % r.status)
+            return False
+        app.stats.add("volunteer_requests")
+
+        def label(v):
+            return v if isinstance(v, str) and len(v) <= 80 and v.isprintable() else ""
+
+        def count(v):
+            return v if isinstance(v, int) and 0 <= v < 1 << 31 else 0
+        try:
+            self.sse_headers()
+            self.sse("start", {"model": "volunteer", "queued_ms": 0, "remembered": False, "volunteer": True})
+            first, n, oh, usage, finish = None, 0, {}, {}, None
+            try:
+                while True:
+                    if time.monotonic() - t0 > 300:
+                        raise TimeoutError
+                    line = r.readline(1 << 20)
+                    if not line:
+                        break
+                    if not line.startswith(b"data: "):
+                        continue
+                    payload = line[6:].strip()
+                    if payload == b"[DONE]":
+                        break
+                    chunk = json.loads(payload)
+                    if not isinstance(chunk, dict):
+                        continue
+                    if "error" in chunk:  # the coordinator ends this reply mid-stream
+                        app.stats.add("volunteer_stream_error")
+                        self.sse("error", {"code": "upstream", "message": "The volunteer could not finish. Try again."})
+                        return True
+                    oh = chunk["oh"] if isinstance(chunk.get("oh"), dict) else oh
+                    usage = chunk["usage"] if isinstance(chunk.get("usage"), dict) else usage
+                    for ch in chunk.get("choices") or ():
+                        if not isinstance(ch, dict):
+                            continue
+                        finish = label(ch.get("finish_reason")) or finish
+                        text = (ch.get("delta") or {}).get("content") if isinstance(ch.get("delta"), dict) else None
+                        if not isinstance(text, str):
+                            continue
+                        if text and first is None:
+                            first = time.monotonic()
+                        n += 1 if text else 0
+                        self.sse(None, text)
+            except (socket.timeout, TimeoutError):
+                app.stats.add("volunteer_timeout")
+                self.sse("error", {"code": "timeout", "message": "The volunteer stopped answering. Try again."})
+                return True
+            except (ValueError, http.client.HTTPException):
+                app.stats.add("volunteer_error")
+                self.sse("error", {"code": "upstream", "message": "The volunteer could not answer. Try again."})
+                return True
+            model = label(r.getheader("X-OH-Model")) or label(oh.get("model")) or "unknown model"
+            app.stats.add("volunteer_completed")
+            self.sse("done", {
+                "prompt_tokens": count(usage.get("prompt_tokens")),
+                "completion_tokens": count(usage.get("completion_tokens")) or n,
+                "finish": finish or "stop",
+                "upstream_ttft_ms": int(((first or time.monotonic()) - t0) * 1000),
+                "upstream_ms": int((time.monotonic() - t0) * 1000),
+                "volunteer": label(r.getheader("X-OH-Volunteer")) or label(oh.get("volunteer")),
+                "model_digest": label(r.getheader("X-OH-Model-Digest")),
+                "answered_by": "answered by a volunteer's Spark (%s)" % model,
+            })
+        except (BrokenPipeError, ConnectionResetError):
+            app.stats.add("client_gone")
+        finally:
+            c.close()
+        return True
 
     def relay(self, messages, notes, variant):
         app = self.app
@@ -1398,6 +1582,37 @@ class Handler(BaseHTTPRequestHandler):
         if vid:
             out["key"] = key
         self.send_json(200, out)
+
+    def project_summary(self):
+        """The visitor's own project summary, sent only by a separate Sync click after a
+        preview: one replacing Cortex note per key holder. Anonymous mode refuses."""
+        app = self.app
+        if anonymous(self):
+            return self.send_json(409, {"error": "anonymous", "message": "Anonymous mode is on, so nothing "
+                                        "was stored."})
+        vid = app.vid(self)
+        if vid is None:
+            return self.send_json(400, {"error": "bad_request", "message": "Send your Allen key in X-Allen-Key."})
+        req = self.read_json()
+        if req is None:
+            return
+        if not isinstance(req, dict) or req.get("consent") is not True:
+            return self.send_json(400, {"error": "consent_required",
+                                        "message": "Nothing was stored. Send consent: true to sync the summary."})
+        try:
+            summary = allen_spool.validate_summary(req)
+        except allen_spool.Invalid as e:
+            return self.send_json(422, {"error": "invalid", "message": str(e)})
+        retry = app.intro_rate.take(app.client_key(self))
+        if retry:
+            return self.refuse(429, "rate", "Too many requests. Try again shortly.", retry)
+        if not (app.memory and app.memory.replace_note(vid, "Project summary: ", summary)):
+            return self.refuse(503, "unavailable", "Allen's memory is not available right now.", 60)
+        with app.recall_lock:  # the next conversation recalls the new summary
+            for k in [k for k in app.recalled if k[0] == vid]:
+                del app.recalled[k]
+        app.stats.add("project_summary")
+        self.send_json(200, {"stored": True})
 
     def forget_me(self):
         """Delete everything kept about the key holder: notes and introduction."""
