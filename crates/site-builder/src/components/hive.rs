@@ -68,6 +68,30 @@ mod tests {
     }
 
     #[test]
+    fn served_scripts_match_their_omega_generated_sha256() {
+        for (name, script, recorded) in [
+            (
+                "hive.js",
+                include_bytes!("../../../../public/js/hive.js").as_slice(),
+                include_str!("../../../../om/hive-page/hive.js.sha256"),
+            ),
+            (
+                "turing-look.js",
+                include_bytes!("../../../../public/js/turing-look.js").as_slice(),
+                include_str!("../../../../om/hive-page/turing-look.js.sha256"),
+            ),
+        ] {
+            let want = recorded.split_whitespace().next().expect("script digest");
+            assert_eq!(want.len(), 64, "{name} must have a sha256 digest");
+            let got = format!("{:x}", Sha256::digest(script));
+            assert_eq!(
+                got, want,
+                "{name} is generated, never hand-edited; run: sh om/hive-page/check.sh"
+            );
+        }
+    }
+
+    #[test]
     fn the_skeleton_declares_collapsible_branches() {
         for (template, kind) in [("hive-tpl-row", "root"), ("hive-tpl-child", "nested")] {
             let at = SKELETON
