@@ -1,6 +1,6 @@
 #!/bin/sh
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-# AienOS alpha bootstrap: curl -fsSL https://aienos.com/install.sh | sh
+# Sovereign Intelligence (AienOS alpha) bootstrap: curl -fsSL https://aienos.com/install.sh | sh
 #
 # This is the only part of AienOS that is not written in Omega. It is a host dependency, kept
 # small on purpose: it checks the platform, downloads one release, checks its Ed25519 signature
@@ -19,7 +19,7 @@
 set -eu
 
 TAG=alpha-20261026.1
-REPO=aien-dev/AienOS-nv
+REPO=aien-dev/sovereign-intelligence
 BUNDLE=aienos-$TAG-linux-arm64.tar.gz
 # An explicit tag and asset names, never "latest": this script installs exactly this release.
 BASE_URL=${AIENOS_BASE_URL:-https://github.com/$REPO/releases/download/$TAG}
@@ -78,7 +78,7 @@ fetch() {
 }
 
 # 3. Download, then check the signature and the checksum before unpacking anything.
-say "Downloading AienOS $TAG ..."
+say "Downloading Sovereign Intelligence $TAG ..."
 fetch SHA256SUMS
 fetch SHA256SUMS.sig
 fetch "$BUNDLE"
@@ -118,7 +118,7 @@ dest=$base/releases/$TAG
 if [ -f "$dest/.bundle-sha256" ] && [ "$(cat "$dest/.bundle-sha256")" = "$have" ] \
         && (cd "$dest" && sha256sum --quiet -c SHA256SUMS >/dev/null 2>&1); then
     rm -rf "$stage"
-    say "AienOS $TAG is already installed and intact."
+    say "Sovereign Intelligence $TAG is already installed and intact."
 else
     if [ -e "$dest" ]; then
         rm -rf "$dest.old"
@@ -166,7 +166,7 @@ if [ "$desk" != "$HOME" ] && [ -d "$desk" ]; then
 fi
 mv "$list.new" "$list"
 
-say "Installed AienOS $TAG in $base"
+say "Installed Sovereign Intelligence $TAG in $base"
 say "Remove it at any time with: aienos uninstall"
 case ":$PATH:" in
     *":$HOME/.local/bin:"*) cmd=aienos ;;
@@ -182,4 +182,4 @@ if [ "${AIENOS_NO_WIZARD:-0}" != 1 ] && [ -t 1 ] && { : < /dev/tty; } 2>/dev/nul
             exec "$base/current/bin/aienos" wizard < /dev/tty ;;
     esac
 fi
-say "Start the wizard with: $cmd   (or double-click AienOS on your desktop)"
+say "Start the wizard with: $cmd   (or double-click Sovereign Intelligence on your desktop)"
