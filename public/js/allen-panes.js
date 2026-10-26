@@ -48,6 +48,7 @@
   const STEP = 16;
   const BIG_STEP = 64;
   const MAX_NAME = 80;
+  const ACADEMY = 'https://github.com/aien-dev/sovereign-intelligence/blob/main/docs/academy/README.md';
   const SVG_NS = 'http://www.w3.org/2000/svg';
   const MATH_NS = 'http://www.w3.org/1998/Math/MathML';
   const NAMES = { math: 'Math', plot: 'Plot', doc: 'Document', code: 'Code', app: 'App', research: 'Research', data: 'Data', omega: 'Omega', card: 'Aien', projects: 'Projects' };
@@ -1755,7 +1756,9 @@
       });
       const tools = el('div', 'allen-pane-bar');
       tools.append(exporter);
-      body.append(el('p', 'allen-pane-note', 'Nothing is stored until you press Save project. A project keeps the open panes, their provenance and where they sit, in this browser only. Conversations are not part of a project.'), form, status, section('Saved in this browser'), saved, fileLabel, picker, tools);
+      const academy = el('p', 'allen-pane-note allen-projects-academy');
+      academy.append(link('Train your agent', ACADEMY));
+      body.append(el('p', 'allen-pane-note', 'Nothing is stored until you press Save project. A project keeps the open panes, their provenance and where they sit, in this browser only. Conversations are not part of a project.'), form, status, section('Saved in this browser'), saved, fileLabel, picker, tools, academy);
       if (typeof opts.syncSummary === 'function') body.append(summaryBox(show));
       rec.projects = { saved, show };
       refreshProjects(rec);
