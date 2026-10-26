@@ -155,8 +155,27 @@ mod tests {
         // The page UI binds on allen-ready, sent once window.allen exists.
         let api = script.find("  window.allen = Object.freeze({").unwrap();
         assert!(script.find("document.dispatchEvent(new Event('allen-ready'));").unwrap() > api);
-        // The gateway is same origin unless a loopback base is configured.
-        assert!(script.contains(r"const API = /^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d{1,5})?$/.test(configured) ? configured : '';"));
+    }
+
+    #[test]
+    fn the_page_only_calls_its_own_gateway() {
+        // Every request goes to a same-origin /allen/api/ route constant; no
+        // configurable base, no other origin, no other transport.
+        let script = include_str!("../../../../public/js/allen.js");
+        let routes = ["CHAT", "OMEGA", "SUBMIT", "STATUS", "INTRODUCE", "FORGET", "FORGET_ME", "RELAY", "PRESENCE", "HANDOFF", "SESSION", "SAY"];
+        for name in routes {
+            let decl = format!("  const {name} = '/allen/api/");
+            assert_eq!(script.matches(&decl).count(), 1, "{name} must be one same-origin /allen/api/ path");
+        }
+        let calls: Vec<&str> = script.match_indices("fetch(").map(|(i, _)| &script[i + 6..]).collect();
+        assert!(!calls.is_empty());
+        for call in calls {
+            let target: String = call.chars().take_while(|c| c.is_ascii_uppercase() || *c == '_').collect();
+            assert!(routes.contains(&target.as_str()), "fetch must take a route constant: fetch({})", &call[..call.len().min(40)]);
+        }
+        for banned in ["allenConfig", "XMLHttpRequest", "WebSocket", "EventSource", "sendBeacon", "importScripts", "fetch('", "fetch(`", "fetch(\""] {
+            assert!(!script.contains(banned), "allen.js must not use {banned}");
+        }
     }
 
     #[test]

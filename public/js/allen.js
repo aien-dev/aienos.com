@@ -20,33 +20,30 @@
   const newButton = byId('allen-new');
   const examples = byId('allen-examples');
   const speed = { model: byId('allen-model'), queue: byId('allen-queue'), ttft: byId('allen-ttft'), first: byId('allen-first'), rate: byId('allen-rate'), tokens: byId('allen-tokens'), server: byId('allen-server') };
-  /* One switch for where the gateway lives: same origin by default, or a
-     loopback origin for a local Spark, set before this script in
-     window.allenConfig.apiBase. Anything else is ignored. */
-  const configured = window.allenConfig && typeof window.allenConfig.apiBase === 'string' ? window.allenConfig.apiBase : '';
-  const API = /^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d{1,5})?$/.test(configured) ? configured : '';
-  const CHAT = API + '/allen/api/chat';
-  const OMEGA = API + '/allen/api/omega';
+  /* The gateway is always same origin, under /allen/api/; local development
+     serves the page and proxies the API on one origin (dev_proxy.py). */
+  const CHAT = '/allen/api/chat';
+  const OMEGA = '/allen/api/omega';
   const LIMIT = { count: 24, each: 4000, total: 16000, source: 16384 };
   const CSP = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; form-action 'none'; base-uri 'none'";
   const SANDBOX = 'allow-scripts';
   const CALL_MS = 3000;
-  const SUBMIT = API + '/allen/api/submit';
-  const STATUS = API + '/allen/api/status/';
-  const INTRODUCE = API + '/allen/api/introduce';
-  const FORGET = API + '/allen/api/forget';
+  const SUBMIT = '/allen/api/submit';
+  const STATUS = '/allen/api/status/';
+  const INTRODUCE = '/allen/api/introduce';
+  const FORGET = '/allen/api/forget';
   const PRIVACY_MAIL = 'aien@aienos.com';
   const POLL_MS = 3000;
   const POLL_LIMIT = 120000;
   const REVIEW_HOST = 'aien-dev.github.io/omega-projects/projects/';
-  const FORGET_ME = API + '/allen/api/forget-me';
+  const FORGET_ME = '/allen/api/forget-me';
   const KEY_NAME = 'allen.key';
   const KEY_PATTERN = /^[0-9a-f]{32}$/;
-  const RELAY = API + '/allen/api/relay';
-  const PRESENCE = API + '/allen/api/presence';
-  const HANDOFF = API + '/allen/api/handoff';
-  const SESSION = API + '/allen/api/session';
-  const SAY = API + '/allen/api/say';
+  const RELAY = '/allen/api/relay';
+  const PRESENCE = '/allen/api/presence';
+  const HANDOFF = '/allen/api/handoff';
+  const SESSION = '/allen/api/session';
+  const SAY = '/allen/api/say';
   const PRESENCE_MS = 60000;
   /* Drake's greetings, byte for byte the gateway's opening for each kind of
      start, and the line a returning visitor's page sends first. */
