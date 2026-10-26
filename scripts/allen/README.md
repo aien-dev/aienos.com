@@ -160,6 +160,31 @@ data kept, only with consent, as described above.
   phone or secret), "consent": true}, key holders only (409 in anonymous mode):
   one Cortex note "Project summary: ..." per visitor, replacing the previous one.
 
+## Push-to-talk (`POST transcribe`)
+
+The page posts one raw clip (no JSON, no base64) with `Content-Type`
+`audio/webm` or `audio/ogg` (Opus) or `audio/wav` (16-bit PCM, mono or stereo,
+8-48 kHz). Limits: 1 MiB, 15 s of audio (longer clips are refused with 413,
+never cut), 0.3 s minimum, the chat route's per-address bucket (own bucket;
+hub zone `allen_voice`, 6/min burst 4), one transcription at a time (503
+`busy`, `Retry-After: 2`). Reply: `200 {"text","ms","seconds","model"}`;
+refusals `{"error","message"}`: 411 `length`, 413 `too_long`, 400 empty, 415
+`format` (wrong type, or bytes that do not match it), 422 `audio` (undecodable,
+not Opus, not 16-bit PCM, too short), 429 `rate`, 503 `busy`.
+
+The body is read into one buffer in memory. WebM/Ogg goes through ffmpeg
+(forced demuxer, native Opus decoder, `pipe:` only) in a bwrap sandbox that sees
+read-only `/usr` and the loader files and nothing else; the PCM then goes over
+a pipe to the pinned static `whisper-cli` in a second sandbox that sees only
+itself and the pinned model. Both run with `RLIMIT_FSIZE` 0, so neither can
+write a file; no audio file exists at any point (`test_transcribe.py` traces
+every open with strace and fails on any write outside bwrap's own namespace
+setup; a mutant that writes the clip to disk is caught). The gateway zeroes its
+buffers after use; the immutable copy that `subprocess` returns for ffmpeg's
+output is dropped by reference. The transcript is returned, never logged.
+Without `--whisper-cli` the route is 404; with it, the gateway refuses to start
+unless whisper-cli and the model match their pins and both sandboxes run.
+
 ## Dependencies and the Omega path
 
 Omega has no HTTP, TLS or socket words yet, so this gateway is host code, like
@@ -218,6 +243,9 @@ python3 scripts/allen/test_gateway.py --omc om/hive-page/omc --irwasm om/hive-pa
 python3 scripts/allen/probe.py                     # run inside the unit's properties (systemd-run) and outside
 python3 scripts/allen/relay/test_relay_mailer.py      # relay mailer against a loopback SMTP stub, each with a control
 python3 scripts/allen/test_reaching_drake_prod.py  # production: console reachability, one real TEST relay email, live takeover
+python3 scripts/allen/test_transcribe.py --omc om/hive-page/omc --irwasm om/hive-page/irwasm \
+    --system-prompt scripts/allen/system-prompt.txt --whisper-cli /opt/allen-chat/whisper-cli \
+    --whisper-model /opt/allen-chat/ggml-base.en.bin --sample jfk.wav  # push-to-talk: formats, caps, 429/503, no file, latency
 ```
 
 `test_gateway.py` starts throwaway loopback gateways (never the production
