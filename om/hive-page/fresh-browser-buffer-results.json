@@ -1,0 +1,10 @@
+{
+  "fixture": "incorrect wasm MIME forces arrayBuffer fallback; module still executes",
+  "wasmBoundaries": {
+    "at": 0,
+    "past": 1,
+    "equal": 0,
+    "back": 2,
+    "engine": "wasm"
+  }
+}

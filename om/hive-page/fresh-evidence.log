@@ -1,0 +1,63 @@
+Freshness wasm integration, host/browser exercise 2026-10-26.
+Implementation source: 85062b8a4eacd115d15cf3532aa05ede1c306218.
+Later commits 59dda42 and 014f4ca refresh crumbs only.
+Base: f31f6df, origin/feat/hive-js-from-omega (draft #105).
+No merge, deployment, GPU or live service action.
+
+Generation remains entirely seeded Omega:
+  nice -n 19 om/hive-page/omc < omega-mv/seed/wasm/irwasm.om > irwasm
+  source omega-mv a84f1e80020dede868b103605484529a9395ad69 (draft #787)
+  compile exit 0; binary identical to upstream seeded compiler output.
+  No omc pin bump required. Detailed provenance: irwasm.provenance.
+  Existing compiler sha256 734f0a39319fbfa930bcc62cb30dbf06d47d78e126372b74f5baf478e6126b61
+  Backend sha256 2d235a70c39ac1461a09c41e10e058d962b767ae83893cdcfc693ef6c47182e6
+  Wasm sha256 af9e1fb0d9e736949b2aa83c0bf978ac2d98f37428a8507176abaa1dd50b777b
+  Wasm size 336 bytes.
+
+EXERCISED commands:
+  OMEGA_ACCEPT_CHANGE=1 nice -n 19 sh om/hive-page/check.sh
+  nice -n 19 sh om/hive-page/check.sh
+  Both exit 0; generator itself runs every output twice and requires byte identity.
+  nice -n 19 sh om/hive-page/gate-fresh.sh
+  Exit 0; fresh-gate.log: PASS freshness native/wasm boundary cases=10; all four states
+  Native drivers execute fresh.om, not a host reimplementation. Node v24.21.0
+  only validates/executes the produced wasm as a read-only oracle.
+  nice -n 19 cargo test -j2 --manifest-path crates/site-builder/Cargo.toml
+  Exit 0; fresh-site-tests.log: 168 passed; 0 failed; 0 ignored.
+  python3 scripts/test-hive-cosmic.py
+  Exit 0; fresh-cosmic.log: Ran 12 tests; OK.
+  nice -n 19 cargo run -j2 --manifest-path crates/site-builder/Cargo.toml -- build dist
+  Exit 0 with documented data/now files temporarily laid into public/data as pages.yml does;
+  original files restored after build. fresh-site-build.log: Integrity & Unslop Invariants: PASS.
+  Initial build without those inputs failed on absent /data/accounts.tsv; this was
+  missing build preparation, not reported as a completed build. Existing HIVE_CSS warning remains.
+
+Negative control:
+  Preserve original public/wasm/hive-fresh.wasm, replace only its magic byte at offset 0 with 1.
+  cargo test -j2 --manifest-path crates/site-builder/Cargo.toml served_scripts_match_their_omega_generated_sha256
+  Exit 101; fresh-hash-negative.log names hive-fresh.wasm and mismatched hashes.
+  Original bytes restored immediately. Final site suite subsequently passes.
+  CI still runs hash-only tests on x86_64; wasm paths now trigger the existing workflow.
+
+Browser, real headless Chromium, standalone generated /hive/ from source above:
+  Preview built dist on local port 33247. Synthetic acceptance JSON feed, explicitly
+  labelled not production telemetry; installed fresh-browser-fixture.js as init script.
+  fresh-browser-results.json contains actual four poll-derived states and labels:
+    fresh 0, source stale 1, backwards 2, fetch aborted 3: every engine=wasm.
+    Each nonfresh state is data-fresh=false and retains the previous observation.
+  One-byte corrupt wasm response gives engine=js, state=0, correct fresh label.
+  Wrong wasm MIME forces instantiateStreaming failure and arrayBuffer fallback;
+  fresh-browser-buffer-results.json shows engine=wasm, equality=0,
+  fractional past-threshold=1, equal timestamps=0, backwards+fetch failure=2.
+
+Integrated EdgeRender client also exercised at its reported ad1cd71 preview on port33239:
+  fresh-edge-browser-fixture.js preserves its rendered board DOM, substitutes only
+  generated timestamp/server Date/failure controls. Not production telemetry.
+  fresh-edge-browser-results.json records all four actual poll states with engine=wasm
+  and corrupt-wasm fallback engine=js. No files in EdgeRender's worktree were edited.
+
+Boundary constants checked via WolframLanguageEvaluator:
+  {1000-1,1000,1000+1,2000-1,Ceiling[1000.01]} -> {999,1000,1001,1999,1001}
+  180000-2000 > 120000 -> True (synthetic stale fixture).
+
+NOT_RUN: deployment, production-browser check, GPU/Alpha qualification, merge.

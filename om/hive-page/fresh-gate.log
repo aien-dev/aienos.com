@@ -1,0 +1,10 @@
+main.html 46109 bytes sha256 80a036bc7591b53ba64a1e3313959d00c82242b08dc2b1ad312cf268abe35050
+../../public/js/hive.js 32891 bytes sha256 c3324b0f120fb61ad659f7ee52226443cd6200fa275895eea3eb5592a0cfa0aa
+../../public/js/turing-look.js 2938 bytes sha256 e5a9df9cc92cd5f77edc2efc7b12c6a2e94f12698624f27d88f162972c8e068b
+../../public/wasm/hive-fresh.wasm 336 bytes sha256 af9e1fb0d9e736949b2aa83c0bf978ac2d98f37428a8507176abaa1dd50b777b
+irwasm sha256 2d235a70c39ac1461a09c41e10e058d962b767ae83893cdcfc693ef6c47182e6
+omc sha256 734f0a39319fbfa930bcc62cb30dbf06d47d78e126372b74f5baf478e6126b61
+PASS freshness native/wasm boundary cases=10; all four states
+5989611014825711faec447335b1b6d15ae01c651e3f89abbeda8111461a9986  om/hive-page/fresh.om
+af9e1fb0d9e736949b2aa83c0bf978ac2d98f37428a8507176abaa1dd50b777b  public/wasm/hive-fresh.wasm
+2d235a70c39ac1461a09c41e10e058d962b767ae83893cdcfc693ef6c47182e6  om/hive-page/irwasm

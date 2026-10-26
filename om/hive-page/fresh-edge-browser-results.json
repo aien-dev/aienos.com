@@ -1,0 +1,40 @@
+{
+  "source": "EdgeRender ad1cd71 integrated preview, synthetic acceptance board not production telemetry",
+  "results": [
+    {
+      "case": "fresh",
+      "engine": "wasm",
+      "state": "0",
+      "fresh": "true",
+      "label": "Receiving source observations"
+    },
+    {
+      "case": "backwards",
+      "engine": "wasm",
+      "state": "2",
+      "fresh": "false",
+      "label": "Snapshot timestamp moved backwards; last observation retained"
+    },
+    {
+      "case": "abort",
+      "engine": "wasm",
+      "state": "3",
+      "fresh": "false",
+      "label": "Connection interrupted; last snapshot retained"
+    },
+    {
+      "case": "stale",
+      "engine": "wasm",
+      "state": "1",
+      "fresh": "false",
+      "label": "Source stale; last observation retained"
+    },
+    {
+      "case": "one-byte-corruption",
+      "engine": "js",
+      "state": "0",
+      "fresh": "true",
+      "label": "Receiving source observations"
+    }
+  ]
+}

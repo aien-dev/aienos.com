@@ -1,0 +1,24 @@
+   Compiling site-builder v0.1.0 (/tmp/hive-wasm/crates/site-builder)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.84s
+     Running unittests src/main.rs (target/debug/deps/site_builder-2fef39780c42351d)
+
+running 1 test
+test components::hive::tests::served_scripts_match_their_omega_generated_sha256 ... FAILED
+
+failures:
+
+---- components::hive::tests::served_scripts_match_their_omega_generated_sha256 stdout ----
+
+thread 'components::hive::tests::served_scripts_match_their_omega_generated_sha256' (343324) panicked at crates/site-builder/src/components/hive.rs:92:13:
+assertion `left == right` failed: hive-fresh.wasm is generated, never hand-edited; run: sh om/hive-page/check.sh
+  left: "02b9e535a7121ba618598a12a2c632d79aba5f4273aef80d931481d2cd92ac6a"
+ right: "af9e1fb0d9e736949b2aa83c0bf978ac2d98f37428a8507176abaa1dd50b777b"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    components::hive::tests::served_scripts_match_their_omega_generated_sha256
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 167 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--bin site-builder`
