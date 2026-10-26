@@ -1536,118 +1536,91 @@ p {
 }
 
 /* ==========================================================================
-   NARR-NAV: six-section footer and section hub pages
-   (/experiments/, /evidence/, /philosophy/). Self-contained block; the
-   header nav itself lives in /assets/site-nav.css so hand-written pages
-   that do not load this file can share it.
+   NARR-NAV: the footer and section hub pages (/experiments/, /evidence/,
+   /philosophy/). The header nav itself lives in /assets/site-nav.css so
+   hand-written pages that do not load this file can share it.
    ========================================================================== */
 
+/* The footer is two quiet rows: brand and a handful of links, then the
+   contact line and the licence. The six sections live in the header and
+   everything else is in the site map. */
 .aien-footer {
   border-top: 1px solid var(--border-subtle);
   background: var(--bg-base);
-  padding: 48px 0 32px;
+  padding: 32px 0 28px;
   font-size: 13px;
   color: var(--text-muted);
 }
 
-.aien-footer-top {
-  display: grid;
-  grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
-  gap: 40px;
-  margin-bottom: 40px;
+.aien-footer-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 32px;
 }
 
 .aien-footer-brand {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 12px;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 15px;
   color: var(--text-primary);
 }
 
-.aien-footer-about p {
-  line-height: 1.6;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-/* For machines: the data index, llms.txt and the feeds, one line under the blurb. */
-.aien-footer-machines {
-  margin-top: 12px !important;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.aien-footer-machines a {
-  color: var(--text-secondary);
-}
-
-.aien-footer-machines a:hover {
-  color: var(--text-primary);
-}
-
-.aien-footer-sections {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 28px 24px;
-}
-
-.aien-footer-heading {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-primary);
-  margin: 0 0 12px;
-}
-
-.aien-footer-group ul {
+.aien-footer-links ul {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 8px 24px;
 }
 
-.aien-footer-group a {
+.aien-footer-links a {
   color: var(--text-secondary);
   transition: color 0.15s ease;
 }
 
-.aien-footer-group a:hover {
+.aien-footer-links a:hover {
   color: var(--text-primary);
 }
 
-.aien-footer-more .aien-footer-heading {
-  color: var(--text-muted);
+.aien-footer-legal {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px 32px;
+  font-size: 12px;
+  line-height: 1.6;
 }
 
-.aien-footer-legal {
-  border-top: 1px solid var(--border-subtle);
-  padding-top: 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  font-family: var(--font-mono);
-  font-size: 11px;
+.aien-footer-legal p {
+  margin: 0;
 }
 
 .aien-footer-legal a {
   color: var(--text-secondary);
-  text-decoration: underline;
 }
 
-.aien-footer-mottos {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
+.aien-footer-legal a:hover {
+  color: var(--text-primary);
+}
+
+/* The contact line is one row here; its heading repeats "Contact" above. */
+.aien-footer .aien-reach-foot {
+  margin-top: 0;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.aien-footer .aien-reach-title {
+  display: none;
 }
 
 /* Hub pages: one centered reading column, generous whitespace. */
@@ -2010,10 +1983,6 @@ p {
 }
 
 @media (max-width: 720px) {
-  .aien-footer-top {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   .hub-wrap {
     padding-top: 40px;
     padding-bottom: 64px;

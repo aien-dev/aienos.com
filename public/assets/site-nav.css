@@ -37,6 +37,7 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 24px;
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -91,6 +92,15 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 20px;
+  width: 100%;
+}
+
+/* Support: one small, quiet link in the top-right corner of every header,
+   level with the brand (components/support.rs adds it; support.om styles it). */
+.aien-header .aien-support-button {
+  position: absolute;
+  top: 6px;
+  right: 24px;
 }
 
 .aien-nav ul {
@@ -162,16 +172,13 @@
   }
 }
 
-/* Narrow screens: brand on its own row, sections wrap below it. */
-@media (max-width: 1099px) {
-  .aien-nav {
-    width: 100%;
-  }
-}
-
 @media (max-width: 600px) {
   .aien-header-inner {
     padding: 0 16px;
+  }
+
+  .aien-header .aien-support-button {
+    right: 16px;
   }
 
   .aien-nav-primary {
