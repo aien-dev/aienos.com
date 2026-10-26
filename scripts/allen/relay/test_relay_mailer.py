@@ -127,11 +127,12 @@ def main():
               and m["to"] == ["<drake@aienos.com>"] and m["from"] == "<aien@aienos.com>",
               "rc %d, %d mails, rcpt %s" % (rc, len(smtp.mail), m["to"]))
         subj = str(email.message_from_string(body, policy=email.policy.default)["Subject"]).strip()
-        check("subject is 'Allen relay: <first 60 chars>'",
-              subj == "Allen relay: Hello Drake. I am building a kelp boat in Omega and want to", subj)
+        check("subject is 'Aien relay: <first 60 chars>', From display name 'Aien relay'",
+              subj == "Aien relay: Hello Drake. I am building a kelp boat in Omega and want to"
+              and "From: Aien relay <aien@aienos.com>" in body and "Allen" not in body and "AIEN" not in body, subj)
         check("body carries message, name, contact, transcript, conversation and console link",
               all(x in body for x in ("I am building a kelp boat", "Name: Test Visitor", "Contact: test@example.org",
-                                      "Visitor: hi", "Allen: hello", "Conversation: 0123456789abcdef",
+                                      "Visitor: hi", "Aien: hello", "asked Aien to pass this on", "Conversation: 0123456789abcdef",
                                       "http://100.64.0.2:18112/session/0123456789abcdef", "Relay id: r_" + a)),
               "%d bytes" % len(body))
         check("items with a recipient field or a secret are rejected, not sent", not os.listdir(d)

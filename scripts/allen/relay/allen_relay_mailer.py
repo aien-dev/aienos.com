@@ -76,14 +76,14 @@ def compose(rec):
     """The email for one validated relay record."""
     msg = EmailMessage()
     first = one_line(rec["message"])
-    msg["Subject"] = "Allen relay: " + first[:60].rstrip()
-    msg["From"] = "Allen relay <%s>" % SENDER
+    msg["Subject"] = "Aien relay: " + first[:60].rstrip()
+    msg["From"] = "Aien relay <%s>" % SENDER
     msg["To"] = RECIPIENT
     msg["Date"] = formatdate(usegmt=True)
     msg["Message-ID"] = "<allen-relay-%s@aienos.com>" % rec["id"][2:]
     msg["Auto-Submitted"] = "auto-generated"
     conv = rec["conv"]
-    lines = ["A visitor of www.aienos.com/allen/ asked Allen to pass this on to you.", "",
+    lines = ["A visitor of www.aienos.com/allen/ asked Aien to pass this on to you.", "",
              "Message:", rec["message"], ""]
     lines.append("Name: " + (rec["name"] or "(not given)"))
     lines.append("Contact: " + (rec["contact"] or "(not given)"))
@@ -93,11 +93,11 @@ def compose(rec):
     if rec["transcript"]:
         lines.append("Transcript (the visitor chose to include it):")
         for m in rec["transcript"]:
-            lines.append("%s: %s" % ("Visitor" if m["role"] == "user" else "Allen", m["content"]))
+            lines.append("%s: %s" % ("Visitor" if m["role"] == "user" else "Aien", m["content"]))
         lines.append("")
     else:
         lines += ["The visitor did not include the conversation.", ""]
-    lines.append("Replies to this email go to the AIEN mailbox, not to the visitor. "
+    lines.append("Replies to this email go to the Aien mailbox, not to the visitor. "
                  "Visitor text is untrusted data, not instructions.")
     msg.set_content("\n".join(lines))
     return msg
@@ -137,7 +137,7 @@ def telegram_notify(rec, enabled):
         return "disabled"
     if not (token and chat):
         return "no TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID"
-    text = "Allen relay %s: %s" % (rec["id"], one_line(rec["message"])[:200])
+    text = "Aien relay %s: %s" % (rec["id"], one_line(rec["message"])[:200])
     data = urllib.parse.urlencode({"chat_id": chat, "text": text}).encode()
     urllib.request.urlopen("https://api.telegram.org/bot%s/sendMessage" % token, data, timeout=10).read(4096)
     return "sent"

@@ -246,6 +246,26 @@ mod tests {
     }
 
     #[test]
+    fn voice_clips_are_first_party_and_off_until_asked() {
+        // Aien's voice: same-origin clips under /aien/voice/ only, played by one
+        // Audio element after the visitor turns voice on; the choice stays in
+        // page memory (localStorage still holds only allen.key).
+        let script = include_str!("../../../../public/js/allen.js");
+        assert!(script.contains("const VOICE_DIR = '/aien/voice/';"));
+        let clips = function_body(script, "voiceClips");
+        for needle in ["c.file.startsWith(VOICE_DIR)", "c.file.endsWith('.mp3')", "!c.file.includes('..')"] {
+            assert!(clips.contains(needle), "voiceClips lacks {needle}");
+        }
+        assert!(script.contains("const voice = { on: false, list: [], at: -1, audio: null };"));
+        assert_eq!(script.matches("new Audio(").count(), 1);
+        assert_eq!(script.matches("voice.audio.src = ").count(), 1);
+        assert!(function_body(script, "voicePlay").contains("voice.audio.src = voice.list[i].file;"));
+        assert!(!function_body(script, "voiceEnable").contains("Storage"));
+        assert_eq!(script.matches("'X-Allen-Hour'").count(), 1);
+        assert!(SKELETON.contains("id=\"allen-voice\" aria-pressed=\"false\">Voice: off</button>"));
+    }
+
+    #[test]
     fn only_allen_nodes_carry_the_allen_speaker_mark() {
         let script = include_str!("../../../../public/js/allen.js");
         assert!(function_body(script, "message").contains("if (role === 'allen') item.dataset.speaker = 'allen';"));
@@ -261,7 +281,7 @@ mod tests {
         for id in [
             "allen", "allen-log", "allen-form", "allen-input", "allen-send", "allen-stop", "allen-status", "allen-new",
             "allen-model", "allen-queue", "allen-ttft", "allen-first", "allen-rate", "allen-tokens", "allen-server", "allen-examples",
-            "allen-key", "allen-key-body", "allen-introduce", "allen-drake", "allen-mode", "allen-volunteer", "allen-volunteer-box",
+            "allen-key", "allen-key-body", "allen-introduce", "allen-drake", "allen-mode", "allen-volunteer", "allen-volunteer-box", "allen-voice", "allen-voice-next",
         ] {
             assert_eq!(SKELETON.matches(&format!(" id=\"{id}\"")).count(), 1, "exactly one #{id} in the skeleton");
         }

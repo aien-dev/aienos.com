@@ -41,6 +41,7 @@
   const FORGET_ME = '/allen/api/forget-me';
   const KEY_NAME = 'allen.key';
   const KEY_PATTERN = /^[0-9a-f]{32}$/;
+  const VOICE_DIR = '/aien/voice/';
   const RELAY = '/allen/api/relay';
   const PRESENCE = '/allen/api/presence';
   const HANDOFF = '/allen/api/handoff';
@@ -1758,6 +1759,69 @@
     log.append(item);
     return { item, body };
   }
+  /* Aien's voice: first-party clips the gateway names for a reply in its
+     meta event. Off until the visitor turns it on; the choice lives in page
+     memory only, never in browser storage. One Audio element plays a turn's
+     clips in order; a clip that fails is skipped silently, since the text is
+     already on the page. */
+  const voice = { on: false, list: [], at: -1, audio: null };
+  function voiceClips(value) {
+    const list = value && Array.isArray(value.voice) ? value.voice : [];
+    return list
+      .filter(c => c && typeof c.file === 'string' && c.file.startsWith(VOICE_DIR) && c.file.endsWith('.mp3') && !c.file.includes('..') && /^[\x21-\x7e]{1,200}$/.test(c.file))
+      .slice(0, 24)
+      .map(c => Object.freeze({ id: typeof c.id === 'string' ? c.id.slice(0, 80) : '', file: c.file, text: typeof c.text === 'string' ? c.text.slice(0, 2000) : '', duration: Number.isFinite(c.duration) ? c.duration : NaN }));
+  }
+  function voiceShow() {
+    const toggle = byId('allen-voice');
+    const next = byId('allen-voice-next');
+    if (toggle) {
+      toggle.setAttribute('aria-pressed', String(voice.on));
+      setText(toggle, voice.on ? 'Voice: on' : 'Voice: off');
+    }
+    if (next) next.hidden = !voice.on || voice.list.length === 0;
+    emit('voiceState', { on: voice.on, playing: Boolean(voice.audio && !voice.audio.paused), clip: voice.list[voice.at] || null, left: Math.max(0, voice.list.length - voice.at - 1) });
+  }
+  function voicePlay(i) {
+    if (!voice.on || i < 0 || i >= voice.list.length) {
+      voice.at = voice.list.length;
+      voiceShow();
+      return;
+    }
+    if (!voice.audio) {
+      voice.audio = new Audio();
+      voice.audio.preload = 'auto';
+      voice.audio.addEventListener('ended', () => voicePlay(voice.at + 1));
+      voice.audio.addEventListener('error', () => voicePlay(voice.at + 1));
+    }
+    voice.at = i;
+    voice.audio.src = voice.list[i].file;
+    const playing = voice.audio.play();
+    if (playing && playing.catch) playing.catch(() => voiceShow());
+    voiceShow();
+  }
+  function voiceStop() {
+    if (voice.audio) voice.audio.pause();
+    voice.at = voice.list.length;
+  }
+  /* A new turn replaces whatever the last one was still saying. */
+  function voiceQueue(clips) {
+    voiceStop();
+    voice.list = clips;
+    voice.at = -1;
+    if (voice.on && clips.length) voicePlay(0);
+    else voiceShow();
+  }
+  function voiceNext() {
+    if (!voice.list.length) return;
+    voicePlay(voice.at + 1 < voice.list.length ? voice.at + 1 : voice.list.length - 1);
+  }
+  function voiceEnable(on) {
+    voice.on = Boolean(on);
+    if (!voice.on) voiceStop();
+    else if (voice.list.length && voice.at < 0) voicePlay(0);
+    voiceShow();
+  }
   function speedReset() {
     for (const key of ['queue', 'ttft', 'first', 'rate', 'tokens', 'server']) setText(speed[key], '-');
   }
@@ -1808,6 +1872,11 @@
       if (typeof value.model === 'string' && value.model.length <= 80) setText(speed.model, value.model);
       notice('The model has your message.');
       emit('start', { model: typeof value.model === 'string' ? value.model.slice(0, 80) : '', queuedMs: Number.isFinite(value.queued_ms) ? value.queued_ms : NaN, queueWaitMs: now - clock.sent });
+    } else if (name === 'meta' && value && typeof value === 'object' && !Array.isArray(value)) {
+      /* Sent after start, before the first token; no voice key means text only. */
+      const clips = voiceClips(value);
+      emit('voice', { clips, source: typeof value.source === 'string' ? value.source.slice(0, 40) : '' });
+      voiceQueue(clips);
     } else if (name === 'done' && value) {
       if (volunteerModel(value)) clock.volunteer = volunteerModel(value);
       clock.finished = true;
@@ -1863,11 +1932,12 @@
     reply.item.setAttribute('aria-busy', 'true');
     const render = renderer(reply.body);
     emit('send', { text, silent });
+    voiceQueue([]);
     const clock = { sent: performance.now(), start: NaN, first: NaN, last: NaN, tokens: 0, after: 0, finished: false, outcome: '', volunteer: '' };
     let wait = 0;
     notice('Sending.');
     try {
-      const response = await fetch(CHAT, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream', ...keyHeaders(true), ...volunteerHeaders() }, body: JSON.stringify({ messages: fit(turns) }), cache: 'no-store', credentials: 'omit', signal: controller.signal });
+      const response = await fetch(CHAT, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream', 'X-Allen-Hour': String(new Date().getHours()), ...keyHeaders(true), ...volunteerHeaders() }, body: JSON.stringify({ messages: fit(turns) }), cache: 'no-store', credentials: 'omit', signal: controller.signal });
       if (!response.ok) {
         const body = await response.json().catch(() => null);
         wait = retryAfter(response, body);
@@ -1959,6 +2029,7 @@
     epoch += 1;
     if (active) active.abort();
     if (drake.state) endSession('');
+    voiceQueue([]);
     turns.length = 0;
     kind = '';
     conversation = conversationId();
@@ -1974,6 +2045,8 @@
     example.addEventListener('click', () => ask(example.textContent));
   }
   byId('allen-introduce').addEventListener('click', switchMode);
+  byId('allen-voice').addEventListener('click', () => voiceEnable(!voice.on));
+  byId('allen-voice-next').addEventListener('click', voiceNext);
   window.addEventListener('hashchange', forgetOffer);
   window.addEventListener('hashchange', takeDraft);
   conversation = conversationId();
@@ -2023,6 +2096,11 @@
       return drake.state === 'waiting';
     },
     draft: () => draftText,
+    voice: on => {
+      if (on !== undefined) voiceEnable(on);
+      return voice.on;
+    },
+    nextClip: voiceNext,
     volunteer: on => {
       if (on !== undefined) setVolunteer(on);
       const tick = byId('allen-volunteer');

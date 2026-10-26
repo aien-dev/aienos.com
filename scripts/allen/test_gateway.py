@@ -58,7 +58,9 @@ class Gateway:
              "--contacts-drop", self.dirs["drop"], "--relay-drop", self.dirs["relay"], "--warm-every", "0"]
             + cflags + list(extra),
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=dict(os.environ, **(env or {})))
-        self.p.stdout.readline()
+        for line in iter(self.p.stdout.readline, b""):  # startup warnings may come first
+            if b" listening on " in line:
+                break
 
     def close(self):
         self.p.terminate()
@@ -768,6 +770,25 @@ def speed_tests(a):
         check("earlier user turns keep their cards (prompt grows byte-stably)", len(first) == 1
               and "- omega-mv:" in first[0]["content"] and msgs[-1]["content"] == "And now?",
               "%r" % [m["content"][:60] for m in msgs[-3:]])
+        # the catalog job rewrites retrieve.py and the detail file: a select() that raises on the
+        # new records gives a normal model answer without repo cards; a fixed retrieve.py is
+        # picked up without a restart (the old module once raised KeyError on every turn)
+        with open(ret, "w") as f:
+            f.write("def load(path):\n    return [{'name': 'x'}]\ndef select(records, text, k=5):\n"
+                    "    return records[0]['evidence']\n")
+        time.sleep(0.05)
+        n2 = len(s.posts)
+        r = run(g, u("Show me the first function in omega-mv please"), ip="203.0.113.72")
+        check("retrieve.py raising on its records: answer without repo cards, no dead stream",
+              r["text"] == "from model" and r["done"] and len(s.posts) == n2 + 1
+              and "- omega-mv:" not in s.posts[-1][1]["messages"][-1]["content"], "%s %r" % (r["meta"], r["text"]))
+        with open(ret, "w") as f:
+            f.write(RETRIEVE_FIXTURE)
+        time.sleep(0.05)
+        run(g, u("Show me the first function in omega-mv please"), ip="203.0.113.73")
+        check("a fixed retrieve.py is reloaded without a restart (control)",
+              "- omega-mv:" in s.posts[-1][1]["messages"][-1]["content"], s.posts[-1][1]["messages"][-1]["content"][-80:])
+
         # a catalog change makes the cached entry stale at once (key = prompt + catalog)
         with open(cat, "a") as f:
             f.write("aienux: the kernel\n")
@@ -818,6 +839,91 @@ def speed_tests(a):
         g.close()
         s.shutdown()
         cx.shutdown()
+        shutil.rmtree(d, ignore_errors=True)
+
+
+def voice_tests(a):
+    """Voice clip hook: static and cached first turns carry the clips allen_voice picks in the
+    meta event; no catalog, a broken catalog or a turn the picker maps to nothing gives []. With
+    allen_voice.py absent from the gateway directory every case is [] (text only)."""
+    sys.path.insert(0, HERE)
+    import allen_speed
+    try:
+        import allen_voice  # noqa: F401
+        have = True
+    except ImportError:
+        have = False
+    d = tempfile.mkdtemp(prefix="allenchat-test-voice")
+    cat = os.path.join(d, "catalog.txt")
+    with open(cat, "w") as f:
+        f.write("Drake's public repos:\nomega-mv: the Omega compiler (Apache-2.0)\n")
+    clip = lambda id, sit, **k: dict({"id": id, "situation": sit, "text": id + " text", "file": "/aien/voice/%s.mp3" % id,
+                                      "duration": 1.5, "tags": [], "intent": sit}, **k)
+    vcat = os.path.join(d, "voice.json")
+    with open(vcat, "w") as f:
+        json.dump({"clips": [clip("g-first", "greeting.first_visit"), clip("g-morn", "greeting.morning"),
+                             clip("menu", "intro.menu"), clip("ex-omega", "explain.omega"),
+                             clip("thx", "smalltalk.thanks"), clip("repo", "repo.how", requires=["repo-coach"])]}, f)
+    broken = os.path.join(d, "broken.json")
+    with open(broken, "w") as f:
+        f.write("{not json")
+    prompt = open(a.system_prompt, encoding="utf-8").read()
+    cards = allen_speed.Cards(None, None, None, cat)
+    cards.refresh()
+    psha = allen_speed.sha256_bytes(allen_speed.join_system(prompt, open(cat).read()).encode())
+    seed = os.path.join(d, "answers.json")
+    with open(seed, "w") as f:
+        json.dump({"format": 1, "entries": [allen_speed.make_entry(
+            {"id": "omega", "q": "What is Omega?", "alt": []}, "Omega is Drake's language.", psha, cards, "m",
+            "2026-10-26T00:00:00Z")]}, f)
+    s = scripted(tokens=("from", " model"))
+    base = ["--catalog", cat, "--answers", seed, "--cache-tps", "200", "--chat-burst", "100", "--regen-per-hour", "0"]
+
+    def meta(g, text, ip, headers=None):
+        c, r = g.post("/allen/api/chat", {"messages": [{"role": "user", "content": text}]}, ip=ip, headers=headers)
+        m = [x for e, x, _ in events(r) if e == "meta"] if r.status == 200 else []
+        return m[0] if m else {}
+
+    ids = lambda m: [c["id"] for c in m.get("voice", [])]
+    up = "127.0.0.1:%d" % s.server_address[1]
+    try:
+        g = Gateway(a, *base, upstream=up)
+        try:
+            m = meta(g, "hi", "203.0.113.120")
+            check("voice: no --voice-catalog, static reply carries voice []", m.get("source") == "static"
+                  and m.get("voice") == [], "%s" % m)
+        finally:
+            g.close()
+        g = Gateway(a, *base, "--voice-catalog", broken, upstream=up)
+        try:
+            m = meta(g, "What is Omega?", "203.0.113.121")
+            check("voice: unreadable catalog still serves the cached answer, voice []", m.get("source") == "cache"
+                  and m.get("voice") == [], "%s" % m)
+        finally:
+            g.close()
+        g = Gateway(a, *base, "--voice-catalog", vcat, upstream=up)
+        try:
+            m = meta(g, "hi", "203.0.113.122")
+            check("voice: static greeting -> first-visit greeting + menu" if have else "voice: module absent -> []",
+                  ids(m) == (["g-first", "menu"] if have else []), "%s" % m)
+            m = meta(g, "hi", "203.0.113.123", headers={"X-Allen-Hour": "9"})
+            check("voice: X-Allen-Hour 9 -> morning greeting", ids(m) == (["g-morn", "menu"] if have else []), "%s" % m)
+            m = meta(g, "What is Omega?", "203.0.113.124")
+            check("voice: cached answer id omega -> explain clip", m.get("source") == "cache"
+                  and ids(m) == (["ex-omega"] if have else []), "%s" % m)
+            if have:
+                check("voice: clip entries are {id, file, text, duration}",
+                      set(m["voice"][0]) == {"id", "file", "text", "duration"}, "%s" % m["voice"])
+            m = meta(g, "thanks", "203.0.113.125")
+            check("voice: static thanks -> thanks clip", ids(m) == (["thx"] if have else []), "%s" % m)
+            n0 = len(s.posts)
+            m = meta(g, "check out my repo github.com/a/b", "203.0.113.126")
+            check("voice: model turn has no voice field; gated repo clip never chosen (control)",
+                  m.get("source") in ("warm", "cold") and "voice" not in m and len(s.posts) == n0 + 1, "%s" % m)
+        finally:
+            g.close()
+    finally:
+        s.shutdown()
         shutil.rmtree(d, ignore_errors=True)
 
 
@@ -1453,7 +1559,7 @@ def main():
     for name, fn in (("offline", offline_tests), ("spool", spool_tests), ("pool", pool_tests),
                      ("relay", relay_tests), ("live", live_tests), ("anon", anon_tests),
                      ("summary", summary_tests), ("volunteer", volunteer_tests), ("tools", tool_tests),
-                     ("warm", warm_tests), ("speed", speed_tests)):
+                     ("warm", warm_tests), ("speed", speed_tests), ("voice", voice_tests)):
         if not only or name in only.split(","):
             fn(a)
     if not a.skip_model:

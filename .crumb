@@ -23,8 +23,8 @@
           "purpose": "GitHub automation configuration"
         },
         {
-          "digest": "4acb0f54d43161e7d31e4775b03cb3fd77199c1f1241603175a5fbb2559090c4",
-          "last_commit": "9a2644a",
+          "digest": "b0b4b2e2069719c672840124aa8fbdc8c17a6662e0beacd7499d37770b89015b",
+          "last_commit": "3ef4004",
           "name": "crates",
           "purpose": "Native Rust website crates"
         },
@@ -41,8 +41,8 @@
           "purpose": "Seeded Omega edge rendering of validated canonical Hive JSON with fail-closed escaping and deter"
         },
         {
-          "digest": "c3f5b1f275ffabe9fbcc198e2a0f3a344c40f3c32987ece7541930e7d85afc41",
-          "last_commit": "9a2644a",
+          "digest": "1e2ef0b26cfd57a12393192005036bfe1780ac6924a3eedc6b82e3c33aecff9d",
+          "last_commit": "3ef4004",
           "name": "public",
           "purpose": "Static public website assets"
         },
@@ -53,15 +53,15 @@
           "purpose": "Isolated compute-only Allen tools and versioned glass-pane protocol; temporary host transport ar"
         }
       ],
-      "children_root": "sha256:240d4c639efb41c443027399bda1a53840b089a72c7e8a8b102c559a70985495",
-      "compiled_at": "2026-10-26T17:37:25Z",
+      "children_root": "sha256:b1cc4ddd25a0cab04f3a0f11531a0b0aca99fa26c80d081a82df8cfdbe57b70c",
+      "compiled_at": "2026-10-26T18:11:30Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:708649f8033d93aea4b962b07fe6c4673a0360f1725b0e900fb9f96ab738ef08",
+      "digest": "sha256:bdd842bb71cbcb229dc4503953a68330a3e85b718382a76b77ae2938d666c289",
       "evidence_files": 6,
       "evidence_root": "sha256:eba834d719fe051a5d5fb50d42f573b5bdb55491f895a8b758006022fc42c637",
-      "files": 337,
-      "generated_at_commit": "a1b8136a13db99857862a6df84fb3b068023247f",
-      "source_tree": "sha256:f4884f5a9bfc33204fa166e3f5903c33d8d761702099e2b251647b7b85830d90"
+      "files": 339,
+      "generated_at_commit": "3ef40040d8f178ecbf5c4be9b1f5a1fce66e6191",
+      "source_tree": "sha256:dcba25c61160b249e6a71577efeefa5d72aed590bcba9d571f0656b2b6b3fc51"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",
