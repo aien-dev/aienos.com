@@ -19,8 +19,8 @@
           "purpose": "Published generated project measurements with pinned sources"
         },
         {
-          "digest": "7f4aa48fce22d67842cbb6a5732ea43a5102b4ee99d0fa378dd8ea17015f9a4d",
-          "last_commit": "c3a98f3",
+          "digest": "5bb5fc31dcab4f00df8b8ce9a6ff5ea7c166a8bd60c7d0975e1a074c6bae99ff",
+          "last_commit": "85062b8",
           "name": "js",
           "purpose": "Browser interactions using public data only"
         },
@@ -41,17 +41,23 @@
           "last_commit": "dffee39",
           "name": "research",
           "purpose": "Public static research or licensing pages using the shared website navigation"
+        },
+        {
+          "digest": "450b0fd70eed766066851eafc12c60541d3826f9a0067c43a341b98b74cda748",
+          "last_commit": "4fb264f",
+          "name": "wasm",
+          "purpose": "Committed seeded Omega generated WebAssembly assets and hash sidecars; regenerate through om/hiv"
         }
       ],
-      "children_root": "sha256:012b4ab5a8711ef6202da518256e291bb8db0186476fae2b69e5bc58586a0d77",
-      "compiled_at": "2026-10-26T13:48:37Z",
+      "children_root": "sha256:dc1b12f22274d2f1488d41bd6d50b85632c685e0a257ea865b218075ab04840a",
+      "compiled_at": "2026-10-26T14:15:16Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:7c947afeb823c511664920fb83102de90d9fac5f27725bce0b11fa91876e5725",
+      "digest": "sha256:34e8ff8461c8fa693c7b23fe08fcd95cc68d2e81be780dd060b8eba24b04d537",
       "evidence_files": 1,
       "evidence_root": "sha256:1f6f4b14373405a3b91d0e7aa6ba11d0dd332d4543ad01421a5451cca3e7de0c",
-      "files": 119,
-      "generated_at_commit": "2166a329491815ba1850e969d05f1286895172ac",
-      "source_tree": "sha256:6b8c9a359e3a24fef1b347eda6c649d7ed0bb40411644c5108dd7f19753930d7"
+      "files": 121,
+      "generated_at_commit": "85062b8a4eacd115d15cf3532aa05ede1c306218",
+      "source_tree": "sha256:db9553182420e874a0a046109ee4d737642b701a750467bc36dacab5b88d5451"
     }
   },
   "invariants": [

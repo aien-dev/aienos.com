@@ -1,0 +1,20 @@
+{
+  "extensions": {
+    "generated": {
+      "children": [],
+      "children_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compiled_at": "2026-10-26T14:15:16Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:450b0fd70eed766066851eafc12c60541d3826f9a0067c43a341b98b74cda748",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 2,
+      "generated_at_commit": "85062b8a4eacd115d15cf3532aa05ede1c306218",
+      "source_tree": "sha256:0013d1eb9f985ff5168d1e7d766076c0f936313fbecceaa714728f63fe4dfe73"
+    }
+  },
+  "layer": "public",
+  "name": "wasm",
+  "purpose": "Committed seeded Omega generated WebAssembly assets and hash sidecars; regenerate through om/hive-page/check.sh",
+  "schema_version": "1.0.0"
+}
