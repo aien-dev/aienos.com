@@ -67,7 +67,7 @@ const FOOTER_MORE: [FooterLink; 11] = [
     ("Contact", "/contact/", false),
     ("Glossary", "/glossary/", false),
     ("Licensing", "/licensing/", false),
-    ("Privacy & saying hello to Allen", "/privacy/", false),
+    ("Privacy & saying hi to Allen", "/privacy/", false),
     ("GitHub", "https://github.com/aien-dev", true),
     ("Interplane", "https://interplane.io/", true),
     ("Drake Stapleton", "https://www.drakestapleton.com", true),
