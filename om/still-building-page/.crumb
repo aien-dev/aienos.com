@@ -1,0 +1,20 @@
+{
+  "extensions": {
+    "generated": {
+      "children": [],
+      "children_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compiled_at": "2026-10-26T20:41:59Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:247de5795322fdc251140642a55ac0d981dfb0a70b53ef74c853de1cd08910eb",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 0,
+      "generated_at_commit": "deebe99863a4a97d45d711649b06ae95da14d821",
+      "source_tree": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "layer": "website",
+  "name": "still-building-page",
+  "purpose": "Seeded Omega #StillBuilding campaign page and CSS with deterministic artifact checks",
+  "schema_version": "1.0.0"
+}

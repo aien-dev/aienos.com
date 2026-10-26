@@ -66,6 +66,10 @@ CARDS = [
      "Every experiment,\nfailures included",
      "The research ladder rendered from one canonical status source, verdicts and limits attached.",
      "www.aienos.com/experiments/"),
+    ("og-still-building.png", "#STILLBUILDING",
+     "If you built it with AI,\nyou built it",
+     "The measured stigma against people who use AI, the concerns that are real, and how to show your work.",
+     "www.aienos.com/still-building/"),
 ]
 
 FONT_DIRS = ["/System/Library/Fonts/Supplemental", "/System/Library/Fonts",

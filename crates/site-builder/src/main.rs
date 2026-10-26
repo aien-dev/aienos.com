@@ -388,6 +388,17 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     );
     fs::create_dir_all(dist.join("support")).expect("Create support directory");
     fs::write(dist.join("support/index.html"), support.into_string()).expect("Write support page");
+
+    let still_building = render_page_layout(
+        components::still_building::TITLE,
+        components::still_building::DESCRIPTION,
+        components::still_building::URL,
+        "website",
+        html! { link rel="stylesheet" href="/assets/still-building.css"; },
+        components::still_building::render_page(),
+    );
+    fs::create_dir_all(dist.join("still-building")).expect("Create still-building directory");
+    fs::write(dist.join("still-building/index.html"), still_building.into_string()).expect("Write still-building page");
     println!("  [PAGE] Emitted /contact/ (index.html)");
 
     // Section hubs: /experiments/, /evidence/, /philosophy/ (NARR-NAV)
@@ -663,6 +674,7 @@ fn verify_site(dist: &Path) {
 const GENERATED_PAGES: &[(&str, usize)] = &[
     ("index.html", 30),
     ("support/index.html", 0),
+    ("still-building/index.html", 0),
     ("start/index.html", 0),
     ("privacy/index.html", 0),
     ("contact/index.html", 0),
