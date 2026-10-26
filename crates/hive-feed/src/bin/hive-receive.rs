@@ -122,10 +122,6 @@ fn render_board(dir: &Path, renderer: &Path) -> io::Result<()> {
 fn receive(dir: &Path) -> Result<(), ()> {
     let metadata = fs::symlink_metadata(dir).map_err(|_| ())?;
     if !metadata.is_dir() || metadata.file_type().is_symlink() { return Err(()); }
-    // Never let a replayed or delayed upload replace a newer observation.
-    let mut latest = fs::read(dir.join("live.json")).ok()
-        .and_then(|bytes| serde_json::from_slice::<Value>(&bytes).ok())
-        .and_then(|v| stamp_of(&v));
     let stdin = io::stdin();
     let mut input = stdin.lock();
     let mut line = Vec::new();
@@ -137,6 +133,20 @@ fn receive(dir: &Path) -> Result<(), ()> {
         if n as u64 > MAX || line.last() != Some(&b'\n') { return Err(()); }
         let (data, bytes) = canonical(&line)?;
         let stamp = stamp_of(&data).ok_or(())?;
+        // A forced-command process lives for one SSH stream. Serialize the
+        // compare/install/render transaction across streams, never stdin waits.
+        // File locking is std-only unfinished migration to Omega lock orchestration.
+        let publication_lock = OpenOptions::new().read(true).write(true).create(true)
+            .truncate(false).mode(0o600).open(dir.join(".publication-lock")).map_err(|_| ())?;
+        publication_lock.lock().map_err(|_| ())?;
+        let latest = match fs::read(dir.join("live.json")) {
+            Ok(bytes) => {
+                let previous: Value = serde_json::from_slice(&bytes).map_err(|_| ())?;
+                Some(stamp_of(&previous).ok_or(())?)
+            }
+            Err(error) if error.kind() == io::ErrorKind::NotFound => None,
+            Err(_) => return Err(()),
+        };
         if let Some(previous) = latest { if stamp < previous { return Err(()); } }
         let mut out = OpenOptions::new().write(true).create_new(true).mode(0o644).open(&tmp).map_err(|_| ())?;
         // Ephemeral feed: write_all plus same-directory rename gives runtime atomicity.
@@ -148,7 +158,6 @@ fn receive(dir: &Path) -> Result<(), ()> {
         })();
         if result.is_err() { let _ = fs::remove_file(&tmp); }
         result?;
-        latest = Some(stamp);
         let renderer = std::env::var_os("HIVE_RENDER").unwrap_or_else(|| "/usr/local/bin/hive-render".into());
         if let Err(error) = render_board(dir, Path::new(&renderer)) {
             eprintln!("Hive board retained previous observation: {error}");

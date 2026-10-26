@@ -1,0 +1,4 @@
+Scratch-only nginx -t on hub; no running service or config changed.
+nginx: the configuration file /tmp/hive-nginx-check.aIZdWEfU/nginx.conf syntax is ok
+nginx: configuration file /tmp/hive-nginx-check.aIZdWEfU/nginx.conf test is successful
+Exit status: 0

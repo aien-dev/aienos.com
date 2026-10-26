@@ -66,6 +66,13 @@ base = snapshot()
 raw = canonical(base)
 first = run(raw)
 assert first == run(raw), 'render depends on wall clock or mutable state'
+# Receiver sequence is arbitrary text: encode it, never widen attribute grammar.
+for sequence in ['', '\"><script>alert(1)</script>', 'é' * 64]:
+    value = snapshot()
+    value['sequence'] = sequence
+    parsed = Document(run(canonical(value)))
+    root = next(a for a in parsed.attrs if a.get('id') == 'hive-board')
+    assert root['data-sequence'] == 's-' + sequence.encode().hex()
 doc = Document(first)
 assert len(doc.ids) == len(set(doc.ids)), 'duplicate DOM id'
 assert '1s' in ''.join(doc.text)  # Subsecond timestamps must not round up.

@@ -6,8 +6,10 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import time
 
-receiver, renderer = (Path(p).resolve() for p in sys.argv[1:])
+receiver, renderer = (Path(p).resolve() for p in sys.argv[1:3])
+vulnerable_control = '--expect-vulnerable' in sys.argv[3:]
 value = dict(schema_version=1, generated_at='2026-10-26T01:00:00Z', sequence='integration',
              poll_ms=1000, stale_after_ms=15000, agents=[], interactions=[],
              coverage=dict(label='OMP', roots=0, agents=0, complete=False, notice='Integration oracle'))
@@ -37,3 +39,37 @@ with tempfile.TemporaryDirectory(prefix='hive-receiver-integration-') as tmp:
     assert board.read_bytes() == before
     assert json.loads((directory / 'live.json').read_bytes()) == value
 print('receiver integration passed: failed renderer logs/retains, successful renderer publishes exact bytes, rejected feed retains both artifacts')
+
+with tempfile.TemporaryDirectory(prefix='hive-receiver-overlap-') as tmp:
+    directory = Path(tmp)
+    env = dict(os.environ, SSH_ORIGINAL_COMMAND='hive-feed', HIVE_RENDER=str(renderer))
+    initial = dict(value, generated_at='2026-10-26T00:00:00Z', sequence='initial')
+    newest = dict(value, generated_at='2026-10-26T02:00:00Z', sequence='newest')
+    delayed = dict(value, generated_at='2026-10-26T01:00:00Z', sequence='delayed')
+    stream = subprocess.Popen([receiver, directory], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+    try:
+        stream.stdin.write((json.dumps(initial)+'\n').encode())
+        stream.stdin.flush()
+        deadline = time.monotonic() + 10
+        while not (directory / 'board.html').exists():
+            assert time.monotonic() < deadline, 'initial stream did not publish'
+            time.sleep(0.01)
+        # A is alive, waiting for more stdin. B must not be blocked by A's lock.
+        subprocess.run([receiver, directory], input=(json.dumps(newest)+'\n').encode(),
+                       env=env, capture_output=True, check=True, timeout=10)
+        newest_board = (directory / 'board.html').read_bytes()
+        stream.stdin.write((json.dumps(delayed)+'\n').encode())
+        stream.stdin.close()
+        status = stream.wait(timeout=10)
+        observed = json.loads((directory / 'live.json').read_bytes())['sequence']
+        if vulnerable_control:
+            assert status == 0 and observed == 'delayed', (status, observed)
+            print('negative control reproduced: older live stream overwrote newer publication')
+        else:
+            assert status != 0 and observed == 'newest', (status, observed)
+            assert (directory / 'board.html').read_bytes() == newest_board
+            print('overlap check passed: delayed stream refused; latest JSON and board retained; stdin waits unlocked')
+    finally:
+        if stream.poll() is None:
+            stream.kill()
+            stream.wait()

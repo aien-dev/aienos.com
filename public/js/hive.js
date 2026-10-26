@@ -130,7 +130,7 @@
     const document = new DOMParser().parseFromString(markup, 'text/html');
     const incoming = document.getElementById('hive-board');
     const generated = Date.parse(incoming?.dataset.generated || '');
-    if (!incoming || !Number.isFinite(generated) || incoming.dataset.staleAfter !== '15000' || !incoming.dataset.sequence || incoming.dataset.sequence.length > 128) throw new Error('Invalid edge board');
+    if (!incoming || !Number.isFinite(generated) || incoming.dataset.staleAfter !== '15000' || !/^s-[0-9a-f]{0,256}$/.test(incoming.dataset.sequence || '')) throw new Error('Invalid edge board');
     if (board && window.hiveFresh(generated, generated, Date.parse(board.dataset.generated), Number(incoming.dataset.staleAfter), true) === 2) { regressed = true; throw new Error('Snapshot moved backwards'); }
     for (const id of ['hive-tree', 'hive-chat', 'hive-manifest-cards', 'hive-source-time', 'hive-counts', 'hive-coverage']) if (!incoming.querySelector('#' + id)) throw new Error('Incomplete edge board');
     if (!board || generated > Date.parse(board.dataset.generated)) {
@@ -138,8 +138,8 @@
       const server = Date.parse(serverDate || '');
       trusted = Number.isFinite(server) && generated <= server + 2000;
       sourceAge = trusted ? Math.max(0, server - generated) : 0;
-      regressed = false;
     }
+    regressed = false;
     const focused = window.document.activeElement;
     const scroll = [chat.scrollTop, tree.parentElement.scrollTop, panel.parentElement.scrollTop];
     if (panel.firstElementChild) store.append(panel.firstElementChild);

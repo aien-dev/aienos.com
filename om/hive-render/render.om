@@ -342,6 +342,16 @@ end
 end
 end
 end
+text hexchars "0123456789abcdef"
+fn attrseq to void
+push 115
+push 45
+for i ulong get fld 3
+c = get dec add get fld 2 i
+push get hexchars ulong shr c 4
+push get hexchars ulong and c 15
+end
+end
 fn field a ulong to void
 escape get fld a get fld add a 1
 end
@@ -1645,7 +1655,7 @@ fn render to void
 lit 46
 field 0
 lit 47
-field 2
+attrseq
 lit 48
 field 0
 lit 49

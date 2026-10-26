@@ -1,0 +1,20 @@
+{
+  "extensions": {
+    "generated": {
+      "children": [],
+      "children_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compiled_at": "2026-10-26T14:15:23Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:aba3cf2e93dea1c3cf8f64d085f60f36b57c1d969f7ae2e0e52ba5c40ced2e86",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 9,
+      "generated_at_commit": "1ad8d3e4982e0dc7e78f2c42acd9ba0b5681b0be",
+      "source_tree": "sha256:ae8bc5626244c161cbd04ca4e815b6d9fdd34318a1502048b2eec77a3465fda4"
+    }
+  },
+  "layer": "website",
+  "name": "hive-render",
+  "purpose": "Seeded Omega edge rendering of validated canonical Hive JSON with fail-closed escaping and deterministic HTML",
+  "schema_version": "1.0.0"
+}

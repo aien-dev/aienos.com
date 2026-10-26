@@ -1,9 +1,12 @@
 # Hive edge board (proposed, not deployed)
 
-Part 2 of #104, phase A. The Spark publication format and SSH boundary do not change.
+Part 2 of #104, edge renderer and browser morph client. The Spark publication format and SSH boundary do not change.
 The edge receiver validates and canonicalizes JSON, atomically installs `live.json`,
 then runs the static AArch64 Omega renderer. Only exit 0 plus nonempty output can
 replace `board.html`; a renderer failure logs to stderr and retains the old board.
+An advisory std file lock spans reread/compare/install/render across receiver
+processes; it is released before waiting for more stdin. Keep `.publication-lock`
+in place: unlinking a live lock file would create two independent lock domains.
 Neither this document nor a successful scratch run authorizes deployment.
 
 ## Build and gates on an AArch64 Linux host
@@ -42,14 +45,15 @@ pretty-printed JSON directly. The receiver canonicalizes it first.
 
 Text is escaped with the same five replacements as Python `html.escape(quote=True)`.
 `data-generated` is a rechecked timestamp; ids and id-derived links are rechecked
-identifiers. `data-sequence` is escaped as an attribute because the receiver permits
-arbitrary sequence text; it has no authorization meaning. No payload text becomes
+identifiers. `data-sequence` is `s-` followed by lowercase hex of the original
+sequence's UTF-8 bytes, so even arbitrary receiver-accepted text becomes an
+ident-shaped attribute; it has no authorization meaning. No payload text becomes
 markup. All output is buffered before writing; two fixed output pools accommodate
 the maximum input with worst-case escaping and repeated manifest text.
 
-Closed native `<details>` expose manifests without JavaScript. For phase B, the
-morph client hides the manifest storage container after import and moves the
-selected card into the manifest panel. It must preserve native disclosure state.
+Closed native `<details>` expose manifests without JavaScript. The morph client
+keeps the manifest storage container hidden and moves the selected card into the
+manifest panel, preserving native disclosure state and keyed row identity.
 Elapsed time and observation lag use only the source's timestamps, never render time.
 The no-script document explicitly discloses its inability to infer connection
 freshness and refreshes every 15 seconds. A frozen source remains visibly timestamped.
@@ -130,7 +134,7 @@ The page's decorative inline style and style attributes also remain; do not set
 Without the separately proposed consent pixel, the proposed policy is:
 
 ```nginx
-add_header Content-Security-Policy "script-src 'self'; object-src 'none'; base-uri 'none'" always;
+add_header Content-Security-Policy "script-src 'self' 'wasm-unsafe-eval'; object-src 'none'; base-uri 'none'" always;
 ```
 
 The concurrent X logbook change adds only external `/js/logbook.js` and, **after
@@ -140,8 +144,14 @@ fetched official pixel. If that change is installed, use this proposed policy
 instead, after checking the exact installed script and browser requests again:
 
 ```nginx
-add_header Content-Security-Policy "script-src 'self' https://static.ads-twitter.com; connect-src 'self' https://analytics.x.com https://analytics.twitter.com https://t.co; img-src 'self' data: https://analytics.x.com https://analytics.twitter.com https://t.co; object-src 'none'; base-uri 'none'" always;
+add_header Content-Security-Policy "script-src 'self' 'wasm-unsafe-eval' https://static.ads-twitter.com; connect-src 'self' https://analytics.x.com https://analytics.twitter.com https://t.co; img-src 'self' data: https://analytics.x.com https://analytics.twitter.com https://t.co; object-src 'none'; base-uri 'none'" always;
 ```
+The explicitly authorized `wasm-unsafe-eval` keyword permits WebAssembly
+compilation for the seeded freshness unit; it does **not** permit JavaScript
+`eval`, `Function` or string-based timers. Without it Chromium would deliberately
+take the existing JavaScript fallback. Retain that fallback and the visible
+`data-fresh-engine` observation even when the proposed policy enables WASM.
+This remains tighter than the currently inspected main page's lack of CSP.
 
 CSP permits hosts statically; consent is enforced by the first-party consent code,
 not by CSP. Check denial makes no third-party requests and consent enables only

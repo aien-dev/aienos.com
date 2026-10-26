@@ -225,7 +225,7 @@ details[open] > summary.hive-record::before { transform: rotate(45deg); }
    come from that program; this block only places the stage and paints the
    discs, and it animates nothing. The emitted <style> in the artifact
    attaches the animations, inside a prefers-reduced-motion:no-preference
-   query and behind the page's own data-motion="on", so with motion off the
+   query and behind the native motion checkbox, so with motion off the
    base values below are what the reader sees: one frame of the sequence, the
    two holes at a visible separation (t = 7000 ms of the 19000 ms cycle), no
    merged hole and no ripple.

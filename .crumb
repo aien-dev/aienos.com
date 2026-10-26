@@ -18,32 +18,38 @@
       "children": [
         {
           "digest": "0b583086787004c64a5563391f90762fd720f6323cdc8a4db30612f3d176e72f",
-          "last_commit": "9346a76",
+          "last_commit": "f31f6df",
           "name": ".github",
           "purpose": "GitHub automation configuration"
         },
         {
-          "digest": "5c40958bfb64c0ab2ffc63758d4071140a574b010058242ef5310d73afb9d85e",
-          "last_commit": "c1021f8",
+          "digest": "38d08598e946eeb99cd962e22ff09a34bf5df62e22bd303552ba43a156aa09c8",
+          "last_commit": "164e30a",
           "name": "crates",
           "purpose": "Native Rust website crates"
         },
         {
-          "digest": "7c947afeb823c511664920fb83102de90d9fac5f27725bce0b11fa91876e5725",
-          "last_commit": "c1021f8",
+          "digest": "aba3cf2e93dea1c3cf8f64d085f60f36b57c1d969f7ae2e0e52ba5c40ced2e86",
+          "last_commit": "2e4ca8a",
+          "name": "om/hive-render",
+          "purpose": "Seeded Omega edge rendering of validated canonical Hive JSON with fail-closed escaping and deter"
+        },
+        {
+          "digest": "8717981052fdf4e0b9dde2febd12abf5505c3c77debd9034ba890d653413db82",
+          "last_commit": "ad1cd71",
           "name": "public",
           "purpose": "Static public website assets"
         }
       ],
-      "children_root": "sha256:7bc94b9983167eb811f94f77529c6537516296d6965edaa7f09ef7fafdc8e68a",
-      "compiled_at": "2026-10-26T13:50:26Z",
+      "children_root": "sha256:8a35eb998a55ea7fa439408c2ac62e0926ea8e8909e1d7207d008c28cd4e9f85",
+      "compiled_at": "2026-10-26T14:21:05Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:05efd67cc41c19313705c113f2c40a3ccc6ba5096380ab71f197eac26408f74a",
+      "digest": "sha256:9d44ec10b59cffaa628609d913f48aec6ffd0b16d4080c1b3b0b0f015b28b9fc",
       "evidence_files": 1,
       "evidence_root": "sha256:1f6f4b14373405a3b91d0e7aa6ba11d0dd332d4543ad01421a5451cca3e7de0c",
-      "files": 199,
-      "generated_at_commit": "2166a329491815ba1850e969d05f1286895172ac",
-      "source_tree": "sha256:5d2255d0c5c5c60c0639a41f56f1175baf98f37341b89d1a90e21251e0a0ed8b"
+      "files": 219,
+      "generated_at_commit": "1ad8d3e4982e0dc7e78f2c42acd9ba0b5681b0be",
+      "source_tree": "sha256:ef78ee296fb1f1dc9eb99edcae606cf5279b5f237f56a97532648e3cac1e9ef6"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",
