@@ -1,7 +1,7 @@
 //! Seeded Omega owns the page structure and browser client.
 use maud::{html, Markup, PreEscaped};
 pub const TITLE: &str = "Sovereign Intelligence: alpha testing is open | AienOS";
-pub const DESCRIPTION: &str = "Sovereign Intelligence, built on AienOS. Try my Omega installer for Linux arm64 and NVIDIA GB10. The local Allen experience is coming in the next update; this release includes the engine and wizard.";
+pub const DESCRIPTION: &str = "Sovereign Intelligence, built on AienOS. Try my Omega installer and 35B engine for Linux arm64 and NVIDIA GB10. The local Aien experience is coming in the next update.";
 pub const URL: &str = "https://www.aienos.com/alpha/";
 pub const PAGE: &str = include_str!("../../../../om/alpha-page/main.html");
 pub fn render_alpha_page() -> Markup { html! { (PreEscaped(PAGE)) } }

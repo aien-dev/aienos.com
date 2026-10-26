@@ -1,4 +1,4 @@
-<article class="alpha"><header class="alpha-hero"><p class="alpha-kicker">SOVEREIGN INTELLIGENCE / BUILT ON AienOS</p><h1>Sovereign<br><span>Intelligence.</span></h1><p class="alpha-lead">Alpha testing is open. Keep the GPU. Lose the user-space stack.</p><div class="alpha-install"><code id="alpha-command">curl -fsSL https://aienos.com/install.sh | sh</code><button id="alpha-copy" type="button">Copy command</button></div><p id="alpha-copy-status" class="alpha-copy-status" role="status" aria-live="polite"></p><p class="alpha-small">Linux arm64 + NVIDIA GB10 only. Experimental software, installed beside your existing stack. <a href="/install.sh">Read the bootstrap first</a>.</p><p class="alpha-payoff">Meet Allen on your own Spark.</p><p class="alpha-small"><strong>Coming in the next update:</strong> Allen's black hole, glass panes, science tools and Omega, running locally. This release installs the engine and Omega wizard, not the Allen experience yet.</p><a class="alpha-scroll" href="#alpha-next">See what happens next ↓</a></header>
+<article class="alpha"><header class="alpha-hero"><p class="alpha-kicker">SOVEREIGN INTELLIGENCE / BUILT ON AienOS</p><h1>Sovereign<br><span>Intelligence.</span></h1><p class="alpha-lead">Alpha testing is open. Keep the GPU. Lose the user-space stack.</p><div class="alpha-install"><code id="alpha-command">curl -fsSL https://aienos.com/install.sh | sh</code><button id="alpha-copy" type="button">Copy command</button></div><p id="alpha-copy-status" class="alpha-copy-status" role="status" aria-live="polite"></p><p class="alpha-small">Linux arm64 + NVIDIA GB10 only. Experimental software, installed beside your existing stack. <a href="/install.sh">Read the bootstrap first</a>.</p><p class="alpha-payoff">Meet Aien on your own Spark.</p><p class="alpha-small"><strong>Coming in the next update:</strong> Aien's black hole, glass panes, science tools and Omega, running locally. This release installs the engine and Omega wizard, not the Aien experience yet.</p><a class="alpha-scroll" href="#alpha-next">See what happens next ↓</a></header>
 <figure class="alpha-scene" aria-labelledby="alpha-scene-caption"><div class="alpha-space" aria-hidden="true"><svg class="alpha-orbits" viewBox="0 0 1000 500" fill="none"><ellipse cx="500" cy="250" rx="445" ry="125"/><ellipse cx="500" cy="250" rx="360" ry="95"/><ellipse cx="500" cy="250" rx="270" ry="65"/><path d="M35 110 Q500 480 965 110 M35 390 Q500 20 965 390"/></svg><div class="alpha-disc"></div><div class="alpha-hole"></div><div class="alpha-infall"><span data-stack="0">CUDA toolkit</span><span data-stack="1">libcuda</span><span data-stack="2">cuBLAS</span><span data-stack="3">nvcc</span></div><div class="alpha-kept"><span>YOUR GPU / STAYS</span><span>KERNEL DRIVER / STAYS</span></div></div><figcaption id="alpha-scene-caption"><strong>The event horizon is a metaphor.</strong> I am cutting the NVIDIA user-space dependency out of my inference path, not deleting your CUDA packages. Your GPU and NVIDIA kernel driver stay.</figcaption><button class="alpha-motion" id="alpha-motion" type="button" aria-pressed="false">Play the event horizon</button></figure>
 <section class="alpha-section" id="alpha-next"><p class="alpha-kicker">01 / THE ARRIVAL</p><h2>One download. Then a walkthrough.</h2><ol class="alpha-steps"><li><span>DOWNLOAD</span><h3>Run the command.</h3><p>The bootstrap checks your machine before downloading. It verifies the bundle, then adds a launcher at user level.</p></li><li><span>DOUBLE-CLICK</span><h3>Open the launcher.</h3><p>Open Sovereign Intelligence from your applications menu. The terminal wizard shows what it will change before asking for consent.</p></li><li><span>WIZARD</span><h3>Make the first run yours.</h3><p>Doctor, plan, consent, install, model download, first chat. The wizard names the download and its size before you agree.</p></li></ol><div class="alpha-capture"><p class="alpha-terminal-bar">SOVEREIGN INTELLIGENCE / OMEGA TERMINAL WIZARD</p><img src="/alpha/wizard-plan.svg" width="900" height="612" loading="lazy" decoding="async" alt="Captured Omega wizard plan screen: the side-by-side release and model paths, with NVIDIA packages left untouched."><details><summary>Read the captured terminal text</summary><pre>▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
@@ -21,9 +21,9 @@
  Sovereign Intelligence alpha   step 3 of 8  plan  written in Omega (.om)
   Here is exactly what changes, all inside your home folder:
 
-  ~/.local/share/aienos/releases/alpha-20261026.1   this release, already unpacked and checked
-  ~/.local/share/aienos/models/qwen3.8-27b-fp8-017b9c7a
-     the model: 30.9 GB in 81 files.
+  ~/.local/share/aienos/releases/alpha-20261026.2   this release, already unpacked and checked
+  ~/.local/share/aienos/models/qwen3.6-35b-a3b-fp8-95a723d0
+     the model: 37.5 GB in 56 files.
   ~/.local/share/aienos/engine.log   the engine's log, when it runs
   ~/.local/bin/aienos, the menu entry and the desktop icon (already there)
 
@@ -34,8 +34,8 @@
 
 
   &gt; Press Enter for the last question
-</pre></details></div><p class="alpha-small">Captured from the real Omega wizard in a fake-root host run. This is not a GPU installation receipt.</p></section><section class="alpha-section" id="alpha-hardware"><p class="alpha-kicker">02 / KNOW THE BOUNDARY</p><h2>One machine family first.</h2><div class="alpha-columns"><div><h3>NVIDIA DGX Spark / GB10</h3><p>The install target is Linux arm64 with an NVIDIA GB10 (sm_121), 128 GB memory and NVIDIA kernel driver 580.173.02. The wizard refuses untested driver versions at the doctor step. I am not offering a Windows, macOS, x86 Linux or other-GPU installer yet. Unsupported machines receive a friendly “not yet” without an installation.</p><p>The default model is <strong>Qwen3.8-27B-FP8</strong>, pinned to revision <code>017b9c7a</code>: 30,890,049,597 bytes from Hugging Face, with each file hash-checked. The live Spark's 35B model is not offered because it needs an unmerged engine path.</p><h3>What is coming for other machines?</h3><p><strong>PROPOSED:</strong> more hardware and operating systems, after a working port and device-specific evidence. I will not label a machine supported because the code compiles. <a href="https://github.com/aien-dev/omega-projects/issues">Tell me which machine you want to test</a>.</p></div><aside class="alpha-evidence"><p class="alpha-kicker">EVIDENCE, NOT A PROMISE</p><h3>Alpha is a testing phase.</h3><p><strong>IMPLEMENTED:</strong> the Omega wizard and the side-by-side install path.</p><p><strong>EXERCISED:</strong> Core commit <code>cf239078</code> passed <code>SC-GB10-SERVE-CHAT</code> once (1 token), under tag <code>alpha/20261025.1</code>. <a href="https://github.com/aien-dev/aien-receipts/blob/main/aien-sovereign-core/cf239078d05a47d84353c1508a08663273f00c3e/bundle.json">Read the engine receipt</a>.</p><p><strong>NOT_RUN:</strong> This release binary: GPU NOT_RUN. A user's GB10 install through first token and the new install's three-pass physical qualification are also NOT_RUN. I am not calling this installer hardware-qualified.</p><p><a href="https://github.com/aien-dev/sovereign-intelligence/releases/tag/alpha-20261026.1">Release, exact artifacts and evidence</a></p></aside></div><p class="alpha-small"><a href="https://github.com/aien-dev/sovereign-intelligence">Sovereign Intelligence is the front door</a>. AienOS is its OS layer; Allen, Omega, aien-math and CUDA++ keep their own identities. <a href="https://github.com/aien-dev/sovereign-intelligence/blob/main/docs/WHAT-I-AM-BUILDING.md">Read my project audit</a>.</p></section>
-<section class="alpha-section" id="alpha-source"><p class="alpha-kicker">03 / NOTHING BEHIND THE CURTAIN</p><h2>Built entirely in Omega.</h2><p class="alpha-lead">The walkthrough wizard is a seeded <code>.om</code> program. This page's structure and small motion client are generated by Omega too. Read the source, keep a copy, change it.</p><p>I mean the wizard, not every dependency in the delivery chain: the download bootstrap is POSIX sh, the website builder is Rust, and the host still supplies Linux, a terminal, signature verification and the NVIDIA kernel driver. Those boundaries are explicit.</p><p>The wizard source below targets seeded Omega compiler revision <code>3364a1dfd</code>. This page generator uses its separately pinned compiler; they are not interchangeable.</p><div class="alpha-links"><a href="https://github.com/aien-dev/sovereign-intelligence/tree/alpha-20261026.1/installer/wizard">Browse the wizard source</a><a href="/alpha/wizard.om" download="wizard.om">Download wizard.om ↓</a><a href="https://github.com/aien-dev/aienos.com/tree/main/om/alpha-page">Read this page's Omega</a></div><details class="alpha-source"><summary>Read the wizard's .om source</summary><pre><code>note SPDX-License-Identifier: Apache-2.0
+</pre></details></div><p class="alpha-small">Captured from the real Omega wizard in a fake-root host run. This is not a GPU installation receipt.</p></section><section class="alpha-section" id="alpha-hardware"><p class="alpha-kicker">02 / KNOW THE BOUNDARY</p><h2>One machine family first.</h2><div class="alpha-columns"><div><h3>NVIDIA DGX Spark / GB10</h3><p>The install target is Linux arm64 with an NVIDIA GB10 (PCI 10de:2e12) and NVIDIA kernel driver 580.173.02. The doctor refuses machines with less than 64 GiB of memory and warns when the GB10 has less than 61,309 MiB free. I am not offering a Windows, macOS, x86 Linux or other-GPU installer yet. Unsupported machines receive a friendly “not yet” without an installation.</p><p>The model is <strong>Qwen3.6-35B-A3B-FP8</strong>, pinned to revision <code>95a723d0</code>: 37,493,015,668 bytes in 56 files, each hash-checked. The plan asks for that size plus 1 GB of free disk. A 27B option is still to come and is not offered in this release.</p><h3>What is coming for other machines?</h3><p><strong>PROPOSED:</strong> more hardware and operating systems, after a working port and device-specific evidence. I will not label a machine supported because the code compiles. <a href="https://github.com/aien-dev/omega-projects/issues">Tell me which machine you want to test</a>.</p></div><aside class="alpha-evidence"><p class="alpha-kicker">EVIDENCE, NOT A PROMISE</p><h3>Alpha is a testing phase.</h3><p><strong>EXERCISED:</strong> the bundled engine <code>19173f9e</code> is byte for byte the build serving this 35B on my Spark, and I rebuilt it byte-identically from Core commit <code>59b05a71</code>. That is a development build, not a Core release tag.</p><p><strong>EXERCISED:</strong> installer, wizard and uninstaller on a fake GB10 tree (33/33), plus a stock Ubuntu 24.04 arm64 container (6/6 with a negative control). The first chat ran only against a fake engine.</p><p><strong>NOT_RUN:</strong> a real GB10 install from this installer, its 37.5 GB download and first token, and three-pass physical qualification. I am not calling this installer hardware-qualified.</p><p><a href="https://github.com/aien-dev/sovereign-intelligence/releases/tag/alpha-20261026.2">Release, exact artifacts and evidence</a></p></aside></div><p class="alpha-small"><a href="https://github.com/aien-dev/sovereign-intelligence">Sovereign Intelligence is the front door</a>. AienOS is its OS layer; Aien, Omega, aien-math and CUDA++ keep their own identities. <a href="https://github.com/aien-dev/sovereign-intelligence/blob/main/docs/WHAT-I-AM-BUILDING.md">Read my project audit</a>.</p></section>
+<section class="alpha-section" id="alpha-source"><p class="alpha-kicker">03 / NOTHING BEHIND THE CURTAIN</p><h2>Built entirely in Omega.</h2><p class="alpha-lead">The walkthrough wizard is a seeded <code>.om</code> program. This page's structure and small motion client are generated by Omega too. Read the source, keep a copy, change it.</p><p>I mean the wizard, not every dependency in the delivery chain: the download bootstrap is POSIX sh, the website builder is Rust, and the host still supplies Linux, a terminal, signature verification and the NVIDIA kernel driver. Those boundaries are explicit.</p><p>The wizard source below targets seeded Omega compiler revision <code>3364a1dfd</code>. This page generator uses its separately pinned compiler; they are not interchangeable.</p><div class="alpha-links"><a href="https://github.com/aien-dev/sovereign-intelligence/tree/alpha-20261026.2/installer/wizard">Browse the wizard source</a><a href="/alpha/wizard.om" download="wizard.om">Download wizard.om ↓</a><a href="https://github.com/aien-dev/aienos.com/tree/main/om/alpha-page">Read this page's Omega</a></div><details class="alpha-source"><summary>Read the wizard's .om source</summary><pre><code>note SPDX-License-Identifier: Apache-2.0
 note sha256.om: vendored from aien-dev/omega-mv 3364a1dfd0ca50c1b82bf19ba34932d8bc10a7a9 om/sha256/sha256-om2.om
 note (source sha256 dbf002dd6aa36585632b9d01d98ac3f0bd2fa0f0475082940de53638847994bb). Derived mechanically: every "export fn" became "fn", because a
 note program-mode unit (one with fn main) refuses export (OMEGESE 9.13, error 9). build.sh re-derives
@@ -1722,7 +1722,9 @@ verdict 3 2
 dstr d_m4
 ret
 end
-if lt fr 50684928
+note 35B load need (Core qwen36_batch at 59b05a71, live load log): 37254 MiB model + 8 rows x 1982.85 MiB
+note + 8192 MiB kept free = 61309 MiB = 62780416 kB (Wolfram: Ceiling[37254+8*1982.85+8192]*1024).
+if lt fr 62780416
 verdict 3 1
 dstr d_m3
 ret
@@ -3522,7 +3524,7 @@ r = renames pk 0 get pkn 0 0
 ret eq r 0
 end
 note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-note engine.om: start, watch and stop the engine (aien-serve-http from Core, engine omega) on
+note engine.om: start, watch and stop the engine (aien-serve-http, Core ship/motor-l387, engine omega) on
 note 127.0.0.1, check from /proc that it loaded no CUDA library, the first-chat screen, the done
 note screen, the uninstaller and the rollback.
 
@@ -3533,11 +3535,13 @@ text e_omega "omega"
 text e_mdir "--model-dir"
 text e_port "--port"
 text e_ctx "--max-context"
-text e_ctxv "131072"
+text e_ctxv "49152"
 text e_cap "--max-tokens-cap"
 text e_capv "16384"
 text e_thk "--thinking"
 text e_off "off"
+text e_slot "--batch-slots"
+text e_slotv "8"
 text e_log "/engine.log"
 text e_pid "/engine.pid"
 text e_null "/dev/null"
@@ -3553,8 +3557,8 @@ text f_skip1 "I am not starting the engine now: "
 text f_mem "another model is using this GB10's memory."
 text f_lock "another process holds the GB10 lock."
 text f_skip2 "Your model is installed. When the GPU is free, run:  aienos chat"
-text f_load1 "Starting the engine from Core cf239078 and loading the model onto the GB10."
-text f_load2 "The first load reads about 31 GB, so it can take a few minutes."
+text f_load1 "Starting the engine (Core ship/motor-l387 59b05a71) and loading the 35B onto the GB10."
+text f_load2 "The first load reads about 37.5 GB, so it can take a few minutes."
 text f_fail1 "The engine stopped before it was ready. Its log: ~/.local/share/aienos/engine.log"
 text f_q "Say hello in one short sentence, and tell me what you are."
 text f_you "you    "
@@ -3589,7 +3593,7 @@ text r_pre "releases/"
 text r_none "There is no other release to roll back to."
 text r_ok "current now points to "
 
-note The packed argument list of the receipted serve command (Core tools/serve-27b.sh), on PORT.
+note The packed argument list of the live 35B server's command (same flags), on PORT.
 fn eargs to void
 pkclr
 pclr
@@ -3609,6 +3613,8 @@ pkstr e_cap
 pkstr e_capv
 pkstr e_thk
 pkstr e_off
+pkstr e_slot
+pkstr e_slotv
 end
 
 note Start the engine in its own session, output appended to engine.log, pid in engine.pid.
@@ -4191,20 +4197,20 @@ note "doctor", "chat", "start", "stop", "verify", "source", "about", "uninstall"
 note small commands beside it. Build: concatenate sha256.om lib.om hole.om doctor.om net.om steps.om
 note engine.om main.om, in that order, and compile the result with the pinned omc (see build.sh).
 
-text v_tag "alpha-20261026.1"
-text a_l1 "Sovereign Intelligence alpha-20261026.1: the installer and the aienos command"
+text v_tag "alpha-20261026.2"
+text a_l1 "Sovereign Intelligence alpha-20261026.2: the installer and the aienos command"
 text a_l2 "written in Omega (.om), compiled by omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d"
 text a_l3 "  (aien-dev/omega-mv 3364a1dfd0ca50c1b82bf19ba34932d8bc10a7a9, seed/out/omc)"
-text a_l4 "engine: aien-serve-http, aien-dev/aien-sovereign-core-mv tag alpha/20261025.1 = cf239078d05a47d84353c1508a08663273f00c3e"
-text a_l5 "  receipt: aien-dev/aien-receipts aien-sovereign-core/cf239078d05a47d84353c1508a08663273f00c3e/bundle.json"
-text a_l6 "  (bundle sha256 44edcc9aa10cb7669093d8dfed3399374a6aaa312fc89beace8e39f934938687: 35 checks PASS,"
-text a_l7 "   including SC-GB10-SERVE-CHAT on a GB10 and SC-ZERO-CUDA)"
-text a_l8 "GPU path: the engine's statically linked libomega_gpu.a (omega-mv 18f8fdd9) talks to"
+text a_l4 "engine: aien-serve-http sha256 19173f9ec3b609fe79af644f84741d8808b92ea8eb3ecec4bc945af6f22b3aeb,"
+text a_l5 "  the build that serves the Spark's 35B: aien-dev/aien-sovereign-core-mv branch ship/motor-l387"
+text a_l6 "  commit 59b05a71a33e4a2f1324db2f2b6407ee82b8c2c3 (a development build, not a Core release tag)"
+text a_l7 "  evidence: Core evidence/l387-motor-ship (merge train 20261022T0244Z-bfc41659, timing runs)"
+text a_l8 "GPU path: the engine's statically linked libomega_gpu.a (omega ship/motor-l387 6de999da) talks to"
 text a_l9 "  /dev/nvidiactl, /dev/nvidia0 and /dev/nvidia-uvm. There is no separate CUDA++ runtime."
-text a_l10 "model: Qwen/Qwen3.8-27B-FP8 revision 017b9c7af6b5689d5dd426a76e0bc077eb5ca20a (30.9 GB)"
-text a_l11 "  The Qwen3.6-35B the Spark serves is not offered yet: it runs on an engine branch that is not merged."
-text a_l12 "evidence: GB10 serve and chat EXERCISED by the Core receipt above; this installer's full GPU run"
-text a_l13 "  and first token on a GB10, and the 3x physical qualification: NOT_RUN."
+text a_l10 "model: Qwen/Qwen3.6-35B-A3B-FP8 revision 95a723d08a9490559dae23d0cff1d9466213d989 (37.5 GB)"
+text a_l11 "  This is the only model offered. A 27B is to come; it is not offered in this release."
+text a_l12 "evidence: this engine binary serving the 35B on a GB10 EXERCISED (it is the live server's build);"
+text a_l13 "  this installer's GB10 install and first token, and the 3x physical qualification: NOT_RUN."
 text a_l14 "signature: Ed25519 alpha release key ff949504b427680039d53c33c85c448546b57d590eb1ecee3bb2ed6c2eaaf54a"
 text a_l15 "  (an alpha key; it is rotated to a ceremony key before beta)"
 text s_l1 "My Omega source ships with this release:"
@@ -4923,4 +4929,4 @@ end
 x = mopen
 ret uninst keep yes
 end
-</code></pre></details></section><section class="alpha-section" id="alpha-feedback"><p class="alpha-kicker">04 / BUILD IT WITH ME</p><h2>Tell me what happened.</h2><p>Ask <a href="/allen/">Allen</a> about the project, or <a href="https://github.com/aien-dev/omega-projects/issues">open an issue in omega-projects</a>. Include your hardware, operating system, release tag, the step that failed and the exact error. Remove tokens, personal paths, private prompts and model data before sharing a log.</p></section><section class="alpha-section alpha-exit" id="alpha-uninstall"><p class="alpha-kicker">05 / THE WAY BACK</p><h2>No one-way door.</h2><p>The installation lives under <code>~/.local/share/aienos</code>. It does not uninstall or overwrite NVIDIA packages or CUDA. Run <code>aienos uninstall</code> and type <code>yes</code> when asked. It removes the alpha installation, downloaded model, command and launchers. To keep the downloaded model, use <code>aienos uninstall --keep-model</code>. If the command is missing, run <code>~/.local/share/aienos/current/bin/aienos uninstall</code>.</p><p><a href="https://github.com/aien-dev/sovereign-intelligence">Uninstaller source and release instructions</a></p><p class="alpha-small">I would rather hear why you left than make it difficult to leave.</p></section></article>
+</code></pre></details></section><section class="alpha-section" id="alpha-feedback"><p class="alpha-kicker">04 / BUILD IT WITH ME</p><h2>Tell me what happened.</h2><p><a href="https://github.com/aien-dev/omega-projects/issues">Open an issue in omega-projects</a>. Include your hardware, operating system, release tag, the step that failed and the exact error. Remove tokens, personal paths, private prompts and model data before sharing a log.</p></section><section class="alpha-section alpha-exit" id="alpha-uninstall"><p class="alpha-kicker">05 / THE WAY BACK</p><h2>No one-way door.</h2><p>The installation lives under <code>~/.local/share/aienos</code>. It does not uninstall or overwrite NVIDIA packages or CUDA. Run <code>aienos uninstall</code> and type <code>yes</code> when asked. It removes the alpha installation, downloaded model, command and launchers. To keep the downloaded model, use <code>aienos uninstall --keep-model</code>. If the command is missing, run <code>~/.local/share/aienos/current/bin/aienos uninstall</code>.</p><p><a href="https://github.com/aien-dev/sovereign-intelligence">Uninstaller source and release instructions</a></p><p class="alpha-small">I would rather hear why you left than make it difficult to leave.</p></section></article>

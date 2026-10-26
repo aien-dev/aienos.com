@@ -7,20 +7,20 @@
     "generated": {
       "children": [
         {
-          "digest": "504ccf71754f0606bcfb6fe5f70abbf7e14f937c4d0a60c93b064fde124ae7e4",
+          "digest": "b8917c6f36b89eefce0ad992d3e57c834b50d2035a3316f3bdea333c1ae579c1",
           "last_commit": "da2a360",
           "name": "alpha",
           "purpose": "Pinned alpha wizard source and unmodified terminal capture assets"
         },
         {
           "digest": "d1e2bd3a55bfc80e4c99956c9cd0a1e4392fe49c2eb559efb8ad986951294303",
-          "last_commit": "3f268bb",
+          "last_commit": "d266bc3",
           "name": "assets",
           "purpose": "Website styles including the project dashboard"
         },
         {
           "digest": "64164d7c5eee640a6d6489f4ce3aebf7c3090d9ed417e0eb81307abe5ee6ca4d",
-          "last_commit": "f8eb7bf",
+          "last_commit": "d266bc3",
           "name": "data",
           "purpose": "Published generated project measurements with pinned sources"
         },
@@ -49,15 +49,15 @@
           "purpose": "Public static research or licensing pages using the shared website navigation"
         }
       ],
-      "children_root": "sha256:a8c042d094ec182e0be486b3fc6f1f1c911ed5892b44d3e2cebcbdf78cb4e1a2",
-      "compiled_at": "2026-10-26T17:12:02Z",
+      "children_root": "sha256:8f8099c086fc9b28ccfb226cd2d2b9e7fff22a59b63f175266e461ff6b759022",
+      "compiled_at": "2026-10-26T17:34:08Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:41376420fb17d009041bf64390c7cfc73ddd346f85cba25acd21b8fc59e434e0",
+      "digest": "sha256:9dce0ff6959e2c5a502a6d564e3930d9f6e8545d7764e2252b46a80b1cb91c62",
       "evidence_files": 1,
       "evidence_root": "sha256:a2ea74f9722821d4120cd2047554a3605939b2da603557928bf8b41eea78200a",
       "files": 136,
-      "generated_at_commit": "90cd2989d619293951ee909b5132d9d5483ad10b",
-      "source_tree": "sha256:90e71e8c1401a698268c9a49b095d7066c3df4cf9115cfbcdfc5d7f20a87e4d3"
+      "generated_at_commit": "33ac3cdd984d8aa9bb30b7daaae3b96921332c53",
+      "source_tree": "sha256:02f3b9e41707c077482b7db6818e0af7ccd44aa2ece270deb2e052fd42eadf22"
     }
   },
   "invariants": [
