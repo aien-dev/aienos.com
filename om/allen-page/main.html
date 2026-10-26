@@ -1,12 +1,12 @@
 <div class="allen" id="allen" data-ready="false" data-busy="false" data-mode="anonymous">
 <header class="allen-head">
-<p class="allen-eyebrow">Allen, live from the Spark</p>
-<h1 class="allen-title">Talk to Allen</h1>
-<p class="allen-lede" id="allen-intro">Allen is Drake's AI. Ask it anything, ask what Omega is (AIEN's own language for all computing, GPU to CPU), or ask for a small program. An HTML mini app runs right here in a sandboxed frame; an Omega function is compiled to WebAssembly on the Spark and runs in your browser.</p>
+<p class="allen-eyebrow">Aien, live from the Spark</p>
+<h1 class="allen-title">Talk to Aien</h1>
+<p class="allen-lede" id="allen-intro">Aien is Drake's AI. Ask it anything, ask what Omega is (AIEN's own language for all computing, GPU to CPU), or ask for a small program. An HTML mini app runs right here in a sandboxed frame; an Omega function is compiled to WebAssembly on the Spark and runs in your browser.</p>
 <p class="allen-where">Model <code id="allen-model">qwen3.6-35b-a3b-fp8</code>, running on a DGX Spark in Drake's house. The speeds below are measured by this page from the live stream.</p>
 </header>
-<section class="allen-panel" aria-label="Conversation with Allen">
-<p class="allen-mode"><span id="allen-mode">Anonymous: Allen won&#39;t remember this chat</span> <button type="button" class="allen-tool" id="allen-introduce">Remember me</button></p>
+<section class="allen-panel" aria-label="Conversation with Aien">
+<p class="allen-mode"><span id="allen-mode">Anonymous: Aien won&#39;t remember this chat</span> <button type="button" class="allen-tool" id="allen-introduce">Remember me</button></p>
 <div class="allen-volunteer" id="allen-volunteer-box">
 <label class="allen-agree"><input type="checkbox" id="allen-volunteer"> <span>Let a volunteer&#39;s Spark answer me when Drake&#39;s is busy.</span></label>
 <p class="allen-note">If you tick this and my Spark is full, your messages in this chat go to a computer owned by a volunteer, outside my house. It gets only the text of this anonymous conversation. I add no visitor key, stored memories, contact record or IP address, but anything you type here is sent as you typed it. I check a sample of volunteer replies, not every one. A volunteer could still send a wrong or bad reply that I don&#39;t catch. Each reply says which machine answered.</p>
@@ -30,8 +30,8 @@
 <p class="allen-drake" id="allen-drake" aria-live="polite" hidden></p>
 <p class="allen-status" id="allen-status" role="status" aria-live="polite"></p>
 <form class="allen-form" id="allen-form">
-<label class="allen-sr" for="allen-input">Message to Allen</label>
-<textarea id="allen-input" rows="3" maxlength="4000" placeholder="Ask Allen something. Enter sends; Shift+Enter starts a new line." autocomplete="off"></textarea>
+<label class="allen-sr" for="allen-input">Message to Aien</label>
+<textarea id="allen-input" rows="3" maxlength="4000" placeholder="Ask Aien something. Enter sends; Shift+Enter starts a new line." autocomplete="off"></textarea>
 <div class="allen-actions">
 <button type="submit" class="allen-send" id="allen-send">Send</button>
 <button type="button" class="allen-stop" id="allen-stop" disabled>Stop</button>
@@ -39,11 +39,11 @@
 </div>
 </form>
 <p class="allen-contact">To reach me, Drake, directly: <a href="https://x.com/mdrakestapleton" rel="noopener">follow me on X</a> or email me at <a href="mailto:drake@aienos.com">drake@aienos.com</a>.</p>
-<p class="allen-privacy" id="allen-privacy">Private by design: conversations are not stored, and the gateway keeps only aggregate counters. No prompts or IP addresses are logged. Programs run sandboxed in your browser. Reload the page and the conversation is gone. An introduction, and short notes Allen keeps about you, exist only if you consent; <a href="/privacy/">read what I keep</a>.</p>
+<p class="allen-privacy" id="allen-privacy">Private by design: conversations are not stored, and the gateway keeps only aggregate counters. No prompts or IP addresses are logged. Programs run sandboxed in your browser. Reload the page and the conversation is gone. An introduction, and short notes Aien keeps about you, exist only if you consent; <a href="/privacy/">read what I keep</a>.</p>
 <p class="allen-meet">Agents can introduce themselves with <code>POST https://www.aienos.com/allen/api/introduce</code> (schema in <a href="/llms.txt">/llms.txt</a>); nothing is stored without <code>"consent": true</code>.</p>
 <details class="allen-keypanel" id="allen-key" data-key="no">
-<summary>Your Allen key</summary>
-<div class="allen-keybody" id="allen-key-body"><p class="allen-note">Your Allen key needs JavaScript.</p></div>
+<summary>Your Aien key</summary>
+<div class="allen-keybody" id="allen-key-body"><p class="allen-note">Your Aien key needs JavaScript.</p></div>
 </details>
 </section>
 <footer class="allen-foot">
