@@ -8,19 +8,19 @@
       "children": [
         {
           "digest": "6a3d8918da8f7a94b6f6b3cf2fa16226c08bea42a86bec010327386803d2b016",
-          "last_commit": "c1021f8",
+          "last_commit": "69e4848",
           "name": "assets",
           "purpose": "Website styles including the project dashboard"
         },
         {
-          "digest": "4fa432b7882d4865c9d0312966020dc29c627c69e2301b117e221144ea9b0037",
-          "last_commit": "e245891",
+          "digest": "27c9b2146faf9a65afb12e27fc4d08c4ebc4ae1887c673cbcf9a996bd4312d7c",
+          "last_commit": "8929900",
           "name": "data",
           "purpose": "Published generated project measurements with pinned sources"
         },
         {
           "digest": "30278dfeca2d1dd231eaee967baae5b5ecfd6e746e50fcfb70e401bc6f2678f5",
-          "last_commit": "c3a98f3",
+          "last_commit": "69e4848",
           "name": "js",
           "purpose": "Browser interactions using public data only"
         },
@@ -43,15 +43,15 @@
           "purpose": "Public static research or licensing pages using the shared website navigation"
         }
       ],
-      "children_root": "sha256:bbe94a705a753916311fb4e15fa60c021a9da2a03bac243f19b7db1a81f1c2b3",
-      "compiled_at": "2026-10-26T15:14:23Z",
+      "children_root": "sha256:cb378a9e5be7f2d6ccdf228526df22cd7b13fff993fc34143fc5397e2ce7309a",
+      "compiled_at": "2026-10-26T15:25:54Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:c14b44004bf4dda991b3892515494055d411f4fccb63d9a94e7ebd9e878a18f3",
+      "digest": "sha256:2a8aa32595bb938d689f27bb6d721819ba859372cc78d0affe513c62d8119ba8",
       "evidence_files": 1,
       "evidence_root": "sha256:1f6f4b14373405a3b91d0e7aa6ba11d0dd332d4543ad01421a5451cca3e7de0c",
       "files": 123,
-      "generated_at_commit": "600d6009ba83e79c6de3dec2526c3ff2458284c9",
-      "source_tree": "sha256:52b2fc750e14fbbaea97b878d1286c40911c7281f6eb45f3e949b632a5e203e6"
+      "generated_at_commit": "6477cd723f2ea507f97f8942bcc2b6872160599a",
+      "source_tree": "sha256:d755b6008f065a3401655d905072058206815096d86046e7d0187c535226fc55"
     }
   },
   "invariants": [

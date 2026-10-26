@@ -100,7 +100,7 @@ pub fn render_start_page() -> Markup {
                     p {
                         "To put your own coding agent to work on any AIEN repository, start at "
                         a href="/agents/" { "Agents" }
-                        ": the rules our agents follow and each repository's own instructions."
+                        ": the rules my agents follow and each repository's own instructions."
                     }
                     p {
                         "The experimental installer targets Linux arm64 and NVIDIA GB10 only; read its limits on the alpha page. To reproduce a result, follow the receipt on its evidence card. To reproduce the site, build it from the repository."

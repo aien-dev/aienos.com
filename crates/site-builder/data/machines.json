@@ -1,7 +1,7 @@
 {
   "as_of": "2026-10-19",
   "source": "Spark ~/handoffs/2026-10-19-site-inventory.md and .json (ledger L057). Every row carries a public link; a fact without a link is not on the page.",
-  "judging": "Every number on this page is judged against two things only: the physical ceiling of the machine it ran on, and our own previous run. Nothing here is compared with anyone else's software.",
+  "judging": "Every number on this page is judged against two things only: the physical ceiling of the machine it ran on, and my own previous run. Nothing here is compared with anyone else's software.",
   "ceilings": [
     {
       "id": "qwen38-27b-fp8-gb10",
@@ -21,7 +21,7 @@
       "name": "NVIDIA DGX Spark",
       "detail": "Grace Blackwell GB10, 128 GB unified memory, AArch64",
       "role": "The development machine and the judge. Every speed receipt, every chip receipt, the verification pipeline and every agent run here.",
-      "today": "Linux. Serves Qwen3.8-27B (FP8) through our own server, aien-serve-http, on our own Omega GPU kernels. The AienOS C kernel has not booted on the Spark; a Rust-era kernel booted once on 2026-09-24.",
+      "today": "Linux. Serves Qwen3.8-27B (FP8) through my own server, aien-serve-http, on my own Omega GPU kernels. The AienOS C kernel has not booted on the Spark; a Rust-era kernel booted once on 2026-09-24.",
       "evidence_date": "2026-10-19",
       "evidence": "Live-server speed receipt, evidence/qwen38-serve-fast-20261019",
       "link": "https://github.com/aien-dev/aien-sovereign-core-mv/tree/qwen38/serve-fast/evidence/qwen38-serve-fast-20261019",
@@ -90,7 +90,7 @@
       "name": "Windows PC with an RTX 5070",
       "detail": "12 GB of GPU memory; the AIEN Rig target",
       "role": "The target for AIEN Rig: a local AI engine in a 12 GiB budget, a Windows frame-rate tuner, speech to text, a creator helper and one Windows app.",
-      "today": "Nothing of ours has run on it yet. Every Rig artifact is built on GitHub Actions without a GPU, or measured on the Spark under a 12 GiB budget. There is no release tag yet.",
+      "today": "Nothing of mine has run on it yet. Every Rig artifact is built on GitHub Actions without a GPU, or measured on the Spark under a 12 GiB budget. There is no release tag yet.",
       "evidence_date": "2026-10-19",
       "evidence": "Rig engine receipts in a 12 GiB budget, measured on the Spark GB10, not on a 5070 (docs/inference/evidence/rig-engine-20261019)",
       "link": "https://github.com/aien-dev/aien-sovereign-core-mv/tree/rig/engine-12gb/docs/inference/evidence/rig-engine-20261019",
@@ -151,7 +151,7 @@
       "detail": "123.04 ms per token, mean of 3 runs; 24 of 24 golden tokens",
       "tok_s": 8.13,
       "ceiling": "qwen38-27b-fp8-gb10",
-      "previous": "6.40 tok/s, our run before this series",
+      "previous": "6.40 tok/s, my run before this series",
       "date": "2026-10-19",
       "link": "https://github.com/aien-dev/omega-mv/tree/qwen38/decode-speed/evidence",
       "receipt": "omega evidence/q38-decode-speed-chip-20261019T*",

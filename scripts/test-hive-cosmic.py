@@ -308,7 +308,7 @@ class CosmicChecks(unittest.TestCase):
         page = PAGE.read_text()
         self.assertIn('hive-omega', page)
         self.assertIn('This page is written in Omega.', page)
-        self.assertIn('bear with the glitches while we iron it out', page)
+        self.assertIn('bear with the glitches while I iron it out', page)
         self.assertIn('Read the Omega source', page)
         self.assertIn('.hive-omega {', sheet)
 

@@ -616,6 +616,8 @@ fn verify_site(dist: &Path) {
         fs::read_to_string(dist.join("assets/turing-look.css")).expect("read turing-look.css").contains(".box-link::after"),
         "assets/turing-look.css must stretch .box-link over its box"
     );
+    // Drake writes alone: no we, us, our, ours or ourselves in rendered copy.
+    components::voice::verify_singular_voice(dist);
 
     println!("------------------------------------------------------------");
     println!("  Verified index.html ({} bytes)", content.len());
