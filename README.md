@@ -140,6 +140,14 @@ Include `scripts/hive/nginx-location.conf` inside the existing `www.aienos.com` 
 To stop publication, stop both user units and remove the edge's `live.json`; remove the exact nginx include and restricted upload key to retire the transport. Do not stop or restart agent sessions or model services. To inspect operation, use `systemctl --user status hive-feed hive-publish` and request the public endpoint; compare `generated_at` across responses rather than trusting a successful HTTP status alone.
 
 
+## Public coordination ledger boundary
+
+The Spark's private `~/handoffs/LEDGER.tsv` is not a deployable site asset. `site-builder ledger-project INPUT` screens the complete TSV before writing any output: it withholds credentials and email-shaped identifiers, redacts private paths, network addresses, local ports, process IDs and UUID-shaped identifiers, and preserves rows and line numbers. `site-builder ledger-check FILE` refuses anything that is not already that public projection. This is a heuristic screen, not permission to put secrets in the source ledger.
+
+The cron publisher must run both commands into a temporary `now.tsv.new` before replacing or staging `data/now/now.tsv`. On refusal it keeps the last published file and logs only the line and category, not the private value. The Pages workflow checks the laid-in file before build, and the builder checks it before copying assets; rejecting at Pages alone cannot remove a leak already committed to the public data branch. Install the matching reviewed `site-builder` binary before atomically installing any publisher change. Test the publisher with a temporary state and a deliberately refusing projector; never test against its live state. If the private ledger carries a credential-shaped entry, publication remains withheld until that entry is corrected by its owner.
+
+Previously published `data/now` commits remain in Git history and may have been cached by readers. This patch does not rewrite that evidence or certify historical privacy. The operator must decide any historical disclosure response and which classes of operational notes should be public at all.
+
 ## License
 
 Licensed under the Apache License, Version 2.0 with LLVM Exceptions. See [LICENSE](LICENSE) and [NOTICE](NOTICE). Project values live in the nonbinding [COVENANT.md](https://github.com/aien-dev/aien-sovereign-core/blob/main/COVENANT.md), which grants and restricts no legal rights.
@@ -148,7 +156,7 @@ Licensed under the Apache License, Version 2.0 with LLVM Exceptions. See [LICENS
 
 [Progress](https://www.aienos.com/progress/) is built by the existing Rust generator. It plots daily default-branch snapshots from the beginning of the retained public project history, exact-content-deduplicated physical source lines, named test-file footprint, distinct reachable commit SHAs, all PRs and available GitHub Actions runs. These metrics measure repository activity, not qualification or individual executed tests.
 
-The Pages workflow collects on pushes to main, manual runs, and hourly at minute 17 (UTC). GitHub can delay scheduled runs. The browser checks the published JSON every five minutes, preserves a selected historical day and marks snapshots older than three hours. Collection and reconciliation must succeed before deployment; a failed refresh retains the last good live page. Collection uses the built-in read-only Actions token against public endpoints; no token is shipped to browsers and no generated hourly commits are made. PR builds use the committed snapshot.
+The Pages workflow collects on pushes to main or data/now, manual runs, and hourly at minute 17 (UTC). GitHub can delay scheduled runs. The browser checks the published JSON every five minutes, preserves a selected historical day and marks snapshots older than three hours. If progress collection times out or fails, the workflow keeps the committed `project-progress.json` and can still deploy changed pages; that fallback is not a fresh reading and does not retain the previous deployment as a whole. Collection uses the built-in read-only Actions token against public endpoints; no token is shipped to browsers and no generated hourly commits are made. Pull requests do not get a hosted Pages build; local builds use the committed snapshot until they explicitly recollect it.
 
 ```bash
 cargo run --release --manifest-path crates/site-builder/Cargo.toml -- progress public/data/project-progress.json

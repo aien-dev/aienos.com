@@ -2,9 +2,12 @@
 use regex::Regex;
 use std::sync::LazyLock;
 
-struct Rules { secrets: Regex, paths: Regex, hosts: Regex, ipv4: Regex, ipv6: Regex, context: Regex, token: Regex }
+struct Rules { secrets: Regex, cli_flags: Regex, paths: Regex, hosts: Regex, ipv4: Regex, ipv6: Regex, context: Regex, token: Regex }
 static RULES: LazyLock<Rules> = LazyLock::new(|| Rules {
         secrets: Regex::new(r#"(?ix)(-----BEGIN\s+(?:[A-Z]+\s+)*PRIVATE\s+KEY|\b(?:bearer|basic)\s+[a-z0-9+/=_-]+|\b(?:[a-z0-9]+[_-])*(?:password|passwd|secret|api[_\x20-]?key|private[_\x20-]?key|access[_\x20-]?token|auth(?:orization)?|cookie|token|session[_\x20-]?(?:key|token|id))["\x27]?\s*(?::|=|\bis\b)\s*\S+|\b(?:sk-|ghp_|github_pat_|gho_|xox[baprs]-|AKIA)[a-z0-9_-]+|\beyJ[a-z0-9_-]+\.[a-z0-9_-]+\.[a-z0-9_-]+|(?:omp|ssh|agent|proc|history|local|memory|xd|skill|file|artifact|security|mcp)://|(?:https?|wss?)://[^\s<>]+[?\#][^\s<>]+|[a-z][a-z0-9+.-]*://[^\s/@]+:[^\s/@]+@|https?://(?:localhost|127\.|10\.|192\.168\.|\[))"#).unwrap(),
+        // Command-line options often separate the credential from its label
+        // with whitespace rather than an assignment operator.
+        cli_flags: Regex::new(r"(?ix)--(?:[a-z0-9]+[_-])*(?:password|passwd|secret|api[_-]?key|private[_-]?key|access[_-]?token|auth(?:orization)?|cookie|token|session[_-]?(?:key|token|id))\s+\S+").unwrap(),
         // Absolute and home-relative paths only. A prefix group keeps the
         // neighbouring character, so relative paths such as tests/data/x are
         // published verbatim instead of being mangled mid-word.
@@ -21,7 +24,7 @@ static RULES: LazyLock<Rules> = LazyLock::new(|| Rules {
 pub fn public_text(input: &str, limit: usize) -> Option<String> {
     let r = &*RULES;
     // Reject the entire original, including content beyond the display bound.
-    if input.is_empty() || r.secrets.is_match(input) || r.context.is_match(input) || input.chars().any(|c| c.is_control() && !matches!(c, '\n' | '\r' | '\t')) { return None; }
+    if input.is_empty() || r.secrets.is_match(input) || r.cli_flags.is_match(input) || r.context.is_match(input) || input.chars().any(|c| c.is_control() && !matches!(c, '\n' | '\r' | '\t')) { return None; }
     for m in r.token.find_iter(input) {
         let s = m.as_str();
         let mut counts = [0usize; 128];
@@ -89,5 +92,17 @@ mod adversarial_tests {
             "qWaErTyUiOpAsDfGhJkLzXcVbNmQ",
         ] { assert!(public_text(value,4000).is_none(),"{value}"); }
         assert!(public_text("Do not publish private keys. The model used 400 tokens.",4000).is_some());
+    }
+    #[test] fn rejects_whitespace_separated_credential_flags() {
+        for value in [
+            "Run example --password hunter22",
+            "Run example --api-key abcdef1234567890",
+            "Run example --password 'hunter22'",
+            "Run example --access-token \"shortvalue\"",
+            "Run example --db_password hunter22",
+        ] {
+            assert!(public_text(value, 4000).is_none(), "{value}");
+        }
+        assert!(public_text("Run example --output public/report.txt", 4000).is_some());
     }
 }

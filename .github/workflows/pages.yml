@@ -1,6 +1,7 @@
 name: pages
 # Builds and deploys www.aienos.com. The full site-builder suite runs on Spark;
-# generated-hive.yml separately checks committed Hive artifact hashes on x86_64.
+# generated-hive.yml separately checks committed Hive artifact hashes on x86_64,
+# and the committed Hive skeleton digest is checked again before publication.
 on:
   schedule:
     - cron: "17 * * * *"
@@ -9,8 +10,6 @@ on:
     branches: [main, data/now]
 permissions:
   contents: read
-  pages: write
-  id-token: write
 concurrency:
   group: pages
   # Let the active build finish; newer data can replace the pending run.
@@ -19,9 +18,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: main
+          persist-credentials: false
           # Full history: the sitemap and feeds date hand-written pages from their last commit.
           fetch-depth: 0
       - name: Lay in the live ledger from the data/now branch
@@ -55,6 +55,8 @@ jobs:
           else
             echo "no data/now branch yet; /now/ renders empty"
           fi
+      - name: Refuse an unprojected public ledger
+        run: cargo run --release -p site-builder -- ledger-check public/data/now.tsv
       # The collector walks the public GitHub record; a slow or rate-limited
       # API must not hold the whole deploy (it did twice on 2026-10-25). It is
       # bounded, written to a temp file, and the committed file stays in place
@@ -93,11 +95,13 @@ jobs:
             rm -f "$tmp"
             echo "agents: collector timed out or failed; keeping the committed agent-repos.json"
           fi
+      - name: Check the committed Hive skeleton digest
+        run: cargo test --release -p site-builder the_embedded_skeleton_matches_its_recorded_sha256
       - name: Build static site with pure Rust engine
         run: cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/data/now'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
         with:
           path: dist
 
@@ -108,6 +112,9 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5

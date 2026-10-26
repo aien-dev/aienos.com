@@ -29,6 +29,14 @@ fn message(role: &str, attribution: &str, content: Value, at: i64) -> Value { js
     for needle in ["secret-canary","TASK_CANARY","SYSTEM_CANARY","PRIVATE_ID","ARGS_CANARY","private-root"] { assert!(!output.contains(needle),"{needle}"); }
     assert!(c.interactions.is_empty());
 }
+#[test] fn labeled_cli_credentials_never_enter_public_interactions() {
+    let mut c = collector();
+    c.event("private-root",&message("user","user",json!([{"type":"text","text":"Run example --password hunter22"}]),1001),2000);
+    c.event("private-root",&message("assistant","",json!([{"type":"text","text":"example --api-key 'abcdef1234567890'"}]),1002),2000);
+    assert!(c.interactions.is_empty(), "labeled credentials must not be published");
+    c.event("private-root",&message("user","user",json!([{"type":"text","text":"Run example --output public/report.txt"}]),1003),2000);
+    assert_eq!(c.interactions.len(),1, "ordinary CLI flags remain publishable");
+}
 #[test] fn grandchildren_pending_terminal_and_long_running_tool() {
     let mut c = collector();
     c.event("private-root",&json!({"type":"message","timestamp":2000,"message":{"role":"toolResult","toolName":"task","details":{"progress":[{"id":"Parent","agent":"task","status":"pending","assignment":"DO_NOT_PUBLISH"}]}}}),2000);

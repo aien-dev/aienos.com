@@ -1,12 +1,12 @@
 //! /now/: what the people and agents of AIEN are doing right now.
 //!
-//! The one source is the coordination ledger, a tab separated file the
-//! coordinator and every agent write to on the Spark (`~/handoffs/LEDGER.tsv`).
-//! A small publisher pushes that file to the `data/now` branch of this
-//! repository whenever it changes; the pages workflow lays it into
-//! `public/data/now.tsv` before the build, and this module turns it into
-//! the page and into `/now.json` for machines. Nothing here is written by
-//! hand: if a line is not in the ledger, it is not on the page.
+//! The one private source is the coordination ledger, a tab separated file the
+//! coordinator and agents write to on the Spark (`~/handoffs/LEDGER.tsv`).
+//! The publisher projects it into a line-preserving, privacy-screened TSV
+//! before pushing `data/now`. Pages refuses an unprojected input before
+//! copying it into `public/data/now.tsv`; this module renders that public
+//! projection as the page and `/now.json`. Redaction changes private text,
+//! never the row count or source line links.
 //!
 //! Columns, in order: id, opened_utc, owner, status, item, done_when,
 //! evidence, updated_utc. `evidence` carries the running notes, newest

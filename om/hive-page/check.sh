@@ -1,6 +1,7 @@
 #!/bin/sh
 # Regenerate the Hive skeleton and browser scripts using the pinned arm64 omc.
-# CI on x86_64 checks the committed artifacts against their recorded hashes.
+# CI on x86_64 checks the committed artifacts against their recorded hashes;
+# Pages also runs the skeleton digest test before deployment.
 # OMEGA_OMC overrides the compiler path, never its pin.
 # OMEGA_ACCEPT_CHANGE=1 accepts rewritten artifacts; otherwise stale output exits 4.
 # Exit 2: missing compiler; 3: wrong pin; 4: stale artifact rewritten;
