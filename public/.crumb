@@ -8,19 +8,19 @@
       "children": [
         {
           "digest": "33be28b153ee314542ad4881c3f714eca1465097f828bae0a6b9cc72380bd4c0",
-          "last_commit": "b341fc6",
+          "last_commit": "bba2d4b",
           "name": "assets",
           "purpose": "Website styles including the project dashboard"
         },
         {
-          "digest": "4fa432b7882d4865c9d0312966020dc29c627c69e2301b117e221144ea9b0037",
-          "last_commit": "8929900",
+          "digest": "27c9b2146faf9a65afb12e27fc4d08c4ebc4ae1887c673cbcf9a996bd4312d7c",
+          "last_commit": "d210665",
           "name": "data",
           "purpose": "Published generated project measurements with pinned sources"
         },
         {
-          "digest": "4cef585c69673d1308e03ad21428e5ab61bda929b88d0650262d09d91673651a",
-          "last_commit": "b341fc6",
+          "digest": "24d63fbeb0bd1782ddf832407e4291da13dfb0be0e94959a3496cd8dd5007229",
+          "last_commit": "bba2d4b",
           "name": "js",
           "purpose": "Browser interactions using public data only"
         },
@@ -43,15 +43,15 @@
           "purpose": "Public static research or licensing pages using the shared website navigation"
         }
       ],
-      "children_root": "sha256:f38328d0c7635e2d4601edad8f783673222a8639eec43df5d0c11fe405d69844",
-      "compiled_at": "2026-10-26T15:31:15Z",
+      "children_root": "sha256:594d3d15bec6bfed93fa1f47d9e2d6995d4b79e8e163df5905bfa03cbb1122fa",
+      "compiled_at": "2026-10-26T15:40:28Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:23457fa09de2bf313ff6515943dfeefb04a49d34e782a4e4452e568a5d727b6d",
+      "digest": "sha256:9db1574e40f70d2ffdd390cfc55dcab3ca100d518631900cc157edfa2f089d28",
       "evidence_files": 1,
       "evidence_root": "sha256:1f6f4b14373405a3b91d0e7aa6ba11d0dd332d4543ad01421a5451cca3e7de0c",
       "files": 125,
-      "generated_at_commit": "b341fc689ed52d0c19de169bd0bd62d95bab3949",
-      "source_tree": "sha256:e5a09aa64d7d5f58009a634b681f98df137b32e17e1cc6769d88a628bdf6f970"
+      "generated_at_commit": "a109d82205fbd43c81bafb4b91b07a80073a7f6c",
+      "source_tree": "sha256:c3804f5768595effd9ae55927e03ad0c8d4f578527f012ca68e257059ba1de4a"
     }
   },
   "invariants": [

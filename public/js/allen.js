@@ -33,7 +33,7 @@
   const PRIVACY_MAIL = 'aien@aienos.com';
   const POLL_MS = 3000;
   const POLL_LIMIT = 120000;
-  const REVIEW_HOST = 'aien-dev.github.io/omega-projects/';
+  const REVIEW_HOST = 'aien-dev.github.io/omega-projects/projects/';
   const turns = [];
   const runners = new Set();
   let active = null;
@@ -584,7 +584,8 @@
       state.replaceChildren(el('p', 'allen-err', `Not filed: ${typeof status.reason === 'string' ? status.reason.slice(0, 300) : 'no reason given'}`));
       return true;
     }
-    state.replaceChildren(el('p', 'allen-note', `Queued for Drake's filing service as ${id}${status.duplicate ? ', the same text was sent before' : ''}. Checking every ${POLL_MS / 1000} s.`));
+    const why = typeof status.reason === 'string' && status.reason ? status.reason.slice(0, 200) : '';
+    state.replaceChildren(el('p', 'allen-note', `Queued${why ? `: ${why}` : ''} (item ${id}${status.duplicate ? ', the same text was sent before' : ''}). Checking every ${POLL_MS / 1000} s for up to ${POLL_LIMIT / 60000} minutes.`));
     return false;
   }
   async function track(first, state) {
@@ -598,7 +599,8 @@
     for (;;) {
       if (showStatus(current, state, id)) return;
       if (performance.now() - began >= POLL_LIMIT) {
-        state.replaceChildren(el('p', 'allen-note', `Still queued after ${POLL_LIMIT / 60000} minutes. The request ${id} is kept; Drake's filing service files it when it runs.`));
+        const why = typeof current.reason === 'string' && current.reason ? current.reason.slice(0, 200) : 'not filed yet';
+        state.replaceChildren(el('p', 'allen-note', `queued: ${why} (item ${id}). The request is kept and is filed when Drake's filing service runs; checking stopped after ${POLL_LIMIT / 60000} minutes.`));
         return;
       }
       await new Promise(done => setTimeout(done, POLL_MS));

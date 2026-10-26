@@ -23,8 +23,8 @@
           "purpose": "GitHub automation configuration"
         },
         {
-          "digest": "872dce92f72c654048959ac181a002fcd2c97c51ade0b76b9925942804b0314d",
-          "last_commit": "fc1a22c",
+          "digest": "8eafe9c6bf64fb27ebdd9e43034d3d35f6127e48f00fa98d5af28a378c0d2465",
+          "last_commit": "a109d82",
           "name": "crates",
           "purpose": "Native Rust website crates"
         },
@@ -35,21 +35,21 @@
           "purpose": "Seeded Omega edge rendering of validated canonical Hive JSON with fail-closed escaping and deter"
         },
         {
-          "digest": "23457fa09de2bf313ff6515943dfeefb04a49d34e782a4e4452e568a5d727b6d",
-          "last_commit": "bba2d4b",
+          "digest": "9db1574e40f70d2ffdd390cfc55dcab3ca100d518631900cc157edfa2f089d28",
+          "last_commit": "a109d82",
           "name": "public",
           "purpose": "Static public website assets"
         }
       ],
-      "children_root": "sha256:6929d71757d3186ebf4aa79b7b88d4b465ff37e23752dc019e637a6f93735886",
-      "compiled_at": "2026-10-26T15:32:13Z",
+      "children_root": "sha256:0fc791944b40e76c026277607de7038eb212a4d3064a44535f905b5fb23ca52d",
+      "compiled_at": "2026-10-26T15:40:28Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:6a32dfa7c573575821c594a3b853b521848628701bff9c6eb06edb14d5e2f7ca",
+      "digest": "sha256:3245823ad7d783ab8f054b505cc62218cf908948e3755e54e9ed238cffe46513",
       "evidence_files": 1,
       "evidence_root": "sha256:1f6f4b14373405a3b91d0e7aa6ba11d0dd332d4543ad01421a5451cca3e7de0c",
-      "files": 240,
-      "generated_at_commit": "fc1a22c1506f95c91d2d491958cae94bb7a81c10",
-      "source_tree": "sha256:261ea0f5914e732b9417da097c740412c3227860d6f509370eb6b054e553cc3c"
+      "files": 241,
+      "generated_at_commit": "a109d82205fbd43c81bafb4b91b07a80073a7f6c",
+      "source_tree": "sha256:dee30e5abe4121a34e405f82265b6f68b7b5ac2f7d09cdf741cd4b723a016c29"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",
