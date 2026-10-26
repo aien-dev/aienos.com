@@ -192,7 +192,10 @@ function load(opts = {}) {
             reject(new TypeError('network'));
             return;
           }
-          resolve({ ok: out.status >= 200 && out.status < 300, status: out.status, headers: { get: name => (out.headers || {})[name] || null }, json: async () => out.body });
+          resolve({ ok: out.status >= 200 && out.status < 300, status: out.status, headers: { get: name => (out.headers || {})[name] || null }, json: async () => {
+            if (out.html) throw new SyntaxError('Unexpected token < in JSON');
+            return out.body;
+          } });
         };
         if (init.signal) init.signal.addEventListener('abort', () => reject(new Error('AbortError')));
         if (S.hold) srv.held.push(answer);
@@ -657,6 +660,24 @@ test('a page without the mic still reads aloud; a page without the box does noth
   assert.equal(env.rec.instances.length, 0);
 });
 
+test('pronunciation: whole-word Aien is spoken as Ian; the screen and the Drake label keep their text', async () => {
+  const env = load({ recognition: 'webkit', voices: [LOCAL] });
+  env.toggle.click();
+  assert.equal(env.status.textContent, C.speakOn);
+  assert.match(env.status.textContent, /^Aien's replies/, 'displayed copy keeps Aien');
+  env.synth.spoken.length = 0;
+  const detail = { text: "Hi, I'm **Aien**. Aiendale, AIEN and aien stay; Aien's name is Aien.", outcome: '' };
+  env.emit('reply', detail);
+  const said = env.synth.spoken.map(u => u.text).join(' ');
+  assert.equal(said, "Hi, I'm Ian. Aiendale, AIEN and aien stay; Ian's name is Ian.");
+  assert.equal(detail.text, "Hi, I'm **Aien**. Aiendale, AIEN and aien stay; Aien's name is Aien.", 'the reply text itself is untouched');
+  env.synth.spoken.length = 0;
+  env.emit('human', { text: 'Aien is right.' });
+  assert.equal(env.synth.spoken.map(u => u.text).join(' '), `${C.drake} Ian is right.`);
+  assert.equal(C.drake, 'Drake wrote:');
+  for (const el of env.page.children) assert.doesNotMatch(String(el.textContent), /\bIan\b/, `${el.id} shows no alias`);
+});
+
 /* Allen's server path. */
 async function settle() {
   for (let i = 0; i < 12; i += 1) await tick();
@@ -698,7 +719,8 @@ test('server: presence transcribe true makes it primary, with its exact privacy 
   const env = await serverEnv();
   assert.equal(env.win.AllenVoice.mode(), 'server');
   assert.equal(env.privacy.textContent, C.server);
-  assert.ok(C.server.includes("Your clip is sent to Allen's server, turned into text, and never saved: it stays in memory only and is discarded as soon as the text comes back. The text is shown to you; it is not logged."));
+  assert.ok(C.server.includes("Your clip is sent to Aien's server, turned into text, and never saved: it stays in memory only and is discarded as soon as the text comes back. The text is shown to you; it is not logged."));
+  assert.doesNotMatch(code.replace(/\/\*[\s\S]*?\*\//g, ''), /Allen's|reach Allen/, 'no visible copy names Allen');
   assert.doesNotMatch(C.server, /disk/);
   assert.equal(env.srv.fetches.length, 1);
   assert.equal(env.srv.fetches[0].url, '/allen/api/presence');
@@ -808,6 +830,10 @@ test('server: refusals are announced, never retried elsewhere; the browser servi
     [{ status: 400, body: { error: 'bad', message: 'x' } }, C.failed],
     [{ status: 200, body: { text: '   ' } }, C.unclear],
     ['throw', C.serverdown],
+    [{ status: 413, html: true }, C.toolong],
+    [{ status: 429, body: { error: 'rate', message: 'slow down', retry_after: 20 } }, `${C.rate} ${C.retry} 20 s.`],
+    [{ status: 502, html: true }, C.failed],
+    [{ status: 200, html: true }, C.failed],
   ];
   for (const [answer, said] of cases) {
     const env = await serverEnv({ respond: () => answer });
