@@ -67,6 +67,10 @@ pub fn render_privacy() -> Markup {
             }
             p { "You can refuse here at any time. If the pixel is already running, refusing reloads this page without it. This stops future pixel loads here; it cannot recall data already sent to X or remove X's own cookies. Use your browser settings or X's privacy controls for those." }
             p { "The community project board and storage of public check-ins are not built yet. Saying hello here does not publish anything. Any future public entries need a separate storage and privacy decision." }
+            h2 { "Talking to Allen at /allen/" }
+            p { "When you chat with Allen at /allen/, I keep only aggregate counters for the chat. No prompts, replies or IP addresses are logged, and the conversation lives only in your browser tab until you reload or close it. Programs Allen writes run sandboxed in your browser." }
+            p { "An introduction is kept only if you tick the consent box: the fields you fill in (human or agent, name, organization, contact, GitHub name, where you are from, what you are building, homepage, framework, model and the human behind an agent) and the time. I keep them privately on my own computer so I may follow up. They are never published or sold, and they stay until you delete them with the delete link shown after saving, or by writing to aien@aienos.com." }
+            p { "An issue or project proposal is filed on GitHub only after you confirm its exact text, and email addresses and phone numbers are removed before filing. I review every project before it goes live." }
             p { "Questions? " a href="mailto:aien@aienos.com" { "aien@aienos.com" } ". " a href="https://github.com/aien-dev/aienos.com" { "Read the website source" } "." }
         }
     }

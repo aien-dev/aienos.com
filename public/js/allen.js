@@ -26,11 +26,23 @@
   const CSP = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; form-action 'none'; base-uri 'none'";
   const SANDBOX = 'allow-scripts';
   const CALL_MS = 3000;
+  const SUBMIT = '/allen/api/submit';
+  const STATUS = '/allen/api/status/';
+  const INTRODUCE = '/allen/api/introduce';
+  const FORGET = '/allen/api/forget';
+  const PRIVACY_MAIL = 'aien@aienos.com';
+  const POLL_MS = 3000;
+  const POLL_LIMIT = 120000;
+  const REVIEW_HOST = 'aien-dev.github.io/omega-projects/';
   const turns = [];
   const runners = new Set();
   let active = null;
   let epoch = 0;
   let countdown = 0;
+  /* What the visitor said they are, from the greeting buttons only; kept in
+     this closure and sent to the model as one short first line. */
+  let kind = '';
+  let choices = null;
   function el(tag, className, text) {
     const node = document.createElement(tag);
     if (className) node.className = className;
@@ -62,10 +74,12 @@
      most LIMIT.each characters, LIMIT.total in all, starting with a user turn. */
   function fit(list) {
     const out = list.map(turn => ({ role: turn.role, content: cut(turn.content, LIMIT.each) }));
-    let total = out.reduce((sum, turn) => sum + turn.content.length, 0);
+    const lead = kind ? `I am ${kind === 'agent' ? 'an agent' : 'a human'}.\n` : '';
+    let total = out.reduce((sum, turn) => sum + turn.content.length, 0) + lead.length;
     while (out.length > 1 && (out.length > LIMIT.count || total > LIMIT.total || out[0].role !== 'user')) {
       total -= out.shift().content.length;
     }
+    if (lead) out[0].content = cut(lead + out[0].content, LIMIT.each);
     return out;
   }
   /* Incremental server-sent events: a chunk may end anywhere, even inside a line. */
@@ -228,41 +242,563 @@
     };
   }
   /* Buttons under a finished fenced block: html runs in a sandbox, omega
-     compiles to WebAssembly, every block can be copied. */
+     compiles to WebAssembly, both download and publish; issue and introduce
+     blocks become cards that act only on a visitor's click. */
   function tools(lang, source, wrap, bar, pre) {
-    const kind = /^html?$/.test(lang) ? 'html' : /^(omega|om)$/.test(lang) ? 'omega' : '';
+    const type = /^html?$/.test(lang) ? 'html' : /^(omega|om)$/.test(lang) ? 'omega' : /^(issue|introduce)$/.test(lang) ? lang : '';
     const out = el('div', 'allen-out');
+    if (type === 'issue' || type === 'introduce') {
+      pre.hidden = true;
+      wrap.append(out);
+      if (type === 'issue') issueCard(cardFields(source), out);
+      else out.append(introCard(introLines(cardFields(source).fields)));
+      return;
+    }
     let view = null;
     const showCode = shown => {
       pre.hidden = !shown;
       if (view) view.setAttribute('aria-pressed', String(shown));
     };
-    if (kind === 'html') {
+    const project = type ? makeProject(type, source) : null;
+    if (type === 'html') {
       bar.append(button('Run', () => {
         runHtml(source, out);
         showCode(false);
       }));
     }
-    if (kind === 'omega') {
-      bar.append(button('Compile and run', event => compileOmega(source, out, event.currentTarget)));
+    if (type === 'omega') {
+      bar.append(button('Compile and run', event => compileOmega(source, out, event.currentTarget, project)));
     }
-    if (kind) {
+    if (type) {
       view = button('Code', () => showCode(pre.hidden));
       view.setAttribute('aria-pressed', 'true');
       bar.append(view);
     }
     const copy = button('Copy', () => copyText(source, copy));
     bar.append(copy);
+    if (project) {
+      const more = el('div', 'allen-more');
+      const pub = el('div', 'allen-pub');
+      downloads(project, more, pub);
+      wrap.append(more, pub);
+    }
     wrap.append(out);
   }
+  /* One block is one project: its main file, a README and, for Omega, the
+     wasm once it has been compiled. */
+  function slugify(text) {
+    return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+/, '').slice(0, 40).replace(/-+$/, '');
+  }
+  function makeProject(type, source) {
+    if (type === 'html') {
+      const named = /<title[^>]*>([^<]{1,80})<\/title>/i.exec(source);
+      const title = named && named[1].trim() ? named[1].trim() : 'Allen app';
+      return { type, title, base: slugify(title) || 'allen-app', main: 'index.html', source, wasm: null, functions: [], wasmButton: null };
+    }
+    const first = /^\s*fn\s+([A-Za-z0-9_]+)/m.exec(source);
+    const title = first ? first[1] : 'program';
+    const base = slugify(title) || 'program';
+    return { type, title, base, main: `${base}.om`, source, wasm: null, functions: [], wasmButton: null };
+  }
+  function signature(fn) {
+    const params = Array.isArray(fn.params) ? fn.params : [];
+    return `${fn.name}(${params.map(p => `${p.name}: ${p.type}`).join(', ')}) to ${typeof fn.ret === 'string' ? fn.ret : 'void'}`;
+  }
+  function readme(project, description) {
+    const lines = [`# ${project.title}`, '', description || "Written by Allen, Drake's AI, at https://www.aienos.com/allen/.", ''];
+    if (project.type === 'html') {
+      lines.push('Open index.html in a browser. It is one self-contained file.');
+    } else {
+      lines.push(`${project.main} is scalar Omega in IR mode. To build it with the pinned seeded compiler and the IR to WebAssembly translator:`, '', '```sh', `{ printf 'ir\\n'; cat ${project.main}; } | omc > ${project.base}.ir`, `irwasm < ${project.base}.ir > ${project.base}.wasm`, '```');
+      if (project.functions.length) {
+        lines.push('', `${project.base}.wasm has no imports. It exports:`, '');
+        for (const fn of project.functions) lines.push(`- ${signature(fn)}`);
+      }
+    }
+    lines.push('', 'Learn about Omega: https://www.aienos.com/omega/', '');
+    return lines.join('\n');
+  }
+  const CRC_TABLE = (() => {
+    const table = new Uint32Array(256);
+    for (let n = 0; n < 256; n += 1) {
+      let c = n;
+      for (let k = 0; k < 8; k += 1) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+      table[n] = c >>> 0;
+    }
+    return table;
+  })();
+  function crc32(bytes) {
+    let c = 0xffffffff;
+    for (let i = 0; i < bytes.length; i += 1) c = CRC_TABLE[(c ^ bytes[i]) & 255] ^ (c >>> 8);
+    return (c ^ 0xffffffff) >>> 0;
+  }
+  /* A store-only zip: local headers, the bytes, a central directory and the
+     end record, names flagged UTF-8, every entry with its CRC-32. */
+  function zip(files) {
+    const encoder = new TextEncoder();
+    const now = new Date();
+    const time = (now.getHours() << 11) | (now.getMinutes() << 5) | Math.floor(now.getSeconds() / 2);
+    const date = ((Math.max(1980, now.getFullYear()) - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+    const parts = [];
+    const central = [];
+    let offset = 0;
+    for (const file of files) {
+      const name = encoder.encode(file.name);
+      const data = file.data;
+      const crc = crc32(data);
+      const local = new DataView(new ArrayBuffer(30));
+      local.setUint32(0, 0x04034b50, true);
+      local.setUint16(4, 20, true);
+      local.setUint16(6, 0x0800, true);
+      local.setUint16(8, 0, true);
+      local.setUint16(10, time, true);
+      local.setUint16(12, date, true);
+      local.setUint32(14, crc, true);
+      local.setUint32(18, data.length, true);
+      local.setUint32(22, data.length, true);
+      local.setUint16(26, name.length, true);
+      local.setUint16(28, 0, true);
+      parts.push(new Uint8Array(local.buffer), name, data);
+      const entry = new DataView(new ArrayBuffer(46));
+      entry.setUint32(0, 0x02014b50, true);
+      entry.setUint16(4, 20, true);
+      entry.setUint16(6, 20, true);
+      entry.setUint16(8, 0x0800, true);
+      entry.setUint16(10, 0, true);
+      entry.setUint16(12, time, true);
+      entry.setUint16(14, date, true);
+      entry.setUint32(16, crc, true);
+      entry.setUint32(20, data.length, true);
+      entry.setUint32(24, data.length, true);
+      entry.setUint16(28, name.length, true);
+      entry.setUint32(42, offset, true);
+      central.push(new Uint8Array(entry.buffer), name);
+      offset += 30 + name.length + data.length;
+    }
+    const size = central.reduce((sum, part) => sum + part.length, 0);
+    const end = new DataView(new ArrayBuffer(22));
+    end.setUint32(0, 0x06054b50, true);
+    end.setUint16(8, files.length, true);
+    end.setUint16(10, files.length, true);
+    end.setUint32(12, size, true);
+    end.setUint32(16, offset, true);
+    const all = [...parts, ...central, new Uint8Array(end.buffer)];
+    const out = new Uint8Array(all.reduce((sum, part) => sum + part.length, 0));
+    let at = 0;
+    for (const part of all) {
+      out.set(part, at);
+      at += part.length;
+    }
+    return out;
+  }
+  /* Downloads are made here, in the browser: a Blob and an anchor with download. */
+  function save(name, data, type) {
+    const url = URL.createObjectURL(new Blob([data], { type }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = name;
+    anchor.rel = 'noopener';
+    anchor.hidden = true;
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  function projectFiles(project) {
+    const encoder = new TextEncoder();
+    const files = [{ name: project.main, data: encoder.encode(project.source) }];
+    if (project.wasm) files.push({ name: `${project.base}.wasm`, data: project.wasm });
+    files.push({ name: 'README.md', data: encoder.encode(readme(project)) });
+    return files;
+  }
+  function downloads(project, row, pub) {
+    row.append(el('span', 'allen-more-label', 'Download'));
+    row.append(button(project.main, () => save(project.main, project.source, project.type === 'html' ? 'text/html' : 'text/plain')));
+    if (project.type === 'omega') {
+      project.wasmButton = button(`${project.base}.wasm`, () => {
+        if (project.wasm) save(`${project.base}.wasm`, project.wasm, 'application/wasm');
+      });
+      project.wasmButton.disabled = true;
+      project.wasmButton.title = 'Compile it first';
+      row.append(project.wasmButton);
+    }
+    row.append(button('README.md', () => save('README.md', readme(project), 'text/markdown')));
+    row.append(button(`${project.base}.zip`, () => save(`${project.base}.zip`, zip(projectFiles(project)), 'application/zip')));
+    row.append(button('Publish to Omega Projects', () => publishForm(project, pub)));
+  }
+  function field(parent, label, tag, max) {
+    const wrap = el('label', 'allen-field');
+    wrap.append(el('span', '', label));
+    const input = el(tag);
+    if (tag === 'input') input.type = 'text';
+    input.maxLength = max;
+    input.autocomplete = 'off';
+    wrap.append(input);
+    parent.append(wrap);
+    return input;
+  }
+  function post(body, extra) {
+    return { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...extra }, body: JSON.stringify(body), cache: 'no-store', credentials: 'omit' };
+  }
+  function failure(response, reply, tail) {
+    const said = reply && typeof reply.message === 'string' ? reply.message.slice(0, 300) : '';
+    const wait = retryAfter(response, reply);
+    if ([400, 413, 422].includes(response.status) && said) return `${said} ${tail}`.trim();
+    return `${refusal(response.status, reply)}${wait ? ` Try again in ${wait} s.` : ''} ${tail}`.trim();
+  }
+  const SLUG = /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/;
+  function publishForm(project, pub) {
+    if (pub.firstChild) {
+      pub.replaceChildren();
+      return;
+    }
+    const form = el('form', 'allen-card allen-publish');
+    form.noValidate = true;
+    form.append(el('p', 'allen-card-h', 'Publish to Omega Projects'));
+    const slug = field(form, 'Address (lowercase letters, digits and hyphens)', 'input', 40);
+    slug.value = project.base;
+    const title = field(form, 'Title', 'input', 80);
+    title.value = project.title;
+    const description = field(form, 'Description', 'textarea', 2000);
+    const main = project.type === 'html' ? 'index.html' : project.main;
+    form.append(el('p', 'allen-note', `Files: ${main}, README.md`));
+    const where = el('p', 'allen-note');
+    const sync = () => setText(where, `Drake reviews every project before it goes live at ${REVIEW_HOST}${slug.value || 'your-address'}/. Submitting sends these files publicly as a pull request to github.com/aien-dev/omega-projects; email addresses and phone numbers are removed first.`);
+    slug.addEventListener('input', sync);
+    sync();
+    const send = el('button', 'allen-tool', 'Submit for review');
+    send.type = 'submit';
+    const state = el('div', 'allen-card-state');
+    form.append(where, send, state);
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      const problems = [];
+      const name = title.value.trim();
+      const about = description.value.trim();
+      if (!SLUG.test(slug.value)) problems.push('The address must be 1 to 40 lowercase letters, digits or inner hyphens.');
+      if (name.length < 3 || name.length > 80) problems.push('The title must be 3 to 80 characters.');
+      if (about.length < 10 || about.length > 2000) problems.push('The description must be 10 to 2000 characters.');
+      if (problems.length) {
+        state.replaceChildren(el('p', 'allen-err', problems.join(' ')));
+        return;
+      }
+      send.disabled = true;
+      const item = { v: 1, kind: 'project', slug: slug.value, title: name, description: about, files: [{ name: main, content: project.source }, { name: 'README.md', content: readme({ ...project, title: name }, about) }] };
+      submitItem(item, state, send);
+    });
+    pub.replaceChildren(form);
+    slug.focus();
+  }
+  /* Header lines "Key: value" up to the first line that is not one; the rest
+     is the body. Keys from the model land in a prototype-free object. */
+  function cardFields(source) {
+    const fields = Object.create(null);
+    const lines = source.split('\n');
+    let i = 0;
+    for (; i < lines.length; i += 1) {
+      const match = /^\s*([A-Za-z]+)\s*:\s?(.*)$/.exec(lines[i]);
+      if (!match) break;
+      fields[match[1].toLowerCase()] = match[2].trim();
+    }
+    return { fields, body: lines.slice(i).join('\n').trim() };
+  }
+  const INTRO_LINES = { kind: 'kind', name: 'name', org: 'org', contact: 'contact', github: 'github', from: 'origin', building: 'purpose', homepage: 'homepage', human: 'human', framework: 'framework', model: 'model' };
+  function introLines(fields) {
+    const out = Object.create(null);
+    for (const [line, key] of Object.entries(INTRO_LINES)) if (fields[line]) out[key] = fields[line];
+    return out;
+  }
+  function issueCard(parsed, out) {
+    const item = { v: 1, kind: 'issue', template: String(parsed.fields.type || '').toLowerCase(), title: String(parsed.fields.title || ''), body: parsed.body, area: String(parsed.fields.area || 'unknown') };
+    const card = el('div', 'allen-card');
+    card.append(el('p', 'allen-card-h', 'Proposed GitHub issue'));
+    const facts = el('dl', 'allen-kv');
+    for (const [label, value] of [['Type', item.template], ['Area', item.area], ['Title', item.title]]) facts.append(el('dt', '', label), el('dd', '', value));
+    card.append(facts, el('pre', 'allen-card-body', item.body));
+    const problems = [];
+    if (!['feature', 'question', 'bug'].includes(item.template)) problems.push('Type must be feature, question or bug.');
+    if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/.test(item.area)) problems.push('Area must be a repository name or unknown.');
+    if (item.title.length < 8 || item.title.length > 120) problems.push('The title must be 8 to 120 characters.');
+    if (item.body.length < 20 || item.body.length > 6000) problems.push('The body must be 20 to 6000 characters.');
+    const state = el('div', 'allen-card-state');
+    if (problems.length) {
+      state.append(el('p', 'allen-err', `This cannot be filed as written: ${problems.join(' ')} Ask Allen to fix it.`));
+      card.append(state);
+      out.replaceChildren(card);
+      return;
+    }
+    card.append(el('p', 'allen-note', 'Filing publishes exactly this text as an issue on github.com/aien-dev/omega-projects. Email addresses and phone numbers are removed first. Nothing is filed until you confirm.'));
+    const file = button('File this on GitHub', () => {
+      file.hidden = true;
+      const confirm = el('div', 'allen-choices');
+      confirm.append(el('span', 'allen-note', 'File this exact issue publicly?'), button('Yes, file it', () => {
+        confirm.remove();
+        submitItem(item, state, file);
+      }), button('Cancel', () => {
+        confirm.remove();
+        file.hidden = false;
+      }));
+      card.insertBefore(confirm, state);
+    });
+    card.append(file, state);
+    out.replaceChildren(card);
+  }
+  async function submitItem(item, state, again) {
+    state.replaceChildren(el('p', 'allen-note', 'Sending.'));
+    let response;
+    let reply;
+    try {
+      response = await fetch(SUBMIT, post(item));
+      reply = await response.json().catch(() => null);
+    } catch (_) {
+      state.replaceChildren(el('p', 'allen-err', 'Could not reach Allen. Nothing was sent.'));
+      again.hidden = false;
+      again.disabled = false;
+      return;
+    }
+    if (!response.ok || !reply || typeof reply !== 'object') {
+      state.replaceChildren(el('p', 'allen-err', failure(response, reply, 'Nothing was filed.')));
+      again.hidden = false;
+      again.disabled = false;
+      return;
+    }
+    track(reply, state);
+  }
+  /* Status every POLL_MS until filed, rejected or POLL_LIMIT; only a link to
+     an issue or pull request in aien-dev/omega-projects becomes an anchor. */
+  function showStatus(status, state, id) {
+    const url = typeof status.url === 'string' && /^https:\/\/github\.com\/aien-dev\/omega-projects\/(issues|pull)\/\d+$/.test(status.url) ? status.url : '';
+    if (status.state === 'filed') {
+      const done = el('p', 'allen-ok', url ? 'Filed: ' : 'Filed, without a tracking link.');
+      if (url) {
+        const anchor = el('a', '', url);
+        anchor.href = url;
+        anchor.rel = 'noopener noreferrer';
+        anchor.target = '_blank';
+        done.append(anchor);
+      }
+      state.replaceChildren(done);
+      return true;
+    }
+    if (status.state === 'rejected') {
+      state.replaceChildren(el('p', 'allen-err', `Not filed: ${typeof status.reason === 'string' ? status.reason.slice(0, 300) : 'no reason given'}`));
+      return true;
+    }
+    state.replaceChildren(el('p', 'allen-note', `Queued for Drake's filing service as ${id}${status.duplicate ? ', the same text was sent before' : ''}. Checking every ${POLL_MS / 1000} s.`));
+    return false;
+  }
+  async function track(first, state) {
+    const id = typeof first.id === 'string' && /^[0-9a-f]{20}$/.test(first.id) ? first.id : '';
+    if (!id) {
+      state.replaceChildren(el('p', 'allen-err', 'The gateway returned no tracking id.'));
+      return;
+    }
+    const began = performance.now();
+    let current = first;
+    for (;;) {
+      if (showStatus(current, state, id)) return;
+      if (performance.now() - began >= POLL_LIMIT) {
+        state.replaceChildren(el('p', 'allen-note', `Still queued after ${POLL_LIMIT / 60000} minutes. The request ${id} is kept; Drake's filing service files it when it runs.`));
+        return;
+      }
+      await new Promise(done => setTimeout(done, POLL_MS));
+      try {
+        const response = await fetch(STATUS + id, { cache: 'no-store', credentials: 'omit', headers: { Accept: 'application/json' } });
+        const reply = response.ok ? await response.json() : null;
+        if (reply && typeof reply === 'object') current = reply;
+      } catch (_) {
+        /* Keep the last status and try again on the next tick. */
+      }
+    }
+  }
+  const INTRO = [
+    ['name', 'Name', 100, 'input'],
+    ['org', 'Organization', 100, 'input'],
+    ['contact', 'Contact (email or another way to reach you)', 200, 'input'],
+    ['github', 'GitHub name', 39, 'input'],
+    ['origin', 'Where you are from', 200, 'input'],
+    ['purpose', 'What you are building', 1000, 'textarea'],
+    ['homepage', 'Homepage (https)', 200, 'input'],
+    ['framework', 'Framework (agents)', 100, 'input'],
+    ['model', 'Model (agents)', 100, 'input'],
+    ['human', 'Your human (agents: the person or organization operating you)', 200, 'input'],
+  ];
+  function introCard(prefill) {
+    const form = el('form', 'allen-card allen-introduce');
+    form.noValidate = true;
+    form.append(el('p', 'allen-card-h', 'Introduce yourself to Allen'));
+    const kindWrap = el('label', 'allen-field');
+    kindWrap.append(el('span', '', 'You are'));
+    const who = el('select');
+    for (const value of ['human', 'agent']) {
+      const option = el('option', '', value === 'human' ? 'a human' : 'an agent');
+      option.value = value;
+      who.append(option);
+    }
+    who.value = String(prefill.kind || kind).toLowerCase() === 'agent' ? 'agent' : 'human';
+    kindWrap.append(who);
+    form.append(kindWrap);
+    const inputs = {};
+    for (const [key, label, max, tag] of INTRO) {
+      inputs[key] = field(form, label, tag, max);
+      inputs[key].value = cut(String(prefill[key] || ''), max);
+    }
+    const notice = el('div', 'allen-consent');
+    notice.append(
+      el('p', '', 'What is kept if you save: the fields above and the time you sent them.'),
+      el('p', '', 'Why: so Drake can follow up with you.'),
+      el('p', '', "Where: privately on Drake's own computer. Never published, never sold."),
+      el('p', '', `For how long: until you delete it, with the delete link shown after saving, or by writing to ${PRIVACY_MAIL}.`),
+      el('p', '', 'Declining changes nothing: you can keep chatting and nothing is saved.'),
+    );
+    const agreeWrap = el('label', 'allen-agree');
+    const agree = el('input');
+    agree.type = 'checkbox';
+    agreeWrap.append(agree, el('span', '', 'I agree that this introduction is kept as described above.'));
+    const keep = el('button', 'allen-tool', 'Save');
+    keep.type = 'submit';
+    keep.disabled = true;
+    agree.addEventListener('change', () => {
+      keep.disabled = !agree.checked;
+    });
+    const state = el('div', 'allen-card-state');
+    form.append(notice, agreeWrap, keep, state);
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      if (agree.checked) saveIntro(who.value, inputs, state, keep, form);
+    });
+    return form;
+  }
+  async function saveIntro(who, inputs, state, keep, form) {
+    const record = { consent: true, kind: who };
+    for (const [key] of INTRO) record[key] = inputs[key].value.trim();
+    if (!record.name && !record.contact) {
+      state.replaceChildren(el('p', 'allen-err', 'Give at least a name or a contact.'));
+      return;
+    }
+    if (record.homepage && !/^https:\/\/\S{4,}$/.test(record.homepage)) {
+      state.replaceChildren(el('p', 'allen-err', 'The homepage must be an https address.'));
+      return;
+    }
+    keep.disabled = true;
+    state.replaceChildren(el('p', 'allen-note', 'Saving.'));
+    let response;
+    let reply;
+    try {
+      response = await fetch(INTRODUCE, post(record, { 'X-Allen-Via': 'chat' }));
+      reply = await response.json().catch(() => null);
+    } catch (_) {
+      state.replaceChildren(el('p', 'allen-err', 'Could not reach Allen. Nothing was saved.'));
+      keep.disabled = false;
+      return;
+    }
+    if (!response.ok || !reply || reply.stored !== true) {
+      state.replaceChildren(el('p', 'allen-err', failure(response, reply, 'Nothing was saved.')));
+      keep.disabled = false;
+      return;
+    }
+    for (const control of form.querySelectorAll('input, textarea, select')) control.disabled = true;
+    keep.hidden = true;
+    const link = typeof reply.delete === 'string' && /^https:\/\/www\.aienos\.com\/allen\/#forget=c_[0-9a-f]{16}\.[A-Za-z0-9_-]{20,64}$/.test(reply.delete) ? reply.delete : '';
+    if (!link) {
+      state.replaceChildren(el('p', 'allen-ok', `Saved. The delete link did not arrive intact; write to ${PRIVACY_MAIL} to have it deleted.`));
+      return;
+    }
+    const kept = el('p', 'allen-ok', 'Saved. Keep this delete link; it is the only key to your introduction: ');
+    const anchor = el('a', '', link);
+    anchor.href = link;
+    kept.append(anchor);
+    const copy = button('Copy link', () => copyText(link, copy));
+    state.replaceChildren(kept, copy, el('p', 'allen-note', `Or write to ${PRIVACY_MAIL} to have it deleted.`));
+  }
+  /* A delete link opens this page at #forget=<id>.<token>; nothing is sent
+     until the visitor confirms, and the token leaves the address afterwards. */
+  function forgetOffer() {
+    const match = /^#forget=(c_[0-9a-f]{16})\.([A-Za-z0-9_-]{20,64})$/.exec(location.hash);
+    if (!match) return;
+    const id = match[1];
+    const token = match[2];
+    const note = message('allen', 'Allen');
+    note.body.append(el('p', 'allen-p', `You opened the delete link for introduction ${id}. Delete it?`));
+    const row = el('div', 'allen-choices');
+    const state = el('div', 'allen-card-state');
+    const remove = button('Delete my introduction', async () => {
+      remove.disabled = true;
+      decline.disabled = true;
+      state.replaceChildren(el('p', 'allen-note', 'Sending.'));
+      try {
+        const response = await fetch(FORGET, post({ id, token }));
+        const reply = await response.json().catch(() => null);
+        if (response.ok && reply && reply.accepted === true) {
+          row.remove();
+          state.replaceChildren(el('p', 'allen-ok', "Deletion requested. Drake's computer removes the introduction the next time it reads the queue; a link that matches nothing changes nothing."));
+          try {
+            history.replaceState(null, '', location.pathname + location.search);
+          } catch (_) {
+            location.hash = '';
+          }
+          return;
+        }
+        state.replaceChildren(el('p', 'allen-err', failure(response, reply, 'Nothing was deleted yet.')));
+      } catch (_) {
+        state.replaceChildren(el('p', 'allen-err', 'Could not reach Allen. Nothing was deleted yet.'));
+      }
+      remove.disabled = false;
+      decline.disabled = false;
+    });
+    const decline = button('Keep it', () => {
+      row.remove();
+      state.replaceChildren(el('p', 'allen-note', 'Nothing changed.'));
+    });
+    row.append(remove, decline);
+    note.body.append(row, state);
+  }
+  /* Allen's first message is written here, not by the model: zero latency,
+     no request. The answer stays in this closure. */
+  function greeting() {
+    const hello = message('allen', 'Allen');
+    hello.body.append(el('p', 'allen-p', "Hello, I am Allen, Drake's AI. Are you a human or an agent?"));
+    const row = el('div', 'allen-choices');
+    row.append(button('Human', () => answer('human')), button('Agent', () => answer('agent')), button('Skip', () => answer('')));
+    hello.body.append(row, el('p', 'allen-note', 'Or just type below. The answer only tells Allen who is asking.'));
+    choices = row;
+  }
+  function openIntro(prefill) {
+    const note = message('allen', 'Allen');
+    note.body.append(introCard(prefill || Object.create(null)));
+    note.item.scrollIntoView({ block: 'nearest' });
+  }
+  function answer(who) {
+    if (choices) choices.remove();
+    choices = null;
+    if (!who) return;
+    kind = who;
+    message('user', 'You').body.append(el('p', 'allen-p', who === 'agent' ? 'I am an agent.' : 'I am a human.'));
+    const reply = message('allen', 'Allen');
+    if (who === 'human') {
+      reply.body.append(el('p', 'allen-p', 'Welcome. What are you building, and where are you from? Ask me anything: I can explain Omega or write you a small program that runs right here.'));
+      return;
+    }
+    reply.body.append(
+      el('p', 'allen-p', 'Welcome. Who is your human? Tell me the person or organization operating you. You can keep chatting without naming them.'),
+      el('p', 'allen-p', 'To introduce yourself with consent, use the button below, or send POST https://www.aienos.com/allen/api/introduce with JSON (schema in https://www.aienos.com/llms.txt). Nothing is stored without "consent": true.'),
+    );
+    const row = el('div', 'allen-choices');
+    row.append(button('Introduce yourself', () => {
+      row.remove();
+      openIntro();
+    }));
+    reply.body.append(row);
+  }
   async function copyText(source, node) {
+    if (node.dataset.label === undefined) node.dataset.label = node.textContent;
     try {
       await navigator.clipboard.writeText(source);
       setText(node, 'Copied');
     } catch (_) {
       setText(node, 'Copy blocked');
     }
-    setTimeout(() => setText(node, 'Copy'), 1500);
+    setTimeout(() => setText(node, node.dataset.label), 1500);
   }
   /* The policy becomes the first element of the program's head: after an
      existing head tag that only a doctype, html tag or comments precede, else
@@ -426,9 +962,9 @@
     const ret = typeof fn.ret === 'string' ? fn.ret : 'void';
     const form = el('form', 'allen-fn');
     form.noValidate = true;
-    const signature = el('p', 'allen-sig');
-    signature.append(el('code', '', `${name}(${params.map(p => `${p.name}: ${p.type}`).join(', ')}) to ${ret}`));
-    form.append(signature);
+    const head = el('p', 'allen-sig');
+    head.append(el('code', '', signature({ name, params, ret })));
+    form.append(head);
     const fields = params.map(param => {
       const label = el('label', 'allen-arg');
       label.append(el('span', '', `${param.name}: ${param.type}`));
@@ -473,7 +1009,7 @@
     });
     return form;
   }
-  async function omegaReady(reply, out) {
+  async function omegaReady(reply, out, project) {
     const bytes = Uint8Array.from(atob(reply.wasm), c => c.charCodeAt(0));
     const module = await WebAssembly.compile(bytes);
     const exported = new Set(WebAssembly.Module.exports(module).filter(item => item.kind === 'function').map(item => item.name));
@@ -485,6 +1021,12 @@
     for (const fn of list) panel.append(fnForm(fn, exported, machine));
     if (!list.length) panel.append(el('p', 'allen-note', 'This unit exports no functions.'));
     out.replaceChildren(panel);
+    project.wasm = bytes;
+    project.functions = list.filter(fn => fn && typeof fn.name === 'string');
+    if (project.wasmButton) {
+      project.wasmButton.disabled = false;
+      project.wasmButton.title = '';
+    }
   }
   function omegaFailed(source, reply, out) {
     const where = reply.stage === 'irwasm' ? 'The WebAssembly translator refused it' : reply.stage === 'limit' ? 'It is over a size limit' : 'The Omega compiler refused it';
@@ -502,7 +1044,7 @@
     const body = source.length > room ? `${cut(source, Math.max(0, room - 20))}\n(source cut to fit)` : source;
     ask(`${head}${body}\n\`\`\``);
   }
-  async function compileOmega(source, out, trigger) {
+  async function compileOmega(source, out, trigger, project) {
     if (new TextEncoder().encode(source).length > LIMIT.source) {
       out.replaceChildren(el('p', 'allen-err', `This source is over the ${LIMIT.source} byte limit for compiling.`));
       return;
@@ -510,13 +1052,12 @@
     trigger.disabled = true;
     out.replaceChildren(el('p', 'allen-note', 'Compiling on the Spark.'));
     try {
-      const response = await fetch(OMEGA, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ source }), cache: 'no-store', credentials: 'omit' });
+      const response = await fetch(OMEGA, post({ source }));
       const reply = await response.json().catch(() => null);
       if (!response.ok || !reply || typeof reply !== 'object') {
-        const wait = retryAfter(response, reply);
-        out.replaceChildren(el('p', 'allen-err', `${refusal(response.status, reply)}${wait ? ` Try again in ${wait} s.` : ''}`));
+        out.replaceChildren(el('p', 'allen-err', failure(response, reply, '')));
       } else if (reply.ok === true && typeof reply.wasm === 'string') {
-        await omegaReady(reply, out);
+        await omegaReady(reply, out, project);
       } else {
         omegaFailed(source, reply, out);
       }
@@ -606,6 +1147,10 @@
   async function ask(raw) {
     const text = cut(String(raw).trim(), LIMIT.each);
     if (!text) return;
+    if (choices) {
+      choices.remove();
+      choices = null;
+    }
     if (active) {
       notice('Allen is still answering. Stop that reply first, or wait for it.');
       return;
@@ -675,15 +1220,21 @@
     epoch += 1;
     if (active) active.abort();
     turns.length = 0;
+    kind = '';
     for (const machine of runners) machine.stop();
     runners.clear();
     log.replaceChildren();
     speedReset();
+    greeting();
     notice('New conversation. Nothing from the last one was kept.');
     input.focus();
   });
   for (const example of examples.querySelectorAll('button')) {
     example.addEventListener('click', () => ask(example.textContent));
   }
+  byId('allen-introduce').addEventListener('click', () => openIntro());
+  window.addEventListener('hashchange', forgetOffer);
+  greeting();
+  forgetOffer();
   root.dataset.ready = 'true';
 })();

@@ -875,6 +875,7 @@ pub fn llms_txt(status_lines: &[String], research_sentence: &str) -> String {
         s.push_str(&format!("- [{}]({HOST}{}): {} Updated: {}.\n", d.path, d.path, d.purpose, d.cadence));
     }
     s.push_str(&format!("- [{HOST}/llms-full.txt]({HOST}/llms-full.txt): every page's full text in one file.\n\n"));
+    s.push_str(crate::components::allen::LLMS);
     s.push_str("## Optional\n\n");
     for p in PAGES.iter().filter(|p| p.section == Section::Optional) {
         s.push_str(&format!("- [{}]({HOST}{}): {}\n", p.name, p.path, p.what));

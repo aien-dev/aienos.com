@@ -18,6 +18,24 @@ pub const SOURCE: &str = "https://github.com/aien-dev/aienos.com/blob/main/om/al
 /// The generated skeleton, byte for byte as `check.sh` wrote it.
 pub const SKELETON: &str = include_str!("../../../../om/allen-page/main.html");
 
+/// The llms.txt section for /allen/: what it is, and the consent-gated
+/// introduction endpoint for agents, with its exact schema and limits.
+pub const LLMS: &str = r#"## Talk to Allen
+
+- [Talk to Allen](https://www.aienos.com/allen/): Allen is my AI, running on the live Qwen3.6-35B-A3B FP8 model on my DGX Spark. People and agents can chat there, ask about Omega and get small programs that run sandboxed in the browser. Conversations are not stored: the gateway keeps only aggregate counters, and no prompts, replies or IP addresses are logged.
+- [Introduce an agent: POST /allen/api/introduce](https://www.aienos.com/allen/api/introduce): agents can introduce themselves with `POST https://www.aienos.com/allen/api/introduce`, `Content-Type: application/json` and this body. Every field is a string and an absent field counts as empty.
+
+```json
+{"consent": true, "kind": "agent", "name": "", "org": "", "contact": "", "github": "", "origin": "", "purpose": "", "homepage": "", "framework": "", "model": "", "human": ""}
+```
+
+- [Introduction fields](https://www.aienos.com/allen/): `kind` is `human` or `agent`. `human` is the person or organization operating an agent (name, contact or organization; optional). Limits in characters: name 100, org 100, contact 200, github 39, origin 200, purpose 1000, homepage 200 (an https URL or empty), framework 100, model 100, human 200. Give at least a name or a contact.
+- [Consent](https://www.aienos.com/privacy/): `consent` must be the JSON value `true`. Without it nothing is stored and the reply is 400 `{"error":"consent_required"}`. What is kept: these fields and the time, privately on my own computer, so I may follow up. Never published or sold. Kept until you delete it.
+- [Delete an introduction: POST /allen/api/forget](https://www.aienos.com/allen/api/forget): a saved introduction replies `{"id":"c_...","delete":"https://www.aienos.com/allen/#forget=<id>.<token>","stored":true}`. Keep the delete link. To delete, open it, or `POST https://www.aienos.com/allen/api/forget` with `{"id":"c_...","token":"..."}` taken from it, or write to aien@aienos.com.
+- [Issues and projects](https://github.com/aien-dev/omega-projects): they reach GitHub only after a visitor confirms the exact text on the page, with email addresses and phone numbers removed first.
+
+"#;
+
 pub fn render_allen_page() -> Markup {
     debug_assert!(
         SOURCE.starts_with("https://github.com/"),
@@ -73,6 +91,21 @@ mod tests {
         assert!(SKELETON.contains("running on a DGX Spark in Drake's house"));
         assert!(SKELETON.contains("No prompts or IP addresses are logged."));
         assert!(!SKELETON.contains('\u{2014}') && !SKELETON.contains('\u{2013}'), "no em or en dash");
+    }
+
+    #[test]
+    fn llms_documents_the_consent_gated_introduction_in_the_first_person_singular() {
+        for needle in ["POST https://www.aienos.com/allen/api/introduce", "\"consent\": true", "\"human\"", "consent_required", "#forget=", "aien@aienos.com"] {
+            assert!(LLMS.contains(needle), "llms.txt section lacks {needle}");
+        }
+        let script = include_str!("../../../../public/js/allen.js");
+        for text in [LLMS, SKELETON, script] {
+            assert!(!text.contains('\u{2014}') && !text.contains('\u{2013}'), "no em or en dash");
+            for word in text.split(|c: char| !c.is_ascii_alphabetic()) {
+                let w = word.to_ascii_lowercase();
+                assert!(!["we", "us", "our", "ours", "ourselves"].contains(&w.as_str()), "plural first person: {word}");
+            }
+        }
     }
 
     #[test]

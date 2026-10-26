@@ -2,10 +2,13 @@ note Shared /allen/ browser contract; table index is the interpolation token ~N~
 note Served ids, gateway routes, the gateway's message limits (24 messages, 4000 characters each,
 note 16000 in all, 16384 bytes of Omega source), the policy injected into a program's frame, its
 note sandbox token, the model name shown before the stream names it, and the wasm call timeout in
-note milliseconds occur only in this table. Every field, the last included, ends with byte 124.
+note milliseconds occur only in this table, followed by the submit, status, introduce and forget
+note routes, the privacy contact address, the status poll interval and poll limit in milliseconds,
+note the standalone introduction button id and the review host for published projects. Append new
+note fields; never renumber. Every field, the last included, ends with byte 124.
 note allen.om and allen-js.om are concatenated with this unit, never compiled independently.
 note Compiled by the pinned omc of om/hive-page (sha256 in om/hive-page/omc.sha256).
-text wires "allen|allen-log|allen-form|allen-input|allen-send|allen-stop|allen-status|allen-new|allen-model|allen-queue|allen-ttft|allen-first|allen-rate|allen-tokens|allen-server|allen-examples|/allen/api/chat|/allen/api/omega|24|4000|16000|16384|default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; form-action 'none'; base-uri 'none'|allow-scripts|qwen3.6-35b-a3b-fp8|3000|allen-intro|allen-privacy|"
+text wires "allen|allen-log|allen-form|allen-input|allen-send|allen-stop|allen-status|allen-new|allen-model|allen-queue|allen-ttft|allen-first|allen-rate|allen-tokens|allen-server|allen-examples|/allen/api/chat|/allen/api/omega|24|4000|16000|16384|default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; form-action 'none'; base-uri 'none'|allow-scripts|qwen3.6-35b-a3b-fp8|3000|allen-intro|allen-privacy|/allen/api/submit|/allen/api/status/|/allen/api/introduce|/allen/api/forget|aien@aienos.com|3000|120000|allen-introduce|aien-dev.github.io/omega-projects/|"
 global output uchar 65536
 global used ulong 1
 global target int 1
