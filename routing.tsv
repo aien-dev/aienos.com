@@ -14,8 +14,8 @@ agent	security-reviewer	anthropic/claude-opus-5-5:medium
 agent	scout	anthropic/claude-opus-5-5:medium
 agent	sonic	anthropic/claude-opus-5-5:medium
 agent	seance	anthropic/claude-opus-5-5:medium
-seat	Daddy	google-antigravity/gemini-4-argon:high
-seat	Witness	google-antigravity/gemini-4-argon:high
-seat	Physics	google-antigravity/gemini-4-argon:high
-seat	Ladder	google-antigravity/gemini-4-argon:high
-seat	Steward	google-antigravity/gemini-4-argon:high
+seat	Daddy	anthropic/claude-opus-5-5:high
+seat	Witness	anthropic/claude-opus-5-5:high
+seat	Physics	anthropic/claude-opus-5-5:high
+seat	Ladder	anthropic/claude-opus-5-5:high
+seat	Steward	anthropic/claude-opus-5-5:high
