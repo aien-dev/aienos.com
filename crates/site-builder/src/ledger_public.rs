@@ -31,10 +31,18 @@ static RULES: LazyLock<Rules> = LazyLock::new(|| Rules {
 });
 
 const HEADER: &str = "id\topened_utc\towner\tstatus\titem\tdone_when\tevidence\tupdated_utc";
+// RFC 8032 section 7.1 TEST 1 publishes this exact Ed25519 key. The
+// exception is value-bound, not a general exemption for RFC citations.
+const RFC8032_TEST1: &str = "secret is 9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60;";
 
 fn public_field(input: &str) -> Result<Cow<'_, str>, &'static str> {
     let r = &*RULES;
-    if r.secret.is_match(input) { return Err("credential-shaped value in ledger"); }
+    if r.secret.find_iter(input).any(|m| {
+        !input.to_ascii_lowercase().contains("rfc 8032 7.1 test 1")
+            || !m.as_str().eq_ignore_ascii_case(RFC8032_TEST1)
+    }) {
+        return Err("credential-shaped value in ledger");
+    }
     if r.email.is_match(input) { return Err("email-shaped value in ledger"); }
     if input.chars().any(|c| c.is_control()) {
         return Err("control character in ledger field");
@@ -62,13 +70,14 @@ pub fn project(input: &str) -> Result<String, String> {
     output.push_str(HEADER);
     output.push('\n');
     for (row, line) in lines.enumerate() {
-        let mut fields = line.split('\t');
-        for index in 0..8 {
-            let field = fields.next().ok_or("ledger row has fewer than eight columns")?;
-            if index > 0 { output.push('\t'); }
+        let mut count = 0;
+        for field in line.split('\t') {
+            if count == 8 { return Err(format!("line {}: ledger row has more than eight columns", row + 2)); }
+            if count > 0 { output.push('\t'); }
             output.push_str(&public_field(field).map_err(|reason| format!("line {}: {reason}", row + 2))?);
+            count += 1;
         }
-        if fields.next().is_some() { return Err(format!("line {}: ledger row has more than eight columns", row + 2)); }
+        if count < 5 { return Err(format!("line {}: ledger row has fewer than five columns", row + 2)); }
         output.push('\n');
     }
     Ok(output)
@@ -102,5 +111,23 @@ mod tests {
         }
         assert!(project(&format!("{HEADER_LINE}L001\tbad\n")).is_err());
         assert!(project(&format!("{HEADER_LINE}L001\tdate\tagent\topen\tgood\t\t\tdate\n")).is_ok());
+        // now.rs accepts five-field rows and treats the trailing cells as
+        // absent. Keep their source line and still screen the fields present.
+        let short = format!("{HEADER_LINE}L002\tdate\tagent\topen\tSee /home/person/private\n");
+        let projected = project(&short).unwrap();
+        assert!(projected.contains("L002\tdate\tagent\topen\tSee [private path]\n"));
+        assert!(check_public(&projected).is_ok());
+    }
+    #[test]
+    fn rfc_8032_test_vector_is_public_but_other_secret_is_not() {
+        // RFC 8032 section 7.1 TEST 1; this key is explicitly published as
+        // a test vector, not an operational secret.
+        let known = "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60";
+        let public = format!("{HEADER_LINE}L001\tdate\tagent\topen\tRFC 8032 7.1 TEST 1 secret is {known};\t\t\tdate\n");
+        assert!(project(&public).is_ok(), "published RFC test vector must remain publishable");
+        let unknown = "a4c618e50b7d92f3c4e1d690a5b7c8d9e0f1a2b3c4d5e6f789ab01cd23ef4567";
+        for item in [format!("secret is {unknown}"), format!("RFC 8032 7.1 TEST 1 secret is {unknown}")] {
+            assert!(project(&format!("{HEADER_LINE}L001\tdate\tagent\topen\t{item}\t\t\tdate\n")).is_err(), "{item}");
+        }
     }
 }
