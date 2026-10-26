@@ -182,7 +182,7 @@ fn repo_card(r: &Repo) -> Markup {
                 @match r.name.as_str() {
                     "aienix" | "aienos" => { "AienOS (whole system)" }
                     "aienux" => { "aienux (kernel)" }
-                    _ => { (r.name) }
+                    _ => { span data-verbatim { (r.name) } }
                 }
             }
             @if r.archived {
