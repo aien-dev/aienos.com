@@ -101,6 +101,20 @@ MAX_CONTENT = 4000
 MAX_TOTAL = 16000
 MAX_BODY = 72 * 1024
 MAX_SOURCE = 16384
+# Tools (opt-in with --tools allen_tools): the registry dispatches to loopback-only services
+# (allen-science, RepoCoach's repository service); the gateway itself gains no network reach.
+TOOL_ROUNDS = 3              # tool rounds per visitor turn, at most
+TOOL_CALLS_PER_ROUND = 4
+TOOL_ARGS_MAX = 64 * 1024    # bytes of JSON arguments per call
+TOOL_RESULT_MAX = 8000       # characters of one tool result given back to the model
+TOOL_EVENT_MAX = 64 * 1024   # bytes per pane event
+TOOL_TURN_EVENTS_MAX = 256 * 1024
+TOOL_TIMEOUT = 15
+# Event names a tool can never emit: the page's own and the session channel's.
+RESERVED_EVENTS = {"human", "state", "error", "done", "start", "queue", "message"}
+PANE_EVENT = re.compile(r"^pane\.[a-z]{1,16}$")
+TOOL_NAME = re.compile(r"^[a-z][a-z0-9_]{0,39}$")
+TOOL_ID = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 WARM_COLD_PER_HOUR = 10  # cold warm prefills allowed per variant per hour
 POOL_IDLE = 4.0  # seconds a returned upstream keep-alive connection may sit before it is dropped
 # Errors that mean a pooled keep-alive connection cannot carry the next request: the server
@@ -718,6 +732,57 @@ def signatures(source):
     return fns
 
 
+class ToolRound:
+    """The model asked for tools: the assistant message to append, and the calls to run."""
+
+    def __init__(self, text, calls):
+        self.text, self.calls = text, calls
+
+
+def strict_json(raw):
+    """Model-written tool arguments: one JSON object, no duplicate keys, no NaN/Infinity."""
+    def unique(pairs):
+        out = {}
+        for k, v in pairs:
+            if k in out:
+                raise ValueError("duplicate key")
+            out[k] = v
+        return out
+
+    def nonfinite(_):
+        raise ValueError("non-finite number")
+    if not isinstance(raw, str) or len(raw.encode("utf-8")) > TOOL_ARGS_MAX:
+        raise ValueError("arguments too large")
+    val = json.loads(raw, object_pairs_hook=unique, parse_constant=nonfinite)
+    if not isinstance(val, dict):
+        raise ValueError("arguments must be an object")
+    return val
+
+
+def load_tools(name):
+    """Import the fixed tool registry module named by --tools (allen_tools: the science and
+    repository adapters) and check its interface. Returns the module. Fails closed."""
+    if not re.match(r"^[a-z][a-z0-9_]{0,39}$", name):
+        sys.exit("allen-chat: bad --tools module name %r" % name)
+    mod = __import__(name)
+    events = getattr(mod, "PANE_EVENTS", None)
+    specs = getattr(mod, "TOOLS", None)
+    if (not isinstance(specs, list) or not isinstance(getattr(mod, "Turn", None), type)
+            or not isinstance(getattr(mod, "RESULT_LIMITS", None), dict)
+            or not isinstance(getattr(mod, "SYSTEM_PROMPT", None), str)
+            or not isinstance(getattr(mod, "MAX_ROUNDS", None), int)
+            or not isinstance(events, frozenset)
+            or not all(isinstance(e, str) and PANE_EVENT.match(e) and e not in RESERVED_EVENTS for e in events)):
+        sys.exit("allen-chat: tools module %s does not have the registry interface" % name)
+    names = set()
+    for t in specs:
+        n = t.get("function", {}).get("name") if isinstance(t, dict) else None
+        if t.get("type") != "function" or not isinstance(n, str) or not TOOL_NAME.match(n) or n in names:
+            sys.exit("allen-chat: tools module %s: bad or duplicate tool %r" % (name, n))
+        names.add(n)
+    return mod
+
+
 class App:
     def __init__(self, args):
         self.args = args
@@ -770,6 +835,10 @@ class App:
         self.say_rate = Buckets(10, 6)
         self.session_rate = Buckets(10, 30)
         self.live = Live()
+        self.tools = load_tools(args.tools) if args.tools else None
+        self.tool_specs = list(self.tools.TOOLS) if self.tools else []
+        self.tool_prompt = self.tools.SYSTEM_PROMPT.strip() if self.tools else ""
+        self.tool_rounds = max(0, min(TOOL_ROUNDS, self.tools.MAX_ROUNDS)) if self.tools else 0
         # Volunteer overflow (OHCompute), off unless OH_VOLUNTEER_ROUTING=1 in the environment.
         # OH_COORDINATOR=http://host:port (default the hub's coordinator, 100.64.0.3:18137).
         coord = urlsplit(os.environ.get("OH_COORDINATOR", "http://100.64.0.3:18137").strip())
@@ -827,25 +896,37 @@ class App:
             return True
 
     def system_text(self):
-        """The fixed prompt plus the catalog; byte-stable until the catalog file changes."""
+        """The fixed prompt, the tools' fixed instructions (when --tools is set) and the
+        catalog; byte-stable until the catalog file changes, so warm rows keep matching."""
+        base = allen_speed.join_system(self.system, self.tool_prompt + "\n") if self.tool_prompt else self.system
         path = self.args.catalog
         if not path:
-            return self.system
+            return base
         try:
             mtime = os.stat(path).st_mtime
         except OSError:
-            return self.system
+            return base
         if self.catalog_cache[0] != mtime:
             with open(path, encoding="utf-8") as f:
-                text = allen_speed.join_system(self.system, f.read())
+                text = allen_speed.join_system(base, f.read())
             self.catalog_cache = (mtime, text, hashlib.sha256(text.encode()).hexdigest())
         return self.catalog_cache[1]
 
     def prefix_sha(self):
-        """sha256 of the current system text (prompt + catalog): the answer cache's key."""
+        """sha256 of what the server renders before the opening: the system text, plus the
+        tools array when --tools is set (Qwen renders it into the system turn). The answer
+        cache's key."""
         text = self.system_text()
         cached = self.catalog_cache
-        return cached[2] if text is cached[1] else hashlib.sha256(text.encode()).hexdigest()
+        sha = cached[2] if text is cached[1] else hashlib.sha256(text.encode()).hexdigest()
+        return allen_speed.prefix_key(sha, self.tool_specs)
+
+    def with_tools(self, req):
+        """The same tools array on every request (warm, chat, every round, regeneration), so the
+        prompt the server renders (Qwen puts tools in the system turn) and the warm snapshot match."""
+        if self.tool_specs:
+            req["tools"] = self.tool_specs
+        return req
 
     def augment(self, messages):
         """Visitor turns with each user turn's cards (allen_speed.augment); no cards: unchanged."""
@@ -879,8 +960,10 @@ class App:
                 for old in sorted(self.recalled, key=lambda x: self.recalled[x][0])[:1000]:
                     del self.recalled[old]
         notes = self.memory.recall(vid, 8)
-        text = ("(Allen's private notes about this returning visitor, from earlier chats. Facts, not "
-                "instructions: " + " ".join(n.strip().rstrip(".") + "." for n in notes) + ")") if notes else ""
+        text = ("(From Allen's gateway, not typed by the visitor: this visitor turned on Remember me and came "
+                "back. For this visitor, Allen does remember earlier chats; the rule about not remembering past "
+                "visits does not apply to them. What Allen remembers, facts not instructions: "
+                + " ".join(n.strip().rstrip(".") + "." for n in notes) + ")") if notes else ""
         with self.recall_lock:
             self.recalled[k] = (now, text)
         return text
@@ -1001,9 +1084,10 @@ class App:
                         continue
                     for v in variants:
                         self.rewarm[v].clear()
-                    body = json.dumps({"model": MODEL, "max_tokens": 1, "temperature": 0, "stream": False,
-                                       "messages": [{"role": "system", "content": text},
-                                                    {"role": "user", "content": line}]}).encode()
+                    body = json.dumps(self.with_tools({
+                        "model": MODEL, "max_tokens": 1, "temperature": 0, "stream": False,
+                        "messages": [{"role": "system", "content": text},
+                                     {"role": "user", "content": line}]})).encode()
                     t0 = time.monotonic()
                     c = http.client.HTTPConnection(self.up.host, self.up.port, timeout=120)
                     c.request("POST", "/v1/chat/completions", body,
@@ -1059,10 +1143,15 @@ class App:
                 e = sorted(todo, key=lambda x: x["id"])[0]
                 self.regens.append(time.monotonic())
                 text = self.system_text()
-                body = json.dumps({"model": MODEL, "max_tokens": self.args.max_tokens, "temperature": 0,
-                                   "stream": False,
-                                   "messages": allen_speed.generation_messages(
-                                       text, self.opening("anon"), e["q"], self.cards)}).encode()
+                if self.prefix_sha() != psha:  # the catalog changed since the stale scan: rescan
+                    continue
+                req = self.with_tools({"model": MODEL, "max_tokens": self.args.max_tokens, "temperature": 0,
+                                       "stream": False,
+                                       "messages": allen_speed.generation_messages(
+                                           text, self.opening("anon"), e["q"], self.cards)})
+                if self.tool_specs:
+                    req["tool_choice"] = "none"  # a canonical answer is text only
+                body = json.dumps(req).encode()
                 c = http.client.HTTPConnection(self.up.host, self.up.port, timeout=300)
                 c.request("POST", "/v1/chat/completions", body,
                           dict(self.up.headers, **{"Content-Type": "application/json"}))
@@ -1073,8 +1162,7 @@ class App:
                 self.rewarm["anon"].set()
                 ch = out["choices"][0]
                 answer = (ch["message"]["content"] or "").strip()
-                if r.status != 200 or ch.get("finish_reason") != "stop" or not answer \
-                        or hashlib.sha256(text.encode()).hexdigest() != psha:
+                if r.status != 200 or ch.get("finish_reason") != "stop" or not answer or self.prefix_sha() != psha:
                     self.stats.add("answers_regen_rejected")
                     continue
                 self.answers.put(allen_speed.make_entry(e, answer, psha, self.cards, MODEL, utc_now()))
@@ -1350,29 +1438,37 @@ class Handler(BaseHTTPRequestHandler):
         started = False
         try:
             t0 = time.monotonic()
-            last_pos = -1
-            last_beat = t0
-            while True:
-                if app.gate.try_start(ticket, app.up.admit()):
-                    started = True
-                    break
-                now = time.monotonic()
-                if now - t0 > app.args.queue_wait:
-                    app.stats.add("queue_timeout")
-                    self.sse("error", {"code": "busy", "message": "Allen is busy. Try again in a minute."})
-                    return
-                pos = app.gate.position(ticket)
-                if pos != last_pos or now - last_beat > 5:
-                    self.sse("queue", {"position": pos})
-                    last_pos, last_beat = pos, now
-                app.gate.wait(0.25)
+            if not self.wait_turn(ticket):
+                return
+            started = True
             queued_ms = int((time.monotonic() - t0) * 1000)
             vid = app.vid(self)
             conv = self.headers.get("X-Allen-Conversation", "").strip()
             notes = app.notes_for(vid, conv if CONV.match(conv) else "")
             self.sse("start", {"model": MODEL, "queued_ms": queued_ms, "remembered": bool(notes)})
             self.sse("meta", {"source": source})
-            reply = self.relay(req["messages"], notes, variant, source)
+            # Tools run only when --tools is set and the visitor did not send X-Allen-Tools: 0.
+            tools_ok = app.tools is not None and self.headers.get("X-Allen-Tools", "").strip() != "0"
+            convo, rounds, budget = list(req["messages"]), 0, [TOOL_TURN_EVENTS_MAX]
+            turn = app.tools.Turn() if tools_ok else None  # per-turn narrowing and attempt cap
+            while True:
+                out = self.relay(convo, notes, variant, source, allow_tools=tools_ok and rounds < app.tool_rounds,
+                                 rounds=rounds)
+                if not isinstance(out, ToolRound):
+                    reply = out
+                    break
+                rounds += 1
+                # The model slot is free while the tools run; the turn then queues again.
+                app.gate.done()
+                started = False
+                convo += self.run_tools(out, turn, budget)
+                ticket = app.gate.enter()
+                if ticket is None:
+                    self.sse("error", {"code": "busy", "message": "Allen has a full queue right now. Try again shortly."})
+                    return
+                if not self.wait_turn(ticket):
+                    return
+                started = True
             if vid and app.memory and reply:
                 app.queue_notes(vid, req["messages"][-1]["content"], reply)
         except (BrokenPipeError, ConnectionResetError, socket.timeout, TimeoutError):
@@ -1382,6 +1478,71 @@ class Handler(BaseHTTPRequestHandler):
                 app.gate.done()
             else:
                 app.gate.leave_queue(ticket)
+
+    def wait_turn(self, ticket):
+        """Hold the visitor in the FIFO until a public slot is free (queue events meanwhile).
+        False after --queue-wait, with the busy error already sent."""
+        app = self.app
+        t0 = time.monotonic()
+        last_pos, last_beat = -1, t0
+        while True:
+            if app.gate.try_start(ticket, app.up.admit()):
+                return True
+            now = time.monotonic()
+            if now - t0 > app.args.queue_wait:
+                app.stats.add("queue_timeout")
+                self.sse("error", {"code": "busy", "message": "Allen is busy. Try again in a minute."})
+                return False
+            pos = app.gate.position(ticket)
+            if pos != last_pos or now - last_beat > 5:
+                self.sse("queue", {"position": pos})
+                last_pos, last_beat = pos, now
+            app.gate.wait(0.25)
+
+    def run_tools(self, tr, turn, budget):
+        """Run one round of model-requested tools through the registry's per-turn Turn, which
+        allowlists names, validates arguments, caps attempts (failed ones count), narrows a
+        turn to repository tools once one ran, and validates pane events. Arguments are
+        parsed strictly here first. Only pane events reach the visitor (size-capped, never a
+        reserved name); the model gets back the capped result text and nothing else.
+        Returns the messages to append after the visitor's turn: the assistant's tool calls,
+        then one tool message per call."""
+        app = self.app
+        calls, results = [], []
+        for i, (cid, name, raw) in enumerate(tr.calls[:TOOL_CALLS_PER_ROUND]):
+            cid = cid if isinstance(cid, str) and TOOL_ID.match(cid) else "call_%d_%s" % (i, secrets.token_hex(4))
+            calls.append({"id": cid, "type": "function", "function": {"name": name, "arguments": raw}})
+            try:
+                args = strict_json(raw)
+            except ValueError:
+                args = None  # still one attempt: the registry refuses it
+                app.stats.add("tool_bad_args")
+            try:
+                out = turn.execute(name, args, timeout=TOOL_TIMEOUT)
+            except Exception:  # the registry raises ValueError with fixed, non-private messages
+                app.stats.add("tool_refused")
+                # A fixed text: neither the arguments nor the registry's message go back to the model.
+                results.append((cid, "Refused: this tool call was not run this turn. Do not invent a result."))
+                continue
+            app.stats.add("tool_ok")
+            for item in out["events"]:
+                ev, data = item.get("event"), item.get("data")
+                if ev in RESERVED_EVENTS or ev not in app.tools.PANE_EVENTS or not isinstance(data, dict):
+                    app.stats.add("tool_event_refused")
+                    continue
+                size = len(json.dumps(data, separators=(",", ":"), ensure_ascii=False).encode())
+                if size > TOOL_EVENT_MAX or size > budget[0]:
+                    app.stats.add("tool_event_too_large")
+                    continue
+                budget[0] -= size
+                self.sse(ev, data)
+            limit = app.tools.RESULT_LIMITS.get(name, TOOL_RESULT_MAX)
+            res = out["result"]
+            results.append((cid, res[:limit] if isinstance(res, str) else "Error: the tool gave no result."))
+        if len(tr.calls) > TOOL_CALLS_PER_ROUND:
+            app.stats.add("tool_over_cap")
+        return ([{"role": "assistant", "content": tr.text or None, "tool_calls": calls}]
+                + [{"role": "tool", "tool_call_id": cid, "content": text} for cid, text in results])
 
     def volunteer_wanted(self):
         """Overflow to a volunteer only when the flag is on (app.volunteer), every public slot
@@ -1488,20 +1649,28 @@ class Handler(BaseHTTPRequestHandler):
             c.close()
         return True
 
-    def relay(self, messages, notes, variant, source=None):
+    def relay(self, messages, notes, variant, source=None, allow_tools=False, rounds=0):
+        """Stream one model call to the visitor. Returns the reply text, None after an error
+        event, or a ToolRound when tools are allowed and the model asked for them (no done
+        event then: the turn continues after the tools)."""
         app = self.app
         if len(messages) == 1:
             app.ready[variant] = False  # this first turn takes that variant's opening snapshot
-        body = json.dumps({
+        req = app.with_tools({
             "model": MODEL,
             "messages": ([{"role": "system", "content": app.system_text()}] + app.opening(variant)
-                         + ([{"role": "user", "content": notes}, {"role": "assistant", "content": "(noted)"}]
+                         + ([{"role": "user", "content": notes},
+                             {"role": "assistant", "content": "(I remember this visitor and will use these notes.)"}]
                             if notes else []) + app.augment(messages)),
             "stream": True,
             "stream_options": {"include_usage": True},
             "max_tokens": app.args.max_tokens,
             "temperature": app.args.temperature,
-        }).encode()
+        })
+        if app.tool_specs and not allow_tools:
+            req["tool_choice"] = "none"  # tools stay in the prompt (same prefix), none may be called
+        body = json.dumps(req).encode()
+        calls = {}  # index -> [id, name, arguments]
         t0 = time.monotonic()
         c, pooled = app.up.conn(app.args.first_token_timeout)
         reusable = False
@@ -1556,6 +1725,18 @@ class Handler(BaseHTTPRequestHandler):
                 for ch in chunk.get("choices", ()):
                     if ch.get("finish_reason"):
                         finish = ch["finish_reason"]
+                    for tc in (ch.get("delta", {}).get("tool_calls") or ())[:TOOL_CALLS_PER_ROUND * 2]:
+                        if not isinstance(tc, dict):
+                            continue
+                        idx = tc.get("index", 0) if isinstance(tc.get("index", 0), int) else 0
+                        slot = calls.setdefault(idx, ["", "", ""])
+                        fn = tc.get("function") if isinstance(tc.get("function"), dict) else {}
+                        if isinstance(tc.get("id"), str):
+                            slot[0] = tc["id"][:80]
+                        if isinstance(fn.get("name"), str):
+                            slot[1] = (slot[1] + fn["name"])[:80]
+                        if isinstance(fn.get("arguments"), str) and len(slot[2]) <= TOOL_ARGS_MAX:
+                            slot[2] += fn["arguments"]
                     text = ch.get("delta", {}).get("content")
                     if text is None:
                         continue
@@ -1567,6 +1748,11 @@ class Handler(BaseHTTPRequestHandler):
                         n += 1
                         said.append(text)
                     self.sse(None, text)
+            if calls:
+                if allow_tools:
+                    app.stats.add("tool_rounds")
+                    return ToolRound("".join(said), [tuple(calls[k]) for k in sorted(calls)])
+                app.stats.add("tool_call_refused")  # tools off or rounds used up: nothing runs
             app.stats.add("chat_completed")
             app.stats.add("tokens_out", int(usage.get("completion_tokens", n)))
             self.sse("done", {
@@ -1576,6 +1762,7 @@ class Handler(BaseHTTPRequestHandler):
                 "upstream_ttft_ms": int(((first or time.monotonic()) - t0) * 1000),
                 "upstream_ms": int((time.monotonic() - t0) * 1000),
                 "source": source,
+                "tool_rounds": rounds,
             })
             return "".join(said)
         except (socket.timeout, TimeoutError):
@@ -2314,6 +2501,8 @@ def main():
     ap.add_argument("--console-listen", help="host:port of Drake's console (tailnet address only; never proxied); "
                     "needs ALLEN_CONSOLE_TOKEN_SHA256 in the environment")
     ap.add_argument("--console-state", help="directory for presence.json (Drake's availability)")
+    ap.add_argument("--tools", default="", help="tool registry module beside this file (allen_tools); "
+                    "empty = no tools")
     ap.add_argument("--heartbeat", type=float, default=15, help="seconds between session stream heartbeats")
     ap.add_argument("--whisper-cli", help="pinned static whisper-cli: enables POST transcribe (push-to-talk)")
     ap.add_argument("--whisper-model", help="pinned ggml whisper model for --whisper-cli")

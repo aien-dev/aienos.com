@@ -64,13 +64,18 @@ def main():
     ap.add_argument("--max-tokens", type=int, default=1024)
     ap.add_argument("--only", nargs="*", help="question ids to (re)generate even if still valid")
     ap.add_argument("--log", help="JSON lines: one timing record per request")
+    ap.add_argument("--tools", default="", help="the gateway's --tools registry, when production sets one")
     a = ap.parse_args()
 
     with open(a.system_prompt, encoding="utf-8") as f:
         prompt = f.read()
+    tools = allen_chat.load_tools(a.tools) if a.tools else None
+    specs = list(tools.TOOLS) if tools else []
+    if tools:  # the same composition as App.system_text()
+        prompt = allen_speed.join_system(prompt, tools.SYSTEM_PROMPT.strip() + "\n")
     with open(a.catalog, encoding="utf-8") as f:
         text = allen_speed.join_system(prompt, f.read())
-    psha = allen_speed.sha256_bytes(text.encode())
+    psha = allen_speed.prefix_key(allen_speed.sha256_bytes(text.encode()), specs)
     cards = allen_speed.Cards(a.catalog_detail, a.catalog_retrieve, a.learn_dir)
     cards.refresh()
     opening = [{"role": "user", "content": allen_chat.OPEN_USER_ANON},
@@ -103,8 +108,11 @@ def main():
             if h and int(h.get("in_flight", 0)) <= a.max_inflight:
                 break
             time.sleep(3)
-        body = json.dumps({"model": MODEL, "max_tokens": a.max_tokens, "temperature": 0, "stream": False,
-                           "messages": allen_speed.generation_messages(text, opening, q["q"], cards)}).encode()
+        req = {"model": MODEL, "max_tokens": a.max_tokens, "temperature": 0, "stream": False,
+               "messages": allen_speed.generation_messages(text, opening, q["q"], cards)}
+        if specs:
+            req.update(tools=specs, tool_choice="none")
+        body = json.dumps(req).encode()
         t0 = time.monotonic()
         c = http.client.HTTPConnection(host, port, timeout=600)
         c.request("POST", "/v1/chat/completions", body, dict(headers, **{"Content-Type": "application/json"}))
