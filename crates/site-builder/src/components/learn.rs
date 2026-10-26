@@ -184,7 +184,7 @@ pub fn render_learn_page() -> Markup {
                     a class="learn-text-link" href="/engineer/" { "Meet the engineer" }
                 }
                 div class="learn-watch" {
-                    p { "I am Drake Stapleton. I grew up on a farm, worked the line at Taco Bell, became a chemist, then an engineer, and now I build a whole computer from the ground up with AI agents. I learned all of it the way this guide describes: one checked step at a time." }
+                    p { "I am Drake Stapleton. I grew up on a farm, worked the line at Taco Bell, trained in chemistry, became an engineer, and now I build a whole computer from the ground up by directing AI agents and holding them to proof. I learned all of it the way this guide describes: one checked step at a time." }
                     p {
                         "My story, my philosophy, the work I have shipped and the glossary of my terms are in "
                         a href="/engineer/" { "About the engineer" }
