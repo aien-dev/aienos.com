@@ -500,7 +500,7 @@ fn verify_site(dist: &Path) {
             "id=\"how\"",
             "id=\"pain-points\"",
             "id=\"swap\"",
-            "https://github.com/aien-dev/CUDAplusplus",
+            "https://github.com/aien-dev/CUDApp",
         ] {
             assert!(c.contains(phrase), "Missing on /cudaplusplus/: {phrase}");
         }

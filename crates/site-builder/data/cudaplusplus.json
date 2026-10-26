@@ -1,6 +1,6 @@
 {
   "source": {
-    "repo": "https://github.com/aien-dev/CUDAplusplus",
+    "repo": "https://github.com/aien-dev/CUDApp",
     "readme": "cp:README.md",
     "how": "cp@:62ea5a214d46f36e88cb7b892cecebf1f3e8a172/docs/HOW_WE_DID_IT.md",
     "how_branch": "docs/how-we-did-it",
@@ -16,7 +16,7 @@
   },
   "claim": "CUDA++ is the GPU half of Omega: everything CUDA gives you, plus the motor.",
   "claim_rest": [
-    "It runs on the NVIDIA GPUs people already own, with no NVIDIA user-space software: no CUDA toolkit, no nvcc, no PTX, no libcuda, no cuBLAS. It is its own open source project, under the MIT licence, in the repository aien-dev/CUDAplusplus.",
+    "It runs on the NVIDIA GPUs people already own, with no NVIDIA user-space software: no CUDA toolkit, no nvcc, no PTX, no libcuda, no cuBLAS. It is its own open source project, under the Apache License 2.0 with the LLVM exception, in the repository aien-dev/CUDApp.",
     "It runs on the NVIDIA GB10 in the DGX Spark today. On 2026-10-21 the 35 billion parameter model AIEN serves on the Spark was running on this code with zero CUDA libraries loaded."
   ],
   "purpose_title": "Less computation, out of the big data centers.",

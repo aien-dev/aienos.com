@@ -44,7 +44,7 @@ pub fn render_glossary() -> Markup {
                         a href="/omega/" { "What Omega is" } "."
                     }))
                     (term("CUDA++", html! {
-                        "The GPU half of Omega, MIT licensed, for the NVIDIA GPUs people already own. See "
+                        "The GPU half of Omega, licensed Apache-2.0 with the LLVM exception, for the NVIDIA GPUs people already own. See "
                         a href="/cudaplusplus/" { "CUDA++" } "."
                     }))
                     (term("Turing", html! {
