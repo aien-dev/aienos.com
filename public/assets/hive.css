@@ -223,10 +223,16 @@
   transform:translateZ(0); will-change:transform;
 }
 .hive > * { position:relative; z-index:1; }
-/* The site footer follows .hive and is static, so the fixed sky would paint
-   over it; this sheet only loads on /hive/, so lifting it here is local. */
+/* The site footer and, below 1100px, the site header (sticky only above it)
+   follow the static flow, so the fixed sky would paint over them; this sheet
+   only loads on /hive/, so lifting them here is local. */
 .aien-footer { position:relative; z-index:1; }
-.hive-jumps { margin-bottom:0; border-top:0; padding:14px 0; gap:12px 30px; }
+@media (max-width:1099px) { .aien-header { position:relative; z-index:50; } }
+/* The jumps and the closing line are the only prose outside a section, scrim
+   or opaque card, so they get the sections' 86% --bg-surface glass rather
+   than sitting straight on the sky's bright core. */
+.hive-jumps { margin-bottom:0; border-top:0; padding:14px 18px; gap:12px 30px; border-radius:12px; background:color-mix(in srgb, var(--bg-surface) 86%, transparent); }
+.hive-closing { padding:16px 18px; border-radius:12px; background:color-mix(in srgb, var(--bg-surface) 86%, transparent); }
 .hive-jumps a { font-size:.73rem; letter-spacing:.04em; }
 .hive-masthead {
   position:relative; overflow:hidden;

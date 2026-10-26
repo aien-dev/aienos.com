@@ -285,6 +285,14 @@ class CosmicChecks(unittest.TestCase):
         self.assertIn('will-change:transform', sheet)
         self.assertIn('transform:translateZ(0)', sheet)
         self.assertIn('/ cover no-repeat', sheet)
+        # The sky is one fixed, viewport-sized layer behind the whole page, not a band.
+        sky = re.search(r'\.hive::before \{([^}]*)\}', sheet)
+        self.assertIsNotNone(sky, 'the sky lives on .hive::before')
+        for decl in ['position:fixed', 'inset:0', 'z-index:0', "url('/assets/hive-universe.svg')", 'transform:translateZ(0)']:
+            self.assertIn(decl, sky.group(1))
+        self.assertNotIn('.hive-masthead::before', sheet)
+        self.assertIn('.hive > * { position:relative; z-index:1; }', sheet)
+        self.assertIn('.aien-footer { position:relative; z-index:1; }', sheet)
         self.assertNotIn('auto 120%', sheet)
         # The scene's own layer sits at 0, the scrim at 1, the prose at 2.
         self.assertIn('.hive-masthead > * { position:relative; z-index:2; }', sheet)
