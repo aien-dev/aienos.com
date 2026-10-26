@@ -49,6 +49,7 @@ pub const BOX_CLASSES: &[&str] = &[
     "cp-hop",
     "cp-card",
     "cp-row",
+    "dash-card",
 ];
 
 /// Where the box link points.

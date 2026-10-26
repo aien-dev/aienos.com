@@ -38,6 +38,7 @@ GH_TOKEN="$(gh auth token)" cargo run --release --manifest-path crates/site-buil
 
 - `CNAME` holds the custom domain. `.github/workflows/pages.yml` is the deployment configuration.
 - `crates/site-builder/data/research_status.json` is the canonical research ladder and experiment verdicts.
+- `/dash/` reads `public/data/accounts.tsv` and `routing.tsv`, which the pages workflow lays in from the `data/now` branch. The Spark writes them with `~/.local/bin/dash-snapshot` (called by `now-publish`). Accounts are numbered per provider; never publish an email, account id, org or project name. `components::dash::word` strips `@` and markup as a second guard.
 - The page registry in `crates/site-builder/src/seo.rs` (`seo::PAGES`) drives the sitemap, `llms.txt`, `sitemap.md`, the feeds and the JSON-LD. Add every new page there or the build fails.
 
 ## Usage
