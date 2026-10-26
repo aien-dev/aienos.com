@@ -194,3 +194,84 @@
 .aien-header[data-sticky="off"] {
   position: static;
 }
+
+/* Reach me: the contact page and Follow me on X, last in every header
+   (components/contact.rs). A plain link to x.com: no widget, no script. */
+.aien-nav a.aien-x-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--an-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--an-text);
+  text-decoration: none;
+  padding: 4px 11px;
+  border: 1px solid var(--an-blue);
+  border-radius: 999px;
+  background: rgba(45, 127, 249, 0.1);
+  transition: background-color 0.15s ease;
+}
+
+.aien-nav a.aien-x-link:hover {
+  background: rgba(45, 127, 249, 0.22);
+}
+
+.aien-nav a.aien-x-link:focus-visible {
+  outline: 2px solid var(--an-green);
+  outline-offset: 3px;
+}
+
+.aien-nav .aien-x-handle {
+  color: var(--an-text-2);
+}
+
+.aien-x-mark {
+  flex: none;
+}
+
+/* The contact line in every footer. Hand-written pages that have no shared
+   footer get it in .aien-reach-strip, so every value has a fallback. */
+.aien-reach-strip {
+  box-sizing: border-box;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 24px;
+  border-top: 1px solid var(--border-subtle, #1c2536);
+}
+
+.aien-reach-foot {
+  margin-top: 14px;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace);
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--text-muted, #8ea0b5);
+}
+
+.aien-reach-strip .aien-reach-foot {
+  margin-top: 0;
+}
+
+.aien-reach-foot p {
+  margin: 0;
+}
+
+.aien-reach-foot a {
+  color: var(--text-secondary, #94a3b8);
+}
+
+.aien-reach-foot a:hover {
+  color: var(--text-primary, #f1f5f9);
+}
+
+.aien-reach-foot .aien-reach-title a {
+  color: var(--text-primary, #f1f5f9);
+  font-weight: 700;
+}
+
+.aien-reach-foot a.aien-x-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-primary, #f1f5f9);
+}
