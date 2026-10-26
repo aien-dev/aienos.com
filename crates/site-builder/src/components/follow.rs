@@ -36,6 +36,15 @@ pub fn render_follow() -> Markup {
                             "Project progress"
                         }
                     }
+                    p id="follow-reach" style="color: var(--text-secondary); line-height: 1.7; max-width: 600px; margin: 24px auto 0; font-size: 16px;" {
+                        "Want to reach me? "
+                        a href=(crate::seo::X_URL) target="_blank" rel="me noopener noreferrer" style="color: var(--text-primary); text-decoration: underline;" { "Follow me on X, " (crate::seo::X_HANDLE) }
+                        ", email "
+                        a href="mailto:drake@aienos.com" style="color: var(--text-primary); text-decoration: underline;" { "drake@aienos.com" }
+                        ", or read "
+                        a href="/contact/" style="color: var(--text-primary); text-decoration: underline;" { "where I am and how to reach me" }
+                        "."
+                    }
                     p style="color: var(--text-muted); font-size: 13px; margin-top: 28px; font-family: var(--font-mono);" {
                         "Machine-readable: "
                         a href="/status.json" style="color: var(--text-secondary);" { "status.json" }

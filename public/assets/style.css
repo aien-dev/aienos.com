@@ -2365,3 +2365,74 @@ p {
   color: var(--narr-text);
   margin: 20px 0 0;
 }
+
+/* ==========================================================================
+   /contact/: where I am and how to reach me (components/contact.rs).
+   ========================================================================== */
+
+.contact-page {
+  padding: 80px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.contact-page h1 {
+  font-size: clamp(32px, 5vw, 48px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin: 0 0 16px;
+}
+
+.contact-lede {
+  color: var(--text-secondary);
+  font-size: 17px;
+  line-height: 1.7;
+  margin: 0 0 32px;
+}
+
+.contact-routes {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+}
+
+.contact-route {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 18px 22px;
+}
+
+.contact-route dt {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.contact-route dd {
+  margin: 4px 0 0;
+}
+
+.contact-route-link a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.contact-route-text {
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.contact-note {
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.7;
+  margin: 28px 0 0;
+}

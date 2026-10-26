@@ -362,6 +362,19 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     fs::create_dir_all(dist.join("privacy")).expect("Create privacy directory");
     fs::write(dist.join("privacy/index.html"), privacy.into_string()).expect("Write privacy page");
 
+    // Where I am and how to reach me: X, email, Allen and GitHub.
+    let contact = render_page_layout(
+        components::contact::TITLE,
+        components::contact::DESCRIPTION,
+        components::contact::URL,
+        "website",
+        html! {},
+        components::contact::render_contact(),
+    );
+    fs::create_dir_all(dist.join("contact")).expect("Create contact directory");
+    fs::write(dist.join("contact/index.html"), contact.into_string()).expect("Write contact page");
+    println!("  [PAGE] Emitted /contact/ (index.html)");
+
     // Section hubs: /experiments/, /evidence/, /philosophy/ (NARR-NAV)
     components::hubs::emit_hub_pages(dist);
 
@@ -617,6 +630,8 @@ fn verify_site(dist: &Path) {
     );
     // Drake writes alone: no we, us, our, ours or ourselves in rendered copy.
     components::voice::verify_singular_voice(dist);
+    // Every page shows Follow me on X in its header and the contact line in its footer.
+    components::contact::verify(dist);
 
     println!("------------------------------------------------------------");
     println!("  Verified index.html ({} bytes)", content.len());
@@ -630,6 +645,7 @@ const GENERATED_PAGES: &[(&str, usize)] = &[
     ("index.html", 30),
     ("start/index.html", 0),
     ("privacy/index.html", 0),
+    ("contact/index.html", 0),
     ("machine/index.html", 15),
     ("discovery/index.html", 0),
     ("experiments/index.html", 15),
