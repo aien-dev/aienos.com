@@ -57,6 +57,9 @@ manifest panel, preserving native disclosure state and keyed row identity.
 Elapsed time and observation lag use only the source's timestamps, never render time.
 The no-script document explicitly discloses its inability to infer connection
 freshness and refreshes every 15 seconds. A frozen source remains visibly timestamped.
+Install and verify the edge board in the authorized window **before** merging or
+deploying the browser cutover. Until `/hive/board/` exists, the new client correctly
+reports telemetry unavailable; keeping this PR draft prevents an accidental gap.
 
 ## Install on hub only after current operator authorization
 
