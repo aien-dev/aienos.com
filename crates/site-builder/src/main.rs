@@ -255,8 +255,8 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
         },
         components::allen::render_allen_page(),
     );
-    fs::create_dir_all(dist.join("allen")).expect("Create Allen directory");
-    fs::write(dist.join("allen/index.html"), allen_page.into_string()).expect("Write Allen page");
+    fs::create_dir_all(dist.join("aien")).expect("Create Aien directory");
+    fs::write(dist.join("aien/index.html"), allen_page.into_string()).expect("Write Aien page");
     let alpha_page = render_page_layout(
         components::alpha::TITLE,
         components::alpha::DESCRIPTION,
@@ -676,7 +676,7 @@ const GENERATED_PAGES: &[(&str, usize)] = &[
     ("now/index.html", 0),
     ("dash/index.html", 0),
     ("hive/index.html", 0),
-    ("allen/index.html", 0),
+    ("aien/index.html", 0),
     ("alpha/index.html", 0),
     ("learn/index.html", 0),
     ("omega/index.html", 30),

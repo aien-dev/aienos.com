@@ -83,8 +83,7 @@ def expression(value):
     if '++' in value or '--' in value:
         raise ValueError('Mutation operators are not mathematical requests')
     # Dependent variables may occur as heads in differential equations.
-    # A head is a maximal letter run followed, after optional whitespace, by '['.
-    # Scanned by hand: the regex form backtracks polynomially on long letter runs.
+    # Maximal letter runs plus a forward whitespace scan avoid regex backtracking.
     for word in WORD.finditer(value):
         after = word.end()
         while after < len(value) and value[after].isspace():

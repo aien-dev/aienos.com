@@ -11,6 +11,7 @@ Group=omega-pusher
 SupplementaryGroups=allen-spool
 UMask=0027
 Nice=19
+IOSchedulingClass=idle
 Environment=PATH=/usr/bin:/bin
 # Fine-grained token for aien-dev/omega-projects only, sealed with systemd-creds
 # (host+tpm2) at /etc/credstore.encrypted/omega-projects-token by

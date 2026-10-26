@@ -34,7 +34,14 @@ def load_manifest():
 def evidence(status, expression='', result=''):
     # No default guessed source pin or corpus score.
     manifest = load_manifest()
-    return {'status': status, 'engine': ENGINE if expression else '', 'expression': expression,
+    label = 'math engine: Drake’s own, source not yet published'
+    corpus, alpha, guard = manifest.get('corpus'), manifest.get('alpha'), manifest.get('guard')
+    if corpus and alpha and guard:
+        label += (f". aien-math {manifest['commit']}: full corpus {corpus['pass']}/{corpus['total']} pass, "
+                  f"{corpus['intentional_differences']} intentional differences, {corpus['failures']} failures, exit {corpus['exit']}; "
+                  f"Alpha {alpha['pass']}/{alpha['total']}, exit {alpha['exit']}; "
+                  f"guard tests {guard['tests']} {guard['result']}, exit {guard['exit']}. Experimental, not independent verification.")
+    return {'status': status, 'engine': label if expression else '', 'expression': expression,
             'result': result, 'source': SOURCE if expression else '', 'commit': manifest['commit'] if expression else ''}
 
 
@@ -61,10 +68,15 @@ def perform(name, arguments):
         if outcome.get('ok') is True:
             content.update({k:outcome[k] for k in ('wasm','functions') if k in outcome})
             result = 'Omega compiled to browser WASM. It has not been run. The visitor chooses whether to run it.'
+            provenance['result'] = packed({'omc_sha256':outcome['omc_sha256'],
+                                           'irwasm_sha256':outcome['irwasm_sha256'],
+                                           'stage':'compiled','executed':False})
         else:
             result = 'Omega compilation refused: ' + str(outcome.get('error', outcome.get('message','unsupported source')))[:2000]
             provenance['status'] = 'unsupported'
         provenance['engine'] = 'seeded-omc'
+        provenance['expression'] = args['source']
+        provenance['source'] = 'https://github.com/aien-dev/omega-mv'
     elif name == 'web_app':
         content = {'html':args['html']}
         result = 'App draft created. It has not run; only a visitor click may run it in an allow-scripts-only iframe with no network.'
