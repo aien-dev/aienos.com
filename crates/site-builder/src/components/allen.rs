@@ -129,6 +129,37 @@ mod tests {
     }
 
     #[test]
+    fn the_page_interface_adds_no_powers() {
+        // window.allen lets a page UI drive the chat, but keys are still kept
+        // only on the consent path and programs still run where they did.
+        let script = include_str!("../../../../public/js/allen.js");
+        let start = script.find("  window.allen = Object.freeze({").expect("window.allen");
+        let api = &script[start..start + script[start..].find("\n  });\n").expect("end of window.allen")];
+        for banned in ["keepKey(", "localStorage", "INTRODUCE", "X-Allen-Key", "humanMessage(", "emit(", "innerHTML", "srcdoc"] {
+            assert!(!api.contains(banned), "window.allen must not reach {banned}");
+        }
+        assert!(api.contains("rememberMe: () => {\n      if (!remembered) openIntro();"), "Remember me only opens the consent card");
+        assert!(function_body(script, "emit").contains("Object.freeze({ ...detail })"));
+    }
+
+    #[test]
+    fn the_root_says_its_mode_for_the_site_scripts() {
+        // The site greeting and the X pixel loader read #allen's data-mode:
+        // anonymous from the server, remembered only after consent or a key
+        // from an earlier consent, kept in sync by showMode.
+        let script = include_str!("../../../../public/js/allen.js");
+        assert!(SKELETON.starts_with("<div class=\"allen\" id=\"allen\" data-ready=\"false\" data-busy=\"false\" data-mode=\"anonymous\">"));
+        assert!(script.contains("const root = document.getElementById('allen');"));
+        assert!(function_body(script, "showMode").contains("root.dataset.mode = remembered ? 'remembered' : 'anonymous';"));
+        assert_eq!(script.matches("root.dataset.mode").count(), 1, "only showMode writes the mode");
+        // The page UI binds on allen-ready, sent once window.allen exists.
+        let api = script.find("  window.allen = Object.freeze({").unwrap();
+        assert!(script.find("document.dispatchEvent(new Event('allen-ready'));").unwrap() > api);
+        // The gateway is same origin unless a loopback base is configured.
+        assert!(script.contains(r"const API = /^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d{1,5})?$/.test(configured) ? configured : '';"));
+    }
+
+    #[test]
     fn only_allen_nodes_carry_the_allen_speaker_mark() {
         let script = include_str!("../../../../public/js/allen.js");
         assert!(function_body(script, "message").contains("if (role === 'allen') item.dataset.speaker = 'allen';"));
@@ -173,7 +204,10 @@ mod tests {
         }
         assert_eq!(script.matches("humanMessage(").count(), 2, "humanMessage is defined once and called once");
         let session = function_body(script, "onSession");
-        assert!(session.contains("if (name === 'human' && typeof value.text === 'string') humanMessage("));
+        assert!(session.contains("if (name === 'human' && typeof value.text === 'string') {\n      humanMessage("));
+        // The page UI hears Drake only through the same branch.
+        assert_eq!(script.matches("emit('human'").count(), 1);
+        assert!(session.contains("emit('human', { text: value.text.slice(0, 8000) });"));
         assert!(function_body(script, "session").contains("sse((name, data) => onSession(name, data, controller))"));
         assert_eq!(script.matches("onSession(").count(), 2, "onSession is fed only by the session stream");
         for (role, label) in [("user", "'You'"), ("allen", "'Allen'")] {

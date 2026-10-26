@@ -20,28 +20,33 @@
   const newButton = byId('allen-new');
   const examples = byId('allen-examples');
   const speed = { model: byId('allen-model'), queue: byId('allen-queue'), ttft: byId('allen-ttft'), first: byId('allen-first'), rate: byId('allen-rate'), tokens: byId('allen-tokens'), server: byId('allen-server') };
-  const CHAT = '/allen/api/chat';
-  const OMEGA = '/allen/api/omega';
+  /* One switch for where the gateway lives: same origin by default, or a
+     loopback origin for a local Spark, set before this script in
+     window.allenConfig.apiBase. Anything else is ignored. */
+  const configured = window.allenConfig && typeof window.allenConfig.apiBase === 'string' ? window.allenConfig.apiBase : '';
+  const API = /^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d{1,5})?$/.test(configured) ? configured : '';
+  const CHAT = API + '/allen/api/chat';
+  const OMEGA = API + '/allen/api/omega';
   const LIMIT = { count: 24, each: 4000, total: 16000, source: 16384 };
   const CSP = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; form-action 'none'; base-uri 'none'";
   const SANDBOX = 'allow-scripts';
   const CALL_MS = 3000;
-  const SUBMIT = '/allen/api/submit';
-  const STATUS = '/allen/api/status/';
-  const INTRODUCE = '/allen/api/introduce';
-  const FORGET = '/allen/api/forget';
+  const SUBMIT = API + '/allen/api/submit';
+  const STATUS = API + '/allen/api/status/';
+  const INTRODUCE = API + '/allen/api/introduce';
+  const FORGET = API + '/allen/api/forget';
   const PRIVACY_MAIL = 'aien@aienos.com';
   const POLL_MS = 3000;
   const POLL_LIMIT = 120000;
   const REVIEW_HOST = 'aien-dev.github.io/omega-projects/projects/';
-  const FORGET_ME = '/allen/api/forget-me';
+  const FORGET_ME = API + '/allen/api/forget-me';
   const KEY_NAME = 'allen.key';
   const KEY_PATTERN = /^[0-9a-f]{32}$/;
-  const RELAY = '/allen/api/relay';
-  const PRESENCE = '/allen/api/presence';
-  const HANDOFF = '/allen/api/handoff';
-  const SESSION = '/allen/api/session';
-  const SAY = '/allen/api/say';
+  const RELAY = API + '/allen/api/relay';
+  const PRESENCE = API + '/allen/api/presence';
+  const HANDOFF = API + '/allen/api/handoff';
+  const SESSION = API + '/allen/api/session';
+  const SAY = API + '/allen/api/say';
   const PRESENCE_MS = 60000;
   /* Drake's greetings, byte for byte the gateway's opening for each kind of
      start, and the line a returning visitor's page sends first. */
@@ -61,6 +66,28 @@
   /* A fresh random id per page load and per new conversation, sent with chat
      only when this browser holds an Allen key. */
   let conversation = '';
+  /* The transport as events for a page UI (window.allen.on). Every detail is
+     a frozen plain object; its strings are network or model text and belong
+     in textContent only. A listener that throws never stops the chat. */
+  const listeners = new Map();
+  function emit(type, detail) {
+    const set = listeners.get(type);
+    if (!set) return;
+    const frozen = Object.freeze({ ...detail });
+    for (const fn of [...set]) {
+      try {
+        fn(frozen);
+      } catch (_) {
+        /* Ignore a broken listener. */
+      }
+    }
+  }
+  function on(type, fn) {
+    if (typeof type !== 'string' || typeof fn !== 'function') throw new TypeError('allen.on(type, fn)');
+    if (!listeners.has(type)) listeners.set(type, new Set());
+    listeners.get(type).add(fn);
+    return () => listeners.get(type).delete(fn);
+  }
   function el(tag, className, text) {
     const node = document.createElement(tag);
     if (className) node.className = className;
@@ -201,7 +228,9 @@
     }
     function closeCode() {
       retract(false);
-      tools(st.lang, st.codeText.data.replace(/\n$/, ''), st.wrap, st.bar, st.pre);
+      const source = st.codeText.data.replace(/\n$/, '');
+      tools(st.lang, source, st.wrap, st.bar, st.pre);
+      emit('card', { type: st.lang, source, node: st.wrap });
       st.code = null;
       st.codeText = null;
     }
@@ -904,6 +933,7 @@
     root.dataset.mode = remembered ? 'remembered' : 'anonymous';
     setText(byId('allen-mode'), remembered ? 'Remembered: Allen knows you by your Allen key' : "Anonymous: Allen won't remember this chat");
     setText(byId('allen-introduce'), remembered ? 'Go anonymous' : 'Remember me');
+    emit('mode', { mode: remembered ? 'remembered' : 'anonymous' });
   }
   function switchMode() {
     if (remembered) goAnonymous(false);
@@ -1057,6 +1087,7 @@
     box.replaceChildren(...parts);
     box.hidden = !parts.length;
     box.dataset.state = drake.state || (drake.online && drake.handoff ? 'online' : 'away');
+    emit('presence', { online: drake.online, handoff: drake.handoff, hours: drake.hours, drake: drake.state });
   }
   async function handoff(trigger) {
     if (drake.state) return;
@@ -1117,7 +1148,10 @@
       return;
     }
     if (!value || typeof value !== 'object') return;
-    if (name === 'human' && typeof value.text === 'string') humanMessage(value.text.slice(0, 8000));
+    if (name === 'human' && typeof value.text === 'string') {
+      humanMessage(value.text.slice(0, 8000));
+      emit('human', { text: value.text.slice(0, 8000) });
+    }
     else if (name === 'state' && ['waiting', 'joined', 'left'].includes(value.drake)) {
       if (value.drake === 'left') {
         endSession('Drake handed you back to Allen.');
@@ -1125,6 +1159,7 @@
       }
       if (value.drake === 'joined' && drake.state !== 'joined') notice('Drake joined. Your messages now go to him.');
       drake.state = value.drake;
+      emit('drake', { state: value.drake });
       showPresence();
     }
   }
@@ -1133,6 +1168,7 @@
     drake.stream = null;
     drake.state = '';
     if (stream) stream.abort();
+    emit('drake', { state: '' });
     showPresence();
     if (text) message('allen', 'Allen').body.append(el('p', 'allen-p', text));
   }
@@ -1257,6 +1293,7 @@
   /* Status line text, with a live countdown when the gateway says when to retry. */
   function notice(text, wait) {
     clearInterval(countdown);
+    emit('status', { text, wait: wait || 0 });
     if (!wait) {
       setText(status, text);
       return;
@@ -1536,21 +1573,29 @@
       }
       setText(speed.tokens, String(clock.tokens));
       if (value) render.push(value);
+      emit('token', { text: value, tokens: clock.tokens, ttftMs: clock.first - clock.start, firstMs: clock.first - clock.sent, rate: clock.last > clock.first ? clock.after * 1000 / (clock.last - clock.first) : NaN });
     } else if (name === 'queue' && value && Number.isSafeInteger(value.position)) {
       setText(speed.queue, `waiting, ${value.position} ahead`);
       notice(`In line: ${value.position} ${value.position === 1 ? 'request' : 'requests'} ahead of you.`);
+      emit('queue', { position: value.position });
     } else if (name === 'start' && value) {
       clock.start = now;
       setText(speed.queue, `${ms(now - clock.sent)} (server ${count(value.queued_ms)} ms)`);
       if (typeof value.model === 'string' && value.model.length <= 80) setText(speed.model, value.model);
       notice('The model has your message.');
+      emit('start', { model: typeof value.model === 'string' ? value.model.slice(0, 80) : '', queuedMs: Number.isFinite(value.queued_ms) ? value.queued_ms : NaN, queueWaitMs: now - clock.sent });
     } else if (name === 'done' && value) {
       clock.finished = true;
       setText(speed.server, `prompt ${count(value.prompt_tokens)}, completion ${count(value.completion_tokens)} tokens; first token ${count(value.upstream_ttft_ms)} ms, whole reply ${count(value.upstream_ms)} ms`);
       if (value.finish === 'length') clock.outcome = 'The reply reached its length limit and was cut off.';
+      emit('done', { promptTokens: value.prompt_tokens, completionTokens: value.completion_tokens, finish: value.finish === 'length' ? 'length' : 'stop', upstreamTtftMs: value.upstream_ttft_ms, upstreamMs: value.upstream_ms });
+    } else if (/^pane\.(open|update|close)$/.test(name) && value && typeof value === 'object' && !Array.isArray(value)) {
+      /* Science panes ride the chat stream; the page UI renders them. */
+      emit(name, value);
     } else if (name === 'error' && value) {
       clock.finished = true;
       const said = typeof value.message === 'string' ? value.message.slice(0, 300) : 'no message';
+      emit('error', { code: typeof value.code === 'string' ? value.code.slice(0, 40) : '', message: said });
       clock.outcome = value.code === 'human' ? 'Drake is answering you directly; Allen stays quiet until he hands you back.' : value.code === 'busy' ? `Allen is busy: ${said}` : value.code === 'timeout' ? `The model took too long: ${said}` : `The model stopped with an error: ${said}`;
     }
   }
@@ -1592,6 +1637,7 @@
     const reply = message('allen', 'Allen');
     reply.item.setAttribute('aria-busy', 'true');
     const render = renderer(reply.body);
+    emit('send', { text, silent });
     const clock = { sent: performance.now(), start: NaN, first: NaN, last: NaN, tokens: 0, after: 0, finished: false, outcome: '' };
     let wait = 0;
     notice('Sending.');
@@ -1622,6 +1668,18 @@
     }
     if (clock.outcome) reply.item.append(el('p', 'allen-err', clock.outcome));
     notice(clock.outcome && !said ? clock.outcome : '', wait);
+    emit('reply', { text: said, outcome: clock.outcome });
+  }
+  /* Ask again for the last reply: the last answer leaves the history and the
+     same user turn is sent once more, unshown, so it is never duplicated. */
+  function regenerate() {
+    if (active || drake.state === 'joined') return false;
+    const n = turns.length;
+    if (n < 2 || turns[n - 1].role !== 'assistant' || turns[n - 2].role !== 'user') return false;
+    turns.pop();
+    const last = turns.pop();
+    ask(last.content, true);
+    return true;
   }
   form.addEventListener('submit', event => {
     event.preventDefault();
@@ -1677,5 +1735,43 @@
   forgetOffer();
   presence();
   setInterval(presence, PRESENCE_MS);
+  /* The transport for a page UI. It adds no powers the page does not
+     already show: introductions still pass the consent card, programs still
+     run sandboxed, and only the session channel speaks as Drake. */
+  window.allen = Object.freeze({
+    version: 1,
+    on,
+    send: text => ask(text),
+    regenerate,
+    stop: () => {
+      if (active) active.abort();
+    },
+    newConversation: () => newButton.click(),
+    mode: () => Object.freeze({ mode: remembered ? 'remembered' : 'anonymous' }),
+    rememberMe: () => {
+      if (!remembered) openIntro();
+    },
+    goAnonymous: () => {
+      if (remembered) goAnonymous(false);
+    },
+    forgetMe: async () => {
+      if (!remembered || !storedKey()) return false;
+      const state = el('p', 'allen-card-state');
+      const trigger = el('button');
+      await forgetMe(trigger, state);
+      return !storedKey();
+    },
+    presence: () => Object.freeze({ online: drake.online, handoff: drake.handoff, hours: drake.hours, drake: drake.state }),
+    handoff: async () => {
+      if (drake.state || !drake.online || !drake.handoff) return false;
+      await handoff(el('button'));
+      return drake.state === 'waiting';
+    },
+    say: text => {
+      const said = cut(String(text).trim(), LIMIT.each);
+      if (said && drake.state === 'joined') sayToDrake(said);
+    },
+  });
   root.dataset.ready = 'true';
+  document.dispatchEvent(new Event('allen-ready'));
 })();
