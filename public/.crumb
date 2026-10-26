@@ -7,8 +7,8 @@
     "generated": {
       "children": [
         {
-          "digest": "33be28b153ee314542ad4881c3f714eca1465097f828bae0a6b9cc72380bd4c0",
-          "last_commit": "bba2d4b",
+          "digest": "7bc88b94396eb062f114d801a09b3845bfd26d8a51a6e94f2296e5233d8a53b9",
+          "last_commit": "230e7ff",
           "name": "assets",
           "purpose": "Website styles including the project dashboard"
         },
@@ -19,8 +19,8 @@
           "purpose": "Published generated project measurements with pinned sources"
         },
         {
-          "digest": "24d63fbeb0bd1782ddf832407e4291da13dfb0be0e94959a3496cd8dd5007229",
-          "last_commit": "bba2d4b",
+          "digest": "bbd4c9a355d587caf403b035ddb6a1e9c27476ffb350b4b0ca8041168c5b2d28",
+          "last_commit": "230e7ff",
           "name": "js",
           "purpose": "Browser interactions using public data only"
         },
@@ -43,15 +43,15 @@
           "purpose": "Public static research or licensing pages using the shared website navigation"
         }
       ],
-      "children_root": "sha256:594d3d15bec6bfed93fa1f47d9e2d6995d4b79e8e163df5905bfa03cbb1122fa",
-      "compiled_at": "2026-10-26T15:40:28Z",
+      "children_root": "sha256:4821dc231bee829bb1bac312b24153a6d23302da4175928d4f2c7673d9ba69f1",
+      "compiled_at": "2026-10-26T15:53:06Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:9db1574e40f70d2ffdd390cfc55dcab3ca100d518631900cc157edfa2f089d28",
+      "digest": "sha256:52f318a60feecb6e0d456f9a793d02391f82fe020981020b5e05cdbe6d721844",
       "evidence_files": 1,
       "evidence_root": "sha256:1f6f4b14373405a3b91d0e7aa6ba11d0dd332d4543ad01421a5451cca3e7de0c",
       "files": 125,
-      "generated_at_commit": "a109d82205fbd43c81bafb4b91b07a80073a7f6c",
-      "source_tree": "sha256:c3804f5768595effd9ae55927e03ad0c8d4f578527f012ca68e257059ba1de4a"
+      "generated_at_commit": "54008ad5bf0ffd9a2cbec36f70878a97e2295539",
+      "source_tree": "sha256:fa358947d5c8cc89c827fc25055dddb8d9638a11723172b7c7bc8aee21aeec1d"
     }
   },
   "invariants": [

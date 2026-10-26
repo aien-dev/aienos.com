@@ -23,8 +23,8 @@
           "purpose": "GitHub automation configuration"
         },
         {
-          "digest": "8eafe9c6bf64fb27ebdd9e43034d3d35f6127e48f00fa98d5af28a378c0d2465",
-          "last_commit": "a109d82",
+          "digest": "79ee22bfbd905e5f5c251c66bf8314fc6422a500b919e9488a9b03605e5adc76",
+          "last_commit": "54008ad",
           "name": "crates",
           "purpose": "Native Rust website crates"
         },
@@ -35,21 +35,21 @@
           "purpose": "Seeded Omega edge rendering of validated canonical Hive JSON with fail-closed escaping and deter"
         },
         {
-          "digest": "9db1574e40f70d2ffdd390cfc55dcab3ca100d518631900cc157edfa2f089d28",
-          "last_commit": "a109d82",
+          "digest": "52f318a60feecb6e0d456f9a793d02391f82fe020981020b5e05cdbe6d721844",
+          "last_commit": "54008ad",
           "name": "public",
           "purpose": "Static public website assets"
         }
       ],
-      "children_root": "sha256:0fc791944b40e76c026277607de7038eb212a4d3064a44535f905b5fb23ca52d",
-      "compiled_at": "2026-10-26T15:40:28Z",
+      "children_root": "sha256:118c0db2b9fc8efe0d2e59d169529228fb8ce8facc24d2e3517d251ff0f53068",
+      "compiled_at": "2026-10-26T15:53:06Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:3245823ad7d783ab8f054b505cc62218cf908948e3755e54e9ed238cffe46513",
+      "digest": "sha256:55cd75b90b8a8c7b2b7a159dc76a535df92a90ca058795815447770d2f644239",
       "evidence_files": 1,
       "evidence_root": "sha256:1f6f4b14373405a3b91d0e7aa6ba11d0dd332d4543ad01421a5451cca3e7de0c",
       "files": 241,
-      "generated_at_commit": "a109d82205fbd43c81bafb4b91b07a80073a7f6c",
-      "source_tree": "sha256:dee30e5abe4121a34e405f82265b6f68b7b5ac2f7d09cdf741cd4b723a016c29"
+      "generated_at_commit": "54008ad5bf0ffd9a2cbec36f70878a97e2295539",
+      "source_tree": "sha256:8600b04e3559c8eb66a5ae20258719a6b0ba01a19b44ace02d97cbbdf85a8e89"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",
