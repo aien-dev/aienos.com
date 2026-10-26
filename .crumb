@@ -36,20 +36,20 @@
         },
         {
           "digest": "8f8277e3291c7f4592aafaa170f8e58ba0cd59ee8628713af4503f9436b12c45",
-          "last_commit": "21dc7ea",
+          "last_commit": "807418e",
           "name": "public",
           "purpose": "Static public website assets"
         }
       ],
       "children_root": "sha256:6ccd23bd797df66e0f79da8357a7d626a2bef49c00ac352f4d864c5f0a205da4",
-      "compiled_at": "2026-10-26T15:00:52Z",
+      "compiled_at": "2026-10-26T15:05:18Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:55c2dfd8ceb6079663138415ee8603e16e04f8e5ac60ad7a06449c54bbc207be",
+      "digest": "sha256:f8782d4669d186a46784f21386bc3e6ae0381267c2012553b5ea0327e812feca",
       "evidence_files": 1,
       "evidence_root": "sha256:1f6f4b14373405a3b91d0e7aa6ba11d0dd332d4543ad01421a5451cca3e7de0c",
       "files": 224,
-      "generated_at_commit": "665c73f765b49484779ee3202ea696cd60cbaf2f",
-      "source_tree": "sha256:878a5f6d60afb914e51dbd40987a945f01057f92247cb86d39ef01c3ddbb74e5"
+      "generated_at_commit": "807418e08a34fc69615b9561d82af1037227f78d",
+      "source_tree": "sha256:764fa143e5089f1a1d50b246b71f7e0bb296da18e075119c8a705ff41381608b"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",

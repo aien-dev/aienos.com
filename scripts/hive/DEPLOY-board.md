@@ -97,9 +97,10 @@ private addresses or keys into this repository.
    This input must be the receiver's canonical file. On refusal remove only the
    `.board-prime` you just created, investigate stderr and keep the previous board.
 5. Install the exact-route nginx include inside the existing www TLS server,
-   replacing the old live.json-only include. Its aliases assume the existing
-   `/var/www/aienos-hive` directory; preserve the real installation's alias if it
-   differs. Do not create a prefix route or directory listing. The board route has
+   replacing the old live.json-only include. Its `alias` and `root` assume the existing
+   `/var/www/aienos-hive` directory; preserve the real installation's path if it
+   differs. The board route serves the one file with `try_files /board.html =404`:
+   a file `alias` on a URI ending in `/` returns 500. Do not create a prefix route or directory listing. The board route has
    strict CSP, no JavaScript and no tracking; it bypasses static-site head enrichment
    and must remain excluded from the consent pixel's global enrichment.
 6. `sudo nginx -t`; on failure restore the nginx backup and do not reload. On
