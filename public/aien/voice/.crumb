@@ -1,0 +1,5 @@
+{
+  "schema_version": "1.0.0",
+  "name": "voice",
+  "purpose": "Aien's pre-recorded voice clips (ElevenLabs Output, voice Aien Cosmic 1) and catalog.json listing each clip's situation, text, sha256, license and source. Static, first party, not precached, not in the sitemap or llms.txt. tests/voice_catalog.rs hash-checks every clip. Clips are not training data (ElevenLabs Prohibited Use Policy s12)."
+}
