@@ -51,7 +51,9 @@ EXTERNAL = [
         r"EventSource", r"sendBeacon", r"\bimport\s*\(", r"\bimportScripts\b", r"\bwindow\.open\b",
     )
 ]
-EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+# The lookbehind starts a match only at the beginning of a run of local-part characters,
+# so a long run without '@' is scanned once (linear), not once per start position.
+EMAIL = re.compile(r"(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 PHONE = re.compile(r"(?<![\w.])\+?\d[\d ().-]{7,}\d(?!\w|\.\d)")
 
 

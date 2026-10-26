@@ -151,7 +151,8 @@ def main():
     check("unpinned_model_refused", p.returncode != 0 and b"not a pinned whisper model" in p.stderr,
           "rc %s %r" % (p.returncode, p.stderr[-120:]))
 
-    trace = tempfile.mktemp(prefix="transcribe-strace-")
+    trace_dir = tempfile.mkdtemp(prefix="transcribe-strace-")
+    trace = os.path.join(trace_dir, "trace")
     g = Gateway(a, *(flags + ["--chat-burst", "40", "--chat-refill", "1"]), strace=trace)
     try:
         check("started", "listening" in g.first, g.first.strip())
@@ -211,7 +212,7 @@ def main():
     followed = sum(1 for ln in lines if '"/model"' in ln and "= -1" not in ln)
     check("no_file_written", followed > 0 and not writes_bad, "%d sandboxed /model opens traced, %d write-opens, unexpected: %s"
           % (followed, len(writes), [w.strip()[:160] for w in writes_bad[:5]]))
-    os.unlink(trace)
+    shutil.rmtree(trace_dir)
 
     # Rate limit: the chat route's bucket (burst 2 here); another address passes (control).
     g = Gateway(a, *(flags + ["--chat-burst", "2", "--chat-refill", "600"]))

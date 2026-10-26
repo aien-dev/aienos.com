@@ -12,6 +12,26 @@ from urllib.parse import urlsplit
 TYPES = {".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css",
          ".svg": "image/svg+xml", ".wasm": "application/wasm", ".json": "application/json",
          ".png": "image/png", ".ico": "image/x-icon", ".txt": "text/plain"}
+# Upstream headers the page reads or the browser needs; nothing else is forwarded.
+FORWARD = ("Content-Type", "Cache-Control", "Retry-After", "X-Allen-Source", "X-OH-Model",
+           "X-OH-Volunteer", "X-Content-Type-Options", "Content-Security-Policy")
+
+
+def index(dist):
+    """URL path -> file for every regular file under dist, built once at start, so a
+    request path is only ever a dictionary key and never reaches the filesystem."""
+    root = os.path.realpath(dist)
+    files = {}
+    for d, _, names in os.walk(root):
+        for n in names:
+            full = os.path.join(d, n)
+            if os.path.isfile(full):
+                url = "/" + os.path.relpath(full, root).replace(os.sep, "/")
+                files[url] = full
+                if n == "index.html":
+                    files[url[:-len("index.html")]] = full
+                    files[url[:-len("/index.html")] or "/"] = full
+    return files
 
 
 class H(BaseHTTPRequestHandler):
@@ -30,11 +50,11 @@ class H(BaseHTTPRequestHandler):
         c.request(self.command, self.path, body, hdrs)
         r = c.getresponse()
         self.send_response(r.status)
-        for k, v in r.getheaders():
-            # A header carrying CR or LF would split this response; drop it.
-            if k.lower() in ("transfer-encoding", "connection", "content-length") or "\r" in k + v or "\n" in k + v:
-                continue
-            self.send_header(k, v)
+        for k in FORWARD:
+            v = r.getheader(k)
+            # A value carrying CR or LF would split this response; drop it.
+            if v is not None and "\r" not in v and "\n" not in v:
+                self.send_header(k, v.replace("\r", "").replace("\n", ""))
         self.send_header("Connection", "close")
         self.end_headers()
         self.close_connection = True
@@ -46,17 +66,8 @@ class H(BaseHTTPRequestHandler):
             self.wfile.flush()
 
     def static(self):
-        root = os.path.realpath(self.server.dist)
-        full = os.path.realpath(os.path.join(root, urlsplit(self.path).path.lstrip("/")))
-        if not (full == root or full.startswith(root + os.sep)):
-            self.send_error(404)
-            return
-        if os.path.isdir(full):
-            full = os.path.realpath(os.path.join(full, "index.html"))
-            if not full.startswith(root + os.sep):
-                self.send_error(404)
-                return
-        if not os.path.isfile(full):
+        full = self.server.files.get(urlsplit(self.path).path)
+        if full is None:
             self.send_error(404)
             return
         with open(full, "rb") as f:
@@ -83,6 +94,6 @@ a = ap.parse_args()
 h, _, p = a.listen.rpartition(":")
 srv = ThreadingHTTPServer((h, int(p)), H)
 srv.daemon_threads = True
-srv.dist, srv.gateway = a.dist, a.gateway
+srv.files, srv.gateway = index(a.dist), a.gateway
 print("dev proxy on %s -> %s" % (a.listen, a.gateway), flush=True)
 srv.serve_forever()

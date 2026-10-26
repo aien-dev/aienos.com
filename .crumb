@@ -47,21 +47,21 @@
           "purpose": "Static public website assets"
         },
         {
-          "digest": "806a46e63db45236fdf64007f201cae000329ee5e7e6dc475284c81197ce46df",
-          "last_commit": "6bbd251",
+          "digest": "d19bb51f24d3c0b551f4664adba478bf03fed9ac1585a80f23f7fe8f34466813",
+          "last_commit": "e391556",
           "name": "scripts/allen/science",
           "purpose": "Isolated compute-only Allen tools and versioned glass-pane protocol; temporary host transport ar"
         }
       ],
-      "children_root": "sha256:349976e239e960e09f83eada7da9a16889436581e08801f958a275b4b0f84de0",
-      "compiled_at": "2026-10-26T17:10:00Z",
+      "children_root": "sha256:642825d6831f336240938607baeaa160de820f30c534fdb01199b8bdc774867a",
+      "compiled_at": "2026-10-26T17:20:08Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:7241933054e5f1cb61b1610bad9c813245905c846f37f5c1d539f204ab76b037",
+      "digest": "sha256:02e4e744461ee9f66820dd3668c84ba3538a4f3ececb063045b210f66865c8f1",
       "evidence_files": 6,
       "evidence_root": "sha256:eba834d719fe051a5d5fb50d42f573b5bdb55491f895a8b758006022fc42c637",
-      "files": 324,
-      "generated_at_commit": "344eb3bcd2ed601a15e2f4155fa6bfedcd9302f3",
-      "source_tree": "sha256:5a9e667480990541937a9f5722543c423186b447cd250f20be3f0b4e4fbbcf07"
+      "files": 330,
+      "generated_at_commit": "7b36df545ed14c085c0509be39c1a76865a3fb28",
+      "source_tree": "sha256:be3fc129585e37922f9ddd7efb3c599781fd4c7fc7ae56e64e29479d2ec3fb81"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",
