@@ -13,7 +13,7 @@ pub const LEAD: &str =
     "AienOS is an owned experimental machine for turning search into verified understanding.";
 
 /// Central statement, the sentences after the lead.
-pub const LEAD_REST: &str = "AIEN proposes structure. Omega makes that structure explicit and checkable. The machine tests it against reality under authority. The Turing measures what was actually learned. Cortex keeps the evidence. Then the next search begins from what survived.";
+pub const LEAD_REST: &str = "Aien proposes structure. Omega makes that structure explicit and checkable. The machine tests it against reality under authority. The Turing measures what was actually learned. Cortex keeps the evidence. Then the next search begins from what survived.";
 
 /// The short public thesis, split into readable paragraphs.
 pub const THESIS: [&str; 3] = [
@@ -57,7 +57,7 @@ impl Band {
 pub const STAGES: [(&str, &str, Band); 8] = [
     ("ATLAS", "awakens / lineage", Band::Generation),
     ("AienOS", "persistent owned substrate", Band::Generation),
-    ("AIEN", "proposes / guides search", Band::Generation),
+    ("Aien", "proposes / guides search", Band::Generation),
     ("OMEGA", "formalizes / searches / verifies meaning", Band::Generation),
     ("FORGE", "realizes", Band::Generation),
     ("REALITY", "executes / responds", Band::Reality),
@@ -66,7 +66,7 @@ pub const STAGES: [(&str, &str, Band); 8] = [
 ];
 
 /// What the last stage hands back to.
-pub const RETURN_TO: &str = "next AIEN / Omega search";
+pub const RETURN_TO: &str = "next Aien / Omega search";
 
 /// The verification and authority perimeter. These surround the loop and
 /// are never stages. Split into the band drawn above and below the loop.
@@ -224,7 +224,7 @@ pub fn render_home_loop() -> Markup {
                         (perimeter_band(&PERIMETER_BOTTOM, "Perimeter, capabilities and receipts"))
                     }
                     figcaption class="loop-caption" {
-                        "ATLAS, AienOS, AIEN, OMEGA, FORGE, REALITY, TURING and CORTEX are the stages. AEGIS, ARGUS, the capability system and evidence receipts form the perimeter around them. "
+                        "ATLAS, AienOS, Aien, OMEGA, FORGE, REALITY, TURING and CORTEX are the stages. AEGIS, ARGUS, the capability system and evidence receipts form the perimeter around them. "
                         a class="omega-link" href="/omega/" { "What Omega is" }
                         ", in plain words, and its GPU half, "
                         a class="omega-link" href="/cudaplusplus/" { "CUDA++" }
@@ -329,7 +329,7 @@ mod tests {
         let expected = [
             ("ATLAS", "awakens / lineage"),
             ("AienOS", "persistent owned substrate"),
-            ("AIEN", "proposes / guides search"),
+            ("Aien", "proposes / guides search"),
             ("OMEGA", "formalizes / searches / verifies meaning"),
             ("FORGE", "realizes"),
             ("REALITY", "executes / responds"),
@@ -357,7 +357,7 @@ mod tests {
         let after = &s[ol_end..];
         let ret = after.find("class=\"loop-return\"").expect("return marker missing");
         assert!(after[ret..].contains('\u{21BA}'), "return arrow glyph missing");
-        assert!(after[ret..].contains("next AIEN / Omega search"), "return target missing");
+        assert!(after[ret..].contains("next Aien / Omega search"), "return target missing");
     }
 
     #[test]

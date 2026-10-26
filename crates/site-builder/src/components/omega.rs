@@ -22,7 +22,7 @@ use serde::Deserialize;
 use super::boxlink::{foot_labelled, Target};
 
 pub const TITLE: &str = "What Omega is | AienOS";
-pub const DESCRIPTION: &str = "Omega is AIEN's language for all computing, GPU to CPU. On the GPU it is the replacement for CUDA. The CUDA stack piece by piece, the receipt for what is true today, what is not true yet, and the bar C1 to C6.";
+pub const DESCRIPTION: &str = "Omega is Aien's language for all computing, GPU to CPU. On the GPU it is the replacement for CUDA. The CUDA stack piece by piece, the receipt for what is true today, what is not true yet, and the bar C1 to C6.";
 pub const URL: &str = "https://www.aienos.com/omega/";
 
 /// The data file, compiled in and published as /omega.json.
@@ -580,7 +580,7 @@ mod tests {
     fn data_parses_and_validates() {
         let d = parse(RAW).unwrap();
         validate(&d).unwrap();
-        assert_eq!(d.claim, "Omega is AIEN's language for all computing, GPU to CPU.");
+        assert_eq!(d.claim, "Omega is Aien's language for all computing, GPU to CPU.");
         assert_eq!(d.layers.len(), 13);
         assert_eq!(d.bar.len(), 6);
     }
@@ -589,7 +589,7 @@ mod tests {
     fn page_says_what_omega_is_first() {
         let s = render_omega_page().into_string();
         let h1 = s.find("<h1").unwrap();
-        assert!(s[h1..].starts_with("<h1 class=\"om-title\">Omega is AIEN&#39;s language for all computing, GPU to CPU.</h1>") || s[h1..].starts_with("<h1 class=\"om-title\">Omega is AIEN's language for all computing, GPU to CPU.</h1>"), "{}", &s[h1..h1 + 120]);
+        assert!(s[h1..].starts_with("<h1 class=\"om-title\">Omega is Aien&#39;s language for all computing, GPU to CPU.</h1>") || s[h1..].starts_with("<h1 class=\"om-title\">Omega is Aien's language for all computing, GPU to CPU.</h1>"), "{}", &s[h1..h1 + 120]);
         assert!(s.contains("On the GPU, that makes Omega the replacement for CUDA."));
         assert_eq!(s.matches("<h1").count(), 1);
     }
@@ -664,8 +664,8 @@ mod tests {
     #[test]
     fn link_first_links_only_the_word() {
         assert_eq!(
-            link_first("AIEN proposes. Omega checks. Omega again.").into_string(),
-            "AIEN proposes. <a class=\"omega-link\" href=\"/omega/\">Omega</a> checks. Omega again."
+            link_first("Aien proposes. Omega checks. Omega again.").into_string(),
+            "Aien proposes. <a class=\"omega-link\" href=\"/omega/\">Omega</a> checks. Omega again."
         );
         assert_eq!(link_first("Omegese only").into_string(), "Omegese only");
         assert_eq!(link_first("Omega's tools").into_string(), "<a class=\"omega-link\" href=\"/omega/\">Omega</a>&#39;s tools".replace("&#39;", "'"));

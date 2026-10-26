@@ -100,7 +100,7 @@ pub fn render_start_page() -> Markup {
                         "."
                     }
                     p {
-                        "To put your own coding agent to work on any AIEN repository, start at "
+                        "To put your own coding agent to work on any Aien repository, start at "
                         a href="/agents/" { "Agents" }
                         ": the rules my agents follow and each repository's own instructions."
                     }

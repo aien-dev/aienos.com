@@ -3,7 +3,7 @@
   "components": [
     {
       "key": "aienos",
-      "name": "Aienux",
+      "name": "aienux",
       "repo": "aien-dev/aienux",
       "role": "The AienOS kernel: boot, scheduling, IPC and capability boundaries. Agent-first; the model is never the kernel.",
       "url": "https://github.com/aien-dev/aienux",

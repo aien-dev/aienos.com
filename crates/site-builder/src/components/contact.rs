@@ -16,7 +16,7 @@ use maud::{html, Markup, PreEscaped};
 use crate::seo::{X_HANDLE, X_URL};
 
 pub const TITLE: &str = "Where I am and how to reach me | AienOS";
-pub const DESCRIPTION: &str = "How to reach Drake Stapleton: X @mdrakestapleton, email drake@aienos.com, Allen (who can pass a message to me or put you through when I'm online) and the aien-dev repositories on GitHub.";
+pub const DESCRIPTION: &str = "How to reach Drake Stapleton: X @mdrakestapleton, email drake@aienos.com, Aien (who can pass a message to me or put you through when I'm online) and the aien-dev repositories on GitHub.";
 pub const URL: &str = "https://www.aienos.com/contact/";
 pub const PATH: &str = "/contact/";
 pub const EMAIL: &str = "drake@aienos.com";
@@ -45,7 +45,7 @@ const EN: Words = Words {
     nav_label: "Reach me",
     reach: "Where I am and how to reach me",
     email: "Email",
-    allen: "Talk to Allen",
+    allen: "Talk to Aien",
 };
 
 const ZH: Words = Words {
@@ -54,7 +54,7 @@ const ZH: Words = Words {
     nav_label: "联系我",
     reach: "我在哪里，如何联系我",
     email: "邮箱",
-    allen: "和 Allen 聊聊",
+    allen: "和 Aien 聊聊",
 };
 
 fn words(zh: bool) -> &'static Words {
@@ -189,10 +189,10 @@ pub fn render_contact() -> Markup {
                     }, html! {
                         "For anything longer than a post, or anything private."
                     }))
-                    (route("Talk to Allen", html! {
+                    (route("Talk to Aien", html! {
                         a href=(ALLEN) { "aienos.com/allen/" }
                     }, html! {
-                        "Allen is my AI. Allen can pass a message to me, or put you through to me when I'm online."
+                        "Aien is my AI. Aien can pass a message to me, or put you through to me when I'm online."
                     }))
                     (route("GitHub", html! {
                         a href=(GITHUB) target="_blank" rel="noopener noreferrer" { "github.com/aien-dev" }

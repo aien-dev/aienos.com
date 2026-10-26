@@ -23,7 +23,7 @@ pub const URL: &str = "https://www.aienos.com/machine/";
 /// Anchor of the homepage loop diagram (NARR-HOME, components/home_loop.rs).
 pub const HOME_LOOP_HREF: &str = "/#loop-title";
 
-const MISSION: &str = "AienOS is an owned experimental machine for turning search into verified understanding. AIEN proposes structure. Omega makes that structure explicit and checkable. The machine tests it against reality under authority. The Turing measures what was actually learned. Cortex keeps the evidence. Then the next search begins from what survived.";
+const MISSION: &str = "AienOS is an owned experimental machine for turning search into verified understanding. Aien proposes structure. Omega makes that structure explicit and checkable. The machine tests it against reality under authority. The Turing measures what was actually learned. Cortex keeps the evidence. Then the next search begins from what survived.";
 
 const LOOP_STAGES: [&str; 11] = [
     "Observe",
@@ -95,10 +95,10 @@ fn section_loop() -> Markup {
                 }
             }
             p {
-                "In the design, each step has an owner. AIEN suggests. Omega formalizes, synthesizes and verifies. FORGE realizes the verified program, and the physical machine executes it."
+                "In the design, each step has an owner. Aien suggests. Omega formalizes, synthesizes and verifies. FORGE realizes the verified program, and the physical machine executes it."
             }
             p {
-                "The Turing then measures explanatory gain, Cortex preserves the evidence, and AIEN and Omega use that evidence to improve the next search. ATLAS carries the lineage across hardware, and AienOS provides the owned, persistent substrate underneath."
+                "The Turing then measures explanatory gain, Cortex preserves the evidence, and Aien and Omega use that evidence to improve the next search. ATLAS carries the lineage across hardware, and AienOS provides the owned, persistent substrate underneath."
             }
             p {
                 "AEGIS and ARGUS sit around the loop. AEGIS guards the boundary of proof and authority, so nothing executes without permission. ARGUS observes what actually happens. Neither one is a step that work passes through in sequence."
@@ -116,7 +116,7 @@ fn section_turing() -> Markup {
         section id="turing" class="narr-section" aria-labelledby="turing-heading" {
             h2 id="turing-heading" { "The Turing keeps the accounts" }
             p {
-                "The Turing is the epistemic accounting layer of AIEN. It measures net held-out explanatory compression: one operational component of machine understanding. It is not a general intelligence score."
+                "The Turing is the epistemic accounting layer of Aien. It measures net held-out explanatory compression: one operational component of machine understanding. It is not a general intelligence score."
             }
             p {
                 "For a baseline B, a candidate explanation M, sealed observations D and a scoring profile P, with L meaning description length:"
@@ -157,7 +157,7 @@ fn section_quantities() -> Markup {
                         (status_badge(ty2)) " Run TY-2 recorded " (ty2_headline()) " against an order-1 baseline on held-out seeds."
                     }
                     p {
-                        "The re-check used the same tool, so it is a self re-derivation and still awaits an independent one. This result certifies the instrument; it does not show that AIEN discovered anything."
+                        "The re-check used the same tool, so it is a self re-derivation and still awaits an independent one. This result certifies the instrument; it does not show that Aien discovered anything."
                     }
                     (card_foot(ty2))
                 }
@@ -198,7 +198,7 @@ fn section_cortex() -> Markup {
                 a href="#today" { "What exists today" }
                 "."
             }
-            p { "With that evidence in place, AIEN will be able to ask:" }
+            p { "With that evidence in place, Aien will be able to ask:" }
             ul class="narr-questions" {
                 li { "What did I already try?" }
                 li { "Why did it fail?" }
@@ -300,7 +300,7 @@ fn section_nature() -> Markup {
         section id="nature" class="narr-section" aria-labelledby="nature-heading" {
             h2 id="nature-heading" { "Nature invented the loop" }
             p {
-                "Evolution runs variation, selection and retention. The immune system runs variation, binding and amplification. Science runs hypothesis, experiment and theory. AIEN runs proposal, verification, evidence and memory."
+                "Evolution runs variation, selection and retention. The immune system runs variation, binding and amplification. Science runs hypothesis, experiment and theory. Aien runs proposal, verification, evidence and memory."
             }
             p {
                 "These are analogies and not equivalences. What they share is a pattern: expensive generation paired with decisive filtering, where retained structure changes what gets generated next."

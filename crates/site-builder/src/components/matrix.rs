@@ -8,7 +8,7 @@ const ROLE_LINKS: [(&str, &str); 8] = [
     ("ATLAS", "https://github.com/aien-dev/atlas"),
     ("AienOS", "https://github.com/aien-dev/aienix"),
     ("OMEGA", "https://github.com/aien-dev/omega-mv"),
-    ("AIEN", "https://github.com/aien-dev/aien-sovereign-core-mv"),
+    ("Aien", "https://github.com/aien-dev/aien-sovereign-core-mv"),
     ("AEGIS", "https://github.com/aien-dev/omega-mv/blob/main/spec/r8-aegis-resident.md"),
     ("FORGE", "https://github.com/aien-dev/physics-mv"),
     ("ARGUS", "https://github.com/aien-dev/aienux/tree/main/native/argus"),
@@ -39,10 +39,10 @@ pub fn render_matrix() -> Markup {
         (
             "OMEGA",
             "defines · synthesizes · verifies",
-            "AIEN's language for all computing, GPU to CPU. Its own tools check every program and compile it to the machine code of the chip that runs it; on the GPU it is the replacement for CUDA. Nothing runs on a claim; everything runs on a check.",
+            "Aien's language for all computing, GPU to CPU. Its own tools check every program and compile it to the machine code of the chip that runs it; on the GPU it is the replacement for CUDA. Nothing runs on a claim; everything runs on a check.",
         ),
         (
-            "AIEN",
+            "Aien",
             "learns",
             "The persistent intelligence itself. It learns from verified experience: what survived Omega's checks and contact with reality becomes knowledge. Weights suggest, programs explain, evidence teaches.",
         ),

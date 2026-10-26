@@ -18,7 +18,7 @@ use crate::components::boxlink::{foot_labelled, Target};
 use crate::facts::now_utc;
 
 pub const TITLE: &str = "Agents | AienOS";
-pub const DESCRIPTION: &str = "Point your own coding agent at any public AIEN repository: the rules my agents work by, and each repository's own AGENTS.md, refreshed hourly from GitHub.";
+pub const DESCRIPTION: &str = "Point your own coding agent at any public Aien repository: the rules my agents work by, and each repository's own AGENTS.md, refreshed hourly from GitHub.";
 pub const URL: &str = "https://www.aienos.com/agents/";
 
 /// The organization whose public repositories are listed.
@@ -181,7 +181,7 @@ fn repo_card(r: &Repo) -> Markup {
             a href=(r.url) target="_blank" rel="noopener noreferrer" {
                 @match r.name.as_str() {
                     "aienix" | "aienos" => { "AienOS (whole system)" }
-                    "aienux" => { "Aienux (kernel)" }
+                    "aienux" => { "aienux (kernel)" }
                     _ => { (r.name) }
                 }
             }
@@ -192,7 +192,7 @@ fn repo_card(r: &Repo) -> Markup {
                 p class="agents-tag" { "Fork" }
             }
             @if !r.description.is_empty() {
-                p { (r.description) }
+                p data-verbatim { (r.description) }
             }
             @match r.brief_url() {
                 Some(href) => {
@@ -213,9 +213,9 @@ pub fn render_agents_page(repos: &Repos) -> Markup {
     html! {
         div class="container hub-wrap" {
             p class="hub-kicker" { "For agents" }
-            h1 class="hub-title" { "Point your agent at any AIEN repository" }
+            h1 class="hub-title" { "Point your agent at any Aien repository" }
             p class="hub-standfirst" {
-                "Every public AIEN repository is listed here, including archived repositories for reference. Give your agent two files: the shared rules, and the repository instructions linked below under their actual filename, AGENTS.md or CLAUDE.md. Your own subscription pays for the work (Claude, Codex, Gemini, Grok or any other agent)."
+                "Every public Aien repository is listed here, including archived repositories for reference. Give your agent two files: the shared rules, and the repository instructions linked below under their actual filename, AGENTS.md or CLAUDE.md. Your own subscription pays for the work (Claude, Codex, Gemini, Grok or any other agent)."
             }
 
             section class="hub-section" id="start" aria-labelledby="agents-start" {
@@ -235,7 +235,7 @@ pub fn render_agents_page(repos: &Repos) -> Markup {
             section class="hub-section" id="rules" aria-labelledby="agents-rules" {
                 h2 id="agents-rules" class="hub-h2" { "The shared rules" }
                 p {
-                    "These are the working rules of every AIEN agent, published word for word. My own agents also read a few rules that only work on the project's own machine (its local services, hardware reservations and how to report to the operator). Those are left out because an outside agent cannot follow them."
+                    "These are the working rules of every Aien agent, published word for word. My own agents also read a few rules that only work on the project's own machine (its local services, hardware reservations and how to report to the operator). Those are left out because an outside agent cannot follow them."
                 }
                 ul class="hub-cards" {
                     li class="hub-card agents-card" {

@@ -36,7 +36,7 @@
       "id": "imac",
       "name": "Intel iMac 2017",
       "detail": "iMac18,3, Core i5-7500 with 4 cores, 16 GiB, AMD discrete GPU, Broadcom Ethernet",
-      "role": "Bare metal AienOS, the x86_64 port of the C kernel. The whole screen is Allen's window: night sky, stars, black holes, Allen.",
+      "role": "Bare metal AienOS, the x86_64 port of the C kernel. The whole screen is Aien's window: night sky, stars, black holes, Aien.",
       "today": "Boots the kernel from its own disk or netbooted from the Spark as a signed image, and sends a boot report back over the network. The kernel it runs today is in the open iMac pull request stack, not yet on main.",
       "evidence_date": "2026-10-17",
       "evidence": "iMac batch run: all cores, both disks read, Ethernet seen (evidence/imac_kernel1_2026-10-17, on main)",
