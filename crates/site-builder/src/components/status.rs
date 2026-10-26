@@ -80,7 +80,7 @@ pub fn layer_states() -> Vec<LayerState> {
             status: "EXPERIMENTAL",
             note: "Alpha testing for Linux arm64 and NVIDIA GB10. The side-by-side Omega installer is experimental. This release binary: GPU NOT_RUN. A real install through first token and three-pass physical qualification are NOT_RUN. Inspect versions, hashes, signatures and limits before running.",
             receipt_label: Some("Alpha release and evidence"),
-            receipt_url: Some("https://github.com/aien-dev/AienOS-nv/releases/tag/alpha-20261026.1"),
+            receipt_url: Some("https://github.com/aien-dev/sovereign-intelligence/releases/tag/alpha-20261026.1"),
         },
     ]
 }

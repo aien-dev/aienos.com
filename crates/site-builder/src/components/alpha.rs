@@ -1,16 +1,16 @@
 //! Seeded Omega owns the page structure and browser client.
 use maud::{html, Markup, PreEscaped};
-pub const TITLE: &str = "Alpha testing is open | AienOS";
-pub const DESCRIPTION: &str = "Keep the GPU. Lose the stack. Try my Omega installer for Linux arm64 and NVIDIA GB10, with explicit evidence boundaries and a reversible installation.";
+pub const TITLE: &str = "Sovereign Intelligence: alpha testing is open | AienOS";
+pub const DESCRIPTION: &str = "Sovereign Intelligence, built on AienOS. Try my Omega installer for Linux arm64 and NVIDIA GB10. The local Allen experience is coming in the next update; this release includes the engine and wizard.";
 pub const URL: &str = "https://www.aienos.com/alpha/";
 pub const PAGE: &str = include_str!("../../../../om/alpha-page/main.html");
 pub fn render_alpha_page() -> Markup { html! { (PreEscaped(PAGE)) } }
 pub fn render_alpha_entry() -> Markup {
     html! {
         a href="/alpha/" style="display:block;padding:24px;text-align:center;background:var(--bg-surface);border-bottom:1px solid var(--accent-green);color:var(--text-primary);" {
-            strong style="color:var(--accent-green);font-family:var(--font-mono);" { "ALPHA TESTING IS OPEN" }
-            " · Keep the GPU. Lose the stack. "
-            span style="text-decoration:underline;text-underline-offset:4px;" { "Get the Omega installer →" }
+            strong style="color:var(--accent-green);font-family:var(--font-mono);" { "SOVEREIGN INTELLIGENCE · ALPHA TESTING IS OPEN" }
+            " · Built on AienOS. Keep the GPU. Lose the stack. "
+            span style="text-decoration:underline;text-underline-offset:4px;" { "Get the installer →" }
         }
     }
 }
