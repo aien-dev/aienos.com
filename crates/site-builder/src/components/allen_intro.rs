@@ -68,15 +68,24 @@ mod tests {
     use sha2::{Digest, Sha256};
 
     #[test]
-    fn the_embedded_aside_matches_its_omega_generated_sha256() {
-        let recorded = include_str!("../../../../om/allen-intro/intro.html.sha256");
-        let want = recorded.split_whitespace().next().expect("intro.html.sha256 holds a digest");
-        assert_eq!(want.len(), 64, "intro.html.sha256 must hold one sha256 digest");
-        let got = Sha256::digest(INTRO.as_bytes()).iter().fold(String::new(), |mut acc, byte| {
-            acc.push_str(&format!("{byte:02x}"));
-            acc
-        });
-        assert_eq!(got, want, "the committed aside and its digest disagree; run: sh om/allen-intro/check.sh");
+    fn allen_intro_artifacts_match_their_omega_generated_sha256() {
+        // Both artifacts come from om/allen-intro/intro.om: the aside on fd 1, the script on fd 3.
+        for (bytes, recorded, name) in [
+            (INTRO.as_bytes(), include_str!("../../../../om/allen-intro/intro.html.sha256"), "intro.html"),
+            (
+                &include_bytes!("../../../../public/js/allen-intro.js")[..],
+                include_str!("../../../../om/allen-intro/allen-intro.js.sha256"),
+                "allen-intro.js",
+            ),
+        ] {
+            let want = recorded.split_whitespace().next().expect("sidecar holds a digest");
+            assert_eq!(want.len(), 64, "{name} sidecar must hold one sha256 digest");
+            let got = Sha256::digest(bytes).iter().fold(String::new(), |mut acc, byte| {
+                acc.push_str(&format!("{byte:02x}"));
+                acc
+            });
+            assert_eq!(got, want, "{name} and its digest disagree; run: sh om/allen-intro/check.sh");
+        }
     }
 
     #[test]
