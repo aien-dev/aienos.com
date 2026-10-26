@@ -4,8 +4,8 @@
 //! `om/hive-page/hive.om`, a seeded Omega program in program mode that writes the
 //! markup to stdout; `sh om/hive-page/check.sh` compiles it with the pinned
 //! compiler and keeps the bytes in `om/hive-page/main.html`. This module embeds
-//! those bytes unchanged, and `public/js/hive.js` only fills the slots they
-//! leave, so a change of sections, order or markup is an edit to the `.om` unit.
+//! those bytes unchanged. The Omega edge renderer supplies the board HTML;
+//! the Omega-generated browser client preserves interactive state while morphing it.
 use maud::{html, Markup, PreEscaped};
 
 pub const TITLE: &str = "The Hive | AienOS";
@@ -17,6 +17,7 @@ pub const SOURCE: &str = "https://github.com/aien-dev/aienos.com/blob/main/crate
 pub const SKELETON: &str = include_str!("../../../../om/hive-page/main.html");
 
 /// The page stylesheet, byte for byte as the build copies it.
+#[cfg(test)]
 const HIVE_CSS: &str = include_str!("../../../../public/assets/hive.css");
 
 pub fn render_hive_page() -> Markup {
@@ -80,6 +81,11 @@ mod tests {
                 include_bytes!("../../../../public/js/turing-look.js").as_slice(),
                 include_str!("../../../../om/hive-page/turing-look.js.sha256"),
             ),
+            (
+                "hive-fresh.wasm",
+                include_bytes!("../../../../public/wasm/hive-fresh.wasm").as_slice(),
+                include_str!("../../../../public/wasm/hive-fresh.wasm.sha256"),
+            ),
         ] {
             let want = recorded.split_whitespace().next().expect("script digest");
             assert_eq!(want.len(), 64, "{name} must have a sha256 digest");
@@ -92,21 +98,14 @@ mod tests {
     }
 
     #[test]
-    fn the_skeleton_declares_collapsible_branches() {
-        for (template, kind) in [("hive-tpl-row", "root"), ("hive-tpl-child", "nested")] {
-            let at = SKELETON
-                .find(&format!("<template id=\"{template}\">"))
-                .unwrap_or_else(|| panic!("the skeleton lost the {kind} row template"));
-            let row = &SKELETON[at..SKELETON[at..].find("</template>").unwrap_or(0) + at];
-            assert!(
-                row.contains(r#"class="hive-disclose" type="button" aria-expanded="true" aria-controls=""#),
-                "the {kind} row must declare a disclosure with aria-expanded and aria-controls"
-            );
-            assert!(
-                row.contains(r#"<ul class="hive-children" data-f="children"></ul>"#),
-                "the {kind} row must declare the branch the disclosure controls"
-            );
-        }
+    fn the_skeleton_accepts_edge_rendered_native_branches() {
+        assert!(!SKELETON.contains("<template"), "obsolete browser row templates must not return");
+        let renderer = include_str!("../../../../om/hive-render/render.om");
+        assert!(renderer.contains(r#"<details id=\"branch-"#));
+        assert!(renderer.contains(r#"<summary class=\"hive-record"#));
+        assert!(SKELETON.contains(r#"<div id="hive-manifest-cards" hidden>"#));
+        assert!(SKELETON.contains(r#"href="/hive/board/""#));
+        assert!(SKELETON.contains(r#"id="hive-motion" type="checkbox""#));
         // Bounded panels: the head stays and only the body scrolls, so the
         // fleet cannot become a document thousands of pixels tall again.
         assert_eq!(
@@ -177,7 +176,7 @@ mod tests {
             "the single transform transition must be removed under prefers-reduced-motion"
         );
         assert!(
-            HIVE_CSS.contains(r#".hive[data-motion="off"]"#),
+            HIVE_CSS.contains(".hive:not(:has(#hive-motion:checked))"),
             "the page's own motion control must also disable the transition"
         );
     }
@@ -197,7 +196,7 @@ mod tests {
             "@keyframes hive-posa",
             "@keyframes hive-msiz",
             "@media (prefers-reduced-motion:no-preference)",
-            r#".hive[data-motion="on"] .hive-hole-a{animation:hive-posa var(--hive-cycle) linear infinite}"#,
+            ".hive:has(#hive-motion:checked) .hive-hole-a{animation:hive-posa var(--hive-cycle) linear infinite}",
         ] {
             assert!(SKELETON.contains(part), "the emitted scene lost {part:?}");
         }
@@ -213,7 +212,7 @@ mod tests {
         // One motion gate holds every animation, so reduced motion has one place to gate.
         assert_eq!(
             SKELETON.matches("animation:").count(),
-            SKELETON.matches(r#"[data-motion="on"] .hive-"#).count(),
+            SKELETON.matches(":has(#hive-motion:checked) .hive-").count(),
             "an animation escaped the prefers-reduced-motion gate"
         );
         // The scene is a layer at 0 in the masthead, never a negative z-index.

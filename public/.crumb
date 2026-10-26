@@ -7,8 +7,8 @@
     "generated": {
       "children": [
         {
-          "digest": "3e5e663fd33557fe15ce62153fb8dbe03fa50ba99b4a61c556299c8adc6a7ab0",
-          "last_commit": "c1021f8",
+          "digest": "41b815ba28b9347c255c86d45d2e9f79af592728e71f4fb3996e2471766a0c07",
+          "last_commit": "21dc7ea",
           "name": "assets",
           "purpose": "Website styles including the project dashboard"
         },
@@ -19,8 +19,8 @@
           "purpose": "Published generated project measurements with pinned sources"
         },
         {
-          "digest": "7f4aa48fce22d67842cbb6a5732ea43a5102b4ee99d0fa378dd8ea17015f9a4d",
-          "last_commit": "f31f6df",
+          "digest": "efaa7e948700942dd8a46518f773b9e33a809d8d4bb89ab2414f5db98f34096f",
+          "last_commit": "21dc7ea",
           "name": "js",
           "purpose": "Browser interactions using public data only"
         },
@@ -43,15 +43,15 @@
           "purpose": "Public static research or licensing pages using the shared website navigation"
         }
       ],
-      "children_root": "sha256:096d1a7cbeb7c685980ca66c13d4e2a3066491f3f1b6bcb5342c6afd9ec6a9bc",
-      "compiled_at": "2026-10-26T14:55:31Z",
+      "children_root": "sha256:91d06394b64a3eccdfb21620bb91a520031703f70e63810f464687ca65df3cfb",
+      "compiled_at": "2026-10-26T15:00:52Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:3c1c945f90f626b5543f978794a218a99188b1e7f129920ba3057c58f845f775",
+      "digest": "sha256:8f8277e3291c7f4592aafaa170f8e58ba0cd59ee8628713af4503f9436b12c45",
       "evidence_files": 1,
       "evidence_root": "sha256:1f6f4b14373405a3b91d0e7aa6ba11d0dd332d4543ad01421a5451cca3e7de0c",
-      "files": 119,
-      "generated_at_commit": "f31f6dfa89c950122cc922f9bbe43da46cc770ea",
-      "source_tree": "sha256:dd08752e7f32917c6c02587c629805f1fb1f8aa3c3a708bce5441ab7c534a715"
+      "files": 121,
+      "generated_at_commit": "665c73f765b49484779ee3202ea696cd60cbaf2f",
+      "source_tree": "sha256:408e83ac6ab6c2e12a54d627813851addf5c4911cfc8e93ed3220bb1d86b243b"
     }
   },
   "invariants": [

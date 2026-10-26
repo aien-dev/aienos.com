@@ -1,0 +1,11 @@
+# now_ms generated_ms previous_ms stale_after_ms fetch_ok expected_state
+999 0 0 1000 true 0
+1000 0 0 1000 true 0
+1001 0 0 1000 true 1
+2000 2000 2000 1000 true 0
+2000 1999 2000 1000 true 2
+2000 1999 2000 1000 false 2
+2000 2000 2000 1000 false 3
+1001 0 0 1000 false 3
+0 2000 2000 1000 true 0
+2000 2000 0 1000 true 0

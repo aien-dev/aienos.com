@@ -1,0 +1,43 @@
+renderer oracle checks passed (byte escaper, Unicode, XSS, limits, negative controls, dates, deep tree, two output pools)
+HIVE-RENDER PASS: deterministic compiler output, escaper differential, schema refusals, XSS text and tree checks
+main.html 43921 bytes sha256 cb89c3a33b1ef35963ef725e008a09ea2fd16da75d938a552e54415fb2d40099
+../../public/js/hive.js 10686 bytes sha256 8f3bed2e6323208c20a1cf7607345f0e1df765ca7b5b7e9299e09f30aba67584
+../../public/js/turing-look.js 2938 bytes sha256 e5a9df9cc92cd5f77edc2efc7b12c6a2e94f12698624f27d88f162972c8e068b
+../../public/wasm/hive-fresh.wasm 336 bytes sha256 af9e1fb0d9e736949b2aa83c0bf978ac2d98f37428a8507176abaa1dd50b777b
+irwasm sha256 2d235a70c39ac1461a09c41e10e058d962b767ae83893cdcfc693ef6c47182e6
+omc sha256 734f0a39319fbfa930bcc62cb30dbf06d47d78e126372b74f5baf478e6126b61
+Generated artifacts were rewritten; commit them with their Omega sources
+main.html 43921 bytes sha256 cb89c3a33b1ef35963ef725e008a09ea2fd16da75d938a552e54415fb2d40099
+../../public/js/hive.js 10686 bytes sha256 8f3bed2e6323208c20a1cf7607345f0e1df765ca7b5b7e9299e09f30aba67584
+../../public/js/turing-look.js 2938 bytes sha256 e5a9df9cc92cd5f77edc2efc7b12c6a2e94f12698624f27d88f162972c8e068b
+../../public/wasm/hive-fresh.wasm 336 bytes sha256 af9e1fb0d9e736949b2aa83c0bf978ac2d98f37428a8507176abaa1dd50b777b
+irwasm sha256 2d235a70c39ac1461a09c41e10e058d962b767ae83893cdcfc693ef6c47182e6
+omc sha256 734f0a39319fbfa930bcc62cb30dbf06d47d78e126372b74f5baf478e6126b61
+main.html 43921 bytes sha256 cb89c3a33b1ef35963ef725e008a09ea2fd16da75d938a552e54415fb2d40099
+../../public/js/hive.js 10686 bytes sha256 8f3bed2e6323208c20a1cf7607345f0e1df765ca7b5b7e9299e09f30aba67584
+../../public/js/turing-look.js 2938 bytes sha256 e5a9df9cc92cd5f77edc2efc7b12c6a2e94f12698624f27d88f162972c8e068b
+../../public/wasm/hive-fresh.wasm 336 bytes sha256 af9e1fb0d9e736949b2aa83c0bf978ac2d98f37428a8507176abaa1dd50b777b
+irwasm sha256 2d235a70c39ac1461a09c41e10e058d962b767ae83893cdcfc693ef6c47182e6
+omc sha256 734f0a39319fbfa930bcc62cb30dbf06d47d78e126372b74f5baf478e6126b61
+PASS freshness native/wasm boundary cases=10; all four states
+5989611014825711faec447335b1b6d15ae01c651e3f89abbeda8111461a9986  om/hive-page/fresh.om
+af9e1fb0d9e736949b2aa83c0bf978ac2d98f37428a8507176abaa1dd50b777b  public/wasm/hive-fresh.wasm
+2d235a70c39ac1461a09c41e10e058d962b767ae83893cdcfc693ef6c47182e6  om/hive-page/irwasm
+
+running 5 tests
+.....
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+receiver integration passed: failed renderer logs/retains, successful renderer publishes exact bytes, rejected feed retains both artifacts
+overlap check passed: delayed stream refused; latest JSON and board retained; stdin waits unlocked
+
+running 168 tests
+....................................................................................... 87/168
+.................................................................................
+test result: ok. 168 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+............
+----------------------------------------------------------------------
+Ran 12 tests in 0.021s
+
+OK

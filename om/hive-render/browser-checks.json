@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-26",
+  "provenance": "Mounted Chromium browser/eval tools against the actual Omega-generated shell and client, plus schema-valid synthetic fixtures rendered by the actual hive-render ELF. Not production telemetry, not screenshots.",
+  "client_sha256": "8f3bed2e6323208c20a1cf7607345f0e1df765ca7b5b7e9299e09f30aba67584",
+  "fixture": {"agents": 3, "interactions": 60},
+  "freshness": [
+    {"case": "fresh", "engine": "wasm", "state": "0", "data_fresh": "true", "label": "Receiving source observations"},
+    {"case": "backwards", "engine": "wasm", "state": "2", "data_fresh": "false", "label": "Snapshot timestamp moved backwards; last observation retained", "rows_retained": 3},
+    {"case": "abort", "engine": "wasm", "state": "3", "data_fresh": "false", "label": "Connection interrupted; last snapshot retained", "rows_retained": 3},
+    {"case": "frozen board with advancing HTTP Date", "engine": "wasm", "state": "1", "data_fresh": "false", "label": "Source stale; last observation retained", "date_advanced": true, "rows_retained": 3}
+  ],
+  "advancing_tick": {"generated_advanced": true, "same_search_node": true, "same_selected_link_node": true, "search": "worker", "selection": "#agent=a1", "manifest": "manifest-a1", "chat_scroll_top": 123, "branch_a2_open": false},
+  "native_motion": {"initial_checkbox_checked": false, "checked_animations_observed": 10, "reduced_motion_matches": true, "reduced_motion_animations": 0},
+  "mobile": {"viewport_width": 390, "horizontal_overflow": false, "tree_width": 320, "initial_animations": 0},
+  "strict_board_csp_xss": {"probes_literal": true, "scripts": 0, "images": 0, "securitypolicyviolation_events": [], "horizontal_overflow": false},
+  "additional_independent_evidence": "IrWasm exercised the integrated ad1cd71 preview with synthetic acceptance HTML: all four WASM states and one-byte-corrupted WASM falling back to JS state 0/fresh true. Retained separately in aienos.com draft PR #108; not a claim about production."
+}
