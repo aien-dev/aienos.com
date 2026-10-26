@@ -9,9 +9,9 @@ role	consult_codex	openai-codex/gpt-6-astra:high
 agent	task	anthropic/claude-opus-5-5
 agent	reviewer	anthropic/claude-opus-5-5
 agent	security-reviewer	anthropic/claude-opus-5-5
-agent	scout	anthropic/claude-opus-5-5
-agent	sonic	anthropic/claude-opus-5-5
-agent	seance	anthropic/claude-opus-5-5
+agent	scout	google-antigravity/gemini-3.8-flash
+agent	sonic	google-antigravity/gemini-3.8-flash
+agent	seance	google-antigravity/gemini-3.8-flash
 seat	Daddy	google-antigravity/gemini-4-argon:high
 seat	Witness	google-antigravity/gemini-4-argon:high
 seat	Physics	google-antigravity/gemini-4-argon:high
