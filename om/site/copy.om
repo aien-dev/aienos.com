@@ -1,0 +1,156 @@
+note Checked public-tree copy and emitted-file inventory. No symlinks, private crumbs, or stale HTML.
+global sxmode uchar 1
+text sxcrumb ".crumb"
+text sxlocal ".crumb.local"
+text sxsuf ".html"
+text sxindex "index.html"
+text sxinv "inventory.txt"
+
+fn sx_private name view uchar * to bool
+if eq len name 0
+ret true
+end
+if sr_equal name sxcrumb
+ret true
+end
+if sr_equal name sxlocal
+ret true
+end
+if eq get name 0 46
+text well ".well-known"
+text nojek ".nojekyll"
+if sr_equal name well
+ret false
+end
+if sr_equal name nojek
+ret false
+end
+ret true
+end
+ret false
+end
+
+fn sx_html path view uchar * to bool
+if lt len path len sxsuf
+ret false
+end
+ret sr_equal part path sub len path len sxsuf len sxsuf sxsuf
+end
+
+fn sx_registered path view uchar * to bool
+for i ulong get stcount 0
+if st_match i 5 path
+ret true
+end
+end
+ret false
+end
+
+fn sx_file path view uchar * to void
+if eq get sxmode 0 1
+n = add get stoutn 0 1
+sr_raw part path n sub len path n
+text nl "\n"
+sr_raw nl
+ret
+end
+if sx_html path
+if not sx_registered path
+text unlisted "site: public HTML absent from canonical registry\n"
+st_fail unlisted
+end
+ret
+end
+if lt len path 7
+trap 10
+end
+st_copy path part path 7 sub len path 7
+end
+
+fn sx_entry parent view uchar * name view uchar * depth ulong to void
+pathbuf = new uchar 8192 0
+statbuf = new uchar 128 0
+n = st_append pathbuf parent 0
+n = st_append pathbuf stslash n
+n = st_append pathbuf name n
+r = lstat pathbuf 0 n statbuf 0 len statbuf
+if lt r 0
+trap 10
+end
+mode = and or uint get statbuf 16 shl uint get statbuf 17 8 61440
+if eq mode 16384
+sx_tree part pathbuf 0 n add depth 1
+else
+if ne mode 32768
+text badtype "site: public assets must be regular files or directories\n"
+st_fail badtype
+end
+sx_file part pathbuf 0 n
+end
+end
+
+fn sx_record parent view uchar * entry view uchar * depth ulong to void
+if lt len entry 20
+trap 10
+end
+n = ulong 19
+while lt n len entry bound 4096
+if eq get entry n 0
+break
+end
+n = add n 1
+end
+if eq n len entry
+trap 10
+end
+if not sx_private part entry 19 sub n 19
+sx_entry parent part entry 19 sub n 19 depth
+end
+end
+
+fn sx_tree path view uchar * depth ulong to void
+entries = new uchar 65536 0
+if gt depth 16
+trap 3
+end
+fd = fopen path 0 len path 65536 0
+if lt fd 0
+text badtree "site: cannot read asset directory\n"
+st_fail badtree
+end
+while true bound 65536
+n = getdnts int fd entries 0 len entries
+if lt n 0
+trap 10
+end
+if eq n 0
+break
+end
+p = ulong 0
+while lt p ulong n bound 4096
+if lt sub ulong n p 20
+trap 10
+end
+size = or ulong get entries add p 16 shl ulong get entries add p 17 8
+if or lt size 20 gt size sub ulong n p
+trap 10
+end
+sx_record path part entries p size depth
+p = add p size
+end
+end
+r = fclose int fd
+if ne r 0
+trap 10
+end
+end
+
+fn sx_inventory to void
+pathbuf = new uchar 8192 0
+n = st_path stempty pathbuf
+st_open sxinv
+put sxmode 0 1
+sx_tree part pathbuf 0 n 0
+sr_close
+put sxmode 0 0
+end

@@ -1,0 +1,1333 @@
+text smxgame "<script defer src=\"/js/turing-game.js\"></script>"
+text smxev "\">Receipt on GitHub</a>"
+text smxep "evidence/"
+text smxhist "<p class=\"evidence\">The research narrative below preserves the scope of the research record as of "
+text smxhend ". It is a dated account, not a fresh audit of every repository. <a href=\"/research/status/\">Read the complete research state and its source commits.</a></p>"
+text smxrf "crates/site-builder/data/research_status.json"
+text smxdate "as_of"
+note Machine pages use shared OM-2 runtime and JSON APIs. Source baseline 3d36bd7829d1.
+text smt0 "https://"
+text smt1 "/"
+text smt2 "//"
+text smt3 "#"
+text smt4 "o/:"
+text smt5 "https://github.com/aien-dev/omega/tree/main/"
+text smt6 "ob:"
+text smt7 "https://github.com/aien-dev/omega/tree/"
+text smt8 "o:"
+text smt9 "https://github.com/aien-dev/omega/blob/main/"
+text smt10 "p:"
+text smt11 "https://github.com/aien-dev/physics-mv/blob/main/"
+text smt12 "c:"
+text smt13 "https://github.com/aien-dev/aien-sovereign-core-mv/blob/main/"
+text smt14 "a:"
+text smt15 "https://github.com/aien-dev/aien-architecture-mv/blob/main/"
+text smt16 "b:"
+text smt17 "https://github.com/aien-dev/omega-bridge/blob/main/"
+text smt18 "issue:"
+text smt19 "https://github.com/aien-dev/omega/issues/"
+text smt20 "cp/:"
+text smt21 "https://github.com/aien-dev/CUDApp/tree/main/"
+text smt22 "cp@:"
+text smt23 "https://github.com/aien-dev/CUDApp/blob/"
+text smt24 "cp:"
+text smt25 "https://github.com/aien-dev/CUDApp/blob/main/"
+text smt26 "om@:"
+text smt27 "https://github.com/aien-dev/omega-mv/blob/"
+text smt28 "ax@:"
+text smt29 "https://github.com/aien-dev/aienux/blob/"
+text smt30 "sc@/:"
+text smt31 "https://github.com/aien-dev/aien-sovereign-core-mv/tree/"
+text smt32 "s:"
+text smt33 "https://github.com/aien-dev/aienos.com/blob/main/"
+text smt34 "<a href=\""
+text smt35 "\">"
+text smt36 "</a>"
+text smt37 "<a class=\"box-link source-link\" href=\""
+text smt38 "https://github.com/aien-dev/aienos.com/tree/main/crates/site-builder/data"
+text smt39 "https://github.com/"
+text smt40 "\">Source on GitHub</a>"
+text smt41 "<ul class=\"stack\">"
+text smt42 "<li>"
+text smt43 "</li>"
+text smt44 "</ul>"
+text smt45 "<dl class=\"evidence\">"
+text smt46 "<div><dt>"
+text smt47 "ours"
+text smt48 "CUDA++ replacement"
+text smt49 "</dt><dd>"
+text smt50 "status"
+text smt51 "<span class=\"rs-badge badge\">"
+text smt52 "</span>"
+text smt53 "</dd></div>"
+text smt54 "</dl>"
+text smt55 "title"
+text smt56 "name"
+text smt57 "step"
+text smt58 "cuda"
+text smt59 "what"
+text smt60 "id"
+text smt61 "<article class=\"hub-card panel\""
+text smt62 ">"
+text smt63 "<h3>"
+text smt64 "</h3>"
+text smt65 "box"
+text smt66 "link"
+text smt67 "url"
+text smt68 "receipt"
+text smt69 "</article>"
+text smt70 "<div class=\"dashboard-grid\">"
+text smt71 "</div>"
+text smt72 "<section class=\"section\" id=\""
+text smt73 "\"><h2>"
+text smt74 "</h2>"
+text smt75 "<header class=\"page-intro\"><h1>"
+text smt76 "</h1><p class=\"lede\">"
+text smt77 "</p></header>"
+text smt78 "<p>"
+text smt79 "</p>"
+text smt80 "PASS"
+text smt81 "PARTIAL"
+text smt82 "IN PROGRESS"
+text smt83 "NVIDIA"
+text smt84 "MISSING"
+text smt85 "NOT REPLACEABLE"
+text smt86 "ledger"
+text smt87 "L"
+text smt88 "evidence/"
+text smt89 "command"
+text smt90 "crates/site-builder/data/omega.json"
+text smt91 "bar"
+text smt92 "performance"
+text smt93 "layers"
+text smt94 "<header class=\"page-intro\"><p class=\"eyebrow\">Omega</p><h1>"
+text smt95 "claim"
+text smt96 "</h1>"
+text smt97 "claim_rest"
+text smt98 "<p>Source-backed snapshot, not a claim that every planned replacement is complete. All missing work and receipt limits remain visible.</p><p><a href=\"/cudaplusplus/\">CUDA++, the GPU half of Omega</a> · <a href=\"/omega.json\">The complete data record</a></p>"
+text smt99 "source"
+text smt100 "</header>"
+text smt101 "verdicts"
+text smt102 "The boundary of the claim"
+text smt103 "<h3>True today, with a receipt</h3>"
+text smt104 "true_today"
+text smt105 "<h3>Not true yet</h3>"
+text smt106 "not_true_yet"
+text smt107 "</section>"
+text smt108 "parts"
+text smt109 "Four parts, and the driver below them"
+text smt110 "below"
+text smt111 "cuda-map"
+text smt112 "Each piece of CUDA and Omega's replacement"
+text smt113 "<p>CUDA is a stack of NVIDIA software. Each piece is shown from the top of the stack to the chip. Missing pieces are shown as missing. PASS means a receipt exists on the named commit; PARTIAL, MISSING and NOT REPLACEABLE remain separate.</p>"
+text smt114 "today"
+text smt115 "What is already true, with a receipt"
+text smt116 "<p>The receipt holds the binary sha256, mapped libraries, ldd, driver version and commands used.</p></section>"
+text smt117 "not-yet"
+text smt118 "What is not true yet"
+text smt119 "not_yet"
+text smt120 "The bar for Omega replaces CUDA: C1 to C6"
+text smt121 "<p>I say it when every row is PASS, each with a receipt pushed on the exact commit. No row is waived. A row is ticked here only when its receipt is in the data file.</p>"
+text smt122 "beyond"
+text smt123 "Beyond the CUDA claim"
+text smt124 "<p>These are not part of the CUDA claim. They are the rest of what Omega is for, and each has its own bar.</p>"
+text smt125 "Performance: matching and then beating CUDA"
+text smt126 "stand"
+text smt127 "how"
+text smt128 "rule"
+text smt129 "crates/site-builder/data/cudaplusplus.json"
+text smt130 "hops"
+text smt131 "pains"
+text smt132 "swaps"
+text smt133 "<header class=\"page-intro\"><p class=\"eyebrow\">CUDA++ · open source, Apache-2.0 with LLVM exception</p><h1>"
+text smt134 "<p><a href=\"/omega/\">What Omega is</a> · <a href=\"/cudaplusplus.json\">Complete data record</a>. Dated source and receipt states, not an assertion that every target is qualified.</p></header>"
+text smt135 "purpose"
+text smt136 "What it is for"
+text smt137 "purpose_title"
+text smt138 "purpose_link"
+text smt139 "private_note"
+text smt140 "audit_link"
+text smt141 "path"
+text smt142 "Whose code runs at each step"
+text smt143 "<p>From your program to the chip: the NVIDIA part CUDA uses and what CUDA++ uses instead. PASS has a receipt; PARTIAL is incomplete; IN PROGRESS carries its ledger id; NVIDIA names the remaining physical dependency.</p>"
+text smt144 "Skip every closed layer"
+text smt145 "how_lead"
+text smt146 "steps"
+text smt147 "<article class=\"hub-card panel\"><h3>What I did not do</h3>"
+text smt148 "did_not"
+text smt149 "did_not_box"
+text smt150 "</article></section>"
+text smt151 "pain-points"
+text smt152 "CUDA's pain points"
+text smt153 "<p>Each pain point, its fix, and the command that shows it.</p>"
+text smt154 "pain_lead"
+text smt155 "swap"
+text smt156 "Swap CUDA out: down to the kernel driver"
+text smt157 "swap_lead"
+text smt158 "crates/site-builder/data/machines.json"
+text smt159 "real-machines"
+text smt160 "The bodies of one machine"
+text smt161 "machines"
+text smt162 "Five machines, one project"
+text smt163 "<p>A DGX Spark, an Intel iMac, a Raspberry Pi 5, QEMU and a Windows PC target. QEMU is an emulator, not a physical body. AienOS is the operating-system project; Aienux is its kernel. These are dated inventory observations, not live telemetry.</p><p>Inventory as of "
+text smt164 "as_of"
+text smt165 ". Each card states its environment, evidence date, branch and limitations.</p><div class=\"dashboard-grid\">"
+text smt166 "<div id=\"machine-"
+text smt167 "</div><p><a href=\"/#speed\">The speeds measured on them, with receipts</a> · <a href=\"/machines.json\">The inventory data</a></p></section>"
+text smt168 "speed"
+text smt169 "Speed, with receipts"
+text smt170 "<p>Recorded model and engine runs, not a claim about the server answering today. Each row preserves its date, environment, previous run, ceiling, branch, verdict and exclusions. A faster candidate that fails its gate remains a failure.</p>"
+text smt171 "judging"
+text smt172 "<div class=\"stack\">"
+text smt173 "speeds"
+text smt174 "<div id=\"speed-"
+text smt175 "</div><h3>Physical ceilings: modeled, not measured</h3>"
+text smt176 "ceilings"
+text smt177 "crates/site-builder/data/research_status.json"
+text smt178 "turing_rows"
+text smt179 "implementation_rows"
+text smt180 "crates/site-builder/data/machine-pages.json"
+text smt181 "machine_sections"
+text smt182 "<section class=\"section prose\" id=\""
+text smt183 "paragraphs"
+text smt184 "links"
+text smt185 "loop"
+text smt186 "loop_steps"
+text smt187 "<p><a href=\"/#loop-title\">See the loop diagram on the homepage.</a></p>"
+text smt188 "turing"
+text smt189 "<pre><code>"
+text smt190 "formula"
+text smt191 "</code></pre>"
+text smt192 "The Machine"
+text smt193 "Turning search into verified understanding"
+text smt194 "mission"
+text smt195 "slogan"
+text smt196 "<p>Suggestions and explanations have different epistemic roles. Neural systems generate hypotheses. Explicit artifacts suit inspection and verification. Physical execution provides contact with reality, measurement determines gain, and evidence provides continuity.</p>"
+text smt197 "quantities"
+text smt198 "TY-2"
+text smt199 "TURING-YIELD-TJ"
+text smt200 "ENERGY-ATTRIBUTION"
+text smt201 "GENERAL-DISCOVERY"
+text smt202 "cortex"
+text smt203 "research-ladder"
+text smt204 "self-improvement"
+text smt205 "connections"
+text smt206 "CEGIS"
+text smt207 "Bayesian cost prediction (belief/estimation)"
+text smt208 "EXP-003"
+text smt209 "Equality saturation"
+text smt210 "nature"
+text smt211 "top"
+text smt212 "thesis"
+text smt213 "<figure class=\"panel\"><h2 id=\"loop-title\">The loop</h2><p>Proposals travel the generation path, meet reality, and are scored. The evidence that survives starts the next search. A perimeter of authority, observation and receipts surrounds the whole loop.</p><p>Generation path · Evidence feedback · Verification and authority perimeter</p><p>Perimeter: around the loop, never a stage</p><ul><li>AEGIS: authority + proof boundaries</li><li>ARGUS: observation / audit</li></ul><ol class=\"loop-stages\">"
+text smt214 "<li><strong>"
+text smt215 "</strong><p>"
+text smt216 "role"
+text smt217 "</p></li>"
+text smt218 "</ol><p>Back to the <strong>next AIEN / Omega search</strong>: CORTEX evidence feeds the next round.</p><ul><li>Capability system: controls what may happen</li><li>Evidence receipts: make outcomes reproducible</li></ul><figcaption>ATLAS, AienOS, AIEN, OMEGA, FORGE, REALITY, TURING and CORTEX are the stages. AEGIS, ARGUS, the capability system and evidence receipts form the perimeter around them. <a href=\"/omega/\">What Omega is</a>, in plain words, and its GPU half, <a href=\"/cudaplusplus/\">CUDA++</a>.</figcaption></figure><h2>Three questions under the loop</h2><h3>Did it learn anything?</h3><p>Turing gain: net explanatory structure that survives held-out reality.</p>"
+text smt219 "<h3>What did it cost to learn?</h3><p>Turing yield: verified explanatory gain per measured physical resource.</p>"
+text smt220 "<h3>Did what it learned make future discovery easier?</h3><p>Search / verification gap: whether acquired abstraction would collapse future search complexity. An open question I want to study. Nothing here is measured yet.</p><p><a href=\"/start/\">Start here</a> · <a href=\"/machine/\">The Machine</a> · <a href=\"/discovery/\">Scientific Discovery</a> · <a href=\"#evidence\">See the evidence</a> · <a href=\"#architecture\">Explore the architecture</a> · <a href=\"https://github.com/aien-dev\">GitHub</a></p><ul><li>C kernel boots via UEFI: see the dated receipts.</li><li>Every claim carries a receipt.</li><li>Failures published, not hidden.</li></ul></section>"
+text smt221 "architecture"
+text smt222 "How it fits together"
+text smt223 "<p>Hardware is treated as capability metadata, never as identity. The identity is the lineage: who wakes the machine, what keeps it alive, what checks its work, and what learns from the results.</p><p>These are responsibilities, not a literal turn order. AEGIS, FORGE, ARGUS and CORTEX serve the system by verifying, realizing, observing and remembering. Nothing receives authority merely by advancing through a diagram.</p>"
+text smt224 "roles"
+text smt225 "<p><a href=\"https://github.com/aien-dev/sovereign-intelligence\">Sovereign Intelligence stack map</a> · <a href=\"https://github.com/aien-dev/AienOS-nv\">AienOS project</a> · <a href=\"https://github.com/aien-dev/aienux\">Aienux kernel</a></p></section>"
+text smt226 "facts.json"
+text smt227 "live"
+text smt228 "The components, as of the public-record snapshot"
+text smt229 "<p>Facts gathered at "
+text smt230 "generated_at"
+text smt231 ". This is the checked-in public record read at build time, not live telemetry. Repository activity does not establish hardware qualification.</p>"
+text smt232 "components"
+text smt233 "<aside id=\"receipt\" class=\"panel\" aria-label=\"Latest recorded verification receipt\"><h3>AIEN VERIFICATION</h3>"
+text smt234 "state"
+text smt235 "<p class=\"badge\">"
+text smt236 "success"
+text smt237 "failure"
+text smt238 "error"
+text smt239 "FAIL"
+text smt240 "pending"
+text smt241 "PENDING"
+text smt242 "NO RECEIPT YET"
+text smt243 "<a class=\"box-link source-link\" href=\"https://github.com/"
+text smt244 "repo"
+text smt245 "/commit/"
+text smt246 "sha"
+text smt247 "\">Judged commit on GitHub</a></aside><h3>Newest decision records in this snapshot</h3>"
+text smt248 "decisions"
+text smt249 "<p><a href=\"https://github.com/aien-dev/aien-architecture/tree/main/docs/adr\">All decision records</a> · <a href=\"/facts.json\">facts.json</a></p></section>"
+text smt250 "crates/site-builder/data/status.json"
+text smt251 "Recorded project state"
+text smt252 "<p>The canonical layer record was updated "
+text smt253 "updated"
+text smt254 ". These dated states preserve their original evidence scope; they are not an assertion that a past release or implementation note describes the current checkout. For the current product, use <a href=\"/alpha/\">the Alpha release page</a> and <a href=\"https://github.com/aien-dev/sovereign-intelligence/releases\">the release record</a>. <a href=\"/status.json\">status.json</a> and <a href=\"/llms.txt\">llms.txt</a> use this same canonical record.</p>"
+text smt255 "story"
+text smt256 "Not another app on someone else's computer"
+text smt257 "<p>Most AI lives in a rented stack. A provider owns the machine, the model, the price, and the off switch. Your agent exists at their pleasure, forgets on their schedule, and works under their terms.</p><p>AienOS is the opposite bet: a sovereign machine, built from the first instruction after firmware upward, where a persistent intelligence lives on hardware you own. It keeps its memory, its identity, and its receipts on your side of the line. The hardware underneath is capability, not identity: machines can be replaced, and the lineage persists.</p></section>"
+text smt258 "terminal"
+text smt259 "The syscall interface, simulated"
+text smt260 "<p class=\"badge\">INTERACTIVE SIMULATION</p><p>A simulation that runs entirely in your browser. No live machine is attached to this page, and nothing you type leaves it. It shows the shape of the interface the real machine speaks. The real machine's proof is in the evidence section, receipts and all.</p><div class=\"terminal-shell panel\"><p>AienOS REPL v0.4.0 (sm_121a · aarch64 · 128GB LPDDR5x) · COHERENT_ACTIVE</p><div class=\"cluster\"><button type=\"button\" data-cmd=\"sys_telemetry\">sys_telemetry</button><button type=\"button\" data-cmd=\"sys_alloc_kv\">sys_alloc_kv</button><button type=\"button\" data-cmd=\"sys_vault\">sys_vault</button><button type=\"button\" id=\"terminal-clear-btn\">[clear]</button></div><div id=\"terminal-output\" role=\"log\"><p class=\"terminal-log-line sys\">[*] AienOS Neural Kernel v0.4.0 initialized on GB10 (aarch64).</p><p class=\"terminal-log-line sys\">[*] Unified coherent address space: 128 GB LPDDR5x online.</p><p class=\"terminal-log-line sys\">[*] Capability vault sealed. Zero disk secrets invariant active.</p><p class=\"terminal-log-line sys\">[*] Type a syscall below or click one of the quick trigger buttons above.</p></div><form id=\"terminal-form\"><label for=\"terminal-input\">Simulated syscall</label><input id=\"terminal-input\" type=\"text\" placeholder=\"sys_telemetry, sys_alloc_kv, sys_vault, help\" autocomplete=\"off\"><button type=\"submit\">RUN</button></form></div></section><script defer src=\"/js/terminal.js\"></script>"
+text smt261 "follow"
+text smt262 "Follow the work."
+text smt263 "<p>Watch the repositories, read the receipts, open an issue. Release artifacts and installation instructions are on <a href=\"/alpha/\">the Alpha page</a>; source, qualification and deployment are separate states.</p><p>Learning to code with AI? You are welcome here. <a href=\"/learn/\">Start with a practical working method</a>, then <a href=\"/hive/\">watch my agents and me in Hive</a>: the instructions, the models, the corrections, and the work as it happens.</p><div class=\"cluster\"><a href=\"https://github.com/aien-dev\">GitHub: aien-dev</a><a href=\"https://github.com/aien-dev/aien-sovereign-core\">AIEN core tree</a><a href=\"/now/\">Now: what is being done today</a><a href=\"/progress/\">Project progress</a></div><p id=\"follow-reach\">Want to reach me? <a href=\"https://x.com/mdrakestapleton\">Follow me on X, @mdrakestapleton</a>, email <a href=\"mailto:drake@aienos.com\">drake@aienos.com</a>, or read <a href=\"/contact/\">where I am and how to reach me</a>.</p><p>Machine-readable: <a href=\"/status.json\">status.json</a> · <a href=\"/facts.json\">facts.json</a> · <a href=\"/llms.txt\">llms.txt</a></p><a class=\"box-link source-link\" href=\"https://github.com/aien-dev\">The public repositories</a></section>"
+text smt264 "Sovereign Intelligence™"
+text smt265 "Sovereign Intelligence, built on AienOS. My work toward persistent intelligence that belongs to the person running it, from the language to the machine."
+text smt266 "<div class=\"cluster\"><a class=\"button\" href=\"/alpha/\">Install / explore Alpha</a><a class=\"button button-secondary\" href=\"https://github.com/aien-dev/sovereign-intelligence/releases\">Releases and signatures</a><a href=\"https://x.com/mdrakestapleton\">Follow me on X</a></div><section class=\"section dashboard-grid\" aria-label=\"Explore the owned stack\"><article class=\"hub-card panel\"><h2>Your starting point</h2><p>Sovereign Intelligence (SI) is the product and stack index. Alpha is experimental, not a promise that every machine or feature is qualified. Read the release's exact scope before running it.</p><a href=\"/alpha/\">Installer, source and release evidence</a><a class=\"box-link\" href=\"https://github.com/aien-dev/sovereign-intelligence\">SI source and stack map</a></article><article class=\"hub-card panel\"><h2>The system and its kernel</h2><p>AienOS keeps its own identity. Aienux is the kernel, not a new name for the whole system.</p><a href=\"/machine/\">Hardware, evidence and the closed loop</a><a class=\"box-link\" href=\"https://github.com/aien-dev/AienOS-nv\">AienOS</a><a href=\"https://github.com/aien-dev/aienux\">Aienux kernel</a></article><article class=\"hub-card panel\"><h2>The language and the GPU</h2><p>Omega makes programs explicit. CUDA++ is its GPU half. The implementation, remaining dependencies and receipts are inspectable.</p><a href=\"/omega/\">Omega</a> · <a href=\"/cudaplusplus/\">CUDA++</a><a class=\"box-link\" href=\"https://github.com/aien-dev/omega-mv\">Omega source</a></article><article class=\"hub-card panel\"><h2>Learn, discover, meet Allen</h2><p>I share the working methods, the mistakes and the evidence so that people learning to build with AI can start from real work.</p><a href=\"/learn/\">Learn</a> · <a href=\"/discoveries/\">Discoveries</a> · <a href=\"/allen/\">Allen</a><a class=\"box-link\" href=\"https://github.com/aien-dev/allen\">Allen source</a></article></section>"
+text smt267 "<details class=\"section\"><summary>The design, machines and full evidence record</summary>"
+text smt268 "</details>"
+text smt269 "/machine/"
+text smt270 "/omega/"
+text smt271 "/cudaplusplus/"
+text smt272 "/progress/"
+text smt273 "public/data/project-progress.json"
+text smt274 "summary"
+text smt275 "<div id=\"aien-growth-observatory\">\n\n\n  <div class=\"ag-mast\">\n    <div>\n\n      <h1>Project progress</h1>\n      <p id=\"ag-scope\" class=\"ag-scope\">Measured history across the public AIEN repositories</p>\n      <p class=\"ag-caption text-small\">Read from retained Git history, pull requests and available CI records. This page measures footprint and activity. It does not rerun the reported experiments or qualify hardware. The evidence cards below link to the experiments they summarize, and the full scope is stated under \"Scope, counting rules and pinned sources\".</p>\n    </div>\n  <div class=\"ag-refresh\"><span id=\"ag-freshness\">Loading snapshot</span><button id=\"ag-refresh\" type=\"button\">Check for updates</button><span class=\"text-small\">Refreshes hourly</span></div></div><div class=\"ag-stats\" aria-live=\"polite\">\n    <div class=\"ag-stat\"><span class=\"text-small text-muted\">Measured source lines</span><div><h2 id=\"ag-lines\" class=\"tabular-nums\">"
+text smt276 "loc"
+text smt277 "</h2><span id=\"ag-line-context\" class=\"ag-stat-context text-small text-muted\"></span></div></div>\n    <div class=\"ag-stat\"><span class=\"text-small text-muted\">Unique recorded revisions</span><div><h2 id=\"ag-revisions\" class=\"tabular-nums\">"
+text smt278 "commits"
+text smt279 "</h2><span id=\"ag-rev-context\" class=\"ag-stat-context text-small text-muted\"></span></div></div>\n    <div class=\"ag-stat\"><span class=\"text-small text-muted\">Available CI runs</span><div><h2 id=\"ag-ci\" class=\"tabular-nums\">"
+text smt280 "ci"
+text smt281 "</h2><span id=\"ag-ci-context\" class=\"ag-stat-context text-small text-muted\"></span></div></div>\n  </div>\n  <div class=\"ag-nav\">\n    <div class=\"ag-date\"><label class=\"form-label\" for=\"ag-date-slider\">Daily snapshot <span id=\"ag-selected-date\" class=\"tabular-nums\"></span></label><span class=\"text-small text-muted\">Chicago time · latest day is partial</span></div>\n    <input id=\"ag-date-slider\" type=\"range\" class=\"form-range\" min=\"0\" max=\"49\" value=\"49\" aria-label=\"Explore daily project snapshots\">\n  </div>\n  <div class=\"ag-section-head\"><h2>Codebase growth</h2><span class=\"text-small text-muted\">Physical lines, including blanks and comments</span></div>\n  <div id=\"ag-code-legend\" class=\"ag-legends\"></div>\n  <div id=\"ag-code\" class=\"ag-plot\"></div>\n  <p class=\"ag-caption text-small\">August is retained site history. September 19 is the runtime's first recorded release; its initial import already contains substantial code.</p>\n\n  <div class=\"ag-pair\">\n    <section><h3>Revisions and review</h3><div id=\"ag-revision-legend\" class=\"ag-legends\"></div><div id=\"ag-revision\" class=\"ag-plot\"></div></section>\n    <section><h3>Verification activity</h3><div class=\"ag-legends text-small\"><span>GitHub Actions workflow runs</span></div><div id=\"ag-ci-plot\" class=\"ag-plot\"></div></section>\n  </div>\n  <div class=\"ag-pair\">\n    <section><h3>The test footprint</h3><div class=\"ag-legends text-small\"><span id=\"ag-test-summary\"></span></div><div id=\"ag-tests\" class=\"ag-plot\"></div><p class=\"ag-caption text-small\">Named test files, deduplicated by contents. Inline tests remain in the general source count.</p></section>\n    <section><h3>The language shift</h3><div id=\"ag-lang-legend\" class=\"ag-legends\"></div><div id=\"ag-languages\" class=\"ag-plot\"></div><p class=\"ag-caption text-small\">C includes headers and .inc files; other languages include shell, assembly, web, Mojo, Python and CUDA.</p></section>\n  </div>\n\n  <section class=\"ag-section\">\n    <div class=\"ag-section-head\"><h2>Evidence at different scales</h2><span class=\"text-small text-muted\">Selected reported experiments · candidate-specific</span></div>\n    <div class=\"ag-evidence\">\n      <div><span class=\"text-small text-muted\">Physical GB10 · SQRT</span><h3 class=\"tabular-nums\">4,294,967,296 inputs</h3><p class=\"text-small\">Exhaustive FP32 comparison · 0 mismatches</p><a class=\"text-small\" href=\"https://github.com/aien-dev/omega/pull/141\" target=\"_blank\" rel=\"noopener noreferrer\">Omega #141</a></div>\n      <div><span class=\"text-small text-muted\">Host · OSC-3 handles</span><h3 class=\"tabular-nums\">4,896 fuzz executions</h3><p class=\"text-small\">Interpreter/native comparison · 0 mismatches</p><a class=\"text-small\" href=\"https://github.com/aien-dev/omega/pull/166\" target=\"_blank\" rel=\"noopener noreferrer\">Omega #166</a></div>\n      <div><span class=\"text-small text-muted\">Host · R16 inventory repair</span><h3 class=\"tabular-nums\">329 loop sites classified</h3><p class=\"text-small\">0 unclassified · silicon reruns NOT_RUN</p><a class=\"text-small\" href=\"https://github.com/aien-dev/omega/pull/172\" target=\"_blank\" rel=\"noopener noreferrer\">Omega #172</a></div>\n    </div>\n  </section>\n  <section class=\"ag-section\"><div class=\"ag-section-head\"><h2>Recent repository activity</h2><span class=\"text-small text-muted\">Merged and open pull requests</span></div><div id=\"ag-activity\" class=\"ag-events\"></div></section>\n  <section class=\"ag-section\">\n    <div class=\"ag-section-head\"><h2>From runtime to computing stack</h2><span class=\"text-small text-muted\">Historical milestones · select for evidence</span></div>\n    <div id=\"ag-events\" class=\"ag-events\"></div>\n  </section>\n\n  <section class=\"ag-section\">\n    <div class=\"ag-section-head\"><h2>The repositories behind the growth</h2><span class=\"text-small text-muted\">Current pinned heads · source and test lines</span></div>\n    <div class=\"ag-legends text-small\"><span><i class=\"ag-swatch\" style=\"background:var(--viz-series-1)\"></i> General source</span><span><i class=\"ag-swatch\" style=\"background:var(--viz-series-2)\"></i> Test-path source</span><span><span id=\"ag-repo-counts\"></span></span></div>\n    <div class=\"table-responsive\"><table class=\"table table-sm\" aria-label=\"Repository code and revision breakdown\"><thead><tr><th>Repository</th><th class=\"text-end\">Source lines</th><th class=\"text-end\">Revisions</th><th class=\"text-end\">PRs</th><th class=\"text-end\">CI runs</th></tr></thead><tbody id=\"ag-repos\"></tbody></table></div>\n    <p class=\"ag-caption text-small\">Rows count each repository independently. The project total deduplicates exact matching file contents across repositories, so rows do not sum to the headline.</p>\n  </section>\n\n  <details class=\"ag-methods\">\n    <summary class=\"cursor-interaction\">Scope, counting rules and pinned sources</summary>\n    <p id=\"ag-asof\" class=\"text-small\"></p>\n    <p class=\"text-small\">Scope: the original 29 public AIEN repositories, including archived precursors, experimental projects, documentation and project websites; newly discovered public AIEN, Spark, Omega, Atlas, Physics and related named repositories are added automatically. Forks are excluded. Private repositories, unrelated private applications, unmerged branches, deleted history and work before the retained imports are excluded.</p>\n    <p class=\"text-small\">Lines: physical source lines, including blanks and comments, in Rust, C/headers/.inc, C++, Mojo, assembly, shell, Python, web, CUDA and Zig files. Evidence, receipts, data, fixture directories, generated/build/vendor trees and symlinks are excluded. Exact matching blobs are counted once per daily snapshot. Similar migrated copies can remain. Test classification follows file-path names; embedded tests are not separated. This is repository footprint, not original authored SLOC.</p>\n    <p class=\"text-small\">Revisions: distinct commit SHAs reachable from the pinned default branches, including merges. Snapshots use the latest first-parent state at each Chicago day end. Pull requests include all states; merged counts use the merge date. CI counts use available GitHub Actions records, deduplicated by run URL and limited to the measurement cutoff. Deleted CI records cannot be reconstructed; a run is a workflow execution, not an individual test case.</p>\n    <p class=\"text-small\">Charts connect daily observations. Hover values between observations are interpolated; the date scrubber and headline counts use exact daily snapshots. The latest day ends at the measurement cutoff. Collection runs hourly through GitHub Actions and on site updates; scheduled runs can be delayed. This page checks for published data every five minutes. An unsuccessful collection leaves the previous deployment intact.</p>\n    <p class=\"text-small\">There is no comparable project-wide count of individual executed tests: assertions, input sweeps, fuzz iterations and qualification gates measure different things. Reported evidence above is linked to its PR and applies to its candidate. These measurements inspect Git history and GitHub records; they do not rerun the reported runtime experiments or observe hardware. code growth and CI activity do not establish full-system qualification.</p>\n    <p id=\"ag-secondary-counts\" class=\"text-small\"></p>\n    <div id=\"ag-pins\" class=\"ag-pins text-small\"></div>\n  </details>\n  <div id=\"ag-tooltip\" class=\"ag-tooltip tooltip\" role=\"tooltip\"></div>\n\n\n\n<noscript><p>Enable JavaScript to explore the charts. <a href=\"/data/project-progress.json\">Read the measured dataset</a>.</p></noscript></div>"
+text smt282 "<details class=\"section\"><summary>Read the complete retained data without charts</summary>"
+text smt283 "</details><link rel=\"stylesheet\" href=\"/assets/progress.css\"><script defer src=\"/vendor/d3-7.9.0.min.js\"></script><script defer src=\"/js/project-progress.js\"></script>"
+text smt284 "–"
+text smt285 "—"
+text smt286 "source|claim|claim_rest|true_today|not_true_yet|parts|below|layers|receipt|not_yet|bar|beyond|performance"
+text smt287 "doc|branch|commit|checked|ledger|issue"
+text smt288 "doc"
+text smt289 "o:docs/OMEGA.md"
+text smt290 "name|what|links|box"
+text smt291 "cuda|job|omega|status|note|links|box"
+text smt292 "title|taken|what|facts|box"
+text smt293 "title|text|links|box"
+text smt294 "id|title|done_when|status|now|receipt|links"
+text smt295 "C1|C2|C3|C4|C5|C6"
+text smt296 "stand|how|box|rule|bar"
+text smt297 "P0|P1|P2|P3|P4"
+text smt298 "source|claim|claim_rest|purpose_title|purpose|purpose_link|private_note|audit_link|hops|how_lead|steps|did_not|did_not_box|pain_lead|pains|swap_lead|swaps"
+text smt299 "repo|readme|how|how_branch|how_commit|main_commit|omega_doc|omega_branch|omega_commit|checked|ledger|visibility|owner_ledger"
+text smt300 "visibility"
+text smt301 "private"
+text smt302 "public"
+text smt303 "step|cuda|ours|status|note|?ledger|links|box"
+text smt304 "title|text|status|?ledger|?command|?receipt|links|box"
+text smt305 "C1"
+text smt306 " id=\"c1\""
+text smt307 "C2"
+text smt308 " id=\"c2\""
+text smt309 "C3"
+text smt310 " id=\"c3\""
+text smt311 "C4"
+text smt312 " id=\"c4\""
+text smt313 "C5"
+text smt314 " id=\"c5\""
+text smt315 "C6"
+text smt316 " id=\"c6\""
+text smt317 "P0"
+text smt318 " id=\"p0\""
+text smt319 "P1"
+text smt320 " id=\"p1\""
+text smt321 "P2"
+text smt322 " id=\"p2\""
+text smt323 "P3"
+text smt324 " id=\"p3\""
+text smt325 "P4"
+text smt326 " id=\"p4\""
+
+note Machine dashboard renderers. Composition supplies om2 and shared runtime/JSON/chrome.
+note Data is loaded at render time. Historical observations retain their dates and limitations.
+fn sm_need obj ulong key view uchar * to ulong
+nd = sj_find obj key
+if eq nd 0
+exit 65
+end
+ret nd
+end
+
+fn sm_field obj ulong key view uchar * to void
+sj_emit sm_need obj key
+end
+
+fn sm_prefix nd ulong pre view uchar * base view uchar * to bool
+if sj_prefix nd pre
+sr_raw base
+sj_slice nd len pre
+ret true
+end
+ret false
+end
+
+fn sm_url nd ulong to void
+if ne sj_kind nd 3
+exit 65
+end
+sz = sj_size nd
+if eq sz 0
+exit 65
+end
+for ix ulong sz
+by = sj_byte nd ix
+if or le by 32 eq by 92
+exit 65
+end
+if eq by 46
+if lt add ix 1 sz
+if eq sj_byte nd add ix 1 46
+exit 65
+end
+end
+end
+end
+if sj_prefix nd smt0
+sj_href nd
+ret
+end
+if sj_prefix nd smt1
+if sj_prefix nd smt2
+exit 65
+end
+sj_href nd
+ret
+end
+if sj_prefix nd smt3
+sj_href nd
+ret
+end
+if sm_prefix nd smt4 smt5
+ret
+end
+if sm_prefix nd smt6 smt7
+ret
+end
+if sm_prefix nd smt8 smt9
+ret
+end
+if sm_prefix nd smt10 smt11
+ret
+end
+if sm_prefix nd smt12 smt13
+ret
+end
+if sm_prefix nd smt14 smt15
+ret
+end
+if sm_prefix nd smt16 smt17
+ret
+end
+if sm_prefix nd smt18 smt19
+ret
+end
+if sm_prefix nd smt20 smt21
+ret
+end
+if sj_prefix nd smt22
+sm_pinned nd 4
+end
+if sm_prefix nd smt22 smt23
+ret
+end
+if sm_prefix nd smt24 smt25
+ret
+end
+if sj_prefix nd smt26
+sm_pinned nd 4
+end
+if sm_prefix nd smt26 smt27
+ret
+end
+if sj_prefix nd smt28
+sm_pinned nd 4
+end
+if sm_prefix nd smt28 smt29
+ret
+end
+if sj_prefix nd smt30
+sm_pinned nd 5
+end
+if sm_prefix nd smt30 smt31
+ret
+end
+if sm_prefix nd smt32 smt33
+ret
+end
+exit 65
+end
+
+fn sm_isurl nd ulong to bool
+if eq nd 0
+ret false
+end
+if ne sj_kind nd 3
+ret false
+end
+if or sj_prefix nd smt0 sj_prefix nd smt1
+ret true
+end
+if or sj_prefix nd smt3 sj_prefix nd smt8
+ret true
+end
+if or sj_prefix nd smt4 sj_prefix nd smt6
+ret true
+end
+if or sj_prefix nd smt10 sj_prefix nd smt12
+ret true
+end
+if or sj_prefix nd smt14 sj_prefix nd smt16
+ret true
+end
+if or sj_prefix nd smt18 sj_prefix nd smt24
+ret true
+end
+if or sj_prefix nd smt20 sj_prefix nd smt22
+ret true
+end
+if or sj_prefix nd smt26 sj_prefix nd smt28
+ret true
+end
+ret or sj_prefix nd smt30 sj_prefix nd smt32
+end
+
+fn sm_anchor nd ulong to void
+sr_raw smt34
+sm_url nd
+sr_raw smt35
+sj_emit nd
+sr_raw smt36
+end
+
+fn sm_foot nd ulong to void
+sr_raw smt37
+if eq nd 0
+sr_raw smt38
+else
+if not sm_isurl nd
+exit 65
+end
+if or sj_prefix nd smt1 sj_prefix nd smt3
+exit 65
+end
+if sj_prefix nd smt0
+if not sj_prefix nd smt39
+exit 65
+end
+end
+sm_url nd
+end
+if sm_contains nd smxep
+sr_raw smxev
+else
+sr_raw smt40
+end
+end
+
+fn sm_value nd ulong to void
+kind = sj_kind nd
+if eq kind 1
+sm_fields nd 0
+ret
+end
+if eq kind 2
+sr_raw smt41
+it = sj_first nd
+while ne it 0 bound 100000
+sr_raw smt42
+sm_value it
+sr_raw smt43
+it = sj_next it
+end
+sr_raw smt44
+ret
+end
+if sm_isurl nd
+sm_anchor nd
+else
+sj_emit nd
+end
+end
+
+fn sm_fields nd ulong omit ulong to void
+sr_raw smt45
+it = sj_first nd
+while ne it 0 bound 100000
+if ne it omit
+sr_raw smt46
+if eq it sj_find nd smt47
+sr_raw smt48
+else
+sj_key it
+end
+sr_raw smt49
+if eq it sj_find nd smt50
+sr_raw smt51
+sj_emit it
+sr_raw smt52
+else
+sm_value it
+end
+sr_raw smt53
+end
+it = sj_next it
+end
+sr_raw smt54
+end
+
+fn sm_title nd ulong to ulong
+hd = sj_find nd smt55
+if eq hd 0
+hd = sj_find nd smt56
+end
+if eq hd 0
+hd = sj_find nd smt57
+end
+if eq hd 0
+hd = sj_find nd smt58
+end
+if eq hd 0
+hd = sj_find nd smt59
+end
+if eq hd 0
+hd = sj_find nd smt60
+end
+ret hd
+end
+
+fn sm_card nd ulong to void
+sr_raw smt61
+sm_cardid nd
+sr_raw smt62
+hd = sm_title nd
+if ne hd 0
+sr_raw smt63
+sj_emit hd
+sr_raw smt64
+end
+sm_fields nd hd
+ft = sj_find nd smt65
+if eq ft 0
+ft = sj_find nd smt66
+end
+if eq ft 0
+ft = sj_find nd smt67
+end
+if eq ft 0
+rc = sj_find nd smt68
+if sm_isurl rc
+ft = rc
+end
+end
+sm_foot ft
+sr_raw smt69
+end
+
+fn sm_cards nd ulong to void
+if ne sj_kind nd 2
+exit 65
+end
+sr_raw smt70
+it = sj_first nd
+while ne it 0 bound 100000
+sm_card it
+it = sj_next it
+end
+sr_raw smt71
+end
+
+fn sm_section ident view uchar * title view uchar * to void
+sr_raw smt72
+sr_esc ident
+sr_raw smt73
+sr_esc title
+sr_raw smt74
+end
+
+fn sm_intro title view uchar * body view uchar * to void
+sr_raw smt75
+sr_esc title
+sr_raw smt76
+sr_esc body
+sr_raw smt77
+end
+
+fn sm_par nd ulong to void
+sr_raw smt78
+sj_emit nd
+sr_raw smt79
+end
+
+fn sm_status_valid st ulong cuda bool to void
+if cuda
+if or sj_eq st smt80 sj_eq st smt81
+ret
+end
+if or sj_eq st smt82 sj_eq st smt83
+ret
+end
+else
+if or sj_eq st smt80 sj_eq st smt81
+ret
+end
+if or sj_eq st smt84 sj_eq st smt85
+ret
+end
+end
+exit 65
+end
+
+fn sm_contains nd ulong word view uchar * to bool
+if eq nd 0
+ret false
+end
+if ne sj_kind nd 3
+ret false
+end
+sz = sj_size nd
+if lt sz len word
+ret false
+end
+for ix ulong add sub sz len word 1
+match = true
+for jx ulong len word
+if ne sj_byte nd add ix jx get word jx
+match = false
+end
+end
+if match
+ret true
+end
+end
+ret false
+end
+
+fn sm_checkrows nd ulong cuda bool hops bool to void
+it = sj_first nd
+while ne it 0 bound 100000
+st = sm_need it smt50
+sm_status_valid st cuda
+if cuda
+if sj_eq st smt82
+lg = sm_need it smt86
+if not sj_prefix lg smt87
+exit 65
+end
+if lt sj_size lg 2
+exit 65
+end
+for ix ulong sub sj_size lg 1
+by = sj_byte lg add ix 1
+if or lt by 48 gt by 57
+exit 65
+end
+end
+end
+if not hops
+if or sj_eq st smt83 sj_eq st smt81
+exit 65
+end
+end
+end
+rc = sj_find it smt68
+if hops
+rc = sm_need it smt65
+end
+if sj_eq st smt80
+if not sm_contains rc smt88
+exit 65
+end
+if and cuda not hops
+cmd = sm_need it smt89
+if eq sj_kind cmd 7
+exit 65
+end
+end
+else
+if not cuda
+if ne rc 0
+if ne sj_kind rc 7
+exit 65
+end
+end
+end
+end
+it = sj_next it
+end
+end
+
+fn sm_omega to void
+rt = sj_load smt90
+sm_checkomega rt
+sm_checkrows sm_need rt smt91 false false
+perf = sm_need rt smt92
+sm_checkrows sm_need perf smt91 false false
+ly = sm_need rt smt93
+if lt sj_len ly 13
+exit 65
+end
+it = sj_first ly
+while ne it 0 bound 100000
+sm_status_valid sm_need it smt50 false
+it = sj_next it
+end
+sr_raw smt94
+sm_field rt smt95
+sr_raw smt96
+sm_value sm_need rt smt97
+sr_raw smt98
+sm_value sm_need rt smt99
+sr_raw smt100
+sm_section smt101 smt102
+sr_raw smt103
+sm_par sm_need rt smt104
+sr_raw smt105
+sm_par sm_need rt smt106
+sr_raw smt107
+sm_section smt108 smt109
+sm_cards sm_need rt smt108
+sm_card sm_need rt smt110
+sr_raw smt107
+sm_section smt111 smt112
+sr_raw smt113
+sm_cards ly
+sr_raw smt107
+sm_section smt114 smt115
+sm_card sm_need rt smt68
+sr_raw smt116
+sm_section smt117 smt118
+sm_cards sm_need rt smt119
+sr_raw smt107
+sm_section smt91 smt120
+sr_raw smt121
+sm_cards sm_need rt smt91
+sr_raw smt107
+sm_section smt122 smt123
+sr_raw smt124
+sm_cards sm_need rt smt122
+sr_raw smt107
+sm_section smt92 smt125
+sm_par sm_need perf smt126
+sm_par sm_need perf smt127
+sm_foot sm_need perf smt65
+sm_par sm_need perf smt128
+sm_cards sm_need perf smt91
+sr_raw smt107
+end
+
+fn sm_cuda to void
+rt = sj_load smt129
+sm_checkcuda rt
+hops = sm_need rt smt130
+if lt sj_len hops 8
+exit 65
+end
+sm_checkrows hops true true
+sm_checkrows sm_need rt smt131 true false
+sm_checkrows sm_need rt smt132 true false
+sr_raw smt133
+sm_field rt smt95
+sr_raw smt96
+sm_value sm_need rt smt97
+sm_value sm_need rt smt99
+sr_raw smt134
+sm_section smt135 smt136
+sm_par sm_need rt smt137
+sm_par sm_need rt smt135
+sm_foot sm_need rt smt138
+sm_par sm_need rt smt139
+sm_foot sm_need rt smt140
+sr_raw smt107
+sm_section smt141 smt142
+sr_raw smt143
+sm_cards hops
+sr_raw smt107
+sm_section smt127 smt144
+sm_par sm_need rt smt145
+sm_cards sm_need rt smt146
+sr_raw smt147
+sm_value sm_need rt smt148
+sm_foot sm_need rt smt149
+sr_raw smt150
+sm_section smt151 smt152
+sr_raw smt153
+sm_par sm_need rt smt154
+sm_cards sm_need rt smt131
+sr_raw smt107
+sm_section smt155 smt156
+sm_par sm_need rt smt157
+sm_cards sm_need rt smt132
+sr_raw smt107
+end
+
+fn sm_machines real bool to void
+rt = sj_load smt158
+if real
+sm_section smt159 smt160
+else
+sm_section smt161 smt162
+end
+sr_raw smt163
+sm_field rt smt164
+sr_raw smt165
+it = sj_first sm_need rt smt161
+while ne it 0 bound 100000
+sr_raw smt166
+sm_field it smt60
+sr_raw smt35
+sm_card it
+sr_raw smt71
+it = sj_next it
+end
+sr_raw smt167
+end
+
+fn sm_speeds to void
+rt = sj_load smt158
+sm_section smt168 smt169
+sr_raw smt170
+sm_par sm_need rt smt171
+sr_raw smt172
+it = sj_first sm_need rt smt173
+while ne it 0 bound 100000
+sr_raw smt174
+sm_field it smt60
+sr_raw smt35
+sm_card it
+sr_raw smt71
+it = sj_next it
+end
+sr_raw smt175
+sm_cards sm_need rt smt176
+sr_raw smt107
+end
+
+fn sm_researchrow rid view uchar * impl bool to void
+rt = sj_load smt177
+arr = sj_find rt smt178
+if impl
+arr = sm_need rt smt179
+end
+it = sj_first arr
+while ne it 0 bound 100000
+if sj_eq sm_need it smt60 rid
+sm_card it
+ret
+end
+it = sj_next it
+end
+exit 65
+end
+
+fn sm_machine_section wanted view uchar * to void
+rt = sj_load smt180
+it = sj_first sm_need rt smt181
+while ne it 0 bound 100000
+if sj_eq sm_need it smt60 wanted
+sr_raw smt182
+sr_esc wanted
+sr_raw smt73
+sm_field it smt55
+sr_raw smt74
+ps = sj_first sm_need it smt183
+while ne ps 0 bound 100000
+sm_par ps
+ps = sj_next ps
+end
+sm_value sm_need it smt184
+if sr_equal wanted smt185
+sm_value sm_need rt smt186
+sr_raw smt187
+end
+if sr_equal wanted smt188
+sr_raw smt189
+sm_field rt smt190
+sr_raw smt191
+end
+sm_foot 0
+sr_raw smt107
+ret
+end
+it = sj_next it
+end
+exit 65
+end
+
+fn sm_machine to void
+sm_intro smt192 smt193
+rt = sj_load smt180
+sm_par sm_need rt smt194
+sm_par sm_need rt smt195
+sr_raw smt196
+rt = sj_load smxrf
+sr_raw smxhist
+sm_field rt smxdate
+sr_raw smxhend
+sm_machines true
+sm_machine_section smt185
+sm_machine_section smt188
+sm_machine_section smt197
+sm_researchrow smt198 false
+sm_researchrow smt199 false
+sm_researchrow smt200 false
+sm_researchrow smt201 false
+sm_machine_section smt202
+sm_machine_section smt203
+sd_ladder
+sm_machine_section smt204
+sm_machine_section smt205
+sm_researchrow smt206 true
+sm_researchrow smt207 true
+sm_researchrow smt208 false
+sm_researchrow smt209 true
+sm_machine_section smt114
+sd_implementation
+sm_machine_section smt210
+end
+
+fn sm_loop to void
+rt = sj_load smt180
+sm_section smt211 smt193
+sm_par sm_need rt smt194
+sm_value sm_need rt smt212
+sm_par sm_need rt smt195
+sr_raw smt213
+it = sj_first sm_need rt smt185
+while ne it 0 bound 100000
+sr_raw smt214
+sm_field it smt56
+sr_raw smt215
+sm_field it smt216
+sr_raw smt217
+it = sj_next it
+end
+sr_raw smt218
+sm_researchrow smt198 false
+sr_raw smt219
+sm_researchrow smt199 false
+sr_raw smt220
+end
+
+fn sm_matrix to void
+rt = sj_load smt180
+sm_section smt221 smt222
+sr_raw smt223
+sm_cards sm_need rt smt224
+sr_raw smt225
+end
+
+fn sm_live to void
+rt = sj_load smt226
+sm_section smt227 smt228
+sr_raw smt229
+sm_field rt smt230
+sr_raw smt231
+sm_cards sm_need rt smt232
+sr_raw smt233
+rc = sm_need rt smt68
+st = sm_need rc smt234
+sr_raw smt235
+if sj_eq st smt236
+sr_raw smt80
+else
+if or sj_eq st smt237 sj_eq st smt238
+sr_raw smt239
+else
+if sj_eq st smt240
+sr_raw smt241
+else
+sr_raw smt242
+end
+end
+end
+sr_raw smt79
+sm_fields rc 0
+sr_raw smt243
+sm_field rc smt244
+sr_raw smt245
+sm_field rc smt246
+sr_raw smt247
+sm_value sm_need rt smt248
+sr_raw smt249
+end
+
+fn sm_status to void
+rt = sj_load smt250
+sm_section smt50 smt251
+sr_raw smt252
+sm_field rt smt253
+sr_raw smt254
+sm_cards sm_need rt smt93
+sr_raw smt107
+sm_live
+end
+
+fn sm_story to void
+sm_section smt255 smt256
+sr_raw smt257
+end
+
+fn sm_terminal to void
+sm_section smt258 smt259
+sr_raw smt260
+end
+
+fn sm_follow to void
+sm_section smt261 smt262
+sr_raw smt263
+end
+
+fn sm_home to void
+sm_intro smt264 smt265
+sr_raw smt266
+sm_story
+sm_status
+sr_raw smt267
+sm_loop
+sm_machines false
+sm_speeds
+sd_receipts
+sm_matrix
+sd_research_home
+sr_raw smxgame
+sm_terminal
+sr_raw smt268
+sm_follow
+end
+
+fn sm_page route view uchar * to bool
+if sr_equal route smt1
+sm_home
+ret true
+end
+if sr_equal route smt269
+sm_machine
+ret true
+end
+if sr_equal route smt270
+sm_omega
+ret true
+end
+if sr_equal route smt271
+sm_cuda
+ret true
+end
+if sr_equal route smt272
+sm_progress
+ret true
+end
+ret false
+end
+
+fn sm_progress to void
+rt = sj_load smt273
+sum = sm_need rt smt274
+sr_raw smt275
+sm_uint sm_need sum smt276
+sr_raw smt277
+sm_uint sm_need sum smt278
+sr_raw smt279
+sm_uint sm_need sum smt280
+sr_raw smt281
+sr_raw smt282
+sm_value rt
+sr_raw smt283
+end
+
+note Schema fields use optional ? prefixes. Every other field must exist; unknown fields refuse.
+fn sm_shape nd ulong spec view uchar * to void
+if ne sj_kind nd 1
+exit 65
+end
+count = ulong 0
+start = ulong 0
+for ix ulong add len spec 1
+stop = eq ix len spec
+if not stop
+stop = eq get spec ix 124
+end
+if stop
+begin = start
+opt = false
+if lt begin ix
+if eq get spec begin 63
+opt = true
+begin = add begin 1
+end
+end
+keynd = sj_find nd part spec begin sub ix begin
+if eq keynd 0
+if not opt
+exit 65
+end
+else
+count = add count 1
+end
+start = add ix 1
+end
+end
+if ne count sj_len nd
+exit 65
+end
+end
+
+fn sm_clean nd ulong to void
+kind = sj_kind nd
+if or eq kind 1 eq kind 2
+it = sj_first nd
+while ne it 0 bound 100000
+sm_clean it
+it = sj_next it
+end
+ret
+end
+if eq kind 3
+if or sm_contains nd smt284 sm_contains nd smt285
+exit 65
+end
+end
+end
+
+fn sm_shapelist nd ulong spec view uchar * to void
+if ne sj_kind nd 2
+exit 65
+end
+it = sj_first nd
+while ne it 0 bound 100000
+sm_shape it spec
+it = sj_next it
+end
+end
+
+fn sm_order nd ulong spec view uchar * to void
+it = sj_first nd
+start = ulong 0
+for ix ulong add len spec 1
+stop = eq ix len spec
+if not stop
+stop = eq get spec ix 124
+end
+if stop
+if eq it 0
+exit 65
+end
+if not sj_eq sm_need it smt60 part spec start sub ix start
+exit 65
+end
+it = sj_next it
+start = add ix 1
+end
+end
+if ne it 0
+exit 65
+end
+end
+
+fn sm_checkomega rt ulong to void
+sm_clean rt
+sm_shape rt smt286
+src = sm_need rt smt99
+sm_shape src smt287
+if not sj_prefix sm_need src smt288 smt289
+exit 65
+end
+sm_shapelist sm_need rt smt108 smt290
+sm_shape sm_need rt smt110 smt290
+sm_shapelist sm_need rt smt93 smt291
+sm_shape sm_need rt smt68 smt292
+sm_shapelist sm_need rt smt119 smt293
+sm_shapelist sm_need rt smt122 smt293
+sm_shapelist sm_need rt smt91 smt294
+sm_order sm_need rt smt91 smt295
+pf = sm_need rt smt92
+sm_shape pf smt296
+sm_shapelist sm_need pf smt91 smt294
+sm_order sm_need pf smt91 smt297
+end
+
+fn sm_checkcuda rt ulong to void
+sm_clean rt
+sm_shape rt smt298
+src = sm_need rt smt99
+sm_shape src smt299
+vis = sm_need src smt300
+if not or sj_eq vis smt301 sj_eq vis smt302
+exit 65
+end
+sm_shapelist sm_need rt smt130 smt303
+sm_shapelist sm_need rt smt146 smt293
+sm_shapelist sm_need rt smt131 smt304
+sm_shapelist sm_need rt smt132 smt304
+end
+
+fn sm_pinned nd ulong offset ulong to void
+if le sj_size nd add offset 40
+exit 65
+end
+for ix ulong 40
+by = sj_byte nd add offset ix
+ok = and ge by 48 le by 57
+ok = or ok and ge by 97 le by 102
+ok = or ok and ge by 65 le by 70
+if not ok
+exit 65
+end
+end
+if ne sj_byte nd add offset 40 47
+exit 65
+end
+end
+
+fn sm_uint nd ulong to void
+if ne sj_kind nd 4
+exit 65
+end
+sj_emit nd
+end
+
+fn sm_cardid nd ulong to void
+ident = sj_find nd smt60
+if eq ident 0
+ret
+end
+if sj_eq ident smt305
+sr_raw smt306
+ret
+end
+if sj_eq ident smt307
+sr_raw smt308
+ret
+end
+if sj_eq ident smt309
+sr_raw smt310
+ret
+end
+if sj_eq ident smt311
+sr_raw smt312
+ret
+end
+if sj_eq ident smt313
+sr_raw smt314
+ret
+end
+if sj_eq ident smt315
+sr_raw smt316
+ret
+end
+if sj_eq ident smt317
+sr_raw smt318
+ret
+end
+if sj_eq ident smt319
+sr_raw smt320
+ret
+end
+if sj_eq ident smt321
+sr_raw smt322
+ret
+end
+if sj_eq ident smt323
+sr_raw smt324
+ret
+end
+if sj_eq ident smt325
+sr_raw smt326
+ret
+end
+end

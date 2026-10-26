@@ -1,0 +1,367 @@
+note Whole-site orchestrator. Compose after runtime/json/chrome/content/copy/markdown/seo.
+note Metadata is copied once before any renderer can replace the JSON arena.
+const STCAP ulong 128
+const STFIELDS ulong 11
+global stpool uchar 262144
+global stoff ulong 1408
+global stlens ulong 1408
+global stused ulong 1
+global stcount ulong 1
+global steng ulong 1
+global stout uchar 4096
+global stoutn ulong 1
+global stdate uchar 64
+global stdaten ulong 1
+text stk0 "path"
+text stk1 "title"
+text stk2 "description"
+text stk3 "area"
+text stk4 "mode"
+text stk5 "source"
+text stk6 "kind"
+text stk7 "published"
+text stk8 "image"
+text stk9 "doi"
+text stk10 "english"
+text streg "om/site/pages.json"
+text sttrans "om/site/translations.json"
+text stpub "public"
+text stslash "/"
+text stindex "index.html"
+text sthtml "html"
+text startif "artifact"
+text strender "render"
+text stprof "profiles"
+text stempty ""
+text stroot "/"
+text stsi "SI"
+
+fn st_fail message view uchar * to void
+sr_flush
+n = write 2 message 0 len message
+exit 71
+end
+
+fn st_append dst edit uchar * src view uchar * pos ulong to ulong
+if gt len src sub len dst pos
+trap 3
+end
+for i ulong len src
+put dst add pos i get src i
+end
+ret add pos len src
+end
+
+fn st_store node ulong key view uchar * slot ulong to void
+buf = new uchar 4096 0
+field = sj_find node key
+if eq field 0
+trap 10
+end
+n = sj_string field buf
+p = get stused 0
+if gt n sub len stpool p
+trap 3
+end
+put stoff slot p
+put stlens slot n
+for i ulong n
+put stpool add p i get buf i
+end
+put stused 0 add p n
+end
+
+fn st_row node ulong to void
+row = get stcount 0
+if ge row STCAP
+trap 3
+end
+base = mul row STFIELDS
+st_store node stk0 base
+st_store node stk1 add base 1
+st_store node stk2 add base 2
+st_store node stk3 add base 3
+st_store node stk4 add base 4
+st_store node stk5 add base 5
+st_store node stk6 add base 6
+st_store node stk7 add base 7
+st_store node stk8 add base 8
+st_store node stk9 add base 9
+st_store node stk10 add base 10
+put stcount 0 add row 1
+end
+
+fn st_registry path view uchar * to void
+root = sj_load path
+if ne sj_kind root 2
+trap 10
+end
+if eq sj_len root 0
+trap 10
+end
+node = sj_first root
+while ne node 0 bound 128
+st_row node
+node = sj_next node
+end
+end
+
+fn st_field row ulong col ulong dst edit uchar * to ulong
+slot = add mul row STFIELDS col
+n = get stlens slot
+if gt n len dst
+trap 3
+end
+p = get stoff slot
+for i ulong n
+put dst i get stpool add p i
+end
+ret n
+end
+
+fn st_match row ulong col ulong value view uchar * to bool
+slot = add mul row STFIELDS col
+if ne get stlens slot len value
+ret false
+end
+p = get stoff slot
+for i ulong len value
+if ne get stpool add p i get value i
+ret false
+end
+end
+ret true
+end
+
+fn st_emit row ulong col ulong escaped bool to void
+buf = new uchar 4096 0
+n = st_field row col buf
+if escaped
+sr_esc part buf 0 n
+else
+sr_raw part buf 0 n
+end
+end
+
+fn st_path suffix view uchar * dst edit uchar * to ulong
+n = get stoutn 0
+if ge n len dst
+trap 3
+end
+for i ulong n
+put dst i get stout i
+end
+if eq len suffix 0
+ret n
+end
+if ne get suffix 0 47
+put dst n 47
+n = add n 1
+end
+ret st_append dst suffix n
+end
+
+fn st_open suffix view uchar * to void
+buf = new uchar 8192 0
+n = st_path suffix buf
+sr_open part buf 0 n
+end
+
+fn st_copy src view uchar * dest view uchar * to void
+buf = new uchar 8192 0
+n = st_path dest buf
+sr_copy src part buf 0 n
+end
+
+fn st_stamp to void
+buf = new uchar 64 0
+n = get stdaten 0
+for i ulong n
+put buf i get stdate i
+end
+sr_raw part buf 0 n
+end
+
+fn st_route_ok row ulong to void
+buf = new uchar 512 0
+n = st_field row 0 buf
+if eq n 0
+trap 10
+end
+if ne get buf 0 47
+trap 10
+end
+if ne get buf sub n 1 47
+trap 10
+end
+for i ulong n
+c = get buf i
+if eq c 47
+if gt i 0
+if eq get buf sub i 1 47
+trap 10
+end
+end
+else
+if not or or and ge c 97 le c 122 and ge c 48 le c 57 eq c 45
+if lt row get steng 0
+trap 10
+end
+end
+end
+end
+for j ulong row
+if st_match j 0 part buf 0 n
+trap 10
+end
+end
+end
+
+fn st_html_path row ulong dst edit uchar * to ulong
+n = st_field row 0 dst
+ret st_append dst stindex n
+end
+
+fn st_page_body row ulong route view uchar * to void
+src = new uchar 4096 0
+n = st_field row 5 src
+if st_match row 4 sthtml
+sh_body part src 0 n route
+ret
+end
+if st_match row 4 startif
+sr_file part src 0 n
+ret
+end
+if st_match row 4 stprof
+ss_profiles
+ret
+end
+if not st_match row 4 strender
+trap 10
+end
+if sr_equal route stroot
+door_home
+end
+if sm_page route
+ret
+end
+if sp_page route
+ret
+end
+if sd_page route
+ret
+end
+text missing "site: registry has no renderer\n"
+st_fail missing
+end
+
+fn st_page row ulong to void
+route = new uchar 512 0
+titlebuf = new uchar 4096 0
+descbuf = new uchar 4096 0
+areabuf = new uchar 32 0
+filebuf = new uchar 1024 0
+rn = st_field row 0 route
+tn = st_field row 1 titlebuf
+dn = st_field row 2 descbuf
+an = st_field row 3 areabuf
+fnn = st_html_path row filebuf
+st_open part filebuf 0 fnn
+sc_begin part titlebuf 0 tn part descbuf 0 dn
+sc_route part route 0 rn part areabuf 0 an
+st_page_body row part route 0 rn
+sc_end
+sr_close
+end
+
+fn st_export to void
+text a "facts.json"
+text b "crates/site-builder/data/status.json"
+text c "status.json"
+text d "crates/site-builder/data/machines.json"
+text e "machines.json"
+text f "crates/site-builder/data/omega.json"
+text g "omega.json"
+text h "crates/site-builder/data/cudaplusplus.json"
+text j "cudaplusplus.json"
+text k "crates/site-builder/data/research_status.json"
+text l "research-status.json"
+text m "AGENTS.md"
+text p "data/pages.json"
+st_copy a a
+st_copy b c
+st_copy d e
+st_copy f g
+st_copy h j
+st_copy k l
+st_copy m m
+st_copy streg p
+end
+
+fn st_assets to void
+text css "assets/site.css"
+text js "js/site.js"
+st_open css
+css_emit
+sr_close
+st_open js
+client_emit
+sr_close
+end
+
+fn st_args to void
+src = new uchar 4096 0
+outbuf = new uchar 4096 0
+datebuf = new uchar 64 0
+if ne argcnt 4
+text usage "usage: site SOURCE_ROOT ABSOLUTE_OUTPUT SOURCE_COMMIT_RFC3339\n"
+st_fail usage
+end
+sn = argread 1 src 0 len src
+on = argread 2 outbuf 0 len outbuf
+dn = argread 3 datebuf 0 len datebuf
+if or or le sn 0 le on 1 le dn 0
+trap 10
+end
+if ne get outbuf 0 47
+text absolute "site: output must be an absolute directory\n"
+st_fail absolute
+end
+n = ulong on
+if eq get outbuf sub n 1 47
+n = sub n 1
+end
+for i ulong n
+put stout i get outbuf i
+end
+put stoutn 0 n
+for j ulong ulong dn
+put stdate j get datebuf j
+end
+put stdaten 0 ulong dn
+r = chdir src 0 ulong sn
+if ne r 0
+text badroot "site: cannot open explicit source root\n"
+st_fail badroot
+end
+end
+
+fn main to int
+st_args
+st_registry streg
+put steng 0 get stcount 0
+st_registry sttrans
+for i ulong get stcount 0
+st_route_ok i
+end
+sp_ledger_check
+sx_tree stpub 0
+st_export
+st_assets
+for j ulong get stcount 0
+st_page j
+end
+ss_surfaces
+ret 0
+end

@@ -1,0 +1,332 @@
+note Shared document chrome. Compose after runtime/json under one leading om2 directive.
+note sc_begin stores bounded metadata; sc_route opens main; sc_end closes the document.
+note Artifact integration supplies consent.html from PopupOnce and launcher.html from AllenPresence.
+global sctitle uchar 2048
+global scdesc uchar 8192
+global sclens ulong 2
+global scstate bool 3
+global scarea ulong 1
+text scroot "/"
+text scnow "/now/"
+text scznow "/zh-CN/now/"
+text scallen "/allen/"
+text scsi "SI"
+text scomega "Omega"
+text scmach "Machine"
+text scdisco "Discoveries"
+text sclearn "Learn"
+text scall "Allen"
+text scuomega "/omega/"
+text scumach "/machine/"
+text scudisc "/discoveries/"
+text sculearn "/learn/"
+text sczh "/zh-CN/"
+text scdoc "<!doctype html><html lang=\""
+text scen "en"
+text sclang "zh-CN"
+text schead "\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><meta name=\"color-scheme\" content=\"dark\"><meta name=\"theme-color\" content=\"#0b1020\"><title>"
+text sctend "</title><meta name=\"description\" content=\""
+text scogt "\"><meta property=\"og:title\" content=\""
+text scogd "\"><meta property=\"og:description\" content=\""
+text sctwt "\"><meta name=\"twitter:title\" content=\""
+text sctwd "\"><meta name=\"twitter:description\" content=\""
+text sccan "\"><link rel=\"canonical\" href=\"https://www.aienos.com"
+text scogurl "\"><meta property=\"og:url\" content=\"https://www.aienos.com"
+text scogimg "\"><meta property=\"og:type\" content=\"website\"><meta property=\"og:site_name\" content=\"Sovereign Intelligence\"><meta name=\"twitter:card\" content=\"summary_large_image\"><meta name=\"twitter:site\" content=\"@mdrakestapleton\"><meta property=\"og:image\" content=\"https://www.aienos.com"
+text sctwimg "\"><meta name=\"twitter:image\" content=\"https://www.aienos.com"
+text scimg "/og.png"
+text scimac "/og-machine.png"
+text scidisc "/og-research.png"
+text scilearn "/og-now.png"
+text scalt "\"><link rel=\"alternate\" type=\"text/markdown\" href=\""
+text scindex "/index.md"
+text scmd "index.md"
+text scmdend "\"><link rel=\"describedby\" href=\"/llms.txt\"><meta name=\"robots\" content=\"index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1\"><link rel=\"alternate\" type=\"application/atom+xml\" title=\"Writing\" href=\"/feed.xml\"><link rel=\"alternate\" type=\"application/atom+xml\" title=\"Live ledger\" href=\"/now/feed.xml\"><link rel=\"stylesheet\" href=\"/assets/site.css\">"
+text scjson "<script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"@graph\":[{\"@type\":\"WebSite\",\"@id\":\"https://www.aienos.com/#website\",\"url\":\"https://www.aienos.com/\",\"name\":\"Sovereign Intelligence\",\"creator\":{\"@id\":\"https://www.aienos.com/#author\"}},{\"@type\":\"Person\",\"@id\":\"https://www.aienos.com/#author\",\"name\":\"Drake Stapleton\",\"sameAs\":[\"https://x.com/mdrakestapleton\",\"https://github.com/drakestapleton\"]}]}</script>"
+text scassets "<link rel=\"stylesheet\" href=\"/assets/allen-intro.css\"><script defer src=\"/js/allen-audio.js\"></script><script defer src=\"/js/allen-scene.js\"></script><script defer src=\"/js/allen-intro.js\"></script><script defer src=\"/js/allen-presence.js\"></script><script defer src=\"/js/site.js\"></script>"
+text scalcss "<link rel=\"stylesheet\" href=\"/assets/allen.css\">"
+text scbody "</head><body class=\"site\" data-site-area=\""
+text scendat "\">"
+text scskip "<a class=\"skip-link\" href=\"#main-content\">Skip to content</a>"
+text scnav0 "<header class=\"aien-header\"><div class=\"site-header-inner\"><a class=\"site-brand\" href=\"/\" aria-label=\"Sovereign Intelligence home\"><span class=\"brand-mark\" aria-hidden=\"true\">SI</span><span>Sovereign Intelligence<small>built on AienOS</small></span></a><div class=\"aien-nav-reach\"><a class=\"x-link\" href=\"https://x.com/mdrakestapleton\" rel=\"noopener noreferrer\"><span aria-hidden=\"true\">X</span> Follow me on X</a><a href=\"/contact/\">Contact</a></div><button class=\"nav-toggle\" type=\"button\" aria-expanded=\"false\" aria-controls=\"site-navigation\" hidden>Explore destinations</button><nav id=\"site-navigation\" aria-label=\"Master destinations\"><ul class=\"master-nav\">"
+text scnava "<li><a href=\""
+text scnavb "\""
+text scactive " aria-current=\"page\""
+text scnavc "><span class=\"nav-glyph\" aria-hidden=\"true\">"
+text scnavd "</span><span>"
+text scnave "</span></a></li>"
+text scgsi "S"
+text scgom "&#937;"
+text scgmac "&#9633;"
+text scgdisc "&#10022;"
+text scglearn "+"
+text scgall "A"
+text scnavend "</ul></nav></div></header>"
+text sccrumb "<nav class=\"breadcrumbs container\" aria-label=\"Breadcrumb\"><ol><li><a href=\"/\">SI</a></li><li><a href=\""
+text sccruma "\">"
+text sccrumbb "</a></li><li aria-current=\"page\">"
+text sccrumbe "</li></ol></nav>"
+text scmain "<main id=\"main-content\" class=\"site-main container\" tabindex=\"-1\">"
+text scclose "</main>"
+text scfoot0 "<footer class=\"aien-footer\"><div class=\"container\"><div class=\"footer-intro\"><a class=\"site-brand\" href=\"/\">Sovereign Intelligence</a><p>Built on AienOS. Made by Drake Stapleton.</p><p class=\"aien-reach-foot\"><a href=\"https://x.com/mdrakestapleton\" rel=\"noopener noreferrer\">X @mdrakestapleton</a> <a href=\"mailto:drake@aienos.com\">drake@aienos.com</a> <a href=\"/allen/\">Speak to Allen</a> <a href=\"https://github.com/aien-dev\">GitHub</a></p></div><nav class=\"footer-links\" aria-label=\"Explore more\"><a href=\"/\">SI</a><a href=\"/omega/\">Omega</a><a href=\"/machine/\">Machine</a><a href=\"/discoveries/\">Discoveries</a><a href=\"/learn/\">Learn</a><a href=\"/allen/\">Allen</a><a href=\"/turing/\">The Turing</a><a href=\"/experiments/\">Experiments</a><a href=\"/research/\">Research</a><a href=\"/evidence/\">Evidence</a><a href=\"/research/status/\">Research status</a><a href=\"/philosophy/\">Philosophy</a><a href=\"/post-llm-case/\">The Post-LLM Case</a><a href=\"/start/\">Start here</a><a href=\"/progress/\">Progress</a><a href=\"/blog/\">Blog</a><a href=\"/glossary/\">Glossary</a><a href=\"/contact/\">Contact</a><a href=\"/agents/\">Agent instructions</a><a href=\"https://interplane.io/\">Interplane</a><a href=\"https://www.drakestapleton.com\">Drake Stapleton</a></nav><p class=\"aien-footer-machines\">For machines: <a href=\"/data/index.json\">data index</a> · <a href=\"/llms.txt\">llms.txt</a> · <a href=\"/llms-full.txt\">full text</a> · <a href=\"/sitemap.md\">sitemap.md</a> · <a href=\"/AGENTS.md\">AGENTS.md</a> · <a href=\"/feed.xml\">feed</a> · <a href=\"/now/feed.xml\">ledger feed</a></p><p class=\"footer-quiet\"><a href=\"/#replay-intro\" data-site-replay>Replay the introduction</a> <a href=\"/privacy/\">Privacy &amp; choices</a> <a href=\"/licensing/\">Apache-2.0 WITH LLVM-exception</a></p><p class=\"muted\">AIEN © 2026. No outside fonts. X tracking and Allen memory each need their own choice. Reading does not require either.</p></div></footer>"
+text sccons "om/site/consent.html"
+text sclaunch "om/site/launcher.html"
+text scdone "</body></html>\n"
+text scnext0 "<aside class=\"next-stops container\" aria-labelledby=\"next-stop-title\"><p class=\"eyebrow\">Keep exploring</p><h2 id=\"next-stop-title\">A next stop, not a locked door</h2><div class=\"cluster\">"
+text scnext1 "<a class=\"button button-secondary\" href=\"/omega/\">Read the language</a><a class=\"button button-secondary\" href=\"/learn/\">Build something with AI</a>"
+text scnext2 "<a class=\"button button-secondary\" href=\"/machine/\">Follow the program into the machine</a><a class=\"button button-secondary\" href=\"/evidence/\">Inspect the evidence</a>"
+text scnext3 "<a class=\"button button-secondary\" href=\"/discoveries/\">Explore the discoveries</a><a class=\"button button-secondary\" href=\"/omega/\">Read the language</a>"
+text scnext4 "<a class=\"button button-secondary\" href=\"/research/status/\">Check the research record</a><a class=\"button button-secondary\" href=\"/learn/\">Find a starting point</a>"
+text scnext5 "<a class=\"button button-secondary\" href=\"/hive/\">Watch the work in the Hive</a><a class=\"button button-secondary\" href=\"/contact/\">Ask me a question</a>"
+text scnexte "</div></aside>"
+
+fn sc_begin title view uchar * desc view uchar * to void
+if gt len title len sctitle
+trap 3
+end
+if gt len desc len scdesc
+trap 3
+end
+put sclens 0 len title
+put sclens 1 len desc
+for i ulong len title
+put sctitle i get title i
+end
+for i ulong len desc
+put scdesc i get desc i
+end
+end
+
+fn sc_title to void
+buf = new uchar 2048 0
+for i ulong get sclens 0
+put buf i get sctitle i
+end
+sr_esc part buf 0 get sclens 0
+end
+
+fn sc_desc to void
+buf = new uchar 8192 0
+for i ulong get sclens 1
+put buf i get scdesc i
+end
+sr_esc part buf 0 get sclens 1
+end
+
+fn sc_iszh route view uchar * to bool
+if lt len route len sczh
+ret false
+end
+for i ulong len sczh
+if ne get route i get sczh i
+ret false
+end
+end
+ret true
+end
+
+fn sc_img to void
+if eq get scarea 0 2
+sr_raw scimac
+else
+if eq get scarea 0 3
+sr_raw scimac
+else
+if eq get scarea 0 4
+sr_raw scidisc
+else
+if eq get scarea 0 5
+sr_raw scilearn
+else
+sr_raw scimg
+end
+end
+end
+end
+end
+
+fn sc_meta route view uchar * to void
+sr_raw scdoc
+if sc_iszh route
+sr_raw sclang
+else
+sr_raw scen
+end
+sr_raw schead
+sc_title
+sr_raw sctend
+sc_desc
+sr_raw scogt
+sc_title
+sr_raw scogd
+sc_desc
+sr_raw sctwt
+sc_title
+sr_raw sctwd
+sc_desc
+sr_raw sccan
+sr_esc route
+sr_raw scogurl
+sr_esc route
+sr_raw scogimg
+sc_img
+sr_raw sctwimg
+sc_img
+sr_raw scalt
+if sr_equal route scroot
+sr_raw scindex
+else
+sr_esc route
+sr_raw scmd
+end
+sr_raw scmdend
+end
+
+fn sc_navlink url view uchar * label view uchar * glyph view uchar * to void
+sr_raw scnava
+sr_esc url
+sr_raw scnavb
+if sr_equal label scsi
+if eq get scarea 0 1
+sr_raw scactive
+end
+end
+if sr_equal label scomega
+if eq get scarea 0 2
+sr_raw scactive
+end
+end
+if sr_equal label scmach
+if eq get scarea 0 3
+sr_raw scactive
+end
+end
+if sr_equal label scdisco
+if eq get scarea 0 4
+sr_raw scactive
+end
+end
+if sr_equal label sclearn
+if eq get scarea 0 5
+sr_raw scactive
+end
+end
+sr_raw scnavc
+sr_raw glyph
+sr_raw scnavd
+sr_esc label
+sr_raw scnave
+end
+
+fn sc_nav to void
+sr_raw scnav0
+sc_navlink scroot scsi scgsi
+sc_navlink scuomega scomega scgom
+sc_navlink scumach scmach scgmac
+sc_navlink scudisc scdisco scgdisc
+sc_navlink sculearn sclearn scglearn
+sc_navlink scallen scall scgall
+sr_raw scnavend
+end
+
+fn sc_areaurl to void
+if eq get scarea 0 2
+sr_raw scuomega
+else
+if eq get scarea 0 3
+sr_raw scumach
+else
+if eq get scarea 0 4
+sr_raw scudisc
+else
+if eq get scarea 0 5
+sr_raw sculearn
+else
+sr_raw scroot
+end
+end
+end
+end
+end
+
+fn sc_route route view uchar * area view uchar * to void
+put scstate 0 or sr_equal route scnow sr_equal route scznow
+put scstate 1 sr_equal route scallen
+put scstate 2 sr_equal route scroot
+put scarea 0 1
+if sr_equal area scomega
+put scarea 0 2
+end
+if sr_equal area scmach
+put scarea 0 3
+end
+if sr_equal area scdisco
+put scarea 0 4
+end
+if sr_equal area sclearn
+put scarea 0 5
+end
+sc_meta route
+if not get scstate 0
+sr_raw scjson
+if not get scstate 1
+sr_raw scassets
+end
+end
+if get scstate 1
+sr_raw scalcss
+end
+sr_raw scbody
+sr_esc area
+sr_raw scendat
+sr_raw scskip
+if not get scstate 1
+sc_nav
+if not get scstate 2
+sr_raw sccrumb
+sc_areaurl
+sr_raw sccruma
+sr_esc area
+sr_raw sccrumbb
+sc_title
+sr_raw sccrumbe
+end
+end
+sr_raw scmain
+end
+
+fn sc_next to void
+sr_raw scnext0
+if eq get scarea 0 1
+sr_raw scnext1
+end
+if eq get scarea 0 2
+sr_raw scnext2
+end
+if eq get scarea 0 3
+sr_raw scnext3
+end
+if eq get scarea 0 4
+sr_raw scnext4
+end
+if eq get scarea 0 5
+sr_raw scnext5
+end
+sr_raw scnexte
+end
+
+fn sc_end to void
+sr_raw scclose
+if not get scstate 1
+sc_next
+if not get scstate 0
+door_trail
+end
+sr_raw scfoot0
+if not get scstate 0
+sr_file sccons
+sr_file sclaunch
+end
+end
+sr_raw scdone
+end

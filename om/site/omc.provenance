@@ -1,0 +1,7 @@
+repository https://github.com/aien-dev/omega-mv
+revision 19f014f2178ca9cd3473728fe00a475a2398c409
+path seed/out/omc
+sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d
+profile OM-2
+host Linux AArch64
+role seeded Omega compiler; extracted unchanged from the committed source revision, not rebuilt by this site migration

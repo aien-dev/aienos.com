@@ -1,0 +1,259 @@
+{
+  "source_commit": "3d36bd7829d18430667d17158a3eee2b6bf9309f",
+  "mission": "AienOS is an owned experimental machine for turning search into verified understanding. AIEN proposes structure. Omega makes that structure explicit and checkable. The machine tests it against reality under authority. The Turing measures what was actually learned. Cortex keeps the evidence. Then the next search begins from what survived.",
+  "slogan": "Weights suggest. Programs explain. Verification decides. Evidence teaches. The Turing keeps score.",
+  "formula": "T(M; B, D, P) = [L(B) + L(D | B)] - [L(M) + L(D | M)]",
+  "thesis": [
+    "AienOS is an attempt to build persistent machine intelligence as a scientific process rather than a model invocation. Neural machinery may propose, but proposals have no authority.",
+    "Omega turns them into explicit programs and theories; verification determines whether they are internally valid; the owned machine tests them against physical reality; the Turing measures whether they explain unseen observations after paying for their own complexity; Cortex preserves the evidence; and that verified experience changes the next search.",
+    "Atlas carries the lineage across hardware. The goal is not a machine that sounds as though it understands, but a machine whose growth in explanatory power can be measured, falsified, reproduced, and owned."
+  ],
+  "machine_sections": [
+    {
+      "id": "loop",
+      "title": "The closed loop",
+      "paragraphs": [
+        "The meaningful artifact of this project is a closed epistemic loop. Each pass runs through eleven steps, and the last step feeds the first.",
+        "In the design, each step has an owner. AIEN suggests. Omega formalizes, synthesizes and verifies. FORGE realizes the verified program, and the physical machine executes it.",
+        "The Turing then measures explanatory gain, Cortex preserves the evidence, and AIEN and Omega use that evidence to improve the next search. ATLAS carries the lineage across hardware, and AienOS provides the owned, persistent substrate underneath.",
+        "AEGIS and ARGUS sit around the loop. AEGIS guards the boundary of proof and authority, so nothing executes without permission. ARGUS observes what actually happens. Neither one is a step that work passes through in sequence.",
+        "This describes the design. The list under What exists today says which parts run now. ",
+        "See the loop diagram on the homepage."
+      ],
+      "links": []
+    },
+    {
+      "id": "turing",
+      "title": "The Turing keeps the accounts",
+      "paragraphs": [
+        "The Turing is the epistemic accounting layer of AIEN. It measures net held-out explanatory compression: one operational component of machine understanding. It is not a general intelligence score.",
+        "For a baseline B, a candidate explanation M, sealed observations D and a scoring profile P, with L meaning description length:",
+        "A candidate earns positive Turings only if it shrinks the description of unseen data by more than its own complexity costs.",
+        "Charged: ",
+        "memorization, unnecessary complexity and bad predictions.",
+        "Prohibited: ",
+        "post-hoc selection. Test contamination invalidates the measurement.",
+        "Rewarded: ",
+        "compact structure that generalizes.",
+        "The question it answers: what did the machine discover that continued to work on reality it had not seen? ",
+        "Explore the Turing."
+      ],
+      "links": [
+        {
+          "label": "Explore the Turing.",
+          "link": "/turing/"
+        }
+      ]
+    },
+    {
+      "id": "quantities",
+      "title": "Three quantities",
+      "paragraphs": [
+        "Turing gain (T)",
+        "Did the machine learn explanatory structure? Gain is net held-out explanatory compression after paying for the explanation.",
+        "The re-check used the same tool, so it is a self re-derivation and still awaits an independent one. This result certifies the instrument; it does not show that AIEN discovered anything.",
+        "Turing yield (T/J) ",
+        "What physical resources did that gain cost? Yield will divide Turings by joules, and may separate evaluation yield from discovery yield, the more important of the two.",
+        "No yield figure exists, and none will be claimed until energy attribution and the Turing receipt are joined under the qualifying protocol.",
+        "Search and verification gap",
+        "How hard was the explanation to discover compared with verifying it once found? The idea to test: discovered explanatory structure reduces the cost of future search, through prediction, compression, abstraction, reusable procedure, reduced search and faster discovery.",
+        "This is a research direction. No result on it exists yet."
+      ],
+      "links": []
+    },
+    {
+      "id": "cortex",
+      "title": "Evidence that teaches: Cortex",
+      "paragraphs": [
+        "Cortex exists to preserve the evidence needed to make future search better. That means evidence continuity: verified explanations, failed hypotheses, counterexamples, validity regions, measurement receipts, experimental conditions, search traces, physical costs, uncertainty and provenance.",
+        "Today Cortex is an append-only store that records what the World did. Search history, counterexamples and costs are what it is meant to hold next; its current standing is listed under ",
+        "What exists today",
+        ".",
+        "With that evidence in place, AIEN will be able to ask:",
+        "What did I already try?",
+        "Why did it fail?",
+        "Under what regime did it work?",
+        "What evidence supports this abstraction?",
+        "What representation changes reduced search before?"
+      ],
+      "links": [
+        {
+          "label": "What exists today",
+          "link": "#today"
+        }
+      ]
+    },
+    {
+      "id": "research-ladder",
+      "title": "The discovery ladder",
+      "paragraphs": [
+        "Each rung is a stronger claim about what the machine has shown, and each rests on the rung below. The ladder is drawn from the research status record, the same record behind the full status page, so this page never states a result by hand."
+      ],
+      "links": []
+    },
+    {
+      "id": "self-improvement",
+      "title": "Self-improvement, measured",
+      "paragraphs": [
+        "The interesting version of recursive self-improvement is narrower than a machine that modifies itself. Experience leads to a measured explanation, then a reusable abstraction, reduced search, better candidate selection, a verified improvement and the next generation.",
+        "A self-modification will count only if it survives verification and measurement.",
+        "The keystone question: can a persistent machine accumulate verified explanatory structure in a way that measurably improves its ability to discover further structure?",
+        "Does T increase?",
+        "Does T/J improve?",
+        "Does search cost fall?",
+        "Does verification remain trustworthy?",
+        "Do representation changes transfer?",
+        "Do interventions become more informative?",
+        "Does learned structure survive new domains?",
+        "Does the system preserve its failures?",
+        "Can independent scorers reproduce the evidence?"
+      ],
+      "links": []
+    },
+    {
+      "id": "connections",
+      "title": "Connections to other research",
+      "paragraphs": [
+        "Each of these is a connection or an opportunity. Where the research status record has a matching entry, its badge sits beside the name.",
+        "Petri nets and reaction systems",
+        "The World lifecycle work already has a state model, reachable-state exploration, invariants, shortest counterexample traces, mutants and differential checking against the real World code. Formal concurrency theory may offer reachability, liveness and deadlock analysis, partial-order reduction and invariant proofs. The World keeps its own name; it is not being relabelled a Petri net.",
+        "Counterexample-guided synthesis (CEGIS) ",
+        "Omega's search already runs candidate, transform, verify, accept or reject, and records the trace and cost. The opportunity: turn a failed candidate into a semantic counterexample, generalize it into a constraint, eliminate a whole family of candidates, and measure how much search that saves.",
+        "Bayesian adaptive search ",
+        "A Bayesian cost model for choosing between verified realizations is being tried against recorded signals, and its failed attempts stay on the record. A future direction is safe contextual exploration. Exploration must stay explicitly authorized, and production authority is never inferred from prediction confidence.",
+        "Active causal discovery ",
+        "EXP-003 is designed as the move from passive prediction to active inquiry: hold competing explanations, predict their consequences, choose the intervention that best separates them, run one authorized experiment and update belief. ",
+        "E-graphs and equality saturation ",
+        "A research reference for treating rewritten expressions, basis changes, coordinate systems and equivalent implementations as one discovery. Omega has no e-graph code."
+      ],
+      "links": []
+    },
+    {
+      "id": "today",
+      "title": "What exists today",
+      "paragraphs": [
+        "This list is drawn from the research status record, built from a check of the code on the main branches of Omega and AienOS. Built work and open research questions are kept apart, and each entry opens to show its limits and evidence.",
+        "The same list on the research status page, beside every experiment."
+      ],
+      "links": [
+        {
+          "label": "The same list on the research status page, beside every experiment.",
+          "link": "/research/status/#implementation"
+        }
+      ]
+    },
+    {
+      "id": "nature",
+      "title": "Nature invented the loop",
+      "paragraphs": [
+        "Evolution runs variation, selection and retention. The immune system runs variation, binding and amplification. Science runs hypothesis, experiment and theory. AIEN runs proposal, verification, evidence and memory.",
+        "These are analogies and not equivalences. What they share is a pattern: expensive generation paired with decisive filtering, where retained structure changes what gets generated next.",
+        "Nature invented the loop. This work proposes a unit for one measurable thing the loop can produce: explanatory structure that survives unseen reality. The aim is to make the loop explicit, persistent, owned, auditable, metered, reproducible and bounded by authority.",
+        "Next: Scientific Discovery, the examinations ahead."
+      ],
+      "links": [
+        {
+          "label": "Next: Scientific Discovery, the examinations ahead.",
+          "link": "/discovery/"
+        }
+      ]
+    }
+  ],
+  "roles": [
+    {
+      "name": "ATLAS",
+      "verb": "awakens",
+      "text": "The seed that wakes AienOS on a machine. Atlas carries the lineage to new hardware and brings the sovereign stack to life on it.",
+      "link": "https://github.com/aien-dev/atlas"
+    },
+    {
+      "name": "AienOS",
+      "verb": "persists",
+      "text": "The sovereign substrate, and more than an operating system: it owns the hardware, keeps the agent alive and continuous, and holds memory, keys, and receipts on the owner's side of the line.",
+      "link": "https://github.com/aien-dev/AienOS-nv"
+    },
+    {
+      "name": "OMEGA",
+      "verb": "defines · synthesizes · verifies",
+      "text": "AIEN's language for all computing, GPU to CPU. Its own tools check every program and compile it to the machine code of the chip that runs it; on the GPU it is the replacement for CUDA. Nothing runs on a claim; everything runs on a check.",
+      "link": "https://github.com/aien-dev/omega-mv"
+    },
+    {
+      "name": "AIEN",
+      "verb": "learns",
+      "text": "The persistent intelligence itself. It learns from verified experience: what survived Omega's checks and contact with reality becomes knowledge. Weights suggest, programs explain, evidence teaches.",
+      "link": "https://github.com/aien-dev/aien-sovereign-core-mv"
+    },
+    {
+      "name": "AEGIS",
+      "verb": "verifies",
+      "text": "Checks generated code. Changes nothing, decides no policy, belongs to no generation system.",
+      "link": "https://github.com/aien-dev/omega-mv/blob/main/spec/r8-aegis-resident.md"
+    },
+    {
+      "name": "FORGE",
+      "verb": "realizes",
+      "text": "Builds what Omega verified into running form.",
+      "link": "https://github.com/aien-dev/physics-mv"
+    },
+    {
+      "name": "ARGUS",
+      "verb": "observes",
+      "text": "The watcher. Capability enforcement inside the native kernel, on the record.",
+      "link": "https://github.com/aien-dev/aienux/tree/main/native/argus"
+    },
+    {
+      "name": "CORTEX",
+      "verb": "remembers",
+      "text": "Canonical memory: the machine's long-term record of verified experience.",
+      "link": "https://github.com/aien-dev/omega-mv/blob/main/src/runtime/rx_cortex.h"
+    }
+  ],
+  "loop": [
+    {
+      "name": "ATLAS",
+      "role": "awakens / lineage"
+    },
+    {
+      "name": "AienOS",
+      "role": "persistent owned substrate"
+    },
+    {
+      "name": "AIEN",
+      "role": "proposes / guides search"
+    },
+    {
+      "name": "OMEGA",
+      "role": "formalizes / searches / verifies meaning"
+    },
+    {
+      "name": "FORGE",
+      "role": "realizes"
+    },
+    {
+      "name": "REALITY",
+      "role": "executes / responds"
+    },
+    {
+      "name": "TURING",
+      "role": "scores explanatory gain"
+    },
+    {
+      "name": "CORTEX",
+      "role": "preserves evidence"
+    }
+  ],
+  "loop_steps": [
+    "Observe",
+    "Propose",
+    "Formalize",
+    "Verify",
+    "Authorize",
+    "Execute",
+    "Measure",
+    "Score",
+    "Preserve evidence",
+    "Learn",
+    "Search again"
+  ]
+}

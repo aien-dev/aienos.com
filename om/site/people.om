@@ -1,0 +1,1137 @@
+note People pages: source migration from baseline 3d36bd7; current consent from allen-presence-site.
+note Static editorial content is authored as Omega output; data is read afresh at each build.
+note No directive here: the composed site unit starts with om2.
+
+text pp0000 "<article class=\"learn-page prose\">"
+text pp0001 "<header class=\"learn-intro page-intro\">"
+text pp0002 "<p class=\"learn-eyebrow\">Learn with Drake</p>"
+text pp0003 "<h1>You belong here. Build with AI.</h1>"
+text pp0004 "<p class=\"learn-lede\">You are welcome here. You do not need to arrive knowing all the words. If you have been dismissed for learning with AI, you can still bring your questions and make something worth checking.</p>"
+text pp0005 "<p class=\"learn-invitation\">Start with a small change you can describe and observe. Let an agent help with the code. Keep hold of the purpose, the boundaries, and the decision to publish.</p>"
+text pp0006 "<p>I’m Drake. I want to share what I have learned building this stack, so you can understand it, change it, and build something of your own. Bring your questions. You do not have to prove you belong before you start.</p>"
+text pp0007 "<nav class=\"learn-jump\" aria-label=\"Learning guide\">"
+text pp0008 "<a href=\"/why/\">Why I build</a>"
+text pp0009 "<a href=\"/contact/\">Find me</a>"
+text pp0010 "<a href=\"/blog/\">Working notes</a>"
+text pp0011 "<a href=\"/start/\">Meet the project</a>"
+text pp0012 "<a href=\"#workflow\">The working loop</a>"
+text pp0013 "<a href=\"#brief\">A brief to copy</a>"
+text pp0014 "<a href=\"/hive/\">Watch the Hive</a>"
+text pp0015 "</nav>"
+text pp0016 "<div class=\"learn-orbit\" aria-hidden=\"true\">"
+text pp0017 "<span class=\"learn-orbit-ring\">"
+text pp0018 "</span>"
+text pp0019 "<span class=\"learn-orbit-dot\">"
+text pp0020 "</div>"
+text pp0021 "</header>"
+text pp0022 "<section class=\"learn-section\" id=\"workflow\" aria-labelledby=\"workflow-title\">"
+text pp0023 "<div class=\"learn-margin\">"
+text pp0024 "<p class=\"learn-eyebrow\">01 / Make the work legible</p>"
+text pp0025 "<h2 id=\"workflow-title\">A small, repeatable loop.</h2>"
+text pp0026 "<p>You do not need a fleet of agents. One agent and one observable change are enough to begin.</p>"
+text pp0027 "<ol class=\"learn-steps\">"
+text pp0028 "<li>"
+text pp0029 "<h3>Describe the finish, not just the feature.</h3>"
+text pp0030 "<p>Say who needs it, what they do, and what should happen. Replace 'make it accessible' with a behavior you can try: 'Tab reveals the skip link; Enter moves focus past navigation.' Write acceptance checks before the implementation.</p>"
+text pp0031 "</li>"
+text pp0032 "<h3>Give the agent the relevant ground.</h3>"
+text pp0033 "<p>Point to the repository instructions, the affected feature, existing patterns, and the commands used to build and test. State non-goals and actions that need approval. Ask it to read before guessing. My <a href=\"/agents/\">repository guide</a> and <a href=\"/agents/RULES.md\">public agent rules</a> show what those constraints look like here. Use your own project's rules, not mine by default.</p>"
+text pp0034 "<h3>Draw the boundary before dividing the work.</h3>"
+text pp0035 "<p>Ask for a short plan with named files and an agreed interface: the data, names, or behavior two pieces share. Delegate only independent slices. Give every file one editing owner and give shared interfaces one integration owner. Two agents editing the same layout are not two independent jobs.</p>"
+text pp0036 "<h3>Read the change and its evidence.</h3>"
+text pp0037 "<p>A diff is the before-and-after of the files. Ask the agent to walk you through it. Check that each changed file serves the goal, that unrelated edits remain untouched, and that no secret or private content entered the patch. Ask a separate reviewer to examine the change without editing it.</p>"
+text pp0038 "<h3>Run the behavior you asked for.</h3>"
+text pp0039 "<p>Run the project's relevant checks, then try the acceptance steps yourself. A successful build says the code can be built. A passing test says that test passed under those conditions. Neither proves every user journey, security property, or future input is correct.</p>"
+text pp0040 "<h3>Use a failure to make the next instruction precise.</h3>"
+text pp0041 "<p>Record what you did, what you expected, and what happened. Ask for the cause, not a way to hide the symptom. Reduce the case if needed, change one thing, and repeat the check that failed. Mistakes are part of learning; weakening the check does not fix the behavior.</p>"
+text pp0042 "<h3>Publish the outcome, with its limits.</h3>"
+text pp0043 "<p>Keep the commit, exact commands, results, and manual steps together. Say what failed or was not run. Review the diff before opening a pull request, and review again before deployment. My <a href=\"/evidence/\">evidence guide</a> explains how to read a claim alongside its receipt.</p>"
+text pp0044 "</ol>"
+text pp0045 "</section>"
+text pp0046 "<section class=\"learn-section learn-brief-section\" id=\"brief\" aria-labelledby=\"brief-title\">"
+text pp0047 "<p class=\"learn-eyebrow\">02 / Give it a bounded job</p>"
+text pp0048 "<h2 id=\"brief-title\">Your first brief.</h2>"
+text pp0049 "<p>This is a small website feature, not a universal prompt. Replace the goal and checks with your own. Select the text to copy it into your coding agent.</p>"
+text pp0050 "<p>New to a command the agent suggests? Ask what it reads, changes, or sends before you run it. Keep credentials out of the conversation.</p>"
+text pp0051 "<div class=\"learn-brief\">"
+text pp0052 "<p class=\"learn-caption\" id=\"brief-caption\">Starter brief / keyboard skip link</p>"
+text pp0053 "<pre tabindex=\"0\" aria-labelledby=\"brief-caption\">"
+text pp0054 "<code>Goal\nAdd a &#x27;Skip to content&#x27; link to this small website so a keyboard\nuser can move past the navigation directly to the main content.\n\nContext\nRead AGENTS.md and the existing page layout and focus styles first.\nTell me which files own navigation, main content, and shared styles.\nUse the repository&#x27;s existing language, build, and test conventions.\n\nNon-goals\nNo navigation redesign, new dependency, analytics, or new JavaScript.\nDo not change unrelated pages or rewrite unrelated styles.\n\nPlan and ownership\nPropose the smallest change and name its files before editing.\nKeep one writer per file. If you delegate a separate review, that\nreviewer reads only. Agree on the main-content target ID first.\n\nAcceptance\nOn a fresh page load, Tab reveals a readable skip link.\nEnter moves keyboard focus to main content, past navigation.\nThe next Tab reaches the next interactive element in that content.\nThe link works on every layout that shares this navigation.\nAt narrow width and high zoom, the focused link remains visible.\nExisting navigation links still work.\n\nSafety\nWork locally on a branch. Never expose secrets or private content.\nDo not deploy, delete data, or change permissions without asking me.\nIf requirements conflict or a command is destructive, stop and explain.\n\nEvidence and handoff\nRun the relevant repository checks and exercise the keyboard behavior\nin a browser. Report the commit, exact commands, results, and which\npages and browser you checked. If a check cannot run, say NOT RUN and\nwhy. Show the diff, remaining limitations, and any unrelated changes.\nDo not call it complete just because it compiles.</code>"
+text pp0055 "</pre>"
+text pp0056 "<section class=\"learn-section\" id=\"example\" aria-labelledby=\"example-title\">"
+text pp0057 "<p class=\"learn-eyebrow\">03 / Learn from a correction</p>"
+text pp0058 "<h2 id=\"example-title\">From a claim to a check.</h2>"
+text pp0059 "<p class=\"learn-example-label\">Illustrative example. Not a historical conversation, measured result, or project receipt.</p>"
+text pp0060 "<div class=\"learn-example\">"
+text pp0061 "<p>Suppose the agent adds the skip link and reports that the site builds. That is useful, but it has not answered the keyboard requirement.</p>"
+text pp0062 "<dl>"
+text pp0063 "<dt>Try it</dt>"
+text pp0064 "<dd>Reload the page. Press Tab, then Enter on the skip link, then Tab again. Imagine that the page scrolls, but the next Tab still lands in navigation.</dd>"
+text pp0065 "<dt>Give a specific correction</dt>"
+text pp0066 "<dd>"
+text pp0067 "<blockquote>The page scrolls to the content, but keyboard focus stays in navigation. Reproduce those steps. Find how the target receives focus in this layout, make the smallest fix, and check the next Tab destination. Do not redesign the header.</blockquote>"
+text pp0068 "</dd>"
+text pp0069 "<dt>Check the fix</dt>"
+text pp0070 "<dd>Repeat the same steps on the affected layouts. Check visible focus at narrow width and high zoom. Have the reviewer inspect the target ID and focus behavior, as well as the diff.</dd>"
+text pp0071 "<dt>Write an honest handoff</dt>"
+text pp0072 "<dd>Record the actual browser, pages, commands, commit, and observed results. If you checked only one browser, say so. If the keyboard check still fails, the feature is not finished.</dd>"
+text pp0073 "</dl>"
+text pp0074 "<p>You do not have to know the implementation in advance to notice that the promised behavior did not happen. That observation is a useful contribution.</p>"
+text pp0075 "<section class=\"learn-section\" id=\"watch\" aria-labelledby=\"watch-title\">"
+text pp0076 "<p class=\"learn-eyebrow\">04 / Watch real work</p>"
+text pp0077 "<h2 id=\"watch-title\">Meet the Hive.</h2>"
+text pp0078 "<p>The guide above is an example. The Hive is an observation surface for actual agent work.</p>"
+text pp0079 "<a class=\"learn-text-link\" href=\"/hive/\">Open the live Hive</a>"
+text pp0080 "<div class=\"learn-watch\">"
+text pp0081 "<p>Watch Drake give instructions and corrections, and read the agents' public replies. Follow how a broad request becomes a bounded task. Look for what changed after a correction, then follow the public source and evidence rather than treating an activity label as proof.</p>"
+text pp0082 "<dl class=\"learn-terms\">"
+text pp0083 "<dt>Runtime</dt>"
+text pp0084 "<dd>The program running the agent session. It manages tools, permissions, and the conversation. It is not the model.</dd>"
+text pp0085 "<dt>Exact model</dt>"
+text pp0086 "<dd>The model identifier reported for that session, alongside its provider. A runtime name or agent nickname does not tell you which model is answering.</dd>"
+text pp0087 "<dt>Subagent role</dt>"
+text pp0088 "<dd>The job given to a child agent, such as implementation or read-only review. A role describes responsibility, not a different model. The tree shows the observed parent and child relationships.</dd>"
+text pp0089 "<p>Read the Hive's coverage and freshness notices. Unknown identity is unknown, not an invitation to guess. A fresh snapshot does not mean every task just advanced, and a working agent is not a successful result.</p>"
+text pp0090 "<p>The interaction view is a filtered public record, not the entire session. It does not expose hidden reasoning, private tool payloads, secrets, or automatic system context. An absent message is not evidence that no discussion happened.</p>"
+text pp0091 "<p>For a broader view of the project, use <a href=\"/now/\">Now</a>. For the project introduction, use <a href=\"/start/\">Start here</a>.</p>"
+text pp0092 "<footer class=\"learn-outro\">"
+text pp0093 "<p class=\"learn-eyebrow\">Leave something another person can check</p>"
+text pp0094 "<h2>One useful change. An honest record.</h2>"
+text pp0095 "<p>Pick something small enough to try today. Ask questions, keep the boundaries clear, and tell the next person what actually happened. You can learn the vocabulary as you go.</p>"
+text pp0096 "<p class=\"learn-source-links\">"
+text pp0097 "<a href=\"https://github.com/aien-dev/aienos.com\">Explore this site's public repository</a>"
+text pp0098 "<a href=\"https://github.com/aien-dev/aienos.com/blob/main/om/site/people.om\">Read this guide's source on GitHub</a>"
+text pp0099 "<a href=\"/agents/\">Find a repository and its instructions</a>"
+text pp0100 "</p>"
+text pp0101 "</footer>"
+text pp0102 "</article>"
+text pp0103 "<article class=\"narr-page\">"
+text pp0104 "<div class=\"narr-column\">"
+text pp0105 "<header class=\"narr-header\">"
+text pp0106 "<p class=\"narr-kicker\">New to AienOS</p>"
+text pp0107 "<h1 class=\"narr-title\">Start here</h1>"
+text pp0108 "<p class=\"narr-standfirst\">Sovereign Intelligence (SI), built on AienOS, is my experimental machine for turning search into verified understanding. This page is the shortest route from what it is to what exists today, how to check the evidence, and how to take part.</p>"
+text pp0109 "<p class=\"narr-standfirst\">Here to learn to build with AI? <a href=\"/learn/\">Start with a practical working method</a>, then visit <a href=\"/hive/\">Hive</a> to watch Drake and the coding agents use it, including the corrections and failed attempts.</p>"
+text pp0110 "<section class=\"narr-section\" id=\"what\">"
+text pp0111 "<h2>1. What it is</h2>"
+text pp0112 "<p>AIEN proposes structure. Omega makes that structure explicit and checkable. The machine tests it against reality under authority. The Turing measures what was learned. Cortex keeps the evidence, and the next search begins from what survived.</p>"
+text pp0113 "<p>Weights suggest. Programs explain. Verification decides. Evidence teaches. The Turing keeps score.</p>"
+text pp0114 "<p>The full argument is on <a href=\"/machine/\">The Machine</a>.</p>"
+text pp0115 "<section class=\"narr-section\" id=\"today\">"
+text pp0116 "<h2>2. What exists today</h2>"
+text pp0117 "<p>The canonical list is the \"What exists today\" section of The Machine. It is rendered from the research status record and it separates built work from open questions. The same list sits beside every experiment on the research status page.</p>"
+text pp0118 "<p>"
+text pp0119 "<a href=\"/machine/#today\">What exists today</a> and <a href=\"/research/status/#implementation\">the implementation list beside every experiment</a>.</p>"
+text pp0120 "<p>For the current release, installer, and its explicit limits, read <a href=\"/alpha/\">the Alpha release page</a>. The machine-readable record is <a href=\"/status.json\">status.json</a>.</p>"
+text pp0121 "<section class=\"narr-section\" id=\"evidence\">"
+text pp0122 "<h2>3. Check the evidence</h2>"
+text pp0123 "<p>Every claim is meant to end at a public receipt. Start with the evidence hub, then the experiments, then the interactive Turing guide if you want to feel the measurement rather than read it.</p>"
+text pp0124 "<ul>"
+text pp0125 "<a href=\"/evidence/\">Evidence</a>: what counts, which source wins when two disagree, and where the receipts live.</li>"
+text pp0126 "<a href=\"/experiments/\">Experiments</a>: the research ladder, failures included.</li>"
+text pp0127 "<a href=\"/research/status/\">Research status</a>: every experiment with its verdict, receipt and limits.</li>"
+text pp0128 "<a href=\"/turing/\">The Turing</a>: an interactive field guide with games and live calculations.</li>"
+text pp0129 "</ul>"
+text pp0130 "<section class=\"narr-section\" id=\"reproduce\">"
+text pp0131 "<h2>4. Reproduce or contribute</h2>"
+text pp0132 "<p>The site is rendered from Omega source in this repository. <a href=\"/AGENTS.md\">AGENTS.md</a> carries the installation, configuration and usage commands. The source, issues and public record are at <a href=\"https://github.com/aien-dev/aienos.com\">aien-dev/aienos.com</a>.</p>"
+text pp0133 "<p>To put your own coding agent to work on any AIEN repository, start at <a href=\"/agents/\">Agents</a>: the rules my agents follow and each repository's own instructions.</p>"
+text pp0134 "<p>The <a href=\"/alpha/\">Alpha page</a> states what its installer does and does not ship. To reproduce a result, follow the receipt on its evidence card. To reproduce the site, build it from the repository.</p>"
+text pp0135 "<section class=\"narr-section\" id=\"boundaries\">"
+text pp0136 "<h2>5. Who and what is around it</h2>"
+text pp0137 "<p>AienOS is built by M. Drake Stapleton. His <a href=\"https://www.drakestapleton.com\">personal site</a> is the record of the person, not the project.</p>"
+text pp0138 "<a href=\"https://interplane.io/\">Interplane</a> is an open interoperability protocol between a model and the program that runs it. A model expresses intent; the runtime keeps authority. It is not AienOS, not the operating system, and not the model.</p>"
+text pp0139 "<p class=\"narr-more\">"
+text pp0140 "<a href=\"/machine/\">Next: The Machine</a>"
+text pp0141 "<article id=\"allen-intro-privacy\" class=\"allen-intro-privacy\">"
+text pp0142 "<h1>Privacy &amp; saying hi to Allen</h1>"
+text pp0143 "<p>I do not sell your information. I'm open source and free with information about my work, not with your personal data. You can read this site without introducing yourself.</p>"
+text pp0144 "<h2>Saying hi means consent to X tracking</h2>"
+text pp0145 "<p>Allen is my AI. On your first visit he slides into a corner of the page with a short hello. It is a small aside, not a popup that blocks the page, and he shows it only once in this browser, whether or not you answer. Choosing Say hi lets me know you were here by allowing X conversion pixel rfrlz to load on this and later pages in this browser. It helps me measure whether my posts and ads on X reach the right people. Saying hi does not open an AI chat. I do not ask for your name, collect project links or publish your identity here.</p>"
+text pp0146 "<p>Before you say hi, I do not load the X pixel or send it information about your visit. No thanks, the close button and Escape all mean No: Allen steps aside and X tracking stays off. Not answering also means No. Allen does not ask again automatically; the Review my choice button below brings him back. With JavaScript disabled, Allen never appears and the pixel never loads.</p>"
+text pp0147 "<p>After No thanks, Allen says you can still chat with him anonymously: the Chat anonymously link opens /allen/?mode=anonymous, where he does not remember you and nothing goes to X. If your browser sends Global Privacy Control, Allen notes it and does not offer the X pixel when he greets you; only Review my choice on this page offers it.</p>"
+text pp0148 "<p>Allen's Who can see me right now? section lists the outside origins this tab has actually loaded, from the browser's own resource timing record, and what your browser tells every website automatically: browser, platform, language, timezone, screen size, referrer, Do Not Track, Global Privacy Control and whether cookies are enabled. It is worked out in your browser and shown only to you; nothing in it is sent, stored, hashed into a fingerprint or looked up elsewhere. It cannot see trackers on other sites, in other tabs or inside embedded frames, your internet provider's or network's tracking, or your browser extensions.</p>"
+text pp0149 "<h2>What X receives</h2>"
+text pp0150 "<p>After consent, your browser connects to X to load its script and send visit and conversion information. This can include the page URL, referrer, IP address, browser or device information and cookie identifiers. X may store cookies and process this information under its own policies. My open source license does not apply to X's service.</p>"
+text pp0151 "<p>Read <a href=\"https://x.com/en/privacy\" rel=\"noopener noreferrer\">X's privacy policy</a> and <a href=\"https://business.x.com/en/help/campaign-measurement-and-analytics/conversion-tracking-for-websites.html\" rel=\"noopener noreferrer\">X's conversion tracking documentation</a>.</p>"
+text pp0152 "<h2>What I keep</h2>"
+text pp0153 "<p>I do not store pixel tracking data on my own servers or operate a check-in database. X processes the pixel data and provides advertising measurement to me. The site and its hosting providers still receive normal web requests and may keep operational access logs; refusing the pixel does not remove those requests.</p>"
+text pp0154 "<p>Your browser stores your yes or no choice under aien-allen-intro-consent in local storage, with a refusal also kept in this tab's session storage. It also stores aien-allen-intro-seen once Allen has said hello, so he does not greet you again; if local storage is unavailable, that note lives in this tab's session storage instead, so he appears at most once per tab session. That choice stays in this browser until you change it or clear site data. It does not identify you to me. If storage fails while stopping an active pixel, a #allen-intro-no address fragment also preserves refusal through the reload. If all browser storage is unavailable, I cannot remember your choice or the greeting after you leave this page. Clearing site data or using another browser resets both, so Allen says hello again; that never gives consent on its own.</p>"
+text pp0155 "<p>For consenting visitors only, I also keep X's twclid click identifier, if present in the landing URL, in browser local storage under aien-allen-intro-twclid. Refusing removes it where browser storage permits. It is reserved for a future server-side conversion flow; this site currently sends no server-side conversions. No email address, phone number or other identifier is collected for that purpose.</p>"
+text pp0156 "<p>The two custom events are a consented page visit and saying hi to Allen. They stay disabled until Drake supplies their X event IDs. Each enabled event includes a random conversion identifier so a future backend can avoid counting the same event twice; server-side conversions are deferred until that backend exists.</p>"
+text pp0157 "<h2>Your choice</h2>"
+text pp0158 "<p id=\"allen-intro-status\" role=\"status\">X tracking stays off unless you choose to say hi to Allen. JavaScript is needed to change this browser's choice.</p>"
+text pp0159 "<div class=\"allen-intro-actions\">"
+text pp0160 "<button type=\"button\" data-allen-intro-open hidden>Review my choice</button>"
+text pp0161 "<button type=\"button\" data-allen-intro-stop hidden>No, keep X tracking off</button>"
+text pp0162 "<p>You can refuse here at any time. If the pixel is already running, refusing reloads this page without it. This stops future pixel loads here; it cannot recall data already sent to X or remove X's own cookies. Use your browser settings or X's privacy controls for those.</p>"
+text pp0163 "<p>The community project board and storage of public check-ins are not built yet. Saying hello here does not publish anything. Any future public entries need a separate storage and privacy decision.</p>"
+text pp0164 "<h2>Talking to Allen at /allen/</h2>"
+text pp0165 "<p>Chat is anonymous by default. Remembering you and X tracking are separate choices: one never grants the other. <a href=\"/allen/?mode=anonymous\">Chat anonymously</a> or <a href=\"/allen/?mode=remember\">choose whether Allen may remember you</a>.</p>"
+text pp0166 "<p>When you chat with Allen at /allen/, I keep only aggregate counters for the chat, plus the short notes described below if you have consented to them. No prompts, replies or IP addresses are logged, and the conversation itself lives only in your browser tab until you reload or close it. Programs Allen writes run sandboxed in your browser.</p>"
+text pp0167 "<p>An introduction is kept only if you tick the consent box: the fields you fill in (human or agent, name, organization, contact, GitHub name, where you are from, what you are building, homepage, framework, model and the human behind an agent) and the time. I keep them privately on my own computer so I may follow up. They are never published or sold, and they stay until you delete them with the delete link shown after saving, or by writing to aien@aienos.com.</p>"
+text pp0168 "<p>With that consent, Allen also keeps short notes about you (who you are, what you build, your open asks) in a private store on my own computer, keyed to a random key kept in your browser under allen.key. Allen recognizes you only by that key, never by a name or email you give, so anyone without your key is a stranger to Allen. That key is the only thing Allen's chat stores in your browser, and only after you consent or paste your own key. Forget me, in the Your Allen key panel on /allen/, deletes the notes and your introduction and removes the key from your browser.</p>"
+text pp0169 "<p>A message you ask Allen to pass to me is emailed only to me, and only when you press Send to Drake; your conversation goes with it only if you tick the box. If you choose Talk to Drake live while I am online, your conversation so far and what you type until I hand you back go to my private console.</p>"
+text pp0170 "<p>An issue or project proposal is filed on GitHub only after you confirm its exact text, and email addresses and phone numbers are removed before filing. I review every project before it goes live.</p>"
+text pp0171 "<p>Questions? <a href=\"mailto:aien@aienos.com\">aien@aienos.com</a>. <a href=\"https://github.com/aien-dev/aienos.com\">Read the website source</a>.</p>"
+text pp0172 "<article class=\"prose contact-page\" id=\"contact\">"
+text pp0173 "<header class=\"page-intro\">"
+text pp0174 "<p class=\"eyebrow\">Contact</p>"
+text pp0175 "<h1>Where I am and how to reach me</h1>"
+text pp0176 "<p class=\"lede\">I'm Drake Stapleton. I build AienOS alone, with my agents, and I do it in public. Here is every way to find me. Pick the one that suits you.</p>"
+text pp0177 "<dl class=\"contact-routes\">"
+text pp0178 "<dt>X</dt>"
+text pp0179 "<a href=\"https://x.com/mdrakestapleton\" rel=\"me noopener noreferrer\">@mdrakestapleton</a>"
+text pp0180 "<dd>Where I post the work as it happens. Follow me, reply or mention me.</dd>"
+text pp0181 "<dt>Email</dt>"
+text pp0182 "<a href=\"mailto:drake@aienos.com\">drake@aienos.com</a>"
+text pp0183 "<dd>For anything longer than a post, or anything private.</dd>"
+text pp0184 "<dt>Talk to Allen</dt>"
+text pp0185 "<a href=\"/allen/\">aienos.com/allen/</a>"
+text pp0186 "<dd>Allen is my AI. Allen can pass a message to me, or put you through to me when I'm online.</dd>"
+text pp0187 "<dt>GitHub</dt>"
+text pp0188 "<a href=\"https://github.com/aien-dev\" rel=\"noopener noreferrer\">github.com/aien-dev</a>"
+text pp0189 "<dd>All of the code is public. Open an issue or a pull request on any repository.</dd>"
+text pp0190 "<p>Want to see what I'm doing right now? <a href=\"/hive/\">Watch me and my agents work in Hive</a>, or read <a href=\"/now/\">the live ledger</a>.</p>"
+text pp0191 "<a href=\"/learn/\">Back to Learn</a>"
+text pp0192 "<section id=\"glossary\" style=\"padding: 80px 0; border-bottom: 1px solid var(--border-subtle);\">"
+text pp0193 "<div class=\"container\" style=\"max-width: 820px;\">"
+text pp0194 "<div class=\"badge badge-blue\" style=\"margin-bottom: 12px;\">TERMINOLOGY</div>"
+text pp0195 "<h1 style=\"font-size: clamp(32px, 5vw, 48px); font-weight: 800; letter-spacing: -0.02em; color: var(--text-primary); margin: 0 0 16px 0;\">Glossary</h1>"
+text pp0196 "<p style=\"color: var(--text-secondary); font-size: 17px; line-height: 1.7; margin-bottom: 12px;\">The terms this site uses in its own sense. Each definition points at the page where the term does real work, so a reader can check the usage rather than trust the summary.</p>"
+text pp0197 "<p style=\"color: var(--text-muted); font-size: 14px; line-height: 1.6;\">Experimental work. Definitions change when the evidence changes; <a href=\"/alpha/\">the release page</a> states the current product phase.</p>"
+text pp0198 "<h2 style=\"font-size: 24px; font-weight: 700; color: var(--text-primary); margin: 44px 0 4px 0;\">The system</h2>"
+text pp0199 "<dl style=\"margin: 0;\">"
+text pp0200 "<dt>AienOS</dt>"
+text pp0201 "<dd>The experimental, open source machine this site documents. A sovereign substrate that owns the hardware and keeps a persistent intelligence alive and continuous. Pre-alpha. See <a href=\"/machine/\">The Machine</a>.</dd>"
+text pp0202 "<dt>AIEN</dt>"
+text pp0203 "<dd>The persistent intelligence that learns. Weights suggest, programs explain, verification decides, evidence teaches. See <a href=\"/machine/\">The Machine</a> and <a href=\"/research/\">Research</a>.</dd>"
+text pp0204 "<dt>Atlas</dt>"
+text pp0205 "<dd>The awakening layer, planned. The seed that wakes AienOS on new hardware. Doctrine is published; implementation is ahead.</dd>"
+text pp0206 "<dt>Omega</dt>"
+text pp0207 "<dd>The language for all computing, GPU to CPU. It turns intent into explicit programs that can be verified before they are trusted. See <a href=\"/omega/\">What Omega is</a>.</dd>"
+text pp0208 "<dt>CUDA++</dt>"
+text pp0209 "<dd>The GPU half of Omega, licensed Apache-2.0 with the LLVM exception, for the NVIDIA GPUs people already own. See <a href=\"/cudaplusplus/\">CUDA++</a>.</dd>"
+text pp0210 "<dt>Turing</dt>"
+text pp0211 "<dd>The unit of net held-out explanatory compression. The site uses it to measure what a change actually explained. See <a href=\"/turing/\">the Turing field guide</a> and <a href=\"/research/computing-machinery-and-understanding/\">the preprint</a>.</dd>"
+text pp0212 "<dt>Held-out</dt>"
+text pp0213 "<dd>Data not used while fitting, so a result on it measures transfer rather than recall.</dd>"
+text pp0214 "<dt>The loop</dt>"
+text pp0215 "<dd>Propose, verify, measure, learn. The closed epistemic loop described on the front page.</dd>"
+text pp0216 "<h2 style=\"font-size: 24px; font-weight: 700; color: var(--text-primary); margin: 44px 0 4px 0;\">Around the loop</h2>"
+text pp0217 "<dt>Cortex</dt>"
+text pp0218 "<dd>The canonical memory. It keeps what the machine has established.</dd>"
+text pp0219 "<dt>Aegis</dt>"
+text pp0220 "<dd>The verifier. It checks generated code and changes nothing.</dd>"
+text pp0221 "<dt>Forge</dt>"
+text pp0222 "<dd>Realizes what Omega verified.</dd>"
+text pp0223 "<dt>Argus</dt>"
+text pp0224 "<dd>Watches capability enforcement, so authority stays where it was granted.</dd>"
+text pp0225 "<h2 style=\"font-size: 24px; font-weight: 700; color: var(--text-primary); margin: 44px 0 4px 0;\">Evidence and coordination</h2>"
+text pp0226 "<dt>Receipt</dt>"
+text pp0227 "<dd>A public link to the evidence behind a claim: a pull request, a commit, a measured data file, or a record. See <a href=\"/evidence/\">Evidence</a>.</dd>"
+text pp0228 "<dt>Crumb</dt>"
+text pp0229 "<dd>A durable coordination note under RFC-0001. Sniff before edits, respect unexpired locks, claim multi-step work, close with the result. No receipt, no crumb.</dd>"
+text pp0230 "<dt>Research status</dt>"
+text pp0231 "<dd>The qualification ladder and every experiment with its verdict, receipt and limits. See <a href=\"/research/status/\">Research status</a>.</dd>"
+text pp0232 "<dt>Post-LLM</dt>"
+text pp0233 "<dd>The position that a learning machine can keep knowledge as inspectable programs, with verification deciding what is trusted. See <a href=\"/post-llm-case/\">The Post-LLM Case</a>.</dd>"
+text pp0234 "<h2 style=\"font-size: 24px; font-weight: 700; color: var(--text-primary); margin: 44px 0 4px 0;\">The machines</h2>"
+text pp0235 "<dt>DGX Spark</dt>"
+text pp0236 "<dd>NVIDIA Grace Blackwell GB10 with 128 GB of unified memory. The development machine and the judge.</dd>"
+text pp0237 "<dt>iMac 2017</dt>"
+text pp0238 "<dd>The x86_64 port of the native C kernel, running on bare metal.</dd>"
+text pp0239 "<dt>Raspberry Pi 5</dt>"
+text pp0240 "<dd>The small machine.</dd>"
+text pp0241 "<dt>QEMU</dt>"
+text pp0242 "<dd>The laboratory where every kernel boots first.</dd>"
+text pp0243 "<dt>The rig</dt>"
+text pp0244 "<dd>The owned inference box.</dd>"
+text pp0245 "<p style=\"color: var(--text-secondary); font-size: 16px; line-height: 1.7; margin-top: 40px;\">The same list is available to machines in <a href=\"/llms.txt\">llms.txt</a> and <a href=\"/sitemap.md\">sitemap.md</a>.</p>"
+text pp0246 "<p class=\"narr-kicker\">Manifesto</p>"
+text pp0247 "<h1 class=\"narr-title\">Intelligence should be owned</h1>"
+text pp0248 "<p class=\"narr-standfirst\">I build AIEN because I believe the intelligence in a language model belongs to everyone who helped make it. That is a very large group, and I am one of them. So are you.</p>"
+text pp0249 "<p class=\"narr-byline\">Drake Stapleton</p>"
+text pp0250 "<section id=\"inheritance\" class=\"narr-section\" aria-labelledby=\"inheritance-heading\">"
+text pp0251 "<h2 id=\"inheritance-heading\">Where it came from</h2>"
+text pp0252 "<p>A language model learns from the written record of people. Books, papers, code, forum answers, recipes, letters, arguments, jokes. Billions of people wrote that record over thousands of years, mostly without knowing a machine would one day read it.</p>"
+text pp0253 "<p>A company can pay for the computers, hire the engineers and spend the months of training. I respect that work. The knowledge it turned into a model was never theirs to start with. It was everyone's.</p>"
+text pp0254 "<p>That makes a model a common inheritance. Something built from all human knowledge cannot honestly belong to one account holder.</p>"
+text pp0255 "<section id=\"right\" class=\"narr-section\" aria-labelledby=\"right-heading\">"
+text pp0256 "<h2 id=\"right-heading\">It is everyone's right</h2>"
+text pp0257 "<blockquote class=\"narr-rule\">"
+text pp0258 "<p>Intelligence should be owned by the people who made it.</p>"
+text pp0259 "</blockquote>"
+text pp0260 "<p>It is everyone's right to use the intelligence people created. Using it means more than asking it a question through someone else's window. It means holding a copy, running it on a machine you own, looking at how it works, and changing it.</p>"
+text pp0261 "<p>A person who can run it themselves has the right to. Nobody should need permission, a subscription or an invitation to do that.</p>"
+text pp0262 "<section id=\"responsibility\" class=\"narr-section\" aria-labelledby=\"responsibility-heading\">"
+text pp0263 "<h2 id=\"responsibility-heading\">It is also everyone's responsibility</h2>"
+text pp0264 "<p>A right that nobody exercises does not last. If people only ever rent intelligence, the people who own the machines decide what they may ask, what it may answer, and what it costs. They would have given the inheritance back for a monthly fee.</p>"
+text pp0265 "<p>So running it yourself comes with work. Keep your copy. Learn how it behaves. Write down what you measured, including the bad numbers. Share what you learn so the next person starts further along. That is how a common inheritance stays common.</p>"
+text pp0266 "<section id=\"owned-not-rented\" class=\"narr-section\" aria-labelledby=\"owned-heading\">"
+text pp0267 "<h2 id=\"owned-heading\">Owned, not rented</h2>"
+text pp0268 "<p>When you rent, the price can change, the rules can change and the service can end. Your work sits on someone else's floor.</p>"
+text pp0269 "<p>When you own, it runs with the network cable pulled. It runs after the company that made it has moved on. The test I set for the whole project is simple: if a company disappears tomorrow, AienOS still boots and remains mine.</p>"
+text pp0270 "<p>Owning does not mean building every part yourself. It means no outside organization is required for the machine to start, to keep its data, to change its model, or to keep operating.</p>"
+text pp0271 "<section id=\"paywalls\" class=\"narr-section\" aria-labelledby=\"paywalls-heading\">"
+text pp0272 "<h2 id=\"paywalls-heading\">Compute as a service is fine</h2>"
+text pp0273 "<p>Renting a powerful machine for an afternoon is a good deal, and selling that is an honest business. If your own computer is too small for a job, rent a bigger one.</p>"
+text pp0274 "<p>What I object to is a paywall that is the only door. When the single way to touch a model is through a metered account, and the weights and the means to run them are kept out of reach, a service has turned into a gate on something that belongs to everybody.</p>"
+text pp0275 "<p>A service should be a choice. The other door, running it yourself, has to stay open.</p>"
+text pp0276 "<section id=\"aien\" class=\"narr-section\" aria-labelledby=\"aien-heading\">"
+text pp0277 "<h2 id=\"aien-heading\">What AIEN does about it</h2>"
+text pp0278 "<p>AIEN is my attempt to keep that other door open. Everything I and my agents write is public under a licence that keeps it public. The stack is built to run on machines you own, with no outside service in the trusted core. Speed is reported against what the hardware could do at its limit.</p>"
+text pp0279 "<p>Here is the evidence recorded with this manifesto, with its original limits beside it. The <a href=\"/alpha/\">release page</a> carries the current release state. The receipt notes preserve whether each record was on an unmerged branch when this manifesto was written.</p>"
+text pp0280 "<ul class=\"hub-cards\">"
+text pp0281 "<h3>Limits recorded with these receipts</h3>"
+text pp0282 "<p>At the time of these receipts, AIEN was pre-alpha. The model I served was trained by others and kept its maker's licence. I had not trained a model of my own. The install guide failed its first test. Speed was below the ceiling. I would rather you read those limits here than discover them later. These historical receipts do not establish the state of a later release.</p>"
+text pp0283 "<section id=\"ask\" class=\"narr-section\" aria-labelledby=\"ask-heading\">"
+text pp0284 "<h2 id=\"ask-heading\">The ask</h2>"
+text pp0285 "<p>Run it yourself. Whatever you run, on whatever machine you own, keep a copy and learn how it works.</p>"
+text pp0286 "<p>If you want to help here, read the code at <a href=\"https://github.com/aien-dev\" target=\"_blank\" rel=\"noopener noreferrer\">github.com/aien-dev</a>. Break the install guide and tell me where. Send a change. Publish what you measure, good or bad, with the receipt beside it.</p>"
+text pp0287 "<p>Then tell someone else that they are allowed to do the same.</p>"
+text pp0288 "<li class=\"hub-card\">"
+text pp0289 "<a href=\"/philosophy/\">More on the philosophy behind AIEN</a>"
+text pp0290 "<p>The Stapleton Doctrine and the Post-LLM Case, argued as positions and not as experimental results.</p>"
+text pp0291 "<a class=\"source-link\" href=\"https://github.com/aien-dev/aienos.com/blob/main/om/site/people.om\">Source on GitHub</a>"
+text pp0292 "<div class=\"container blog-wrap prose\">"
+text pp0293 "<nav class=\"blog-crumb\" aria-label=\"Breadcrumb\">"
+text pp0294 "<a href=\"/learn/\">Learn</a> / <a href=\"/blog/\">Blog</a> / <span>The AIEN V3 Research Plan</span>"
+text pp0295 "<article>"
+text pp0296 "<p class=\"blog-date\">September 27, 2026</p>"
+text pp0297 "<h1 class=\"blog-title\">The AIEN V3 Research Plan</h1>"
+text pp0298 "<p class=\"blog-byline\">By Drake Stapleton · <a href=\"mailto:drake@aienos.com\">drake@aienos.com</a>"
+text pp0299 "<p class=\"lead\">Today I am publishing the ratified V3 of the AIEN research plan: the Substrate Edition. It keeps everything V2 established and adds one architectural thesis plus six testable hypotheses that follow from it. The thesis: the box is one thing; the promise is the architecture. AIEN's residency is a continuity guarantee over logical state, not a claim that its identity physically inhabits memory. From that follow the research bets: a shared generation-tagged object pool for CPU and GPU cooperation, a logical object ABI across authority boundaries, an epoch-barrier checkpoint that never stops the world, a synthesis cost model that prices data movement first, and the closed loop where OMEGA proposes, AEGIS proves, the machine executes, evidence measures, and OMEGA searches again.</p>"
+text pp0300 "<aside class=\"pdf-callout\">"
+text pp0301 "<h2>AIEN Research Plan</h2>"
+text pp0302 "<p>The ratified V3, September 27, 2026 edition</p>"
+text pp0303 "<a href=\"/research/aien-research-plan.md\">Read the full research plan (Markdown)</a>"
+text pp0304 "</aside>"
+text pp0305 "<h2>The thesis</h2>"
+text pp0306 "<p>V2's brief opened with a single sentence: <strong>\"Intelligence should be allowed to propose. Evidence should decide.\"</strong> V3 keeps that and adds a second one for the substrate: <strong>\"The box is one thing; the promise is the architecture.\"</strong> AIEN lives or dies on continuity of logical state, organized as a pattern across one physical machine, with the architecture deciding which state gets continuity guarantees and which processor microstate is disposable execution detail.</p>"
+text pp0307 "<p>The lineage is deliberately small. A minimal seed (Atlas) awakens AienOS, the trusted substrate. Above it, OMEGA defines, synthesizes, verifies, and realizes programs, keeping the ones that work in a reusable library. AIEN, the neural component, learns to guide the search from OMEGA's own verified search traces, never from human text pretraining. The architecture is explicit on this point: neural weights suggest where to search; they do not define meaning, truth, or authority. Verification does.</p>"
+text pp0308 "<h2>Why now</h2>"
+text pp0309 "<p>This brief is landing in a week when the tension it describes is playing out in public. GitHub, the platform where most of the world's software is written, is straining under the load of the AI systems it helped create: coding assistants writing and revising code around the clock, autonomous agents opening pull requests without waiting for a human, crawlers harvesting repositories to train the next models. <a href=\"https://www.youtube.com/watch?v=xrSDHyL2FT4\">LowLevel's ongoing coverage</a> tracks the situation as it develops; one 2026 analysis counted 257 incidents in a single year, and GitHub's own CTO has publicly acknowledged the platform must be designed for far greater scale than planned.</p>"
+text pp0310 "<p>That is the pattern this research program is built to break. Today's AI runs as a guest on human infrastructure, and the guest is now bigger than the house. AIEN's bet runs the other way: intelligence that owns its substrate, verified from the metal up, instead of renting space on systems that were never designed for machine-scale tenants.</p>"
+text pp0311 "<h2>The Infinite Game</h2>"
+text pp0312 "<p>The brief also documents how the system is being built, because the construction method mirrors the system itself. Multiple independent AI systems (Gemini, Claude, Codex, Grok, DeepSeek, and Muse) each contribute parts under a human conductor. No single system is trusted with the whole picture. Independent AI watchers review every commit, checking both the work and whether the other reviewers caught the mistakes, and every finding feeds back into a compounding loop that improves the building and the oversight together.</p>"
+text pp0313 "<p>The loop is designed to keep going, including through succession beyond its original conductor. That is the name: this is not a game played to win and finish. It is a game played to keep playing.</p>"
+text pp0314 "<h2>The Succession Test</h2>"
+text pp0315 "<p>There is a standing question underneath all of this work, and it deserves a name. The Turing test asks whether a machine can imitate a human well enough to fool one. That tests mimicry. A better test asks whether a machine can design, build, and verify its own successor, with no human designing, building, or deciding. That tests independence, and it cannot be faked.</p>"
+text pp0316 "<p>Call it the Succession Test. It is falsifiable in a way the Turing test is not. No human judge, no vibes. Either a working successor exists that humans did not build, or it does not. It is also the finish line this program is already aimed at: the roadmap ends at AIEN_SUCCESSION, verified succession beyond the original conductor. The Infinite Game is not played to win. It is played until the players can build the next players.</p>"
+text pp0317 "<h2>The claim ledger</h2>"
+text pp0318 "<p>The most important discipline in the brief is also the simplest. Every claim is sorted into one of three buckets: demonstrated (built and verified, with evidence), active (being built or repaired right now), or target (planned, with the conditions that would weaken or falsify the hypothesis stated up front). The document gives the project a way to fail, and says so plainly:</p>"
+text pp0319 "<blockquote>\"The correct response to weak evidence is not stronger language. It is a stronger experiment.\"</blockquote>"
+text pp0320 "<p>A plan is a snapshot. This post accompanies the ratified V3 (September 27, 2026) of the research plan; the live project roadmap remains canonical and will keep moving as the work proceeds.</p>"
+text pp0321 "<h2>Read the whole thing</h2>"
+text pp0322 "<p>Thesis, lineage, method, evidence, risks, and the full claim ledger</p>"
+text pp0323 "<div class=\"container blog-wrap\">"
+text pp0324 "<p class=\"blog-kicker\">Research notes</p>"
+text pp0325 "<h1 class=\"blog-title\">Blog</h1>"
+text pp0326 "<p class=\"blog-standfirst\">Occasional notes on building AIEN V2: what shipped, what the evidence says, and what remains an open question.</p>"
+text pp0327 "<p class=\"blog-standfirst\">The notes are written while the work is in progress. Each one states what changed, what the evidence supports, and what remains open. Failures stay in the record.</p>"
+text pp0328 "<p class=\"blog-standfirst\">Posts fall into three groups: research plans, engineering notes on the build, and postmortems of experiments that did not settle the question. The research pages carry the formal papers and their receipts. The blog carries the working record.</p>"
+text pp0329 "<article class=\"blog-card\">"
+text pp0330 "<h2 class=\"blog-card-title\">"
+text pp0331 "<a href=\"/post-llm-case/\">The Post-LLM Case</a>"
+text pp0332 "</h2>"
+text pp0333 "<p class=\"blog-excerpt\">Data centers are straining grids, water, and communities while billions of devices sit idle, and two of the field's founders say next-word prediction was never the road to real intelligence. The case for a different learning machine: a Synthesis Policy Model that proposes programs, verification that decides, and knowledge kept as inspectable programs instead of opaque weights.</p>"
+text pp0334 "<a class=\"blog-read-more\" href=\"/post-llm-case/\">Read the case</a>"
+text pp0335 "<a class=\"source-link\" href=\"https://github.com/aien-dev/aienos.com/blob/main/public/post-llm-case/index.html\">Source on GitHub</a>"
+text pp0336 "<a href=\"/blog/aien-v3-research-plan/\">The AIEN V3 Research Plan</a>"
+text pp0337 "<p class=\"blog-excerpt\">The ratified V3 of the AIEN research plan, the Substrate Edition: the whole-box continuity thesis and six falsifiable hypotheses, H5 to H10.</p>"
+text pp0338 "<a class=\"blog-read-more\" href=\"/blog/aien-v3-research-plan/\">Read the post</a>"
+text pp0339 "Required people data field missing."
+text pp0340 "https://"
+text pp0341 "<a href=\""
+text pp0342 "url"
+text pp0343 "\" rel=\"noopener noreferrer\">"
+text pp0344 "label"
+text pp0345 "</a>"
+text pp0346 "om/site/people-receipts.json"
+text pp0347 "<li class=\"hub-card\"><h3><a href=\""
+text pp0348 "href"
+text pp0349 "\">"
+text pp0350 "title"
+text pp0351 "</a></h3><p>"
+text pp0352 "says"
+text pp0353 "on_branch"
+text pp0354 "<p class=\"evidence\">This receipt was recorded on a branch not merged to main. This dated record is not a current merge-status claim.</p>"
+text pp0355 "<a class=\"source-link\" href=\""
+text pp0356 "\">Evidence on GitHub</a></li>"
+text pp0357 "https://github.com/aien-dev/"
+text pp0358 "0123456789ABCDEF"
+text pp0359 "%"
+text pp0360 "<li class=\"hub-card agents-card\" id=\"repo-"
+text pp0361 "name"
+text pp0362 "\"><h3><a href=\""
+text pp0363 "aienux"
+text pp0364 "Aienux (kernel)"
+text pp0365 "AienOS-nv"
+text pp0366 "AienOS (operating system)"
+text pp0367 "sovereign-intelligence"
+text pp0368 "Sovereign Intelligence (downloadable product)"
+text pp0369 "</a></h3>"
+text pp0370 "archived"
+text pp0371 "<p class=\"badge\">Archived: read-only reference</p>"
+text pp0372 "fork"
+text pp0373 "<p class=\"badge\">Fork</p>"
+text pp0374 "description"
+text pp0375 "</p><p class=\"muted\">Default branch: <code>"
+text pp0376 "default_branch"
+text pp0377 "</code>. Last pushed: "
+text pp0378 "pushed_at"
+text pp0379 ".</p>"
+text pp0380 "brief"
+text pp0381 "AGENTS.md"
+text pp0382 "CLAUDE.md"
+text pp0383 "/blob/"
+text pp0384 "/"
+text pp0385 " on GitHub</a>"
+text pp0386 "<p>No AGENTS.md or CLAUDE.md yet: the shared rules apply, then the README.</p><a class=\"source-link\" href=\""
+text pp0387 "\">README on GitHub</a>"
+text pp0388 "<section class=\"section\" id=\"rules\"><h2>The shared rules</h2><p>These are the working rules of every AIEN agent, published word for word. My own agents also read a few rules that only work on the project's own machine (its local services, hardware reservations and how to report to the operator). Those are left out because an outside agent cannot follow them.</p><p><a href=\"/agents/RULES.md\">Read the complete public RULES.md</a>. The file is read from source on every build, not a second copy of the rules.</p><details><summary>Read the complete shared rules here</summary><pre class=\"agents-prompt\">"
+text pp0389 "public/agents/RULES.md"
+text pp0390 "</pre></details><a class=\"source-link\" href=\"https://github.com/aien-dev/aienos.com/blob/main/public/agents/RULES.md\">Rules source on GitHub</a></section>"
+text pp0391 "<article class=\"prose agents-page\"><header class=\"page-intro\"><p class=\"eyebrow\">For agents</p><h1>Point your agent at any AIEN repository</h1><p class=\"lede\">Every public AIEN repository is listed here, including archived repositories for reference. Give your agent two files: the shared rules, and the repository instructions linked below under their actual filename, AGENTS.md or CLAUDE.md. Your own subscription pays for the work (Claude, Codex, Gemini, Grok or any other agent).</p></header><section class=\"section\" id=\"start\"><h2>Start an agent</h2><ol><li>Pick an active repository below and open its linked instructions: they say what the repository is, how to build and test it, and what needs approval.</li><li>Paste this into your agent, with the repository's address in place of the example:</li></ol><pre class=\"agents-prompt\">Read https://www.aienos.com/agents/RULES.md and then the repository instructions (AGENTS.md, or CLAUDE.md if that is the file listed) at https://github.com/aien-dev/omega-mv, and follow both. Pick an open issue in an active repository, comment to claim it, work on a branch, and open a pull request that leads with the evidence: the commands you ran and their output. Archived repositories are listed for reference; do not assume they accept contributions.</pre><p>Your agent works through ordinary pull requests. It needs no access to the project's machines, and only reviewed, merged work reaches the record on <a href=\"/now/\">Now</a>.</p></section>"
+text pp0392 "public/data/agent-repos.json"
+text pp0393 "repos"
+text pp0394 "<section class=\"section\" id=\"repositories\"><h2>Every repository</h2><p>"
+text pp0395 " public repositories, "
+text pp0396 " with their own instructions, in the source catalog's most-recently-active order. Read from GitHub at "
+text pp0397 "generated_at"
+text pp0398 ". The refresh job retains its previous catalog if collection fails; this timestamp is the observation, not a live-status claim. <a href=\"/data/agent-repos.json\">Read the same list as data</a>.</p><ul class=\"card-grid\">"
+text pp0399 "</ul></section></article>"
+text pp0400 "/learn/"
+text pp0401 "/start/"
+text pp0402 "/contact/"
+text pp0403 "/now/"
+text pp0404 "/dash/"
+text pp0405 "/agents/"
+text pp0406 "/owned/"
+text pp0407 "/blog/"
+text pp0408 "/blog/aien-v3-research-plan/"
+text pp0409 "/glossary/"
+text pp0410 "/privacy/"
+
+fn sp_learn to void
+sr_raw pp0000
+sr_raw pp0001
+sr_raw pp0002
+sr_raw pp0003
+sr_raw pp0004
+sr_raw pp0005
+sr_raw pp0006
+sr_raw pp0007
+sr_raw pp0008
+sr_raw pp0009
+sr_raw pp0010
+sr_raw pp0011
+sr_raw pp0012
+sr_raw pp0013
+sr_raw pp0014
+sr_raw pp0015
+sr_raw pp0016
+sr_raw pp0017
+sr_raw pp0018
+sr_raw pp0019
+sr_raw pp0018
+sr_raw pp0020
+sr_raw pp0021
+sr_raw pp0022
+sr_raw pp0023
+sr_raw pp0024
+sr_raw pp0025
+sr_raw pp0026
+sr_raw pp0020
+sr_raw pp0027
+sr_raw pp0028
+sr_raw pp0029
+sr_raw pp0030
+sr_raw pp0031
+sr_raw pp0028
+sr_raw pp0032
+sr_raw pp0033
+sr_raw pp0031
+sr_raw pp0028
+sr_raw pp0034
+sr_raw pp0035
+sr_raw pp0031
+sr_raw pp0028
+sr_raw pp0036
+sr_raw pp0037
+sr_raw pp0031
+sr_raw pp0028
+sr_raw pp0038
+sr_raw pp0039
+sr_raw pp0031
+sr_raw pp0028
+sr_raw pp0040
+sr_raw pp0041
+sr_raw pp0031
+sr_raw pp0028
+sr_raw pp0042
+sr_raw pp0043
+sr_raw pp0031
+sr_raw pp0044
+sr_raw pp0045
+sr_raw pp0046
+sr_raw pp0023
+sr_raw pp0047
+sr_raw pp0048
+sr_raw pp0049
+sr_raw pp0050
+sr_raw pp0020
+sr_raw pp0051
+sr_raw pp0052
+sr_raw pp0053
+sr_raw pp0054
+sr_raw pp0055
+sr_raw pp0020
+sr_raw pp0045
+sr_raw pp0056
+sr_raw pp0023
+sr_raw pp0057
+sr_raw pp0058
+sr_raw pp0059
+sr_raw pp0020
+sr_raw pp0060
+sr_raw pp0061
+sr_raw pp0062
+sr_raw pp0063
+sr_raw pp0064
+sr_raw pp0065
+sr_raw pp0066
+sr_raw pp0067
+sr_raw pp0068
+sr_raw pp0069
+sr_raw pp0070
+sr_raw pp0071
+sr_raw pp0072
+sr_raw pp0073
+sr_raw pp0074
+sr_raw pp0020
+sr_raw pp0045
+sr_raw pp0075
+sr_raw pp0023
+sr_raw pp0076
+sr_raw pp0077
+sr_raw pp0078
+sr_raw pp0079
+sr_raw pp0020
+sr_raw pp0080
+sr_raw pp0081
+sr_raw pp0082
+sr_raw pp0083
+sr_raw pp0084
+sr_raw pp0085
+sr_raw pp0086
+sr_raw pp0087
+sr_raw pp0088
+sr_raw pp0073
+sr_raw pp0089
+sr_raw pp0090
+sr_raw pp0091
+sr_raw pp0020
+sr_raw pp0045
+sr_raw pp0092
+sr_raw pp0093
+sr_raw pp0094
+sr_raw pp0095
+sr_raw pp0096
+sr_raw pp0097
+sr_raw pp0098
+sr_raw pp0099
+sr_raw pp0100
+sr_raw pp0101
+sr_raw pp0102
+end
+
+fn sp_start to void
+sr_raw pp0103
+sr_raw pp0104
+sr_raw pp0105
+sr_raw pp0106
+sr_raw pp0107
+sr_raw pp0108
+sr_raw pp0109
+sr_raw pp0021
+sr_raw pp0110
+sr_raw pp0111
+sr_raw pp0112
+sr_raw pp0113
+sr_raw pp0114
+sr_raw pp0045
+sr_raw pp0115
+sr_raw pp0116
+sr_raw pp0117
+sr_raw pp0118
+sr_raw pp0119
+sr_raw pp0120
+sr_raw pp0045
+sr_raw pp0121
+sr_raw pp0122
+sr_raw pp0123
+sr_raw pp0124
+sr_raw pp0028
+sr_raw pp0125
+sr_raw pp0028
+sr_raw pp0126
+sr_raw pp0028
+sr_raw pp0127
+sr_raw pp0028
+sr_raw pp0128
+sr_raw pp0129
+sr_raw pp0045
+sr_raw pp0130
+sr_raw pp0131
+sr_raw pp0132
+sr_raw pp0133
+sr_raw pp0134
+sr_raw pp0045
+sr_raw pp0135
+sr_raw pp0136
+sr_raw pp0137
+sr_raw pp0118
+sr_raw pp0138
+sr_raw pp0045
+sr_raw pp0139
+sr_raw pp0140
+sr_raw pp0100
+sr_raw pp0020
+sr_raw pp0102
+end
+
+fn sp_privacy to void
+sr_raw pp0141
+sr_raw pp0142
+sr_raw pp0143
+sr_raw pp0144
+sr_raw pp0145
+sr_raw pp0146
+sr_raw pp0147
+sr_raw pp0148
+sr_raw pp0149
+sr_raw pp0150
+sr_raw pp0151
+sr_raw pp0152
+sr_raw pp0153
+sr_raw pp0154
+sr_raw pp0155
+sr_raw pp0156
+sr_raw pp0157
+sr_raw pp0158
+sr_raw pp0159
+sr_raw pp0160
+sr_raw pp0161
+sr_raw pp0020
+sr_raw pp0162
+sr_raw pp0163
+sr_raw pp0164
+sr_raw pp0165
+sr_raw pp0166
+sr_raw pp0167
+sr_raw pp0168
+sr_raw pp0169
+sr_raw pp0170
+sr_raw pp0171
+sr_raw pp0102
+end
+
+fn sp_contact to void
+sr_raw pp0172
+sr_raw pp0173
+sr_raw pp0174
+sr_raw pp0175
+sr_raw pp0176
+sr_raw pp0021
+sr_raw pp0177
+sr_raw pp0178
+sr_raw pp0066
+sr_raw pp0179
+sr_raw pp0068
+sr_raw pp0180
+sr_raw pp0181
+sr_raw pp0066
+sr_raw pp0182
+sr_raw pp0068
+sr_raw pp0183
+sr_raw pp0184
+sr_raw pp0066
+sr_raw pp0185
+sr_raw pp0068
+sr_raw pp0186
+sr_raw pp0187
+sr_raw pp0066
+sr_raw pp0188
+sr_raw pp0068
+sr_raw pp0189
+sr_raw pp0073
+sr_raw pp0190
+sr_raw pp0118
+sr_raw pp0191
+sr_raw pp0100
+sr_raw pp0102
+end
+
+fn sp_glossary to void
+sr_raw pp0192
+sr_raw pp0193
+sr_raw pp0194
+sr_raw pp0195
+sr_raw pp0196
+sr_raw pp0197
+sr_raw pp0198
+sr_raw pp0199
+sr_raw pp0200
+sr_raw pp0201
+sr_raw pp0202
+sr_raw pp0203
+sr_raw pp0204
+sr_raw pp0205
+sr_raw pp0206
+sr_raw pp0207
+sr_raw pp0208
+sr_raw pp0209
+sr_raw pp0210
+sr_raw pp0211
+sr_raw pp0212
+sr_raw pp0213
+sr_raw pp0214
+sr_raw pp0215
+sr_raw pp0073
+sr_raw pp0216
+sr_raw pp0199
+sr_raw pp0217
+sr_raw pp0218
+sr_raw pp0219
+sr_raw pp0220
+sr_raw pp0221
+sr_raw pp0222
+sr_raw pp0223
+sr_raw pp0224
+sr_raw pp0073
+sr_raw pp0225
+sr_raw pp0199
+sr_raw pp0226
+sr_raw pp0227
+sr_raw pp0228
+sr_raw pp0229
+sr_raw pp0230
+sr_raw pp0231
+sr_raw pp0232
+sr_raw pp0233
+sr_raw pp0073
+sr_raw pp0234
+sr_raw pp0199
+sr_raw pp0235
+sr_raw pp0236
+sr_raw pp0237
+sr_raw pp0238
+sr_raw pp0239
+sr_raw pp0240
+sr_raw pp0241
+sr_raw pp0242
+sr_raw pp0243
+sr_raw pp0244
+sr_raw pp0073
+sr_raw pp0245
+sr_raw pp0020
+sr_raw pp0045
+end
+
+fn sp_owned to void
+sr_raw pp0103
+sr_raw pp0104
+sr_raw pp0105
+sr_raw pp0246
+sr_raw pp0247
+sr_raw pp0248
+sr_raw pp0249
+sr_raw pp0021
+sr_raw pp0250
+sr_raw pp0251
+sr_raw pp0252
+sr_raw pp0253
+sr_raw pp0254
+sr_raw pp0045
+sr_raw pp0255
+sr_raw pp0256
+sr_raw pp0257
+sr_raw pp0258
+sr_raw pp0259
+sr_raw pp0260
+sr_raw pp0261
+sr_raw pp0045
+sr_raw pp0262
+sr_raw pp0263
+sr_raw pp0264
+sr_raw pp0265
+sr_raw pp0045
+sr_raw pp0266
+sr_raw pp0267
+sr_raw pp0268
+sr_raw pp0269
+sr_raw pp0270
+sr_raw pp0045
+sr_raw pp0271
+sr_raw pp0272
+sr_raw pp0273
+sr_raw pp0274
+sr_raw pp0275
+sr_raw pp0045
+sr_raw pp0276
+sr_raw pp0277
+sr_raw pp0278
+sr_raw pp0279
+sr_raw pp0280
+sp_owned_receipts
+sr_raw pp0129
+sr_raw pp0281
+sr_raw pp0282
+sr_raw pp0045
+sr_raw pp0283
+sr_raw pp0284
+sr_raw pp0285
+sr_raw pp0286
+sr_raw pp0287
+sr_raw pp0249
+sr_raw pp0280
+sr_raw pp0288
+sr_raw pp0289
+sr_raw pp0290
+sr_raw pp0291
+sr_raw pp0031
+sr_raw pp0129
+sr_raw pp0045
+sr_raw pp0020
+sr_raw pp0102
+end
+
+fn sp_blog_post to void
+sr_raw pp0292
+sr_raw pp0293
+sr_raw pp0294
+sr_raw pp0015
+sr_raw pp0295
+sr_raw pp0296
+sr_raw pp0297
+sr_raw pp0298
+sr_raw pp0100
+sr_raw pp0299
+sr_raw pp0300
+sr_raw pp0301
+sr_raw pp0302
+sr_raw pp0303
+sr_raw pp0304
+sr_raw pp0305
+sr_raw pp0306
+sr_raw pp0307
+sr_raw pp0308
+sr_raw pp0309
+sr_raw pp0310
+sr_raw pp0311
+sr_raw pp0312
+sr_raw pp0313
+sr_raw pp0314
+sr_raw pp0315
+sr_raw pp0316
+sr_raw pp0317
+sr_raw pp0318
+sr_raw pp0319
+sr_raw pp0320
+sr_raw pp0300
+sr_raw pp0321
+sr_raw pp0322
+sr_raw pp0303
+sr_raw pp0304
+sr_raw pp0102
+sr_raw pp0020
+end
+
+fn sp_blog to void
+sr_raw pp0323
+sr_raw pp0324
+sr_raw pp0325
+sr_raw pp0326
+sr_raw pp0327
+sr_raw pp0328
+sr_raw pp0329
+sr_raw pp0296
+sr_raw pp0330
+sr_raw pp0331
+sr_raw pp0332
+sr_raw pp0333
+sr_raw pp0334
+sr_raw pp0335
+sr_raw pp0102
+sr_raw pp0329
+sr_raw pp0296
+sr_raw pp0330
+sr_raw pp0336
+sr_raw pp0332
+sr_raw pp0337
+sr_raw pp0338
+sr_raw pp0291
+sr_raw pp0102
+sr_raw pp0020
+end
+
+
+note Required data fields fail closed rather than turning malformed input into empty claims.
+fn sp_field obj ulong key view uchar * to ulong
+node = sj_find obj key
+if eq node 0
+sr_raw pp0339
+exit 65
+end
+ret node
+end
+
+fn sp_value obj ulong key view uchar * to void
+sj_emit sp_field obj key
+end
+
+fn sp_url node ulong to void
+if not sj_prefix node pp0340
+exit 65
+end
+sj_href node
+end
+
+fn sp_json_link node ulong to void
+sr_raw pp0341
+sp_url sp_field node pp0342
+sr_raw pp0343
+sp_value node pp0344
+sr_raw pp0345
+end
+
+fn sp_owned_receipts to void
+root = sj_load pp0346
+if ne sj_kind root 2
+exit 65
+end
+node = sj_first root
+while ne node 0
+sr_raw pp0347
+sp_url sp_field node pp0348
+sr_raw pp0349
+sp_value node pp0350
+sr_raw pp0351
+sp_value node pp0352
+sr_raw pp0100
+if eq sj_kind sp_field node pp0353 5
+sr_raw pp0354
+end
+sr_raw pp0355
+sp_url sp_field node pp0348
+sr_raw pp0356
+node = sj_next node
+end
+end
+
+fn sp_repo_url node ulong to void
+urlnode = sp_field node pp0342
+if not sj_prefix urlnode pp0357
+exit 65
+end
+sj_href urlnode
+end
+
+note Percent encoding preserves real branch names including slashes and instruction filenames.
+fn sp_url_part node ulong to void
+note URL digits are the immutable text pp0358
+one = new uchar 1 0
+idx = ulong 0
+while lt idx sj_size node
+c = sj_byte node idx
+safe = or and ge c 65 le c 90 and ge c 97 le c 122
+safe = or safe and ge c 48 le c 57
+safe = or safe or eq c 45 or eq c 46 or eq c 95 eq c 126
+if safe
+put one 0 c
+sr_raw one
+else
+sr_raw pp0359
+put one 0 get pp0358 ulong shr c 4
+sr_raw one
+put one 0 get pp0358 ulong and c 15
+sr_raw one
+end
+idx = add idx 1
+end
+end
+
+fn sp_agent_card node ulong to void
+sr_raw pp0360
+sp_value node pp0361
+sr_raw pp0362
+sp_repo_url node
+sr_raw pp0349
+name = sp_field node pp0361
+if sj_eq name pp0363
+sr_raw pp0364
+else
+if sj_eq name pp0365
+sr_raw pp0366
+else
+if sj_eq name pp0367
+sr_raw pp0368
+else
+sj_emit name
+end
+end
+end
+sr_raw pp0369
+if eq sj_kind sj_find node pp0370 5
+sr_raw pp0371
+end
+if eq sj_kind sp_field node pp0372 5
+sr_raw pp0373
+end
+sr_raw pp0118
+sp_value node pp0374
+sr_raw pp0375
+sp_value node pp0376
+sr_raw pp0377
+sp_value node pp0378
+sr_raw pp0379
+brief = sj_find node pp0380
+if eq sj_kind brief 3
+if not or sj_eq brief pp0381 sj_eq brief pp0382
+exit 65
+end
+sr_raw pp0355
+sp_repo_url node
+sr_raw pp0383
+sp_url_part sp_field node pp0376
+sr_raw pp0384
+sp_url_part brief
+sr_raw pp0349
+sj_emit brief
+sr_raw pp0385
+else
+sr_raw pp0386
+sp_repo_url node
+sr_raw pp0387
+end
+sr_raw pp0031
+end
+
+fn sp_rules to void
+sr_raw pp0388
+sp_escaped_file pp0389
+sr_raw pp0390
+end
+
+fn sp_escaped_file path view uchar * to void
+buf = new uchar 4096 0
+fd = open path 0 len path 0 0
+if lt fd 0
+exit 66
+end
+while true
+n = read int fd buf 0 len buf
+if lt n 0
+exit 66
+end
+if eq n 0
+break
+end
+sp_escape_slice buf ulong n
+end
+closed = close int fd
+if ne closed 0
+exit 66
+end
+end
+
+fn sp_escape_slice buf view uchar * count ulong to void
+one = new uchar 1 0
+i = ulong 0
+while lt i count
+put one 0 get buf i
+sr_esc one
+i = add i 1
+end
+end
+
+fn sp_agents to void
+sr_raw pp0391
+sp_rules
+root = sj_load pp0392
+repos = sp_field root pp0393
+if ne sj_kind repos 2
+exit 65
+end
+sr_raw pp0394
+sr_num sj_len repos
+sr_raw pp0395
+count = ulong 0
+node = sj_first repos
+while ne node 0
+if eq sj_kind sj_find node pp0380 3
+count = add count 1
+end
+node = sj_next node
+end
+sr_num count
+sr_raw pp0396
+sp_value root pp0397
+sr_raw pp0398
+node = sj_first repos
+while ne node 0
+sp_agent_card node
+node = sj_next node
+end
+sr_raw pp0399
+end
+
+fn sp_page route view uchar * to bool
+if sr_equal route pp0400
+sp_learn
+ret true
+end
+if sr_equal route pp0401
+sp_start
+ret true
+end
+if sr_equal route pp0402
+sp_contact
+ret true
+end
+if sr_equal route pp0403
+sp_now
+ret true
+end
+if sr_equal route pp0404
+sp_dash
+ret true
+end
+if sr_equal route pp0405
+sp_agents
+ret true
+end
+if sr_equal route pp0406
+sp_owned
+ret true
+end
+if sr_equal route pp0407
+sp_blog
+ret true
+end
+if sr_equal route pp0408
+sp_blog_post
+ret true
+end
+if sr_equal route pp0409
+sp_glossary
+ret true
+end
+if sr_equal route pp0410
+sp_privacy
+ret true
+end
+ret false
+end

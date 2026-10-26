@@ -1,0 +1,513 @@
+note Source-preserving handwritten HTML import and HTML-to-Markdown mirrors.
+note The source arena is separate from JSON and registry metadata.
+global shbuf uchar 1048576
+global shlen ulong 1
+global shhref uchar 4096
+global shhn ulong 1
+text shmain "<main"
+text shmc "</main>"
+text shbody "<body"
+text shbc "</body>"
+text shhead "</head>"
+text shscript "<script"
+text shscrc "</script>"
+text shstyle "<style"
+text shstyc "</style>"
+text shheader "<header"
+text shhedc "</header>"
+text shnav "<nav"
+text shnavc "</nav>"
+text shfoot "<footer"
+text shftc "</footer>"
+text shsvg "<svg"
+text shsvgc "</svg>"
+text shtemp "<template"
+text shtempc "</template>"
+text shcomm "<!--"
+text shcomc "-->"
+text shnl "\n"
+text shhost "https://www.aienos.com"
+text shdiv "<div"
+text shdivc "</div>"
+text shgt ">"
+text shag "id=\"ag-data\""
+text shagr "id='ag-data'"
+text shld "application/ld+json"
+text shref "href="
+text shzh "/zh-CN/"
+text shpaper "./paper."
+text shpaper2 "paper."
+text shsha "./SHA256SUMS"
+text shsha2 "SHA256SUMS"
+text shprof "./profiles/"
+text shprof2 "profiles/"
+text shstyles "<link"
+text shrel "stylesheet"
+text shbasecss "/assets/style.css"
+text shnavcss "/assets/site-nav.css"
+text shnewcss "/assets/site.css"
+text shnewjs "/js/site.js"
+text shintro "/js/allen-intro.js"
+text shintrocss "/assets/allen-intro.css"
+text shintrold "id=\"allen-intro"
+text shintrold2 "id='allen-intro"
+
+fn sh_load path view uchar * to void
+fd = fopen path 0 len path 0 0
+if lt fd 0
+trap 10
+end
+n = ulong 0
+while true bound 1048576
+r = read int fd shbuf n sub len shbuf n
+if lt r 0
+trap 10
+end
+if eq r 0
+break
+end
+n = add n ulong r
+if eq n len shbuf
+trap 3
+end
+end
+r = fclose int fd
+if ne r 0
+trap 10
+end
+put shlen 0 n
+end
+
+fn sh_at pattern view uchar * pos ulong to bool
+if gt pos get shlen 0
+ret false
+end
+if gt len pattern sub get shlen 0 pos
+ret false
+end
+for i ulong len pattern
+if ne get shbuf add pos i get pattern i
+ret false
+end
+end
+ret true
+end
+
+fn sh_find pattern view uchar * pos ulong to ulong
+p = pos
+while lt p get shlen 0 bound 1048576
+if sh_at pattern p
+ret p
+end
+p = add p 1
+end
+ret get shlen 0
+end
+
+fn sh_end pos ulong to ulong
+p = pos
+quote = uchar 0
+while lt p get shlen 0 bound 1048576
+c = get shbuf p
+if ne quote 0
+if eq c quote
+quote = 0
+end
+else
+if or eq c 34 eq c 39
+quote = c
+else
+if eq c 62
+ret add p 1
+end
+end
+end
+p = add p 1
+end
+trap 10
+end
+
+fn sh_range start ulong finish ulong to void
+buf = new uchar 8192 0
+p = start
+while lt p finish bound 1048576
+n = sub finish p
+if gt n len buf
+n = len buf
+end
+for i ulong n
+put buf i get shbuf add p i
+end
+sr_raw part buf 0 n
+p = add p n
+end
+end
+
+fn sh_contains pattern view uchar * start ulong finish ulong to bool
+p = sh_find pattern start
+ret lt p finish
+end
+
+fn sh_after closepat view uchar * start ulong to ulong
+p = sh_find closepat start
+if eq p get shlen 0
+trap 10
+end
+ret add p len closepat
+end
+
+fn sh_skip pos ulong to ulong
+if sh_at shcomm pos
+ret sh_after shcomc pos
+end
+if sh_at shscript pos
+ret sh_after shscrc pos
+end
+if sh_at shstyle pos
+ret sh_after shstyc pos
+end
+if sh_at shsvg pos
+ret sh_after shsvgc pos
+end
+if sh_at shheader pos
+ret sh_after shhedc pos
+end
+if sh_at shnav pos
+ret sh_after shnavc pos
+end
+if sh_at shfoot pos
+ret sh_after shftc pos
+end
+if sh_at shtemp pos
+ret sh_after shtempc pos
+end
+ret pos
+end
+
+fn sh_extra start ulong finish ulong to void
+p = start
+while lt p finish bound 1048576
+if sh_at shstyle p
+q = sh_after shstyc p
+sh_range p q
+p = q
+else
+if sh_at shscript p
+q = sh_after shscrc p
+if not or sh_contains shld p q sh_contains shintro p q
+sh_range p q
+end
+p = q
+else
+if sh_at shstyles p
+q = sh_end p
+if sh_contains shrel p q
+if not or or sh_contains shbasecss p q sh_contains shnavcss p q sh_contains shintrocss p q
+sh_range p q
+end
+end
+p = q
+else
+p = add p 1
+end
+end
+end
+end
+end
+
+fn sh_relink pos ulong route view uchar * to ulong
+if lt len route len shzh
+ret pos
+end
+if not sr_equal part route 0 len shzh shzh
+ret pos
+end
+if not sh_at shref pos
+ret pos
+end
+p = add pos len shref
+quote = get shbuf p
+if not or eq quote 34 eq quote 39
+ret pos
+end
+p = add p 1
+if not or or or or or sh_at shpaper p sh_at shpaper2 p sh_at shsha p sh_at shsha2 p sh_at shprof p sh_at shprof2 p
+ret pos
+end
+sh_range pos p
+sr_raw stslash
+sr_esc part route len shzh sub len route len shzh
+if eq get shbuf p 46
+p = add p 2
+end
+ret p
+end
+
+fn sh_preserve start ulong finish ulong route view uchar * to void
+p = start
+mark = start
+while lt p finish bound 1048576
+if sh_at shscript p
+q = sh_end p
+if or sh_contains shag p q sh_contains shagr p q
+sh_range mark p
+p = sh_after shscrc p
+mark = p
+else
+p = sh_after shscrc p
+end
+else
+q = sh_relink_probe p route
+if ne q p
+sh_range mark p
+q = sh_relink p route
+p = q
+mark = p
+else
+p = add p 1
+end
+end
+end
+sh_range mark finish
+end
+
+fn sh_relink_probe pos ulong route view uchar * to ulong
+if lt len route len shzh
+ret pos
+end
+if not sr_equal part route 0 len shzh shzh
+ret pos
+end
+if not sh_at shref pos
+ret pos
+end
+p = add pos add len shref 1
+if or or or or or sh_at shpaper p sh_at shpaper2 p sh_at shsha p sh_at shsha2 p sh_at shprof p sh_at shprof2 p
+ret add pos 1
+end
+ret pos
+end
+
+fn sh_body source view uchar * route view uchar * to void
+sh_load source
+h = sh_find shhead 0
+sh_extra 0 h
+p = sh_find shmain 0
+if lt p get shlen 0
+q = sh_end p
+sr_raw shdiv
+sh_range add p len shmain q
+finish = sh_find shmc q
+if eq finish get shlen 0
+trap 10
+end
+sh_preserve q finish route
+sr_raw shdivc
+sh_extra add finish len shmc get shlen 0
+else
+p = sh_find shbody 0
+p = sh_end p
+finish = sh_find shbc p
+while lt p finish bound 1048576
+if or or sh_at shheader p sh_at shnav p sh_at shfoot p
+p = sh_skip p
+else
+q = add p 1
+while lt q finish bound 1048576
+if or or sh_at shheader q sh_at shnav q sh_at shfoot q
+break
+end
+q = add q 1
+end
+sh_preserve p q route
+p = q
+end
+end
+end
+end
+
+fn sh_char pos ulong to void
+buf = new uchar 1 0
+put buf 0 get shbuf pos
+sr_raw buf
+end
+
+fn sh_entity pos ulong to ulong
+text amp "&amp;"
+text ltent "&lt;"
+text gtent "&gt;"
+text quot "&quot;"
+text apos "&#39;"
+text apos2 "&#x27;"
+text nbsp "&nbsp;"
+text ampc "&"
+text ltc "<"
+text gtc ">"
+text quotc "\""
+text aposc "'"
+text space " "
+if sh_at amp pos
+sr_raw ampc
+ret add pos len amp
+end
+if sh_at ltent pos
+sr_raw ltc
+ret add pos len ltent
+end
+if sh_at gtent pos
+sr_raw gtc
+ret add pos len gtent
+end
+if sh_at quot pos
+sr_raw quotc
+ret add pos len quot
+end
+if sh_at apos pos
+sr_raw aposc
+ret add pos len apos
+end
+if sh_at apos2 pos
+sr_raw aposc
+ret add pos len apos2
+end
+if sh_at nbsp pos
+sr_raw space
+ret add pos len nbsp
+end
+sh_char pos
+ret add pos 1
+end
+
+fn sh_link pos ulong finish ulong to void
+p = sh_find shref pos
+if ge p finish
+put shhn 0 0
+ret
+end
+p = add p len shref
+quote = get shbuf p
+p = add p 1
+n = ulong 0
+while lt p finish bound 4096
+if eq get shbuf p quote
+break
+end
+if ge n len shhref
+trap 3
+end
+put shhref n get shbuf p
+n = add n 1
+p = add p 1
+end
+put shhn 0 n
+text op "["
+if gt n 0
+sr_raw op
+end
+end
+
+fn sh_link_end to void
+buf = new uchar 4096 0
+n = get shhn 0
+if eq n 0
+ret
+end
+for i ulong n
+put buf i get shhref i
+end
+text mid "]("
+text cl ")"
+sr_raw mid
+if eq get buf 0 47
+sr_raw shhost
+end
+sr_raw part buf 0 n
+sr_raw cl
+put shhn 0 0
+end
+
+fn sh_mdtag pos ulong finish ulong to void
+text h1 "<h1"
+text h2 "<h2"
+text h3 "<h3"
+text h4 "<h4"
+text a "<a "
+text ac "</a>"
+text li "<li"
+text b "<br"
+text p "<p"
+text div "<div"
+text sect "<section"
+text tr "<tr"
+text td "<td"
+text th "<th"
+text pre "<pre"
+text pc "</p"
+text lc "</li"
+text hc "</h"
+text title1 "\n\n# "
+text title2 "\n\n## "
+text title3 "\n\n### "
+text bullet "\n- "
+text space " "
+if sh_at h1 pos
+sr_raw title1
+ret
+end
+if sh_at h2 pos
+sr_raw title2
+ret
+end
+if or sh_at h3 pos sh_at h4 pos
+sr_raw title3
+ret
+end
+if sh_at a pos
+sh_link pos finish
+ret
+end
+if sh_at ac pos
+sh_link_end
+ret
+end
+if sh_at li pos
+sr_raw bullet
+ret
+end
+if or sh_at td pos sh_at th pos
+sr_raw space
+ret
+end
+if or or or or or or or or sh_at b pos sh_at p pos sh_at div pos sh_at sect pos sh_at tr pos sh_at pre pos sh_at pc pos sh_at lc pos sh_at hc pos
+sr_raw shnl
+end
+end
+
+fn sh_markdown source view uchar * to void
+sh_load source
+p = sh_find shmain 0
+if eq p get shlen 0
+p = sh_find shbody 0
+end
+p = sh_end p
+finish = sh_find shmc p
+if eq finish get shlen 0
+finish = sh_find shbc p
+end
+put shhn 0 0
+while lt p finish bound 1048576
+if eq get shbuf p 60
+q = sh_skip p
+if ne q p
+p = q
+else
+q = sh_end p
+sh_mdtag p q
+p = q
+end
+else
+p = sh_entity p
+end
+end
+sr_raw shnl
+end

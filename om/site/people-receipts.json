@@ -1,0 +1,38 @@
+[
+  {
+    "title": "The licence",
+    "says": "Omega, CUDApp, Omega Bridge, aien-crypto and physics-mv use Apache-2.0 WITH LLVM-exception. The exception lets anyone ship compiled kernels and binaries under terms they choose; the compiler source itself keeps Apache-2.0 attribution and NOTICE terms. interplane-mv and benchmarks-mv stay plain Apache-2.0.",
+    "href": "https://github.com/aien-dev/aien-sovereign-core/blob/main/LICENSE",
+    "on_branch": false
+  },
+  {
+    "title": "A 27 billion parameter model on my own engine",
+    "says": "Qwen3.8-27B in 8-bit form, served by my own server on my own GPU kernels, on one DGX Spark. Measured 7.63 tokens a second against a ceiling of 10.15 for this machine and this model, which is 75.17 percent of the ceiling (calc:ce5d974e). Slower than I want.",
+    "href": "https://github.com/aien-dev/aien-sovereign-core-mv/tree/qwen38/serve-fast/evidence/qwen38-serve-fast-20261019",
+    "on_branch": true
+  },
+  {
+    "title": "The ceiling that number is judged against",
+    "says": "How the 10.15 tokens a second limit was worked out from the machine's memory speed and the size of the model.",
+    "href": "https://github.com/aien-dev/aien-sovereign-core-mv/blob/alpha/ceiling-and-model/docs/qwen38/CEILING.md",
+    "on_branch": true
+  },
+  {
+    "title": "An operating system on a 2017 iMac",
+    "says": "Aienux, the AienOS kernel, boots on an ordinary desktop computer, bare metal, with no Linux underneath.",
+    "href": "https://github.com/aien-dev/aienux/blob/main/evidence/imac_kernel1_2026-10-17",
+    "on_branch": false
+  },
+  {
+    "title": "Hardware runs on a Raspberry Pi 5",
+    "says": "Aienux, the AienOS kernel, running on a small, inexpensive board, with a receipt for each run.",
+    "href": "https://github.com/aien-dev/aienux/blob/main/evidence/pi5_hardware_runs_2026-10-13",
+    "on_branch": false
+  },
+  {
+    "title": "The first outside-style install test failed",
+    "says": "A fresh user account followed the written guide for running the 27B model. The guide did not pass as written. The fixes are queued and the failure stays on the record.",
+    "href": "https://github.com/aien-dev/aien-sovereign-core-mv/tree/alpha/fresh-account-evidence/evidence/alpha-fresh-account-20261019",
+    "on_branch": true
+  }
+]

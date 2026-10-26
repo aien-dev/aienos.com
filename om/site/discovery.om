@@ -1,0 +1,973 @@
+note Discovery renderer. Compose after runtime/json; the core supplies the leading om2.
+note Source content baseline 3d36bd7829d1. Canonical research data is read on every entry.
+note All counts are source-record bookkeeping, never claims of current activity or qualification.
+text dpath "crates/site-builder/data/research_status.json"
+text dcopy "om/site/discovery.json"
+text dsource "https://github.com/aien-dev/aienos.com/blob/main/crates/site-builder/data/research_status.json"
+text downsrc "https://github.com/aien-dev/aienos.com/blob/main/om/site/discovery.json"
+text dqs "https://github.com/aien-dev/omega-mv/blob/main/docs/turing/TURING_SCIENTIFIC_QUALIFICATION_STATE.md"
+text dgit "https://github.com/aien-dev/"
+text dblob "/blob/main/"
+text domega "omega-mv"
+text daienux "aienux"
+text darch "aien-architecture-mv"
+text datlas "atlas"
+text dpreom "omega "
+text dpreos "aienos "
+text dprear "aien-architecture "
+text dpreat "atlas "
+text dcurdoc "TURING_CURRENT_STATE.md"
+text dcurpth "docs/turing/TURING_CURRENT_STATE.md"
+text dqsword "QS"
+text dqscolon "QS:"
+text dline "#L"
+text ddotdot ".."
+text dslash "/"
+text dhttps "https://"
+text deh ".h"
+text dec ".c"
+text demd ".md"
+text desh ".sh"
+text dejson ".json"
+text demk ".mk"
+text detxt ".txt"
+text detsv ".tsv"
+text dkid "id"
+text dktitle "title"
+text dkdesc "description"
+text dkhref "href"
+text dksource "source"
+text dklink "link"
+text dkevid "evidence"
+text dklevel "level"
+text dksum "summary"
+text dkout "outside_scope"
+text dknote "note"
+text dkmean "meaning"
+text dklimit "limitations"
+text dkcurr "current_level"
+text dkladder "ladder"
+text dkstate "state"
+text dkname "name"
+text dkdetail "detail"
+text dkbasis "basis"
+text dkattemp "attempts"
+text dkbeside "beside"
+text dkoutcom "outcome"
+text dkled "led_to"
+text dkturing "turing_rows"
+text dkimpl "implementation_rows"
+text dkstatus "status"
+text dkstatdt "status_detail"
+text dkplain "plain"
+text dkhead "headline"
+text dknyield "not_yield"
+text dkscope "scope"
+text dkclaim "claim_level"
+text dkrcpt "receipt"
+text dkcommit "commit"
+text dkdate "date"
+text dknext "next_dependency"
+text dkclass "class"
+text dkasof "as_of"
+text dktable "source_table"
+text dkcomm "source_commits"
+text dkhier "evidence_hierarchy"
+text dkcaveat "caveats"
+text dkdefine "turing_definition"
+text dkabbrev "abbreviations"
+text dkshort "short"
+text dklong "long"
+text dkallow "allowed_statuses"
+text dkastate "allowed_ladder_states"
+text dkacls "allowed_classes"
+text dkom "omega"
+text dkos "aienos"
+text dkar "aien_architecture"
+text dksite "aienos_com"
+text dkcards "cards"
+text dkparas "paragraphs"
+text dklabel "label"
+text dkintro "intro"
+text dkphilo "philosophy"
+text dkehub "evidence"
+text dkorder "hierarchy"
+text dkexams "exams"
+text dkrecid "record_id"
+text dkcaps "capabilities"
+text dkrcpts "receipts"
+text dkverdict "verdict"
+text dkfigure "figure"
+text dkenv "environment"
+text dkgate "gate"
+text dkproves "proves"
+text dknotpr "not_proves"
+text dkpapers "papers"
+text dty2 "TY-2"
+text dpass "PASS"
+text dfail "FAIL"
+text dincompl "INCOMPLETE"
+text dblocked "BLOCKED"
+text dpartial "PARTIAL"
+text dnotest "NOT ESTABLISHED"
+text dnotstrt "NOT STARTED"
+text dachieve "achieved"
+text dpart "partial"
+text dnotach "not achieved"
+text dnotatt "not attempted"
+text dimpl "Implemented"
+text dpimpl "Partially implemented"
+text dexper "Experimental"
+text dplan "Planned"
+text dhypoth "Research hypothesis"
+text dl0 "L0"
+text dl1 "L1"
+text dl2 "L2"
+text dl3 "L3"
+text dl4 "L4"
+text dl5 "L5"
+text dl6 "L6"
+text dl7 "L7+"
+text dp "<p>"
+text dpend "</p>"
+text dstrong "<strong>"
+text dstend "</strong>"
+text dspace " "
+text ddash "-"
+text dcolon ": "
+text dperiod ". "
+text dli "<li>"
+text dliend "</li>"
+text dul "<ul>"
+text dulend "</ul>"
+text ddivend "</div>"
+text dsecend "</section>"
+text dartend "</article>"
+text dh2 "<h2>"
+text dh2end "</h2>"
+text dh3 "<h3>"
+text dh3end "</h3>"
+text ddlist "<dl class=\"rs-facts\">"
+text ddlend "</dl>"
+text ddt "<div><dt>"
+text ddd "</dt><dd>"
+text dddend "</dd></div>"
+text danchor "<a href=\""
+text dclose "\">"
+text daend "</a>"
+text dquote "\""
+text dfoot "<a class=\"box-link\" href=\""
+text dfsrc "<a class=\"box-link box-link-source\" href=\""
+text dfoote "\" target=\"_blank\" rel=\"noopener noreferrer\">Evidence on GitHub <span class=\"box-arrow\" aria-hidden=\"true\">↗</span></a>"
+text dfoots "\" target=\"_blank\" rel=\"noopener noreferrer\">Source on GitHub <span class=\"box-arrow\" aria-hidden=\"true\">↗</span></a>"
+text dlstatus "Status"
+text dlscope "Scope"
+text dlclaim "Claim level"
+text dllimit "Limitations"
+text dlnext "Next dependency"
+text dlevid "Evidence"
+text dlrcpt "Receipt"
+text dlcommit "Commit"
+text dldate "Date"
+text dlenv "Environment"
+text dlgate "Gate"
+text dlproves "Proves"
+text dlnotpr "Does not prove"
+text dlsource "Receipt source"
+
+fn sd_get node ulong key view uchar * to ulong
+v = sj_find node key
+if ne sj_kind v 3
+exit 72
+end
+ret v
+end
+
+fn sd_arr node ulong key view uchar * to ulong
+v = sj_find node key
+if ne sj_kind v 2
+exit 72
+end
+ret v
+end
+
+fn sd_value node ulong key view uchar * to void
+sj_emit sd_get node key
+end
+
+fn sd_field node ulong key view uchar * label view uchar * to void
+sr_raw ddt
+sr_esc label
+sr_raw ddd
+sd_value node key
+sr_raw dddend
+end
+
+fn sd_nth arr ulong idx ulong to ulong
+item = sj_first arr
+for k ulong idx
+if eq item 0
+exit 72
+end
+item = sj_next item
+end
+if eq item 0
+exit 72
+end
+ret item
+end
+
+fn sd_expect arr ulong idx ulong value view uchar * to void
+if not sj_eq sd_nth arr idx value
+exit 72
+end
+end
+
+fn sd_member node ulong arr ulong to bool
+item = sj_first arr
+while ne item 0 bound 999999
+if sj_same node item
+ret true
+end
+item = sj_next item
+end
+ret false
+end
+
+fn sd_find arr ulong key view uchar * value ulong to ulong
+item = sj_first arr
+while ne item 0 bound 999999
+if sj_same sd_get item key value
+ret item
+end
+item = sj_next item
+end
+ret 0
+end
+
+fn sd_named arr ulong value view uchar * to ulong
+item = sj_first arr
+while ne item 0 bound 999999
+if sj_eq sd_get item dkid value
+ret item
+end
+item = sj_next item
+end
+exit 72
+end
+
+fn sd_enums root ulong to void
+a = sd_arr root dkallow
+if ne sj_len a 7
+exit 72
+end
+sd_expect a 0 dpass
+sd_expect a 1 dfail
+sd_expect a 2 dincompl
+sd_expect a 3 dblocked
+sd_expect a 4 dpartial
+sd_expect a 5 dnotest
+sd_expect a 6 dnotstrt
+b = sd_arr root dkastate
+if ne sj_len b 4
+exit 72
+end
+sd_expect b 0 dachieve
+sd_expect b 1 dpart
+sd_expect b 2 dnotach
+sd_expect b 3 dnotatt
+c = sd_arr root dkacls
+if ne sj_len c 5
+exit 72
+end
+sd_expect c 0 dimpl
+sd_expect c 1 dpimpl
+sd_expect c 2 dexper
+sd_expect c 3 dplan
+sd_expect c 4 dhypoth
+end
+
+fn sd_check_rows arr ulong allowed ulong key view uchar * to void
+item = sj_first arr
+if eq item 0
+exit 72
+end
+while ne item 0 bound 999999
+ident = sd_get item dkid
+if not sd_member sd_get item key allowed
+exit 72
+end
+other = sj_next item
+while ne other 0 bound 999999
+if sj_same ident sd_get other dkid
+exit 72
+end
+other = sj_next other
+end
+item = sj_next item
+end
+end
+
+fn sd_check_ladder root ulong to void
+arr = sd_arr root dkladder
+if ne sj_len arr 8
+exit 72
+end
+sd_expect_level arr 0 dl0
+sd_expect_level arr 1 dl1
+sd_expect_level arr 2 dl2
+sd_expect_level arr 3 dl3
+sd_expect_level arr 4 dl4
+sd_expect_level arr 5 dl5
+sd_expect_level arr 6 dl6
+sd_expect_level arr 7 dl7
+allowed = sd_arr root dkastate
+item = sj_first arr
+top = ulong 0
+gap = false
+while ne item 0 bound 999999
+value = sd_get item dkstate
+if not sd_member value allowed
+exit 72
+end
+if sj_eq value dachieve
+if gap
+exit 72
+end
+top = sd_get item dklevel
+else
+gap = true
+end
+item = sj_next item
+end
+if eq top 0
+exit 72
+end
+if not sj_same top sd_get sj_find root dkcurr dklevel
+exit 72
+end
+end
+
+fn sd_expect_level arr ulong idx ulong value view uchar * to void
+if not sj_eq sd_get sd_nth arr idx dklevel value
+exit 72
+end
+end
+
+fn sd_check_attempts root ulong to void
+arr = sd_arr root dkattemp
+item = sj_first arr
+while ne item 0 bound 999999
+row = sd_find sd_arr root dkturing dkid sd_get item dkid
+if eq row 0
+exit 72
+end
+if not sj_same sd_get row dkstatus sd_get item dkoutcom
+exit 72
+end
+if eq sd_find sd_arr root dkladder dklevel sd_get item dkbeside 0
+exit 72
+end
+if eq sd_find sd_arr root dkturing dkid sd_get item dkled 0
+exit 72
+end
+item = sj_next item
+end
+end
+
+fn sd_load to ulong
+root = sj_load dpath
+sd_enums root
+sd_check_ladder root
+sd_check_rows sd_arr root dkturing sd_arr root dkallow dkstatus
+sd_check_rows sd_arr root dkimpl sd_arr root dkacls dkclass
+sd_check_attempts root
+ret root
+end
+
+fn sd_prefix txt view uchar * prefix view uchar * to bool
+if lt len txt len prefix
+ret false
+end
+for k ulong len prefix
+if ne get txt k get prefix k
+ret false
+end
+end
+ret true
+end
+
+fn sd_suffix txt view uchar * suffix view uchar * to bool
+if lt len txt len suffix
+ret false
+end
+start = sub len txt len suffix
+for k ulong len suffix
+if ne get txt add start k get suffix k
+ret false
+end
+end
+ret true
+end
+
+fn sd_safehref node ulong github bool to void
+if github
+if not sj_prefix node dgit
+exit 72
+end
+else
+if sj_prefix node dslash
+if gt sj_size node 1
+if eq sj_byte node 1 47
+exit 72
+end
+end
+else
+if not sj_prefix node dhttps
+exit 72
+end
+end
+end
+sj_href node
+end
+
+fn sd_source to void
+sr_raw dfsrc
+sr_raw dsource
+sr_raw dfoots
+end
+
+fn sd_urlfoot url ulong evidence bool to void
+if evidence
+sr_raw dfoot
+else
+sr_raw dfsrc
+end
+sd_safehref url true
+if evidence
+sr_raw dfoote
+else
+sr_raw dfoots
+end
+end
+
+fn sd_fileext txt view uchar * to bool
+if sd_suffix txt deh
+ret true
+end
+if sd_suffix txt dec
+ret true
+end
+if sd_suffix txt demd
+ret true
+end
+if sd_suffix txt desh
+ret true
+end
+if sd_suffix txt dejson
+ret true
+end
+if sd_suffix txt demk
+ret true
+end
+if sd_suffix txt detxt
+ret true
+end
+if sd_suffix txt detsv
+ret true
+end
+ret false
+end
+
+fn sd_qsfoot txt view uchar * to void
+sr_raw dfoot
+sr_raw dqs
+if gt len txt 3
+k = ulong 3
+while lt k len txt bound 999999
+b = get txt k
+if or lt b 48 gt b 57
+break
+end
+k = add k 1
+end
+if gt k 3
+sr_raw dline
+sr_esc part txt 3 sub k 3
+end
+end
+sr_raw dfoote
+end
+
+fn sd_pathfoot txt view uchar * repo ulong to bool
+colon = len txt
+slash = false
+for k ulong len txt
+b = get txt k
+if eq b 58
+colon = k
+break
+end
+if eq b 47
+slash = true
+end
+if eq b 46
+if lt add k 1 len txt
+if eq get txt add k 1 46
+ret false
+end
+end
+end
+end
+special = sr_equal part txt 0 colon dcurdoc
+if not special
+if not slash
+ret false
+end
+if eq get txt 0 47
+ret false
+end
+if not sd_fileext part txt 0 colon
+ret false
+end
+end
+sr_raw dfoot
+sr_raw dgit
+if eq repo 1
+sr_raw daienux
+else
+if eq repo 2
+sr_raw darch
+else
+if eq repo 3
+sr_raw datlas
+else
+sr_raw domega
+end
+end
+end
+sr_raw dblob
+if special
+sr_raw dcurpth
+else
+sr_esc part txt 0 colon
+end
+if lt colon len txt
+start = add colon 1
+finish = start
+while lt finish len txt bound 999999
+b = get txt finish
+if or lt b 48 gt b 57
+break
+end
+finish = add finish 1
+end
+if gt finish start
+sr_raw dline
+sr_esc part txt start sub finish start
+end
+end
+sr_raw dfoote
+ret true
+end
+
+fn sd_citation txt view uchar * to bool
+start = ulong 0
+while lt start len txt bound 999999
+if gt get txt start 32
+break
+end
+start = add start 1
+end
+repo = ulong 0
+if sd_prefix part txt start sub len txt start dpreos
+repo = 1
+start = add start len dpreos
+else
+if sd_prefix part txt start sub len txt start dprear
+repo = 2
+start = add start len dprear
+else
+if sd_prefix part txt start sub len txt start dpreat
+repo = 3
+start = add start len dpreat
+else
+if sd_prefix part txt start sub len txt start dpreom
+start = add start len dpreom
+end
+end
+end
+end
+finish = start
+while lt finish len txt bound 999999
+if le get txt finish 32
+break
+end
+finish = add finish 1
+end
+while gt finish start bound 999999
+b = get txt sub finish 1
+if not or or eq b 44 eq b 59 eq b 58
+break
+end
+finish = sub finish 1
+end
+if eq finish start
+ret false
+end
+if or sr_equal part txt start sub finish start dqsword sd_prefix part txt start sub finish start dqscolon
+sd_qsfoot part txt start sub finish start
+ret true
+end
+ret sd_pathfoot part txt start sub finish start repo
+end
+
+fn sd_evidence node ulong key view uchar * to void
+buf = new uchar 4096 0
+url = sj_find node dklink
+if ne url 0
+sd_urlfoot url true
+ret
+end
+ev = sd_get node key
+n = sj_string ev buf
+if not sd_citation part buf 0 n
+sd_source
+end
+end
+
+fn sd_slug node ulong to void
+buf = new uchar 1 0
+pending = false
+wrote = false
+for k ulong sj_size node
+b = sj_byte node k
+if and ge b 65 le b 90
+b = add b 32
+end
+if or and ge b 97 le b 122 and ge b 48 le b 57
+if pending
+sr_raw ddash
+pending = false
+end
+put buf 0 b
+sr_raw buf
+wrote = true
+else
+if wrote
+pending = true
+end
+end
+end
+end
+
+text dbadge "<span class=\"rs-badge rs-badge--"
+text dspend "</span>"
+fn sd_badge node ulong to void
+sr_raw dbadge
+sd_slug node
+sr_raw dclose
+sj_emit node
+sr_raw dspend
+end
+
+text dcurrent "<p class=\"rs-current\"><strong>Current level: "
+text dcurrmid ".</strong> "
+fn sd_current root ulong to void
+cur = sj_find root dkcurr
+sr_raw dcurrent
+sd_value cur dksum
+sr_raw dcurrmid
+sd_value cur dkout
+sr_raw dspace
+sd_value cur dknote
+sr_raw dpend
+sr_raw dp
+sd_value cur dkmean
+sr_raw dpend
+end
+
+text dladopen "<div class=\"rs-ladder evidence-ladder\">"
+text dladhint "<p class=\"muted\">Each step rests on the one below it. The state is written on every step; a partial step above a gap does not raise the claim ceiling.</p><ol class=\"stack\">"
+text dladend "</ol></div>"
+text dstep "<li class=\"rs-step panel\" data-level=\""
+text dststate "\" data-state=\""
+text dsteph "\"><h3>"
+text dbasis "<p>Evidence: "
+text dattempt "<div class=\"rs-attempt\" data-attempt=\""
+text datth "\"><p>"
+text dattkeep " failed attempt, kept on the record</p><p>"
+text dledto " Led to "
+fn sd_attempts root ulong level ulong to void
+item = sj_first sd_arr root dkattemp
+while ne item 0 bound 999999
+if sj_same sd_get item dkbeside level
+sr_raw dattempt
+sd_value item dkid
+sr_raw datth
+sd_badge sd_get item dkoutcom
+sr_raw dspace
+sd_value item dkid
+sr_raw dattkeep
+sd_value item dksum
+sr_raw dledto
+sd_value item dkled
+sr_raw dpend
+sr_raw ddivend
+end
+item = sj_next item
+end
+end
+
+fn sd_ladder_data root ulong to void
+sr_raw dladopen
+sd_current root
+sr_raw dladhint
+item = sj_first sd_arr root dkladder
+while ne item 0 bound 999999
+sr_raw dstep
+sd_value item dklevel
+sr_raw dststate
+sd_value item dkstate
+sr_raw dsteph
+sd_value item dklevel
+sr_raw dcolon
+sd_value item dkname
+sr_raw dh3end
+sr_raw dp
+sd_value item dkstate
+sr_raw dpend
+sr_raw dp
+sd_value item dkdetail
+sr_raw dpend
+sr_raw dbasis
+sd_value item dkbasis
+sr_raw dpend
+sd_evidence item dkbasis
+sd_attempts root sd_get item dklevel
+sr_raw dliend
+item = sj_next item
+end
+sr_raw dladend
+end
+
+fn sd_ladder to void
+root = sd_load
+sd_ladder_data root
+end
+
+fn sd_facts node ulong to void
+sr_raw ddlist
+sd_field node dkstatdt dlstatus
+sd_field node dkscope dlscope
+sd_field node dkclaim dlclaim
+sd_field node dklimit dllimit
+sd_field node dknext dlnext
+sd_field node dkevid dlevid
+sd_field node dkrcpt dlrcpt
+sd_field node dkcommit dlcommit
+sd_field node dkdate dldate
+sr_raw ddlend
+end
+
+text dcards "<div class=\"rs-cards\">"
+text dcard "<article class=\"rs-card panel\" id=\"rs-"
+text drow "\" data-row=\""
+text dstat "\" data-status=\""
+text dtitle "<h3 class=\"rs-card-title\" data-role=\"result-label\">"
+text dhead "<p class=\"rs-card-headline\" data-role=\"result-label\">"
+text dcallout "<p class=\"rs-card-callout\">"
+text dmore "<details><summary>Scope, limits and receipt</summary>"
+text dmend "</details>"
+fn sd_turing_card row ulong to void
+sr_raw dcard
+sd_slug sd_get row dkid
+sr_raw drow
+sd_value row dkid
+sr_raw dstat
+sd_value row dkstatus
+sr_raw dclose
+sd_badge sd_get row dkstatus
+sr_raw dspace
+sd_value row dkid
+sr_raw dtitle
+sd_value row dktitle
+sr_raw dh3end
+h = sj_find row dkhead
+if ne h 0
+sr_raw dhead
+sj_emit h
+sr_raw dpend
+end
+n = sj_find row dknyield
+if ne n 0
+sr_raw dcallout
+sj_emit n
+sr_raw dpend
+end
+sr_raw dp
+sd_value row dkplain
+sr_raw dpend
+sr_raw dmore
+sd_facts row
+sr_raw dmend
+sd_evidence row dkevid
+sr_raw dartend
+end
+
+fn sd_cards root ulong to void
+sr_raw dcards
+item = sj_first sd_arr root dkturing
+while ne item 0 bound 999999
+sd_turing_card item
+item = sj_next item
+end
+sr_raw ddivend
+end
+
+text dgroup "<section class=\"rs-group section\" data-class=\""
+text dcount " ("
+text dcounten ")"
+text dibuilt "<p>Code and tests exist. Each entry says how far that goes.</p>"
+text dipart "<p>Some of it exists. The missing part is named.</p>"
+text diexper "<p>Being tried. Results so far, including failures, are on the record.</p>"
+text diplan "<p>Written down as a plan or specification. No code yet.</p>"
+text dihyp "<p>Not built. An idea to test, not a feature.</p>"
+text diitem "<li class=\"rs-impl-item panel\" data-impl=\""
+fn sd_class_intro cls ulong to void
+if sj_eq cls dimpl
+sr_raw dibuilt
+end
+if sj_eq cls dpimpl
+sr_raw dipart
+end
+if sj_eq cls dexper
+sr_raw diexper
+end
+if sj_eq cls dplan
+sr_raw diplan
+end
+if sj_eq cls dhypoth
+sr_raw dihyp
+end
+end
+
+fn sd_group arr ulong cls ulong to void
+count = ulong 0
+item = sj_first arr
+while ne item 0 bound 999999
+if sj_same sd_get item dkclass cls
+count = add count 1
+end
+item = sj_next item
+end
+if eq count 0
+ret
+end
+sr_raw dgroup
+sj_emit cls
+sr_raw dclose
+sr_raw dh3
+sj_emit cls
+sr_raw dcount
+sr_num count
+sr_raw dcounten
+sr_raw dh3end
+sd_class_intro cls
+sr_raw dul
+item = sj_first arr
+while ne item 0 bound 999999
+if sj_same sd_get item dkclass cls
+sr_raw diitem
+sd_value item dkid
+sr_raw dclose
+sr_raw dh3
+sd_value item dkid
+sr_raw dh3end
+sr_raw dp
+sd_value item dkstatdt
+sr_raw dpend
+sr_raw dp
+sd_value item dkscope
+sr_raw dpend
+sr_raw dmore
+sd_facts item
+sr_raw dmend
+sd_evidence item dkevid
+sr_raw dliend
+end
+item = sj_next item
+end
+sr_raw dulend
+sr_raw dsecend
+end
+
+fn sd_implementation_data root ulong to void
+item = sj_first sd_arr root dkacls
+while ne item 0 bound 999999
+sd_group sd_arr root dkimpl item
+item = sj_next item
+end
+end
+
+fn sd_implementation to void
+root = sd_load
+sd_implementation_data root
+end
+
+text dsources "<section id=\"sources\" class=\"section rs-sources\"><h2>Sources and caveats</h2>"
+text drepocom "<p>Repository commits read: omega "
+text doscomm ", aienos "
+text darcomm ", aien-architecture "
+text dsitecom ", aienos.com "
+text derank "<p>Evidence ranks: "
+text dlevlim " Evidence for the current level: "
+text dabhead "<h3>Abbreviations</h3>"
+fn sd_sources root ulong to void
+sr_raw dsources
+sr_raw dp
+sd_value root dktable
+sr_raw dpend
+c = sj_find root dkcomm
+sr_raw drepocom
+sd_value c dkom
+sr_raw doscomm
+sd_value c dkos
+sr_raw darcomm
+sd_value c dkar
+sr_raw dsitecom
+sd_value c dksite
+sr_raw dpend
+sr_raw derank
+sd_value root dkhier
+sr_raw dpend
+sr_raw dul
+item = sj_first sd_arr root dkcaveat
+while ne item 0 bound 999999
+sr_raw dli
+sj_emit item
+sr_raw dliend
+item = sj_next item
+end
+cur = sj_find root dkcurr
+sr_raw dli
+sd_value cur dklimit
+sr_raw dlevlim
+sd_value cur dkevid
+sr_raw dliend
+sr_raw dulend
+sr_raw dabhead
+sr_raw ddlist
+item = sj_first sd_arr root dkabbrev
+while ne item 0 bound 999999
+sr_raw ddt
+sd_value item dkshort
+sr_raw ddd
+sd_value item dklong
+sr_raw dddend
+item = sj_next item
+end
+sr_raw ddlend
+sd_source
+sr_raw dsecend
+end
