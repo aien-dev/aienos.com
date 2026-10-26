@@ -14,6 +14,7 @@ browser --TLS--> hub :443 SNI router --PROXY protocol--> hub nginx www.aienos.co
         chat      --> 127.0.0.1:18091 (shared model server, streamed, keep-alive)
         omega     --> bwrap { pinned omc (native check, then IR) -> pinned irwasm } -> .wasm to the browser
         submit    --> spool/in/<id>.json          (omega-projects-pusher files it; see below)
+        projects/save|publish --> spool/in/<id>.json (the build loop; see "Build loop")
         introduce --> contacts-drop/<hex>.json    (allen-contacts-ingest stores it; see below)
 ```
 
@@ -76,9 +77,10 @@ prompt, and each point is tested with a negative control (results in the PR):
    `omega-projects-pusher` (path-activated, the only holder of GitHub write
    access, scoped in code to `aien-dev/omega-projects`), re-validates it,
    removes emails and phone numbers, and files exactly one issue (labels
-   `from-allen`, `area:<repo>`) or opens one pull request on a
-   `submissions/<slug>-<id>` branch. It never pushes to main and never merges;
-   the repository's ruleset requires my approval with no bypass. Only my merge
+   `from-allen`, `area:<repo>`), commits a visitor's save to their own branch
+   `u/<handle>`, or commits a publish to `p/<handle>/<project>` and opens one
+   pull request to main. It never pushes to main and never merges; the
+   repository's ruleset requires my approval with no bypass. Only my merge
    publishes anything.
 6. **Introductions are private and consented.** Nothing is stored unless the
    visitor (or agent) sends `consent: true` after the notice. The gateway drops
@@ -281,6 +283,41 @@ proxy_protocol; proxy_protocol off; proxy_pass 127.0.0.1:4443;` and the same
 and rollback: `/root/allenchat-backup-<UTC>` holds `stream.d`, `sites-*`,
 `snippets` and `conf.d` as they were; copy them back, `nginx -t`, reload.
 
+## Build loop (homes, save, publish, gallery)
+
+After the greeting Allen asks what the visitor would like to build for humanity
+and builds it with them; the result can be downloaded freely, saved to their
+home or published. Rules live in `allen_build.py` (shared with the pusher),
+routes in `allen_projects.py`:
+
+- **Home** `projects/<handle>/<project>/` in aien-dev/omega-projects. A
+  remembered visitor's handle is `<name>-<tag>`, the tag an HMAC of their
+  visitor id under `ALLEN_VISITOR_SECRET`; the gateway stores
+  `Builder handle: ...` in the visitor Cortex, so Allen recalls it. The name
+  is lowercase letters, digits and hyphens: never an email. An anonymous
+  visitor gets `anon-<tag>` and a one-time claim code (`X-Allen-Claim`), shown
+  once and never stored.
+- **Ownership** is checked server-side on every `POST projects/save|publish`:
+  the handle must be the caller's own (403 otherwise), whatever the model or
+  page sends. The pusher builds every path from the validated handle and
+  project name and its request guard refuses any tree entry outside
+  `projects/<handle>/<project>/`, any ref other than `u/...`/`p/...`, forced
+  updates, and any change to a pull request other than closing it.
+- **Files**: `index.html`, `README.md` (required: what it is and who it helps),
+  `name.om|js|css|md|txt|patch`; 64 KiB each, 256 KiB and 12 files a project;
+  no external loads in html/js/css, no secret shapes, no email in code; prose
+  is scrubbed. The pusher adds `meta.json` (no personal data).
+- **Save**: one commit on `u/<handle>` (created from main), visible on GitHub
+  at once. **Publish**: one commit on `p/<handle>/<project>` (main merged in
+  when it moved) and one pull request to main, reused while open.
+- **Drake's console** lists open publish requests with "Review and approve on
+  GitHub" and Decline (the pusher comments and closes the request); Refresh
+  rewrites the index from GitHub. **Gallery**: `GET gallery` lists merged
+  projects from main's `meta.json` files (`spool-status/index.json`).
+- **CI** in omega-projects (`.github/workflows/project-checks.yml`):
+  `pull_request` only, read-only token, no secrets, no actions; main's
+  `check_projects.py` re-checks every pull request.
+
 ## Tests
 
 ```sh
@@ -293,14 +330,17 @@ python3 scripts/allen/test_reaching_drake_prod.py  # production: console reachab
 python3 scripts/allen/test_transcribe.py --omc om/hive-page/omc --irwasm om/hive-page/irwasm \
     --system-prompt scripts/allen/system-prompt.txt --whisper-cli /opt/allen-chat/whisper-cli \
     --whisper-model /opt/allen-chat/ggml-base.en.bin --sample jfk.wav  # push-to-talk: formats, caps, 429/503, no file, latency
+python3 scripts/allen/test_build_loop.py --omc om/hive-page/omc --irwasm om/hive-page/irwasm \
+    --system-prompt scripts/allen/system-prompt.txt --pusher-dir scripts/allen/pusher  # homes, ownership, saves, publish, console, gallery (GitHub stub)
+python3 scripts/allen/pusher/test_pusher.py        # pusher against the stub; LIVE=1 adds live repository settings
+python3 scripts/allen/e2e_calculator.py ... --calc calc.om --out DIR  # real omega-projects, test-labelled (needs the vault token)
 ```
 
 `test_gateway.py` starts throwaway loopback gateways (never the production
 unit): input caps, Omega refusals (including the native pre-check), per-address
 429 with a control address, first-token and mid-stream timeouts against a
-stalling stub, health back-off, submit validation (traversal, oversize, binary,
-external script, secret-shaped text; valid control; dedupe; status URL
-filtering), the introduce consent gate and drop format, the output cap, and a
+stalling stub, health back-off, submit validation (project items refused, binary and
+secret-shaped text; valid control; dedupe; status URL filtering), the introduce consent gate and drop format, the output cap, and a
 10-client load test that records the peak of concurrent streams, queue
 positions and the shared server's `/health` throughout. `dev_proxy.py` serves a
 built site and forwards `/allen/api/` to a local gateway for browser tests; it

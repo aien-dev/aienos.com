@@ -36,6 +36,8 @@
   const POLL_MS = 3000;
   const POLL_LIMIT = 120000;
   const REVIEW_HOST = 'aien-dev.github.io/omega-projects/projects/';
+  const PROJECTS = '/allen/api/projects/';
+  const GALLERY = '/allen/api/gallery';
   const FORGET_ME = '/allen/api/forget-me';
   const KEY_NAME = 'allen.key';
   const KEY_PATTERN = /^[0-9a-f]{32}$/;
@@ -469,7 +471,7 @@
     }
     row.append(button('README.md', () => save('README.md', readme(project), 'text/markdown')));
     row.append(button(`${project.base}.zip`, () => save(`${project.base}.zip`, zip(projectFiles(project)), 'application/zip')));
-    row.append(button('Publish to Omega Projects', () => publishForm(project, pub)));
+    row.append(button('Save or publish', () => publishForm(project, pub)));
   }
   function field(parent, label, tag, max) {
     const wrap = el('label', 'allen-field');
@@ -492,6 +494,69 @@
     return `${refusal(response.status, reply)}${wait ? ` Try again in ${wait} s.` : ''} ${tail}`.trim();
   }
   const SLUG = /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/;
+  const NAME = /^[a-z](?:[a-z0-9]|-(?=[a-z0-9])){1,23}$/;
+  /* The builder's home projects/<handle>/ in omega-projects. A remembered
+     visitor gets <name>-<tag>, tied to their key and remembered by Allen; an
+     anonymous visitor gets a one-time anon- handle whose claim code lives only
+     in this page and is shown once. The gateway checks ownership on every save. */
+  const home = { handle: '', claim: '' };
+  function claimHeaders() {
+    return home.claim ? { 'X-Allen-Claim': home.claim } : {};
+  }
+  async function projectCall(path, body) {
+    const response = await fetch(PROJECTS + path, body === undefined
+      ? { cache: 'no-store', credentials: 'omit', headers: { Accept: 'application/json', ...keyHeaders(false), ...claimHeaders() } }
+      : post(body, claimHeaders()));
+    return { response, reply: await response.json().catch(() => null) };
+  }
+  async function findHome() {
+    if (home.handle || !remembered) return home.handle;
+    try {
+      const { response, reply } = await projectCall('me');
+      if (response.ok && reply && typeof reply.handle === 'string') home.handle = reply.handle;
+    } catch (_) {
+      /* No home yet; the form asks for a name. */
+    }
+    return home.handle;
+  }
+  async function makeHome(name, state) {
+    const { response, reply } = await projectCall('handle', remembered ? { name } : {});
+    if (!response.ok || !reply || typeof reply.handle !== 'string') {
+      state.replaceChildren(el('p', 'allen-err', failure(response, reply, 'No home was made.')));
+      return '';
+    }
+    home.handle = reply.handle;
+    if (typeof reply.claim === 'string') {
+      home.claim = reply.claim;
+      const line = el('p', 'allen-keyline');
+      line.append(el('span', '', 'Your claim code, shown once: '), el('code', '', reply.claim));
+      state.replaceChildren(line, el('p', 'allen-note', 'Copy it now. It is the only way to save to this home again; Allen does not keep it.'));
+    }
+    return home.handle;
+  }
+  async function showGallery(out) {
+    out.replaceChildren(el('p', 'allen-note', 'Loading the Built with Allen gallery.'));
+    try {
+      const response = await fetch(GALLERY, { cache: 'no-store', credentials: 'omit', headers: { Accept: 'application/json' } });
+      const reply = response.ok ? await response.json() : null;
+      const items = reply && Array.isArray(reply.gallery) ? reply.gallery : [];
+      const list = el('ul');
+      for (const g of items.slice(0, 50)) {
+        const url = typeof g.url === 'string' && g.url.startsWith('https://github.com/aien-dev/omega-projects/tree/main/projects/') ? g.url : '';
+        if (!url) continue;
+        const link = el('a', '', String(g.title || g.project).slice(0, 80));
+        link.href = url;
+        link.rel = 'noopener noreferrer';
+        link.target = '_blank';
+        const li = el('li');
+        li.append(link, el('span', '', ` by ${String(g.handle).slice(0, 40)}: ${String(g.description || '').slice(0, 200)}`));
+        list.append(li);
+      }
+      out.replaceChildren(list.firstChild ? list : el('p', 'allen-note', 'Nothing is in the gallery yet. Yours could be the first.'));
+    } catch (_) {
+      out.replaceChildren(el('p', 'allen-err', 'Could not load the gallery.'));
+    }
+  }
   function publishForm(project, pub) {
     if (pub.firstChild) {
       pub.replaceChildren();
@@ -499,40 +564,88 @@
     }
     const form = el('form', 'allen-card allen-publish');
     form.noValidate = true;
-    form.append(el('p', 'allen-card-h', 'Publish to Omega Projects'));
-    const slug = field(form, 'Address (lowercase letters, digits and hyphens)', 'input', 40);
+    form.append(el('p', 'allen-card-h', 'Save or publish'));
+    const name = field(form, remembered ? 'Your builder name (lowercase letters, digits and hyphens; never an email)' : 'Anonymous: you get a one-time home and a claim code', 'input', 24);
+    name.disabled = !remembered;
+    const slug = field(form, 'Project name (lowercase letters, digits and hyphens)', 'input', 40);
     slug.value = project.base;
     const title = field(form, 'Title', 'input', 80);
     title.value = project.title;
-    const description = field(form, 'Description', 'textarea', 2000);
+    const description = field(form, 'What it is and who it helps', 'textarea', 2000);
     const main = project.type === 'html' ? 'index.html' : project.main;
-    form.append(el('p', 'allen-note', `Files: ${main}, README.md`));
     const where = el('p', 'allen-note');
-    const sync = () => setText(where, `Drake reviews every project before it goes live at ${REVIEW_HOST}${slug.value || 'your-address'}/. Submitting sends these files publicly as a pull request to github.com/aien-dev/omega-projects; email addresses and phone numbers are removed first.`);
+    form.append(el('p', 'allen-note', `Files: ${main}, README.md. Email addresses and phone numbers are removed from the text first.`), where);
+    const sync = () => setText(where, home.handle
+      ? `Save commits to your home projects/${home.handle}/${slug.value || 'project'}/ on github.com/aien-dev/omega-projects (branch u/${home.handle}), public at once. Publish asks Drake to review it; once he merges it, it is live at ${REVIEW_HOST}${home.handle}/${slug.value || 'project'}/ and in the Built with Allen gallery.`
+      : 'Your home on github.com/aien-dev/omega-projects is made the first time you save.');
     slug.addEventListener('input', sync);
-    sync();
-    const send = el('button', 'allen-tool', 'Submit for review');
-    send.type = 'submit';
+    const saveButton = el('button', 'allen-tool', 'Save to my home');
+    saveButton.type = 'submit';
+    const publishButton = button('Publish for Drake\u2019s review', () => {
+      publishButton.hidden = true;
+      const confirm = el('div', 'allen-choices');
+      confirm.append(el('span', 'allen-note', 'Publish this project publicly as a pull request for Drake to review?'), button('Yes, publish it', () => {
+        confirm.remove();
+        publishButton.hidden = false;
+        send('publish');
+      }), button('Cancel', () => {
+        confirm.remove();
+        publishButton.hidden = false;
+      }));
+      form.insertBefore(confirm, state);
+    });
+    const galleryOut = el('div', 'allen-out');
     const state = el('div', 'allen-card-state');
-    form.append(where, send, state);
-    form.addEventListener('submit', event => {
-      event.preventDefault();
+    form.append(saveButton, publishButton, button('Built with Allen gallery', () => showGallery(galleryOut)), state, galleryOut);
+    findHome().then(handle => {
+      if (handle) name.value = handle.replace(/-[0-9a-f]{8}$/, '');
+      sync();
+    });
+    const again = {
+      set hidden(value) { saveButton.hidden = value; publishButton.hidden = value; },
+      set disabled(value) { saveButton.disabled = value; publishButton.disabled = value; },
+    };
+    async function send(kind) {
       const problems = [];
-      const name = title.value.trim();
       const about = description.value.trim();
-      if (!SLUG.test(slug.value)) problems.push('The address must be 1 to 40 lowercase letters, digits or inner hyphens.');
-      if (name.length < 3 || name.length > 80) problems.push('The title must be 3 to 80 characters.');
-      if (about.length < 10 || about.length > 2000) problems.push('The description must be 10 to 2000 characters.');
+      if (!SLUG.test(slug.value)) problems.push('The project name must be 1 to 40 lowercase letters, digits or inner hyphens.');
+      if (title.value.trim().length < 3 || title.value.trim().length > 80) problems.push('The title must be 3 to 80 characters.');
+      if (about.length < 10 || about.length > 2000) problems.push('Say what it is and who it helps in 10 to 2000 characters.');
+      if (remembered && !home.handle && !NAME.test(name.value)) problems.push('Your builder name must be 2 to 24 lowercase letters, digits or inner hyphens, starting with a letter.');
       if (problems.length) {
         state.replaceChildren(el('p', 'allen-err', problems.join(' ')));
         return;
       }
-      send.disabled = true;
-      const item = { v: 1, kind: 'project', slug: slug.value, title: name, description: about, files: [{ name: main, content: project.source }, { name: 'README.md', content: readme({ ...project, title: name }, about) }] };
-      submitItem(item, state, send);
+      again.disabled = true;
+      try {
+        const handle = home.handle || await makeHome(name.value, state);
+        if (!handle) {
+          again.disabled = false;
+          return;
+        }
+        sync();
+        const item = { kind, handle, project: slug.value, title: title.value.trim(), description: about, files: [{ name: main, content: project.source }, { name: 'README.md', content: readme({ ...project, title: title.value.trim() }, about) }] };
+        const note = el('div');
+        state.append(note);
+        const { response, reply } = await projectCall(kind, item);
+        if (!response.ok || !reply || typeof reply !== 'object') {
+          note.replaceChildren(el('p', 'allen-err', failure(response, reply, 'Nothing was saved.')));
+          again.disabled = false;
+          return;
+        }
+        await track(reply, note, item, again);
+        again.disabled = false;
+      } catch (_) {
+        state.append(el('p', 'allen-err', 'Could not reach Allen. Nothing was saved.'));
+        again.disabled = false;
+      }
+    }
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      send('save');
     });
     pub.replaceChildren(form);
-    slug.focus();
+    (remembered && !name.value ? name : slug).focus();
   }
   /* Header lines "Key: value" up to the first line that is not one; the rest
      is the body. Keys from the model land in a prototype-free object. */
@@ -614,10 +727,10 @@
      rejected item can be edited and sent again; a failed one can go to Drake
      as a relay instead, with its text prefilled and nothing sent unconfirmed. */
   function showStatus(status, state, id, item, again) {
-    const url = typeof status.url === 'string' && /^https:\/\/github\.com\/aien-dev\/omega-projects\/(issues|pull)\/\d+$/.test(status.url) ? status.url : '';
+    const url = typeof status.url === 'string' && /^https:\/\/github\.com\/aien-dev\/omega-projects\/(issues\/\d+|pull\/\d+|commit\/[0-9a-f]{40})$/.test(status.url) ? status.url : '';
     const reason = typeof status.reason === 'string' && status.reason ? status.reason.slice(0, 300) : '';
     if (status.state === 'filed') {
-      const done = el('p', 'allen-ok', url ? 'Filed: ' : 'Filed, without a tracking link.');
+      const done = el('p', 'allen-ok', url ? (item.kind === 'save' ? 'Saved: ' : 'Filed: ') : 'Filed, without a tracking link.');
       if (url) {
         const anchor = el('a', '', url);
         anchor.href = url;
@@ -654,7 +767,7 @@
     return false;
   }
   function relayText(item) {
-    return item.kind === 'issue' ? `Issue for ${item.area} (${item.template}): ${item.title}\n\n${item.body}` : `Omega project ${item.slug}: ${item.title}\n\n${item.description}`;
+    return item.kind === 'issue' ? `Issue for ${item.area} (${item.template}): ${item.title}\n\n${item.body}` : `Omega project ${item.handle}/${item.project}: ${item.title}\n\n${item.description}`;
   }
   async function track(first, state, item, again) {
     const id = typeof first.id === 'string' && /^[0-9a-f]{20}$/.test(first.id) ? first.id : '';

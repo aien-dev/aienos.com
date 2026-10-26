@@ -25,7 +25,7 @@
           "purpose": "Published generated project measurements with pinned sources"
         },
         {
-          "digest": "ef6015fec35ec60826ce7b7106b4dc9869deb93576e2b70faf68ff453280a7af",
+          "digest": "a26713f673e43ed1e0d0b7896375699b163ae808f75e8b97dc204a2d54a8b585",
           "last_commit": "940cc43",
           "name": "js",
           "purpose": "Browser interactions using public data only"
@@ -49,15 +49,15 @@
           "purpose": "Public static research or licensing pages using the shared website navigation"
         }
       ],
-      "children_root": "sha256:300b8a97569763249abe666cf21ac8bc5c89323f6bcd0f55e919853de8497837",
-      "compiled_at": "2026-10-26T16:55:01Z",
+      "children_root": "sha256:aa4900b8eb556f2be4a333f25ae109fef8e39ec9e4c4972a8f5204fa58b8f6fd",
+      "compiled_at": "2026-10-26T17:16:43Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:cd98cc4a93f4dc2a14914f67894c87f95fb257f24228efd0581aafb9d80a6501",
+      "digest": "sha256:708f3a6dbc0d4acb89e259fbbd0dfea075bfdfe527bc63c774902e2102522c86",
       "evidence_files": 1,
       "evidence_root": "sha256:d01c236aec2c762a7b68996e7968fb691a74f6b0b03e8f1987395db73f496946",
       "files": 129,
-      "generated_at_commit": "5d8144b6d5ed8afb34055130f4969e47047aa25d",
-      "source_tree": "sha256:018fe4b1ff92917d28cdf1a9fc799e8372374754a695eccd0c586c544c4f79f9"
+      "generated_at_commit": "094079f409f978eafb87e59cea0a23003e48ed7c",
+      "source_tree": "sha256:6d22e49f397b32e92d471970864d1a79494e557e919cf772bd24e05830991843"
     }
   },
   "invariants": [

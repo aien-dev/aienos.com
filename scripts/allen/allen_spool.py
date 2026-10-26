@@ -10,8 +10,7 @@ one item (dedupe). Status comes back as status/<id>.json written by the pusher.
 Item, version 1:
   {"v":1, "kind":"issue", "template":"feature"|"question"|"bug",
    "title":str, "body":str, "area":str}
-  {"v":1, "kind":"project", "slug":str, "title":str, "description":str,
-   "files":[{"name":str, "content":str}, ...]}
+  Projects are save/publish items with their own rules and routes: allen_build.py.
 Status: {"id":..., "state":"queued"|"filed"|"rejected"|"failed", "url":str|null, "reason":str|null}
   queued = not filed yet; filed = url set; rejected = content broke a rule (fixable);
   failed = GitHub did not take it after N attempts or the daily cap was hit (offer the relay).
@@ -25,12 +24,8 @@ import secrets
 
 TEMPLATES = ("feature", "question", "bug")
 SLUG = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$")
-FILENAME = re.compile(r"^(?:index\.html|README\.md|[a-z0-9][a-z0-9_-]{0,39}\.om)$")
 AREA = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$")
 ID = re.compile(r"^[0-9a-f]{20}$")
-MAX_FILE = 64 * 1024
-MAX_TOTAL = 256 * 1024
-MAX_FILES = 8
 
 SECRET_SHAPES = [
     re.compile(p) for p in (
@@ -99,46 +94,7 @@ def validate(item, areas=None):
         return {"v": 1, "kind": "issue", "template": item["template"],
                 "title": _text(item["title"], "title", 8, 120, line=True).strip(),
                 "body": _text(item["body"], "body", 20, 6000), "area": area}
-    if kind == "project":
-        if set(item) != {"v", "kind", "slug", "title", "description", "files"}:
-            raise Invalid("project fields are slug, title, description and files")
-        slug = item["slug"]
-        if not isinstance(slug, str) or not SLUG.match(slug):
-            raise Invalid("slug must be 1 to 40 lowercase letters, digits or inner hyphens")
-        files = item["files"]
-        if not isinstance(files, list) or not 1 <= len(files) <= MAX_FILES:
-            raise Invalid("a project has 1 to %d files" % MAX_FILES)
-        out, names, total = [], set(), 0
-        for f in files:
-            if not isinstance(f, dict) or set(f) != {"name", "content"}:
-                raise Invalid("each file has a name and a content")
-            name = f["name"]
-            if not isinstance(name, str) or not FILENAME.match(name) or name in names:
-                raise Invalid("file names allowed: index.html, README.md, name.om (lowercase, no paths)")
-            names.add(name)
-            content = f["content"]
-            if not isinstance(content, str):
-                raise Invalid("file content must be text")
-            size = len(content.encode("utf-8"))
-            if size > MAX_FILE:
-                raise Invalid("%s is larger than %d KiB" % (name, MAX_FILE // 1024))
-            total += size
-            _text(content, name, 1, MAX_FILE)
-            if name.endswith(".html"):
-                for pat in EXTERNAL:
-                    if pat.search(content):
-                        raise Invalid("index.html may not load or send anything from elsewhere (%s)"
-                                      % pat.pattern[:40])
-            out.append({"name": name, "content": content})
-        if total > MAX_TOTAL:
-            raise Invalid("the project is larger than %d KiB" % (MAX_TOTAL // 1024))
-        if not any(f["name"] in ("index.html",) or f["name"].endswith(".om") for f in out):
-            raise Invalid("a project needs index.html or an .om file")
-        out.sort(key=lambda f: f["name"])
-        return {"v": 1, "kind": "project", "slug": slug,
-                "title": _text(item["title"], "title", 3, 80, line=True).strip(),
-                "description": _text(item["description"], "description", 10, 2000), "files": out}
-    raise Invalid("kind must be issue or project")
+    raise Invalid("kind must be issue (projects go through projects/save and projects/publish)")
 
 
 def item_id(item):
@@ -183,7 +139,7 @@ def read_status(spool_status, iid):
         return None
     url = st.get("url")
     if url is not None and not (isinstance(url, str) and re.match(
-            r"^https://github\.com/aien-dev/omega-projects/(issues|pull)/\d+$", url)):
+            r"^https://github\.com/aien-dev/omega-projects/(issues/\d+|pull/\d+|commit/[0-9a-f]{40})$", url)):
         url = None
     return {"id": iid, "state": st.get("state") if st.get("state") in ("queued", "filed", "rejected", "failed")
             else "queued", "url": url, "reason": st.get("reason") if isinstance(st.get("reason"), str) else None}

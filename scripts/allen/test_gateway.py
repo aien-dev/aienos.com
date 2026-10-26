@@ -802,7 +802,8 @@ def live_tests(a):
     try:
         c, r = g.get("/allen/api/presence")
         p = json.loads(r.read())
-        check("presence offline by default", r.status == 200 and p == {"online": False, "hours": "", "handoff": False},
+        check("presence offline by default", r.status == 200 and p == {"online": False, "hours": "", "handoff": False,
+                                                                 "transcribe": False},
               "%s" % p)
         c, r = g.post("/allen/api/handoff", {"transcript": []}, headers=H)
         j = json.loads(r.read())
@@ -1093,19 +1094,18 @@ def spool_tests(a):
         proj = {"v": 1, "kind": "project", "slug": "calc", "title": "Calculator",
                 "description": "A small calculator built with Allen.",
                 "files": [{"name": "index.html", "content": "<!doctype html><p>calc</p><script>1+1</script>"}]}
-        bad = [("traversal slug", dict(proj, slug="../x")), ("slash slug", dict(proj, slug="a/b")),
-               ("oversized file", dict(proj, files=[{"name": "index.html", "content": "a" * (65 * 1024)}])),
-               ("binary content", dict(proj, files=[{"name": "index.html", "content": "ok\x00\x01"}])),
-               ("traversal filename", dict(proj, files=[{"name": "../index.html", "content": "x"}])),
-               ("external script", dict(proj, files=[{"name": "index.html",
-                                                       "content": "<script src=https://evil.example/x.js></script>"}])),
-               ("secret-shaped body", {"v": 1, "kind": "issue", "template": "feature", "title": "Please add a thing",
-                                       "body": "my token is ghp_" + "A1b2C3d4" * 5 + " thanks a lot", "area": "unknown"})]
+        iss = {"v": 1, "kind": "issue", "template": "feature", "title": "Please add a sine word",
+               "body": "It would help to have sin and cos available in IR mode.", "area": "unknown"}
+        bad = [("project items (they go through projects/save and projects/publish)", proj),
+               ("unknown fields", dict(iss, extra="x")),
+               ("binary content", dict(iss, body="ok\x00\x01 and some more text")),
+               ("secret-shaped body", dict(iss, body="my token is ghp_" + "A1b2C3d4" * 5 + " thanks a lot"))]
         for i, (name, item) in enumerate(bad):
             st, j = submit(item, "198.51.100.%d" % (100 + i))
             check("submit rejects %s" % name, st == 422 and not files("in"), "%d %s" % (st, j.get("message")))
+        proj = iss
         st, j = submit(proj, "198.51.100.200")
-        check("submit accepts a valid project (control)", st == 200 and files("in") == [j["id"] + ".json"],
+        check("submit accepts a valid issue (control)", st == 200 and files("in") == [j["id"] + ".json"],
               "%d id=%s" % (st, j.get("id")))
         st2, j2 = submit(proj, "198.51.100.201")
         check("identical submission deduped", st2 == 200 and j2.get("duplicate") and j2["id"] == j["id"]
@@ -1119,7 +1119,7 @@ def spool_tests(a):
         c.request("GET", "/allen/api/status/" + j["id"])
         st = json.loads(c.getresponse().read())
         check("status never relays a non omega-projects URL", st["url"] is None, "%s" % st)
-        codes = [submit(dict(proj, slug="calc%d" % k), "198.51.100.250")[0] for k in range(4)]
+        codes = [submit(dict(proj, title="Please add a sine word %d" % k), "198.51.100.250")[0] for k in range(4)]
         check("submit per-IP limit 3 then 429", codes == [200, 200, 200, 429], "%s" % codes)
 
         # Introductions: consent gate, caps, write-only drop.

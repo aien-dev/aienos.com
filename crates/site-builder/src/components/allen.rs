@@ -162,7 +162,7 @@ mod tests {
         // Every request goes to a same-origin /allen/api/ route constant; no
         // configurable base, no other origin, no other transport.
         let script = include_str!("../../../../public/js/allen.js");
-        let routes = ["CHAT", "OMEGA", "SUBMIT", "STATUS", "INTRODUCE", "FORGET", "FORGET_ME", "RELAY", "PRESENCE", "HANDOFF", "SESSION", "SAY"];
+        let routes = ["CHAT", "OMEGA", "SUBMIT", "STATUS", "INTRODUCE", "FORGET", "FORGET_ME", "RELAY", "PRESENCE", "HANDOFF", "SESSION", "SAY", "PROJECTS", "GALLERY"];
         for name in routes {
             let decl = format!("  const {name} = '/allen/api/");
             assert_eq!(script.matches(&decl).count(), 1, "{name} must be one same-origin /allen/api/ path");

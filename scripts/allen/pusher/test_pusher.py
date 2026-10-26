@@ -1,76 +1,67 @@
 #!/usr/bin/python3
 """Tests for omega_projects_pusher.py. Every rejection has an accepted control next to it.
 
-Offline tests use a recording fake GitHub that still goes through the pusher's request
-guard. StubEndToEnd runs the pusher program against a local HTTP stand-in for the GitHub
-API (127.0.0.1) with a fake fine-grained token: one issue and one PR per item, dedupe,
-queue-only without a token, no redirects followed. Nothing reaches GitHub.
+Offline tests record every call and forward it through the real client and the request
+guard to an in-process stand-in for the GitHub API (github_stub.py, 127.0.0.1) that keeps
+a small git object store, so saves, publishes, declines and the index are checked against
+real trees and refs. StubEndToEnd runs the pusher program as a subprocess against the stub
+with a fake fine-grained token. Nothing reaches GitHub.
 Live tests (LIVE=1) use the operator's own gh login, never the pusher's credential: they
 read the ruleset and Actions settings, try a direct push to main (must fail with GH013)
-and push a submissions/ branch (must succeed, then deleted).
+and push a u/ branch (must succeed, then deleted).
 
   nice -n 19 python3 test_pusher.py            # offline + stub
   LIVE=1 nice -n 19 python3 test_pusher.py     # plus live repository settings
 """
 
 import base64
-import http.server
 import json
 import os
 import shutil
 import subprocess
 import sys
 import tempfile
-import threading
 import unittest
-import urllib.parse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 GW = os.environ.get("ALLEN_GW", "/tmp/allenchat/gw")
 sys.path.insert(0, HERE)
 sys.path.insert(0, GW)
+import allen_build  # noqa: E402
 import allen_spool  # noqa: E402
 import omega_projects_pusher as P  # noqa: E402
+from github_stub import FAKE_PAT, Stub  # noqa: E402
 
 P.spool = allen_spool
+P.build = allen_build
 REPO = "aien-dev/omega-projects"
+ADA = "ada-0a1b2c3d"
+BOB = "anon-0123456789"
 
 
 class FakeGitHub:
-    """Records calls; answers like GitHub. Requests still pass P._check_request."""
+    """Records calls, then sends them through the real client (and so the request guard) to an
+    in-process stub. `fail` is raised instead for the first `fail_count` calls (-1: always)."""
 
-    def __init__(self, fail=None):
-        self.calls, self.n, self.fail, self.refs, self.pulls = [], 0, fail, {}, {}
+    def __init__(self, fail=None, fail_count=-1):
+        self.calls, self.fail, self.fail_count = [], fail, fail_count
+        self.stub = Stub().start()
+        self.client = P.GitHub(FAKE_PAT, api=self.stub.base)
 
-    def call(self, method, path, body=None, ok=(200, 201)):
+    def call(self, method, path, body=None):
         P._check_request(method, path, body)
         self.calls.append((method, path, body))
-        if self.fail:
+        if self.fail and self.fail_count != 0:
+            self.fail_count -= 1
             raise self.fail
-        rest = path[len(P.REPO_PREFIX):]
-        self.n += 1
-        if method == "GET" and rest.startswith("labels/"):
-            return {"name": rest}
-        if method == "GET" and rest == "git/ref/heads/main":
-            return {"object": {"sha": "a" * 40}}
-        if method == "GET" and rest.startswith("git/ref/heads/submissions/"):
-            raise P.HTTPRefused(404, "Not Found")
-        if method == "GET" and rest.startswith("git/commits/"):
-            return {"tree": {"sha": "b" * 40}}
-        if method == "GET" and rest.startswith("pulls"):
-            return []
-        if method == "GET" and rest.startswith("issues"):
-            return []
-        if method == "POST" and rest == "issues":
-            return {"html_url": "https://github.com/%s/issues/%d" % (REPO, self.n), "number": self.n}
-        if method == "POST" and rest == "pulls":
-            return {"html_url": "https://github.com/%s/pull/%d" % (REPO, self.n), "number": self.n}
-        if method == "POST":
-            return {"sha": "%040x" % self.n}
-        raise AssertionError("unexpected %s %s" % (method, path))
+        return self.client.call(method, path, body)
 
-    def posts(self, rest):
-        return [c for c in self.calls if c[0] == "POST" and c[1] == P.REPO_PREFIX + rest]
+    def posts(self, rest, method="POST"):
+        return [c for c in self.calls if c[0] == method and c[1] == P.REPO_PREFIX + rest]
+
+    def close(self):
+        self.stub.shutdown()
+        self.stub.server_close()
 
 
 def issue(**kw):
@@ -80,13 +71,23 @@ def issue(**kw):
     return it
 
 
-def project(files=None, **kw):
-    it = {"v": 1, "kind": "project", "slug": "calc", "title": "Calculator",
-          "description": "A small calculator compiled from Omega.",
-          "files": files or [{"name": "index.html", "content": "<!doctype html><p>calc</p>"},
-                             {"name": "calc.om", "content": "fn add(a: i64, b: i64) -> i64 { a + b }\n"}]}
+README = "# Calculator\n\nAdds and multiplies. It helps students check homework.\n"
+
+
+def project(files=None, kind="publish", **kw):
+    """A save or publish item; README.md is added when the files lack one."""
+    files = files or [{"name": "index.html", "content": "<!doctype html><p>calc</p>"},
+                      {"name": "calc.om", "content": "fn add(a: i64, b: i64) -> i64 { a + b }\n"}]
+    if not any(f["name"] == "README.md" for f in files):
+        files = files + [{"name": "README.md", "content": README}]
+    it = {"v": 1, "kind": kind, "handle": ADA, "project": "calc", "title": "Calculator",
+          "description": "A small calculator compiled from Omega.", "files": files}
     it.update(kw)
     return it
+
+
+def save(files=None, **kw):
+    return project(files, kind="save", **kw)
 
 
 class Env:
@@ -107,6 +108,7 @@ class Env:
         a = A()
         a.spool_in, a.spool_status, a.state_dir, a.areas = self.spool_in, self.status, self.state, self.areas
         a.test_label = test_label
+        a.backoff = (0.0, 0.0, 0.0, 0.0)
         return a
 
     def drop(self, item, iid=None, raw=None):
@@ -132,6 +134,7 @@ class Offline(unittest.TestCase):
         self.gh = FakeGitHub()
 
     def tearDown(self):
+        self.gh.close()
         self.env.cleanup()
 
     def outcome(self, item, **kw):
@@ -149,21 +152,26 @@ class Offline(unittest.TestCase):
     def assertFiled(self, item, **kw):
         st = self.outcome(item, **kw)
         self.assertEqual(st["state"], "filed", st)
-        self.assertRegex(st["url"], r"^https://github\.com/aien-dev/omega-projects/(issues|pull)/\d+$")
+        self.assertRegex(st["url"], r"^https://github\.com/aien-dev/omega-projects/(issues/\d+|pull/\d+|commit/[0-9a-f]{40})$")
         return st
 
-    # slug traversal
-    def test_slug_traversal_rejected(self):
-        for slug in ("../x", "a/b"):
-            self.assertRejected(project(slug=slug), "slug")
+    # paths: handle and project are names, never paths
+    def test_path_traversal_rejected(self):
+        for name in ("../x", "a/b", ".github"):
+            self.assertRejected(project(project=name), "project name")
+        for handle in ("../ada-0a1b2c3d", "ada", "ada-0a1b2c3d/x", "Ada-0a1b2c3d", "anon-xyz"):
+            self.assertRejected(project(handle=handle), "unknown handle")
+        for fname in ("../x.om", ".github/workflows/x.js", "a/b.om", "x.exe", "meta.json", ".env"):
+            self.assertRejected(project([{"name": fname, "content": "x"}]), "file names allowed")
         self.assertEqual(self.gh.calls, [])
 
-    def test_slug_control_accepted(self):
-        self.assertFiled(project(slug="calc"))
+    def test_path_control_accepted(self):
+        self.assertFiled(project(project="calc"))
         trees = self.gh.posts("git/trees")
         self.assertEqual(len(trees), 1)
         paths = sorted(t["path"] for t in trees[0][2]["tree"])
-        self.assertEqual(paths, ["projects/calc/calc.om", "projects/calc/index.html", "projects/calc/meta.json"])
+        d = "projects/%s/calc/" % ADA
+        self.assertEqual(paths, [d + "README.md", d + "calc.om", d + "index.html", d + "meta.json"])
 
     # size
     def test_oversized_rejected(self):
@@ -233,7 +241,7 @@ class Offline(unittest.TestCase):
         self.assertNotIn("removed]", body["body"])
 
     def test_project_prose_scrubbed_code_untouched(self):
-        code = "// by bob@example.com\nfn k() -> i64 { 1234567890 }\n"
+        code = "// the answer\nfn k() -> i64 { 1234567890 }\n"
         files = [{"name": "README.md", "content": "Contact bob@example.com or 555-123-4567."},
                  {"name": "calc.om", "content": code}]
         self.assertFiled(project(files, description="Made by bob@example.com, call +44 20 7946 0958."))
@@ -245,7 +253,17 @@ class Offline(unittest.TestCase):
         self.assertNotIn("0958", prose)
         self.assertNotIn("555-123", prose)
         meta = json.loads([b for b in blobs if b.startswith("{")][0])
-        self.assertEqual(set(meta), {"slug", "title", "description", "submitted", "item"})
+        self.assertEqual(set(meta), {"v", "handle", "project", "title", "description", "saved", "item",
+                                     "built_with", "files"})
+
+    def test_email_in_code_rejected(self):
+        self.assertRejected(project([{"name": "calc.om", "content": "// by bob@example.com\nfn k() -> i64 { 1 }\n"}]),
+                            "email address")
+        self.assertRejected(project([{"name": "index.html", "content": "<p>calc</p>"},
+                                     {"name": "app.js", "content": "fetch('/x')"}]), "elsewhere")
+        no_readme = dict(project(), files=[{"name": "index.html", "content": "<p>calc</p>"}])
+        self.assertRejected(no_readme, "README.md")
+        self.assertEqual(self.gh.calls, [])
 
     # unknown areas
     def test_area_unknown(self):
@@ -286,24 +304,100 @@ class Offline(unittest.TestCase):
         self.assertFiled(project())
         self.assertEqual(len(self.gh.posts("pulls")), 1)
         refs = self.gh.posts("git/refs")
-        self.assertEqual(len(refs), 1)
-        self.assertRegex(refs[0][2]["ref"], r"^refs/heads/submissions/calc-[0-9a-f]{8}$")
+        self.assertEqual([r[2]["ref"] for r in refs], ["refs/heads/p/%s/calc" % ADA])
         pr = self.gh.posts("pulls")[0][2]
-        self.assertEqual(pr["base"], "main")
+        self.assertEqual((pr["base"], pr["head"]), ("main", "p/%s/calc" % ADA))
         self.assertIn(P.FOOTER, pr["body"])
-        self.assertFalse([c for c in self.gh.calls if c[0] not in ("GET", "POST")])
+        self.assertEqual(self.gh.stub.refs["refs/heads/main"], "c" * 40)
+        self.assertFalse([c for c in self.gh.calls if "heads/main" in c[1] and c[0] != "GET"])
+
+    # the build loop
+    def test_save_twice_two_commits_on_user_branch(self):
+        s = self.gh.stub
+        first = self.assertFiled(save())["url"]
+        files2 = [{"name": "index.html", "content": "<!doctype html><p>calc v2</p>"},
+                  {"name": "calc.om", "content": "fn mul(a: i64, b: i64) -> i64 { a * b }\n"}]
+        second = self.assertFiled(save(files2, title="Calculator two"))["url"]
+        head = s.refs["refs/heads/u/" + ADA]
+        self.assertEqual(second.rsplit("/", 1)[1], head)
+        self.assertEqual(s.commits[head]["parents"], [first.rsplit("/", 1)[1]])  # two commits, in order
+        self.assertEqual(s.commits[first.rsplit("/", 1)[1]]["parents"], ["c" * 40])  # branched from main
+        files = s.files_at("u/" + ADA)
+        self.assertIn("calc v2", files["projects/%s/calc/index.html" % ADA])
+        self.assertEqual(s.refs["refs/heads/main"], "c" * 40)
+        self.assertEqual(s.pulls, [])  # saving never opens a pull request
+        # a file dropped from the project is removed from the home, nothing else changes
+        self.assertFiled(save([{"name": "index.html", "content": "<p>only html</p>"}]))
+        files = s.files_at("u/" + ADA)
+        self.assertNotIn("projects/%s/calc/calc.om" % ADA, files)
+        self.assertIn("projects/README.md", files)
+
+    def test_two_users_two_homes(self):
+        s = self.gh.stub
+        self.assertFiled(save())
+        self.assertFiled(save(handle=BOB))
+        ada = {p for p in s.files_at("u/" + ADA) if p.startswith("projects/") and p != "projects/README.md"}
+        bob = {p for p in s.files_at("u/" + BOB) if p.startswith("projects/") and p != "projects/README.md"}
+        self.assertTrue(ada and all(p.startswith("projects/%s/" % ADA) for p in ada), ada)
+        self.assertTrue(bob and all(p.startswith("projects/%s/" % BOB) for p in bob), bob)
+        for c in self.gh.posts("git/trees"):
+            handles = {e["path"].split("/")[1] for e in c[2]["tree"]}
+            self.assertEqual(len(handles), 1)
+
+    def test_republish_reuses_open_pr_then_decline_closes(self):
+        s = self.gh.stub
+        url = self.assertFiled(project())["url"]
+        url2 = self.assertFiled(project(title="Calculator v2"))["url"]
+        self.assertEqual(url, url2)
+        self.assertEqual(len(s.pulls), 1)
+        head = s.refs["refs/heads/p/%s/calc" % ADA]
+        self.assertEqual(len(s.commits[head]["parents"]), 1)  # main did not move: plain child
+        idx = allen_build.read_index(self.env.status)
+        self.assertEqual([o["number"] for o in idx["open"]], [s.pulls[0]["number"]])
+        n = s.pulls[0]["number"]
+        self.assertFiled({"v": 1, "kind": "decline", "pr": n, "reason": "Needs a README that says who it helps."})
+        self.assertEqual(s.pulls[0]["state"], "closed")
+        self.assertIn("Declined by Drake", s.comments[0]["body"])
+        self.assertEqual(allen_build.read_index(self.env.status)["open"], [])
+
+    def test_decline_refuses_other_pulls(self):
+        s = self.gh.stub
+        s.pulls.append({"number": 7, "state": "open", "head": {"ref": "feature/x"}, "base": {"ref": "main"},
+                        "html_url": "https://github.com/%s/pull/7" % REPO})
+        self.assertRejected({"v": 1, "kind": "decline", "pr": 7, "reason": ""}, "not a project publish")
+        self.assertEqual(s.pulls[0]["state"], "open")
+        self.assertFalse(self.gh.posts("pulls/7", method="PATCH"))
+
+    def test_gallery_lists_merged_projects(self):
+        s = self.gh.stub
+        self.assertFiled(project())
+        s.refs["refs/heads/main"] = s.refs["refs/heads/p/%s/calc" % ADA]  # Drake merged it
+        s.pulls[0]["state"] = "closed"
+        iid = self.env.drop({"v": 1, "kind": "refresh", "nonce": "0123456789abcdef"})
+        self.env.run(self.gh)
+        self.assertEqual(self.env.status_of(iid)["state"], "filed")
+        idx = allen_build.read_index(self.env.status)
+        self.assertEqual(idx["open"], [])
+        self.assertEqual([(g["handle"], g["project"], g["title"]) for g in idx["gallery"]], [(ADA, "calc", "Calculator")])
+        self.assertEqual(os.stat(os.path.join(self.env.status, "index.json")).st_mode & 0o777, 0o640)
 
     # caps
     def test_daily_caps(self):
         st = P.State(self.env.state)
         st.take("issue")
-        st.d["issues"] = P.MAX_ISSUES_PER_DAY
-        st.d["prs"] = P.MAX_PRS_PER_DAY - 1
+        st.d["issues"] = P.CAPS["issue"][1]
+        st.d["prs"] = P.CAPS["publish"][1] - 1
         st.save()
-        self.assertRejected(issue(), "limit")
-        self.assertFiled(project())          # control: one PR left
-        self.assertRejected(project(slug="calc2"), "limit")
-        self.assertEqual(json.load(open(os.path.join(self.env.state, "state.json")))["prs"], P.MAX_PRS_PER_DAY)
+        iid = self.env.drop(issue())
+        self.env.run(self.gh)
+        st = self.env.status_of(iid)
+        self.assertEqual((st["state"], st["url"]), ("failed", None))
+        self.assertIn("limit for issues", st["reason"])
+        self.assertFiled(project())          # control: one publish left
+        iid = self.env.drop(project(project="calc2"))
+        self.env.run(self.gh)
+        self.assertEqual(self.env.status_of(iid)["state"], "failed")
+        self.assertEqual(json.load(open(os.path.join(self.env.state, "state.json")))["prs"], P.CAPS["publish"][1])
 
     # tmp files and odd entries
     def test_tmp_skipped_and_symlink_refused(self):
@@ -318,14 +412,59 @@ class Offline(unittest.TestCase):
         self.assertTrue(os.path.exists(target))
 
     # transient errors
-    def test_transient_kept_then_rejected(self):
-        gh = FakeGitHub(fail=P.Transient("GitHub HTTP 502"))
+    def test_github_errors_retry_then_failed(self):
+        cases = [(P.HTTPRefused(401, "Bad credentials"), "GitHub refused the credential (HTTP 401)"),
+                 (P.HTTPRefused(403, "Resource not accessible"), "GitHub refused the request (HTTP 403)"),
+                 (P.HTTPRefused(403, "API rate limit exceeded"), "GitHub rate limit (HTTP 403)"),
+                 (P.HTTPRefused(502), "GitHub server error (HTTP 502)"),
+                 (P.GitHubError("GitHub did not answer within 10 s"), "GitHub did not answer within 10 s"),
+                 (RuntimeError("boom"), "an internal error (RuntimeError)")]
+        for k, (err, cause) in enumerate(cases):
+            gh = FakeGitHub(fail=err)
+            iid = self.env.drop(issue(title="Retry case number %d here" % k))
+            for n in range(1, 5):
+                run = self.env.run(gh)
+                st = self.env.status_of(iid)
+                self.assertEqual(st["state"], "queued", cause)
+                self.assertEqual(st["reason"], "retrying: %s (attempt %d of 5)" % (cause, n))
+                self.assertTrue(os.path.exists(os.path.join(self.env.spool_in, iid + ".json")))
+                self.assertIsNotNone(run.next_due)
+            self.env.run(gh)
+            st = self.env.status_of(iid)
+            self.assertEqual(st, {"id": iid, "state": "failed", "url": None,
+                                  "reason": "%s after 5 attempts" % cause})
+            self.assertFalse(os.path.exists(os.path.join(self.env.spool_in, iid + ".json")))
+        state = json.load(open(os.path.join(self.env.state, "state.json")))
+        self.assertEqual((state["issues"], state["pending"], state["attempts"]), (0, {}, {}))  # slots returned
+
+    def test_retry_then_filed_once(self):
+        gh = FakeGitHub(fail=P.HTTPRefused(502), fail_count=2)
         iid = self.env.drop(issue())
-        for i in range(P.MAX_ATTEMPTS - 1):
-            self.assertEqual(self.env.run(gh), (1, 0))
-            self.assertTrue(os.path.exists(os.path.join(self.env.spool_in, iid + ".json")))
-        self.assertEqual(self.env.run(gh), (0, 0))
-        self.assertEqual(self.env.status_of(iid)["state"], "rejected")
+        self.env.run(gh)
+        self.env.run(gh)
+        self.assertEqual(self.env.status_of(iid)["reason"], "retrying: GitHub server error (HTTP 502) (attempt 2 of 5)")
+        self.env.run(gh)
+        self.assertEqual(self.env.status_of(iid)["state"], "filed")
+        self.assertEqual(len(gh.posts("issues")), 1)
+        self.assertEqual(json.load(open(os.path.join(self.env.state, "state.json")))["issues"], 1)
+
+    def test_backoff_waits(self):
+        gh = FakeGitHub(fail=P.HTTPRefused(502))
+        iid = self.env.drop(issue())
+        a = self.env.args()
+        a.backoff = (100.0, 100.0, 100.0, 100.0)
+        P.process(a, gh)
+        n = len(gh.calls)
+        run = P.process(a, gh)  # not due yet: no request, item kept
+        self.assertEqual(len(gh.calls), n)
+        self.assertGreater(run.next_due, P.time.time() + 90)
+        self.assertTrue(os.path.exists(os.path.join(self.env.spool_in, iid + ".json")))
+
+    def test_guard_refusal_fails_item(self):
+        gh = FakeGitHub(fail=P.GuardRefused("refusing"))
+        iid = self.env.drop(issue())
+        self.env.run(gh)
+        self.assertEqual(self.env.status_of(iid)["state"], "failed")
 
     # request guard
     def test_guard(self):
@@ -334,29 +473,46 @@ class Offline(unittest.TestCase):
                ("PATCH", "/repos/aien-dev/omega-projects/git/refs/heads/main", {}),
                ("PUT", "/repos/aien-dev/omega-projects/pulls/1/merge", {}),
                ("DELETE", "/repos/aien-dev/omega-projects/git/refs/heads/main", None),
-               ("POST", "/repos/aien-dev/omega-projects/pulls", {"base": "dev", "head": "submissions/x"}),
+               ("POST", "/repos/aien-dev/omega-projects/pulls", {"base": "dev", "head": "p/%s/calc" % ADA}),
+               ("POST", "/repos/aien-dev/omega-projects/pulls", {"base": "main", "head": "submissions/x"}),
+               ("POST", "/repos/aien-dev/omega-projects/git/refs", {"ref": "refs/heads/submissions/x", "sha": "x"}),
+               ("PATCH", "/repos/aien-dev/omega-projects/git/refs/heads/u/" + ADA, {"sha": "x", "force": True}),
+               ("PATCH", "/repos/aien-dev/omega-projects/git/refs/heads/u/" + ADA, {"sha": "x"}),
+               ("PATCH", "/repos/aien-dev/omega-projects/pulls/1", {"state": "open"}),
+               ("PATCH", "/repos/aien-dev/omega-projects/pulls/1", {"state": "closed", "base": "dev"}),
+               ("POST", "/repos/aien-dev/omega-projects/git/trees",
+                {"base_tree": "d" * 40, "tree": [{"path": ".github/workflows/x.yml", "sha": "x"}]}),
+               ("POST", "/repos/aien-dev/omega-projects/git/trees",
+                {"base_tree": "d" * 40, "tree": [{"path": "projects/%s/calc/a/b.om" % ADA, "sha": "x"}]}),
+               ("POST", "/repos/aien-dev/omega-projects/git/trees",
+                {"base_tree": "d" * 40, "tree": [{"path": "index.html", "sha": "x"}]}),
                ("GET", "/repos/aien-dev/omega-projects/../../user", None),
                ("GET", "/user", None)]
         for m, p, b in bad:
-            with self.assertRaises(PermissionError, msg="%s %s" % (m, p)):
+            with self.assertRaises(PermissionError, msg="%s %s %s" % (m, p, b)):
                 P._check_request(m, p, b)
-        # control
-        P._check_request("POST", "/repos/aien-dev/omega-projects/git/refs",
-                         {"ref": "refs/heads/submissions/calc-12345678", "sha": "x"})
+        # controls
+        for ref in ("refs/heads/u/" + ADA, "refs/heads/p/%s/calc" % ADA):
+            P._check_request("POST", "/repos/aien-dev/omega-projects/git/refs", {"ref": ref, "sha": "x"})
+        P._check_request("PATCH", "/repos/aien-dev/omega-projects/git/refs/heads/u/" + ADA, {"sha": "x", "force": False})
+        P._check_request("PATCH", "/repos/aien-dev/omega-projects/pulls/1", {"state": "closed"})
+        P._check_request("POST", "/repos/aien-dev/omega-projects/git/trees",
+                         {"base_tree": "d" * 40, "tree": [{"path": "projects/%s/calc/index.html" % ADA, "sha": "x"}]})
+        P._check_request("POST", "/repos/aien-dev/omega-projects/pulls", {"base": "main", "head": "p/%s/calc" % ADA})
         P._check_request("POST", "/repos/aien-dev/omega-projects/issues", {})
 
     # activation
     def test_not_activated_queues_and_keeps(self):
         iid = self.env.drop(issue())
-        bad = self.env.drop(project(slug="../x"))
-        self.assertEqual(self.env.run(None), (0, 1))
+        bad = self.env.drop(project(project="../x"))
+        self.assertEqual(self.env.run(None).waiting, 1)
         st = self.env.status_of(iid)
         self.assertEqual((st["state"], st["reason"], st["url"]), ("queued", P.AWAITING, None))
         self.assertTrue(os.path.exists(os.path.join(self.env.spool_in, iid + ".json")))
         self.assertEqual(os.stat(os.path.join(self.env.status, iid + ".json")).st_mode & 0o777, 0o640)
         self.assertEqual(self.env.status_of(bad)["state"], "rejected")  # validation still runs
         # control: once activated the same item is filed and leaves the spool
-        self.assertEqual(self.env.run(self.gh), (0, 0))
+        self.assertEqual(self.env.run(self.gh).waiting, 0)
         self.assertEqual(self.env.status_of(iid)["state"], "filed")
         self.assertEqual(len(self.gh.posts("issues")), 1)
 
@@ -381,113 +537,13 @@ class Offline(unittest.TestCase):
         P.GitHub("github_pat_" + "A1" * 30, api="http://127.0.0.1:9")  # control
 
 
-FAKE_PAT = "github_pat_" + "T3st" * 20
-
-
-class Stub(http.server.ThreadingHTTPServer):
-    """A small stateful stand-in for the GitHub REST calls the pusher makes."""
-
-    def __init__(self):
-        super().__init__(("127.0.0.1", 0), StubHandler)
-        self.log, self.issues, self.refs, self.pulls, self.labels = [], [], {}, [], {"from-allen", "test"}
-        self.objects, self.redirect = 0, None
-        self.refs["refs/heads/main"] = "c" * 40
-        threading.Thread(target=self.serve_forever, daemon=True).start()
-
-    @property
-    def base(self):
-        return "http://127.0.0.1:%d" % self.server_address[1]
-
-
-class StubHandler(http.server.BaseHTTPRequestHandler):
-    def log_message(self, *a):
-        pass
-
-    def reply(self, code, obj=None, headers=()):
-        raw = json.dumps(obj).encode() if obj is not None else b""
-        self.send_response(code)
-        for k, v in headers:
-            self.send_header(k, v)
-        self.send_header("Content-Length", str(len(raw)))
-        self.end_headers()
-        self.wfile.write(raw)
-
-    def handle_one(self, method):
-        s = self.server
-        n = int(self.headers.get("Content-Length") or 0)
-        body = json.loads(self.rfile.read(n)) if n else None
-        s.log.append((method, self.path, self.headers.get("Authorization"), body))
-        if s.redirect:
-            return self.reply(302, headers=[("Location", s.redirect)])
-        if self.headers.get("Authorization") != "Bearer " + FAKE_PAT:
-            return self.reply(401, {"message": "Bad credentials"})
-        pre = "/repos/%s/" % REPO
-        if not self.path.startswith(pre):
-            return self.reply(404, {"message": "Not Found"})
-        rest = self.path[len(pre):]
-        if method == "GET" and rest.startswith("labels/"):
-            name = urllib.parse.unquote(rest[7:])
-            return self.reply(200, {"name": name}) if name in s.labels else self.reply(404, {"message": "Not Found"})
-        if method == "POST" and rest == "labels":
-            s.labels.add(body["name"])
-            return self.reply(201, {"name": body["name"]})
-        if method == "GET" and rest.startswith("git/ref/heads/"):
-            ref = "refs/heads/" + rest[len("git/ref/heads/"):]
-            if ref in s.refs:
-                return self.reply(200, {"ref": ref, "object": {"sha": s.refs[ref]}})
-            return self.reply(404, {"message": "Not Found"})
-        if method == "GET" and rest.startswith("git/commits/"):
-            return self.reply(200, {"sha": rest[12:], "tree": {"sha": "d" * 40}})
-        if method == "POST" and rest in ("git/blobs", "git/trees", "git/commits"):
-            s.objects += 1
-            return self.reply(201, {"sha": "%040x" % s.objects})
-        if method == "POST" and rest == "git/refs":
-            if body["ref"] in s.refs:
-                return self.reply(422, {"message": "Reference already exists"})
-            s.refs[body["ref"]] = body["sha"]
-            return self.reply(201, {"ref": body["ref"]})
-        if method == "GET" and rest.startswith("pulls"):
-            q = urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query)
-            head = q.get("head", [""])[0].split(":", 1)[-1]
-            return self.reply(200, [p for p in s.pulls if p["head"] == head])
-        if method == "POST" and rest == "pulls":
-            num = len(s.issues) + len(s.pulls) + 1
-            pr = dict(body, number=num, html_url="https://github.com/%s/pull/%d" % (REPO, num))
-            s.pulls.append(pr)
-            return self.reply(201, pr)
-        if method == "POST" and rest == "issues":
-            num = len(s.issues) + len(s.pulls) + 1
-            it = dict(body, number=num, html_url="https://github.com/%s/issues/%d" % (REPO, num))
-            s.issues.append(it)
-            return self.reply(201, it)
-        if method == "GET" and rest.startswith("issues"):
-            return self.reply(200, s.issues)
-        if method == "POST" and rest.endswith("/labels") and rest.startswith("issues/"):
-            return self.reply(200, [{"name": x} for x in body["labels"]])
-        return self.reply(404, {"message": "Not Found"})
-
-    def do_GET(self):
-        self.handle_one("GET")
-
-    def do_POST(self):
-        self.handle_one("POST")
-
-    def do_PATCH(self):
-        self.handle_one("PATCH")
-
-    def do_PUT(self):
-        self.handle_one("PUT")
-
-    def do_DELETE(self):
-        self.handle_one("DELETE")
-
 
 class StubEndToEnd(unittest.TestCase):
     """Runs the pusher program as a subprocess against the local stub (no GitHub)."""
 
     def setUp(self):
         self.env = Env()
-        self.stub = Stub()
+        self.stub = Stub(hold=12.0).start()
         self.token = os.path.join(self.env.root, "omega-projects-token")
         with open(self.token, "w") as f:
             f.write(FAKE_PAT + "\n")
@@ -497,25 +553,28 @@ class StubEndToEnd(unittest.TestCase):
         self.stub.server_close()
         self.env.cleanup()
 
-    def pusher(self, *extra):
+    def pusher(self, *extra, timeout=60):
         cmd = [sys.executable, os.path.join(HERE, "omega_projects_pusher.py"),
                "--spool-in", self.env.spool_in, "--spool-status", self.env.status,
                "--state-dir", self.env.state, "--areas", self.env.areas, "--spool-module-dir", GW,
-               "--api-base", self.stub.base, "--retry-delay", "0", "--idle-delay", "0"] + list(extra)
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=60, env={"PATH": "/usr/bin:/bin"})
+               "--api-base", self.stub.base, "--backoff", "0.2,0.2,0.2,0.2", "--idle-delay", "0"] + list(extra)
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, env={"PATH": "/usr/bin:/bin"})
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertNotIn(FAKE_PAT, r.stdout + r.stderr)
         return r.stderr
 
+    def api_log(self):
+        return [e for e in self.stub.log if e["path"].startswith("/repos/")]
+
     def test_one_issue_one_pr_then_dedupe(self):
         it = issue(body="Please add sin. Reach me at a.b@example.org or +1 555 010 9999.")
-        pr = project(slug="calc", files=[{"name": "index.html", "content": "<p>calc</p>"},
-                                         {"name": "README.md", "content": "Calculator by a.b@example.org."}])
+        pr = project(files=[{"name": "index.html", "content": "<p>calc</p>"},
+                            {"name": "README.md", "content": "Calculator by a.b@example.org."}])
         ids = [self.env.drop(it), self.env.drop(pr)]
         self.pusher("--token-file", self.token)
         self.assertEqual(len(self.stub.issues), 1)
         self.assertEqual(len(self.stub.pulls), 1)
-        self.assertEqual(sorted(self.stub.refs), ["refs/heads/main", "refs/heads/submissions/calc-" + ids[1][:8]])
+        self.assertEqual(sorted(self.stub.refs), ["refs/heads/main", "refs/heads/p/%s/calc" % ADA])
         self.assertEqual(self.stub.refs["refs/heads/main"], "c" * 40)  # main untouched
         iss = self.stub.issues[0]
         self.assertEqual(iss["labels"], ["from-allen", "area:omega-mv"])
@@ -523,9 +582,11 @@ class StubEndToEnd(unittest.TestCase):
         self.assertNotIn("a.b@example.org", iss["body"])
         self.assertNotIn("9999", iss["body"])
         self.assertIn(P.FOOTER, iss["body"])
-        self.assertEqual(self.stub.pulls[0]["base"], "main")
-        self.assertEqual({m for m, *_ in self.stub.log}, {"GET", "POST"})
-        self.assertTrue(all(a == "Bearer " + FAKE_PAT for _, _, a, _ in self.stub.log))
+        self.assertEqual(self.stub.pulls[0]["base"], {"ref": "main"})
+        self.assertEqual({e["method"] for e in self.stub.log}, {"GET", "POST"})
+        readme = self.stub.files_at("p/%s/calc" % ADA)["projects/%s/calc/README.md" % ADA]
+        self.assertNotIn("a.b@example.org", readme)
+        self.assertTrue(all(e["auth_ok"] for e in self.stub.log))
         for i in ids:
             self.assertEqual(self.env.status_of(i)["state"], "filed")
             self.assertEqual(os.stat(os.path.join(self.env.status, i + ".json")).st_mode & 0o777, 0o640)
@@ -560,7 +621,7 @@ class StubEndToEnd(unittest.TestCase):
         self.assertEqual(len(self.stub.issues), 1)
 
     def test_redirect_not_followed(self):
-        other = Stub()
+        other = Stub().start()
         try:
             self.stub.redirect = other.base + "/repos/%s/issues" % REPO
             client = P.GitHub(FAKE_PAT, api=self.stub.base)
@@ -571,6 +632,44 @@ class StubEndToEnd(unittest.TestCase):
         finally:
             other.shutdown()
             other.server_close()
+
+    def test_api_failures_end_failed_in_one_run(self):
+        for mode, cause in (("401", "GitHub refused the credential (HTTP 401)"),
+                            ("403", "GitHub refused the request (HTTP 403)"),
+                            ("500", "GitHub server error (HTTP 500)"),
+                            ("502", "GitHub server error (HTTP 502)")):
+            self.stub.set_mode(mode, -1)
+            before = len(self.api_log())
+            iid = self.env.drop(issue(title="Failure mode %s probe item" % mode))
+            err = self.pusher("--token-file", self.token)
+            st = self.env.status_of(iid)
+            self.assertEqual(st, {"id": iid, "state": "failed", "url": None,
+                                  "reason": "%s after 5 attempts" % cause}, err)
+            self.assertEqual(len(self.api_log()) - before, 5)  # one request per attempt, then stop
+            self.assertEqual(os.listdir(self.env.spool_in), [])
+        self.assertEqual(self.stub.issues, [])
+        # control: the same kind of item with the API healthy is filed
+        self.stub.set_mode("ok")
+        iid = self.env.drop(issue(title="Healthy API control item"))
+        self.pusher("--token-file", self.token)
+        self.assertEqual(self.env.status_of(iid)["state"], "filed")
+        self.assertEqual(len(self.stub.issues), 1)
+
+    def test_timeout_then_filed_once(self):
+        self.stub.set_mode("timeout", 1)
+        iid = self.env.drop(issue())
+        err = self.pusher("--token-file", self.token)
+        self.assertIn("GitHub did not answer within 10 s; next in", err)
+        self.assertEqual(self.env.status_of(iid)["state"], "filed")
+        self.assertEqual(len(self.stub.issues), 1)
+
+    def test_server_error_then_filed_once(self):
+        self.stub.set_mode("502", 2)
+        iid = self.env.drop(issue())
+        err = self.pusher("--token-file", self.token)
+        self.assertIn("attempt 2 of 5 failed: GitHub server error (HTTP 502)", err)
+        self.assertEqual(self.env.status_of(iid)["state"], "filed")
+        self.assertEqual(len(self.stub.issues), 1)
 
 
 @unittest.skipUnless(os.environ.get("LIVE") == "1", "LIVE=1 checks aien-dev/omega-projects settings")
@@ -583,8 +682,13 @@ class Live(unittest.TestCase):
         self.assertEqual(set(rules), {"deletion", "non_fast_forward", "pull_request"})
         self.assertEqual(rules["pull_request"]["required_approving_review_count"], 1)
         self.assertTrue(rules["pull_request"]["require_code_owner_review"])
+        # Actions run only the project checks: no actions usable, read-only token, cannot approve.
         r = subprocess.run(["gh", "api", "repos/%s/actions/permissions" % REPO], capture_output=True, text=True)
-        self.assertFalse(json.loads(r.stdout)["enabled"])
+        self.assertEqual({k: json.loads(r.stdout)[k] for k in ("enabled", "allowed_actions")},
+                         {"enabled": True, "allowed_actions": "local_only"})
+        r = subprocess.run(["gh", "api", "repos/%s/actions/permissions/workflow" % REPO], capture_output=True, text=True)
+        self.assertEqual(json.loads(r.stdout), {"default_workflow_permissions": "read",
+                                                "can_approve_pull_request_reviews": False})
 
     def test_live_direct_push_to_main_rejected(self):
         d = tempfile.mkdtemp(prefix="pusher-push-")
@@ -601,7 +705,7 @@ class Live(unittest.TestCase):
                 ln for ln in r.stderr.splitlines() if "GH013" in ln or "rule" in ln.lower())[:400]), file=sys.stderr)
             self.assertNotEqual(r.returncode, 0)
             self.assertIn("GH013", r.stderr)
-            br = "submissions/push-control-%d" % os.getpid()
+            br = "u/push-control-%d" % os.getpid()
             r2 = run("git", "push", "origin", "HEAD:refs/heads/" + br)
             print("LIVE push %s rc=%d" % (br, r2.returncode), file=sys.stderr)
             self.assertEqual(r2.returncode, 0, r2.stderr[-300:])

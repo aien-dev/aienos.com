@@ -27,6 +27,9 @@ class H(BaseHTTPRequestHandler):
         c = http.client.HTTPConnection(host, int(port), timeout=200)
         hdrs = {"Content-Type": self.headers.get("Content-Type", "application/json"),
                 "X-Real-IP": self.headers.get("X-Real-IP", self.client_address[0])}
+        for k, v in self.headers.items():  # the page's identity and conversation headers
+            if k.lower().startswith("x-allen-"):
+                hdrs[k] = v
         c.request(self.command, self.path, body, hdrs)
         r = c.getresponse()
         self.send_response(r.status)
