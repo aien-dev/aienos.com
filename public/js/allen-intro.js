@@ -1,23 +1,63 @@
-/* Saying hello to Allen consents to X pixel rfrlz. No external load before yes. */
+/* Allen says hello once. Say hi consents to X pixel rfrlz. No external load before yes. */
 (function () {
   'use strict';
   // Drake supplies the real X event IDs. Empty means disabled, never a fake event.
   const eventIds = Object.freeze({ pageVisit: '', introducedToAllen: '' });
   var conversionIds = {};
   var key = 'aien-allen-intro-consent';
+  var seenKey = 'aien-allen-intro-seen';
   var clickKey = 'aien-allen-intro-twclid';
   var landingClick = new URLSearchParams(window.location.search).get('twclid');
-  var dialog = document.getElementById('aien-allen-intro');
-  if (!dialog || dialog.dataset.ready) return;
-  dialog.dataset.ready = 'true';
+  var aside = document.getElementById('aien-allen-intro');
+  if (!aside || aside.dataset.ready) return;
+  aside.dataset.ready = 'true';
   var choice = null;
   var loaded = false;
   var previousFocus = null;
+  var timer = null;
+  var offering = true;
   var status = document.getElementById('allen-intro-status');
+  var title = document.getElementById('allen-intro-title');
+  var typed = document.getElementById('allen-intro-typed');
+  var spoken = document.getElementById('allen-intro-spoken');
+  var offerLine = document.getElementById('allen-intro-offer');
+  var gpcLine = document.getElementById('allen-intro-gpc');
+  var yes = document.getElementById('allen-intro-yes');
+  var no = document.getElementById('allen-intro-no');
+  var greeting = title.textContent;
+  var message = '';
+  // Global Privacy Control: Allen does not offer the pixel unless the visitor asks to review.
+  var gpc = window.navigator.globalPrivacyControl === true;
+  var still = !window.matchMedia || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   try { choice = localStorage.getItem(key); } catch (_) { /* No stored consent. */ }
   // Session refusal also wins if local storage became read-only after a Yes.
   try { if (sessionStorage.getItem(key) === 'no') choice = 'no'; } catch (_) {}
   if (window.location.hash === '#allen-intro-no') choice = 'no';
+
+  // Once per browser; without local storage, once per tab session.
+  function seen() {
+    var mark = null;
+    try { mark = localStorage.getItem(seenKey); } catch (_) {}
+    if (!mark) try { mark = sessionStorage.getItem(seenKey); } catch (_) {}
+    return !!mark;
+  }
+  function markSeen() {
+    try { localStorage.setItem(seenKey, '1'); return; } catch (_) {}
+    try { sessionStorage.setItem(seenKey, '1'); } catch (_) {}
+  }
+
+  // /allen/ renders #allen with data-mode="anonymous" until its own memory consent.
+  function anonymousChat() {
+    var chat = document.getElementById('allen');
+    return !!chat && chat.dataset.mode !== 'remembered';
+  }
+
+  // Allen's presence layer renders on these events and acts only through the API below.
+  function announce(type, detail) {
+    var data = detail || {};
+    data.type = type;
+    document.dispatchEvent(new window.CustomEvent('aien-allen-intro', { detail: data }));
+  }
 
   function sendEvent(kind) {
     var id = eventIds[kind];
@@ -29,7 +69,8 @@
   }
 
   function loadPixel() {
-    if (choice !== 'yes' || loaded) return;
+    // Anonymous chat on /allen/ (#allen data-mode != remembered) never loads the pixel.
+    if (choice !== 'yes' || loaded || anonymousChat()) return;
     // Retain attribution only in a consenting visitor's browser, not on a server.
     if (landingClick) {
       try { localStorage.setItem(clickKey, landingClick); } catch (_) {}
@@ -45,17 +86,60 @@
 
   function describe(saved) {
     if (status) status.textContent = (choice === 'yes'
-      ? 'You said hello to Allen. X tracking is allowed in this browser.'
-      : 'You have not agreed to say hello to Allen. X tracking is off.')
+      ? 'You said hi to Allen. X tracking is allowed in this browser.'
+      : 'You have not said hi to Allen. X tracking is off.')
       + (saved === false ? ' Your browser could not save this choice; it applies to this page only.' : '');
   }
 
-  function close() {
-    if (dialog.open) dialog.close();
-    if (previousFocus && previousFocus.isConnected) previousFocus.focus();
+  // Static text typed on the client: instant, no model call. Reduced motion shows it whole.
+  function type() {
+    if (!typed) return;
+    var head = typed.firstChild;
+    var tail = typed.lastChild;
+    var whole = greeting + ' ' + message;
+    var shown = still ? whole.length : 0;
+    function paint() {
+      head.textContent = whole.slice(0, Math.min(shown, greeting.length));
+      tail.textContent = whole.slice(greeting.length, shown);
+      if (shown >= whole.length) { timer = null; return; }
+      shown += 1;
+      timer = setTimeout(paint, 12);
+    }
+    paint();
   }
 
-  function choose(value) {
+  function close() {
+    clearTimeout(timer);
+    timer = null;
+    var wasShown = !aside.hidden;
+    var inside = aside.contains(document.activeElement);
+    aside.classList.remove('allen-intro-in');
+    aside.hidden = true;
+    spoken.textContent = '';
+    if (inside && previousFocus && previousFocus.isConnected) previousFocus.focus();
+    previousFocus = null;
+    if (wasShown) announce('hide');
+  }
+
+  // The greeting, the chat choices and the separate X pixel ask; No thanks swaps them out.
+  var greetingParts = ['allen-intro-message', 'allen-intro-chat', 'allen-intro-x'];
+  function showGreeting(on) {
+    greetingParts.forEach(function (id) { document.getElementById(id).hidden = !on; });
+    document.getElementById('allen-intro-after').hidden = on;
+  }
+
+  // No thanks: no pixel and no memory, but Allen stays to offer an anonymous chat.
+  function replyNo() {
+    clearTimeout(timer);
+    timer = null;
+    showGreeting(false);
+    gpcLine.hidden = true;
+    spoken.textContent = document.getElementById('allen-intro-after-text').textContent;
+    document.getElementById('allen-intro-anon').focus();
+    announce('reply-no');
+  }
+
+  function choose(value, reply) {
     choice = value;
     var saved = true;
     try { localStorage.setItem(key, value); } catch (_) { saved = false; }
@@ -69,11 +153,13 @@
     if (value === 'yes' && window.location.hash === '#allen-intro-no') {
       history.replaceState(null, '', window.location.pathname + window.location.search);
     }
-    close();
+    if (reply && offering && value === 'no' && !loaded) replyNo();
+    else close();
     describe(saved);
     if (value === 'yes') {
       loadPixel();
       sendEvent('introducedToAllen');
+      announce('consent', { pixelLoaded: loaded });
     }
     // A loaded third-party script cannot be recalled. A fresh document stops it.
     else if (loaded) {
@@ -83,19 +169,96 @@
     }
   }
 
-  function open() {
-    if (dialog.open) return;
-    previousFocus = document.activeElement;
-    dialog.showModal();
-    document.getElementById('allen-intro-no').focus();
+  // Never a modal: no backdrop, no inert page. Focus moves only when the visitor asked.
+  function open(asked) {
+    if (!aside.hidden) return;
+    // Under GPC the pixel is not offered unless the visitor asked to review it.
+    offering = asked || !gpc;
+    showGreeting(true);
+    document.getElementById('allen-intro-x').hidden = !offering;
+    gpcLine.hidden = offering;
+    message = document.getElementById('allen-intro-intro').textContent;
+    previousFocus = asked ? document.activeElement : null;
+    aside.hidden = false;
+    spoken.textContent = greeting + ' ' + message + ' ' + (offering ? offerLine : gpcLine).textContent;
+    type();
+    void aside.offsetWidth;
+    aside.classList.add('allen-intro-in');
+    if (asked) no.focus();
+    announce('show', { asked: !!asked, offering: offering });
   }
 
-  document.getElementById('allen-intro-no').addEventListener('click', function () { choose('no'); });
-  document.getElementById('allen-intro-yes').addEventListener('click', function () { choose('yes'); });
-  dialog.addEventListener('cancel', function (event) { event.preventDefault(); choose('no'); });
+  // "Who can see me right now?": read only from this document and browser, shown
+  // only here, never sent or stored. Resource timing lists every origin this tab loaded.
+  var who = document.getElementById('allen-intro-who');
+  var trackers = document.getElementById('allen-intro-trackers');
+  var thirdParty = [];
+  var facts = [];
+  var trackerListeners = [];
+  var watching = false;
+  function countTrackers() {
+    document.getElementById('allen-intro-tracker-count').textContent = String(thirdParty.length);
+    document.getElementById('allen-intro-trackers-none').hidden = thirdParty.length > 0;
+  }
+  function noteResource(entry) {
+    var url;
+    try { url = new URL(entry.name, window.location.href); } catch (_) { return; }
+    if (!/^https?:$/.test(url.protocol) || url.origin === window.location.origin) return;
+    if (thirdParty.some(function (seenOrigin) { return seenOrigin.origin === url.origin; })) return;
+    // Only an X origin loaded after Say hi in this document is called Drake's pixel.
+    var tracker = { origin: url.origin, pixel: choice === 'yes' && loaded && /(^|\.)(ads-twitter\.com|twitter\.com|x\.com|t\.co)$/.test(url.hostname) };
+    thirdParty.push(tracker);
+    var item = document.createElement('li');
+    item.textContent = url.host + (tracker.pixel ? ": that one's Drake's X pixel, because you said hi." : '');
+    trackers.appendChild(item);
+    countTrackers();
+    trackerListeners.forEach(function (listener) { listener(Object.assign({}, tracker)); });
+  }
+  function browserFacts() {
+    var nav = window.navigator;
+    var screen = window.screen;
+    facts = [
+      ['Browser', nav.userAgent || 'not shared'],
+      ['Platform', (nav.userAgentData && nav.userAgentData.platform) || nav.platform || 'not shared'],
+      ['Language', (nav.languages && nav.languages.length ? nav.languages.join(', ') : nav.language) || 'not shared'],
+      ['Timezone', Intl.DateTimeFormat().resolvedOptions().timeZone || 'not shared'],
+      ['Screen size', screen ? screen.width + ' x ' + screen.height : 'not shared'],
+      ['Came from', document.referrer || 'no referrer sent'],
+      ['Do Not Track', nav.doNotTrack === '1' ? 'on' : 'off'],
+      ['Global Privacy Control', gpc ? 'on' : 'off'],
+      ['Cookies enabled', nav.cookieEnabled ? 'yes' : 'no'],
+    ];
+    var list = document.getElementById('allen-intro-facts');
+    facts.forEach(function (row) {
+      var term = document.createElement('dt');
+      var value = document.createElement('dd');
+      term.textContent = row[0];
+      value.textContent = row[1];
+      list.appendChild(term);
+      list.appendChild(value);
+    });
+  }
+  function watch() {
+    if (watching) return;
+    watching = true;
+    browserFacts();
+    countTrackers();
+    window.performance.getEntriesByType('resource').forEach(noteResource);
+    // Later loads too, such as the X pixel after Say hi.
+    new window.PerformanceObserver(function (list) { list.getEntries().forEach(noteResource); })
+      .observe({ type: 'resource', buffered: true });
+  }
+  who.addEventListener('toggle', function () { if (who.open) watch(); });
+
+  no.addEventListener('click', function () { choose('no', true); });
+  document.getElementById('allen-intro-close').addEventListener('click', function () { choose('no'); });
+  yes.addEventListener('click', function () { choose('yes'); });
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape' && !aside.hidden) choose('no');
+  });
   document.querySelectorAll('[data-allen-intro-open]').forEach(function (button) {
     button.hidden = false;
-    button.addEventListener('click', open);
+    button.addEventListener('click', function () { open(true); });
   });
   document.querySelectorAll('[data-allen-intro-stop]').forEach(function (button) {
     button.hidden = false;
@@ -112,7 +275,41 @@
     describe();
     if (choice !== 'yes' && loaded) window.location.reload();
   });
+  // The first-visit greeting, once per browser. Recorded on first display: never
+  // auto-open again, chosen or not. Unanswered means No. Not on /privacy/ or /allen/.
+  function greet() {
+    if (choice === 'yes' || choice === 'no' || seen() || document.getElementById('allen-intro-privacy') || document.getElementById('allen')) return false;
+    markSeen();
+    open(false);
+    return true;
+  }
+
+  // The interface Allen's presence layer calls. X consent and refusal only: memory
+  // consent lives on /allen/ behind its own step, never here, so one tap never means both.
+  window.aienAllenIntro = Object.freeze({
+    text: Object.freeze({
+      greeting: greeting,
+      intro: document.getElementById('allen-intro-intro').textContent,
+      offer: offerLine.textContent,
+      gpcNote: gpcLine.textContent,
+      afterNo: document.getElementById('allen-intro-after-text').textContent,
+    }),
+    status: function () {
+      return { choice: choice === 'yes' || choice === 'no' ? choice : null, gpc: gpc, offering: offering, pixelLoaded: loaded, shown: !aside.hidden };
+    },
+    sayHi: function () { choose('yes'); },
+    noThanks: function () { choose('no', true); },
+    dismiss: function () { choose('no'); },
+    review: function () { open(true); },
+    // A page that marks [data-allen-intro-defer] (the home door) calls this after its own welcome.
+    greet: greet,
+    who: function () {
+      watch();
+      return { trackers: thirdParty.map(function (t) { return Object.assign({}, t); }), facts: facts.map(function (row) { return row.slice(); }) };
+    },
+    onTrackers: function (listener) { trackerListeners.push(listener); watch(); },
+  });
   describe();
   if (choice === 'yes') loadPixel();
-  else if (choice !== 'no' && !document.getElementById('allen-intro-privacy')) open();
+  else if (!document.querySelector('[data-allen-intro-defer]')) greet();
 }());
