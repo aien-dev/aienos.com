@@ -148,6 +148,14 @@ The cron publisher must run both commands into a temporary `now.tsv.new` before 
 
 Previously published `data/now` commits remain in Git history and may have been cached by readers. This patch does not rewrite that evidence or certify historical privacy. The operator must decide any historical disclosure response and which classes of operational notes should be public at all.
 
+## Aien's voice clips
+
+`public/aien/voice/` holds Aien's pre-recorded voice clips and `catalog.json`. Each clip's catalog entry lists its situation, display text, the feature it waits for (if any), duration, size, sha256, license and source. `crates/site-builder/tests/voice_catalog.rs` checks every clip against its recorded sha256 and size, and fails if any unlisted mp3 ships. The Pages workflow runs it before the build.
+
+Dependency: the clips were generated offline with the ElevenLabs text-to-speech API, model `eleven_v4_turbo`, voice "Aien Cosmic 1" (`FNgbx6jPLqwQAp1Cz7qg`), on a paid Creator plan. There is no runtime dependency: the site serves static first-party files and no API key ever reaches it. License terms: commercial use is permitted, and we keep the rights to the Output under the ElevenLabs Terms of Service 1(c) and 4(c)(ii). The clips must not be used to train, fine-tune or improve any AI model, or be put into a training dataset (ElevenLabs Prohibited Use Policy section 12). A future first-party Aien voice model needs a consenting human voice actor, not these clips. The script text is under this repository's license.
+
+Playback starts only after a visitor turns voice on with a click; nothing autoplays. The clips are left out of the sitemap and llms.txt, and no service worker precaches them.
+
 ## License
 
 Licensed under the Apache License, Version 2.0 with LLVM Exceptions. See [LICENSE](LICENSE) and [NOTICE](NOTICE). Project values live in the nonbinding [COVENANT.md](https://github.com/aien-dev/aien-sovereign-core/blob/main/COVENANT.md), which grants and restricts no legal rights.
