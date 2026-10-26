@@ -9,6 +9,7 @@ struct Rules {
     email: Regex,
     uuid: Regex,
     path: Regex,
+    root: Regex,
     host: Regex,
     ipv4: Regex,
     ipv6: Regex,
@@ -23,11 +24,14 @@ static RULES: LazyLock<Rules> = LazyLock::new(|| Rules {
     // Only paths with a separate leading delimiter. Repository-relative
     // evidence paths and public https:// links are intentional references.
     path: Regex::new(r#"(?i)(^|[\s(<`"'\[=:,])(?:~[/\\][^\s<>"']*|/(?:[a-z0-9._-]+/)+[a-z0-9._-]*)"#).unwrap(),
+    // Machine-local roots are private even when prose glues them to the
+    // previous word ("brief/home/user/..."), so match them anywhere.
+    root: Regex::new(r#"(?:~[/\\]|/(?:home|root|tmp|var|etc|opt|srv|run|proc|mnt|media|Users|private)/)[^\s<>"'`)\]]*"#).unwrap(),
     host: Regex::new(r"(?i)\b(?:localhost|[a-z0-9_-]+(?:\.[a-z0-9_-]+)*\.(?:local|internal|ts\.net))\b").unwrap(),
     ipv4: Regex::new(r"\b(?:\d{1,3}\.){3}\d{1,3}\b").unwrap(),
     ipv6: Regex::new(r"(?i)\[[0-9a-f:]{2,}\]").unwrap(),
     port: Regex::new(r":18[0-9]{3}\b").unwrap(),
-    pid: Regex::new(r"(?i)\bpid\s+[0-9]+\b").unwrap(),
+    pid: Regex::new(r"(?i)\bpid\s*[0-9]+\b").unwrap(),
 });
 
 const HEADER: &str = "id\topened_utc\towner\tstatus\titem\tdone_when\tevidence\tupdated_utc";
@@ -47,12 +51,13 @@ fn public_field(input: &str) -> Result<Cow<'_, str>, &'static str> {
     if input.chars().any(|c| c.is_control()) {
         return Err("control character in ledger field");
     }
-    if !r.path.is_match(input) && !r.uuid.is_match(input) && !r.host.is_match(input)
+    if !r.path.is_match(input) && !r.root.is_match(input) && !r.uuid.is_match(input) && !r.host.is_match(input)
         && !r.ipv4.is_match(input) && !r.ipv6.is_match(input) && !r.port.is_match(input)
         && !r.pid.is_match(input) {
         return Ok(Cow::Borrowed(input));
     }
     let value = r.path.replace_all(input, |caps: &regex::Captures<'_>| format!("{}[private path]", &caps[1]));
+    let value = r.root.replace_all(&value, "[private path]");
     let value = r.uuid.replace_all(&value, "[private id]");
     let value = r.host.replace_all(&value, "[private host]");
     let value = r.ipv4.replace_all(&value, "[network address]");
@@ -102,6 +107,17 @@ mod tests {
         assert!(output.lines().nth(1).unwrap().starts_with("L001\t"));
         assert!(check_public(&output).is_ok());
         assert!(check_public(&format!("{HEADER_LINE}{row}")).is_err());
+    }
+    #[test]
+    fn projects_glued_private_roots_and_compact_pids() {
+        let row = "L003\tdate\tagent\topen\tworker pid2344210, brief/home/person/handoffs/x.md and queue~/state/a\t\tevidence/run.log https://github.com/aien-dev/omega-mv\tdate\n";
+        let output = project(&format!("{HEADER_LINE}{row}")).unwrap();
+        assert!(!output.contains("/home/"), "{output}");
+        assert!(!output.contains("~/"), "{output}");
+        assert!(!output.contains("2344210"), "{output}");
+        assert!(output.contains("brief[private path] and queue[private path]"), "{output}");
+        assert!(output.contains("evidence/run.log https://github.com/aien-dev/omega-mv"));
+        assert!(check_public(&output).is_ok());
     }
     #[test]
     fn rejects_entire_ledger_on_identifiers_credentials_or_malformed_rows() {
