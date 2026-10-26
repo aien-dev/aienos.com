@@ -97,7 +97,6 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
 
     // Render landing page in Maud
     let page_content = html! {
-        (components::support::render_entry())
         (components::alpha::render_alpha_entry())
         (components::home_loop::render_home_loop())
         (components::story::render_story())
@@ -283,7 +282,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
             link rel="stylesheet" href="/assets/alpha.css";
             script defer src="/js/alpha.js" {}
         },
-        html! { (components::support::render_entry()) (components::alpha::render_alpha_page()) },
+        components::alpha::render_alpha_page(),
     );
     fs::create_dir_all(dist.join("alpha")).expect("Create Alpha directory");
     fs::write(dist.join("alpha/index.html"), alpha_page.into_string()).expect("Write Alpha page");
@@ -408,7 +407,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
         components::contact::URL,
         "website",
         html! {},
-        html! { (components::support::render_entry()) (components::contact::render_contact()) },
+        components::contact::render_contact(),
     );
     fs::create_dir_all(dist.join("contact")).expect("Create contact directory");
     fs::write(dist.join("contact/index.html"), contact.into_string()).expect("Write contact page");
@@ -521,7 +520,7 @@ fn verify_site(dist: &Path) {
         assert!(depth >= 0, "assets/style.css has an unmatched closing brace");
     }
     assert_eq!(depth, 0, "assets/style.css has an unclosed rule; later rules would be nested");
-    for class in ["aien-footer", "aien-footer-sections", "aien-footer-heading", "aien-footer-group", "aien-footer-legal", "aien-footer-mottos"] {
+    for class in ["aien-footer", "aien-footer-row", "aien-footer-brand", "aien-footer-links", "aien-footer-legal"] {
         assert!(css.contains(&format!(".{class}")), "assets/style.css missing footer rule .{class}");
     }
 

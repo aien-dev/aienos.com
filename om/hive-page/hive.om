@@ -112,8 +112,6 @@ text sig1 "<div class=\"hive-strip-facts\">\n<dl class=\"hive-times\">\n<dt>Sour
 
 text sig2 "<div class=\"hive-strip-foot\">\n<p id=\"~14~\" class=\"hive-counts\">Awaiting the first source observation.</p>\n<p id=\"~15~\" class=\"hive-coverage\">Coverage is not yet known. This view can be partial and it says so.</p>\n</div>\n"
 
-text sig3 "<p class=\"hive-small\">The sky motion control is above the masthead and respects your device preference.</p>\n"
-
 text tree1 "<div class=\"hive-tools\">\n<div class=\"hive-search\">\n<label for=\"~17~\">Find an agent, model or task</label>\n<input id=\"~17~\" type=\"search\" placeholder=\"Search the fleet\" autocomplete=\"off\">\n</div>\n<p id=\"~18~\" class=\"hive-small\"></p>\n</div>\n"
 
 text tree2 "<p id=\"~19~\" class=\"hive-empty\">No snapshot received yet. The last useful observation stays here if the connection drops.</p>\n<ul id=\"~20~\" class=\"hive-tree\" aria-label=\"Observed agent tree\"></ul>\n"
@@ -628,10 +626,6 @@ n = render_sig2
 if lt n 0
 trap 3
 end
-n = render_sig3
-if lt n 0
-trap 3
-end
 end
 
 fn sec_tree to void
@@ -743,14 +737,6 @@ byteput get sig2 i
 end
 flush
 ret long len sig2
-end
-
-fn render_sig3 to long
-for i ulong len sig3
-byteput get sig3 i
-end
-flush
-ret long len sig3
 end
 
 fn render_tree1 to long
