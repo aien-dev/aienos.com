@@ -127,6 +127,17 @@ def main():
     vorbis = ff("-i", "-", "-c:a", "libvorbis", "-f", "webm", "-", data=clip5_wav)
     clip15 = wav(long_pcm[:15 * 32000])  # exactly the limit: allowed
     words = re.compile(r"fellow\s+americans", re.I)
+
+    # Spoken name "Aien" (said like Ian): addressed forms map, other Ians stay (pure function).
+    sys.path.insert(0, a.gw_dir)
+    import allen_transcribe
+    for said, want in (("Ian, what is Omega?", "Aien, what is Omega?"), ("Hey Ian, how are you", "Hey Aien, how are you"),
+                       ("Ian can you help me", "Aien can you help me"), ("Thanks, Ian.", "Thanks, Aien."),
+                       ("Ayen, are you there?", "Aien, are you there?"), ("Een, hello", "Aien, hello"),
+                       ("My friend Ian wrote this.", None), ("I asked Ian, and he said no.", None),
+                       ("Brian, hey", None), ("Ianto is a name", None), ("It took an eon.", None)):
+        got = allen_transcribe.aien(said)
+        check("name_" + re.sub(r"\W+", "_", said).strip("_").lower(), got == (want or said), "%r -> %r" % (said, got))
     flags = ["--whisper-cli", a.whisper_cli, "--whisper-model", a.whisper_model, "--transcribe-threads", a.threads]
 
     # Disabled unless configured (control: the configured gateway below answers 200).

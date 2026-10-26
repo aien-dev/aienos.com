@@ -20,6 +20,7 @@ bucket), at most --transcribe-cap transcriptions at once (503 busy otherwise).
 """
 
 import hashlib
+import re
 import os
 import resource
 import signal
@@ -220,7 +221,21 @@ def clean(text):
             line = line[cut + 1:].strip() if cut >= 0 else ""
         if line:
             words.append(line)
-    return " ".join(words)[:2000]
+    return aien(" ".join(words))[:2000]
+
+
+# "Aien" is said like "Ian"; the English model writes what it hears. Spellings that are never
+# another English word become Aien anywhere; "Ian" only when the visitor addresses him: at the
+# start of the clip ("Ian, ..."), after a greeting ("hey Ian"), or alone before punctuation/end
+# after a comma ("thanks, Ian."). "My friend Ian wrote this" keeps its Ian.
+ODD = re.compile(r"\b(?:Ayen|Aien|Aian|Een|Eean|Ean)\b", re.I)
+VOCATIVE = re.compile(r"(^|\b(?:hey|hi|hello|hiya|yo|okay|ok|thanks|thank you|dear)[ ,]+|,\s*)Ian\b(?=\s*[,.!?]|\s*$|\s+(?:can|could|would|will|do|did|are|is|what|how|why|who|where|when|please|tell|show|help)\b)",
+                      re.I)
+
+
+def aien(text):
+    text = ODD.sub("Aien", text)
+    return VOCATIVE.sub(lambda m: m.group(1) + "Aien", text)
 
 
 def handle(h):

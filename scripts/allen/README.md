@@ -233,6 +233,10 @@ unless whisper-cli and the model match their pins and both sandboxes run.
 The page detects the route without recording anything: `GET presence` carries
 `"transcribe": true` only when the gateway was started with `--whisper-cli`
 (and therefore passed its pin and sandbox checks).
+Visitors say the name "Aien" like "Ian": unambiguous spellings (Ayen, Een,
+Aian, ...) become "Aien" anywhere, and "Ian" only when it addresses him (start
+of the clip, after a greeting, or "..., Ian." at the end). "My friend Ian"
+is left alone.
 
 ## Dependencies and the Omega path
 
