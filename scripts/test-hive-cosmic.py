@@ -293,9 +293,9 @@ class CosmicChecks(unittest.TestCase):
     def test_scrim_and_provenance_stay(self):
         sheet = CSS.read_text()
         for stop in ['92%, transparent) 0%', '90%, transparent) 68%',
-                     '55%, transparent) 86%', '12%, transparent) 100%',
-                     '94%, transparent) 0%', '90%, transparent) 74%',
-                     '60%, transparent) 92%', '30%, transparent) 100%']:
+                     '55%, transparent) 86%',
+                     '94%, transparent) 0%', '90%, transparent) 55%',
+                     '60%, transparent) 80%']:
             self.assertIn(stop, sheet, f'the scrim stop {stop} is a contrast contract')
         page = PAGE.read_text()
         self.assertIn('hive-omega', page)

@@ -202,34 +202,36 @@
   scroll-behavior: auto !important;
 }
 
-/* Presentation layer, from #91. The sky is decorative and belongs to the
-   masthead alone: it never encodes agent position, progress, topology or live
-   activity, and it is inert (no script, no animation, no external reference).
-   Where a rule here collided with the bounded panels or the row grid, the
-   structure won: the record grid, the panel scroll boxes and the manifest
-   offset are set once, in the sections above. */
+/* Presentation layer, from #91. The sky is decorative: it never encodes agent
+   position, progress, topology or live activity, and it is inert (no script,
+   no animation, no external reference). Where a rule here collided with the
+   bounded panels or the row grid, the structure won: the record grid, the
+   panel scroll boxes and the manifest offset are set once, in the sections
+   above. */
 .hive { max-width:1600px; padding:22px 4vw 80px; }
 .hive *, .hive *::before, .hive *::after { box-sizing:border-box; }
+/* The sky sits behind the whole page, not inside a band: one fixed layer the
+   size of the viewport, so it has no edge to show and never scrolls. A fixed,
+   composited layer is rasterised once and only moved by the compositor;
+   the old band was a cover-sized layer at half opacity under a gradient scrim
+   that was repainted with the holes, which read as faded and flickering.
+   No negative z-index: under isolation Chromium rebuilt that layer on
+   scroll. The layer is at 0 and every child of .hive is lifted to 1. */
+.hive::before {
+  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:url('/assets/hive-universe.svg') 60% 45% / cover no-repeat;
+  transform:translateZ(0); will-change:transform;
+}
+.hive > * { position:relative; z-index:1; }
+/* The site footer follows .hive and is static, so the fixed sky would paint
+   over it; this sheet only loads on /hive/, so lifting it here is local. */
+.aien-footer { position:relative; z-index:1; }
 .hive-jumps { margin-bottom:0; border-top:0; padding:14px 0; gap:12px 30px; }
 .hive-jumps a { font-size:.73rem; letter-spacing:.04em; }
 .hive-masthead {
   position:relative; overflow:hidden;
   max-width:none; min-height:520px; margin:0 -4vw 36px;
   padding:80px 8vw 72px; display:flex; flex-direction:column; justify-content:center;
-  background:var(--bg-base);
-}
-/* The sky is a real composited layer, not a negative-z child: a stable
-   layer is rasterised once and moved by the compositor. Negative z-index
-   under isolation made Chromium rebuild the layer on scroll, which showed up
-   as the background flickering. It stays cover sized: the band is wide and
-   short, so any height-relative size leaves a bare gap on the right, and at
-   1365x768 cover downscales (0.785x) rather than upscaling. It is now the
-   residual sky behind the black holes rather than the whole scene, so it is
-   held back to a little over half its light: the holes are the subject. */
-.hive-masthead::before {
-  content:""; position:absolute; inset:0 -10% 0 18%; z-index:0; pointer-events:none;
-  background:url('/assets/hive-universe.svg') 55% 48% / cover no-repeat;
-  transform:translateZ(0); will-change:transform; contain:paint; opacity:.52;
 }
 
 /* The scene: Allen's two black holes (native/kernel/ui/night.c and chirp.c,
@@ -308,17 +310,16 @@
 }
 .hive-masthead > * { position:relative; z-index:2; }
 /* Scrim. The prose always sits over --bg-base at a token-derived alpha, never
-   straight over the scene. The first 68% (74% on a phone) of the band stays at
-   0.90 or more of --bg-base, and against the brightest pixel the scene could
-   produce (white) 0.90 leaves --text-primary at 14.7:1, --text-secondary at
-   6.2:1 and --text-muted at 6.0:1, so no width of this decoration can outshout
-   the text. scripts/test-hive-cosmic.py checks the stop contract; the browser
-   audit in the pull request measures the prose against those stops. */
+   straight over the sky. It is an ellipse that dies out to transparent on
+   every side, so the band has no top, bottom or right edge: the sky runs
+   straight through. Inside the inner 68% of the ellipse (where the prose is)
+   it stays at 0.90 or more of --bg-base, and against the brightest pixel the
+   sky could produce (white) 0.90 leaves --text-primary at 14.7:1,
+   --text-secondary at 6.2:1 and --text-muted at 6.0:1.
+   scripts/test-hive-cosmic.py checks the stop contract. */
 .hive-masthead::after {
   content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
-  background:
-    linear-gradient(90deg, color-mix(in srgb, var(--bg-base) 92%, transparent) 0%, color-mix(in srgb, var(--bg-base) 90%, transparent) 68%, color-mix(in srgb, var(--bg-base) 55%, transparent) 86%, color-mix(in srgb, var(--bg-base) 12%, transparent) 100%),
-    linear-gradient(0deg, var(--bg-base) 0%, transparent 18%, transparent 86%, var(--bg-base) 100%);
+  background:radial-gradient(ellipse 72% 95% at 24% 52%, color-mix(in srgb, var(--bg-base) 92%, transparent) 0%, color-mix(in srgb, var(--bg-base) 90%, transparent) 68%, color-mix(in srgb, var(--bg-base) 55%, transparent) 86%, transparent 100%);
 }
 .hive-masthead .hive-eyebrow { color:var(--text-secondary); font-size:.65rem; letter-spacing:.24em; margin-bottom:22px; }
 .hive h1 { font-size:clamp(4rem,9vw,8.5rem); font-weight:400; letter-spacing:-.065em; margin:0 0 24px; }
@@ -340,7 +341,9 @@
 .hive-omega-note { font-size:.85rem; line-height:1.55; color:var(--text-secondary); }
 .hive-omega-source { justify-self:start; margin-top:4px; font-family:var(--font-mono); font-size:.72rem; }
 .hive-sections { gap:28px; }
-.hive-section { border-radius:16px; padding:26px; background:var(--bg-surface); }
+/* Sections are glass over the sky, not opaque slabs: 86% of --bg-surface
+   keeps the text contrast (0.86 over white) and lets the galaxy run on. */
+.hive-section { border-radius:16px; padding:26px; background:color-mix(in srgb, var(--bg-surface) 86%, transparent); }
 .hive-section .hive-eyebrow { font-size:.61rem; letter-spacing:.18em; }
 .hive h2 { font-size:1.5rem; font-weight:450; letter-spacing:-.025em; }
 .hive-note { font-size:.78rem; }
@@ -398,7 +401,6 @@
 
 @media (max-width:900px) {
   .hive-masthead { min-height:460px; padding:58px 7vw; }
-  .hive-masthead::before { inset:0 -30% 0 10%; }
   .hive-section { padding:22px; }
 }
 @media (max-width:600px) {
@@ -406,10 +408,9 @@
   .hive-jumps { gap:10px 20px; }
   .hive-jumps a { font-size:.65rem; }
   .hive-masthead { margin:0 -20px 22px; padding:54px 28px 48px; min-height:520px; justify-content:flex-end; }
-  .hive-masthead::before { inset:-25% -65% 15% -25%; background-position:center; }
-  /* The prose is bottom-aligned here, so the scrim is too. */
+  /* The prose is bottom-aligned here, so the scrim ellipse sits low. */
   .hive-masthead::after {
-    background:linear-gradient(0deg, color-mix(in srgb, var(--bg-base) 94%, transparent) 0%, color-mix(in srgb, var(--bg-base) 90%, transparent) 74%, color-mix(in srgb, var(--bg-base) 60%, transparent) 92%, color-mix(in srgb, var(--bg-base) 30%, transparent) 100%);
+    background:radial-gradient(ellipse 110% 70% at 50% 82%, color-mix(in srgb, var(--bg-base) 94%, transparent) 0%, color-mix(in srgb, var(--bg-base) 90%, transparent) 55%, color-mix(in srgb, var(--bg-base) 60%, transparent) 80%, transparent 100%);
   }
   .hive h1 { font-size:clamp(3.7rem,17vw,5rem); margin-bottom:18px; }
   .hive-intro { font-size:1rem; }
