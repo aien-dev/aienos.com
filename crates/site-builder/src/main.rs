@@ -332,12 +332,12 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     println!("  [PAGE] Emitted /glossary/ (index.html)");
 
     let privacy = render_page_layout(
-        "Privacy & the logbook | AienOS",
-        "Read without tracking. Signing the logbook consents to X pixel rfrlz; No refuses it.",
+        "Privacy & saying hello to Allen | AienOS",
+        "Read without tracking. Saying hello to Allen consents to X pixel rfrlz; No refuses it.",
         "https://www.aienos.com/privacy/",
         "website",
         html! {},
-        components::logbook::render_privacy(),
+        components::allen_intro::render_privacy(),
     );
     fs::create_dir_all(dist.join("privacy")).expect("Create privacy directory");
     fs::write(dist.join("privacy/index.html"), privacy.into_string()).expect("Write privacy page");
@@ -354,7 +354,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
         seo::head_404(),
         seo::render_404(),
     );
-    fs::write(dist.join("404.html"), components::logbook::enrich(not_found.into_string())).expect("Failed to write 404.html");
+    fs::write(dist.join("404.html"), components::allen_intro::enrich(not_found.into_string())).expect("Failed to write 404.html");
 
     // Every page written above (generated or copied from public/) gets the same
     // head: www canonical, cards, hreflang, feeds, JSON-LD. Then the machine

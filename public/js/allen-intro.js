@@ -1,20 +1,32 @@
-/* Signing the logbook consents to X pixel rfrlz. No external load before yes. */
+/* Saying hello to Allen consents to X pixel rfrlz. No external load before yes. */
 (function () {
   'use strict';
-  var key = 'aien-logbook-consent';
-  var clickKey = 'aien-logbook-twclid';
+  // Drake supplies the real X event IDs. Empty means disabled, never a fake event.
+  const eventIds = Object.freeze({ pageVisit: '', introducedToAllen: '' });
+  var conversionIds = {};
+  var key = 'aien-allen-intro-consent';
+  var clickKey = 'aien-allen-intro-twclid';
   var landingClick = new URLSearchParams(window.location.search).get('twclid');
-  var dialog = document.getElementById('aien-logbook');
+  var dialog = document.getElementById('aien-allen-intro');
   if (!dialog || dialog.dataset.ready) return;
   dialog.dataset.ready = 'true';
   var choice = null;
   var loaded = false;
   var previousFocus = null;
-  var status = document.getElementById('logbook-status');
+  var status = document.getElementById('allen-intro-status');
   try { choice = localStorage.getItem(key); } catch (_) { /* No stored consent. */ }
   // Session refusal also wins if local storage became read-only after a Yes.
   try { if (sessionStorage.getItem(key) === 'no') choice = 'no'; } catch (_) {}
-  if (window.location.hash === '#logbook-no') choice = 'no';
+  if (window.location.hash === '#allen-intro-no') choice = 'no';
+
+  function sendEvent(kind) {
+    var id = eventIds[kind];
+    if (choice !== 'yes' || !loaded || !id || conversionIds[kind]) return;
+    // Keep this exact ID when a future backend sends the matching server event.
+    var conversionId = window.crypto.randomUUID();
+    conversionIds[kind] = conversionId;
+    twq('event', id, { conversion_id: conversionId });
+  }
 
   function loadPixel() {
     if (choice !== 'yes' || loaded) return;
@@ -28,12 +40,13 @@
     },s.version='1.1',s.queue=[],u=t.createElement(n),u.async=!0,u.src='https://static.ads-twitter.com/uwt.js',
     a=t.getElementsByTagName(n)[0],a.parentNode.insertBefore(u,a))}(window,document,'script');
     twq('config','rfrlz');
+    sendEvent('pageVisit');
   }
 
   function describe(saved) {
     if (status) status.textContent = (choice === 'yes'
-      ? 'You signed the logbook. X tracking is allowed in this browser.'
-      : 'You have not signed the logbook. X tracking is off.')
+      ? 'You said hello to Allen. X tracking is allowed in this browser.'
+      : 'You have not agreed to say hello to Allen. X tracking is off.')
       + (saved === false ? ' Your browser could not save this choice; it applies to this page only.' : '');
   }
 
@@ -53,16 +66,19 @@
       if (value === 'no') sessionStorage.setItem(key, 'no');
       else sessionStorage.removeItem(key);
     } catch (_) {}
-    if (value === 'yes' && window.location.hash === '#logbook-no') {
+    if (value === 'yes' && window.location.hash === '#allen-intro-no') {
       history.replaceState(null, '', window.location.pathname + window.location.search);
     }
     close();
     describe(saved);
-    if (value === 'yes') loadPixel();
+    if (value === 'yes') {
+      loadPixel();
+      sendEvent('introducedToAllen');
+    }
     // A loaded third-party script cannot be recalled. A fresh document stops it.
     else if (loaded) {
       // Preserve refusal through reload even if all browser storage is unavailable.
-      if (!saved) window.location.hash = 'logbook-no';
+      if (!saved) window.location.hash = 'allen-intro-no';
       window.location.reload();
     }
   }
@@ -71,17 +87,17 @@
     if (dialog.open) return;
     previousFocus = document.activeElement;
     dialog.showModal();
-    document.getElementById('logbook-no').focus();
+    document.getElementById('allen-intro-no').focus();
   }
 
-  document.getElementById('logbook-no').addEventListener('click', function () { choose('no'); });
-  document.getElementById('logbook-sign').addEventListener('click', function () { choose('yes'); });
+  document.getElementById('allen-intro-no').addEventListener('click', function () { choose('no'); });
+  document.getElementById('allen-intro-yes').addEventListener('click', function () { choose('yes'); });
   dialog.addEventListener('cancel', function (event) { event.preventDefault(); choose('no'); });
-  document.querySelectorAll('[data-logbook-open]').forEach(function (button) {
+  document.querySelectorAll('[data-allen-intro-open]').forEach(function (button) {
     button.hidden = false;
     button.addEventListener('click', open);
   });
-  document.querySelectorAll('[data-logbook-stop]').forEach(function (button) {
+  document.querySelectorAll('[data-allen-intro-stop]').forEach(function (button) {
     button.hidden = false;
     button.addEventListener('click', function () { choose('no'); });
   });
@@ -98,5 +114,5 @@
   });
   describe();
   if (choice === 'yes') loadPixel();
-  else if (choice !== 'no' && !document.getElementById('logbook-privacy')) open();
+  else if (choice !== 'no' && !document.getElementById('allen-intro-privacy')) open();
 }());

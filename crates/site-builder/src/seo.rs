@@ -83,7 +83,7 @@ pub struct PageInfo {
 pub const PAGES: &[PageInfo] = &[
     PageInfo { path: "/", name: "AienOS", what: "The front page: the loop, the five real machines and their measured speeds beside the physical ceiling, the evidence cards, the current status of every layer.", section: Section::Machine, kind: Kind::Home, image: "/og.png", published: "2026-09-23", doi: None },
     PageInfo { path: "/start/", name: "Start here", what: "The shortest route through AienOS: what it is, what exists today, how to check the evidence, how to reproduce or contribute, and where the author and Interplane fit.", section: Section::Start, kind: Kind::Page, image: "/og.png", published: "2026-10-24", doi: None },
-    PageInfo { path: "/privacy/", name: "Privacy & the logbook", what: "Your choice about the consent-only X pixel, what X receives, what we keep and how to refuse.", section: Section::Optional, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/privacy/", name: "Privacy & saying hello to Allen", what: "Your choice about the consent-only X pixel, what X receives, what we keep and how to refuse.", section: Section::Optional, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/machine/", name: "The Machine", what: "One machine across five physical bodies: the closed epistemic loop, the Turing as its accounting layer, and an honest list of what exists.", section: Section::Machine, kind: Kind::Article, image: "/og-machine.png", published: "2026-10-01", doi: None },
     PageInfo { path: "/omega/", name: "What Omega is", what: "Omega is AIEN's language for all computing, GPU to CPU; on the GPU it is the replacement for CUDA. The CUDA stack piece by piece with status, the receipt for the live server running with zero CUDA libraries, what is not true yet, and the bar C1 to C6.", section: Section::Machine, kind: Kind::Page, image: "/og-machine.png", published: "2026-10-21", doi: None },
     PageInfo { path: "/cudaplusplus/", name: "CUDA++", what: "CUDA++ is the GPU half of Omega: everything CUDA gives you plus the motor, for the NVIDIA GPUs people already own, with no NVIDIA user-space software (MIT, aien-dev/CUDAplusplus). What it is for, the path from program to chip with whose code runs at each step, how we did it, CUDA's pain points and the swap down to the kernel driver.", section: Section::Machine, kind: Kind::Page, image: "/og-machine.png", published: "2026-10-22", doi: None },
@@ -740,7 +740,7 @@ pub fn enrich(dist: &Path, ctx: &BuildCtx) -> Vec<Emitted> {
         out.push('\n');
         out.push_str(&block);
         out.push_str(&html[head_end..]);
-        let out = crate::components::logbook::enrich(ensure_glossary_link(out));
+        let out = crate::components::allen_intro::enrich(ensure_glossary_link(out));
         write_markdown_mirror(dist, page, &facts, &out);
         fs::write(&page.file, out).unwrap_or_else(|e| panic!("write {}: {e}", page.file.display()));
     }
@@ -856,7 +856,7 @@ pub fn llms_txt(status_lines: &[String], research_sentence: &str) -> String {
     let mut s = String::new();
     s.push_str("# AienOS\n\n");
     s.push_str(&format!("> {SITE_CLAIM}. AienOS is an experimental, open source (Apache-2.0 WITH LLVM-exception) machine for turning search into verified understanding: AIEN proposes, Omega makes the proposal explicit and verifiable, the machine tests it against reality, the Turing measures what was learned, Cortex keeps the evidence. Every claim on the site carries a public receipt. Status: experimental, pre-alpha. Built by {AUTHOR} with AI agents on five real machines.\n\n"));
-    s.push_str("Rules the site keeps: no comparisons with other systems (every speed stands beside the physical ceiling of its own machine only), failures stay on the record, no outside fonts or unsolicited tracking (X pixel rfrlz loads only after signing the logbook; privacy and refusal at /privacy/; the film on /turing/ is an outside embed), and AI agents are welcome to read, cite, argue and correct. Contact: aien@aienos.com. Source: https://github.com/aien-dev.\n\n");
+    s.push_str("Rules the site keeps: no comparisons with other systems (every speed stands beside the physical ceiling of its own machine only), failures stay on the record, no outside fonts or unsolicited tracking (X pixel rfrlz loads only after saying hello to Allen; privacy and refusal at /privacy/; the film on /turing/ is an outside embed), and AI agents are welcome to read, cite, argue and correct. Contact: aien@aienos.com. Source: https://github.com/aien-dev.\n\n");
     s.push_str("## Current state\n\n");
     for l in status_lines {
         s.push_str(&format!("- {l}\n"));
@@ -1004,7 +1004,7 @@ pub fn data_index(ctx: &BuildCtx) -> String {
         "rules": [
             "No comparisons with other systems: every number stands beside the physical ceiling of its own machine only.",
             "Every claim links its receipt. Failures stay on the record.",
-            "No outside fonts or unsolicited tracking. X pixel rfrlz loads only with logbook consent; /privacy/ explains and controls the choice. The film on /turing/ is an outside embed."
+            "No outside fonts or unsolicited tracking. X pixel rfrlz loads only with Allen introduction consent; /privacy/ explains and controls the choice. The film on /turing/ is an outside embed."
         ],
         "files": files
     });
@@ -1013,7 +1013,7 @@ pub fn data_index(ctx: &BuildCtx) -> String {
 
 pub fn humans_txt(ctx: &BuildCtx) -> String {
     format!(
-        "/* TEAM */\n\tBuilder and owner: {AUTHOR}\n\tSite: {AUTHOR_URL}\n\tX: {X_HANDLE}\n\tGitHub: {AUTHOR_GITHUB}\n\tContact: {ORG_EMAIL}\n\n/* AGENTS */\n\tThe code is written with AI coding agents working in parallel under one human conductor.\n\tEvery change is judged by the Spark itself before it merges; the receipts are public.\n\tAgents are first-class readers here: read, cite, argue, correct. {HOST}/llms.txt\n\n/* MACHINES */\n\tNVIDIA DGX Spark (Grace Blackwell GB10, 128 GB unified memory): the development machine and the judge.\n\tIntel iMac 2017: bare metal Aienux, the x86_64 port of the AienOS C kernel.\n\tRaspberry Pi 5: the small machine.\n\tQEMU: the laboratory where every kernel boots first.\n\tThe rig: the owned inference box.\n\tDetails and receipts: {HOST}/machine/ and {HOST}/machines.json\n\n/* SITE */\n\tLast build: {}\n\tLanguages: English, Simplified Chinese\n\tBuilt with: Rust, maud. No frameworks or outside fonts. X tracking only after logbook consent; see /privacy/.\n\tSource: https://github.com/aien-dev/aienos.com\n\tLicense: {LICENSE_NAME}\n",
+        "/* TEAM */\n\tBuilder and owner: {AUTHOR}\n\tSite: {AUTHOR_URL}\n\tX: {X_HANDLE}\n\tGitHub: {AUTHOR_GITHUB}\n\tContact: {ORG_EMAIL}\n\n/* AGENTS */\n\tThe code is written with AI coding agents working in parallel under one human conductor.\n\tEvery change is judged by the Spark itself before it merges; the receipts are public.\n\tAgents are first-class readers here: read, cite, argue, correct. {HOST}/llms.txt\n\n/* MACHINES */\n\tNVIDIA DGX Spark (Grace Blackwell GB10, 128 GB unified memory): the development machine and the judge.\n\tIntel iMac 2017: bare metal Aienux, the x86_64 port of the AienOS C kernel.\n\tRaspberry Pi 5: the small machine.\n\tQEMU: the laboratory where every kernel boots first.\n\tThe rig: the owned inference box.\n\tDetails and receipts: {HOST}/machine/ and {HOST}/machines.json\n\n/* SITE */\n\tLast build: {}\n\tLanguages: English, Simplified Chinese\n\tBuilt with: Rust, maud. No frameworks or outside fonts. X tracking only after consent to say hello to Allen; see /privacy/.\n\tSource: https://github.com/aien-dev/aienos.com\n\tLicense: {LICENSE_NAME}\n",
         ctx.built
     )
 }
@@ -1078,7 +1078,7 @@ pub fn write_machine_surface(dist: &Path, pages: &[Emitted], now: &Now, ctx: &Bu
 fn check_script_boundary(html: &str) -> Result<(), String> {
     let lower = html.to_ascii_lowercase();
     if lower.contains("uwt.js") || lower.contains("twq(") {
-        return Err("X bootstrap must live only in /js/logbook.js".into());
+        return Err("X bootstrap must live only in /js/allen-intro.js".into());
     }
     if lower.contains("fonts.googleapis.com") || lower.contains("fonts.gstatic.com") {
         return Err("outside fonts are forbidden".into());
@@ -1109,19 +1109,19 @@ fn verify_consent_boundary(dist: &Path) {
             } else if path.extension().and_then(|e| e.to_str()) == Some("html") {
                 let html = fs::read_to_string(&path).expect("read consent boundary HTML");
                 check_script_boundary(&html).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
-                assert_eq!(html.matches("src=\"/js/logbook.js\"").count(), 1, "{} must have exactly one first-party consent loader", path.display());
-                assert_eq!(html.matches("id=\"aien-logbook\"").count(), 1, "{} must have exactly one consent dialog", path.display());
+                assert_eq!(html.matches("src=\"/js/allen-intro.js\"").count(), 1, "{} must have exactly one first-party consent loader", path.display());
+                assert_eq!(html.matches("id=\"aien-allen-intro\"").count(), 1, "{} must have exactly one consent dialog", path.display());
                 assert!(html.contains("href=\"/privacy/\""), "{} must link privacy", path.display());
             } else if path.extension().and_then(|e| e.to_str()) == Some("js") {
                 let js = fs::read_to_string(&path).expect("read script");
                 if js.contains("uwt.js") || js.contains("twq(") {
-                    assert!(path.ends_with("js/logbook.js"), "{} must not initialize the X pixel", path.display());
+                    assert!(path.ends_with("js/allen-intro.js"), "{} must not initialize the X pixel", path.display());
                 }
             }
         }
     }
     walk(dist);
-    let js = fs::read_to_string(dist.join("js/logbook.js")).expect("first-party consent script");
+    let js = fs::read_to_string(dist.join("js/allen-intro.js")).expect("first-party consent script");
     assert_eq!(js.matches("https://static.ads-twitter.com/uwt.js").count(), 1);
     assert_eq!(js.matches("twq('config','rfrlz')").count(), 1);
 }
@@ -1198,7 +1198,7 @@ mod tests {
 
     #[test]
     fn consent_script_boundary_rejects_external_and_inline_pixel_loads() {
-        assert!(check_script_boundary("<script defer src=\"/js/logbook.js\"></script>").is_ok());
+        assert!(check_script_boundary("<script defer src=\"/js/allen-intro.js\"></script>").is_ok());
         for bad in [
             "<script src=\"https://static.ads-twitter.com/uwt.js\"></script>",
             "<script src='//example.com/anything.js'></script>",

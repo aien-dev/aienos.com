@@ -28,4 +28,4 @@ pub mod agents;
 pub mod hive;
 pub mod learn;
 pub mod dash;
-pub mod logbook;
+pub mod allen_intro;
