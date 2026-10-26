@@ -330,11 +330,14 @@ def ensure_label(gh, name, cache):
 
 
 def find_issue(gh, iid):
-    """Recover an issue filed before a crash: search recent from-aien issues for the id marker."""
-    found = gh.call("GET", REPO_PREFIX + "issues?labels=from-aien&state=all&per_page=100&sort=created&direction=desc")
-    for it in found or []:
-        if marker(iid) in (it.get("body") or "") and "pull_request" not in it:
-            return it["html_url"]
+    """Recover an issue filed before a crash: search recent issues for the id marker. Issues
+    filed before the Aien rename carry from-allen, so a crash across the switch is found too."""
+    for label in ("from-aien", "from-allen"):
+        found = gh.call("GET", REPO_PREFIX + "issues?labels=%s&state=all&per_page=100&sort=created&direction=desc"
+                        % label)
+        for it in found or []:
+            if marker(iid) in (it.get("body") or "") and "pull_request" not in it:
+                return it["html_url"]
     return None
 
 
