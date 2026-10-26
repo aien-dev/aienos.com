@@ -1,0 +1,18 @@
+note Scalar OSC IR v1 unit. Threshold is passed from the shared feed contract.
+note Inputs are integer milliseconds; JS rounds fractional elapsed age upward,
+note preserving the strict stale comparison against the integer threshold.
+note Backwards source timestamps retain priority over an interrupted fetch.
+fn fresh now_ms long gen_ms long prev_ms long stale_ms long fetch_ok bool to uint
+if lt gen_ms prev_ms
+ret uint 2
+end
+if not fetch_ok
+ret uint 3
+end
+if gt now_ms gen_ms
+if gt sub now_ms gen_ms stale_ms
+ret uint 1
+end
+end
+ret uint 0
+end

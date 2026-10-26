@@ -18,11 +18,22 @@ if [ "$have" != "$pin" ]; then
     printf 'Compiler sha256 mismatch: recorded %s, found %s\n' "$pin" "$have" >&2
     exit 3
 fi
+irwasm=${OMEGA_IRWASM:-$PWD/irwasm}
+irpin=$(tr -d ' \n' < irwasm.sha256)
+if [ ! -f "$irwasm" ]; then
+    printf 'No IR wasm backend at %s; expected %s\n' "$irwasm" "$irpin" >&2
+    exit 2
+fi
+irhave=$(sha256sum "$irwasm" | cut -d' ' -f1)
+if [ "$irhave" != "$irpin" ]; then
+    printf 'IR wasm backend sha256 mismatch: recorded %s, found %s\n' "$irpin" "$irhave" >&2
+    exit 3
+fi
 work=$(mktemp -d "${TMPDIR:-/tmp}/hive-page.XXXXXX")
 trap 'rm -rf "$work"' EXIT HUP INT TERM
 # One executable shares the contract between markup (fd 1) and hydrator (fd 3).
 # Concatenation composes Omega units; it does not implement generation in shell.
-cat contract.om hive.om hive-js.om > "$work/hive.om"
+cat contract.om freshness-js.om hive.om hive-js.om > "$work/hive.om"
 "$omc" < "$work/hive.om" > "$work/hive"
 "$omc" < turing-look.om > "$work/turing"
 chmod +x "$work/hive" "$work/turing"
@@ -30,6 +41,10 @@ chmod +x "$work/hive" "$work/turing"
 "$work/hive" > "$work/second.html" 3> "$work/second.hive.js"
 "$work/turing" > "$work/first.turing.js"
 "$work/turing" > "$work/second.turing.js"
+{ printf 'ir\n'; cat fresh.om; } > "$work/fresh.ir.om"
+"$omc" < "$work/fresh.ir.om" > "$work/fresh.ir"
+"$irwasm" < "$work/fresh.ir" > "$work/first.fresh.wasm"
+"$irwasm" < "$work/fresh.ir" > "$work/second.fresh.wasm"
 stale=0
 publish() {
     first=$1
@@ -55,6 +70,9 @@ publish() {
 publish "$work/first.html" "$work/second.html" main.html main.html.sha256
 publish "$work/first.hive.js" "$work/second.hive.js" ../../public/js/hive.js hive.js.sha256
 publish "$work/first.turing.js" "$work/second.turing.js" ../../public/js/turing-look.js turing-look.js.sha256
+mkdir -p ../../public/wasm
+publish "$work/first.fresh.wasm" "$work/second.fresh.wasm" ../../public/wasm/hive-fresh.wasm ../../public/wasm/hive-fresh.wasm.sha256
+printf 'irwasm sha256 %s\n' "$irhave"
 printf 'omc sha256 %s\n' "$have"
 if [ "$stale" = 1 ]; then
     printf 'Generated artifacts were rewritten; commit them with their Omega sources\n' >&2

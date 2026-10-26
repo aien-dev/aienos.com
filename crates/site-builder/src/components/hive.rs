@@ -81,6 +81,11 @@ mod tests {
                 include_bytes!("../../../../public/js/turing-look.js").as_slice(),
                 include_str!("../../../../om/hive-page/turing-look.js.sha256"),
             ),
+            (
+                "hive-fresh.wasm",
+                include_bytes!("../../../../public/wasm/hive-fresh.wasm").as_slice(),
+                include_str!("../../../../public/wasm/hive-fresh.wasm.sha256"),
+            ),
         ] {
             let want = recorded.split_whitespace().next().expect("script digest");
             assert_eq!(want.len(), 64, "{name} must have a sha256 digest");
