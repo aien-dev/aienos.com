@@ -27,6 +27,7 @@ pub mod omega;
 pub mod owned;
 pub mod agents;
 pub mod hive;
+pub mod alpha;
 pub mod learn;
 pub mod dash;
 pub mod allen_intro;
