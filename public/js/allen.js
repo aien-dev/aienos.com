@@ -607,12 +607,15 @@
       again.disabled = false;
       return;
     }
-    track(reply, state);
+    track(reply, state, item, again);
   }
-  /* Status every POLL_MS until filed, rejected or POLL_LIMIT; only a link to
-     an issue or pull request in aien-dev/omega-projects becomes an anchor. */
-  function showStatus(status, state, id) {
+  /* Status every POLL_MS until filed, rejected or failed. Only a link to an
+     issue or pull request in aien-dev/omega-projects becomes an anchor. A
+     rejected item can be edited and sent again; a failed one can go to Drake
+     as a relay instead, with its text prefilled and nothing sent unconfirmed. */
+  function showStatus(status, state, id, item, again) {
     const url = typeof status.url === 'string' && /^https:\/\/github\.com\/aien-dev\/omega-projects\/(issues|pull)\/\d+$/.test(status.url) ? status.url : '';
+    const reason = typeof status.reason === 'string' && status.reason ? status.reason.slice(0, 300) : '';
     if (status.state === 'filed') {
       const done = el('p', 'allen-ok', url ? 'Filed: ' : 'Filed, without a tracking link.');
       if (url) {
@@ -626,14 +629,34 @@
       return true;
     }
     if (status.state === 'rejected') {
-      state.replaceChildren(el('p', 'allen-err', `Not filed: ${typeof status.reason === 'string' ? status.reason.slice(0, 300) : 'no reason given'}`));
+      state.replaceChildren(el('p', 'allen-err', `Not filed: ${reason || 'no reason given'}`));
+      if (item.kind === 'issue') {
+        state.append(editIssue(item, state));
+      } else {
+        again.hidden = false;
+        again.disabled = false;
+        state.append(el('p', 'allen-note', 'Edit the fields above and submit again.'));
+      }
       return true;
     }
-    const why = typeof status.reason === 'string' && status.reason ? status.reason.slice(0, 200) : '';
-    state.replaceChildren(el('p', 'allen-note', `Queued${why ? `: ${why}` : ''} (item ${id}${status.duplicate ? ', the same text was sent before' : ''}). Checking every ${POLL_MS / 1000} s for up to ${POLL_LIMIT / 60000} minutes.`));
+    if (status.state === 'failed') {
+      const box = el('div', 'allen-fail');
+      const relayOut = el('div', 'allen-out');
+      const offer = button('Send it to Drake instead', () => {
+        offer.remove();
+        relayCard({ fields: Object.create(null), body: relayText(item) }, relayOut);
+      });
+      box.append(el('p', 'allen-err', `I could not file this: ${reason || 'no reason given'}`), offer, relayOut);
+      state.replaceChildren(box);
+      return true;
+    }
+    state.replaceChildren(el('p', 'allen-note', `Waiting to file on GitHub${reason ? `: ${reason}` : ''} (item ${id}${status.duplicate ? ', the same text was sent before' : ''}). Checking every ${POLL_MS / 1000} s.`));
     return false;
   }
-  async function track(first, state) {
+  function relayText(item) {
+    return item.kind === 'issue' ? `Issue for ${item.area} (${item.template}): ${item.title}\n\n${item.body}` : `Omega project ${item.slug}: ${item.title}\n\n${item.description}`;
+  }
+  async function track(first, state, item, again) {
     const id = typeof first.id === 'string' && /^[0-9a-f]{20}$/.test(first.id) ? first.id : '';
     if (!id) {
       state.replaceChildren(el('p', 'allen-err', 'The gateway returned no tracking id.'));
@@ -642,10 +665,13 @@
     const began = performance.now();
     let current = first;
     for (;;) {
-      if (showStatus(current, state, id)) return;
-      if (performance.now() - began >= POLL_LIMIT) {
+      if (showStatus(current, state, id, item, again)) return;
+      /* A token not yet installed never resolves, so stop after POLL_LIMIT;
+         retries end in filed or failed within a few minutes, so wait longer. */
+      const retrying = typeof current.reason === 'string' && current.reason.startsWith('retrying');
+      if (performance.now() - began >= (retrying ? 3 * POLL_LIMIT : POLL_LIMIT)) {
         const why = typeof current.reason === 'string' && current.reason ? current.reason.slice(0, 200) : 'not filed yet';
-        state.replaceChildren(el('p', 'allen-note', `queued: ${why} (item ${id}). The request is kept and is filed when Drake's filing service runs; checking stopped after ${POLL_LIMIT / 60000} minutes.`));
+        state.replaceChildren(el('p', 'allen-note', `queued: ${why} (item ${id}). The request is kept and is filed when Drake's filing service runs; checking stopped.`));
         return;
       }
       await new Promise(done => setTimeout(done, POLL_MS));
@@ -657,6 +683,30 @@
         /* Keep the last status and try again on the next tick. */
       }
     }
+  }
+  /* After a rejection: the same issue, editable, sent again only on a click. */
+  function editIssue(item, state) {
+    const form = el('form', 'allen-card allen-reissue');
+    form.noValidate = true;
+    const title = field(form, 'Title', 'input', 120);
+    title.value = item.title;
+    const body = field(form, 'Body', 'textarea', 6000);
+    body.value = item.body;
+    const resend = el('button', 'allen-tool', 'File the edited issue');
+    resend.type = 'submit';
+    const note = el('p', 'allen-card-state');
+    form.append(resend, note);
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      const next = { ...item, title: title.value.trim(), body: body.value.trim() };
+      if (next.title.length < 8 || next.title.length > 120 || next.body.length < 20 || next.body.length > 6000) {
+        setText(note, 'The title must be 8 to 120 characters and the body 20 to 6000.');
+        return;
+      }
+      resend.disabled = true;
+      submitItem(next, note, resend);
+    });
+    return form;
   }
   const INTRO = [
     ['name', 'Name', 100, 'input'],

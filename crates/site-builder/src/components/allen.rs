@@ -195,6 +195,22 @@ mod tests {
     }
 
     #[test]
+    fn filing_status_covers_failed_and_rejected() {
+        // filed shows the link, rejected lets the visitor edit and resend,
+        // failed says so plainly and offers the relay with the text prefilled,
+        // queued keeps polling with its reason (retrying ones a while longer).
+        let script = include_str!("../../../../public/js/allen.js");
+        let status = function_body(script, "showStatus");
+        for needle in ["status.state === 'filed'", "status.state === 'rejected'", "editIssue(item, state)", "status.state === 'failed'", "`I could not file this: ${reason || 'no reason given'}`", "relayCard({ fields: Object.create(null), body: relayText(item) }, relayOut)", "Waiting to file on GitHub"] {
+            assert!(status.contains(needle), "showStatus lacks {needle}");
+        }
+        // The relay still waits for Send to Drake; the offer only builds the card.
+        assert!(!status.contains("sendRelay("));
+        assert!(function_body(script, "track").contains("current.reason.startsWith('retrying')"));
+        assert!(function_body(script, "editIssue").contains("submitItem(next, note, resend)"));
+    }
+
+    #[test]
     fn only_allen_nodes_carry_the_allen_speaker_mark() {
         let script = include_str!("../../../../public/js/allen.js");
         assert!(function_body(script, "message").contains("if (role === 'allen') item.dataset.speaker = 'allen';"));
