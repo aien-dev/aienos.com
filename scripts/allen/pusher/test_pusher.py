@@ -437,6 +437,17 @@ class Offline(unittest.TestCase):
         state = json.load(open(os.path.join(self.env.state, "state.json")))
         self.assertEqual((state["issues"], state["pending"], state["attempts"]), (0, {}, {}))  # slots returned
 
+    def test_crash_recovery_finds_pre_rename_issue(self):
+        gh = FakeGitHub()
+        iid = "0123456789abcdef0123"
+        old = gh.client.call("POST", P.REPO_PREFIX + "issues", {"title": "t", "labels": ["from-allen"],
+                             "body": "b\n" + P.marker(iid)})
+        gh.client.call("POST", P.REPO_PREFIX + "issues", {"title": "u", "labels": ["test"],
+                       "body": "b\n" + P.marker("f" * 20)})
+        self.assertEqual(P.find_issue(gh, iid), old["html_url"])
+        self.assertIsNone(P.find_issue(gh, "f" * 20))  # control: unlabelled issue is not recovered
+        gh.close()
+
     def test_retry_then_filed_once(self):
         gh = FakeGitHub(fail=P.HTTPRefused(502), fail_count=2)
         iid = self.env.drop(issue())

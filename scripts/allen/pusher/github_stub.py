@@ -262,7 +262,10 @@ class StubHandler(http.server.BaseHTTPRequestHandler):
                 s.issues.append(it)
                 return self.reply(201, it)
             if method == "GET" and rest.startswith("issues"):
-                return self.reply(200, s.issues)
+                # GitHub's labels= filter: an issue must carry every listed label.
+                want = [x for x in urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query).get("labels", [""])[0].split(",") if x]
+                return self.reply(200, [it for it in s.issues
+                                        if all(w in (it.get("labels") or []) for w in want)])
             if method == "POST" and rest.startswith("issues/") and rest.endswith("/labels"):
                 return self.reply(200, [{"name": x} for x in body["labels"]])
         return self.reply(404, {"message": "Not Found"})
