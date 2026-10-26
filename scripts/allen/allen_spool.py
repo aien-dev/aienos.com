@@ -163,11 +163,21 @@ def write_item(spool_in, item):
     return iid, True
 
 
-def read_status(spool_status, iid):
+def spool_file(directory, iid):
+    """directory/iid.json for a well-formed id, or None; the real path must stay in directory."""
     if not ID.match(iid or ""):
         return None
+    root = os.path.realpath(directory)
+    path = os.path.realpath(os.path.join(root, iid + ".json"))
+    return path if path.startswith(root + os.sep) else None
+
+
+def read_status(spool_status, iid):
+    path = spool_file(spool_status, iid)
+    if path is None:
+        return None
     try:
-        with open(os.path.join(spool_status, iid + ".json"), encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             st = json.load(f)
     except (OSError, ValueError):
         return None

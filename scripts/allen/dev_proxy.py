@@ -31,8 +31,10 @@ class H(BaseHTTPRequestHandler):
         r = c.getresponse()
         self.send_response(r.status)
         for k, v in r.getheaders():
-            if k.lower() not in ("transfer-encoding", "connection", "content-length"):
-                self.send_header(k, v)
+            # A header carrying CR or LF would split this response; drop it.
+            if k.lower() in ("transfer-encoding", "connection", "content-length") or "\r" in k + v or "\n" in k + v:
+                continue
+            self.send_header(k, v)
         self.send_header("Connection", "close")
         self.end_headers()
         self.close_connection = True
@@ -46,9 +48,15 @@ class H(BaseHTTPRequestHandler):
     def static(self):
         root = os.path.realpath(self.server.dist)
         full = os.path.realpath(os.path.join(root, urlsplit(self.path).path.lstrip("/")))
+        if not (full == root or full.startswith(root + os.sep)):
+            self.send_error(404)
+            return
         if os.path.isdir(full):
-            full = os.path.join(full, "index.html")
-        if not (full == root or full.startswith(root + os.sep)) or not os.path.isfile(full):
+            full = os.path.realpath(os.path.join(full, "index.html"))
+            if not full.startswith(root + os.sep):
+                self.send_error(404)
+                return
+        if not os.path.isfile(full):
             self.send_error(404)
             return
         with open(full, "rb") as f:
