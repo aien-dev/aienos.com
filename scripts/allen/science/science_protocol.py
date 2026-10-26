@@ -16,6 +16,7 @@ MATH_HEADS |= frozenset('Assumptions GenerateConditions ConditionalExpression Si
 UNITS = frozenset('Kilograms SpeedOfLight Joules GravitationalConstant SolarMass Kilometers Parsecs LightYears ReducedPlanckConstant Meters Seconds Kelvins Celsius Fahrenheit Radians Degrees Moles Amperes Candelas Newtons Pascals Watts Hertz MetersPerSecond SIBase'.split())
 VARIABLES = frozenset('x y z t a b c d f g h k m n p q r s u v w'.split())
 TOKEN = re.compile(r'\s+|"[A-Za-z]{1,64}"|\\\[Distributed\]|(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?|[A-Za-z]+|[\[\]{}(),.+*/^<>=!\x27\-]')
+WORD = re.compile(r'[A-Za-z]+')
 
 
 def packed(value):
@@ -78,8 +79,14 @@ def expression(value):
     if re.search(r'(?<![=<>])=(?!=)', value):
         raise ValueError('Assignments are not mathematical requests')
     # Dependent variables may occur as heads in differential equations.
-    for head in re.findall(r'([A-Za-z]+)\s*\[', value):
-        if head not in MATH_HEADS and head not in VARIABLES and head != 'Distributed':
+    # A head is a maximal letter run followed, after optional whitespace, by '['.
+    # Scanned by hand: the regex form backtracks polynomially on long letter runs.
+    for word in WORD.finditer(value):
+        after = word.end()
+        while after < len(value) and value[after].isspace():
+            after += 1
+        head = word.group()
+        if after < len(value) and value[after] == '[' and head not in MATH_HEADS and head not in VARIABLES and head != 'Distributed':
             raise ValueError('Unapproved function head')
     return value
 

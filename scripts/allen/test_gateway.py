@@ -307,6 +307,159 @@ def pool_tests(a):
         s.shutdown()
 
 
+def summary_tests(a):
+    """POST project-summary: key holders only, text checks, one replacing note; with controls."""
+    cx = cortex_stub()
+    s = scripted()
+    secret = "s" * 40
+    g = Gateway(a, "--memory-url", "http://127.0.0.1:%d" % cx.server_address[1],
+                upstream="127.0.0.1:%d" % s.server_address[1],
+                env={"CORTEX_VISITORS_TOKEN": "t" * 40, "ALLEN_VISITOR_SECRET": secret})
+    key = "4" * 32
+    space = "v-" + hmac.new(secret.encode(), key.encode(), hashlib.sha256).hexdigest()
+
+    def live_summaries():
+        with cx.lock:
+            return [r["content"] for r in cx.rows.values() if r["spaceSlug"] == space and r["content"]
+                    .startswith("Project summary:") and r["aliases"]]
+
+    def post(body, headers, ip):
+        c, r = g.post("/allen/api/project-summary", body, ip=ip, headers=headers)
+        return r.status, json.loads(r.read() or b"{}")
+    try:
+        K = {"X-Allen-Key": key}
+        ok = {"summary": "A kelp boat autopilot written in Omega.", "consent": True}
+        before = len(cx.writes)
+        cases = [("anonymous even with a key", ok, dict(K, **{"X-Allen-Anonymous": "1"}), 409),
+                 ("no key", ok, {}, 400), ("consent missing", {"summary": "x y z"}, K, 400),
+                 ("consent as string", dict(ok, consent="true"), K, 400),
+                 ("a code field", dict(ok, code="fn f"), K, 422),
+                 ("an email", dict(ok, summary="mail me at a@example.org"), K, 422),
+                 ("a phone number", dict(ok, summary="call +1 555 123 4567 please"), K, 422),
+                 ("a secret", dict(ok, summary="key ghp_" + "A1b2C3d4" * 5), K, 422),
+                 ("over 1000 bytes", dict(ok, summary="\u00e9" * 501), K, 422),
+                 ("empty", dict(ok, summary="   "), K, 422)]
+        for i, (name, body, h, want) in enumerate(cases):
+            st, j = post(body, h, "203.0.113.%d" % (140 + i))
+            check("project-summary refuses %s" % name, st == want and len(cx.writes) == before,
+                  "%d %s, cortex writes +%d" % (st, j.get("error"), len(cx.writes) - before))
+        st, j = post(dict(ok, summary="\u00e9" * 500), K, "203.0.113.160")
+        check("project-summary accepts 1000 UTF-8 bytes (control)", st == 200 and len(live_summaries()) == 1,
+              "%d %s" % (st, j))
+        st, j = post(ok, K, "203.0.113.161")
+        sums = live_summaries()
+        check("a new summary replaces the previous one", st == 200 and sums == ["Project summary: " + ok["summary"]],
+              "%d live summaries %s" % (st, [x[:40] for x in sums]))
+    finally:
+        g.close()
+        s.shutdown()
+        cx.shutdown()
+
+
+class VolunteerStub(BaseHTTPRequestHandler):
+    """Stands in for the hub's overflow endpoint; records every request's headers and body."""
+
+    protocol_version = "HTTP/1.1"
+
+    def log_message(self, *a):
+        pass
+
+    def do_POST(self):
+        body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+        srv = self.server
+        srv.seen.append(({k.lower() for k in self.headers.keys()}, self.path, body))
+        if srv.mode == "503":
+            self.send_response(503)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream")
+        self.send_header("Connection", "close")
+        self.send_header("X-OH-Volunteer", "vol-1")
+        self.send_header("X-OH-Model", "qwen-test-9b")
+        self.send_header("X-OH-Model-Digest", "sha256:abc")
+        self.end_headers()
+        if srv.mode == "error":
+            self.wfile.write(b'data: {"choices":[{"delta":{"content":"part"}}]}\n\ndata: {"error":"volunteer left"}\n\n')
+            self.close_connection = True
+            return
+        for t in ("from ", "a volunteer"):
+            self.wfile.write(("data: " + json.dumps({"choices": [{"delta": {"content": t}}]}) + "\n\n").encode())
+        self.wfile.write(("data: " + json.dumps({"choices": [{"delta": {}, "finish_reason": "stop"}],
+                                                  "oh": {"model": "ignored-when-header", "volunteer": "x"}})
+                          + "\n\ndata: [DONE]\n\n").encode())
+        self.close_connection = True
+
+
+def volunteer_tests(a):
+    """Flag-off volunteer overflow: contacted only with the flag, a full gate, no key and the tick."""
+    vs = ThreadingHTTPServer(("127.0.0.1", 0), VolunteerStub)
+    vs.daemon_threads, vs.seen, vs.mode = True, [], "ok"
+    threading.Thread(target=vs.serve_forever, daemon=True).start()
+    up = scripted(tokens=("from ", "Allen"))
+    VOL = {"X-Allen-Volunteer": "1"}
+    vflags = ["--queue-wait", "2"]
+    coord = {"OH_COORDINATOR": "http://127.0.0.1:%d" % vs.server_address[1]}
+    msgs = {"messages": [{"role": "user", "content": "hi"}, {"role": "assistant", "content": "hello"},
+                         {"role": "user", "content": "overflow please"}]}
+
+    def turn(g, headers, ip):
+        c, r = g.post("/allen/api/chat", msgs, ip=ip, headers=headers)
+        return [(e, d) for e, d, _ in events(r)] if r.status == 200 else [("http", r.status)]
+    try:
+        g = Gateway(a, "--cap", "0", *vflags, upstream="127.0.0.1:%d" % up.server_address[1], env=coord)
+        try:
+            ev = turn(g, VOL, "203.0.113.170")
+            check("flag off: volunteer never contacted", not vs.seen and ev[-1][0] == "error", "%d requests, %s"
+                  % (len(vs.seen), [e for e, _ in ev]))
+        finally:
+            g.close()
+        on = dict(coord, OH_VOLUNTEER_ROUTING="1")
+        g = Gateway(a, "--cap", "0", *vflags, upstream="127.0.0.1:%d" % up.server_address[1], env=on)
+        try:
+            turn(g, {}, "203.0.113.171")
+            check("flag on, no tick: never contacted", not vs.seen, "%d requests" % len(vs.seen))
+            turn(g, dict(VOL, **{"X-Allen-Key": "5" * 32}), "203.0.113.172")
+            check("flag on, keyed visitor: never contacted", not vs.seen, "%d requests" % len(vs.seen))
+            ev = turn(g, VOL, "203.0.113.173")
+            hdrs, path, body = vs.seen[0] if vs.seen else (set(), "", {})
+            done = [d for e, d in ev if e == "done"]
+            text = "".join(d for e, d in ev if e is None)
+            check("flag on, full gate, anonymous, tick: answered by the volunteer", len(vs.seen) == 1
+                  and path == "/v1/overflow" and text == "from a volunteer" and done
+                  and done[0]["answered_by"] == "answered by a volunteer's Spark (qwen-test-9b)"
+                  and done[0]["volunteer"] == "vol-1" and ev[0][1].get("volunteer") is True,
+                  "%s %s" % ([e for e, _ in ev], done[:1]))
+            check("only Host, Content-Type and Content-Length sent", hdrs == {"host", "content-type", "content-length"},
+                  "%s" % sorted(hdrs))
+            check("body carries consent and user/assistant messages only", body.get("volunteer_consent") is True
+                  and [m["role"] for m in body.get("messages", [])] == ["user", "assistant", "user"]
+                  and set(body) == {"volunteer_consent", "messages", "max_tokens"}, "%s" % sorted(body))
+            vs.mode = "error"
+            ev = turn(g, VOL, "203.0.113.176")
+            check("mid-stream error chunk ends the volunteer reply", ev[-1][0] == "error"
+                  and "done" not in [e for e, _ in ev], "%s" % [e for e, _ in ev])
+            vs.mode = "503"
+            n = len(vs.seen)
+            ev = turn(g, VOL, "203.0.113.174")
+            check("volunteer 503 falls back to the normal queue (busy)", len(vs.seen) == n + 1
+                  and ev[-1] == ("error", ev[-1][1]) and ev[-1][1]["code"] == "busy", "%s" % [e for e, _ in ev])
+        finally:
+            g.close()
+        vs.mode, n = "ok", len(vs.seen)
+        g = Gateway(a, *vflags, upstream="127.0.0.1:%d" % up.server_address[1], env=on)
+        try:
+            ev = turn(g, VOL, "203.0.113.175")
+            check("free slot: Allen answers, volunteer not contacted (control)", len(vs.seen) == n
+                  and "".join(d for e, d in ev if e is None) == "from Allen", "%s" % [e for e, _ in ev])
+        finally:
+            g.close()
+    finally:
+        vs.shutdown()
+        up.shutdown()
+
+
 def warm_tests(a):
     """Keep-warm guard: cold warms (slower than --warm-cold-s) back off; hot ones keep going."""
     counts = {}
@@ -958,6 +1111,7 @@ def main():
     only = os.environ.get("ALLEN_TEST_ONLY", "")
     for name, fn in (("offline", offline_tests), ("spool", spool_tests), ("pool", pool_tests),
                      ("relay", relay_tests), ("live", live_tests), ("anon", anon_tests),
+                     ("summary", summary_tests), ("volunteer", volunteer_tests),
                      ("warm", warm_tests)):
         if not only or name in only.split(","):
             fn(a)

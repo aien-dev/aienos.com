@@ -163,11 +163,21 @@ def write_item(spool_in, item):
     return iid, True
 
 
-def read_status(spool_status, iid):
+def spool_file(directory, iid):
+    """directory/iid.json for a well-formed id, or None; the real path must stay in directory."""
     if not ID.match(iid or ""):
         return None
+    root = os.path.realpath(directory)
+    path = os.path.realpath(os.path.join(root, iid + ".json"))
+    return path if path.startswith(root + os.sep) else None
+
+
+def read_status(spool_status, iid):
+    path = spool_file(spool_status, iid)
+    if path is None:
+        return None
     try:
-        with open(os.path.join(spool_status, iid + ".json"), encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             st = json.load(f)
     except (OSError, ValueError):
         return None
@@ -251,3 +261,20 @@ def validate_say(req):
     if not text:
         raise Invalid("text is empty")
     return text
+
+
+def validate_summary(req):
+    """{"summary", "consent"} for POST project-summary: the visitor's own short project summary,
+    text only (no code or file fields), no secrets, emails or phone numbers."""
+    if not isinstance(req, dict) or set(req) - {"summary", "consent"}:
+        raise Invalid("project-summary takes only summary and consent")
+    s = req.get("summary")
+    if not isinstance(s, str):
+        raise Invalid("summary must be text")
+    s = s.strip()
+    if not s or len(s.encode("utf-8")) > 1000:
+        raise Invalid("summary must be 1 to 1000 bytes")
+    _text(s, "summary", 1, 1000)
+    if EMAIL.search(s) or PHONE.search(s):
+        raise Invalid("summary must not contain an email address or a phone number")
+    return s
