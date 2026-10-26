@@ -275,6 +275,15 @@
     describe();
     if (choice !== 'yes' && loaded) window.location.reload();
   });
+  // The first-visit greeting, once per browser. Recorded on first display: never
+  // auto-open again, chosen or not. Unanswered means No. Not on /privacy/ or /allen/.
+  function greet() {
+    if (choice === 'yes' || choice === 'no' || seen() || document.getElementById('allen-intro-privacy') || document.getElementById('allen')) return false;
+    markSeen();
+    open(false);
+    return true;
+  }
+
   // The interface Allen's presence layer calls. X consent and refusal only: memory
   // consent lives on /allen/ behind its own step, never here, so one tap never means both.
   window.aienAllenIntro = Object.freeze({
@@ -292,6 +301,8 @@
     noThanks: function () { choose('no', true); },
     dismiss: function () { choose('no'); },
     review: function () { open(true); },
+    // A page that marks [data-allen-intro-defer] (the home door) calls this after its own welcome.
+    greet: greet,
     who: function () {
       watch();
       return { trackers: thirdParty.map(function (t) { return Object.assign({}, t); }), facts: facts.map(function (row) { return row.slice(); }) };
@@ -300,9 +311,5 @@
   });
   describe();
   if (choice === 'yes') loadPixel();
-  else if (choice !== 'no' && !seen() && !document.getElementById('allen-intro-privacy') && !document.getElementById('allen')) {
-    // Recorded on first display: never auto-open again, chosen or not. Unanswered means No.
-    markSeen();
-    open(false);
-  }
+  else if (!document.querySelector('[data-allen-intro-defer]')) greet();
 }());
