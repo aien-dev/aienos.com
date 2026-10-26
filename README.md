@@ -57,10 +57,10 @@ Rollback: delete the `www` A record and restore `CNAME www aien-dev.github.io.` 
 
 ## Installer script
 
-`public/install.sh` is published at `https://aienos.com/install.sh`. It needs `git`, clones [aien-sovereign-core](https://github.com/aien-dev/aien-sovereign-core) (the earlier Linux-hosted Rust runtime) into a temporary directory and runs that repository's own `install.sh`. The website itself says there is no supported release or installer yet, and no page links to this script.
+`public/install.sh` is published at `https://aienos.com/install.sh`. It is the AienOS alpha bootstrap for an NVIDIA DGX Spark (GB10), byte-identical to the signed copy in the [alpha-20261026.1 release](https://github.com/aien-dev/AienOS-nv/releases/tag/alpha-20261026.1) of aien-dev/AienOS-nv (sha256 `fc966a2686aff6b0c4177991d8ca9f0d5a665258339694b8a9dec4f27bb4aff5`, listed in that release's signed SHA256SUMS). It checks the platform first, then downloads that release, checks its Ed25519 signature and SHA-256 before unpacking, and installs into `~/.local/share/aienos`. Its source is `installer/install.sh` in aien-dev/AienOS-nv; change it there and copy it here, never edit this copy alone. The /alpha/ page links to it.
 
-```bash
-curl -fsSL https://aienos.com/install.sh | bash
+```sh
+curl -fsSL https://aienos.com/install.sh | sh
 ```
 
 ---
