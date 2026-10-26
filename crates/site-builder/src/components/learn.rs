@@ -83,10 +83,10 @@ pub fn render_learn_page() -> Markup {
                     li {
                         h3 { "Give the agent the relevant ground." }
                         p {
-                            "Point to the repository instructions, the affected feature, existing patterns, and the commands used to build and test. State non-goals and actions that need approval. Ask it to read before guessing. Our "
+                            "Point to the repository instructions, the affected feature, existing patterns, and the commands used to build and test. State non-goals and actions that need approval. Ask it to read before guessing. My "
                             a href="/agents/" { "repository guide" }
                             " and " a href="/agents/RULES.md" { "public agent rules" }
-                            " show what those constraints look like here. Use your own project's rules, not ours by default."
+                            " show what those constraints look like here. Use your own project's rules, not mine by default."
                         }
                     }
                     li {
@@ -108,7 +108,7 @@ pub fn render_learn_page() -> Markup {
                     li {
                         h3 { "Publish the outcome, with its limits." }
                         p {
-                            "Keep the commit, exact commands, results, and manual steps together. Say what failed or was not run. Review the diff before opening a pull request, and review again before deployment. Our "
+                            "Keep the commit, exact commands, results, and manual steps together. Say what failed or was not run. Review the diff before opening a pull request, and review again before deployment. My "
                             a href="/evidence/" { "evidence guide" }
                             " explains how to read a claim alongside its receipt."
                         }

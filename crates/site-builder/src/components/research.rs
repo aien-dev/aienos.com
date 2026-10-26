@@ -50,7 +50,7 @@ pub fn render_research() -> Markup {
                         "PUBLISHED RESEARCH"
                     }
                     h2 style="font-size: 32px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-primary);" {
-                        "Do not take our word for it. Check the receipts."
+                        "Do not take my word for it. Check the receipts."
                     }
                     p style="color: var(--text-secondary); margin-top: 8px; line-height: 1.6;" {
                         "Most AI asks you to trust a demo and a promise. This project publishes its science in the open instead: the Turing, a unit of net held-out explanatory compression (one operational component of machine understanding), plus the papers behind it and the data anyone can recheck. It starts with the Turing."

@@ -29,3 +29,4 @@ pub mod hive;
 pub mod learn;
 pub mod dash;
 pub mod allen_intro;
+pub mod voice;
