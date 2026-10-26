@@ -945,7 +945,11 @@ class App:
     def augment(self, messages):
         """Visitor turns with each user turn's cards (allen_speed.augment); no cards: unchanged."""
         self.cards.refresh()
-        return allen_speed.augment(messages, self.cards)
+        before = self.cards.select_errors
+        out = allen_speed.augment(messages, self.cards)
+        if self.cards.select_errors != before:
+            self.stats.add("cards_select_error", self.cards.select_errors - before)
+        return out
 
     def vid(self, handler):
         """HMAC of the visitor key from the request header; the raw key is never kept.
@@ -1510,6 +1514,13 @@ class Handler(BaseHTTPRequestHandler):
                 app.queue_notes(vid, req["messages"][-1]["content"], reply)
         except (BrokenPipeError, ConnectionResetError, socket.timeout, TimeoutError):
             app.stats.add("client_gone")
+        except Exception as e:  # a gateway bug: the visitor gets an error event, never a silent close
+            app.stats.add("chat_internal_error")
+            print("allen-chat: internal error in chat: %s" % type(e).__name__, flush=True)
+            try:
+                self.sse("error", {"code": "upstream", "message": "Aien could not answer just now. Try again."})
+            except OSError:
+                pass
         finally:
             if started:
                 app.gate.done()

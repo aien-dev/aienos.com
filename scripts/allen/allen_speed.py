@@ -143,14 +143,19 @@ class Cards:
 
     def __init__(self, detail=None, retrieve=None, learn=None, catalog=None):
         self.detail, self.learn, self.catalog = detail, learn, catalog
-        self.retrieve = load_module(retrieve, "allen_catalog_retrieve") if detail and retrieve else None
+        # retrieve.py and catalog-detail.jsonl are rewritten together by the catalog job, so the
+        # module is reloaded whenever either changes (an old select() over a new record shape
+        # raised KeyError on every turn).
+        self.retrieve_path = retrieve if detail and retrieve else None
+        self.retrieve = None
         self.lock = threading.Lock()
         self.stamp = None
         self.records, self.lessons, self.qa, self.learn_sha = [], [], [], ""
+        self.select_errors = 0  # retrieve.select() failures (reported in the gateway's counters)
         self.repos, self.pages = None, frozenset()
 
     def _files(self):
-        files = [f for f in (self.detail, self.catalog) if f]
+        files = [f for f in (self.detail, self.retrieve_path, self.catalog) if f]
         if self.learn:
             files += sorted(glob.glob(os.path.join(self.learn, "cards", "*.json")))
             files += sorted(glob.glob(os.path.join(self.learn, "qa", "*.jsonl")))
@@ -173,12 +178,13 @@ class Cards:
         with self.lock:
             if stamp == self.stamp:
                 return
-            records = []
-            if self.retrieve:
+            records, retrieve = [], None
+            if self.retrieve_path:
                 try:
-                    records = self.retrieve.load(self.detail)
-                except (OSError, ValueError):
-                    records = []
+                    retrieve = load_module(self.retrieve_path, "allen_catalog_retrieve")
+                    records = retrieve.load(self.detail)
+                except Exception:  # a broken catalog drop means no repo cards, never a dead turn
+                    retrieve, records = None, []
             repos, pages = None, frozenset()
             if self.catalog:
                 try:
@@ -211,7 +217,7 @@ class Cards:
                     h.update(b"qa/" + os.path.basename(f).encode() + b"\0" + raw + b"\0")
                     qa += [d for d in rows if isinstance(d, dict) and isinstance(d.get("q"), str)
                            and isinstance(d.get("a"), str) and d["q"] and d["a"]]
-            self.records, self.lessons, self.qa = records, lessons, qa
+            self.retrieve, self.records, self.lessons, self.qa = retrieve, records, lessons, qa
             self.repos, self.pages = repos, pages
             self.learn_sha = h.hexdigest() if (lessons or qa) else ""
             self.stamp = stamp
@@ -259,11 +265,17 @@ class Cards:
 
     def block(self, text, stable=False):
         """Cards for one user turn ("" when nothing matches). stable=True drops the fields that
-        change with every push (latest commit, exact push day): the answer cache's grounding."""
+        change with every push (latest commit, exact push day): the answer cache's grounding.
+        A retrieve.py failure on these records gives no repo cards, never an exception."""
         recs = self.records
         if stable:
-            recs = [dict(d, latest=None, last_push=(d.get("last_push") or "")[:7]) for d in recs]
-        repo = self.retrieve.select(recs, text) if self.retrieve and recs else ""
+            recs = [dict(d, latest=None, last_push=(d.get("last_push") or "")[:7]) if "last_push" in d
+                    else dict(d, latest=None) for d in recs]
+        try:
+            repo = self.retrieve.select(recs, text) if self.retrieve and recs else ""
+        except Exception:
+            self.select_errors += 1
+            repo = ""
         lesson = self.lesson_block(text)
         return "".join(p.rstrip("\n") + "\n" for p in (repo, lesson) if p).rstrip("\n")
 

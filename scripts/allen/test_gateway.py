@@ -770,6 +770,25 @@ def speed_tests(a):
         check("earlier user turns keep their cards (prompt grows byte-stably)", len(first) == 1
               and "- omega-mv:" in first[0]["content"] and msgs[-1]["content"] == "And now?",
               "%r" % [m["content"][:60] for m in msgs[-3:]])
+        # the catalog job rewrites retrieve.py and the detail file: a select() that raises on the
+        # new records gives a normal model answer without repo cards; a fixed retrieve.py is
+        # picked up without a restart (the old module once raised KeyError on every turn)
+        with open(ret, "w") as f:
+            f.write("def load(path):\n    return [{'name': 'x'}]\ndef select(records, text, k=5):\n"
+                    "    return records[0]['evidence']\n")
+        time.sleep(0.05)
+        n2 = len(s.posts)
+        r = run(g, u("Show me the first function in omega-mv please"), ip="203.0.113.72")
+        check("retrieve.py raising on its records: answer without repo cards, no dead stream",
+              r["text"] == "from model" and r["done"] and len(s.posts) == n2 + 1
+              and "- omega-mv:" not in s.posts[-1][1]["messages"][-1]["content"], "%s %r" % (r["meta"], r["text"]))
+        with open(ret, "w") as f:
+            f.write(RETRIEVE_FIXTURE)
+        time.sleep(0.05)
+        run(g, u("Show me the first function in omega-mv please"), ip="203.0.113.73")
+        check("a fixed retrieve.py is reloaded without a restart (control)",
+              "- omega-mv:" in s.posts[-1][1]["messages"][-1]["content"], s.posts[-1][1]["messages"][-1]["content"][-80:])
+
         # a catalog change makes the cached entry stale at once (key = prompt + catalog)
         with open(cat, "a") as f:
             f.write("aienux: the kernel\n")
