@@ -14,8 +14,8 @@ agent	security-reviewer	anthropic/claude-opus-5-5:medium
 agent	scout	anthropic/claude-opus-5-5:medium
 agent	sonic	anthropic/claude-opus-5-5:medium
 agent	seance	anthropic/claude-opus-5-5:medium
-seat	Daddy	anthropic/claude-opus-5-5:high
-seat	Witness	anthropic/claude-opus-5-5:high
-seat	Physics	anthropic/claude-opus-5-5:high
-seat	Ladder	anthropic/claude-opus-5-5:high
-seat	Steward	anthropic/claude-opus-5-5:high
+seat	Daddy	anthropic/claude-fable-5-1:high
+seat	Witness	anthropic/claude-fable-5-1:high
+seat	Physics	anthropic/claude-fable-5-1:high
+seat	Ladder	anthropic/claude-fable-5-1:high
+seat	Steward	anthropic/claude-fable-5-1:high
