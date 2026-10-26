@@ -211,6 +211,20 @@ mod tests {
     }
 
     #[test]
+    fn the_frame_policy_is_placed_by_a_linear_scan() {
+        // CodeQL js/redos: the head search must not backtrack. sandboxed() scans
+        // with startsWith/indexOf; no quantified group or lazy match is left.
+        let script = include_str!("../../../../public/js/allen.js");
+        let body = function_body(script, "sandboxed");
+        for banned in ["*?", ")*", ".exec(source)", "[\\s\\S]"] {
+            assert!(!body.contains(banned), "sandboxed must not use {banned}");
+        }
+        for needle in ["lower.startsWith('<!--', at)", "source.indexOf('-->', at + 4)", "if (tag('head')) return source.slice(0, at) + meta + source.slice(at);"] {
+            assert!(body.contains(needle), "sandboxed lacks {needle}");
+        }
+    }
+
+    #[test]
     fn only_allen_nodes_carry_the_allen_speaker_mark() {
         let script = include_str!("../../../../public/js/allen.js");
         assert!(function_body(script, "message").contains("if (role === 'allen') item.dataset.speaker = 'allen';"));

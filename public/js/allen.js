@@ -1305,14 +1305,56 @@
     setTimeout(() => setText(node, node.dataset.label), 1500);
   }
   /* The policy becomes the first element of the program's head: after an
-     existing head tag that only a doctype, html tag or comments precede, else
-     in a head of its own placed after any doctype and html tag. */
+     existing head tag that only whitespace, a doctype, comments and an html
+     tag precede, else in a head of its own placed after any doctype and html
+     tag. A linear scan (no backtracking regex): each comment ends at its
+     first -->, as the HTML parser ends it. */
   function sandboxed(source) {
     const meta = `<meta http-equiv="Content-Security-Policy" content="${CSP}">`;
-    const head = /^\s*(?:<!doctype[^>]*>\s*)?(?:<!--[\s\S]*?-->\s*)*(?:<html(?:\s[^>]*)?>\s*)?(?:<!--[\s\S]*?-->\s*)*<head(?:\s[^>]*)?>/i.exec(source);
-    if (head) return source.slice(0, head[0].length) + meta + source.slice(head[0].length);
-    const lead = /^\s*(?:<!doctype[^>]*>\s*)?(?:<html(?:\s[^>]*)?>)?/i.exec(source)[0];
-    return `${lead}<head>${meta}</head>${source.slice(lead.length)}`;
+    const lower = source.toLowerCase();
+    let at = 0;
+    const space = () => {
+      while (at < source.length && /\s/.test(source[at])) at += 1;
+    };
+    const tag = name => {
+      const open = `<${name}`;
+      if (!lower.startsWith(open, at)) return false;
+      const next = source[at + open.length];
+      if (next !== '>' && !(next && /\s/.test(next))) return false;
+      const close = source.indexOf('>', at + open.length);
+      if (close < 0) return false;
+      at = close + 1;
+      return true;
+    };
+    const doctype = () => {
+      if (!lower.startsWith('<!doctype', at)) return false;
+      const close = source.indexOf('>', at + 9);
+      if (close < 0) return false;
+      at = close + 1;
+      return true;
+    };
+    const comments = () => {
+      for (;;) {
+        space();
+        if (!lower.startsWith('<!--', at)) return;
+        const close = source.indexOf('-->', at + 4);
+        if (close < 0) return;
+        at = close + 3;
+      }
+    };
+    space();
+    if (doctype()) space();
+    const lead = (() => {
+      const mark = at;
+      const html = tag('html');
+      const end = at;
+      at = mark;
+      return html ? end : mark;
+    })();
+    comments();
+    if (tag('html')) comments();
+    if (tag('head')) return source.slice(0, at) + meta + source.slice(at);
+    return `${source.slice(0, lead)}<head>${meta}</head>${source.slice(lead)}`;
   }
   function runHtml(source, out) {
     const frame = document.createElement('iframe');
