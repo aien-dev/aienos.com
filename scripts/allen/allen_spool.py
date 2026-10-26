@@ -12,7 +12,9 @@ Item, version 1:
    "title":str, "body":str, "area":str}
   {"v":1, "kind":"project", "slug":str, "title":str, "description":str,
    "files":[{"name":str, "content":str}, ...]}
-Status: {"id":..., "state":"queued"|"filed"|"rejected", "url":str|null, "reason":str|null}
+Status: {"id":..., "state":"queued"|"filed"|"rejected"|"failed", "url":str|null, "reason":str|null}
+  queued = not filed yet; filed = url set; rejected = content broke a rule (fixable);
+  failed = GitHub did not take it after N attempts or the daily cap was hit (offer the relay).
 """
 
 import hashlib
@@ -173,7 +175,7 @@ def read_status(spool_status, iid):
     if url is not None and not (isinstance(url, str) and re.match(
             r"^https://github\.com/aien-dev/omega-projects/(issues|pull)/\d+$", url)):
         url = None
-    return {"id": iid, "state": st.get("state") if st.get("state") in ("queued", "filed", "rejected")
+    return {"id": iid, "state": st.get("state") if st.get("state") in ("queued", "filed", "rejected", "failed")
             else "queued", "url": url, "reason": st.get("reason") if isinstance(st.get("reason"), str) else None}
 
 
