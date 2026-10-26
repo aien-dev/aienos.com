@@ -19,6 +19,26 @@ use std::path::Path;
 pub const ALLOW: &[(&str, &str)] = &[
     // Yann LeCun, quoted on the post-LLM case.
     ("post-llm-case/index.html", "We\u{2019}re never going to get to human-level intelligence by training LLMs or by training on text only. We need the real world."),
+    // The Continuation Test quotes the objections it answers, in the objectors' words.
+    ("engineer/works/the-continuation-test/index.html", "It only does what we tell it."),
+    ("engineer/works/the-continuation-test/index.md", "It only does what we tell it."),
+    ("engineer/works/the-continuation-test.md", "It only does what we tell it."),
+    ("engineer/papers/the-continuation-test.md", "It only does what we tell it."),
+    ("llms-full.txt", "It only does what we tell it."),
+    ("engineer/works/the-continuation-test/index.html", "If we can't write down the rules for good thinking"),
+    ("engineer/works/the-continuation-test/index.md", "If we can't write down the rules for good thinking"),
+    ("engineer/works/the-continuation-test.md", "If we can't write down the rules for good thinking"),
+    ("engineer/papers/the-continuation-test.md", "If we can't write down the rules for good thinking"),
+    ("llms-full.txt", "If we can't write down the rules for good thinking"),
+    // The first Atlas Symphony run, quoted verbatim as the historical record of 30 July 2026.
+    ("engineer/works/atlas-symphony/index.html", "What's left in our development plan?"),
+    ("engineer/works/atlas-symphony/index.md", "What's left in our development plan?"),
+    ("engineer/works/atlas-symphony.md", "What's left in our development plan?"),
+    ("llms-full.txt", "What's left in our development plan?"),
+    ("engineer/works/atlas-symphony/index.html", "Please proceed with our Symphony."),
+    ("engineer/works/atlas-symphony/index.md", "Please proceed with our Symphony."),
+    ("engineer/works/atlas-symphony.md", "Please proceed with our Symphony."),
+    ("llms-full.txt", "Please proceed with our Symphony."),
 ];
 
 /// Pages that embed ledger rows; only these may match text out of the ledger.

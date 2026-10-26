@@ -223,9 +223,9 @@ pub fn render_philosophy_hub() -> Markup {
         ),
         (
             "Drake Stapleton on philosophy",
-            "https://www.drakestapleton.com/philosophy",
-            "Longer essays on ownership, sovereignty, and how machines should earn trust, on drakestapleton.com.",
-            true,
+            "/engineer/philosophy/",
+            "Longer essays on ownership, sovereignty, and how machines should earn trust, in About the engineer.",
+            false,
             source_href(THIS_FILE),
         ),
     ];
@@ -430,7 +430,7 @@ mod tests {
         let page = doc("philosophy");
         assert!(page.contains("Position, not evidence"), "required label missing");
         assert!(page.contains("are not experimental results"), "stance sentence missing");
-        for href in ["/research/the-stapleton-doctrine/", "/post-llm-case/", "https://www.drakestapleton.com/philosophy"] {
+        for href in ["/research/the-stapleton-doctrine/", "/post-llm-case/", "/engineer/philosophy/"] {
             assert!(page.contains(&format!("href=\"{href}\"")), "philosophy card {href} missing");
         }
     }

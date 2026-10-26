@@ -98,6 +98,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
 
     // Render landing page in Maud
     let page_content = html! {
+        (components::alpha::render_alpha_entry())
         (components::home_loop::render_home_loop())
         (components::story::render_story())
         (components::machines::render_machines_section())
@@ -238,6 +239,19 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     );
     fs::create_dir_all(dist.join("hive")).expect("Create Hive directory");
     fs::write(dist.join("hive/index.html"), hive_page.into_string()).expect("Write Hive page");
+    let alpha_page = render_page_layout(
+        components::alpha::TITLE,
+        components::alpha::DESCRIPTION,
+        components::alpha::URL,
+        "website",
+        html! {
+            link rel="stylesheet" href="/assets/alpha.css";
+            script defer src="/js/alpha.js" {}
+        },
+        components::alpha::render_alpha_page(),
+    );
+    fs::create_dir_all(dist.join("alpha")).expect("Create Alpha directory");
+    fs::write(dist.join("alpha/index.html"), alpha_page.into_string()).expect("Write Alpha page");
     let learn_page = render_page_layout(
         components::learn::TITLE,
         components::learn::DESCRIPTION,
@@ -248,6 +262,8 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     );
     fs::create_dir_all(dist.join("learn")).expect("Create learning directory");
     fs::write(dist.join("learn/index.html"), learn_page.into_string()).expect("Write learning page");
+    // /engineer/: About the engineer, drakestapleton.com merged into this site.
+    components::engineer::emit(dist, &facts);
     // /agents/: every public repository with its agent instructions, from
     // public/data/agent-repos.json (refreshed by `site-builder agents`).
     let agent_repos = components::agents::Repos::load(Path::new(components::agents::DATA_PATH))
@@ -606,7 +622,7 @@ fn verify_site(dist: &Path) {
         "/research/status/#implementation",
         "/evidence/",
         "/AGENTS.md",
-        "https://www.drakestapleton.com",
+        "/engineer/",
         "https://interplane.io/",
     ] {
         assert!(start.contains(needle), "/start/ is missing {needle}");
@@ -628,6 +644,8 @@ fn verify_site(dist: &Path) {
         fs::read_to_string(dist.join("assets/turing-look.css")).expect("read turing-look.css").contains(".box-link::after"),
         "assets/turing-look.css must stretch .box-link over its box"
     );
+    // About the engineer: every page written, filled and self-contained.
+    components::engineer::verify(dist);
     // Drake writes alone: no we, us, our, ours or ourselves in rendered copy.
     components::voice::verify_singular_voice(dist);
     // Every page shows Follow me on X in its header and the contact line in its footer.
@@ -661,6 +679,7 @@ const GENERATED_PAGES: &[(&str, usize)] = &[
     ("now/index.html", 0),
     ("dash/index.html", 0),
     ("hive/index.html", 0),
+    ("alpha/index.html", 0),
     ("learn/index.html", 0),
     ("omega/index.html", 30),
     ("cudaplusplus/index.html", 12),
