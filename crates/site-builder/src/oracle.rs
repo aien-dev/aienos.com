@@ -311,9 +311,9 @@ fn twin_of(path: &str, written: &BTreeSet<&str>) -> Option<String> {
 pub const ENGINEER_RAW: &str = include_str!("../../../public/data/engineer.json");
 
 /// The paths of the engineer record after validating every entry: a
-/// lowercase path under /engineer/ made of `a-z 0-9 -` segments, unique and
-/// not already in [`PAGES`]; a name, title and description; a known kind,
-/// exactly one `home` at /engineer/ itself; old paths that are root-relative.
+/// lowercase path under /engineer/ made of `a-z 0-9 -` segments, listed
+/// once; a name, title and description; a known kind, exactly one `home` at
+/// /engineer/ itself; old paths that are root-relative.
 pub fn engineer_paths(raw: &str) -> Result<Vec<String>, String> {
     const KINDS: [&str; 5] = ["home", "page", "collection", "work", "infographic"];
     let v: Value = serde_json::from_str(raw).map_err(|e| format!("engineer.json does not parse: {e}"))?;
@@ -328,8 +328,8 @@ pub fn engineer_paths(raw: &str) -> Result<Vec<String>, String> {
         {
             return Err(format!("engineer.json: {path} must be lowercase a-z, 0-9 and - segments ending in /"));
         }
-        if out.iter().any(|o| o == path) || seo::info_for(path).is_some() {
-            return Err(format!("engineer.json: {path} is listed twice or collides with seo::PAGES"));
+        if out.iter().any(|o| o == path) {
+            return Err(format!("engineer.json: {path} is listed twice"));
         }
         for field in ["name", "title", "description"] {
             if p[field].as_str().is_none_or(|s| s.trim().is_empty()) {
@@ -358,12 +358,30 @@ pub fn engineer_paths(raw: &str) -> Result<Vec<String>, String> {
     Ok(out)
 }
 
-/// Every English page the site must publish: [`PAGES`] and the engineer
-/// record. Both are Rust-side sources, never the generator's own output.
+/// The engineer record and the About-the-engineer section of [`PAGES`] name
+/// exactly the same pages: the Rust builder registers every engineer page in
+/// [`PAGES`], and the record is the authored source the generator renders.
+pub fn check_engineer_registered(paths: &[String]) -> Result<(), String> {
+    for path in paths {
+        if !seo::info_for(path).is_some_and(|p| p.section == seo::Section::Engineer) {
+            return Err(format!("engineer.json: {path} is not an About-the-engineer page in seo::PAGES"));
+        }
+    }
+    for page in PAGES.iter().filter(|p| p.section == seo::Section::Engineer) {
+        if !paths.iter().any(|p| p == page.path) {
+            return Err(format!("seo::PAGES: {} is missing from engineer.json", page.path));
+        }
+    }
+    Ok(())
+}
+
+/// Every English page the site must publish: [`PAGES`], which carries the
+/// engineer record's pages once the record is shown to agree with it. Both
+/// are Rust-side sources, never the generator's own output.
 pub fn registry() -> BTreeSet<String> {
-    let mut all: BTreeSet<String> = PAGES.iter().map(|p| p.path.to_string()).collect();
-    all.extend(engineer_paths(ENGINEER_RAW).unwrap_or_else(|e| panic!("{e}")));
-    all
+    let engineer = engineer_paths(ENGINEER_RAW).unwrap_or_else(|e| panic!("{e}"));
+    check_engineer_registered(&engineer).unwrap_or_else(|e| panic!("{e}"));
+    PAGES.iter().map(|p| p.path.to_string()).collect()
 }
 
 /// The written pages and the registry agree in both directions, and every
@@ -809,8 +827,18 @@ mod tests {
     fn the_engineer_record_is_registered() {
         let paths = engineer_paths(ENGINEER_RAW).expect("the committed record validates");
         assert!(paths.iter().any(|p| p == "/engineer/"));
+        check_engineer_registered(&paths).expect("the record and seo::PAGES agree");
         let all = registry();
-        assert_eq!(all.len(), PAGES.len() + paths.len(), "engineer pages never overlap seo::PAGES");
+        assert_eq!(all.len(), PAGES.len(), "every engineer page is one seo::PAGES entry");
+        assert!(paths.iter().all(|p| all.contains(p)));
+        let dropped: Vec<String> = paths.iter().filter(|p| p.as_str() != "/engineer/").cloned().collect();
+        assert!(check_engineer_registered(&dropped).unwrap_err().contains("/engineer/ is missing"), "a page only in seo::PAGES is caught");
+        let mut extra = paths.clone();
+        extra.push("/engineer/not-registered/".to_string());
+        assert!(check_engineer_registered(&extra).unwrap_err().contains("/engineer/not-registered/"), "a page only in the record is caught");
+        let mut stray = paths.clone();
+        stray.push("/machine/".to_string());
+        assert!(check_engineer_registered(&stray).is_err(), "a page from another section is caught");
         let missing: Vec<String> = all_pages().into_iter().filter(|p| p != "/engineer/").collect();
         assert!(check_registry(&missing).unwrap_err().contains("/engineer/"), "a dropped engineer page is caught");
     }
