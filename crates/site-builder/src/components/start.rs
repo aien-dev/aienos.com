@@ -21,7 +21,7 @@ pub fn render_start_page() -> Markup {
                     p class="narr-kicker" { "New to AienOS" }
                     h1 class="narr-title" { "Start here" }
                     p class="narr-standfirst" {
-                        "AienOS is an experimental, pre-alpha machine for turning search into verified understanding. This page is the shortest route from what it is to what exists today, how to check the evidence, and how to take part."
+                        "Sovereign Intelligence, built on AienOS, is in alpha testing. AienOS is its experimental OS layer. This page is the shortest route from what exists today to its evidence and how to take part."
                     }
                     p class="narr-standfirst" {
                         "Here to learn to build with AI? "
@@ -57,7 +57,9 @@ pub fn render_start_page() -> Markup {
                         "."
                     }
                     p {
-                        "Release state: pre-alpha, with no supported release or installer yet. The canonical record is "
+                        "Sovereign Intelligence release state: alpha testing for Linux arm64 and NVIDIA GB10. The installer and its evidence boundaries are at "
+                        a href="/alpha/" { "/alpha/" }
+                        ". The canonical layer record remains "
                         a href="/status.json" { "status.json" }
                         "."
                     }
@@ -103,7 +105,7 @@ pub fn render_start_page() -> Markup {
                         ": the rules my agents follow and each repository's own instructions."
                     }
                     p {
-                        "There is no supported installer for the runtime yet. To reproduce a result, follow the receipt on its evidence card. To reproduce the site, build it from the repository."
+                        "The experimental installer targets Linux arm64 and NVIDIA GB10 only; read its limits on the alpha page. To reproduce a result, follow the receipt on its evidence card. To reproduce the site, build it from the repository."
                     }
                 }
 

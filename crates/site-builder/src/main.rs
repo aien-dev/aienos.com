@@ -97,6 +97,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
 
     // Render landing page in Maud
     let page_content = html! {
+        (components::alpha::render_alpha_entry())
         (components::home_loop::render_home_loop())
         (components::story::render_story())
         (components::machines::render_machines_section())
@@ -237,6 +238,19 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     );
     fs::create_dir_all(dist.join("hive")).expect("Create Hive directory");
     fs::write(dist.join("hive/index.html"), hive_page.into_string()).expect("Write Hive page");
+    let alpha_page = render_page_layout(
+        components::alpha::TITLE,
+        components::alpha::DESCRIPTION,
+        components::alpha::URL,
+        "website",
+        html! {
+            link rel="stylesheet" href="/assets/alpha.css";
+            script defer src="/js/alpha.js" {}
+        },
+        components::alpha::render_alpha_page(),
+    );
+    fs::create_dir_all(dist.join("alpha")).expect("Create Alpha directory");
+    fs::write(dist.join("alpha/index.html"), alpha_page.into_string()).expect("Write Alpha page");
     let learn_page = render_page_layout(
         components::learn::TITLE,
         components::learn::DESCRIPTION,
@@ -647,6 +661,7 @@ const GENERATED_PAGES: &[(&str, usize)] = &[
     ("now/index.html", 0),
     ("dash/index.html", 0),
     ("hive/index.html", 0),
+    ("alpha/index.html", 0),
     ("learn/index.html", 0),
     ("omega/index.html", 30),
     ("cudaplusplus/index.html", 12),

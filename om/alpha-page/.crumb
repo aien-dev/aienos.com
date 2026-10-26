@@ -1,0 +1,20 @@
+{
+  "extensions": {
+    "generated": {
+      "children": [],
+      "children_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compiled_at": "2026-10-26T16:35:09Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:05cbd68e9345688eff65a7fa2f9bda9acca5b8c935ea7db78819dcb943e4cda3",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 8,
+      "generated_at_commit": "1858269c2036a010c5ec43bfeb3d33ee5040de7e",
+      "source_tree": "sha256:0bba69839328d1e4fd97af6ea9f1d8df290637f1a8d046a750385364602a9bba"
+    }
+  },
+  "layer": "website",
+  "name": "alpha-page",
+  "purpose": "Seeded Omega alpha landing page and client, with pinned wizard source and real terminal capture",
+  "schema_version": "1.0.0"
+}
