@@ -477,7 +477,7 @@ pub fn render_omega_page() -> Markup {
                     p class="om-kicker" { "3 \u{00B7} The bar for \u{201C}Omega replaces CUDA\u{201D}" }
                     h2 class="om-h2" { (met) " of " (d.bar.len()) " met" }
                     p class="om-sub" {
-                        "We say it when every row is PASS, each with a receipt pushed on the exact commit. No row is waived. A row is ticked here only when its receipt is in the data file; until then it shows where it stands on the CUDA map above."
+                        "I say it when every row is PASS, each with a receipt pushed on the exact commit. No row is waived. A row is ticked here only when its receipt is in the data file; until then it shows where it stands on the CUDA map above."
                     }
                     (bar_list(&d.bar, "o:docs/OMEGA.md#3-the-bar-for-omega-replaces-cuda"))
                 }

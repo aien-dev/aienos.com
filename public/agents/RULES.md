@@ -2,7 +2,7 @@
 
 > These are the working rules every AIEN agent follows, published for any agent that works on an `aien-dev` repository. Read this file first, then the repository's own `AGENTS.md` (or `CLAUDE.md` when that is its instruction file). Where the two differ, the repository's file wins for that repository.
 >
-> Our own agents read the same rules plus a few that only make sense on the project's machine (local services, hardware reservations, how to report to the operator). Those are left out here because an outside agent cannot follow them.
+> My own agents read the same rules plus a few that only make sense on the project's machine (local services, hardware reservations, how to report to the operator). Those are left out here because an outside agent cannot follow them.
 
 ## 1. The loop
 

@@ -10,7 +10,7 @@
   "claim": "Omega is AIEN's language for all computing, GPU to CPU.",
   "claim_rest": [
     "You write a program once. Omega's own tools check it and compile it straight to the machine code of the processor that runs it, GPU or CPU. No vendor compiler, toolkit or runtime library is involved anywhere.",
-    "On the GPU, that makes Omega the replacement for CUDA. On the CPU, it replaces C and its toolchain. This page says how far each of those has got, and the checks that have to pass before we can claim each one."
+    "On the GPU, that makes Omega the replacement for CUDA. On the CPU, it replaces C and its toolchain. This page says how far each of those has got, and the checks that have to pass before I can claim each one."
   ],
   "true_today": "Omega runs AIEN's models on the GB10 with no CUDA software: no libcuda, no cuBLAS, no nvcc.",
   "not_true_yet": "Omega replaces CUDA.",
@@ -106,7 +106,7 @@
   ],
   "below": {
     "name": "Below Omega, and not part of it: the driver",
-    "what": "Omega reaches the GPU through the physics repository's driver client (nvrm/nvrm.c, m16/m16_native.c). The client talks to NVIDIA's open-source kernel module (nvidia.ko, nvidia-uvm.ko, version 580.173.02) and the module boots NVIDIA's signed GSP firmware. Replacing the kernel module with our own driver is a separate job, L332. The firmware stays NVIDIA's for a physical reason: the GPU checks its signature and will not boot anything else.",
+    "what": "Omega reaches the GPU through the physics repository's driver client (nvrm/nvrm.c, m16/m16_native.c). The client talks to NVIDIA's open-source kernel module (nvidia.ko, nvidia-uvm.ko, version 580.173.02) and the module boots NVIDIA's signed GSP firmware. Replacing the kernel module with my own driver is a separate job, L332. The firmware stays NVIDIA's for a physical reason: the GPU checks its signature and will not boot anything else.",
     "links": [
       [
         "nvrm/nvrm.c",
@@ -189,7 +189,7 @@
       "job": "Matrix multiply",
       "omega": "Omega matmul, tensor-core GEMM, FP8 and BF16 APIs",
       "status": "PARTIAL",
-      "note": "shaped for the models we run; no any-shape GEMM",
+      "note": "shaped for the models I run; no any-shape GEMM",
       "links": [
         [
           "omega_gpu_tcgemm_api.h",
@@ -352,7 +352,7 @@
     },
     {
       "title": "The toolkit has gaps a stranger would hit on day one",
-      "text": "No FFT or random numbers, no disassembler of our own, no samples and no written runtime API, no streams or events, one process per GPU, and GEMM shaped for the models we run. These are bars C2 to C6.",
+      "text": "No FFT or random numbers, no disassembler of my own, no samples and no written runtime API, no streams or events, one process per GPU, and GEMM shaped for the models I run. These are bars C2 to C6.",
       "links": [
         [
           "the CUDA map",
@@ -425,7 +425,7 @@
       "title": "General libraries.",
       "done_when": "Any-shape GEMM in BF16 and FP8, both layouts, at least 200 shapes from 1 to 8192, every shape correct against a host reference, speed given as a fraction of the measured tensor-core ceiling. Reductions and prefix sums over lengths 1 to 2^28, bit-exact against the frozen-order host reference.",
       "status": "PARTIAL",
-      "now": "GEMM is shaped for the models we run; no general scan or sort (map rows: cuBLAS, CUB).",
+      "now": "GEMM is shaped for the models I run; no general scan or sort (map rows: cuBLAS, CUB).",
       "receipt": null,
       "links": [
         [
@@ -469,7 +469,7 @@
     {
       "id": "C6",
       "title": "No NVIDIA tool in the loop.",
-      "done_when": "Omega's own sm_121 disassembler agrees with nvdisasm on every library kernel in src/, and every check that called nvdisasm calls ours.",
+      "done_when": "Omega's own sm_121 disassembler agrees with nvdisasm on every library kernel in src/, and every check that called nvdisasm calls mine.",
       "status": "MISSING",
       "now": "The tests still call NVIDIA's nvdisasm when it is installed (map row: cuobjdump, nvdisasm).",
       "receipt": null,
@@ -479,7 +479,7 @@
   "beyond": [
     {
       "title": "No NVIDIA software at all",
-      "text": "Our own GB10 driver replaces nvidia.ko and nvidia-uvm.ko (L332): Omega's golden tokens identical on our driver and on NVIDIA's, with per-word timing. The GSP firmware stays, as above.",
+      "text": "My own GB10 driver replaces nvidia.ko and nvidia-uvm.ko (L332): Omega's golden tokens identical on my driver and on NVIDIA's, with per-word timing. The GSP firmware stays, as above.",
       "links": [
         [
           "L332 on the ledger",
@@ -512,15 +512,15 @@
     }
   ],
   "performance": {
-    "stand": "Where we stand: at FP8 with one conversation we are level with or ahead of the published CUDA numbers. We are behind on three things: prompt reading (7 to 30 times), many conversations at once (5 to 15 times), and 4-bit weights (not yet live). All three are work, not physics: the ceilings are far from reached.",
-    "how": "Same machine (one DGX Spark GB10), same kind of model (a ~30B mixture-of-experts with about 3B active per word). Our numbers are measured by us, with receipts. Everyone else's are published by others and labelled that way, with their source; none of them has been re-measured here yet (bar P0). The table of numbers, with every source, is section 5 of docs/OMEGA.md.",
+    "stand": "Where I stand: at FP8 with one conversation I am level with or ahead of the published CUDA numbers. I am behind on three things: prompt reading (7 to 30 times), many conversations at once (5 to 15 times), and 4-bit weights (not yet live). All three are work, not physics: the ceilings are far from reached.",
+    "how": "Same machine (one DGX Spark GB10), same kind of model (a ~30B mixture-of-experts with about 3B active per word). My numbers are measured by me and my agents, with receipts. Everyone else's are published by others and labelled that way, with their source; none of them has been re-measured here yet (bar P0). The table of numbers, with every source, is section 5 of docs/OMEGA.md.",
     "box": "o:docs/OMEGA.md#5-performance-matching-and-then-beating-cuda",
-    "rule": "Each row PASS needs our receipt and the other system measured by us on this Spark, same model, same prompts, same output length, in the same quiet window.",
+    "rule": "Each row PASS needs my receipt and the other system measured by me and my agents on this Spark, same model, same prompts, same output length, in the same quiet window.",
     "bar": [
       {
         "id": "P0",
-        "title": "Measure them ourselves.",
-        "done_when": "llama.cpp and vLLM (their own current releases, built for sm_121) run Qwen3.6-35B-A3B at FP8 and at 4-bit on this Spark, one and eight conversations, 512 and 8k prompts, three runs each; table and logs pushed, labelled measured-by-us. Benchmark only: nothing of theirs enters the Omega path.",
+        "title": "Measure them myself.",
+        "done_when": "llama.cpp and vLLM (their own current releases, built for sm_121) run Qwen3.6-35B-A3B at FP8 and at 4-bit on this Spark, one and eight conversations, 512 and 8k prompts, three runs each; table and logs pushed, labelled measured-by-me. Benchmark only: nothing of theirs enters the Omega path.",
         "status": "MISSING",
         "now": "None of the other systems' numbers has been re-measured here yet.",
         "receipt": null,
@@ -529,7 +529,7 @@
       {
         "id": "P1",
         "title": "One conversation.",
-        "done_when": "Omega's best format beats the best measured CUDA number at one conversation, with golden tokens identical to our host reference.",
+        "done_when": "Omega's best format beats the best measured CUDA number at one conversation, with golden tokens identical to my host reference.",
         "status": "MISSING",
         "now": "",
         "receipt": null,
@@ -556,7 +556,7 @@
       {
         "id": "P4",
         "title": "What CUDA stacks do not do.",
-        "done_when": "At least one measured win that comes from owning the whole path: one submission per word or a resident whole-model kernel, zero-copy use of the shared memory, our own driver's launch path (L332).",
+        "done_when": "At least one measured win that comes from owning the whole path: one submission per word or a resident whole-model kernel, zero-copy use of the shared memory, my own driver's launch path (L332).",
         "status": "MISSING",
         "now": "",
         "receipt": null,

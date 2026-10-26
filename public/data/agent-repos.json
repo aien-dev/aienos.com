@@ -294,7 +294,7 @@
     },
     {
       "name": "benchmarks-mv",
-      "description": "Measurement harnesses and evidence bundles for AIEN on the NVIDIA DGX Spark GB10. Speed is reported against the machine's physical limit and our own previous run. Attachment of AienOS.",
+      "description": "Measurement harnesses and evidence bundles for AIEN on the NVIDIA DGX Spark GB10. Speed is reported against the machine's physical limit and my own previous run. Attachment of AienOS.",
       "url": "https://github.com/aien-dev/benchmarks-mv",
       "default_branch": "main",
       "fork": false,
