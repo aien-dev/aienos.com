@@ -7,7 +7,7 @@ role	consult_claude	anthropic/claude-fable-5-1:xhigh
 role	consult_codex	openai-codex/gpt-6-astra:xhigh
 role	default	anthropic/claude-opus-5-5:medium
 role	image	openai-codex/gpt-image-2
-role	plan	anthropic/claude-fable-5-1:xhigh
+role	plan	openai-codex/gpt-6-astra:xhigh
 agent	task	anthropic/claude-opus-5-5:medium
 agent	reviewer	anthropic/claude-opus-5-5:medium
 agent	security-reviewer	anthropic/claude-opus-5-5:medium
