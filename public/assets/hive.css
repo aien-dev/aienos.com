@@ -127,31 +127,20 @@
   border-radius: 3px 3px 0 0;
 }
 .hive-record:hover { background: var(--bg-card-hover); }
-.hive-disclose { grid-area: 1 / 1; display: inline-flex; align-items: center; gap: 4px; padding: 0; min-height: 0; background: transparent; border: 0; color: var(--text-muted); }
-.hive .hive-disclose { padding: 0; min-height: 0; border: 0; background: transparent; }
-.hive-disclose::before { content: ""; flex: 0 0 auto; width: 5px; height: 5px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; transform: rotate(-45deg); transition: transform 140ms ease-out; }
-.hive-disclose[aria-expanded="true"]::before { transform: rotate(45deg); }
-.hive-disclose:hover { color: var(--text-primary); border-color: transparent; }
-.hive-branch { font-family: var(--font-mono); font-size: var(--hive-micro); font-variant-numeric: tabular-nums; }
+summary.hive-record { list-style: none; cursor: pointer; }
+summary.hive-record::-webkit-details-marker { display: none; }
+summary.hive-record::before { content: ""; grid-area: 1 / 1; width: 5px; height: 5px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; transform: rotate(-45deg); transition: transform 140ms ease-out; }
+details[open] > summary.hive-record::before { transform: rotate(45deg); }
 .hive .hive-select { grid-area: 1 / 2; text-align: left; font-size: var(--hive-row); font-weight: 600; line-height: 1.35; color: var(--text-primary); background: transparent; border: 0; padding: 0; min-height: 0; overflow-wrap: anywhere; }
 .hive-select:hover { border-color: transparent; color: var(--accent-blue); }
 .hive-pill { grid-area: 1 / 3; font-family: var(--font-mono); font-size: var(--hive-micro); letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; color: var(--text-muted); border: 1px solid var(--border-subtle); border-radius: 999px; padding: 1px 8px; }
-.hive-node[data-status="working"] > .hive-record .hive-pill { color: var(--accent-green); }
-.hive-node[data-status="waiting"] > .hive-record .hive-pill,
-.hive-node[data-status="idle"] > .hive-record .hive-pill { color: var(--accent-amber); }
-.hive-node[data-status="completed"] > .hive-record .hive-pill { color: var(--text-secondary); }
-.hive-node[data-status="failed"] > .hive-record .hive-pill { color: var(--rs-fail); }
-.hive-node[data-status="unknown"] > .hive-record .hive-pill { color: var(--text-muted); }
 .hive-chip { grid-area: 1 / 4; font-family: var(--font-mono); font-size: var(--hive-micro); color: var(--text-secondary); background: var(--bg-base); border-radius: 3px; padding: 1px 6px; min-width: 0; max-width: 28ch; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hive-elapsed { grid-area: 1 / 5; font-family: var(--font-mono); font-size: var(--hive-micro); color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 5ch; text-align: right; }
 /* Rewritten as the source advances: two fixed lines, so the row never resizes
    and the pointer never falls off the row it is over. */
 .hive-activity { grid-area: 2 / 2 / 3 / -1; font-size: var(--hive-body); line-height: 1.4; color: var(--text-secondary); overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; min-height: calc(1.4em * 2); }
-.hive-node[data-context="true"] > .hive-record { opacity: 0.6; }
-.hive-node[data-selected="true"] > .hive-record { background: var(--bg-card); }
-.hive-node[data-selected="true"] > .hive-record::before { content: ""; position: absolute; left: -1px; top: 3px; bottom: 3px; width: 2px; background: var(--accent-blue); border-radius: 1px; }
-.hive-node[data-selected="true"] > .hive-record .hive-select { color: var(--accent-blue); }
-.hive-node[data-ancestor="true"] > .hive-record { border-bottom-color: var(--accent-blue); }
+.hive-node[data-selected="true"] > details > .hive-record { background: var(--bg-card); }
+.hive-node[data-selected="true"] > details > .hive-record .hive-select { color: var(--accent-blue); }
 .hive-empty { color: var(--text-muted); font-size: var(--hive-body); line-height: 1.55; }
 
 /* Selected-agent manifest: label and value pairs, no cards inside it. */
@@ -184,7 +173,6 @@
   .hive-panel-head { padding: 14px 14px 0; }
   .hive-panel-body { padding: 0 14px 14px; }
   .hive-record { grid-template-columns: 2rem minmax(0, 1fr) max-content; column-gap: 8px; padding: 6px 8px; margin: 0 -8px; }
-  .hive-disclose { grid-area: 1 / 1; }
   .hive .hive-select { grid-area: 1 / 2; }
   .hive-pill { grid-area: 1 / 3; }
   .hive-chip { grid-area: 2 / 2 / 3 / 3; max-width: 100%; justify-self: start; }
@@ -196,7 +184,7 @@
   .hive *, .hive *::before, .hive *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
 }
 
-.hive[data-motion="off"] *, .hive[data-motion="off"] *::before, .hive[data-motion="off"] *::after {
+.hive:not(:has(#hive-motion:checked)) *, .hive:not(:has(#hive-motion:checked)) *::before, .hive:not(:has(#hive-motion:checked)) *::after {
   transition: none !important;
   animation: none !important;
   scroll-behavior: auto !important;
@@ -362,7 +350,8 @@
 .hive-strip-foot { grid-column:1 / -1; grid-row:3; display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 22px; }
 .hive-strip-foot .hive-counts, .hive-strip-foot .hive-coverage { min-width:0; }
 .hive-strip-foot .hive-coverage { flex:1 1 auto; }
-#hive-strip > #hive-motion { grid-column:2; grid-row:1; align-self:center; justify-self:end; min-height:32px; padding:4px 12px; font-size:.72rem; }
+.hive input.hive-motion-check { width: 1.1rem; min-height: 1.1rem; padding: 0; margin: 0 8px 14px 0; accent-color: var(--accent-blue); }
+.hive-motion-label { color: var(--text-muted); font-size: var(--hive-micro); cursor: pointer; }
 @media (min-width:901px) {
   /* One line of context above the facts; the text is short enough to fit. */
   .hive-head-row .hive-note { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:1; overflow:hidden; }
@@ -374,7 +363,7 @@
 .hive-chip { font-size:.66rem; }
 .hive-pill,.hive-elapsed { font-size:.63rem; }
 .hive-activity { font-size:.76rem; }
-.hive-node[data-selected="true"] > .hive-record { background:var(--bg-card); border-radius:8px; }
+.hive-node[data-selected="true"] > details > .hive-record { background:var(--bg-card); border-radius:8px; }
 .hive-children { margin-left:10px; padding-left:15px; }
 .hive-message { border-radius:10px; padding:16px 18px; }
 .hive-message-text { font-size:.88rem; line-height:1.75; }

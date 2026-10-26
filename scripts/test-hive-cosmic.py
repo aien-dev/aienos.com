@@ -254,8 +254,8 @@ class CosmicChecks(unittest.TestCase):
             self.assertIn(f'animation:{name} var(--hive-cycle) linear infinite', inside,
                           f'{name} must be attached inside the motion gate')
         self.assertEqual(inside.count('animation:'), 8)
-        # The page's own control is the second key: the rule only fires on data-motion="on".
-        self.assertEqual(inside.count('.hive[data-motion="on"]'), 8)
+        # The native checkbox, not browser code, owns the second motion key.
+        self.assertEqual(inside.count('.hive:has(#hive-motion:checked)'), 8)
         # Every animation in the artifact is inside the gate: one place to look.
         self.assertEqual(flat.count('animation:'), inside.count('animation:'),
                          'an animation escaped the prefers-reduced-motion gate')
@@ -272,7 +272,7 @@ class CosmicChecks(unittest.TestCase):
         self.assertIn("url('/assets/hive-universe.svg')", sheet)
         self.assertIn('pointer-events:none', sheet)
         self.assertIn('prefers-reduced-motion', sheet)
-        self.assertIn('.hive[data-motion="off"]', sheet)
+        self.assertIn('.hive:not(:has(#hive-motion:checked))', sheet)
         self.assertNotRegex(sheet, r'#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?\b')
         self.assertIn(':focus-visible', sheet)
         for part in ['.hive-masthead > .hive-scene', '.hive-stage', '.hive-bend', '.hive-plate',
