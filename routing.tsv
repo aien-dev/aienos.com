@@ -5,7 +5,7 @@ role	advisor	anthropic/claude-opus-5-5:medium
 role	slow	openai-codex/gpt-6-astra:high
 role	consult_claude	anthropic/claude-fable-5-1:high
 role	consult_codex	openai-codex/gpt-6-astra:high
-role	default	anthropic/claude-opus-5-5
+role	default	spark/qwen3.6-35b-a3b-fp8
 agent	task	anthropic/claude-opus-5-5:medium
 agent	reviewer	anthropic/claude-opus-5-5:medium
 agent	security-reviewer	anthropic/claude-opus-5-5:medium
