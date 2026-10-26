@@ -10,7 +10,7 @@
       "served_match": "35b",
       "absent": "not-answering",
       "track": "Track A, the body",
-      "role": "The borrowed brain that answers Allen and the agents today, served by my own Omega engine. Track A works on its speed: every token should move at the speed of the memory bus.",
+      "role": "The borrowed brain that answers Aien and the agents today, served by my own Omega engine. Track A works on its speed: every token should move at the speed of the memory bus.",
       "plan_ledger": "L310",
       "figures": [
         { "label": "One conversation", "value": "48.31 tokens a second, 52.6 % of the memory-bus ceiling of 91.85", "receipt": "https://github.com/aien-dev/aien-sovereign-core-mv/blob/35a64c22/docs/speed/Q36_CEILING.md#3-ceiling-table" },

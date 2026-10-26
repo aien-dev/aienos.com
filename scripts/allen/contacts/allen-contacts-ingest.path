@@ -1,0 +1,12 @@
+[Unit]
+Description=allen-contacts-ingest: watch the Allen contact drop directory
+Documentation=file:///opt/allen-contacts/allen_contacts_ingest.om
+
+[Path]
+# allen-contacts:allen-drop 2730.  The gateway (allen-chat) writes ".tmp-<16hex>" and renames
+# it to "<16hex>.json"; DirectoryNotEmpty= ignores hidden entries, so only the rename triggers.
+DirectoryNotEmpty=/var/lib/allen-chat/contacts-drop
+Unit=allen-contacts-ingest.service
+
+[Install]
+WantedBy=paths.target

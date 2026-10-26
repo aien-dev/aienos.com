@@ -3,9 +3,9 @@ use maud::{html, Markup};
 use super::boxlink::{foot, source_href, Target};
 
 pub const POST_SLUG: &str = "aien-v3-research-plan";
-pub const POST_TITLE: &str = "The AIEN V3 Research Plan";
+pub const POST_TITLE: &str = "The Aien V3 Research Plan";
 pub const POST_DATE: &str = "September 27, 2026";
-pub const POST_DESCRIPTION: &str = "The ratified V3 of the AIEN research plan, the Substrate Edition: the whole-box continuity thesis and six falsifiable hypotheses, H5 to H10.";
+pub const POST_DESCRIPTION: &str = "The ratified V3 of the Aien research plan, the Substrate Edition: the whole-box continuity thesis and six falsifiable hypotheses, H5 to H10.";
 
 pub const CASE_SLUG: &str = "post-llm-case";
 pub const CASE_TITLE: &str = "The Post-LLM Case";
@@ -18,7 +18,7 @@ pub fn render_blog_index() -> Markup {
             p class="blog-kicker" { "Research notes" }
             h1 class="blog-title" { "Blog" }
             p class="blog-standfirst" {
-                "Occasional notes on building AIEN V2: what shipped, what the evidence says, and what remains an open question."
+                "Occasional notes on building Aien V2: what shipped, what the evidence says, and what remains an open question."
             }
             p class="blog-standfirst" {
                 "The notes are written while the work is in progress. Each one states what changed, what the evidence supports, and what remains open. Failures stay in the record."
@@ -65,17 +65,17 @@ fn render_brief_callout(title: &str, sub: &str) -> Markup {
 fn render_post_body() -> Markup {
     html! {
         p class="lead" {
-            "Today I am publishing the ratified V3 of the AIEN research plan: the Substrate Edition. It keeps everything V2 established and adds one architectural thesis plus six testable hypotheses that follow from it. The thesis: the box is one thing; the promise is the architecture. AIEN's residency is a continuity guarantee over logical state, not a claim that its identity physically inhabits memory. From that follow the research bets: a shared generation-tagged object pool for CPU and GPU cooperation, a logical object ABI across authority boundaries, an epoch-barrier checkpoint that never stops the world, a synthesis cost model that prices data movement first, and the closed loop where OMEGA proposes, AEGIS proves, the machine executes, evidence measures, and OMEGA searches again."
+            "Today I am publishing the ratified V3 of the Aien research plan: the Substrate Edition. It keeps everything V2 established and adds one architectural thesis plus six testable hypotheses that follow from it. The thesis: the box is one thing; the promise is the architecture. Aien's residency is a continuity guarantee over logical state, not a claim that its identity physically inhabits memory. From that follow the research bets: a shared generation-tagged object pool for CPU and GPU cooperation, a logical object ABI across authority boundaries, an epoch-barrier checkpoint that never stops the world, a synthesis cost model that prices data movement first, and the closed loop where OMEGA proposes, AEGIS proves, the machine executes, evidence measures, and OMEGA searches again."
         }
-        (render_brief_callout("AIEN Research Plan", "The ratified V3, September 27, 2026 edition"))
+        (render_brief_callout("Aien Research Plan", "The ratified V3, September 27, 2026 edition"))
         h2 { "The thesis" }
         p {
             "V2's brief opened with a single sentence: " strong { "\"Intelligence should be allowed to propose. Evidence should decide.\"" }
             " V3 keeps that and adds a second one for the substrate: " strong { "\"The box is one thing; the promise is the architecture.\"" }
-            " AIEN lives or dies on continuity of logical state, organized as a pattern across one physical machine, with the architecture deciding which state gets continuity guarantees and which processor microstate is disposable execution detail."
+            " Aien lives or dies on continuity of logical state, organized as a pattern across one physical machine, with the architecture deciding which state gets continuity guarantees and which processor microstate is disposable execution detail."
         }
         p {
-            "The lineage is deliberately small. A minimal seed (Atlas) awakens AienOS, the trusted substrate. Above it, OMEGA defines, synthesizes, verifies, and realizes programs, keeping the ones that work in a reusable library. AIEN, the neural component, learns to guide the search from OMEGA's own verified search traces, never from human text pretraining. The architecture is explicit on this point: neural weights suggest where to search; they do not define meaning, truth, or authority. Verification does."
+            "The lineage is deliberately small. A minimal seed (Atlas) awakens AienOS, the trusted substrate. Above it, OMEGA defines, synthesizes, verifies, and realizes programs, keeping the ones that work in a reusable library. Aien, the neural component, learns to guide the search from OMEGA's own verified search traces, never from human text pretraining. The architecture is explicit on this point: neural weights suggest where to search; they do not define meaning, truth, or authority. Verification does."
         }
         h2 { "Why now" }
         p {
@@ -84,7 +84,7 @@ fn render_post_body() -> Markup {
             " tracks the situation as it develops; one 2026 analysis counted 257 incidents in a single year, and GitHub's own CTO has publicly acknowledged the platform must be designed for far greater scale than planned."
         }
         p {
-            "That is the pattern this research program is built to break. Today's AI runs as a guest on human infrastructure, and the guest is now bigger than the house. AIEN's bet runs the other way: intelligence that owns its substrate, verified from the metal up, instead of renting space on systems that were never designed for machine-scale tenants."
+            "That is the pattern this research program is built to break. Today's AI runs as a guest on human infrastructure, and the guest is now bigger than the house. Aien's bet runs the other way: intelligence that owns its substrate, verified from the metal up, instead of renting space on systems that were never designed for machine-scale tenants."
         }
         h2 { "The Infinite Game" }
         p {

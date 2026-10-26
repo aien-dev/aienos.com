@@ -1,0 +1,91 @@
+#!/usr/bin/python3 -I
+"""allen-contacts: read or delete records in Drake's private Allen contact store.
+
+  allen-contacts list          one line per record: id, received, kind, name, org
+  allen-contacts show <id>     every field of one record (the delete-token hash is omitted)
+  allen-contacts delete <id>   remove one record (atomic rewrite; audit.log gets a count)
+
+Store: /var/lib/allen-contacts/contacts.jsonl, owned by the system user allen-contacts
+(0700).  Run by anyone else, the command re-executes itself through
+`sudo -u allen-contacts` (clean environment).  ALLEN_CONTACTS_STORE (tests only) points it
+at another directory and skips the re-exec.
+Text from visitors is printed with every non-printable character escaped.
+"""
+import os
+import pwd
+import re
+import sys
+
+SELF = os.path.realpath(__file__)
+STORE_USER = "allen-contacts"
+
+if "ALLEN_CONTACTS_STORE" not in os.environ and os.getuid() != pwd.getpwnam(STORE_USER).pw_uid:
+    os.chdir("/")
+    os.execvp("sudo", ["sudo", "-u", STORE_USER, "--", "/usr/bin/python3", "-I", "-B", SELF]
+              + sys.argv[1:])
+
+for _d in (os.path.dirname(SELF), "/opt/allen-contacts"):
+    if os.path.isfile(os.path.join(_d, "allen_contacts_ingest.py")):
+        sys.path.insert(0, _d)
+        break
+import allen_contacts_ingest as aci  # noqa: E402
+
+SHOW_ORDER = ("id", "received", "via", "kind", "name", "org", "contact", "github", "origin",
+              "purpose", "homepage", "framework", "model", "human")
+ID_RE = re.compile(r"c_[0-9a-f]{16}")
+
+
+def clean(v):
+    s = "" if v is None else str(v)
+    return "".join(c if c.isprintable() else "\\u%04x" % ord(c) if ord(c) > 0xff
+                   else {"\n": "\\n", "\t": "\\t"}.get(c, "\\x%02x" % ord(c)) for c in s)
+
+
+def usage():
+    sys.stderr.write("usage: allen-contacts list | show <id> | delete <id>\n")
+    return 64
+
+
+def main(argv):
+    if not argv:
+        return usage()
+    cmd, rest = argv[0], argv[1:]
+    store = aci.Store()
+    if cmd == "list" and not rest:
+        entries = store.lines()          # readers need no lock: rewrites are atomic renames
+        bad = 0
+        for _, r in entries:
+            if r is None:
+                bad += 1
+                continue
+            print("\t".join(clean(r.get(k, "")) for k in ("id", "received", "kind", "name", "org")))
+        if bad:
+            sys.stderr.write("allen-contacts: %d unreadable line(s) kept in the store\n" % bad)
+        return 0
+    if cmd in ("show", "delete") and len(rest) == 1:
+        cid = rest[0]
+        if not ID_RE.fullmatch(cid):
+            sys.stderr.write("allen-contacts: id must look like c_<16 hex>\n")
+            return 64
+        if cmd == "show":
+            _, r = store.find(cid)
+            if r is None:
+                sys.stderr.write("allen-contacts: no record %s\n" % cid)
+                return 1
+            for k in SHOW_ORDER:
+                print("%s: %s" % (k, clean(r.get(k, ""))))
+            return 0
+        with store:
+            removed, remaining = store.remove("id", cid)
+            if removed:
+                store.audit("cli-delete", removed)
+        if removed:
+            print("deleted %s (%d record(s) left)" % (cid, remaining))
+            return 0
+        sys.stderr.write("allen-contacts: no record %s\n" % cid)
+        return 1
+    return usage()
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

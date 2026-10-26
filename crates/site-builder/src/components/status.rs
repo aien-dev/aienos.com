@@ -62,7 +62,7 @@ pub fn layer_states() -> Vec<LayerState> {
             receipt_url: Some("https://github.com/aien-dev/omega/pull/119"),
         },
         LayerState {
-            name: "AIEN, the persistent agent",
+            name: "Aien, the persistent agent",
             status: "EXPERIMENTAL",
             note: "Runs in the lab on the DGX Spark. The learning loop, learning from verified experience, is the active build.",
             receipt_label: Some("aien-dev/aienux"),
@@ -78,9 +78,9 @@ pub fn layer_states() -> Vec<LayerState> {
         LayerState {
             name: "Public release",
             status: "EXPERIMENTAL",
-            note: "Alpha testing for Linux arm64 and NVIDIA GB10. The side-by-side Omega installer is experimental. This release binary: GPU NOT_RUN. A real install through first token and three-pass physical qualification are NOT_RUN. Inspect versions, hashes, signatures and limits before running.",
+            note: "Alpha testing for Linux arm64 and NVIDIA GB10. The side-by-side Omega installer is experimental. Its engine is byte for byte the live 35B build on my Spark. A real install from this installer through first token and three-pass physical qualification are NOT_RUN. Inspect versions, hashes, signatures and limits before running.",
             receipt_label: Some("Alpha release and evidence"),
-            receipt_url: Some("https://github.com/aien-dev/sovereign-intelligence/releases/tag/alpha-20261026.1"),
+            receipt_url: Some("https://github.com/aien-dev/sovereign-intelligence/releases/tag/alpha-20261026.2"),
         },
     ]
 }

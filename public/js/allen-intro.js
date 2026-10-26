@@ -45,8 +45,8 @@
 
   function describe(saved) {
     if (status) status.textContent = (choice === 'yes'
-      ? 'You said hello to Allen. X tracking is allowed in this browser.'
-      : 'You have not agreed to say hello to Allen. X tracking is off.')
+      ? 'You said hello to Aien. X tracking is allowed in this browser.'
+      : 'You have not agreed to say hello to Aien. X tracking is off.')
       + (saved === false ? ' Your browser could not save this choice; it applies to this page only.' : '');
   }
 

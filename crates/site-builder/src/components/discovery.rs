@@ -9,11 +9,11 @@ use super::narrative::class_badge;
 use super::research_status::{data, ImplementationRow};
 
 pub const TITLE: &str = "Scientific Discovery | AienOS";
-pub const DESCRIPTION: &str = "Physics Zero, Dirac, Zeta and supersymmetry as examinations of representation discovery. AIEN is never given the named answer; it must earn the structure.";
+pub const DESCRIPTION: &str = "Physics Zero, Dirac, Zeta and supersymmetry as examinations of representation discovery. Aien is never given the named answer; it must earn the structure.";
 pub const URL: &str = "https://www.aienos.com/discovery/";
 
 pub const NAMED_ANSWER_RULE: &str =
-    "Never give AIEN the named answer when the experiment is intended to test discovery.";
+    "Never give Aien the named answer when the experiment is intended to test discovery.";
 
 /// Shown in place of a badge when the research status record has no row.
 pub const NOT_ON_RECORD: &str = "Not on the status record yet.";
@@ -34,7 +34,7 @@ pub const EXAMS: &[Exam] = &[
         record_id: Some("Full Physics Zero"),
         summary: &[
             "Physics Zero comes last in the order of work. Like the other exams, it will follow the rule above.",
-            "It will be an examination of representation discovery: AIEN will not be given the named answer, and a structure will count only if it earns explanatory power on behavior it has not seen.",
+            "It will be an examination of representation discovery: Aien will not be given the named answer, and a structure will count only if it earns explanatory power on behavior it has not seen.",
         ],
         capabilities: &[],
     },
@@ -108,7 +108,7 @@ pub fn render_discovery() -> Markup {
                     p class="narr-kicker" { "Scientific Discovery" }
                     h1 class="narr-title" { "Examinations of representation discovery" }
                     p class="narr-standfirst" {
-                        "Physics Zero, Dirac, Zeta and supersymmetry are examinations the program means to run. None of them is an AIEN feature. Each one will test whether the machine can find a representation because it explains unseen observations better, after paying for its own complexity."
+                        "Physics Zero, Dirac, Zeta and supersymmetry are examinations the program means to run. None of them is an Aien feature. Each one will test whether the machine can find a representation because it explains unseen observations better, after paying for its own complexity."
                     }
                 }
                 section id="rule" class="narr-section" aria-labelledby="rule-heading" {

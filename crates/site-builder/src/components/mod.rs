@@ -1,3 +1,4 @@
+pub mod allen;
 pub mod blog;
 pub mod boxlink;
 pub mod discovery;
@@ -31,5 +32,7 @@ pub mod learn;
 pub mod dash;
 pub mod allen_intro;
 pub mod voice;
+pub mod names;
 pub mod contact;
 pub mod engineer;
+pub mod support;

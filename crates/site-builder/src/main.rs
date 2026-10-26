@@ -98,6 +98,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
 
     // Render landing page in Maud
     let page_content = html! {
+        (components::support::render_entry())
         (components::alpha::render_alpha_entry())
         (components::home_loop::render_home_loop())
         (components::story::render_story())
@@ -138,7 +139,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     // Public project measurements, collected before compilation in CI.
     let progress = render_page_layout(
         "Project progress | AienOS",
-        "Explore the retained AIEN project history: codebase growth, revisions, test footprint and verification activity, refreshed hourly from public GitHub sources.",
+        "Explore the retained Aien project history: codebase growth, revisions, test footprint and verification activity, refreshed hourly from public GitHub sources.",
         "https://www.aienos.com/progress/", "website",
         html! {
             link rel="stylesheet" href="/assets/progress.css";
@@ -152,7 +153,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     // Blog index page
     let blog_index = render_page_layout(
         "Blog | AienOS",
-        "Research notes on building AIEN V2: what shipped, what the evidence says, and what remains an open question.",
+        "Research notes on building Aien V2: what shipped, what the evidence says, and what remains an open question.",
         "https://www.aienos.com/blog/",
         "website",
         html! {},
@@ -184,7 +185,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     // published next to it so machines read the same source.
     let research_status = render_page_layout(
         "Research status | AienOS",
-        "Where the AIEN research stands: the qualification ladder, every experiment with its verdict, receipt and limits, and what is built versus still a hypothesis.",
+        "Where the Aien research stands: the qualification ladder, every experiment with its verdict, receipt and limits, and what is built versus still a hypothesis.",
         "https://www.aienos.com/research/status/",
         "website",
         html! {},
@@ -239,6 +240,19 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     );
     fs::create_dir_all(dist.join("hive")).expect("Create Hive directory");
     fs::write(dist.join("hive/index.html"), hive_page.into_string()).expect("Write Hive page");
+    let allen_page = render_page_layout(
+        components::allen::TITLE,
+        components::allen::DESCRIPTION,
+        components::allen::URL,
+        "website",
+        html! {
+            link rel="stylesheet" href="/assets/allen.css";
+            script defer src="/js/allen.js" {}
+        },
+        components::allen::render_allen_page(),
+    );
+    fs::create_dir_all(dist.join("aien")).expect("Create Aien directory");
+    fs::write(dist.join("aien/index.html"), allen_page.into_string()).expect("Write Aien page");
     let alpha_page = render_page_layout(
         components::alpha::TITLE,
         components::alpha::DESCRIPTION,
@@ -248,7 +262,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
             link rel="stylesheet" href="/assets/alpha.css";
             script defer src="/js/alpha.js" {}
         },
-        components::alpha::render_alpha_page(),
+        html! { (components::support::render_entry()) (components::alpha::render_alpha_page()) },
     );
     fs::create_dir_all(dist.join("alpha")).expect("Create Alpha directory");
     fs::write(dist.join("alpha/index.html"), alpha_page.into_string()).expect("Write Alpha page");
@@ -356,8 +370,8 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     println!("  [PAGE] Emitted /glossary/ (index.html)");
 
     let privacy = render_page_layout(
-        "Privacy & saying hello to Allen | AienOS",
-        "Read without tracking. Saying hello to Allen consents to X pixel rfrlz; No refuses it.",
+        "Privacy & saying hello to Aien | AienOS",
+        "Read without tracking. Saying hello to Aien consents to X pixel rfrlz; No refuses it.",
         "https://www.aienos.com/privacy/",
         "website",
         html! {},
@@ -373,10 +387,21 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
         components::contact::URL,
         "website",
         html! {},
-        components::contact::render_contact(),
+        html! { (components::support::render_entry()) (components::contact::render_contact()) },
     );
     fs::create_dir_all(dist.join("contact")).expect("Create contact directory");
     fs::write(dist.join("contact/index.html"), contact.into_string()).expect("Write contact page");
+
+    let support = render_page_layout(
+        components::support::TITLE,
+        components::support::DESCRIPTION,
+        components::support::URL,
+        "website",
+        html! {},
+        components::support::render_page(),
+    );
+    fs::create_dir_all(dist.join("support")).expect("Create support directory");
+    fs::write(dist.join("support/index.html"), support.into_string()).expect("Write support page");
     println!("  [PAGE] Emitted /contact/ (index.html)");
 
     // Section hubs: /experiments/, /evidence/, /philosophy/ (NARR-NAV)
@@ -391,7 +416,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
         seo::head_404(),
         seo::render_404(),
     );
-    fs::write(dist.join("404.html"), components::allen_intro::enrich(not_found.into_string())).expect("Failed to write 404.html");
+    fs::write(dist.join("404.html"), components::allen_intro::enrich(components::support::enrich(not_found.into_string()))).expect("Failed to write 404.html");
 
     // Every page written above (generated or copied from public/) gets the same
     // head: www canonical, cards, hreflang, feeds, JSON-LD. Then the machine
@@ -527,7 +552,7 @@ fn verify_site(dist: &Path) {
     {
         let o = fs::read_to_string(&omega_page).expect("read omega page");
         for phrase in [
-            "Omega is AIEN&#39;s language for all computing, GPU to CPU.",
+            "Omega is Aien&#39;s language for all computing, GPU to CPU.",
             "On the GPU, that makes Omega the replacement for CUDA.",
             "id=\"cuda-map\"",
             "id=\"today\"",
@@ -648,6 +673,8 @@ fn verify_site(dist: &Path) {
     components::engineer::verify(dist);
     // Drake writes alone: no we, us, our, ours or ourselves in rendered copy.
     components::voice::verify_singular_voice(dist);
+    // Project, product and vendor names spelled one way: AienOS, Aien, GitHub, NVIDIA.
+    components::names::verify_canonical_names(dist);
     // Every page shows Follow me on X in its header and the contact line in its footer.
     components::contact::verify(dist);
 
@@ -666,6 +693,7 @@ const GENERATED_PAGES: &[(&str, usize)] = &[
     ("allen/index.html", 0),
     ("alpha/index.html", 0),
     ("research/computing-machinery-and-understanding/profiles/index.html", 0),
+    ("support/index.html", 0),
     ("start/index.html", 0),
     ("privacy/index.html", 0),
     ("contact/index.html", 0),
@@ -679,6 +707,7 @@ const GENERATED_PAGES: &[(&str, usize)] = &[
     ("now/index.html", 0),
     ("dash/index.html", 0),
     ("hive/index.html", 0),
+    ("aien/index.html", 0),
     ("alpha/index.html", 0),
     ("learn/index.html", 0),
     ("omega/index.html", 30),
@@ -864,6 +893,43 @@ mod tests {
             }
             assert!(!page.contains("<output"), "{rel}: <output> inside a label is invalid");
         }
+    }
+
+    /// `uses: owner/action@<40 hex> # vX.Y.Z`: a moving tag lets whoever controls
+    /// the action change what runs in this repository's CI.
+    fn unpinned_uses(text: &str) -> Vec<String> {
+        text.lines()
+            .filter_map(|l| l.trim_start().trim_start_matches("- ").strip_prefix("uses:"))
+            .map(str::trim)
+            .filter(|u| {
+                let Some((spec, comment)) = u.split_once(" # v") else { return true };
+                let Some((_, sha)) = spec.split_once('@') else { return true };
+                sha.len() != 40 || !sha.bytes().all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase()) || comment.trim().is_empty()
+            })
+            .map(str::to_string)
+            .collect()
+    }
+
+    #[test]
+    fn workflow_actions_are_pinned_to_commit_shas() {
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../.github/workflows");
+        let mut seen = 0;
+        for entry in fs::read_dir(&dir).expect("workflows directory") {
+            let path = entry.unwrap().path();
+            if !matches!(path.extension().and_then(|e| e.to_str()), Some("yml" | "yaml")) {
+                continue;
+            }
+            let text = fs::read_to_string(&path).unwrap();
+            seen += text.lines().filter(|l| l.trim_start().trim_start_matches("- ").starts_with("uses:")).count();
+            let bad = unpinned_uses(&text);
+            assert!(bad.is_empty(), "{}: unpinned actions {bad:?}", path.display());
+        }
+        assert!(seen > 0, "no uses: lines found; the scan is not reading the workflows");
+        // Negative controls: a moving tag, a short sha and a missing version comment are refused.
+        assert_eq!(unpinned_uses("      - uses: actions/checkout@v4").len(), 1);
+        assert_eq!(unpinned_uses("        uses: actions/checkout@11d5960a # v4.4.0").len(), 1);
+        assert_eq!(unpinned_uses("      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262").len(), 1);
+        assert!(unpinned_uses("      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0").is_empty());
     }
 
     #[test]

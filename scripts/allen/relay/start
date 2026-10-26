@@ -1,0 +1,20 @@
+#!/bin/sh
+# Root-run starter for allen-relay-mailer until aien-supervise owns it (no systemd unit, by Drake's order).
+# The mailer runs as allen-relay with no_new_privs and no capabilities. The Gandi password for
+# aien@aienos.com goes from the TPM-bound atlas vault straight into the mailer's stdin: never on
+# disk, in argv or in the environment. nft (table inet atlas_ingress, chain output) lets the
+# allen-relay user reach only DNS on loopback and TCP 465.
+set -eu
+if pgrep -u allen-relay -f /opt/allen-relay/allen_relay_mailer.py >/dev/null; then
+  echo "allen-relay-mailer: already running" >&2
+  exit 1
+fi
+umask 027
+(
+  runuser -u drakestapleton -- env -i HOME=/home/drakestapleton PATH=/usr/bin:/bin \
+    /home/drakestapleton/.local/bin/atlas-vault get GANDI_AIEN_MAIL_PASSWORD 2>/dev/null |
+  setsid setpriv --reuid=allen-relay --regid=allen-relay --init-groups \
+    --no-new-privs --inh-caps=-all --bounding-set=-all \
+    env -i HOME=/var/lib/allen-relay PATH=/usr/bin:/bin LANG=C.UTF-8 \
+    /usr/bin/python3 -I /opt/allen-relay/allen_relay_mailer.py >>/var/log/allen-relay.log 2>&1
+) </dev/null >/dev/null 2>&1 &

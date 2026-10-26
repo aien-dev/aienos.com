@@ -17,45 +17,57 @@
     "generated": {
       "children": [
         {
-          "digest": "2d87591576585a991efaed78c7f1e80bbf813b693fc56bf881f196953d680b80",
-          "last_commit": "fb167a8",
+          "digest": "4f9a052700291113ffed83006c9f1b639b51a8d0a4841a221c0c873e233c244f",
+          "last_commit": "7fd18a6",
           "name": ".github",
           "purpose": "GitHub automation configuration"
         },
         {
-          "digest": "231a389dc6a6aa2fb34a120440db7985b2b62daee90cbd014e58209da7c35374",
-          "last_commit": "da2a360",
+          "digest": "0f0f43c88db88ed58d2f8d49880ef05d13c216d25082e35bf334d11f08dab241",
+          "last_commit": "7fd18a6",
           "name": "crates",
           "purpose": "Native Rust website crates"
         },
         {
-          "digest": "05cbd68e9345688eff65a7fa2f9bda9acca5b8c935ea7db78819dcb943e4cda3",
-          "last_commit": "da2a360",
+          "digest": "e8dc3c7418b234d841efa6eae442f932c728e4e48cf3a564b24f85c3cb4ccf5c",
+          "last_commit": "96d38f3",
           "name": "om/alpha-page",
           "purpose": "Seeded Omega alpha landing page and client, with pinned wizard source and real terminal capture"
         },
         {
           "digest": "faf427696ff35902ea0ce655180d4d4aa54db23cd4374a3f7db3925c2ef084c7",
-          "last_commit": "49cce98",
+          "last_commit": "21dc7ea",
           "name": "om/hive-render",
           "purpose": "Seeded Omega edge rendering of validated canonical Hive JSON with fail-closed escaping and deter"
         },
         {
-          "digest": "7ab3931a101343f8ecab0d1f58960ac8ca0d67905fb141b5aa60e06b6cebe215",
-          "last_commit": "1858269",
+          "digest": "e79851d237209ec2b187ac8a93656add164229df9194ab1517cc52c66158b4b1",
+          "last_commit": "d266bc3",
+          "name": "om/support-page",
+          "purpose": "Seeded Omega support page, shared invitation and CSS with deterministic artifact checks"
+        },
+        {
+          "digest": "b251e22f0e2a3a8a14ea7c3b03cfb37987accf105892c615fb4b7529f2490419",
+          "last_commit": "7fd18a6",
           "name": "public",
           "purpose": "Static public website assets"
+        },
+        {
+          "digest": "d19bb51f24d3c0b551f4664adba478bf03fed9ac1585a80f23f7fe8f34466813",
+          "last_commit": "e391556",
+          "name": "scripts/allen/science",
+          "purpose": "Isolated compute-only Allen tools and versioned glass-pane protocol; temporary host transport ar"
         }
       ],
-      "children_root": "sha256:fd0209a811dd7b00c8fcecbf6ab92c288bb9fbba93dafa290b02bc93b94af1af",
-      "compiled_at": "2026-10-26T16:35:09Z",
+      "children_root": "sha256:2fcfe7c911b4d946b051f48d75e3d385395900aa0fff2a77cab23585cc73d9e9",
+      "compiled_at": "2026-10-26T19:25:24Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:2a3647436c920901aea92c9ad55f79a55c373aea673fa0a948c951180dae6563",
-      "evidence_files": 1,
-      "evidence_root": "sha256:d01c236aec2c762a7b68996e7968fb691a74f6b0b03e8f1987395db73f496946",
-      "files": 244,
-      "generated_at_commit": "1858269c2036a010c5ec43bfeb3d33ee5040de7e",
-      "source_tree": "sha256:a37abe03bbf6a3b0833dbd94378b995f6cce097eeea1e78684ecf1836ba8c646"
+      "digest": "sha256:cbc2914a71accad530126e7cb7624fc9c04dc469716ca7920df84674535be9cc",
+      "evidence_files": 6,
+      "evidence_root": "sha256:7fde48972a09dd4b0f7206aca4e313cd02c8cd195ec602e3924e59246c016aa5",
+      "files": 361,
+      "generated_at_commit": "6840b7734249348fd0e467afc6a31de39d009764",
+      "source_tree": "sha256:dd45d4be3ccf8df0461f5b71f9b2736d5b46eb120cac1a0ad6f878e926316db6"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",

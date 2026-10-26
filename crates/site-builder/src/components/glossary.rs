@@ -32,7 +32,7 @@ pub fn render_glossary() -> Markup {
                         "The experimental, open source OS layer this site documents. AienOS keeps its own identity within Sovereign Intelligence, the front door and alpha download. See "
                         a href="/machine/" { "The Machine" } "."
                     }))
-                    (term("AIEN", html! {
+                    (term("Aien", html! {
                         "The persistent intelligence that learns. Weights suggest, programs explain, verification decides, evidence teaches. See "
                         a href="/machine/" { "The Machine" } " and " a href="/research/" { "Research" } "."
                     }))

@@ -1,0 +1,57 @@
+[Unit]
+Description=omega-projects-pusher: file confirmed Allen items on aien-dev/omega-projects
+Documentation=https://github.com/aien-dev/omega-projects
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=omega-pusher
+Group=omega-pusher
+SupplementaryGroups=allen-spool
+UMask=0027
+Nice=19
+IOSchedulingClass=idle
+Environment=PATH=/usr/bin:/bin
+# Fine-grained token for aien-dev/omega-projects only, sealed with systemd-creds
+# (host+tpm2) at /etc/credstore.encrypted/omega-projects-token by
+# omega-projects-pusher-activate. Missing: the pusher only queues.
+ImportCredential=omega-projects-token
+# PID1 decrypts host+tpm2 credentials inside the unit's device cgroup; PrivateDevices
+# still hides the node from the service itself.
+DeviceAllow=/dev/tpmrm0 rw
+ExecStart=/usr/bin/python3 -I /opt/omega-projects-pusher/omega_projects_pusher.py
+TimeoutStartSec=120
+StateDirectory=omega-pusher
+StateDirectoryMode=0700
+ReadWritePaths=/var/lib/allen-chat/spool-in /var/lib/allen-chat/spool-status
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateUsers=yes
+PrivateDevices=yes
+PrivateIPC=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectProc=invisible
+ProcSubset=pid
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+RemoveIPC=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources
+SystemCallErrorNumber=EPERM
+MemoryMax=256M
+TasksMax=16
