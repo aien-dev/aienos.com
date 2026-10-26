@@ -105,7 +105,7 @@ mod tests {
     fn anonymous_is_the_default_and_never_sends_a_key() {
         let script = include_str!("../../../../public/js/allen.js");
         assert!(SKELETON.contains("id=\"allen\" data-ready=\"false\" data-busy=\"false\" data-mode=\"anonymous\""));
-        assert!(SKELETON.contains("Anonymous: Allen won&#39;t remember this chat"));
+        assert!(SKELETON.contains("Anonymous: Aien won&#39;t remember this chat"));
         assert!(script.contains("  let remembered = false;\n"), "the script starts anonymous");
         // Remembered only on the consent path: after a consented save, after a
         // pasted key under the same consent box, or a key kept from an

@@ -248,6 +248,11 @@ h5.allen-md-h, h6.allen-md-h { font-size: 14px; color: var(--text-secondary); }
 .allen-pane-prov dt { color: var(--text-muted); }
 .allen-pane-prov dd { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .allen-pane-foot { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 20px 14px; }
+.allen-pane-foot > :is(.allen-pane-save, .allen-projects-state) { flex-basis: 100%; }
+.allen-pane-foot > .allen-projects-state { min-height: 0; }
+.allen-pane-save[hidden] { display: none; }
+.allen-pane-save > * + * { margin-top: 8px; }
+.allen-pane-files { margin: 0; padding-left: 20px; font-size: 12px; color: var(--text-secondary); }
 .allen-pane-act {
   padding: 6px 14px;
   border-radius: 999px;

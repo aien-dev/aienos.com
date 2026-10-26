@@ -1,6 +1,6 @@
 /* Generated from om/allen-install/install.om; never hand-edit.
  *
- * The offer to put Allen on the home screen. It appears only after the first
+ * The offer to put Aien on the home screen. It appears only after the first
  * exchange the visitor started that ended with a real reply, never on load or
  * on the greeting. The browser install prompt opens only inside the visitor's
  * tap on the offer. One local preference (dismissed, accepted, guided or

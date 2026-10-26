@@ -111,7 +111,7 @@ async function test(name, fn) { await fn(); results.push(name); }
     w.bip();
     w.exchange({ silent: true });
     w.exchange({ outcome: 'Stopped.' });
-    w.exchange({ outcome: 'Could not reach Allen. Check your connection and try again.' });
+    w.exchange({ outcome: 'Could not reach Aien. Check your connection and try again.' });
     w.exchange({ text: '   ' });
     w.emit('reply', { text: 'Hello.', outcome: '' });
     assert.equal(w.offers().length, 0);

@@ -32,7 +32,7 @@ function replaceReply(text, speaker) {
  clearTimeout(timer); timer=0; reply=String(text); painted=0;
  byId('allen-speaker').textContent=speaker;
  const out=byId('allen-answer'); out.textContent='';
- if (speaker==='Allen') out.dataset.speaker='allen'; else delete out.dataset.speaker;
+ if (speaker==='Aien') out.dataset.speaker='allen'; else delete out.dataset.speaker;
  paintReply();
 }
 function mountScene() {
@@ -44,7 +44,7 @@ function mountScene() {
  scene.ready.then(() => {
   byId('allen-enter').disabled=false; resolveReady(scene);
   document.dispatchEvent(new CustomEvent('allen-presence-ready'));
- }, error => { rejectReady(error); byId('allen-enter').disabled=false; status('The scene could not load. You can still chat with Allen.'); });
+ }, error => { rejectReady(error); byId('allen-enter').disabled=false; status('The scene could not load. You can still chat with Aien.'); });
 }
 function mountPanes() {
  if (!window.AllenPanes || panes) return;
@@ -58,7 +58,7 @@ function enter(options={}) {
  // Native dusk is silent. The home-door owner starts the merger chirp on a real gesture.
  byId('allen-input').focus();
  const initial=byId('allen-log').querySelector('.allen-msg-allen .allen-p');
- if (!reply && initial) replaceReply(initial.textContent,'Allen');
+ if (!reply && initial) replaceReply(initial.textContent,'Aien');
 }
 function audioLabel() {
  const muted=window.AllenAudio ? window.AllenAudio.muted() : true;
@@ -71,13 +71,13 @@ function connect() {
  dispose.push(api.on('send',event => {
   if (!entered) enter({scene:false});
   if (!event.silent) byId('allen-guest').textContent=event.text;
-  replaceReply('','Allen');
+  replaceReply('','Aien');
   if (scene) { scene.key(event.text); scene.mode('think'); }
   byId('allen-regenerate').disabled=true;
  }));
  dispose.push(api.on('token',event => { reply+=event.text; if (!timer) paintReply(); }));
  dispose.push(api.on('reply',event => {
-  if (!event.text.startsWith(reply.slice(0,painted))) replaceReply(event.text,'Allen');
+  if (!event.text.startsWith(reply.slice(0,painted))) replaceReply(event.text,'Aien');
   else { reply=event.text; if (!timer) paintReply(); }
   byId('allen-regenerate').disabled=false;
   if (scene) scene.mode('idle');
@@ -86,7 +86,7 @@ function connect() {
  dispose.push(api.on('human',event => replaceReply(event.text,'Drake')));
  dispose.push(api.on('card',event => {
   mountPanes();
-  if (panes && panes.openNode) panes.openNode({id:'chat-'+(++cardId),title:event.type==='relay'?'Message to Drake':event.type==='introduce'?'Remember me':'Allen · '+event.type,node:event.node});
+  if (panes && panes.openNode) panes.openNode({id:'chat-'+(++cardId),title:event.type==='relay'?'Message to Drake':event.type==='introduce'?'Remember me':'Aien · '+event.type,node:event.node});
   else showSession(true);
  }));
  for (const name of ['pane.open','pane.update','pane.close']) dispose.push(api.on(name,event => { mountPanes(); if (panes) panes.event(name,event); }));
@@ -98,7 +98,7 @@ function connect() {
  byId('allen-new').addEventListener('click',() => {
   byId('allen-guest').textContent='';
   const hello=byId('allen-log').querySelector('.allen-msg-allen .allen-p');
-  replaceReply(hello?hello.textContent:'','Allen');
+  replaceReply(hello?hello.textContent:'','Aien');
  });
 }
 function full() {

@@ -50,7 +50,7 @@
   const MAX_NAME = 80;
   const SVG_NS = 'http://www.w3.org/2000/svg';
   const MATH_NS = 'http://www.w3.org/1998/Math/MathML';
-  const NAMES = { math: 'Math', plot: 'Plot', doc: 'Document', code: 'Code', app: 'App', research: 'Research', data: 'Data', omega: 'Omega', card: 'Allen', projects: 'Projects' };
+  const NAMES = { math: 'Math', plot: 'Plot', doc: 'Document', code: 'Code', app: 'App', research: 'Research', data: 'Data', omega: 'Omega', card: 'Aien', projects: 'Projects' };
   const STATUS_NAMES = { computed: 'Computed', unsupported: 'Not supported', unverified: 'Not verified', 'input-data': 'Given data' };
   const CAVEATS = {
     computed: 'The math engine produced this result. That is not an independent check that it is correct.',
@@ -445,6 +445,24 @@
   function cells(line) {
     return line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(s => s.trim());
   }
+  /* A repo report's files, found by the same parser that renders the pane,
+     so a fence the reader saw is exactly a fence that is saved. */
+  const REPORT = /^Repo report: ([A-Za-z0-9_.-]{1,100})\/([A-Za-z0-9_.-]{1,100})$/;
+  function reportFiles(source) {
+    const files = [{ path: 'README.md', content: source }];
+    const patches = [];
+    let port = 0;
+    let harness = 0;
+    markdown(source, document.createElement('div'), (lang, text) => {
+      const kind = lang.toLowerCase();
+      if (kind === 'omega' || kind === 'om') files.push({ path: `allen-port-${(port += 1)}.om`, content: `${text}\n` });
+      else if (kind === 'diff' || kind === 'patch') patches.push(`${text}\n`);
+      else if (kind === 'text' || kind === 'txt') files.push({ path: `parity-harness-${(harness += 1)}.txt`, content: `${text}\n` });
+      return null;
+    });
+    if (patches.length) files.push({ path: 'allen-ports.patch', content: patches.join('') });
+    return files;
+  }
   function markdown(source, box, fenceTool) {
     const lines = source.split(/\r?\n/);
     let para = [];
@@ -790,7 +808,7 @@
     return '';
   }
   function checkFile(data) {
-    if (!shape(data, ['format', 'v', 'panes'], ['id', 'name', 'saved', 'exported']) || data.format !== FORMAT || data.v !== VERSION) return 'this is not an Allen panes file';
+    if (!shape(data, ['format', 'v', 'panes'], ['id', 'name', 'saved', 'exported']) || data.format !== FORMAT || data.v !== VERSION) return 'this is not an Aien panes file';
     for (const k of ['id', 'name', 'saved', 'exported']) if (own(data, k) && !isText(data[k], MAX_TITLE)) return `invalid ${k}`;
     if (!Array.isArray(data.panes) || data.panes.length > MAX_PANES) return `a file holds at most ${MAX_PANES} panes`;
     for (let i = 0; i < data.panes.length; i++) {
@@ -885,7 +903,7 @@
     const root = el('div', 'allen-panes');
     const layer = el('div', 'allen-panes-layer');
     const dock = el('nav', 'allen-panes-dock');
-    dock.setAttribute('aria-label', 'Allen panes');
+    dock.setAttribute('aria-label', 'Aien panes');
     const chips = el('ul', 'allen-panes-chips');
     const projectsButton = button('allen-panes-tool', 'Projects: save, open, export or import panes', 'Projects', () => projectsPane());
     const exportButton = button('allen-panes-tool', 'Export the open panes as a JSON file', 'Export', () => exportOpen());
@@ -1246,7 +1264,7 @@
         else if (opts.returnFocus instanceof HTMLElement && opts.returnFocus.isConnected) opts.returnFocus.focus();
         else projectsButton.focus();
       }
-      if (!quiet) say(byPerson ? `${rec.title} closed.${kept ? ' Reopen brings it back.' : ''}` : `Allen closed ${rec.title}.`);
+      if (!quiet) say(byPerson ? `${rec.title} closed.${kept ? ' Reopen brings it back.' : ''}` : `Aien closed ${rec.title}.`);
       if (typeof opts.onClose === 'function') {
         try {
           opts.onClose(rec.kind === 'card' ? rec.id.slice(5) : rec.id, rec.kind, byPerson);
@@ -1273,7 +1291,7 @@
     }
     function waiting(rec) {
       rec.el.setAttribute('aria-busy', 'true');
-      rec.body.replaceChildren(el('p', 'allen-pane-note', 'Allen is preparing this pane.'));
+      rec.body.replaceChildren(el('p', 'allen-pane-note', 'Aien is preparing this pane.'));
     }
 
     function apply(rec, revision, content, prov) {
@@ -1361,7 +1379,7 @@
           body.append(box);
         }
       } else if (rec.kind === 'app') {
-        body.append(el('p', 'allen-pane-note', 'Allen wrote this app. It runs only when you press Run, in a sandbox with no access to this page, your cookies or the network.'));
+        body.append(el('p', 'allen-pane-note', 'Aien wrote this app. It runs only when you press Run, in a sandbox with no access to this page, your cookies or the network.'));
         const bar = el('div', 'allen-pane-bar');
         const stage = el('div', 'allen-pane-stage');
         const run = button('allen-pane-act allen-pane-run', `Run ${rec.title} in a sandbox`, 'Run', () => runApp(rec, stage, run, stop));
@@ -1405,7 +1423,7 @@
       frame.setAttribute('sandbox', SANDBOX);
       frame.setAttribute('referrerpolicy', 'no-referrer');
       frame.setAttribute('allow', "camera 'none'; microphone 'none'; geolocation 'none'; usb 'none'; serial 'none'; bluetooth 'none'; payment 'none'; display-capture 'none'; clipboard-read 'none'; clipboard-write 'none'; fullscreen 'none'");
-      frame.setAttribute('title', `${rec.title}, an app written by Allen, sandboxed`);
+      frame.setAttribute('title', `${rec.title}, an app written by Aien, sandboxed`);
       frame.className = 'allen-pane-frame';
       frame.srcdoc = sandboxed(rec.content.html);
       stage.replaceChildren(frame);
@@ -1439,7 +1457,7 @@
       row('Pane', rec.id, true);
       row('Revision', String(rec.revision));
       const raw = el('pre', 'allen-pane-raw', JSON.stringify({ content: rec.content, provenance: rec.provenance }, null, 2));
-      raw.setAttribute('aria-label', `Everything Allen sent for ${rec.title}, as JSON`);
+      raw.setAttribute('aria-label', `Everything Aien sent for ${rec.title}, as JSON`);
       raw.tabIndex = 0;
       rec.source.replaceChildren(el('summary', 'allen-pane-summary', 'Source and provenance'), list, el('p', 'allen-pane-label', 'As received'), raw);
       rec.source.hidden = false;
@@ -1453,7 +1471,72 @@
       const save = button('allen-pane-act', `Download ${rec.title} as ${ext}`, `Download ${ext}`, () => download(out.name, out.data()));
       const json = button('allen-pane-act', `Download ${rec.title} with its provenance as JSON`, 'Download .json', () => download(`${base}.json`, JSON.stringify(file([entry(rec)], rec.title), null, 2)));
       rec.foot.replaceChildren(copyButton, save, json);
+      const keep = reportSave(rec);
+      if (keep) rec.foot.append(...keep);
       rec.foot.hidden = false;
+    }
+    /* A repo report can become the visitor's own Omega project, only when the
+       page supplies saveProject and only after the visitor has seen the file
+       list and pressed Save. The page owns the request and the visitor's
+       handle; this file never touches the network. */
+    function reportSave(rec) {
+      if (rec.kind !== 'doc' || typeof opts.saveProject !== 'function') return null;
+      const named = REPORT.exec(rec.title);
+      if (!named) return null;
+      const files = reportFiles(rec.content.markdown);
+      const repo = `${named[1]}/${named[2]}`;
+      const ports = files.filter(f => f.path.endsWith('.om')).length;
+      const box = el('div', 'allen-pane-save');
+      box.hidden = true;
+      const state = el('p', 'allen-projects-state');
+      state.setAttribute('role', 'status');
+      const open = button('allen-pane-act allen-pane-run', `Save ${rec.title} to my Omega projects`, 'Save to my Omega projects', () => {
+        box.hidden = !box.hidden;
+        open.setAttribute('aria-expanded', String(!box.hidden));
+        if (!box.hidden) confirm.focus();
+      });
+      open.setAttribute('aria-expanded', 'false');
+      const list = el('ul', 'allen-pane-files');
+      for (const f of files) list.append(el('li', 'allen-pane-mono', `${f.path}, ${utf8(f.content)} bytes`));
+      const confirm = button('allen-pane-act allen-pane-run', `Save these ${files.length} files as an Omega project`, `Save ${files.length} file${files.length === 1 ? '' : 's'}`, async () => {
+        confirm.disabled = true;
+        state.replaceChildren(document.createTextNode('Saving.'));
+        let r;
+        try {
+          r = await opts.saveProject({ project: slug(`${named[1]}-${named[2]}`) || 'allen-report', title: `Omega path for ${repo}`, description: `Aien's report on ${repo}${ports ? `, with ${ports} Omega port${ports === 1 ? '' : 's'}` : ''}.`, files: files.map(f => ({ path: f.path, content: f.content })) });
+        } catch (_) {
+          r = null;
+        }
+        confirm.disabled = false;
+        if (r && r.ok === true) {
+          state.replaceChildren(document.createTextNode('Saved. Status: '), statusLink(r.url));
+        } else {
+          state.replaceChildren(document.createTextNode(r && typeof r.reason === 'string' ? clean(r.reason, 300) : 'The project could not be saved; nothing was stored.'));
+        }
+      });
+      const cancel = button('allen-pane-act', 'Do not save the report', 'Cancel', () => {
+        box.hidden = true;
+        open.setAttribute('aria-expanded', 'false');
+        open.focus();
+      });
+      const bar = el('div', 'allen-pane-bar');
+      bar.append(confirm, cancel);
+      box.append(el('p', 'allen-pane-note', `These files become a project under your handle in Omega projects, for Drake to review before anything is published:`), list, bar);
+      return [open, box, state];
+    }
+    function statusLink(url) {
+      if (typeof url !== 'string' || !url) return document.createTextNode('no status address was returned.');
+      if (/^\/(?!\/)/.test(url)) {
+        try {
+          const here = new URL(url, window.location.href);
+          if (here.origin === window.location.origin) {
+            const a = el('a', 'allen-link', here.pathname + here.search);
+            a.href = here.href;
+            return a;
+          }
+        } catch (_) {}
+      }
+      return link(url, url);
     }
     function download(name, data) {
       const blob = new Blob([data], { type: 'application/octet-stream' });
@@ -1468,7 +1551,7 @@
       setTimeout(() => URL.revokeObjectURL(url), 30000);
     }
     function file(entries, name) {
-      return { format: FORMAT, v: VERSION, name: clean(name || 'Allen panes', MAX_NAME), exported: new Date().toISOString(), panes: entries };
+      return { format: FORMAT, v: VERSION, name: clean(name || 'Aien panes', MAX_NAME), exported: new Date().toISOString(), panes: entries };
     }
     function snapshot() {
       return order.filter(dataPane).map(entry);
@@ -1479,7 +1562,7 @@
         say('There are no panes with content to export yet.');
         return { ok: false, reason: 'nothing to export' };
       }
-      download('allen-panes.json', JSON.stringify(file(entries, current ? current.name : 'Allen panes'), null, 2));
+      download('aien-panes.json', JSON.stringify(file(entries, current ? current.name : 'Aien panes'), null, 2));
       say(`Exported ${entries.length} pane${entries.length === 1 ? '' : 's'} as a JSON file.`);
       return { ok: true, count: entries.length };
     }
@@ -1690,7 +1773,7 @@
     function summaryBox(show) {
       const box = section('Sync a short summary');
       const areaId = uid('allen-project-summary');
-      const note = el('p', 'allen-pane-note', `Only this summary is sent, at most ${SYNC_MAX} bytes, never the panes, code or data. Allen keeps one project summary for you and replaces it each time. Edit it first if you like.`);
+      const note = el('p', 'allen-pane-note', `Only this summary is sent, at most ${SYNC_MAX} bytes, never the panes, code or data. Aien keeps one project summary for you and replaces it each time. Edit it first if you like.`);
       const areaLabel = el('label', 'allen-pane-label', 'Summary to sync');
       areaLabel.htmlFor = areaId;
       const area = el('textarea', 'allen-projects-summary');
@@ -1709,7 +1792,7 @@
         area.value = draft();
         recount();
       });
-      const send = button('allen-pane-act allen-pane-run', 'Sync this short summary to Allen\u2019s memory of you', 'Sync short summary', async () => {
+      const send = button('allen-pane-act allen-pane-run', 'Sync this short summary to Aien\u2019s memory of you', 'Sync short summary', async () => {
         const text = area.value.trim();
         if (!text) return show({ ok: false, reason: 'The summary is empty.' });
         if (utf8(text) > SYNC_MAX) return show({ ok: false, reason: `The summary is over ${SYNC_MAX} bytes.` });
@@ -1721,7 +1804,7 @@
           r = null;
         }
         send.disabled = false;
-        show(r && r.ok === true ? { ok: true, message: 'Synced the summary. Allen replaced the previous one.' } : { ok: false, reason: r && typeof r.reason === 'string' ? clean(r.reason, 300) : 'Allen could not sync the summary; nothing was stored.' });
+        show(r && r.ok === true ? { ok: true, message: 'Synced the summary. Aien replaced the previous one.' } : { ok: false, reason: r && typeof r.reason === 'string' ? clean(r.reason, 300) : 'Aien could not sync the summary; nothing was stored.' });
       });
       const bar = el('div', 'allen-pane-bar');
       bar.append(refresh, send);
@@ -1793,18 +1876,18 @@
       if (name === 'pane.update' && !rec) return refuse(name, 'the pane is not open');
       const reason = check(name, payload, rec ? rec.kind : '');
       if (reason) {
-        if (rec && name === 'pane.update') notify(rec, `Allen sent an update this page could not show (${reason}). The last good version stays.`);
+        if (rec && name === 'pane.update') notify(rec, `Aien sent an update this page could not show (${reason}). The last good version stays.`);
         return refuse(name, reason);
       }
       if (name === 'pane.open') {
         if (rec || closedIds.has(id)) return refuse(name, 'that pane id was already opened');
         if (panes.size >= MAX_PANES) {
-          say(`Allen tried to open another pane, but at most ${MAX_PANES} can be open. Close one to make room.`);
+          say(`Aien tried to open another pane, but at most ${MAX_PANES} can be open. Close one to make room.`);
           return refuse(name, 'too many panes');
         }
         const made = create(id, payload.kind, payload.title);
         waiting(made);
-        say(`Allen opened a ${NAMES[made.kind]} pane: ${made.title}.`);
+        say(`Aien opened a ${NAMES[made.kind]} pane: ${made.title}.`);
         return { ok: true, id };
       }
       if (name === 'pane.update') {
@@ -1836,7 +1919,7 @@
       let rec = panes.get(key);
       if (!rec) {
         if (panes.size >= MAX_PANES) return refuse('openNode', 'too many panes');
-        rec = create(key, 'card', typeof spec.title === 'string' ? spec.title : 'Allen');
+        rec = create(key, 'card', typeof spec.title === 'string' ? spec.title : 'Aien');
       } else if (typeof spec.title === 'string') {
         rec.title = clean(spec.title, MAX_TITLE) || rec.title;
         label(rec);

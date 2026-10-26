@@ -43,7 +43,7 @@
   const RATE = 16000;
   const COPY = Object.freeze({
     cloud: "Voice typing uses your browser's online speech service: in Chrome your audio goes to Google's servers to become text, and other browsers may send it to their maker. My site never receives your audio, only the words you choose to send.",
-    local: "Voice typing runs on this device: your browser turns speech into text here and your audio does not leave it. Only the words you choose to send reach Allen.",
+    local: "Voice typing runs on this device: your browser turns speech into text here and your audio does not leave it. Only the words you choose to send reach Aien.",
     none: "Voice typing isn't available in this browser. You can still type your message.",
     insecure: "Voice typing needs the secure https page. You can still type your message.",
     start: "Start voice typing",
@@ -62,26 +62,26 @@
     hidden: "Voice typing stopped because the page went to the background.",
     typed: "Voice typing stopped because you started typing.",
     noSpeak: "Reading replies aloud isn't available in this browser.",
-    speakOn: "Allen's replies will be read aloud by your browser's voice.",
+    speakOn: "Aien's replies will be read aloud by your browser's voice.",
     speakOff: "Replies are no longer read aloud.",
     remote: "Your browser lists no on-device voice for this language, so it may send reply text to its online voice service.",
     drake: "Drake wrote:",
     code: "(code block skipped)",
     link: "link",
     rest: "The rest is on the screen.",
-    server: "Voice typing records only after you tap the microphone, for up to 15 seconds. Your clip is sent to Allen's server, turned into text, and never saved: it stays in memory only and is discarded as soon as the text comes back. The text is shown to you; it is not logged.",
+    server: "Voice typing records only after you tap the microphone, for up to 15 seconds. Your clip is sent to Aien's server, turned into text, and never saved: it stays in memory only and is discarded as soon as the text comes back. The text is shown to you; it is not logged.",
     recording: "Recording. Tap the microphone again when you finish, or press Escape to cancel.",
     sending: "Turning your words into text.",
     short: "That clip was too short. Tap the microphone and speak a little longer.",
-    toolong: "That clip was too long for Allen's server. Try a shorter one.",
-    format: "Allen's server could not read this browser's audio format.",
-    unclear: "Allen's server could not make out any words in that clip.",
-    rate: "Allen's server is taking too many clips right now.",
+    toolong: "That clip was too long for Aien's server. Try a shorter one.",
+    format: "Aien's server could not read this browser's audio format.",
+    unclear: "Aien's server could not make out any words in that clip.",
+    rate: "Aien's server is taking too many clips right now.",
     retry: "Try again in",
-    busy: "Allen's server is busy right now. Try again in a moment.",
+    busy: "Aien's server is busy right now. Try again in a moment.",
     offer: "Use your browser's speech service instead",
     switched: "Switched to your browser's speech service. Read the privacy note, then tap the microphone if that's fine.",
-    serverdown: "Allen's server could not be reached. Check your connection, or type instead.",
+    serverdown: "Aien's server could not be reached. Check your connection, or type instead.",
   });
 
   function lang() {
@@ -612,6 +612,8 @@
   const box = !!toggle && toggle.tagName === 'INPUT' && String(toggle.type).toLowerCase() === 'checkbox';
   let speaking = false;
   let unlocked = false;
+  /* Aien is said like Ian: speech gets the spoken form, the screen keeps Aien. */
+  const SAYNAME = 'Ian';
 
   function stored() {
     try {
@@ -650,13 +652,15 @@
     const near = list.filter(v => v && v.localService === true && tag(v).split('-')[0] === family);
     return near.find(v => tag(v) === want) || near[0] || null;
   }
-  /* Code is skipped, links are named, markdown marks are dropped. */
+  /* Code is skipped, links are named, markdown marks are dropped, and the
+     whole word Aien is spoken as SAYNAME. */
   function plain(text) {
     return String(text)
       .replace(/```[\s\S]*?(```|$)/g, ` ${COPY.code} `)
       .replace(/https?:\/\/\S+/g, COPY.link)
       .replace(/[`*_#>\x7e]+/g, '')
       .replace(/\|/g, ' ')
+      .replace(/\bAien\b/g, SAYNAME)
       .replace(/\s+/g, ' ')
       .trim();
   }
