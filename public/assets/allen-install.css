@@ -1,0 +1,21 @@
+/* Generated from om/allen-install/install.om; never hand-edit. */
+.allen-install { display: grid; gap: 10px; font-size: 13px; line-height: 1.55; color: var(--text-secondary); text-align: left; }
+.allen-install-lede { margin: 0; }
+.allen-install-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.allen-install-state { margin: 0; min-height: 1.55em; color: var(--text-primary); }
+.allen-install-state:empty { min-height: 0; }
+.allen-install-steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.allen-install-step { display: grid; grid-template-columns: 44px 1fr; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--border-subtle); border-radius: 14px; background: color-mix(in srgb, var(--bg-card) 72%, transparent); }
+.allen-install-icon { width: 28px; height: 28px; justify-self: center; fill: none; stroke: var(--text-primary); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.allen-install-step .allen-install-icon { width: 44px; height: 44px; padding: 8px; border-radius: 12px; background: color-mix(in srgb, var(--bg-surface) 80%, transparent); border: 1px solid var(--border-subtle); }
+.allen-install-words strong { color: var(--text-primary); font-weight: 500; }
+.allen-install-inline { pointer-events: auto; margin: 12px auto 0; width: min(420px, 100%); padding: 14px 16px; border: 1px solid var(--border-subtle); border-radius: 18px; background: color-mix(in srgb, var(--bg-surface) 82%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 12px 40px color-mix(in srgb, var(--bg-base) 60%, transparent); animation: allen-install-in 360ms ease-out both; }
+.allen-install-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.allen-install-title { margin: 0; font-size: 14px; color: var(--text-primary); }
+.allen-install-close { display: inline-grid; place-items: center; width: 32px; height: 32px; padding: 0; border-radius: 999px; border: 1px solid var(--border-subtle); background: transparent; color: var(--text-secondary); cursor: pointer; }
+.allen-install-close:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+.allen-install-close .allen-install-icon { width: 16px; height: 16px; stroke: currentColor; }
+.allen-install button:focus-visible, .allen-install-close:focus-visible { outline: 2px solid var(--accent-green); outline-offset: 2px; }
+@keyframes allen-install-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .allen-install-inline { animation: none; } }
+@media (max-width: 720px) { .allen-install-inline { width: 100%; } .allen-install-actions button { min-height: 44px; } }

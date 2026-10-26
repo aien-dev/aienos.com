@@ -4,8 +4,8 @@ body:has([id="allen"]) { overflow: hidden; }
 body:has([id="allen"]) .aien-header,
 body:has([id="allen"]) .aien-footer,
 body:has([id="allen"]) [id="aien-allen-launcher"] { display: none; }
-.allen { position: fixed; inset: 0; z-index: 100; color: var(--text-primary); background: var(--bg-base); font-family: var(--font-sans, sans-serif); }
-.allen-universe { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
+.allen { position: fixed; inset: 0; top: var(--allen-view-top, 0px); bottom: auto; height: var(--allen-view-height, 100dvh); z-index: 100; color: var(--text-primary); background: var(--bg-base); font-family: var(--font-sans, sans-serif); }
+.allen-universe { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: pinch-zoom; }
 .allen-space-tools { position: absolute; top: max(16px, env(safe-area-inset-top)); right: 20px; display: flex; align-items: center; gap: 10px; z-index: 30; }
 .allen-space-tools .allen-tool { background: color-mix(in srgb, var(--bg-base) 72%, transparent); }
 .allen-arrival { position: absolute; inset: 48% 16px auto; text-align: center; z-index: 20; }
@@ -314,6 +314,9 @@ body:has([id="allen"]) [id="aien-allen-launcher"] { display: none; }
 .allen-actions button { border-radius: 999px; min-height: 36px; }
 .allen-actions .allen-send { color: var(--text-primary); background: var(--bg-card-hover); }
 .allen-input-hint { text-align: center; font-size: 10px; color: var(--text-muted); margin-top: 7px; }
+.allen-voice-status { text-align: center; font-size: 11px; color: var(--text-secondary); margin-top: 6px; }
+.allen-voice-status:empty { display: none; }
+.allen-mic[data-state="listening"], .allen-mic[data-state="starting"] { color: var(--accent-amber); border-color: var(--accent-amber); }
 
 .allen-privacy { font-size: 13px; color: var(--text-muted); }
 .allen-foot { margin-top: 14px; font-size: 13px; color: var(--text-muted); }
@@ -340,6 +343,8 @@ body:has([id="allen"]) [id="aien-allen-launcher"] { display: none; }
   .allen-bottom { bottom: max(12px, env(safe-area-inset-bottom)); }
   .allen-form { padding-left: 16px; }
   .allen-actions button { padding: 5px 8px; }
+  .allen-space-tools .allen-tool, .allen-actions button { min-width: 44px; min-height: 44px; }
+  .allen-input-hint { font-size: 10px; margin-top: 4px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .allen *, .allen *::before, .allen *::after { animation: none !important; transition: none !important; }

@@ -340,14 +340,18 @@ mod tests {
         for banned in ["innerHTML", "outerHTML", "insertAdjacentHTML", "fetch(", "localStorage", "sessionStorage", "eval("] {
             assert!(!script.contains(banned), "the presence delegates effects, never uses {banned}");
         }
-        assert!(script.contains("api.on('human', event => replaceReply(event.text, 'Drake'))"));
-        assert_eq!(script.matches("replaceReply(event.text, 'Drake')").count(), 1);
-        assert!(script.contains("api.on('card', event =>"));
+        assert!(script.contains("api.on('human',event => replaceReply(event.text,'Drake'))"));
+        assert_eq!(script.matches("replaceReply(event.text,'Drake')").count(), 1);
+        assert!(script.contains("api.on('card',event =>"));
         assert!(script.contains("node:event.node"));
         assert!(script.contains("prefers-reduced-motion: reduce"));
-        assert!(script.contains("window.AllenAudio.enter()"));
+        assert!(!script.contains("AllenAudio.enter("), "the native tube is silent; the home door owns gesture-gated chirp playback");
+        assert!(script.contains("window.allenPresence=Object.freeze({ready,enter,scene:() => scene,panes:() => panes})"));
+        assert!(script.contains("opening:homeDoor?'idle':'dusk'"));
+        assert!(script.contains("window.visualViewport"));
+        assert!(script.contains("allen-pane-request"));
         assert!(SKELETON.contains("id=\"allen-session\" class=\"allen-session\" aria-label=\"Session history and privacy\" hidden"));
-        for id in ["allen-universe", "allen-enter", "allen-copy", "allen-regenerate", "allen-history", "allen-projects", "allen-mute"] {
+        for id in ["allen-universe", "allen-enter", "allen-copy", "allen-regenerate", "allen-history", "allen-projects", "allen-mute", "allen-mic", "allen-speak", "allen-voice-privacy"] {
             assert_eq!(SKELETON.matches(&format!("id=\"{id}\"")).count(), 1);
         }
     }
