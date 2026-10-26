@@ -15,7 +15,7 @@ const GPC_NOTE = "Your browser sends Global Privacy Control, so I'm not offering
 const AFTER_NO = "No problem. You can still chat with me anonymously; I won't remember you or tell X anything.";
 const X_ORIGINS = ['https://static.ads-twitter.com', 'https://analytics.twitter.com', 'https://t.co'];
 
-function page({ stored, privacy = false, blocked = false, blockedLocal = blocked, session, local, hash = '', search = '', failNo = false, configured = false, motion = false, gpc = false, chat, defer = false, resources = [] } = {}) {
+function page({ stored, privacy = false, blocked = false, blockedLocal = blocked, session, local, hash = '', search = '', failNo = false, configured = false, motion = false, gpc = false, chat, defer = false, letters = false, resources = [] } = {}) {
   // Fixture event IDs exist only in this isolated VM, never in deployed config.
   const code = configured ? source.replace("pageVisit: '', introducedToAllen: ''", "pageVisit: 'tw-rfrlz-testvisit', introducedToAllen: 'tw-rfrlz-testintro'") : source;
   const storage = local || new Map(stored === undefined ? [] : [[key, stored]]);
@@ -24,6 +24,7 @@ function page({ stored, privacy = false, blocked = false, blockedLocal = blocked
   const events = {};
   const docEvents = {};
   const timers = [];
+  const delays = [];
   const announced = [];
   const network = [];
   // Resource timing as the browser records it; same-origin files plus any given outside ones.
@@ -57,6 +58,17 @@ function page({ stored, privacy = false, blocked = false, blockedLocal = blocked
   node('allen-intro-after-text').textContent = AFTER_NO;
   node('allen-intro-typed').firstChild = node('typed-head');
   node('allen-intro-typed').lastChild = node('typed-tail');
+  if (letters) node('allen-intro-typed').dataset.letters = 'true';
+  // Letter mode appends one span per letter; plain mode only sets textContent.
+  for (const id of ['typed-head', 'typed-tail']) {
+    node(id).letters = [];
+    node(id).appendChild = function (child) { this.letters.push(child); };
+    Object.defineProperty(node(id), 'textContent', {
+      get() { return this.plain + this.letters.map(l => l.textContent).join(''); },
+      set(v) { this.plain = v; this.letters = []; },
+    });
+    node(id).textContent = '';
+  }
   for (const id of ['allen-intro-trackers', 'allen-intro-facts']) {
     node(id).items = [];
     node(id).appendChild = function (child) { this.items.push(child.textContent); };
@@ -75,7 +87,7 @@ function page({ stored, privacy = false, blocked = false, blockedLocal = blocked
     createElement(tag) {
       // The panel may only build text list items; anything else would be a network-capable node.
       if (tag === 'script') return {};
-      assert.ok(['li', 'dt', 'dd'].includes(tag), `unexpected element ${tag}`);
+      assert.ok(['li', 'dt', 'dd', 'span'].includes(tag), `unexpected element ${tag}`);
       return { tag, textContent: '' };
     },
     getElementsByTagName() {
@@ -108,7 +120,7 @@ function page({ stored, privacy = false, blocked = false, blockedLocal = blocked
   };
   context = vm.createContext({ document, localStorage, sessionStorage, window, URLSearchParams, URL,
     history: { replaceState() { window.location.hash = ''; } },
-    setTimeout(fn) { timers.push(fn); return timers.length; }, clearTimeout(id) { if (id) timers[id - 1] = null; },
+    setTimeout(fn, ms) { delays.push(ms); timers.push(fn); return timers.length; }, clearTimeout(id) { if (id) timers[id - 1] = null; },
     fetch: window.fetch, XMLHttpRequest: class { open(m, url) { network.push(url); } send() {} },
     Image: class { set src(url) { network.push(url); } },
   });
@@ -118,6 +130,7 @@ function page({ stored, privacy = false, blocked = false, blockedLocal = blocked
   const aside = nodes['aien-allen-intro'];
   return { nodes, aside, document, loads, storage, sessionData, window, localStorage, announced, network, entries,
     api: () => context.window.aienAllenIntro,
+    delays, head: () => nodes['typed-head'], tail: () => nodes['typed-tail'],
     shown: () => !aside.hidden && aside.classes.has('allen-intro-in'),
     escape: () => docEvents.keydown({ key: 'Escape' }),
     key: k => docEvents.keydown({ key: k }),
@@ -400,4 +413,32 @@ test('a page door defers the greeting until it calls greet(), which still runs o
   assert.equal(next.api().greet(), false, 'once per browser, even when called again');
   assert.equal(next.aside.hidden, true);
   assert.equal(page({ defer: true, stored: 'no' }).api().greet(), false);
+});
+test('Allen types at his native 35 ms per letter; data-letters gives one span per letter', () => {
+  const plain = page({ motion: true });
+  while (plain.tick());
+  assert.equal(plain.typed(), GREETING + ' ' + INTRO);
+  assert.ok(plain.delays.length > 0 && plain.delays.every(ms => ms === 35), 'native cadence');
+  assert.equal(plain.head().letters.length, 0, 'plain mode builds no letter spans');
+  const p = page({ motion: true, letters: true });
+  assert.equal(p.typed(), '');
+  while (p.tick());
+  assert.equal(p.typed(), GREETING + ' ' + INTRO, 'letters spell the same words');
+  const spans = [...p.head().letters, ...p.tail().letters];
+  assert.equal(spans.length, (GREETING + ' ' + INTRO).length);
+  assert.ok(spans.every(s => s.tag === 'span' && s.className === 'allen-intro-letter' && s.textContent.length === 1));
+  assert.equal(p.head().textContent, GREETING, 'the greeting stays in the strong slot');
+  // Reduced motion: whole text at once, plain, no letter spans, no timers.
+  const still = page({ letters: true });
+  assert.equal(still.typed(), GREETING + ' ' + INTRO);
+  assert.equal(still.head().letters.length + still.tail().letters.length, 0);
+  assert.equal(still.tick(), false);
+  // Reopening restarts cleanly instead of appending a second copy.
+  const again = page({ motion: true, letters: true, privacy: true, local: new Map([[seenKey, '1']]) });
+  const review = again.nodes['[data-allen-intro-open]'];
+  review.click(); while (again.tick());
+  again.escape();
+  review.click(); while (again.tick());
+  assert.equal(again.typed(), GREETING + ' ' + INTRO);
+  noPixel(again);
 });

@@ -92,19 +92,34 @@
       + (saved === false ? ' Your browser could not save this choice; it applies to this page only.' : '');
   }
 
-  // Static text typed on the client: instant, no model call. Reduced motion shows it whole.
+  // Static text typed on the client: no model call. Allen's native cadence is one letter per
+  // 35 ms. With data-letters="true" on #allen-intro-typed each letter is its own
+  // span.allen-intro-letter, so the presence CSS can fade, raise and recolour it as it arrives.
+  // Reduced motion shows the whole text at once as plain text.
+  var letterMs = 35;
   function type() {
-    if (!typed) return;
     var head = typed.firstChild;
     var tail = typed.lastChild;
     var whole = greeting + ' ' + message;
+    var letters = !still && typed.dataset.letters === 'true';
     var shown = still ? whole.length : 0;
+    head.textContent = '';
+    tail.textContent = '';
     function paint() {
-      head.textContent = whole.slice(0, Math.min(shown, greeting.length));
-      tail.textContent = whole.slice(greeting.length, shown);
+      if (letters) {
+        if (shown > 0) {
+          var letter = document.createElement('span');
+          letter.className = 'allen-intro-letter';
+          letter.textContent = whole.charAt(shown - 1);
+          (shown <= greeting.length ? head : tail).appendChild(letter);
+        }
+      } else {
+        head.textContent = whole.slice(0, Math.min(shown, greeting.length));
+        tail.textContent = whole.slice(greeting.length, shown);
+      }
       if (shown >= whole.length) { timer = null; return; }
       shown += 1;
-      timer = setTimeout(paint, 12);
+      timer = setTimeout(paint, letterMs);
     }
     paint();
   }
