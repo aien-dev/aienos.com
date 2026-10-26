@@ -273,7 +273,7 @@ def handle(h):
         return h.refuse(413, "too_long", "Voice clips are limited to %d seconds here." % MAX_SECONDS)
     if isinstance(got, str):
         app.stats.add("transcribe_fail")
-        return h.refuse(422, "audio", "Allen could not hear that clip: %s." % got)
+        return h.refuse(422, "audio", "Aien could not hear that clip: %s." % got)
     text, seconds = got
     app.stats.add("transcribe_ok")
     h.send_json(200, {"text": text, "ms": int((time.monotonic() - t0) * 1000), "seconds": round(seconds, 2),
