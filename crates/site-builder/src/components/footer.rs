@@ -10,7 +10,7 @@ pub const FOOTER_GROUPS: [(&str, &[FooterLink]); 6] = [
         "The Machine",
         &[
             ("The Machine", "/machine/", false),
-            ("Aienux kernel source", "https://github.com/aien-dev/aienux", true),
+            ("aienux kernel source", "https://github.com/aien-dev/aienux", true),
             ("What Omega is", "/omega/", false),
             ("Omega source", "https://github.com/aien-dev/omega", true),
             ("Architecture", "https://github.com/aien-dev/aien-architecture", true),
@@ -67,10 +67,10 @@ const FOOTER_MORE: [FooterLink; 11] = [
     ("Contact", "/contact/", false),
     ("Glossary", "/glossary/", false),
     ("Licensing", "/licensing/", false),
-    ("Privacy & saying hello to Allen", "/privacy/", false),
+    ("Privacy & saying hello to Aien", "/privacy/", false),
     ("GitHub", "https://github.com/aien-dev", true),
     ("Interplane", "https://interplane.io/", true),
-    ("Drake Stapleton", "https://www.drakestapleton.com", true),
+    ("About the engineer", "/engineer/", false),
 ];
 
 fn footer_link(link: &FooterLink) -> Markup {
@@ -141,12 +141,12 @@ pub fn render_footer() -> Markup {
 
                 div class="aien-footer-legal" {
                     div {
-                        "AIEN © 2026. Licensed under "
+                        "Aien © 2026. Licensed under "
                         a href="/licensing/" { "Apache-2.0 WITH LLVM-exception" }
                         "."
                     }
                     p {
-                        "No outside fonts or trackers, unless you introduce yourself to Allen to allow the X pixel. "
+                        "No outside fonts or trackers, unless you introduce yourself to Aien to allow the X pixel. "
                         a href="/privacy/" { "Your privacy and choice" }
                     }
                     div class="aien-footer-mottos" {

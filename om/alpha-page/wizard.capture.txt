@@ -19,9 +19,9 @@
  Sovereign Intelligence alpha   step 3 of 8  plan  written in Omega (.om)
   Here is exactly what changes, all inside your home folder:
 
-  ~/.local/share/aienos/releases/alpha-20261026.1   this release, already unpacked and checked
-  ~/.local/share/aienos/models/qwen3.8-27b-fp8-017b9c7a
-     the model: 30.9 GB in 81 files.
+  ~/.local/share/aienos/releases/alpha-20261026.2   this release, already unpacked and checked
+  ~/.local/share/aienos/models/qwen3.6-35b-a3b-fp8-95a723d0
+     the model: 37.5 GB in 56 files.
   ~/.local/share/aienos/engine.log   the engine's log, when it runs
   ~/.local/bin/aienos, the menu entry and the desktop icon (already there)
 

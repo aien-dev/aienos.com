@@ -17,7 +17,7 @@
   "claim": "CUDA++ is the GPU half of Omega: everything CUDA gives you, plus the motor.",
   "claim_rest": [
     "It runs on the NVIDIA GPUs people already own, with no NVIDIA user-space software: no CUDA toolkit, no nvcc, no PTX, no libcuda, no cuBLAS. It is its own open source project, under the Apache License 2.0 with the LLVM exception, in the repository aien-dev/CUDApp.",
-    "It runs on the NVIDIA GB10 in the DGX Spark today. On 2026-10-21 the 35 billion parameter model AIEN serves on the Spark was running on this code with zero CUDA libraries loaded."
+    "It runs on the NVIDIA GB10 in the DGX Spark today. On 2026-10-21 the 35 billion parameter model Aien serves on the Spark was running on this code with zero CUDA libraries loaded."
   ],
   "purpose_title": "Less computation, out of the big data centers.",
   "purpose": "The goal is not a faster way to rent a data center. It is to need less of one: the same work with fewer bytes moved, fewer operations and fewer joules per answer, so it runs on a machine a person owns (a DGX Spark, a PC with one graphics card, a laptop). Every result is reported as work per answer, against the machine's own ceiling.",
@@ -82,7 +82,7 @@
     {
       "step": "Kernel driver",
       "cuda": "nvidia.ko, nvidia-uvm.ko",
-      "ours": "AIEN's own GB10 driver. Its simulator gates pass; it has not run on the chip yet.",
+      "ours": "Aien's own GB10 driver. Its simulator gates pass; it has not run on the chip yet.",
       "status": "IN PROGRESS",
       "note": "ledger L332",
       "ledger": "L332",
@@ -156,7 +156,7 @@
     },
     {
       "title": "Kernel driver: cudapp swap kernel",
-      "text": "Packaging, switch and rollback that replace nvidia.ko and nvidia-uvm.ko with AIEN's own GB10 driver. L401 builds the packaging; L332 builds the driver, whose simulator gates pass and which has not run on the chip yet.",
+      "text": "Packaging, switch and rollback that replace nvidia.ko and nvidia-uvm.ko with Aien's own GB10 driver. L401 builds the packaging; L332 builds the driver, whose simulator gates pass and which has not run on the chip yet.",
       "status": "IN PROGRESS",
       "ledger": "L401",
       "links": [["L401 on /now/", "/now/#L401"], ["L332 on /now/", "/now/#L332"], ["driver simulator gates receipt", "ax@:ce74e10c13ff3bd0fa22855efd93c65a0633f4ac/evidence/own-gpu-driver/rung1/gates-20261021T2300Z.txt"]],

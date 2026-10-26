@@ -7,12 +7,12 @@
     "ledger": "L386",
     "issue": "issue:593"
   },
-  "claim": "Omega is AIEN's language for all computing, GPU to CPU.",
+  "claim": "Omega is Aien's language for all computing, GPU to CPU.",
   "claim_rest": [
     "You write a program once. Omega's own tools check it and compile it straight to the machine code of the processor that runs it, GPU or CPU. No vendor compiler, toolkit or runtime library is involved anywhere.",
     "On the GPU, that makes Omega the replacement for CUDA. On the CPU, it replaces C and its toolchain. This page says how far each of those has got, and the checks that have to pass before I can claim each one."
   ],
-  "true_today": "Omega runs AIEN's models on the GB10 with no CUDA software: no libcuda, no cuBLAS, no nvcc.",
+  "true_today": "Omega runs Aien's models on the GB10 with no CUDA software: no libcuda, no cuBLAS, no nvcc.",
   "not_true_yet": "Omega replaces CUDA.",
   "parts": [
     {
@@ -277,7 +277,7 @@
     {
       "cuda": "nvidia.ko, nvidia-uvm.ko",
       "job": "Kernel driver",
-      "omega": "not Omega: AIEN's own GB10 driver, L332",
+      "omega": "not Omega: Aien's own GB10 driver, L332",
       "status": "MISSING",
       "note": "",
       "links": [
@@ -301,7 +301,7 @@
   "receipt": {
     "title": "The live 35B server ran with zero CUDA libraries",
     "taken": "2026-10-21T21:50:23Z on the DGX Spark",
-    "what": "The 35B model AIEN serves on the Spark runs on Omega with no NVIDIA user-space software at all. On 2026-10-21 the live server (port 18091, --engine omega) had only libc, libm, libgcc_s and the loader mapped: zero CUDA libraries. It held /dev/nvidia0, /dev/nvidiactl and /dev/nvidia-uvm open, which is the open kernel module and nothing above it.",
+    "what": "The 35B model Aien serves on the Spark runs on Omega with no NVIDIA user-space software at all. On 2026-10-21 the live server (port 18091, --engine omega) had only libc, libm, libgcc_s and the loader mapped: zero CUDA libraries. It held /dev/nvidia0, /dev/nvidiactl and /dev/nvidia-uvm open, which is the open kernel module and nothing above it.",
     "facts": [
       [
         "CUDA libraries mapped",
@@ -363,7 +363,7 @@
     },
     {
       "title": "The kernel driver is still NVIDIA's open module",
-      "text": "Omega reaches the GPU through the physics driver client, which talks to nvidia.ko and nvidia-uvm.ko, version 580.173.02. AIEN's own GB10 driver that replaces them is a separate job, L332.",
+      "text": "Omega reaches the GPU through the physics driver client, which talks to nvidia.ko and nvidia-uvm.ko, version 580.173.02. Aien's own GB10 driver that replaces them is a separate job, L332.",
       "links": [
         [
           "nvrm/nvrm.c",

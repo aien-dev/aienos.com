@@ -61,7 +61,7 @@ pub static HUBS: [Hub; 3] = [
     Hub {
         slug: "experiments",
         title: "Experiments | AienOS",
-        description: "Every experiment on the AIEN research ladder, failures included, rendered from one canonical status source.",
+        description: "Every experiment on the Aien research ladder, failures included, rendered from one canonical status source.",
         required: &[EXPERIMENTS_SLOT, CARDS_MARKUP, STATUS_BUTTON],
         status: StatusSource::Data,
         render: render_experiments_hub,
@@ -69,7 +69,7 @@ pub static HUBS: [Hub; 3] = [
     Hub {
         slug: "evidence",
         title: "Evidence | AienOS",
-        description: "What counts as evidence for AIEN, which source wins when two disagree, and where to inspect the receipts, frozen profiles and status records.",
+        description: "What counts as evidence for Aien, which source wins when two disagree, and where to inspect the receipts, frozen profiles and status records.",
         required: &[EVIDENCE_PHRASE, STATUS_PAGE_LINK, STATUS_JSON_LINK],
         status: StatusSource::Absent,
         render: render_evidence_hub,
@@ -77,7 +77,7 @@ pub static HUBS: [Hub; 3] = [
     Hub {
         slug: "philosophy",
         title: "Philosophy | AienOS",
-        description: "Position papers behind AIEN: the Stapleton Doctrine and the Post-LLM Case. These argue a stance and are not experimental results.",
+        description: "Position papers behind Aien: the Stapleton Doctrine and the Post-LLM Case. These argue a stance and are not experimental results.",
         required: &[PHILOSOPHY_PHRASE],
         status: StatusSource::Absent,
         render: render_philosophy_hub,
@@ -91,7 +91,7 @@ pub fn render_experiments_hub() -> Markup {
             p class="hub-kicker" { "Experiments" }
             h1 class="hub-title" { "Experiments" }
             p class="hub-standfirst" {
-                "Every experiment on the AIEN research ladder, with its scope, its receipt and its outcome, failures included. Everything below is rendered from one data file, so this page cannot drift from the record."
+                "Every experiment on the Aien research ladder, with its scope, its receipt and its outcome, failures included. Everything below is rendered from one data file, so this page cannot drift from the record."
             }
             section class="hub-data" aria-labelledby="experiments-ladder" {
                 h2 id="experiments-ladder" class="hub-h2" { "Where the research stands" }
@@ -203,7 +203,7 @@ pub fn render_philosophy_hub() -> Markup {
         (
             "Intelligence should be owned",
             "/owned/",
-            "Why a language model is a common inheritance, why running one yourself is a right and a responsibility, and what AIEN does about it.",
+            "Why a language model is a common inheritance, why running one yourself is a right and a responsibility, and what Aien does about it.",
             false,
             source_href("crates/site-builder/src/components/owned.rs"),
         ),
@@ -223,9 +223,9 @@ pub fn render_philosophy_hub() -> Markup {
         ),
         (
             "Drake Stapleton on philosophy",
-            "https://www.drakestapleton.com/philosophy",
-            "Longer essays on ownership, sovereignty, and how machines should earn trust, on drakestapleton.com.",
-            true,
+            "/engineer/philosophy/",
+            "Longer essays on ownership, sovereignty, and how machines should earn trust, in About the engineer.",
+            false,
             source_href(THIS_FILE),
         ),
     ];
@@ -434,7 +434,7 @@ mod tests {
         let page = doc("philosophy");
         assert!(page.contains("Position, not evidence"), "required label missing");
         assert!(page.contains("are not experimental results"), "stance sentence missing");
-        for href in ["/research/the-stapleton-doctrine/", "/post-llm-case/", "https://www.drakestapleton.com/philosophy"] {
+        for href in ["/research/the-stapleton-doctrine/", "/post-llm-case/", "/engineer/philosophy/"] {
             assert!(page.contains(&format!("href=\"{href}\"")), "philosophy card {href} missing");
         }
     }
