@@ -1,4 +1,4 @@
-use maud::{html, Markup, PreEscaped, DOCTYPE};
+use maud::{html, Markup, DOCTYPE};
 
 pub fn render_base_layout(content: Markup) -> Markup {
     render_page_layout(
@@ -10,11 +10,6 @@ pub fn render_base_layout(content: Markup) -> Markup {
             // Zero-dependency terminal micro-script
             script defer src="/js/terminal.js" {}
             script defer src="/js/turing-game.js" {}
-            (PreEscaped(r#"<script>
-                document.addEventListener('DOMContentLoaded', () => {
-                    console.log('[AienOS] Pure Rust Maud engine online. Zero hydration overhead.');
-                });
-            </script>"#))
         },
         content,
     )

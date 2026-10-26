@@ -402,7 +402,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
         seo::head_404(),
         seo::render_404(),
     );
-    fs::write(dist.join("404.html"), components::allen_intro::enrich(components::support::enrich(not_found.into_string()))).expect("Failed to write 404.html");
+    fs::write(dist.join("404.html"), components::csp::enrich(components::allen_intro::enrich(components::support::enrich(not_found.into_string())))).expect("Failed to write 404.html");
 
     // Every page written above (generated or copied from public/) gets the same
     // head: www canonical, cards, hreflang, feeds, JSON-LD. Then the machine
@@ -651,6 +651,8 @@ fn verify_site(dist: &Path) {
     components::names::verify_canonical_names(dist);
     // Every page shows Follow me on X in its header and the contact line in its footer.
     components::contact::verify(dist);
+    // Every page carries its Content-Security-Policy and needs no inline script.
+    components::csp::verify(dist);
 
     println!("------------------------------------------------------------");
     println!("  Verified index.html ({} bytes)", content.len());
