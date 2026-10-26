@@ -35,21 +35,21 @@
           "purpose": "Seeded Omega edge rendering of validated canonical Hive JSON with fail-closed escaping and deter"
         },
         {
-          "digest": "8717981052fdf4e0b9dde2febd12abf5505c3c77debd9034ba890d653413db82",
+          "digest": "8f8277e3291c7f4592aafaa170f8e58ba0cd59ee8628713af4503f9436b12c45",
           "last_commit": "21dc7ea",
           "name": "public",
           "purpose": "Static public website assets"
         }
       ],
-      "children_root": "sha256:2508431c429b62989336e9750981f0ef40df12169da9ffb5e501de446f963f29",
-      "compiled_at": "2026-10-26T14:24:20Z",
+      "children_root": "sha256:6ccd23bd797df66e0f79da8357a7d626a2bef49c00ac352f4d864c5f0a205da4",
+      "compiled_at": "2026-10-26T15:00:52Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:5444c4e0c55efd7125ad59c7b79a6a0238676d8f129a428791bb638dcb4cd229",
+      "digest": "sha256:55c2dfd8ceb6079663138415ee8603e16e04f8e5ac60ad7a06449c54bbc207be",
       "evidence_files": 1,
       "evidence_root": "sha256:1f6f4b14373405a3b91d0e7aa6ba11d0dd332d4543ad01421a5451cca3e7de0c",
       "files": 224,
-      "generated_at_commit": "9ad358cd14f3a4229c3d73b6097850593b40637f",
-      "source_tree": "sha256:38685cb3bc6afec68a886c31f56054bf35802e108030650922075c0f5da04aa4"
+      "generated_at_commit": "665c73f765b49484779ee3202ea696cd60cbaf2f",
+      "source_tree": "sha256:878a5f6d60afb914e51dbd40987a945f01057f92247cb86d39ef01c3ddbb74e5"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",
