@@ -1,0 +1,54 @@
+# receipt assembled 2026-10-26T15:53:18Z on Linux 7.0.0-1019-nvidia aarch64 from the test_parity.py output saved at /tmp/acx-parity.log (run minutes earlier, same binary)
+# omega-mv 3364a1dfd0ca50c1b82bf19ba34932d8bc10a7a9, omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d (seed rebuild reproduced it)
+# allen_contacts_ingest.om sha256 4e51a5cc30b068c4a6a9170b2ae548571ebe56cf4144a881cd91fbbd3a46854b, binary sha256 d1fbeb4f0db80ab09e5c871fd2bfef716189b3d312b33ee1760476db87f8780b
+# allen_contacts_ingest.py sha256 897e2b9fc58a1ba1e0806fba38e2fe2b6e87feeb9cfeb66a981a19da24bcf16c, Python 3.12.3
+phase 1: 68 drops
+  py rc=0 allen-contacts-ingest: introduce_already_stored=1 introduce_stored=10 q_duplicate_id=1 q_invalid=50 q_name=2 q_oversize=2 quarantined=55 temp_pending=1 temp_stale_removed=1
+  om rc=0 allen-contacts-ingest: introduce_already_stored=1 introduce_stored=10 q_duplicate_id=1 q_invalid=50 q_name=2 q_oversize=2 quarantined=55 temp_pending=1 temp_stale_removed=1
+  contacts.jsonl  SAME  py 4162a89a1c139d2956b59b2b9d1d1928599e221bbfd2a64068e49356b4793bc2 (8414 bytes)
+  audit.log       SAME  py absent
+  quarantine      SAME  py 55 files, sha256 of sorted list cfc636eb6593fda39da7fac37de74efbc87f442f7e092894409f67d96a18f636
+  drop_left       SAME  py ['.tmp-0000000000000001']
+  lock_left       SAME  py False
+  phase 1 IDENTICAL
+phase 2: 6 drops
+  py rc=0 allen-contacts-ingest: forget_matched=2 forget_unmatched=3 q_invalid=1 quarantined=1 temp_pending=1
+  om rc=0 allen-contacts-ingest: forget_matched=2 forget_unmatched=3 q_invalid=1 quarantined=1 temp_pending=1
+  contacts.jsonl  SAME  py a66f606b63d9d0a5365f293cd3e267047ce6605bbd463104688274eb2755cc5a (3367 bytes)
+  audit.log       SAME  py 90766e2848968895e587739368f7942a918fb682febd4dc2f2393d1f2343fccc (76 bytes)
+  quarantine      SAME  py 56 files, sha256 of sorted list f6a049e35aab5618122a5c5169bd3e6c4432d894ad63b6a0006210f35e720009
+  drop_left       SAME  py ['.tmp-0000000000000001']
+  lock_left       SAME  py False
+  phase 2 IDENTICAL
+phase 3: 5 drops
+  py rc=0 allen-contacts-ingest: forget_visitor_matched=1 forget_visitor_unmatched=1 q_invalid=3 quarantined=3 temp_pending=1
+  om rc=0 allen-contacts-ingest: forget_visitor_matched=1 forget_visitor_unmatched=1 q_invalid=3 quarantined=3 temp_pending=1
+  contacts.jsonl  SAME  py 5dbfa467b95d36375d850d264e04912484d001c20ee25e45f03f5e4e8c1ee3a2 (2481 bytes)
+  audit.log       SAME  py 3fe12e106467690e2af8451bca4cdba919e5f54c56a682f720e13e995d0b0e27 (122 bytes)
+  quarantine      SAME  py 59 files, sha256 of sorted list 163983ef31f9da061eaa5ba958a9c290fb12aa02faf906699866c1640e6a55ab
+  drop_left       SAME  py ['.tmp-0000000000000001']
+  lock_left       SAME  py False
+  phase 3 IDENTICAL
+  vid check py: VA=0 VB=1 empty=5 OK
+  vid check om: VA=0 VB=1 empty=5 OK
+phase 4: 600 drops
+  py rc=0 allen-contacts-ingest: introduce_stored=5 q_duplicate_id=3 q_invalid=592 quarantined=595 temp_pending=1
+  om rc=0 allen-contacts-ingest: introduce_stored=5 q_duplicate_id=3 q_invalid=592 quarantined=595 temp_pending=1
+  contacts.jsonl  SAME  py 40303fdd3887dc99e4456a4e7822c29f74c8f604b4b3c2e8ab1c12c7bd1443dc (4576 bytes)
+  audit.log       SAME  py 3fe12e106467690e2af8451bca4cdba919e5f54c56a682f720e13e995d0b0e27 (122 bytes)
+  quarantine      SAME  py 654 files, sha256 of sorted list e20be8321d20f6dd051d1225a7c2efa3d203778bbcc06b8e974836587515feb9
+  drop_left       SAME  py ['.tmp-0000000000000001']
+  lock_left       SAME  py False
+  phase 4 IDENTICAL
+phase 5: 8 drops
+  py rc=0 allen-contacts-ingest: forget_matched=4 forget_unmatched=4 temp_pending=1
+  om rc=0 allen-contacts-ingest: forget_matched=4 forget_unmatched=4 temp_pending=1
+  contacts.jsonl  SAME  py 63d3f10be5d6d7719b2b64f61510c0b54eb8249a5287512d7b1e2772a31df77d (2874 bytes)
+  audit.log       SAME  py b32c67d497c7ed9bd3eeb1428577fb85f944836a145f66b7fb91d573926744eb (274 bytes)
+  quarantine      SAME  py 654 files, sha256 of sorted list e20be8321d20f6dd051d1225a7c2efa3d203778bbcc06b8e974836587515feb9
+  drop_left       SAME  py ['.tmp-0000000000000001']
+  lock_left       SAME  py False
+  phase 5 IDENTICAL
+edge py: held_lock_waits_then_refuses=True stale_lock_broken=True unsafe_drop_refused=True usage_64=True
+edge om: held_lock_waits_then_refuses=True stale_lock_broken=True unsafe_drop_refused=True usage_64=True
+PARITY PASS
