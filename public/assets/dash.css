@@ -1,6 +1,6 @@
 /* /dash/: one compact screen. Palette tokens only; no motion. */
 
-.dash { padding-top: 28px; padding-bottom: 40px; }
+.dash { padding-top: 10px; padding-bottom: 16px; }
 
 .dash-top {
   display: flex;
@@ -8,7 +8,7 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 4px 16px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 .dash-title { font-size: 26px; line-height: 1.1; margin: 0; color: var(--text-primary); }
 .dash-meta { margin: 0; font-size: 12px; color: var(--text-muted); }
@@ -22,7 +22,7 @@
 }
 .dash-none { margin: 4px 0; font-size: 13px; color: var(--text-muted); }
 
-.dash-sec { margin-top: 0; }
+.dash-pairs + .dash-pairs { margin-top: 6px; }
 .dash-h {
   margin: 0 0 6px;
   font-size: 12px;
@@ -37,11 +37,11 @@
 /* Quota cards, Spark and Work flow into balanced columns, so short cards
    stack under each other instead of stretching to the tallest one. */
 .dash-flow { columns: 3 300px; column-gap: 10px; }
-.dash-flow > .dash-card { break-inside: avoid; margin-bottom: 10px; }
+.dash-flow > .dash-card { break-inside: avoid; margin-bottom: 8px; }
 
 .dash-card {
   position: relative;
-  padding: 10px 12px 8px;
+  padding: 8px 12px 6px;
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
   background: var(--bg-card);
@@ -49,7 +49,7 @@
 .dash-card:hover { background: var(--bg-card-hover); }
 .dash-card .box-link {
   display: block;
-  margin-top: 6px;
+  margin-top: 3px;
   font-size: 11px;
   color: var(--text-muted);
 }
@@ -92,11 +92,6 @@
 .dash-kv dt { color: var(--text-muted); }
 .dash-kv dd { margin: 0; color: var(--text-primary); }
 
-.dash-cols {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 6px 18px;
-}
 .dash-pairs-h { margin: 0 0 2px; font-size: 12px; color: var(--text-secondary); }
 .dash-pairs dl {
   display: grid;
