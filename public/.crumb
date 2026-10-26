@@ -7,19 +7,19 @@
     "generated": {
       "children": [
         {
-          "digest": "c669b37544e1aedf656fcd1901c149bdc7ad5b8339ee10307c1d253e70be546d",
-          "last_commit": "",
+          "digest": "504ccf71754f0606bcfb6fe5f70abbf7e14f937c4d0a60c93b064fde124ae7e4",
+          "last_commit": "da2a360",
           "name": "alpha",
           "purpose": "Pinned alpha wizard source and unmodified terminal capture assets"
         },
         {
-          "digest": "e2b3958a078c61bef10a3b3cdb1e6835a89954f65f66bdf53024e077c6441660",
-          "last_commit": "5a2f214",
+          "digest": "68ce94a052d3d2f8e55cb2b5141a57068ec1c2e65faea063441b4ec7c154c248",
+          "last_commit": "99b3b4b",
           "name": "assets",
           "purpose": "Website styles including the project dashboard"
         },
         {
-          "digest": "7e2022838adbfbf78c4dbba8d21b4ac510f14c4fe01632893ca81571e9f8c1f0",
+          "digest": "27c9b2146faf9a65afb12e27fc4d08c4ebc4ae1887c673cbcf9a996bd4312d7c",
           "last_commit": "d210665",
           "name": "data",
           "purpose": "Published generated project measurements with pinned sources"
@@ -31,33 +31,33 @@
           "purpose": "Browser interactions using public data only"
         },
         {
-          "digest": "044489d97442ff5bac055d93e428d4fc15e4281aa1b787d8a386080a99d4d703",
-          "last_commit": "fb167a8",
+          "digest": "df8f8844ff083b0697bccefee832eaac8184d2c2ec2ac9117573c3b12cd1cc82",
+          "last_commit": "983b3b4",
           "name": "licensing",
           "purpose": "Public static research or licensing pages using the shared website navigation"
         },
         {
-          "digest": "e6d338018e90a5b9a03fd95bd01874da0895119f75c7a91693f31c8f68d8e13f",
-          "last_commit": "fb167a8",
+          "digest": "457773f02367ea0dc9f8a3eceb90f29b53b4219e2d4c1c4cd85c14abbcc2c497",
+          "last_commit": "983b3b4",
           "name": "post-llm-case",
           "purpose": "Public static research or licensing pages using the shared website navigation"
         },
         {
-          "digest": "bf05955859d774a271cbe959bb7b844a9cfa334a9d4c4a85c708a5e76ae5db61",
-          "last_commit": "fb167a8",
+          "digest": "8bc939e2afeab81799eeb7f73520c8963b649c0d0cb588b39f6f85aadc02bf77",
+          "last_commit": "99b3b4b",
           "name": "research",
           "purpose": "Public static research or licensing pages using the shared website navigation"
         }
       ],
-      "children_root": "sha256:6cfe99faca725ed478bc82bee727c078bf575f2200ed53306afc830cd7291a21",
-      "compiled_at": "2026-10-26T16:13:42Z",
+      "children_root": "sha256:b4ebdf580a2accd11e7497983805ad466d05011c2eba929753feaf7e80c18839",
+      "compiled_at": "2026-10-26T16:35:09Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:fc8376e4e825843d187db1f3f73a9bc748c4df3906c7182e432e4583496b8718",
+      "digest": "sha256:7ab3931a101343f8ecab0d1f58960ac8ca0d67905fb141b5aa60e06b6cebe215",
       "evidence_files": 1,
-      "evidence_root": "sha256:1f6f4b14373405a3b91d0e7aa6ba11d0dd332d4543ad01421a5451cca3e7de0c",
+      "evidence_root": "sha256:d01c236aec2c762a7b68996e7968fb691a74f6b0b03e8f1987395db73f496946",
       "files": 127,
-      "generated_at_commit": "5a2f2141a5d96aa673f127971caa6bdfe9fca001",
-      "source_tree": "sha256:630a8b32636cdeb763ed56694fe3d235fef977d88520e7a22db3c90471887f80"
+      "generated_at_commit": "1858269c2036a010c5ec43bfeb3d33ee5040de7e",
+      "source_tree": "sha256:91666bb797a235ea543c88ee769e01e77ef637130b1b30c7ec834a8ac37407e8"
     }
   },
   "invariants": [
