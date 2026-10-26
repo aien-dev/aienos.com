@@ -2441,7 +2441,7 @@ global bsn ulong 1
 global pidb uchar 32
 global ppt uchar 4096
 global pptn ulong 1
-text s_title " AienOS alpha "
+text s_title " Sovereign Intelligence alpha "
 text s_step "  step "
 text s_of " of 8  "
 text s_n0 "welcome"
@@ -4155,7 +4155,7 @@ note small commands beside it. Build: concatenate sha256.om lib.om hole.om docto
 note engine.om main.om, in that order, and compile the result with the pinned omc (see build.sh).
 
 text v_tag "alpha-20261026.1"
-text a_l1 "AienOS alpha-20261026.1, the installer and the aienos command"
+text a_l1 "Sovereign Intelligence alpha-20261026.1: the installer and the aienos command"
 text a_l2 "written in Omega (.om), compiled by omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d"
 text a_l3 "  (aien-dev/omega-mv 3364a1dfd0ca50c1b82bf19ba34932d8bc10a7a9, seed/out/omc)"
 text a_l4 "engine: aien-serve-http, aien-dev/aien-sovereign-core-mv tag alpha/20261025.1 = cf239078d05a47d84353c1508a08663273f00c3e"
@@ -4175,8 +4175,8 @@ text s_l2 "/share/aienos/wizard/"
 text s_l3 "  sha256.om lib.om hole.om doctor.om net.om steps.om engine.om main.om"
 text s_l4 "/share/aienos/aienos.om"
 text s_l5 "  the same files concatenated in build order: one unit, one compile"
-text s_l6 "Also online: https://www.aienos.com/alpha/ and https://github.com/aien-dev/AienOS-nv"
-text w_l1 "Welcome. I am Drake, and this is the AienOS alpha."
+text s_l6 "Also online: https://www.aienos.com/alpha/ and https://github.com/aien-dev/sovereign-intelligence"
+text w_l1 "Welcome. I am Drake, and this is Sovereign Intelligence, the AienOS alpha."
 text w_l2 "This installer is written in Omega, my own language. It sets up a local model on"
 text w_l3 "your DGX Spark that runs on my own engine: no CUDA toolkit, no libcuda, no cuBLAS."
 text w_l4 "NVIDIA's kernel driver stays. Everything else NVIDIA ships stays installed, unused."

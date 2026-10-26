@@ -21,7 +21,7 @@ pub fn render_start_page() -> Markup {
                     p class="narr-kicker" { "New to AienOS" }
                     h1 class="narr-title" { "Start here" }
                     p class="narr-standfirst" {
-                        "AienOS is an experimental machine in alpha testing for turning search into verified understanding. This page is the shortest route from what it is to what exists today, how to check the evidence, and how to take part."
+                        "Sovereign Intelligence, built on AienOS, is in alpha testing. AienOS is its experimental OS layer. This page is the shortest route from what exists today to its evidence and how to take part."
                     }
                     p class="narr-standfirst" {
                         "Here to learn to build with AI? "
@@ -57,7 +57,7 @@ pub fn render_start_page() -> Markup {
                         "."
                     }
                     p {
-                        "Release state: alpha testing for Linux arm64 and NVIDIA GB10. The installer and its evidence boundaries are at "
+                        "Sovereign Intelligence release state: alpha testing for Linux arm64 and NVIDIA GB10. The installer and its evidence boundaries are at "
                         a href="/alpha/" { "/alpha/" }
                         ". The canonical layer record remains "
                         a href="/status.json" { "status.json" }

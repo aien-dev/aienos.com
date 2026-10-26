@@ -23,13 +23,13 @@ pub fn render_glossary() -> Markup {
                     "The terms this site uses in its own sense. Each definition points at the page where the term does real work, so a reader can check the usage rather than trust the summary."
                 }
                 p style="color: var(--text-muted); font-size: 14px; line-height: 1.6;" {
-                    "Status: experimental, alpha testing. Definitions change when the evidence changes."
+                    "Sovereign Intelligence, built on AienOS, is in alpha testing. Each component keeps its own evidence level. Definitions change when the evidence changes."
                 }
 
                 h2 style="font-size: 24px; font-weight: 700; color: var(--text-primary); margin: 44px 0 4px 0;" { "The system" }
                 dl style="margin: 0;" {
                     (term("AienOS", html! {
-                        "The experimental, open source machine this site documents. A sovereign substrate that owns the hardware and keeps a persistent intelligence alive and continuous. Alpha testing. See "
+                        "The experimental, open source OS layer this site documents. AienOS keeps its own identity within Sovereign Intelligence, the front door and alpha download. See "
                         a href="/machine/" { "The Machine" } "."
                     }))
                     (term("AIEN", html! {
