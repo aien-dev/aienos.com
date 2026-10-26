@@ -308,7 +308,7 @@ pub fn parse_utc(s: &str) -> Option<i64> {
     Some(days * 86_400 + hh * 3_600 + mm * 60 + ss)
 }
 
-fn fmt_utc(secs: i64) -> String {
+pub fn fmt_utc(secs: i64) -> String {
     // Civil from days, the inverse of the above.
     let days = secs.div_euclid(86_400);
     let rem = secs.rem_euclid(86_400);

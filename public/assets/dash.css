@@ -1,0 +1,114 @@
+/* /dash/: one compact screen. Palette tokens only; no motion. */
+
+.dash { padding-top: 28px; padding-bottom: 40px; }
+
+.dash-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+  margin-bottom: 14px;
+}
+.dash-title { font-size: 26px; line-height: 1.1; margin: 0; color: var(--text-primary); }
+.dash-meta { margin: 0; font-size: 12px; color: var(--text-muted); }
+.dash-warn {
+  margin: 0 0 12px;
+  padding: 6px 10px;
+  border-left: 3px solid var(--accent-amber);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+.dash-none { margin: 4px 0; font-size: 13px; color: var(--text-muted); }
+
+.dash-sec { margin-top: 0; }
+.dash-h {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.dash-h a { color: inherit; position: relative; z-index: 1; }
+.dash-h-note { font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--text-muted); }
+
+/* Quota cards, Spark and Work flow into balanced columns, so short cards
+   stack under each other instead of stretching to the tallest one. */
+.dash-flow { columns: 3 300px; column-gap: 10px; }
+.dash-flow > .dash-card { break-inside: avoid; margin-bottom: 10px; }
+
+.dash-card {
+  position: relative;
+  padding: 10px 12px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--bg-card);
+}
+.dash-card:hover { background: var(--bg-card-hover); }
+.dash-card .box-link {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.dash-acct + .dash-acct { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border-subtle); }
+.dash-acct-h { font-size: 12px; color: var(--text-secondary); margin-bottom: 2px; }
+.dash-plan {
+  margin-left: 6px;
+  padding: 0 5px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.dash-limit {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 64px 34px 84px;
+  align-items: center;
+  gap: 8px;
+  min-height: 20px;
+  font-size: 12.5px;
+  color: var(--text-primary);
+}
+.dash-limit-k { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dash-meter { width: 100%; height: 8px; }
+.dash-limit-v { text-align: right; font-size: 12px; }
+.dash-limit-r { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+.dash-out .dash-limit-k,
+.dash-out .dash-limit-v { color: var(--text-muted); }
+.dash-out .dash-limit-r { color: var(--accent-amber); }
+
+.dash-kv {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 2px 14px;
+  margin: 0;
+  font-size: 13px;
+}
+.dash-kv dt { color: var(--text-muted); }
+.dash-kv dd { margin: 0; color: var(--text-primary); }
+
+.dash-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 6px 18px;
+}
+.dash-pairs-h { margin: 0 0 2px; font-size: 12px; color: var(--text-secondary); }
+.dash-pairs dl {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 1px 10px;
+  margin: 0;
+  font-size: 12px;
+}
+.dash-pairs dt { color: var(--text-muted); }
+.dash-pairs dd { margin: 0; color: var(--text-primary); overflow-wrap: anywhere; }
+
+@media (max-width: 420px) {
+  .dash-limit { grid-template-columns: minmax(0, 1fr) 54px 32px; }
+  .dash-limit-r { grid-column: 1 / -1; margin-top: -2px; }
+}

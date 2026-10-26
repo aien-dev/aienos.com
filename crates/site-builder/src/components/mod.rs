@@ -27,3 +27,4 @@ pub mod owned;
 pub mod agents;
 pub mod hive;
 pub mod learn;
+pub mod dash;

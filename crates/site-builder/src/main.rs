@@ -204,6 +204,19 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     fs::write(dist.join("now/index.html"), now_page.into_string()).expect("Failed to write now/index.html");
     fs::write(dist.join("now.json"), components::now::to_json(&now)).expect("Failed to write now.json");
     println!("  [PAGE] Emitted /now/ ({} ledger lines) and /now.json", now.items.len());
+    // /dash/: the one-screen dashboard, from accounts.tsv and routing.tsv on data/now.
+    let dash = components::dash::load();
+    let dash_page = render_page_layout(
+        components::dash::TITLE,
+        components::dash::DESCRIPTION,
+        components::dash::URL,
+        "website",
+        html! { link rel="stylesheet" href="/assets/dash.css"; },
+        components::dash::render_dash_page(&dash, &now),
+    );
+    fs::create_dir_all(dist.join("dash")).expect("Failed to create dash dir");
+    fs::write(dist.join("dash/index.html"), dash_page.into_string()).expect("Failed to write dash/index.html");
+    println!("  [PAGE] Emitted /dash/ ({} quota accounts)", dash.quota.accounts.len());
     let hive_page = render_page_layout(
         components::hive::TITLE,
         components::hive::DESCRIPTION,
@@ -586,6 +599,7 @@ const GENERATED_PAGES: &[(&str, usize)] = &[
     ("owned/index.html", 7),
     ("research/status/index.html", 40),
     ("now/index.html", 0),
+    ("dash/index.html", 0),
     ("hive/index.html", 0),
     ("learn/index.html", 0),
     ("omega/index.html", 30),

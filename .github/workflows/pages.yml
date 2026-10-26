@@ -43,6 +43,14 @@ jobs:
             else
               rm -f public/data/claude-usage.tsv
             fi
+            # /dash/ readings are optional; a missing file makes the page say so.
+            for f in accounts.tsv routing.tsv; do
+              if git cat-file -e "FETCH_HEAD:$f" 2>/dev/null; then
+                git show "FETCH_HEAD:$f" > "public/data/$f"
+              else
+                rm -f "public/data/$f"
+              fi
+            done
             echo "ledger: $(wc -l < public/data/now.tsv) lines"
           else
             echo "no data/now branch yet; /now/ renders empty"
