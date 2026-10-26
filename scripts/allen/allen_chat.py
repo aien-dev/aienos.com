@@ -1672,7 +1672,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.send_json(422, {"error": "invalid", "message": str(e)})
         iid = allen_spool.item_id(item)
         st = allen_spool.read_status(app.args.spool_status, iid)
-        if st is not None or os.path.exists(os.path.join(app.args.spool_in, iid + ".json")):
+        p = allen_spool.spool_file(app.args.spool_in, iid)
+        if st is not None or (p is not None and os.path.exists(p)):
             app.stats.add("submit_duplicate")
             st = st or {"id": iid, "state": "queued", "url": None, "reason": None}
             return self.send_json(200, dict(st, duplicate=True, status="/allen/api/status/" + iid))
@@ -1845,7 +1846,8 @@ class Handler(BaseHTTPRequestHandler):
         if not app.args.spool_status or not allen_spool.ID.match(iid):
             return self.send_json(404, {"error": "not_found"})
         st = allen_spool.read_status(app.args.spool_status, iid)
-        if st is None and os.path.exists(os.path.join(app.args.spool_in, iid + ".json")):
+        p = allen_spool.spool_file(app.args.spool_in, iid)
+        if st is None and p is not None and os.path.exists(p):
             st = {"id": iid, "state": "queued", "url": None, "reason": None}
         if st is None:
             return self.send_json(404, {"error": "not_found"})
