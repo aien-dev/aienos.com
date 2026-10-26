@@ -2,6 +2,7 @@ mod collector;
 mod components;
 mod facts;
 mod ledger_public;
+mod oracle;
 mod layouts;
 mod seo;
 
@@ -239,6 +240,19 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     );
     fs::create_dir_all(dist.join("hive")).expect("Create Hive directory");
     fs::write(dist.join("hive/index.html"), hive_page.into_string()).expect("Write Hive page");
+    let allen_page = render_page_layout(
+        components::allen::TITLE,
+        components::allen::DESCRIPTION,
+        components::allen::URL,
+        "website",
+        html! {
+            link rel="stylesheet" href="/assets/allen.css";
+            script defer src="/js/allen.js" {}
+        },
+        components::allen::render_allen_page(),
+    );
+    fs::create_dir_all(dist.join("aien")).expect("Create Aien directory");
+    fs::write(dist.join("aien/index.html"), allen_page.into_string()).expect("Write Aien page");
     let alpha_page = render_page_layout(
         components::alpha::TITLE,
         components::alpha::DESCRIPTION,
@@ -420,22 +434,34 @@ fn verify_site(dist: &Path) {
         ledger_public::check_public(&ledger).expect("refusing unprojected published ledger");
     }
     assert!(index_file.exists(), "Required index.html missing in {}", dist.display());
+    // The registry both ways, every head, translation pairs, the six
+    // destinations on every page, the root's Allen door and classic links
+    // (oracle::check_root), every script and stylesheet resolving inside
+    // dist, and every published data file: gates that hold on any tree.
+    oracle::verify(dist);
 
-    let content = fs::read_to_string(&index_file).expect("Failed to read index.html");
+    // The root is Allen's native front door (the approved redesign); the
+    // former front page lives whole at /classic/ and is checked below.
+    let root = fs::read_to_string(&index_file).expect("Failed to read index.html");
+    assert!(!root.contains("fonts.googleapis.com"), "Outside font loaded in index.html");
+    assert!(!root.contains('\u{2014}') && !root.contains('\u{2013}'), "Forbidden dash in index.html");
+
+    let classic_file = dist.join("classic/index.html");
+    let content = fs::read_to_string(&classic_file).expect("Failed to read classic/index.html, the former front page");
 
     let zh_progress = fs::read_to_string(dist.join("zh-CN/progress/index.html"))
         .expect("Failed to read the zh-CN progress page");
     assert!(!zh_progress.contains("id=\"ag-data\""), "zh-CN progress page must not inline the dataset");
 
-    // Verify DOM structure
-    assert!(content.contains("<div id=\"root\""), "Missing #root element in index.html");
-    assert!(content.contains("<main id=\"main-content\""), "Missing main container in index.html");
-    assert!(content.contains("id=\"terminal-output\""), "Missing interactive terminal output in index.html");
-    assert!(content.contains("id=\"follow\""), "Missing follow section in index.html");
-    assert!(content.contains("href=\"/now/\""), "Missing the Now link in the homepage follow section");
-    assert!(content.contains("id=\"receipt\""), "Missing verification receipt in index.html");
-    assert!(content.contains("id=\"live\""), "Missing live components block in index.html");
-    assert!(!content.contains("fonts.googleapis.com"), "Outside font loaded in index.html");
+    // The former front page, now /classic/: every invariant it carried.
+    assert!(content.contains("<div id=\"root\""), "Missing #root element in classic/index.html");
+    assert!(content.contains("<main id=\"main-content\""), "Missing main container in classic/index.html");
+    assert!(content.contains("id=\"terminal-output\""), "Missing interactive terminal output in classic/index.html");
+    assert!(content.contains("id=\"follow\""), "Missing follow section in classic/index.html");
+    assert!(content.contains("href=\"/now/\""), "Missing the Now link in the classic follow section");
+    assert!(content.contains("id=\"receipt\""), "Missing verification receipt in classic/index.html");
+    assert!(content.contains("id=\"live\""), "Missing live components block in classic/index.html");
+    assert!(!content.contains("fonts.googleapis.com"), "Outside font loaded in classic/index.html");
     assert!(dist.join("facts.json").exists(), "Missing facts.json");
 
     // Homepage top (NARR-HOME): literal phrases, so a wording change in the
@@ -447,23 +473,23 @@ fn verify_site(dist: &Path) {
         "What did it cost to learn?",
         "Did what it learned make future discovery easier?",
     ] {
-        assert!(content.contains(phrase), "Missing homepage phrase in index.html: {phrase}");
+        assert!(content.contains(phrase), "Missing former homepage phrase in classic/index.html: {phrase}");
     }
-    assert!(content.contains("<ol class=\"loop-stages\""), "Missing loop stage list in index.html");
+    assert!(content.contains("<ol class=\"loop-stages\""), "Missing loop stage list in classic/index.html");
 
     // The machines and the speeds (components::machines): five machines,
     // the 27B on Omega first, every number beside its receipt, and no
-    // comparison with anyone else's system anywhere on the homepage.
-    assert!(content.contains("id=\"machines\""), "Missing machines section in index.html");
-    assert!(content.contains("id=\"speed\""), "Missing speed section in index.html");
+    // comparison with anyone else's system on the classic page or the root.
+    assert!(content.contains("id=\"machines\""), "Missing machines section in classic/index.html");
+    assert!(content.contains("id=\"speed\""), "Missing speed section in classic/index.html");
     for id in ["machine-spark", "machine-imac", "machine-pi5", "machine-qemu", "machine-rig", "speed-27b-live"] {
-        assert!(content.contains(&format!("id=\"{id}\"")), "Missing {id} in index.html");
+        assert!(content.contains(&format!("id=\"{id}\"")), "Missing {id} in classic/index.html");
     }
-    assert!(content.contains("7.63 tok/s"), "Missing the live 27B speed in index.html");
-    {
-        let lower = content.to_ascii_lowercase();
+    assert!(content.contains("7.63 tok/s"), "Missing the live 27B speed in classic/index.html");
+    for (name, page) in [("classic/index.html", &content), ("index.html", &root)] {
+        let lower = page.to_ascii_lowercase();
         for w in components::machines::FORBIDDEN {
-            assert!(!lower.contains(w), "Comparison with another system on the homepage: {w:?}");
+            assert!(!lower.contains(w), "Comparison with another system in {name}: {w:?}");
         }
     }
     assert!(dist.join("assets/machines.css").exists(), "Missing assets/machines.css");
@@ -491,8 +517,8 @@ fn verify_site(dist: &Path) {
     }
 
     // Verify Unslop standard
-    assert!(!content.contains('\u{2014}'), "Forbidden em dash detected in index.html");
-    assert!(!content.contains('\u{2013}'), "Forbidden en dash detected in index.html");
+    assert!(!content.contains('\u{2014}'), "Forbidden em dash detected in classic/index.html");
+    assert!(!content.contains('\u{2013}'), "Forbidden en dash detected in classic/index.html");
 
     assert!(dist.join("progress/index.html").exists(), "Missing progress page");
     assert!(dist.join("data/project-progress.json").exists(), "Missing progress dataset");
@@ -536,7 +562,7 @@ fn verify_site(dist: &Path) {
         ] {
             assert!(o.contains(phrase) || o.contains(&phrase.replace("&#39;", "'")), "Missing on /omega/: {phrase}");
         }
-        assert!(content.contains("href=\"/omega/\""), "The front page must link /omega/ where it names Omega");
+        assert!(content.contains("href=\"/omega/\""), "The classic front page must link /omega/ where it names Omega");
     }
     // /cudaplusplus/ (components::cudaplusplus): CUDA++ with the plus
     // signs, its four sections, linked from the nav, the front page and /omega/.
@@ -557,7 +583,7 @@ fn verify_site(dist: &Path) {
         ] {
             assert!(c.contains(phrase), "Missing on /cudaplusplus/: {phrase}");
         }
-        assert!(content.contains("href=\"/cudaplusplus/\""), "The front page must link /cudaplusplus/");
+        assert!(content.contains("href=\"/cudaplusplus/\""), "The classic front page must link /cudaplusplus/");
         let o = fs::read_to_string(&omega_page).expect("read omega page");
         assert!(o.contains("href=\"/cudaplusplus/\""), "/omega/ must link /cudaplusplus/");
     }
@@ -653,7 +679,7 @@ fn verify_site(dist: &Path) {
     components::contact::verify(dist);
 
     println!("------------------------------------------------------------");
-    println!("  Verified index.html ({} bytes)", content.len());
+    println!("  Verified index.html ({} bytes) and classic/index.html ({} bytes)", root.len(), content.len());
     println!("  Every box links to GitHub: {boxes_total} boxes across {} pages", GENERATED_PAGES.len());
     println!("  Integrity & Unslop Invariants: PASS");
 }
@@ -661,7 +687,12 @@ fn verify_site(dist: &Path) {
 /// Every page this builder generates, with the least number of boxes it
 /// must carry. /now/ has no floor because the ledger may be absent.
 const GENERATED_PAGES: &[(&str, usize)] = &[
-    ("index.html", 30),
+    ("index.html", 0),
+    ("classic/index.html", 30),
+    ("discoveries/index.html", 0),
+    ("allen/index.html", 0),
+    ("alpha/index.html", 0),
+    ("research/computing-machinery-and-understanding/profiles/index.html", 0),
     ("support/index.html", 0),
     ("start/index.html", 0),
     ("privacy/index.html", 0),
@@ -676,6 +707,7 @@ const GENERATED_PAGES: &[(&str, usize)] = &[
     ("now/index.html", 0),
     ("dash/index.html", 0),
     ("hive/index.html", 0),
+    ("aien/index.html", 0),
     ("alpha/index.html", 0),
     ("learn/index.html", 0),
     ("omega/index.html", 30),

@@ -1,0 +1,29 @@
+note Public shell-only offline worker. No API or visitor response is cached.
+text swh "manifest.webmanifest"
+text swf "service-worker.js"
+text swj "js/site-install.js"
+text swman "{\"id\":\"/\",\"name\":\"Aien\",\"short_name\":\"Aien\",\"description\":\"Learn and explore with Aien. Sovereign Intelligence, built on AienOS.\",\"start_url\":\"/?source=pwa\",\"scope\":\"/\",\"display\":\"standalone\",\"background_color\":\"#080b12\",\"theme_color\":\"#080b12\",\"icons\":[{\"src\":\"/icons/allen-192.png\",\"sizes\":\"192x192\",\"type\":\"image/png\",\"purpose\":\"any\"},{\"src\":\"/icons/allen-512.png\",\"sizes\":\"512x512\",\"type\":\"image/png\",\"purpose\":\"any\"},{\"src\":\"/icons/allen-maskable-512.png\",\"sizes\":\"512x512\",\"type\":\"image/png\",\"purpose\":\"maskable\"}]}\n"
+text swpre "'use strict';\nconst PREFIX='allen-public-shell-';\nconst CACHE=PREFIX+'"
+text swpost "';\nconst SHELL=Object.freeze(['/', '/aien/', '/offline/', '/assets/site-tokens.css', '/assets/site-door.css', '/assets/site.css', '/assets/style.css', '/assets/allen.css', '/assets/allen-intro.css', '/assets/allen-panes.css', '/js/site.js', '/js/site-install.js', '/js/allen.js', '/js/allen-intro.js', '/js/allen-scene.js', '/js/allen-presence.js', '/js/allen-audio.js', '/js/allen-panes.js', '/allen/scene.wasm', '/audio/allen-chirp.wav', '/icons/allen-192.png', '/icons/allen-512.png', '/icons/allen-maskable-512.png', '/icons/apple-touch-icon.png', '/manifest.webmanifest']);\nconst ALLOWED=new Set(SHELL);\nconst publicRequest=path=>new Request(new URL(path,self.location.origin),{credentials:'omit',cache:'no-store',redirect:'error'});\nself.addEventListener('install',event=>event.waitUntil((async()=>{\n  const cache=await caches.open(CACHE);\n  try {\n    for(const path of SHELL){\n      const request=publicRequest(path);\n      const response=await fetch(request);\n      if(!response.ok||response.type==='opaque'||response.redirected||/private|no-store/i.test(response.headers.get('cache-control')||'')) throw new Error('Public shell unavailable: '+path);\n      await cache.put(request,response);\n    }\n  } catch(error){await caches.delete(CACHE);throw error;}\n  await self.skipWaiting();\n})()));\nself.addEventListener('activate',event=>event.waitUntil((async()=>{\n  for(const name of await caches.keys()) if(name.startsWith(PREFIX)&&name!==CACHE) await caches.delete(name);\n  await self.clients.claim();\n})()));\nself.addEventListener('fetch',event=>{\n  const request=event.request;\n  const url=new URL(request.url);\n  // API and authenticated requests never read or write this cache, including on failure.\n  if(request.method!=='GET'||url.origin!==self.location.origin||url.pathname.startsWith('/allen/api/')||request.headers.has('authorization')||request.credentials==='include') return;\n  const navigation=request.mode==='navigate';\n  if(!navigation&&!ALLOWED.has(url.pathname)) return;\n  event.respondWith((async()=>{\n    try {\n      // No response from a visitor-bearing request is ever stored. Runtime fetches never cache.put.\n      return await fetch(request);\n    } catch(error){\n      const cache=await caches.open(CACHE);\n      if(ALLOWED.has(url.pathname)){\n        const saved=await cache.match(publicRequest(url.pathname));\n        if(saved) return saved;\n      }\n      if(navigation){\n        const offline=await cache.match(publicRequest('/offline/'));\n        if(offline) return offline;\n      }\n      throw error;\n    }\n  })());\n});\n"
+text swreg "/* Generated from om/site/pwa.om. Installation prompts belong to AllenInstall. */\n(()=>{'use strict';\nif(!('serviceWorker' in navigator)||!window.isSecureContext)return;\nwindow.addEventListener('load',()=>{\n  navigator.serviceWorker.register('/service-worker.js',{scope:'/',updateViaCache:'none'}).then(registration=>{\n    window.dispatchEvent(new CustomEvent('allen-shell-ready',{detail:{scope:registration.scope}}));\n  }).catch(()=>{\n    // Offline installation is optional; the readable online site remains available.\n    document.documentElement.dataset.offlineShell='unavailable';\n  });\n},{once:true});\n})();\n"
+text swhead "<link rel=\"manifest\" href=\"/manifest.webmanifest\"><meta name=\"theme-color\" content=\"#080b12\"><meta name=\"apple-mobile-web-app-capable\" content=\"yes\"><meta name=\"apple-mobile-web-app-title\" content=\"Aien\"><meta name=\"apple-mobile-web-app-status-bar-style\" content=\"black-translucent\"><link rel=\"apple-touch-icon\" href=\"/icons/apple-touch-icon.png\"><script defer src=\"/js/site-install.js\"></script>"
+text swbody "<section class=\"site-hero\"><p class=\"site-eyebrow\">Offline</p><h1>The connection is quiet.</h1><p>Aien's scene is available offline. Answers, tools and messages need a connection; no chat or visitor data is stored in the offline cache.</p><p><a class=\"hub-button\" href=\"/\">Return to Aien</a> <a href=\"/classic/\">Try the classic site</a></p><p>Reconnect to open the library and speak with Aien.</p><a class=\"box-link\" href=\"https://github.com/aien-dev/aienos.com\">Read the source</a></section>"
+fn pwa_head to void
+sr_raw swhead
+end
+fn sw_offline to void
+sr_raw swbody
+end
+fn sw_emit to void
+st_open swh
+sr_raw swman
+sr_close
+st_open swf
+sr_raw swpre
+st_stamp
+sr_raw swpost
+sr_close
+st_open swj
+sr_raw swreg
+sr_close
+end

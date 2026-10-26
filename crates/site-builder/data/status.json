@@ -1,0 +1,70 @@
+{
+  "project": "AIENOS",
+  "updated": "2026-10-01",
+  "canonical": "https://www.aienos.com/classic/#status",
+  "statuses": [
+    "IMPLEMENTED",
+    "QUALIFIED",
+    "EXPERIMENTAL",
+    "BLOCKED",
+    "PLANNED"
+  ],
+  "layers": [
+    {
+      "name": "Omega foundation gates",
+      "status": "QUALIFIED",
+      "note": "Gates 1 through 14 closed with one combined admission receipt: 230 checks, 0 failures.",
+      "receipt_label": "aien-dev/omega · PR #111",
+      "receipt": "https://github.com/aien-dev/omega/pull/111"
+    },
+    {
+      "name": "Turing instrument",
+      "status": "IMPLEMENTED",
+      "note": "Implemented (instrument); science partial. Current level: L2, Brownian scope only, instrument certification. L2 verdicts were checked against the private sealed records on 2026-10-01; the records stay private. Outside Brownian scope the ceiling is L1. TY-2 recorded 2,559,679.825 bits of Turing gain. This is a gain in bits, not a yield. Yield is T/J (Turings per joule), and T/J is not established: no energy was measured.",
+      "receipt_label": "aien-dev/omega · PR #88",
+      "receipt": "https://github.com/aien-dev/omega/pull/88"
+    },
+    {
+      "name": "Native C kernel",
+      "status": "IMPLEMENTED",
+      "note": "Freestanding C kernel on main. Boots via UEFI in emulation, with NVMe, ARGUS capability checks, and the sealed Store in the boot path.",
+      "receipt_label": "aien-dev/aienux · PR #194",
+      "receipt": "https://github.com/aien-dev/aienux/pull/194"
+    },
+    {
+      "name": "Native machine qualification (M5)",
+      "status": "BLOCKED",
+      "note": "First qualification receipt: NOT QUALIFIED, 10 blocked, 6 missing. Published, and being worked down in public.",
+      "receipt_label": "aien-dev/aienux · PR #187",
+      "receipt": "https://github.com/aien-dev/aienux/pull/187"
+    },
+    {
+      "name": "Turing experiments (EXP-001 / 002 / 003)",
+      "status": "EXPERIMENTAL",
+      "note": "EXP-001 FAIL, EXP-001R PASS, EXP-002A PASS, EXP-002B PASS, EXP-002C PASS, EXP-002D INCOMPLETE, EXP-003 BLOCKED. Failures stay on the record.",
+      "receipt_label": "aien-dev/omega · PR #119",
+      "receipt": "https://github.com/aien-dev/omega/pull/119"
+    },
+    {
+      "name": "AIEN, the persistent agent",
+      "status": "EXPERIMENTAL",
+      "note": "Runs in the lab on the DGX Spark. The learning loop, learning from verified experience, is the active build.",
+      "receipt_label": "aien-dev/aienux",
+      "receipt": "https://github.com/aien-dev/aienux"
+    },
+    {
+      "name": "Atlas, the awakening layer",
+      "status": "PLANNED",
+      "note": "The seed that wakes AienOS on new hardware. Doctrine published in the architecture repository; implementation ahead.",
+      "receipt_label": "aien-dev/aien-architecture",
+      "receipt": "https://github.com/aien-dev/aien-architecture"
+    },
+    {
+      "name": "Public release",
+      "status": "PLANNED",
+      "note": "Pre-alpha. No supported release or installer yet. When there is one, it ships with versions, hashes, and signatures, inspectable before it runs.",
+      "receipt_label": null,
+      "receipt": null
+    }
+  ]
+}

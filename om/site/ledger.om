@@ -1,0 +1,5979 @@
+note Ledger surfaces: /now/, /dash/, /now.json, /now/feed.xml and the public ledger guard.
+note Port of crates/site-builder/src/{ledger_public.rs,components/now.rs,components/dash.rs} and
+note seo.rs now_feed at baseline 3d36bd7829d1. Compose after runtime/json; core supplies om2.
+note API (all write to the current sofd except the checks):
+note   sp_now, sp_dash: main-body renderers for /now/ and /dash/ (people.om sp_page dispatches).
+note   sp_now_json: /now.json bytes (serde_json to_string_pretty field order, no trailing LF).
+note   sp_now_feed: /now/feed.xml bytes (Atom, settled lines newest first).
+note   sp_ledger_stamp: RFC 3339 ledger-written stamp for SEO (build clock when none); computed
+note   once per process (guarded load) and cached, no LF, leaves sofd untouched.
+note HTML text escapes ' as &#39; through sr_escape where maud kept it raw; same rendered text.
+note   sp_ledger_check: refuse unless public/data/now.tsv is absent or equals its public projection.
+note   sp_ledger_check_at PATH: same refusal for any path (verifier: dist/data/now.tsv).
+note Every surface re-runs the guard before reading a ledger byte; rows are never skipped: a row
+note the guard would reject stops the build, so the page, JSON and feed carry every source line.
+note Optional inputs (now-pulse, models, claude-usage, accounts, routing TSVs) that are absent or
+note not UTF-8 read as unpublished, as read_to_string(..).unwrap_or_default() did. Other read
+note errors refuse (stricter than Rust, never silent). The ledger itself must be UTF-8 if present.
+note Guard semantics: check_public(x) == (project(x) == x). Projection is idempotent and every
+note redaction rewrites its match, so equality holds iff no field holds a credential, email or
+note control character (project errors) and no path/root/uuid/host/ipv4/ipv6/port/pid rule matches.
+note Regex fidelity: patterns are matched over code points with Rust regex Unicode semantics:
+note (?i) folds A-Z plus U+212A->k and U+017F->s (the only simple folds into ASCII); \s is the
+note White_Space set; \d covers the Nd blocks listed in lk_nd; \b uses lk_word, which treats ASCII
+note alnum/_ and all non-ASCII as word except the punctuation/symbol/emoji ranges listed there.
+note Known divergence: a non-ASCII code point outside those tables that Unicode does not class as
+note \w (rare symbols) is treated as word; time fields above 99999999 read as unparsable (Rust
+note would overflow); percentages parse as exact decimals (Rust parses f64 then rounds).
+note Integration cases/instructions (NOT_RUN, no build here): compose with the site unit, run
+note sp_ledger_check_at on fixtures; expect exit 70 + named stderr for each negative control:
+note   header id\topened_utc\towner\tstatus\titem\tdone_when\tevidence\tupdated_utc then a row
+note   L001\tdate\tagent\topen\tVALUE\t\t\tdate with VALUE in: owner@example.org; password=hunter22;
+note   --api-key shortvalue; ghp_abcdef123; secret is a4c618e50b7d92f3c4e1d690a5b7c8d9e0f1a2b3c4d5e6f7
+note   89ab01cd23ef4567; See /home/person/private; Check ~/notes at 127.0.0.1:18091; pid 12345;
+note   550e8400-e29b-41d4-a716-446655440000; brief/home/x; host.local; [::1]; worker pid2344210;
+note   a row with 4 fields; a row with 9 fields; a blank line; CRLF endings; no final LF; bad header;
+note   a raw 0x01 byte; invalid UTF-8. Positive controls (exit 0): the projected forms
+note   "See [private path]", "RFC 8032 7.1 TEST 1 secret is 9d61b19deffd5a60ba844af492ec2cc44449c5697b
+note   326919703bac031cae7f60;" (one token), repo@abcdef1 evidence/run.log https://github.com/aien-dev/x,
+note   the committed public/data/now.tsv. Page parity: diff /now/ /dash/ /now.json /now/feed.xml main
+note   bodies against the retained Rust builder at the same frozen clock (export the realns stamp).
+note Negative control for the parity diff: flip one ledger status and require a diff.
+const LKCAP ulong 4194304
+const LKROWS ulong 4096
+const LKNOTES ulong 65536
+const LKTOK ulong 8192
+global lkraw uchar 4194304
+global lkrn ulong 1
+global lkcl uchar 4194304
+global lkcn ulong 1
+global lklast ulong 1
+global lkreg ulong 16
+global lkhas uchar 8
+global lkcp uint 65536
+global lkcpn ulong 1
+global lkdl ulong 1
+global lkat long 1
+global lkatv uchar 1
+global lkok uchar 1
+global lkt long 8
+global lkio ulong 32768
+global lkil ulong 32768
+global lkline ulong 4096
+global lkage long 4096
+global lkupd long 4096
+global lkupv uchar 4096
+global lkopd long 4096
+global lkopv uchar 4096
+global lkown uchar 4096
+global lkstrm uchar 4096
+global lkstat uchar 4096
+global lknf ulong 4096
+global lknc ulong 4096
+global lkn ulong 1
+global lkno ulong 65536
+global lknl ulong 65536
+global lknn ulong 1
+global lkperm ulong 4096
+global lkpk ulong 2048
+global lkpv ulong 2048
+global lkpn ulong 1
+global lkmc ulong 2
+global lkmcv uchar 1
+global lkmid ulong 2048
+global lkmidn ulong 1
+global lkuv uchar 1
+global lkuc ulong 2
+global lkup ulong 2
+global lkuk uchar 1024
+global lkus ulong 2048
+global lkur ulong 2048
+global lkupc ulong 1024
+global lkun ulong 1
+global lkwr long 1
+global lkwrv uchar 1
+global lkts ulong 8192
+global lkte ulong 8192
+global lktk uchar 8192
+global lktr uchar 8192
+global lktn ulong 1
+global lkfc ulong 4
+global lkdc ulong 2
+global lkdcv uchar 1
+global lkap uchar 1024
+global lkan ulong 1024
+global lkapl ulong 2048
+global lkaw uchar 1024
+global lkal ulong 2048
+global lkapc ulong 1024
+global lkar ulong 2048
+global lkax uchar 1024
+global lkann ulong 1
+global lkrk uchar 1024
+global lkrnm ulong 2048
+global lkrmd ulong 2048
+global lkrcnt ulong 1
+global lkseat uchar 1
+text lkp0 "public/data/now.tsv"
+text lkp1 "public/data/now-pulse.tsv"
+text lkp2 "public/data/models.tsv"
+text lkp3 "public/data/claude-usage.tsv"
+text lkp4 "public/data/accounts.tsv"
+text lkp5 "public/data/routing.tsv"
+text lkroster "crates/site-builder/data/models.json"
+text lkhead "id\topened_utc\towner\tstatus\titem\tdone_when\tevidence\tupdated_utc"
+text lkepre "site ledger: "
+text lkeline "line "
+text lkecol ": "
+text lkenl "\n"
+text lkemnl "ledger must be newline-terminated UTF-8 TSV"
+text lkemhd "unexpected ledger header"
+text lkem9 "ledger row has more than eight columns"
+text lkem4 "ledger row has fewer than five columns"
+text lkemsc "credential-shaped value in ledger"
+text lkemem "email-shaped value in ledger"
+text lkemct "control character in ledger field"
+text lkempj "ledger is not its public projection"
+text lkemrd "unreadable ledger"
+text lkemcap "LEDGER_CAPACITY"
+text lkemfld "LEDGER_FIELD_CAPACITY"
+text lkemrow "LEDGER_ROW_CAPACITY"
+text lkemrst "ledger row changed after the guard"
+text lkemrj "data/models.json must parse"
+text lkrfc "rfc 8032 7.1 test 1"
+text lkrfck "secret is 9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60;"
+
+fn lk_fail why view uchar * line ulong to void
+sr_flush
+sr_diag lkepre
+if ne line 0
+sr_diag lkeline
+lk_dnum line
+sr_diag lkecol
+end
+sr_diag why
+sr_diag lkenl
+exit 70
+end
+
+fn lk_dnum v ulong to void
+xbuf = new uchar 20 0
+xp = ulong 20
+while true bound 20
+xp = sub xp 1
+put xbuf xp uchar add rem v 10 48
+v = div v 10
+if eq v 0
+break
+end
+end
+sr_diag part xbuf xp sub ulong 20 xp
+end
+
+note ---------------------------------------------------------------- files
+
+fn lk_read path view uchar * slot ulong to void
+xo = get lkrn 0
+put lkreg mul slot 2 xo
+put lkreg add mul slot 2 1 0
+put lkhas slot 0
+xfd = fopen path 0 len path 0 0
+if eq xfd -2
+ret
+end
+if lt xfd 0
+lk_fail lkemrd 0
+end
+xn = xo
+xeof = false
+for xtry ulong 999998
+if ge xn LKCAP
+lk_fail lkemcap 0
+end
+xk = read int xfd lkraw xn sub LKCAP xn
+if lt xk 0
+lk_fail lkemrd 0
+end
+if eq xk 0
+xeof = true
+break
+end
+xn = add xn ulong xk
+end
+if not xeof
+lk_fail lkemcap 0
+end
+sr_fclose int xfd
+put lkrn 0 xn
+put lkreg add mul slot 2 1 sub xn xo
+put lkhas slot 1
+end
+
+fn lk_roff slot ulong to ulong
+ret get lkreg mul slot 2
+end
+
+fn lk_rlen slot ulong to ulong
+ret get lkreg add mul slot 2 1
+end
+
+fn lk_cont p ulong e ulong to bool
+if ge p e
+ret false
+end
+xc = get lkraw p
+ret and ge xc 128 lt xc 192
+end
+
+fn lk_u8len p ulong e ulong to ulong
+xc = get lkraw p
+if lt xc 128
+ret 1
+end
+if and ge xc 194 le xc 223
+if lk_cont add p 1 e
+ret 2
+end
+ret 0
+end
+if and ge xc 224 le xc 239
+ret lk_u83 p e
+end
+if and ge xc 240 le xc 244
+ret lk_u84 p e
+end
+ret 0
+end
+
+fn lk_u83 p ulong e ulong to ulong
+xc = get lkraw p
+if not and lk_cont add p 1 e lk_cont add p 2 e
+ret 0
+end
+xd = get lkraw add p 1
+if and eq xc 224 lt xd 160
+ret 0
+end
+if and eq xc 237 ge xd 160
+ret 0
+end
+ret 3
+end
+
+fn lk_u84 p ulong e ulong to ulong
+xc = get lkraw p
+if not and lk_cont add p 1 e and lk_cont add p 2 e lk_cont add p 3 e
+ret 0
+end
+xd = get lkraw add p 1
+if and eq xc 240 lt xd 144
+ret 0
+end
+if and eq xc 244 ge xd 144
+ret 0
+end
+ret 4
+end
+
+note lk_utf8: slot is well-formed UTF-8. A for loop traps (4) at 1000000 passes and a raw slot may
+note hold up to 4 MiB, so the scan is two-level: 64 x 262144 passes, each advancing at least 1 byte.
+fn lk_utf8 slot ulong to bool
+xp = lk_roff slot
+xe = add xp lk_rlen slot
+while lt xp xe bound 64
+for xi ulong 262144
+if ge xp xe
+ret true
+end
+xk = lk_u8len xp xe
+if eq xk 0
+ret false
+end
+xp = add xp xk
+end
+end
+ret true
+end
+
+fn lk_dcp p ulong to uint
+xc = uint get lkraw p
+if lt xc 128
+put lkdl 0 1
+ret xc
+end
+xb = uint get lkraw add p 1
+if lt xc 224
+put lkdl 0 2
+ret or shl and xc 31 6 and xb 63
+end
+xd = uint get lkraw add p 2
+if lt xc 240
+put lkdl 0 3
+ret or or shl and xc 15 12 shl and xb 63 6 and xd 63
+end
+xf = uint get lkraw add p 3
+put lkdl 0 4
+xc = or shl and xc 7 18 shl and xb 63 12
+ret or or xc shl and xd 63 6 and xf 63
+end
+
+note Fresh read, guard and parse of every input; each public surface calls this first.
+fn lk_load_all to void
+put lkrn 0 0
+put lkcn 0 0
+lk_read lkp0 0
+if ne get lkhas 0 0
+if not lk_utf8 0
+lk_fail lkemrd 0
+end
+lk_guard 0
+end
+lk_read lkp1 1
+lk_read lkp2 2
+lk_read lkp3 3
+lk_read lkp4 4
+lk_read lkp5 5
+for xs ulong 5
+if ne get lkhas add xs 1 0
+if not lk_utf8 add xs 1
+put lkhas add xs 1 0
+end
+end
+end
+lk_stamp
+lk_parse
+lk_pulse
+lk_mcheck
+lk_usage
+lk_accts
+lk_routes
+end
+
+note ---------------------------------------------------------------- arena
+
+fn lk_cput c uchar to void
+xn = get lkcn 0
+if ge xn LKCAP
+lk_fail lkemcap 0
+end
+put lkcl xn c
+put lkcn 0 add xn 1
+end
+
+fn lk_by sel uchar p ulong to uchar
+if eq sel 0
+ret get lkraw p
+end
+ret get lkcl p
+end
+
+note Length of a White_Space character at p (0 if none); bytes beyond e never read.
+fn lk_wsat sel uchar p ulong e ulong to ulong
+xc = lk_by sel p
+if or and ge xc 9 le xc 13 eq xc 32
+ret 1
+end
+if and eq xc 194 lt add p 1 e
+xd = lk_by sel add p 1
+if or eq xd 133 eq xd 160
+ret 2
+end
+ret 0
+end
+if gt add p 3 e
+ret 0
+end
+ret lk_ws3 sel p
+end
+
+fn lk_ws3 sel uchar p ulong to ulong
+xc = lk_by sel p
+xd = lk_by sel add p 1
+xf = lk_by sel add p 2
+if and eq xc 225 and eq xd 154 eq xf 128
+ret 3
+end
+if and eq xc 227 and eq xd 128 eq xf 128
+ret 3
+end
+if and eq xc 226 eq xd 128
+if or le xf 138 or eq xf 168 or eq xf 169 eq xf 175
+if ge xf 128
+ret 3
+end
+end
+end
+if and eq xc 226 and eq xd 129 eq xf 159
+ret 3
+end
+ret 0
+end
+
+note Trim White_Space from both ends of [p, e) in buffer sel; start in lkt 6, end in lkt 7.
+fn lk_trim sel uchar p ulong e ulong to void
+while lt p e bound 999999
+xk = lk_wsat sel p e
+if eq xk 0
+break
+end
+p = add p xk
+end
+while gt e p bound 999999
+xk = lk_wsb sel p e
+if eq xk 0
+break
+end
+e = sub e xk
+end
+put lkt 6 long p
+put lkt 7 long e
+end
+
+fn lk_wsb sel uchar p ulong e ulong to ulong
+for xl ulong 3
+xk = add xl 1
+if le add p xk e
+if eq lk_wsat sel sub e xk e xk
+ret xk
+end
+end
+end
+ret 0
+end
+
+note clean(): em/en dash to '-', then trim. Raw [p, e) to a new lkcl string; length in lklast.
+fn lk_clean p ulong e ulong to ulong
+lk_trim 0 p e
+xs = ulong get lkt 6
+xe = ulong get lkt 7
+xo = get lkcn 0
+while lt xs xe bound 999999
+xc = get lkraw xs
+if lk_dash xs xe
+lk_cput 45
+xs = add xs 3
+else
+lk_cput xc
+xs = add xs 1
+end
+end
+put lklast 0 sub get lkcn 0 xo
+ret xo
+end
+
+fn lk_dash p ulong e ulong to bool
+if gt add p 3 e
+ret false
+end
+if ne get lkraw p 226
+ret false
+end
+if ne get lkraw add p 1 128
+ret false
+end
+xc = get lkraw add p 2
+ret or eq xc 147 eq xc 148
+end
+
+note ---------------------------------------------------------------- time
+
+fn lk_fdiv a long b long to long
+xq = div a b
+if and lt a 0 ne mul xq b a
+xq = sub xq 1
+end
+ret xq
+end
+
+note Rust i64 parse of [p, e): optional sign, at least one ASCII digit. lkok 0 = None.
+fn lk_pint sel uchar p ulong e ulong to long
+put lkok 0 0
+if ge p e
+ret 0
+end
+xneg = false
+xc = lk_by sel p
+if or eq xc 43 eq xc 45
+xneg = eq xc 45
+p = add p 1
+end
+if ge p e
+ret 0
+end
+xv = long 0
+while lt p e bound 999999
+xc = lk_by sel p
+if or lt xc 48 gt xc 57
+ret 0
+end
+xv = add mul xv 10 long sub xc 48
+if gt xv 99999999
+ret 0
+end
+p = add p 1
+end
+put lkok 0 1
+if xneg
+ret neg xv
+end
+ret xv
+end
+
+note lk_find: first p in [p, e) holding byte c, else e. Two-level (64 x 262144 passes): a region
+note may span the whole 4 MiB raw buffer, past the 1000000-pass loop trap.
+fn lk_find sel uchar p ulong e ulong c uchar to ulong
+while lt p e bound 64
+xk = ulong 0
+while and lt p e lt xk 262144 bound 262144
+if eq lk_by sel p c
+ret p
+end
+p = add p 1
+xk = add xk 1
+end
+end
+ret e
+end
+
+note parse_utc: lkt 0..5 = y m d hh mm ss; returns seconds, lkok 1 on success.
+fn lk_utc sel uchar p ulong e ulong to long
+lk_trim sel p e
+xs = ulong get lkt 6
+xe = ulong get lkt 7
+while gt xe xs bound 999999
+if ne lk_by sel sub xe 1 90
+break
+end
+xe = sub xe 1
+end
+xt = lk_find sel xs xe 84
+if ge xt xe
+put lkok 0 0
+ret 0
+end
+if not lk_utcd sel xs xt
+put lkok 0 0
+ret 0
+end
+if not lk_utct sel add xt 1 xe
+put lkok 0 0
+ret 0
+end
+xd = lk_days get lkt 0 get lkt 1 get lkt 2
+put lkok 0 1
+xd = add mul xd 86400 mul get lkt 3 3600
+ret add add xd mul get lkt 4 60 get lkt 5
+end
+
+fn lk_utcd sel uchar p ulong e ulong to bool
+for xi ulong 3
+xq = lk_find sel p e 45
+put lkt xi lk_pint sel p xq
+if eq get lkok 0 0
+ret false
+end
+if ge xq e
+if lt xi 2
+ret false
+end
+end
+p = add xq 1
+end
+ret true
+end
+
+fn lk_utct sel uchar p ulong e ulong to bool
+xq = lk_find sel p e 58
+put lkt 3 lk_pint sel p xq
+if eq get lkok 0 0
+ret false
+end
+if ge xq e
+ret false
+end
+p = add xq 1
+xq = lk_find sel p e 58
+put lkt 4 lk_pint sel p xq
+if eq get lkok 0 0
+ret false
+end
+put lkt 5 0
+if lt xq e
+p = add xq 1
+xq = lk_find sel p e 58
+xv = lk_pint sel p xq
+if eq get lkok 0 1
+put lkt 5 xv
+end
+end
+ret true
+end
+
+fn lk_days y long m long d long to long
+xy = y
+xm = sub m 3
+if le m 2
+xy = sub y 1
+xm = add m 9
+end
+xera = lk_fdiv xy 400
+xyoe = sub xy mul xera 400
+xdoy = sub add div add mul 153 xm 2 5 d 1
+xdoe = add mul xyoe 365 div xyoe 4
+xdoe = sub xdoe div xyoe 100
+xdoe = add xdoe xdoy
+ret sub add mul xera 146097 xdoe 719468
+end
+
+note civil from days into lkt 0..5.
+fn lk_civil secs long to void
+xdays = lk_fdiv secs 86400
+put lkt 5 sub secs mul xdays 86400
+xz = add xdays 719468
+xera = lk_fdiv xz 146097
+xdoe = sub xz mul xera 146097
+xyoe = div sub add sub xdoe div xdoe 1460 div xdoe 36524 div xdoe 146096 365
+xdoy = sub xdoe sub add mul 365 xyoe div xyoe 4 div xyoe 100
+xmp = div add mul 5 xdoy 2 153
+xdd = div add mul 153 xmp 2 5
+put lkt 2 add sub xdoy xdd 1
+xm = sub xmp 9
+if lt xmp 10
+xm = add xmp 3
+end
+put lkt 1 xm
+xy = add xyoe mul xera 400
+if le xm 2
+xy = add xy 1
+end
+put lkt 0 xy
+end
+
+fn lk_cpad v long w ulong to void
+xbuf = new uchar 24 0
+if lt v 0
+lk_cput 45
+v = neg v
+if gt w 0
+w = sub w 1
+end
+end
+xp = ulong 24
+while true bound 24
+xp = sub xp 1
+put xbuf xp uchar add rem v 10 48
+v = div v 10
+if and eq v 0 ge sub 24 xp w
+break
+end
+end
+while lt xp 24 bound 24
+lk_cput get xbuf xp
+xp = add xp 1
+end
+end
+
+note fmt_utc (seconds false) or rfc3339 (seconds true) appended to lkcl; length in lklast.
+fn lk_fmt secs long full bool to ulong
+xo = get lkcn 0
+lk_civil secs
+xr = get lkt 5
+lk_cpad get lkt 0 4
+lk_cput 45
+lk_cpad get lkt 1 2
+lk_cput 45
+lk_cpad get lkt 2 2
+lk_cput 84
+lk_cpad div xr 3600 2
+lk_cput 58
+lk_cpad div rem xr 3600 60 2
+if full
+lk_cput 58
+lk_cpad rem xr 60 2
+end
+lk_cput 90
+put lklast 0 sub get lkcn 0 xo
+ret xo
+end
+
+note One build clock for every ledger surface, as the Rust builder read the clock once.
+fn lk_stamp to void
+if eq get lkatv 0 0
+xns = realns
+put lkat 0 div xns 1000000000
+put lkatv 0 1
+end
+end
+
+fn lk_now to long
+lk_stamp
+ret get lkat 0
+end
+
+note ---------------------------------------------------------------- privacy guard
+
+fn lk_c i ulong to uint
+if ge i get lkcpn 0
+ret 0
+end
+ret get lkcp i
+end
+
+fn lk_f i ulong to uint
+xc = lk_c i
+if and ge xc 65 le xc 90
+ret add xc 32
+end
+if eq xc 8490
+ret 107
+end
+if eq xc 383
+ret 115
+end
+ret xc
+end
+
+fn lk_inr c uint a uint b uint to bool
+ret and ge c a le c b
+end
+
+note Approximate Unicode \w: see the header note for the exact divergence.
+fn lk_word c uint to bool
+if lt c 128
+ret or or lk_inr c 48 57 lk_inr c 97 122 or lk_inr c 65 90 eq c 95
+end
+if lk_inr c 128 191
+ret or eq c 170 or eq c 181 eq c 186
+end
+if or eq c 215 eq c 247
+ret false
+end
+if lk_inr c 0x2000 0x2bff
+ret lk_word2 c
+end
+if lk_inr c 0x3000 0x303f
+ret or lk_inr c 0x3005 0x3007 or lk_inr c 0x3021 0x302f or lk_inr c 0x3031 0x3035 lk_inr c 0x3038 0x303c
+end
+if lk_inr c 0xfe10 0xfe6f
+ret or lk_inr c 0xfe20 0xfe2f or lk_inr c 0xfe33 0xfe34 lk_inr c 0xfe4d 0xfe4f
+end
+if lk_inr c 0xff00 0xff65
+ret lk_word3 c
+end
+if or lk_inr c 0xe000 0xf8ff lk_inr c 0x1f000 0x1faff
+ret false
+end
+ret true
+end
+
+fn lk_word2 c uint to bool
+if or lk_inr c 0x203f 0x2040 eq c 0x2054
+ret true
+end
+if or eq c 0x2071 or eq c 0x207f lk_inr c 0x2090 0x209c
+ret true
+end
+if lk_inr c 0x20d0 0x20f0
+ret true
+end
+if lk_inr c 0x2100 0x214f
+ret lk_word4 c
+end
+if or lk_inr c 0x2160 0x2188 lk_inr c 0x24b6 0x24e9
+ret true
+end
+ret false
+end
+
+fn lk_word4 c uint to bool
+if or eq c 0x2102 or eq c 0x2107 or lk_inr c 0x210a 0x2113 eq c 0x2115
+ret true
+end
+if or lk_inr c 0x2119 0x211d or eq c 0x2124 or eq c 0x2126 eq c 0x2128
+ret true
+end
+if or lk_inr c 0x212a 0x212d or lk_inr c 0x212f 0x2139 lk_inr c 0x213c 0x213f
+ret true
+end
+ret or lk_inr c 0x2145 0x2149 eq c 0x214e
+end
+
+fn lk_word3 c uint to bool
+if or lk_inr c 0xff10 0xff19 or lk_inr c 0xff21 0xff3a lk_inr c 0xff41 0xff5a
+ret true
+end
+ret eq c 0xff3f
+end
+
+fn lk_sp c uint to bool
+if or lk_inr c 9 13 or eq c 32 or eq c 133 eq c 160
+ret true
+end
+if or eq c 0x1680 or lk_inr c 0x2000 0x200a or eq c 0x2028 eq c 0x2029
+ret true
+end
+ret or eq c 0x202f or eq c 0x205f eq c 0x3000
+end
+
+fn lk_nd10 c uint a uint to bool
+ret and ge c a lt c add a 10
+end
+
+note Unicode Nd blocks (Unicode 15.1 DerivedNumericType Decimal), ten digits each except 1D7CE.
+fn lk_nd c uint to bool
+if lt c 0x660
+ret lk_nd10 c 48
+end
+if or lk_nd10 c 0x660 or lk_nd10 c 0x6f0 or lk_nd10 c 0x7c0 or lk_nd10 c 0x966 lk_nd10 c 0x9e6
+ret true
+end
+if or lk_nd10 c 0xa66 or lk_nd10 c 0xae6 or lk_nd10 c 0xb66 or lk_nd10 c 0xbe6 lk_nd10 c 0xc66
+ret true
+end
+if or lk_nd10 c 0xce6 or lk_nd10 c 0xd66 or lk_nd10 c 0xde6 or lk_nd10 c 0xe50 lk_nd10 c 0xed0
+ret true
+end
+if or lk_nd10 c 0xf20 or lk_nd10 c 0x1040 or lk_nd10 c 0x1090 or lk_nd10 c 0x17e0 lk_nd10 c 0x1810
+ret true
+end
+if or lk_nd10 c 0x1946 or lk_nd10 c 0x19d0 or lk_nd10 c 0x1a80 or lk_nd10 c 0x1a90 lk_nd10 c 0x1b50
+ret true
+end
+if or lk_nd10 c 0x1bb0 or lk_nd10 c 0x1c40 or lk_nd10 c 0x1c50 or lk_nd10 c 0xa620 lk_nd10 c 0xa8d0
+ret true
+end
+if or lk_nd10 c 0xa900 or lk_nd10 c 0xa9d0 or lk_nd10 c 0xa9f0 or lk_nd10 c 0xaa50 lk_nd10 c 0xabf0
+ret true
+end
+if lk_nd10 c 0xff10
+ret true
+end
+if lt c 0x10000
+ret false
+end
+ret lk_ndx c
+end
+
+fn lk_ndx c uint to bool
+if or lk_nd10 c 0x104a0 or lk_nd10 c 0x10d30 or lk_nd10 c 0x11066 or lk_nd10 c 0x110f0 lk_nd10 c 0x11136
+ret true
+end
+if or lk_nd10 c 0x111d0 or lk_nd10 c 0x112f0 or lk_nd10 c 0x11450 or lk_nd10 c 0x114d0 lk_nd10 c 0x11650
+ret true
+end
+if or lk_nd10 c 0x116c0 or lk_nd10 c 0x11730 or lk_nd10 c 0x118e0 or lk_nd10 c 0x11950 lk_nd10 c 0x11c50
+ret true
+end
+if or lk_nd10 c 0x11d50 or lk_nd10 c 0x11da0 or lk_nd10 c 0x11f50 or lk_nd10 c 0x16a60 lk_nd10 c 0x16ac0
+ret true
+end
+if or lk_nd10 c 0x16b50 or lk_nd10 c 0x1e140 or lk_nd10 c 0x1e2f0 or lk_nd10 c 0x1e4f0 lk_nd10 c 0x1e950
+ret true
+end
+ret or lk_inr c 0x1d7ce 0x1d7ff lk_nd10 c 0x1fbf0
+end
+
+fn lk_wb i ulong to bool
+xa = false
+if gt i 0
+xa = lk_word lk_c sub i 1
+end
+xb = false
+if lt i get lkcpn 0
+xb = lk_word lk_c i
+end
+ret ne xa xb
+end
+
+fn lk_isws i ulong to bool
+if ge i get lkcpn 0
+ret false
+end
+ret lk_sp lk_c i
+end
+
+fn lk_skws i ulong to ulong
+while lk_isws i bound 999999
+i = add i 1
+end
+ret i
+end
+
+fn lk_nsend i ulong to ulong
+while lt i get lkcpn 0 bound 999999
+if lk_isws i
+ret i
+end
+i = add i 1
+end
+ret i
+end
+
+note (?i) literal: s is lowercase ASCII.
+fn lk_lit i ulong s view uchar * to bool
+for xj ulong len s
+if ne lk_f add i xj uint get s xj
+ret false
+end
+end
+ret true
+end
+
+fn lk_litc i ulong s view uchar * to bool
+for xj ulong len s
+if ne lk_c add i xj uint get s xj
+ret false
+end
+end
+ret true
+end
+
+note to_ascii_lowercase comparison (no Unicode folding).
+fn lk_lita i ulong s view uchar * to bool
+for xj ulong len s
+xc = lk_c add i xj
+if lk_inr xc 65 90
+xc = add xc 32
+end
+if ne xc uint get s xj
+ret false
+end
+end
+ret true
+end
+
+fn lk_az c uint to bool
+ret lk_inr c 97 122
+end
+
+fn lk_an c uint to bool
+ret or lk_inr c 97 122 lk_inr c 48 57
+end
+
+fn lk_hx c uint to bool
+ret or lk_inr c 97 102 lk_inr c 48 57
+end
+
+fn lk_ad c uint to bool
+ret lk_inr c 48 57
+end
+
+text lkk0 "password"
+text lkk1 "passwd"
+text lkk2 "secret"
+text lkk3 "api"
+text lkk4 "key"
+text lkk5 "private"
+text lkk6 "access"
+text lkk7 "token"
+text lkk8 "authorization"
+text lkk9 "auth"
+text lkk10 "cookie"
+text lkk11 "session"
+text lkk12 "id"
+text lkkis "is"
+text lkkdd "--"
+text lkksk "sk-"
+text lkkghp "ghp_"
+text lkkgho "gho_"
+text lkkgpat "github_pat_"
+text lkkxox "xox"
+text lkkakia "akia"
+text lkkbeg "-----begin"
+text lkkbear "bearer"
+text lkkcss "://"
+text lkklh "localhost"
+text lkkloc "local"
+text lkkint "internal"
+text lkkts "ts.net"
+text lkk18 ":18"
+text lkkpid "pid"
+text lkrt0 "~/"
+text lkrt1 "~\\"
+text lkrn0 "home"
+text lkrn1 "root"
+text lkrn2 "tmp"
+text lkrn3 "var"
+text lkrn4 "etc"
+text lkrn5 "opt"
+text lkrn6 "srv"
+text lkrn7 "run"
+text lkrn8 "proc"
+text lkrn9 "mnt"
+text lkrn10 "media"
+text lkrn11 "Users"
+text lkrn12 "private"
+
+fn lk_sep i ulong to ulong
+xc = lk_f i
+if or eq xc 95 eq xc 45
+ret add i 1
+end
+ret i
+end
+
+note First keyword alternative that fits at i (end index), 0 when none.
+fn lk_kw i ulong to ulong
+if lk_lit i lkk0
+ret add i 8
+end
+if lk_lit i lkk1
+ret add i 6
+end
+if lk_lit i lkk2
+ret add i 6
+end
+if lk_lit i lkk3
+xq = lk_sep add i 3
+if lk_lit xq lkk4
+ret add xq 3
+end
+end
+if lk_lit i lkk5
+xq = lk_sep add i 7
+if lk_lit xq lkk4
+ret add xq 3
+end
+end
+if lk_lit i lkk6
+xq = lk_sep add i 6
+if lk_lit xq lkk7
+ret add xq 5
+end
+end
+if lk_lit i lkk8
+ret add i 13
+end
+if lk_lit i lkk9
+ret add i 4
+end
+if lk_lit i lkk10
+ret add i 6
+end
+if lk_lit i lkk11
+ret lk_kwses add i 7
+end
+ret 0
+end
+
+fn lk_kwses i ulong to ulong
+xq = lk_sep i
+if lk_lit xq lkk4
+ret add xq 3
+end
+if lk_lit xq lkk7
+ret add xq 5
+end
+if lk_lit xq lkk12
+ret add xq 2
+end
+ret 0
+end
+
+note auth(?:orization)? backtracks to the bare auth when the long form's tail fails.
+fn lk_kw2 i ulong to ulong
+if lk_lit i lkk8
+ret add i 4
+end
+ret 0
+end
+
+note \s*(?:=|:|\bis\b)\s*\S+ from q; returns match end, 0 if none.
+fn lk_s1r q ulong to ulong
+xr = lk_skws q
+xc = lk_c xr
+xt = ulong 0
+if or eq xc 61 eq xc 58
+xt = add xr 1
+else
+if not and lk_lit xr lkkis and lk_wb xr lk_wb add xr 2
+ret 0
+end
+xt = add xr 2
+end
+xt = lk_skws xt
+if ge xt get lkcpn 0
+ret 0
+end
+ret lk_nsend xt
+end
+
+fn lk_s1 i ulong to ulong
+if not lk_wb i
+ret 0
+end
+xk = lk_kw i
+if eq xk 0
+ret 0
+end
+xe = lk_s1r xk
+if ne xe 0
+ret xe
+end
+xk = lk_kw2 i
+if eq xk 0
+ret 0
+end
+ret lk_s1r xk
+end
+
+fn lk_s2t k ulong to bool
+if not lk_isws k
+ret false
+end
+ret lt lk_skws k get lkcpn 0
+end
+
+fn lk_s2k q ulong to bool
+xk = lk_kw q
+if ne xk 0
+if lk_s2t xk
+ret true
+end
+end
+xk = lk_kw2 q
+if ne xk 0
+ret lk_s2t xk
+end
+ret false
+end
+
+fn lk_s2 i ulong to bool
+if not lk_lit i lkkdd
+ret false
+end
+xq = add i 2
+while lt xq get lkcpn 0 bound 999999
+if lk_s2k xq
+ret true
+end
+xr = xq
+while lk_an lk_f xr bound 999999
+xr = add xr 1
+end
+if eq xr xq
+ret false
+end
+xc = lk_f xr
+if not or eq xc 95 eq xc 45
+ret false
+end
+xq = add xr 1
+end
+ret false
+end
+
+fn lk_s3 i ulong to bool
+if not lk_wb i
+ret false
+end
+xp = ulong 0
+if lk_lit i lkksk
+xp = add i 3
+end
+if lk_lit i lkkghp
+xp = add i 4
+end
+if lk_lit i lkkgho
+xp = add i 4
+end
+if lk_lit i lkkgpat
+xp = add i 11
+end
+if lk_lit i lkkakia
+xp = add i 4
+end
+if lk_lit i lkkxox
+xc = lk_f add i 3
+if and or or eq xc 98 eq xc 97 or or eq xc 112 eq xc 114 eq xc 115 eq lk_f add i 4 45
+xp = add i 5
+end
+end
+if eq xp 0
+ret false
+end
+xc = lk_f xp
+ret or lk_an xc or eq xc 95 eq xc 45
+end
+
+fn lk_s4p q ulong to bool
+if not lk_lit q lkk5
+ret false
+end
+if not lk_isws add q 7
+ret false
+end
+ret lk_lit lk_skws add q 7 lkk4
+end
+
+fn lk_s4 i ulong to bool
+if not lk_lit i lkkbeg
+ret false
+end
+xq = add i 10
+if not lk_isws xq
+ret false
+end
+xq = lk_skws xq
+while lt xq get lkcpn 0 bound 999999
+if lk_s4p xq
+ret true
+end
+xr = xq
+while lk_az lk_f xr bound 999999
+xr = add xr 1
+end
+if eq xr xq
+ret false
+end
+if not lk_isws xr
+ret false
+end
+xq = lk_skws xr
+end
+ret false
+end
+
+fn lk_s5 i ulong to bool
+if not and lk_wb i lk_lit i lkkbear
+ret false
+end
+xq = add i 6
+if not lk_isws xq
+ret false
+end
+xq = lk_skws xq
+xk = ulong 0
+while true bound 999999
+xc = lk_f xq
+if not or lk_an xc or or eq xc 46 eq xc 95 eq xc 45
+break
+end
+xk = add xk 1
+xq = add xq 1
+end
+ret ge xk 8
+end
+
+fn lk_s6 i ulong to bool
+if not lk_az lk_f i
+ret false
+end
+xk = add i 1
+while true bound 999999
+xc = lk_f xk
+if not or lk_an xc or or eq xc 43 eq xc 46 eq xc 45
+break
+end
+xk = add xk 1
+end
+if not lk_litc xk lkkcss
+ret false
+end
+ret lk_s6u add xk 3
+end
+
+note [^\s/@]+:[^\s/@]+@ from u.
+fn lk_s6u u ulong to bool
+xr = u
+xcol = false
+while lt xr get lkcpn 0 bound 999999
+xc = lk_c xr
+if or lk_sp xc or eq xc 47 eq xc 64
+break
+end
+if and eq xc 58 and gt xr u lt add xr 1 get lkcpn 0
+if lk_s6y add xr 1
+xcol = true
+end
+end
+xr = add xr 1
+end
+ret and xcol eq lk_c xr 64
+end
+
+fn lk_s6y p ulong to bool
+xc = lk_c p
+ret not or lk_sp xc or or eq xc 47 eq xc 64 ge p get lkcpn 0
+end
+
+fn lk_exctx to bool
+for xi ulong get lkcpn 0
+if lk_lita xi lkrfc
+ret true
+end
+end
+ret false
+end
+
+fn lk_exm i ulong e ulong to bool
+if ne sub e i len lkrfck
+ret false
+end
+ret lk_lita i lkrfck
+end
+
+fn lk_secret to bool
+xex = lk_exctx
+for xi ulong get lkcpn 0
+xe = lk_s1 xi
+if ne xe 0
+if not and xex lk_exm xi xe
+ret true
+end
+else
+if lk_secr2 xi
+ret true
+end
+end
+end
+ret false
+end
+
+fn lk_secr2 i ulong to bool
+if or lk_s2 i or lk_s3 i lk_s4 i
+ret true
+end
+ret or lk_s5 i lk_s6 i
+end
+
+fn lk_eml c uint to bool
+ret or lk_an c or or eq c 46 eq c 95 or or eq c 37 eq c 43 eq c 45
+end
+
+fn lk_emd c uint to bool
+ret or lk_an c or eq c 46 eq c 45
+end
+
+fn lk_emr b ulong to bool
+xe = b
+while lk_emd lk_f xe bound 999999
+xe = add xe 1
+end
+xj = add b 1
+while lt xj xe bound 999999
+if eq lk_c xj 46
+xl = add xj 1
+while lk_az lk_f xl bound 999999
+xl = add xl 1
+end
+if and ge sub xl add xj 1 2 lk_wb xl
+ret true
+end
+end
+xj = add xj 1
+end
+ret false
+end
+
+fn lk_ema a ulong to bool
+xs = a
+while gt xs 0 bound 999999
+if not lk_eml lk_f sub xs 1
+break
+end
+xs = sub xs 1
+end
+if eq xs a
+ret false
+end
+xok = false
+xj = xs
+while lt xj a bound 999999
+if lk_wb xj
+xok = true
+break
+end
+xj = add xj 1
+end
+if not xok
+ret false
+end
+ret lk_emr add a 1
+end
+
+fn lk_email to bool
+for xi ulong get lkcpn 0
+if eq lk_c xi 64
+if lk_ema xi
+ret true
+end
+end
+end
+ret false
+end
+
+fn lk_ctrl to bool
+for xi ulong get lkcpn 0
+xc = lk_c xi
+if or lt xc 32 lk_inr xc 127 159
+ret true
+end
+end
+ret false
+end
+
+fn lk_pdel c uint to bool
+if lk_sp c
+ret true
+end
+if or or eq c 40 eq c 60 or eq c 96 eq c 34
+ret true
+end
+ret or or eq c 39 eq c 91 or or eq c 61 eq c 58 eq c 44
+end
+
+fn lk_seg c uint to bool
+ret or lk_an c or or eq c 46 eq c 95 eq c 45
+end
+
+fn lk_path i ulong to bool
+if gt i 0
+if not lk_pdel lk_c sub i 1
+ret false
+end
+end
+xc = lk_c i
+if eq xc 126
+xd = lk_c add i 1
+ret or eq xd 47 eq xd 92
+end
+if ne xc 47
+ret false
+end
+xr = add i 1
+while lk_seg lk_f xr bound 999999
+xr = add xr 1
+end
+ret and gt xr add i 1 eq lk_c xr 47
+end
+
+fn lk_rootn q ulong s view uchar * to bool
+if not lk_litc q s
+ret false
+end
+ret eq lk_c add q len s 47
+end
+
+fn lk_root i ulong to bool
+if or lk_litc i lkrt0 lk_litc i lkrt1
+ret true
+end
+if ne lk_c i 47
+ret false
+end
+xq = add i 1
+if or or lk_rootn xq lkrn0 lk_rootn xq lkrn1 or lk_rootn xq lkrn2 lk_rootn xq lkrn3
+ret true
+end
+if or or lk_rootn xq lkrn4 lk_rootn xq lkrn5 or lk_rootn xq lkrn6 lk_rootn xq lkrn7
+ret true
+end
+if or or lk_rootn xq lkrn8 lk_rootn xq lkrn9 or lk_rootn xq lkrn10 lk_rootn xq lkrn11
+ret true
+end
+ret lk_rootn xq lkrn12
+end
+
+fn lk_hexn q ulong k ulong to bool
+for xj ulong k
+if not lk_hx lk_f add q xj
+ret false
+end
+end
+ret true
+end
+
+fn lk_uuid i ulong to bool
+if not and lk_wb i lk_hexn i 8
+ret false
+end
+if not and eq lk_c add i 8 45 lk_hexn add i 9 4
+ret false
+end
+if not and eq lk_c add i 13 45 lk_hexn add i 14 4
+ret false
+end
+if not and eq lk_c add i 18 45 lk_hexn add i 19 4
+ret false
+end
+if not and eq lk_c add i 23 45 lk_hexn add i 24 12
+ret false
+end
+ret lk_wb add i 36
+end
+
+fn lk_hc c uint to bool
+ret or lk_an c or eq c 95 eq c 45
+end
+
+fn lk_hpre d ulong to bool
+if eq d 0
+ret false
+end
+if not lk_hc lk_f sub d 1
+ret false
+end
+xs = sub d 1
+while true bound 999999
+xc = lk_f xs
+if lk_hc xc
+if lk_wb xs
+ret true
+end
+else
+if ne xc 46
+ret false
+end
+if eq xs 0
+ret false
+end
+if not lk_hc lk_f sub xs 1
+ret false
+end
+end
+if eq xs 0
+ret false
+end
+xs = sub xs 1
+end
+ret false
+end
+
+fn lk_hsuf d ulong s view uchar * to bool
+if not lk_lit add d 1 s
+ret false
+end
+if not lk_wb add add d 1 len s
+ret false
+end
+ret lk_hpre d
+end
+
+fn lk_host i ulong to bool
+if and lk_wb i lk_lit i lkklh
+if lk_wb add i 9
+ret true
+end
+end
+if ne lk_c i 46
+ret false
+end
+ret or lk_hsuf i lkkloc or lk_hsuf i lkkint lk_hsuf i lkkts
+end
+
+fn lk_drun q ulong to ulong
+xk = ulong 0
+while lk_nd lk_c add q xk bound 999999
+if ge add q xk get lkcpn 0
+break
+end
+xk = add xk 1
+end
+ret xk
+end
+
+fn lk_ip4 i ulong to bool
+if not lk_wb i
+ret false
+end
+xq = i
+for xo ulong 3
+xk = lk_drun xq
+if or eq xk 0 gt xk 3
+ret false
+end
+xq = add xq xk
+if ne lk_c xq 46
+ret false
+end
+xq = add xq 1
+end
+xk = lk_drun xq
+if or eq xk 0 gt xk 3
+ret false
+end
+ret lk_wb add xq xk
+end
+
+fn lk_ip6 i ulong to bool
+if ne lk_c i 91
+ret false
+end
+xr = add i 1
+while true bound 999999
+xc = lk_f xr
+if not or lk_hx xc eq xc 58
+break
+end
+xr = add xr 1
+end
+ret and ge sub xr add i 1 2 eq lk_c xr 93
+end
+
+fn lk_port i ulong to bool
+if not lk_litc i lkk18
+ret false
+end
+if not and lk_ad lk_c add i 3 and lk_ad lk_c add i 4 lk_ad lk_c add i 5
+ret false
+end
+ret lk_wb add i 6
+end
+
+fn lk_pid i ulong to bool
+if not and lk_wb i lk_lit i lkkpid
+ret false
+end
+xq = lk_skws add i 3
+xr = xq
+while lk_ad lk_c xr bound 999999
+xr = add xr 1
+end
+if eq xr xq
+ret false
+end
+ret lk_wb xr
+end
+
+fn lk_redact to bool
+for xi ulong get lkcpn 0
+if or or lk_path xi lk_root xi or lk_uuid xi lk_host xi
+ret true
+end
+if or or lk_ip4 xi lk_ip6 xi or lk_port xi lk_pid xi
+ret true
+end
+end
+ret false
+end
+
+note Decode raw [p, e) into lkcp (input already UTF-8 validated).
+fn lk_decode p ulong e ulong to void
+xn = ulong 0
+while lt p e bound 999999
+if ge xn len lkcp
+lk_fail lkemfld 0
+end
+put lkcp xn lk_dcp p
+p = add p get lkdl 0
+xn = add xn 1
+end
+put lkcpn 0 xn
+end
+
+note 0 public, 1 credential, 2 email, 3 control, 4 needs redaction.
+fn lk_fchk p ulong e ulong to uchar
+lk_decode p e
+if lk_secret
+ret 1
+end
+if lk_email
+ret 2
+end
+if lk_ctrl
+ret 3
+end
+if lk_redact
+ret 4
+end
+ret 0
+end
+
+fn lk_lineok p ulong e ulong line ulong to bool
+xcnt = ulong 0
+xred = false
+xs = p
+while true bound 999999
+xf = lk_find 0 xs e 9
+if eq xcnt 8
+lk_fail lkem9 line
+end
+xr = lk_fchk xs xf
+if eq xr 1
+lk_fail lkemsc line
+end
+if eq xr 2
+lk_fail lkemem line
+end
+if eq xr 3
+lk_fail lkemct line
+end
+if eq xr 4
+xred = true
+end
+xcnt = add xcnt 1
+if ge xf e
+break
+end
+xs = add xf 1
+end
+if lt xcnt 5
+lk_fail lkem4 line
+end
+ret not xred
+end
+
+note check_public over a loaded region; lkhas must be set and UTF-8 already proven.
+fn lk_guard slot ulong to void
+xp = lk_roff slot
+xn = lk_rlen slot
+xe = add xp xn
+if eq xn 0
+lk_fail lkemnl 0
+end
+if ne get lkraw sub xe 1 10
+lk_fail lkemnl 0
+end
+note no CR anywhere in the region (lk_find scans the whole slot; a for loop traps at 1000000).
+if lt lk_find 0 xp xe 13 xe
+lk_fail lkemnl 0
+end
+xl = lk_find 0 xp xe 10
+if not lk_rawis xp xl lkhead
+lk_fail lkemhd 0
+end
+xpub = true
+xline = ulong 2
+xs = add xl 1
+while lt xs xe bound 999999
+xl = lk_find 0 xs xe 10
+if not lk_lineok xs xl xline
+xpub = false
+end
+xline = add xline 1
+xs = add xl 1
+end
+if not xpub
+lk_fail lkempj 0
+end
+end
+
+fn lk_rawis p ulong e ulong s view uchar * to bool
+if ne sub e p len s
+ret false
+end
+for xj ulong len s
+if ne get lkraw add p xj get s xj
+ret false
+end
+end
+ret true
+end
+
+fn sp_ledger_check to void
+put lkrn 0 0
+lk_read lkp0 0
+if eq get lkhas 0 0
+ret
+end
+if not lk_utf8 0
+lk_fail lkemrd 0
+end
+lk_guard 0
+end
+
+fn sp_ledger_check_at path view uchar * to void
+put lkrn 0 0
+lk_read path 0
+if eq get lkhas 0 0
+ret
+end
+if not lk_utf8 0
+lk_fail lkemrd 0
+end
+lk_guard 0
+end
+
+note ---------------------------------------------------------------- parse
+
+text lkow0 "drake"
+text lkow1 "desk"
+text lkow2 "coordinator"
+text lkow3 "unassigned"
+text lkc0 "research"
+text lkc1 "symposium"
+text lkc2 "#583"
+text lkc3 "#584"
+text lkc4 "inventory for site"
+text lkc5 "agent:"
+text lkc6 "cascade"
+text lkc7 "decode"
+text lkc8 "tok/s"
+text lkc9 "flashnext"
+text lkc10 "omega#"
+text lkc11 "rig"
+text lkc12 "aienos.com"
+text lkc13 "org profile"
+text lkc14 "readme"
+text lkc15 "dashboard"
+text lkc16 "alpha"
+text lkc17 "install"
+text lkc18 "serve-27b"
+text lkc19 "27b server"
+text lkc20 "imac"
+text lkc21 "horizon"
+text lkc22 "allen"
+text lkc23 "aienos"
+text lkc24 "bundle"
+text lkc25 "merge"
+text lkc26 "queue"
+text lkc27 "label"
+text lkc28 "squash"
+text lkst0 "open"
+text lkst1 "done"
+text lkst2 "dropped"
+text lknsep " | "
+
+fn lk_fo i ulong k ulong to ulong
+ret get lkio add mul i 8 k
+end
+
+fn lk_fl i ulong k ulong to ulong
+ret get lkil add mul i 8 k
+end
+
+note Exact byte equality of an lkcl string with a text.
+fn lk_eqt o ulong l ulong s view uchar * to bool
+if ne l len s
+ret false
+end
+for xj ulong l
+if ne get lkcl add o xj get s xj
+ret false
+end
+end
+ret true
+end
+
+fn lk_lb c uchar to uchar
+if and ge c 65 le c 90
+ret add c 32
+end
+ret c
+end
+
+note to_ascii_lowercase(lkcl[o..o+l]) starts with / contains s (s lowercase).
+fn lk_lat o ulong l ulong p ulong s view uchar * to bool
+if gt add p len s l
+ret false
+end
+for xj ulong len s
+if ne lk_lb get lkcl add add o p xj get s xj
+ret false
+end
+end
+ret true
+end
+
+fn lk_lpre o ulong l ulong s view uchar * to bool
+ret lk_lat o l 0 s
+end
+
+fn lk_lhas o ulong l ulong s view uchar * to bool
+for xp ulong l
+if lk_lat o l xp s
+ret true
+end
+end
+ret eq len s 0
+end
+
+fn lk_okind o ulong l ulong to uchar
+if lk_eqt o l lkow0
+ret 1
+end
+if lk_eqt o l lkow1
+ret 2
+end
+if lk_eqt o l lkow2
+ret 3
+end
+if lk_eqt o l lkow3
+ret 4
+end
+ret 0
+end
+
+note classify(item, owner): stream index into lk_sname order.
+fn lk_class i ulong to uchar
+xo = lk_fo i 4
+xl = lk_fl i 4
+if or or lk_lpre xo xl lkc0 lk_lhas xo xl lkc1 or or lk_lhas xo xl lkc2 lk_lhas xo xl lkc3 lk_lhas xo xl lkc4
+ret 4
+end
+if or or lk_lpre xo xl lkc5 lk_lhas xo xl lkc6 or lk_lhas xo xl lkc7 lk_lhas xo xl lkc8
+ret 0
+end
+if or lk_lhas xo xl lkc9 lk_lhas xo xl lkc10
+ret 0
+end
+if lk_lpre xo xl lkc11
+ret 2
+end
+if or or lk_lhas xo xl lkc12 lk_lhas xo xl lkc13 or lk_lhas xo xl lkc14 lk_lhas xo xl lkc15
+ret 5
+end
+if or or lk_lhas xo xl lkc16 lk_lhas xo xl lkc17 or lk_lhas xo xl lkc18 lk_lhas xo xl lkc19
+ret 1
+end
+if or or lk_lhas xo xl lkc20 lk_lhas xo xl lkc21 or lk_lhas xo xl lkc22 lk_lhas xo xl lkc23
+ret 3
+end
+if lk_lhas xo xl lkc24
+ret 3
+end
+if or eq get lkown i 2 or lk_lpre xo xl lkc25 lk_lpre xo xl lkc26
+ret 6
+end
+if or lk_lhas xo xl lkc27 lk_lhas xo xl lkc28
+ret 6
+end
+ret 7
+end
+
+fn lk_lower o ulong l ulong to void
+for xj ulong l
+put lkcl add o xj lk_lb get lkcl add o xj
+end
+end
+
+note Status code: 1 open, 2 done, 3 dropped, 0 anything else (kept and shown as written).
+fn lk_scode o ulong l ulong to uchar
+if lk_eqt o l lkst0
+ret 1
+end
+if lk_eqt o l lkst1
+ret 2
+end
+if lk_eqt o l lkst2
+ret 3
+end
+ret 0
+end
+
+fn lk_notes i ulong to void
+xo = lk_fo i 6
+xe = add xo lk_fl i 6
+put lknf i get lknn 0
+put lknc i 0
+xs = xo
+while true bound 999999
+xq = lk_nsep xs xe
+lk_trim 1 xs xq
+xa = ulong get lkt 6
+xb = ulong get lkt 7
+if gt xb xa
+xn = get lknn 0
+if ge xn LKNOTES
+lk_fail lkemrow 0
+end
+put lkno xn xa
+put lknl xn sub xb xa
+put lknn 0 add xn 1
+put lknc i add get lknc i 1
+end
+if ge xq xe
+break
+end
+xs = add xq 3
+end
+end
+
+fn lk_nsep p ulong e ulong to ulong
+while le add p 3 e bound 999999
+if eq get lkcl p 32
+if eq get lkcl add p 1 124
+if eq get lkcl add p 2 32
+ret p
+end
+end
+end
+p = add p 1
+end
+ret e
+end
+
+fn lk_row p ulong e ulong line ulong to void
+xi = get lkn 0
+if ge xi LKROWS
+lk_fail lkemrow line
+end
+xs = p
+xk = ulong 0
+while lt xk 8 bound 9
+xf = lk_find 0 xs e 9
+put lkio add mul xi 8 xk lk_clean xs xf
+put lkil add mul xi 8 xk get lklast 0
+xk = add xk 1
+if ge xf e
+break
+end
+xs = add xf 1
+end
+if lt xk 5
+lk_fail lkemrst line
+end
+while lt xk 8 bound 9
+put lkio add mul xi 8 xk get lkcn 0
+put lkil add mul xi 8 xk 0
+xk = add xk 1
+end
+put lkline xi line
+lk_lower lk_fo xi 3 lk_fl xi 3
+put lkstat xi lk_scode lk_fo xi 3 lk_fl xi 3
+put lkown xi lk_okind lk_fo xi 2 lk_fl xi 2
+put lkstrm xi lk_class xi
+lk_notes xi
+lk_rowtime xi
+put lkn 0 add xi 1
+end
+
+fn lk_rowtime i ulong to void
+xo = lk_fo i 7
+xv = lk_utc 1 xo add xo lk_fl i 7
+put lkupd i xv
+put lkupv i get lkok 0
+xo = lk_fo i 1
+xv = lk_utc 1 xo add xo lk_fl i 1
+put lkopd i xv
+put lkopv i get lkok 0
+xat = lk_now
+put lkage i -1
+if ne get lkupv i 0
+put lkage i sub xat get lkupd i
+else
+if ne get lkopv i 0
+put lkage i sub xat get lkopd i
+end
+end
+end
+
+note parse_ledger over the guarded projection: header line skipped, every other line a row.
+fn lk_parse to void
+put lkn 0 0
+put lknn 0 0
+if eq get lkhas 0 0
+ret
+end
+xp = lk_roff 0
+xe = add xp lk_rlen 0
+xl = lk_find 0 xp xe 10
+xs = add xl 1
+xline = ulong 2
+while lt xs xe bound 999999
+xl = lk_find 0 xs xe 10
+lk_row xs xl xline
+xline = add xline 1
+xs = add xl 1
+end
+end
+
+note Rust str::lines: split at LF, drop one CR before it; no empty trailing line.
+fn lk_lend p ulong e ulong to ulong
+xl = lk_find 0 p e 10
+if gt xl p
+if eq get lkraw sub xl 1 13
+ret sub xl 1
+end
+end
+ret xl
+end
+
+fn lk_pulse to void
+put lkpn 0 0
+if eq get lkhas 1 0
+ret
+end
+xp = lk_roff 1
+xe = add xp lk_rlen 1
+while lt xp xe bound 999999
+xl = lk_lend xp xe
+xt = lk_find 0 xp xl 9
+if lt xt xl
+lk_pair xp xt xl
+end
+xp = add lk_find 0 xp xe 10 1
+end
+end
+
+fn lk_pair p ulong t ulong e ulong to void
+xn = get lkpn 0
+if ge xn 1024
+lk_fail lkemrow 0
+end
+put lkpk mul xn 2 lk_clean p t
+put lkpk add mul xn 2 1 get lklast 0
+put lkpv mul xn 2 lk_clean add t 1 e
+put lkpv add mul xn 2 1 get lklast 0
+put lkpn 0 add xn 1
+end
+
+text lkmk0 "checked"
+text lkmk1 "model"
+text lkmk2 "plan"
+text lkmk3 "limit"
+
+note Copy raw [p, e) into lkcl unchanged (trimmed by the caller); length in lklast.
+fn lk_copy p ulong e ulong to ulong
+xo = get lkcn 0
+while lt p e bound 999999
+lk_cput get lkraw p
+p = add p 1
+end
+put lklast 0 sub get lkcn 0 xo
+ret xo
+end
+
+fn lk_rawt p ulong e ulong s view uchar * to bool
+lk_trim 0 p e
+ret lk_rawis ulong get lkt 6 ulong get lkt 7 s
+end
+
+note parse_models_check: last valid checked line wins; model ids in order.
+fn lk_mcheck to void
+put lkmcv 0 0
+put lkmidn 0 0
+if eq get lkhas 2 0
+ret
+end
+xp = lk_roff 2
+xe = add xp lk_rlen 2
+while lt xp xe bound 999999
+xl = lk_lend xp xe
+xt = lk_find 0 xp xl 9
+if lt xt xl
+lk_mline xp xt xl
+end
+xp = add lk_find 0 xp xe 10 1
+end
+end
+
+fn lk_mline p ulong t ulong e ulong to void
+if lk_rawt p t lkmk0
+xv = lk_utc 0 add t 1 e
+if eq get lkok 0 1
+lk_trim 0 add t 1 e
+put lkmc 0 lk_copy ulong get lkt 6 ulong get lkt 7
+put lkmc 1 get lklast 0
+put lkmcv 0 1
+end
+ret
+end
+if lk_rawt p t lkmk1
+lk_trim 0 add t 1 e
+if gt get lkt 7 get lkt 6
+xn = get lkmidn 0
+if ge xn 1024
+lk_fail lkemrow 0
+end
+put lkmid mul xn 2 lk_clean add t 1 e
+put lkmid add mul xn 2 1 get lklast 0
+put lkmidn 0 add xn 1
+end
+end
+end
+
+note Split [p, e) at tabs into lkt-free scratch: field starts/ends in the caller's arrays.
+fn lk_fields p ulong e ulong fs edit ulong 16 fe edit ulong 16 to ulong
+xk = ulong 0
+xs = p
+while lt xk 16 bound 17
+xf = lk_find 0 xs e 9
+put fs xk xs
+put fe xk xf
+xk = add xk 1
+if ge xf e
+break
+end
+xs = add xf 1
+end
+ret xk
+end
+
+note parse_utc(..).map(fmt_utc) into lkcl; 0 length when None.
+fn lk_utcfmt p ulong e ulong to ulong
+xv = lk_utc 0 p e
+if eq get lkok 0 0
+put lklast 0 0
+ret get lkcn 0
+end
+ret lk_fmt xv false
+end
+
+note usage_words (dash false, 40) and dash word() filtering (true, 48); then trim.
+fn lk_words p ulong e ulong dash bool to ulong
+xo = get lkcn 0
+xk = ulong 0
+xmax = ulong 40
+if dash
+xmax = 48
+end
+while lt p e bound 999999
+if ge xk xmax
+break
+end
+xc = get lkraw p
+xn = lk_u8len p e
+if eq xn 1
+if lk_wkeep xc dash
+lk_cput xc
+xk = add xk 1
+end
+end
+if eq xn 0
+xn = 1
+end
+p = add p xn
+end
+lk_trim 1 xo get lkcn 0
+xa = ulong get lkt 6
+xb = ulong get lkt 7
+put lklast 0 sub xb xa
+ret xa
+end
+
+fn lk_wkeep c uchar dash bool to bool
+if or or and ge c 48 le c 57 and ge c 65 le c 90 or and ge c 97 le c 122 eq c 32
+ret true
+end
+if eq c 46
+ret true
+end
+if not dash
+ret false
+end
+if or or eq c 58 eq c 95 or eq c 47 eq c 38
+ret true
+end
+ret or or eq c 40 eq c 41 or eq c 43 eq c 45
+end
+
+note f64 parse, round half away from zero, clamp 0..100 (NaN 0); lkok 0 when it does not parse.
+fn lk_pct p ulong e ulong to ulong
+lk_trim 0 p e
+xs = ulong get lkt 6
+xe = ulong get lkt 7
+put lkok 0 0
+if ge xs xe
+ret 0
+end
+xneg = false
+xc = get lkraw xs
+if or eq xc 43 eq xc 45
+xneg = eq xc 45
+xs = add xs 1
+end
+if lk_pinf xs xe
+put lkok 0 1
+if xneg
+ret 0
+end
+ret 100
+end
+if lk_pnan xs xe
+put lkok 0 1
+ret 0
+end
+xv = lk_pdec xs xe
+if xneg
+ret 0
+end
+ret xv
+end
+
+text lkfinf "inf"
+text lkfinfy "infinity"
+text lkfnan "nan"
+
+fn lk_rawci p ulong e ulong s view uchar * to bool
+if ne sub e p len s
+ret false
+end
+for xj ulong len s
+if ne lk_lb get lkraw add p xj get s xj
+ret false
+end
+end
+ret true
+end
+
+fn lk_pinf p ulong e ulong to bool
+ret or lk_rawci p e lkfinf lk_rawci p e lkfinfy
+end
+
+fn lk_pnan p ulong e ulong to bool
+ret lk_rawci p e lkfnan
+end
+
+note Decimal digits[.digits][(e|E)[+-]digits]; value from the integer part and first fraction digit.
+fn lk_pdec p ulong e ulong to ulong
+xdg = new uchar 512 0
+xnd = ulong 0
+xip = long 0
+xdot = false
+while lt p e bound 999999
+xc = get lkraw p
+if and ge xc 48 le xc 57
+if lt xnd 512
+put xdg xnd sub xc 48
+xnd = add xnd 1
+end
+if not xdot
+xip = add xip 1
+end
+else
+if and eq xc 46 not xdot
+xdot = true
+else
+break
+end
+end
+p = add p 1
+end
+if eq xnd 0
+ret 0
+end
+if lt p e
+xc = get lkraw p
+if not or eq xc 101 eq xc 69
+ret 0
+end
+xx = lk_pint 0 add p 1 e
+if eq get lkok 0 0
+ret 0
+end
+xip = add xip xx
+end
+put lkok 0 1
+ret lk_round view xdg xnd xip
+end
+
+fn lk_rinp ip long nd ulong to bool
+if lt ip 0
+ret false
+end
+ret lt ulong ip nd
+end
+
+fn lk_round dg view uchar 512 nd ulong ip long to ulong
+xv = ulong 0
+xi = long 0
+while lt xi ip bound 999999
+if lt ulong xi nd
+xv = add mul xv 10 ulong get dg ulong xi
+else
+xv = mul xv 10
+end
+if gt xv 100
+ret 100
+end
+xi = add xi 1
+end
+if lk_rinp ip nd
+if ge get dg ulong ip 5
+xv = add xv 1
+end
+end
+if gt xv 100
+ret 100
+end
+ret xv
+end
+
+note claude-usage.tsv: checked/plan/limit rows; limits capped at 1024 (refusal beyond).
+fn lk_usage to void
+put lkun 0 0
+put lkuv 0 0
+put lkuc 1 0
+put lkup 1 0
+if eq get lkhas 3 0
+ret
+end
+xp = lk_roff 3
+xe = add xp lk_rlen 3
+xfs = new ulong 16 0
+xfe = new ulong 16 0
+while lt xp xe bound 999999
+xl = lk_lend xp xe
+xn = lk_fields xp xl xfs xfe
+lk_uline xn xfs xfe
+xp = add lk_find 0 xp xe 10 1
+end
+if and ne get lkuc 1 0 gt get lkun 0 0
+put lkuv 0 1
+end
+end
+
+text lkuk0 "session"
+text lkuk1 "weekly_all"
+text lkuk2 "weekly_scoped"
+
+fn lk_uline n ulong fs view ulong 16 fe view ulong 16 to void
+if lt n 2
+ret
+end
+if lk_rawis get fs 0 get fe 0 lkmk0
+put lkuc 0 lk_utcfmt get fs 1 get fe 1
+put lkuc 1 get lklast 0
+ret
+end
+if lk_rawis get fs 0 get fe 0 lkmk2
+put lkup 0 lk_words get fs 1 get fe 1 false
+put lkup 1 get lklast 0
+ret
+end
+if lt n 4
+ret
+end
+if lk_rawis get fs 0 get fe 0 lkmk3
+lk_ulimit n fs fe
+end
+end
+
+fn lk_ulimit n ulong fs view ulong 16 fe view ulong 16 to void
+xpc = lk_pct get fs 2 get fe 2
+if eq get lkok 0 0
+ret
+end
+xso = get lkcn 0
+xsl = ulong 0
+if gt n 4
+xso = lk_words get fs 4 get fe 4 false
+xsl = get lklast 0
+end
+xk = uchar 255
+if lk_rawis get fs 1 get fe 1 lkuk0
+xk = 0
+end
+if lk_rawis get fs 1 get fe 1 lkuk1
+xk = 1
+end
+if and lk_rawis get fs 1 get fe 1 lkuk2 gt xsl 0
+xk = 2
+end
+if eq xk 255
+ret
+end
+xi = get lkun 0
+if ge xi 1024
+lk_fail lkemrow 0
+end
+put lkuk xi xk
+put lkus mul xi 2 xso
+put lkus add mul xi 2 1 xsl
+put lkupc xi xpc
+put lkur mul xi 2 lk_utcfmt get fs 3 get fe 3
+put lkur add mul xi 2 1 get lklast 0
+put lkun 0 add xi 1
+end
+
+note ---------------------------------------------------------------- dash inputs
+
+text lkpv0 "Anthropic"
+text lkpv1 "OpenAI Codex"
+text lkpv2 "Google Antigravity"
+text lkpv3 "xAI Grok"
+text lkwin0 "5h"
+text lkwin1 "week"
+text lkexh "exhausted"
+text lkrk0 "role"
+text lkrk1 "agent"
+text lkrk2 "seat"
+text lkadv "advisor"
+
+fn lk_hexb c uchar to bool
+ret or and ge c 48 le c 57 or and ge c 97 le c 102 and ge c 65 le c 70
+end
+
+note looks_private: '@', an 8hex-4hex run, or a token ending in a mail domain with a letter host.
+fn lk_priv p ulong e ulong to bool
+for xi ulong sub e p
+if eq get lkraw add p xi 64
+ret true
+end
+end
+if gt sub e p 12
+for xj ulong sub sub e p 12
+if lk_uuidish add p xj
+ret true
+end
+end
+end
+ret lk_dom p e
+end
+
+fn lk_uuidish p ulong to bool
+for xj ulong 8
+if not lk_hexb get lkraw add p xj
+ret false
+end
+end
+if ne get lkraw add p 8 45
+ret false
+end
+for xk ulong 4
+if not lk_hexb get lkraw add add p 9 xk
+ret false
+end
+end
+ret true
+end
+
+fn lk_dtok c uchar to bool
+ret or or and ge c 48 le c 57 and ge c 65 le c 90 or and ge c 97 le c 122 or eq c 46 eq c 45
+end
+
+fn lk_dom p ulong e ulong to bool
+xs = p
+while lt xs e bound 999999
+xt = xs
+while lt xt e bound 999999
+if not lk_dtok get lkraw xt
+break
+end
+xt = add xt 1
+end
+if lk_domt xs xt
+ret true
+end
+xt = add xt lk_skip1 xt e
+xs = xt
+end
+ret false
+end
+
+fn lk_skip1 p ulong e ulong to ulong
+if ge p e
+ret 1
+end
+xn = lk_u8len p e
+if eq xn 0
+ret 1
+end
+ret xn
+end
+
+text lktld0 "com"
+text lktld1 "org"
+text lktld2 "net"
+text lktld3 "io"
+text lktld4 "ai"
+text lktld5 "dev"
+text lktld6 "co"
+text lktld7 "us"
+
+fn lk_domt p ulong e ulong to bool
+if or or lk_tld p e lktld0 lk_tld p e lktld1 or lk_tld p e lktld2 lk_tld p e lktld3
+ret true
+end
+ret or or lk_tld p e lktld4 lk_tld p e lktld5 or lk_tld p e lktld6 lk_tld p e lktld7
+end
+
+note token ends ".tld" (ASCII case-insensitive) and the host before it has an ASCII letter.
+fn lk_tld p ulong e ulong s view uchar * to bool
+xn = add len s 1
+if gt xn sub e p
+ret false
+end
+xd = sub e xn
+if ne get lkraw xd 46
+ret false
+end
+if not lk_rawci add xd 1 e s
+ret false
+end
+while lt p xd bound 999999
+xc = lk_lb get lkraw p
+if and ge xc 97 le xc 122
+ret true
+end
+p = add p 1
+end
+ret false
+end
+
+note dash word(): None when private; the kept string otherwise. lkok 0 for None.
+fn lk_dword p ulong e ulong to ulong
+if lk_priv p e
+put lkok 0 0
+put lklast 0 0
+ret 0
+end
+xo = lk_words p e true
+put lkok 0 1
+ret xo
+end
+
+fn lk_pvidx p ulong e ulong to uchar
+if lk_rawis p e lkpv0
+ret 0
+end
+if lk_rawis p e lkpv1
+ret 1
+end
+if lk_rawis p e lkpv2
+ret 2
+end
+if lk_rawis p e lkpv3
+ret 3
+end
+ret 255
+end
+
+note u32 parse after trim: optional '+', digits, at most 4294967295.
+fn lk_pu32 p ulong e ulong to ulong
+lk_trim 0 p e
+xs = ulong get lkt 6
+xe = ulong get lkt 7
+put lkok 0 0
+if and lt xs xe eq get lkraw xs 43
+xs = add xs 1
+end
+if ge xs xe
+ret 0
+end
+xv = ulong 0
+while lt xs xe bound 999999
+xc = get lkraw xs
+if or lt xc 48 gt xc 57
+ret 0
+end
+xv = add mul xv 10 ulong sub xc 48
+if gt xv 4294967295
+ret 0
+end
+xs = add xs 1
+end
+put lkok 0 1
+ret xv
+end
+
+fn lk_accts to void
+put lkann 0 0
+put lkdcv 0 0
+if eq get lkhas 4 0
+ret
+end
+xp = lk_roff 4
+xe = add xp lk_rlen 4
+xfs = new ulong 16 0
+xfe = new ulong 16 0
+while lt xp xe bound 999999
+xl = lk_lend xp xe
+xn = lk_fields xp xl xfs xfe
+lk_aline xn xfs xfe
+xp = add lk_find 0 xp xe 10 1
+end
+end
+
+fn lk_aline n ulong fs view ulong 16 fe view ulong 16 to void
+if and ge n 2 lk_rawis get fs 0 get fe 0 lkmk0
+put lkdc 0 lk_utcfmt get fs 1 get fe 1
+put lkdc 1 get lklast 0
+put lkdcv 0 0
+if gt get lklast 0 0
+put lkdcv 0 1
+end
+ret
+end
+if lt n 9
+ret
+end
+if not lk_rawis get fs 0 get fe 0 lkmk3
+ret
+end
+xpv = lk_pvidx get fs 1 get fe 1
+if eq xpv 255
+ret
+end
+xan = lk_pu32 get fs 2 get fe 2
+if eq get lkok 0 0
+ret
+end
+lk_alimit n fs fe xpv xan
+end
+
+fn lk_alimit n ulong fs view ulong 16 fe view ulong 16 pv uchar an ulong to void
+xpc = lk_pct get fs 6 get fe 6
+if eq get lkok 0 0
+ret
+end
+xw = uchar 255
+if lk_rawis get fs 4 get fe 4 lkwin0
+xw = 0
+end
+if lk_rawis get fs 4 get fe 4 lkwin1
+xw = 1
+end
+if eq xw 255
+ret
+end
+xlo = lk_dword get fs 5 get fe 5
+if eq get lkok 0 0
+ret
+end
+xll = get lklast 0
+xpo = lk_dword get fs 3 get fe 3
+if eq get lkok 0 0
+ret
+end
+xi = get lkann 0
+if ge xi 1024
+lk_fail lkemrow 0
+end
+lk_apput xi xpo xlo xll
+lk_alast xi fs fe pv an
+put lkaw xi xw
+put lkapc xi xpc
+put lkann 0 add xi 1
+end
+
+note lk_apput: the four lkapl/lkal cells of limit row i (split out of lk_alimit for registers).
+fn lk_apput i ulong po ulong lo ulong ll ulong to void
+put lkapl mul i 2 po
+put lkapl add mul i 2 1 get lklast 0
+put lkal mul i 2 lo
+put lkal add mul i 2 1 ll
+end
+
+fn lk_alast i ulong fs view ulong 16 fe view ulong 16 pv uchar an ulong to void
+put lkap i pv
+put lkan i an
+put lkar mul i 2 lk_utcfmt get fs 7 get fe 7
+put lkar add mul i 2 1 get lklast 0
+put lkax i 0
+if lk_rawis get fs 8 get fe 8 lkexh
+put lkax i 1
+end
+end
+
+fn lk_routes to void
+put lkrcnt 0 0
+put lkseat 0 0
+if eq get lkhas 5 0
+ret
+end
+xp = lk_roff 5
+xe = add xp lk_rlen 5
+xfs = new ulong 16 0
+xfe = new ulong 16 0
+while lt xp xe bound 999999
+xl = lk_lend xp xe
+xn = lk_fields xp xl xfs xfe
+if ge xn 3
+lk_rline xfs xfe
+end
+xp = add lk_find 0 xp xe 10 1
+end
+end
+
+fn lk_rline fs view ulong 16 fe view ulong 16 to void
+xno = lk_dword get fs 1 get fe 1
+if eq get lkok 0 0
+ret
+end
+xnl = get lklast 0
+xmo = lk_dword get fs 2 get fe 2
+if eq get lkok 0 0
+ret
+end
+xml = get lklast 0
+if or eq xnl 0 eq xml 0
+ret
+end
+xk = uchar 255
+if lk_rawis get fs 0 get fe 0 lkrk0
+xk = 0
+end
+if lk_rawis get fs 0 get fe 0 lkrk1
+xk = 1
+end
+if lk_rawis get fs 0 get fe 0 lkrk2
+xk = 2
+put lkseat 0 1
+end
+if eq xk 255
+ret
+end
+xi = get lkrcnt 0
+if ge xi 1024
+lk_fail lkemrow 0
+end
+put lkrk xi xk
+put lkrnm mul xi 2 xno
+put lkrnm add mul xi 2 1 xnl
+put lkrmd mul xi 2 xmo
+put lkrmd add mul xi 2 1 xml
+put lkrcnt 0 add xi 1
+end
+
+note ---------------------------------------------------------------- emit
+
+fn lk_e o ulong l ulong to void
+for xj ulong l
+sr_escape get lkcl add o xj
+end
+end
+
+fn lk_r o ulong l ulong to void
+for xj ulong l
+sr_byte get lkcl add o xj
+end
+end
+
+fn lk_un v ulong to void
+sr_num v
+end
+
+fn lk_ln v long to void
+if lt v 0
+sr_byte 45
+sr_num ulong neg v
+ret
+end
+sr_num ulong v
+end
+
+fn lk_ef i ulong k ulong to void
+lk_e lk_fo i k lk_fl i k
+end
+
+note keeper_name(): Renda to Keeper in prose, identifiers untouched; output HTML-escaped.
+fn lk_k o ulong l ulong to void
+xi = ulong 0
+while lt xi l bound 999999
+xw = lk_khit o l xi
+if eq xw 0
+sr_escape get lkcl add o xi
+xi = add xi 1
+else
+lk_kout xw
+xi = add xi 5
+end
+end
+end
+
+text lkkw0 "KEEPER"
+text lkkw1 "Keeper"
+text lkkw2 "keeper"
+text lkkrn "renda"
+text lkkRN "RENDA"
+
+fn lk_kout w uchar to void
+if eq w 1
+sr_raw lkkw0
+ret
+end
+if eq w 2
+sr_raw lkkw1
+ret
+end
+sr_raw lkkw2
+end
+
+fn lk_up c uchar to bool
+ret and ge c 65 le c 90
+end
+
+fn lk_lo c uchar to bool
+ret and ge c 97 le c 122
+end
+
+fn lk_dg c uchar to bool
+ret and ge c 48 le c 57
+end
+
+note 0 no rename at i; 1 KEEPER, 2 Keeper, 3 keeper.
+fn lk_khit o ulong l ulong i ulong to uchar
+if gt add i 5 l
+ret 0
+end
+if not lk_lat o l i lkkrn
+ret 0
+end
+xcap = eq get lkcl add o i 82
+if gt i 0
+if not lk_kbef get lkcl sub add o i 1 xcap
+ret 0
+end
+end
+if lt add i 5 l
+if not lk_kaft o l add i 5 xcap
+ret 0
+end
+end
+if lk_eqat o i lkkRN
+ret 1
+end
+if xcap
+ret 2
+end
+ret 3
+end
+
+fn lk_eqat o ulong i ulong s view uchar * to bool
+for xj ulong len s
+if ne get lkcl add add o i xj get s xj
+ret false
+end
+end
+ret true
+end
+
+fn lk_kbef p uchar cap bool to bool
+if or or lk_up p lk_dg p or or eq p 47 eq p 46 or or eq p 95 eq p 126 eq p 45
+ret false
+end
+ret or not lk_lo p cap
+end
+
+fn lk_kaft o ulong l ulong j ulong cap bool to bool
+xn = get lkcl add o j
+if or eq xn 47 eq xn 95
+ret false
+end
+if eq xn 46
+if lt add j 1 l
+xt = get lkcl add add o j 1
+ret not or or lk_up xt lk_lo xt lk_dg xt
+end
+ret true
+end
+if lk_lo xn
+ret false
+end
+if lk_up xn
+ret cap
+end
+ret true
+end
+
+note Box footer: GitHub link stretched over its box (boxlink::foot_labelled).
+text lkfa0 "<a class=\"box-link\" href=\""
+text lkfa1 "<a class=\"box-link box-link-source\" href=\""
+text lkfa2 "\" target=\"_blank\" rel=\"noopener noreferrer\">"
+text lkfa3 " <span class=\"box-arrow\" aria-hidden=\"true\">↗</span></a>"
+text lkledu "https://github.com/aien-dev/aienos.com/blob/data/now/now.tsv"
+text lkusgu "https://github.com/aien-dev/aienos.com/blob/data/now/claude-usage.tsv"
+text lkhl "#L"
+text lkfl0 "Ledger line "
+text lkfl1 " on GitHub"
+text lkfl2 "Plan: ledger "
+
+fn lk_lfoot i ulong to void
+sr_raw lkfa0
+sr_raw lkledu
+sr_raw lkhl
+lk_un get lkline i
+sr_raw lkfa2
+sr_raw lkfl0
+lk_un get lkline i
+sr_raw lkfl1
+sr_raw lkfa3
+end
+
+fn lk_tfoot href view uchar * label view uchar * to void
+sr_raw lkfa0
+sr_raw href
+sr_raw lkfa2
+sr_raw label
+sr_raw lkfa3
+end
+
+note ---------------------------------------------------------------- words
+
+text lkag0 "age unknown"
+text lkag1 "just now"
+text lkag2 " min ago"
+text lkag3 "1 hour ago"
+text lkag4 " hours ago"
+text lkag5 "1 day ago"
+text lkag6 " days ago"
+text lkwm0 "hot"
+text lkwm1 "warm"
+text lkwm2 "cool"
+text lkwm3 "cold"
+
+fn lk_age a long to void
+if lt a 0
+sr_raw lkag0
+ret
+end
+xm = div a 60
+if lt xm 1
+sr_raw lkag1
+ret
+end
+if lt xm 60
+lk_ln xm
+sr_raw lkag2
+ret
+end
+if lt xm 2160
+xh = div xm 60
+if eq xh 1
+sr_raw lkag3
+ret
+end
+lk_ln xh
+sr_raw lkag4
+ret
+end
+xd = div xm 1440
+if eq xd 1
+sr_raw lkag5
+ret
+end
+lk_ln xd
+sr_raw lkag6
+end
+
+fn lk_warm a long to void
+if lt a 0
+sr_raw lkwm3
+ret
+end
+if lt a 1800
+sr_raw lkwm0
+ret
+end
+if lt a 7200
+sr_raw lkwm1
+ret
+end
+if lt a 86400
+sr_raw lkwm2
+ret
+end
+sr_raw lkwm3
+end
+
+text lkkd0 "agent"
+text lkkd1 "operator"
+text lkkd2 "desk"
+text lkkd3 "coordinator"
+text lkkd4 "unassigned"
+
+fn lk_kind k uchar to void
+if eq k 1
+sr_raw lkkd1
+ret
+end
+if eq k 2
+sr_raw lkkd2
+ret
+end
+if eq k 3
+sr_raw lkkd3
+ret
+end
+if eq k 4
+sr_raw lkkd4
+ret
+end
+sr_raw lkkd0
+end
+
+text lksn0 "Engine speed"
+text lksn1 "Alpha release"
+text lksn2 "AIEN Rig"
+text lksn3 "AienOS on the iMac"
+text lksn4 "Research"
+text lksn5 "Public record"
+text lksn6 "PR desk"
+text lksn7 "Infrastructure"
+text lksl0 "engine-speed"
+text lksl1 "alpha-release"
+text lksl2 "aien-rig"
+text lksl3 "aienos-on-the-imac"
+text lksl4 "research"
+text lksl5 "public-record"
+text lksl6 "pr-desk"
+text lksl7 "infrastructure"
+
+fn lk_sname s uchar to void
+if eq s 0
+sr_raw lksn0
+end
+if eq s 1
+sr_raw lksn1
+end
+if eq s 2
+sr_raw lksn2
+end
+if eq s 3
+sr_raw lksn3
+end
+if eq s 4
+sr_raw lksn4
+end
+if eq s 5
+sr_raw lksn5
+end
+if eq s 6
+sr_raw lksn6
+end
+if eq s 7
+sr_raw lksn7
+end
+end
+
+fn lk_sslug s uchar to void
+if eq s 0
+sr_raw lksl0
+end
+if eq s 1
+sr_raw lksl1
+end
+if eq s 2
+sr_raw lksl2
+end
+if eq s 3
+sr_raw lksl3
+end
+if eq s 4
+sr_raw lksl4
+end
+if eq s 5
+sr_raw lksl5
+end
+if eq s 6
+sr_raw lksl6
+end
+if eq s 7
+sr_raw lksl7
+end
+end
+
+note ---------------------------------------------------------------- owner chip
+
+text lkol0 "Drake"
+text lkol1 "PR desk"
+text lkol2 "Coordinator"
+text lkol3 "Unassigned"
+text lkol4 "Keeper"
+text lkol5 "Keeper "
+text lkol6 "agent "
+text lkokp "keeper"
+text lksa "sa"
+
+note Length of the keeper/renda prefix when the rest is all digits, else 0.
+fn lk_keepn i ulong to ulong
+xo = lk_fo i 2
+xl = lk_fl i 2
+xp = ulong 0
+if lk_eqpre xo xl lkokp
+xp = 6
+else
+if lk_eqpre xo xl lkkrn
+xp = 5
+end
+end
+if eq xp 0
+ret 0
+end
+for xj ulong sub xl xp
+if not lk_dg get lkcl add add xo xp xj
+ret 0
+end
+end
+ret xp
+end
+
+fn lk_eqpre o ulong l ulong s view uchar * to bool
+if lt l len s
+ret false
+end
+ret lk_eqat o 0 s
+end
+
+fn lk_iskeep i ulong to bool
+if ne get lkown i 0
+ret false
+end
+ret ne lk_keepn i 0
+end
+
+fn lk_olabel i ulong to void
+xk = get lkown i
+if eq xk 1
+sr_raw lkol0
+ret
+end
+if eq xk 2
+sr_raw lkol1
+ret
+end
+if eq xk 3
+sr_raw lkol2
+ret
+end
+if eq xk 4
+sr_raw lkol3
+ret
+end
+xp = lk_keepn i
+if ne xp 0
+lk_okeeper i xp
+ret
+end
+sr_raw lkol6
+lk_oagent i
+end
+
+fn lk_okeeper i ulong p ulong to void
+xo = lk_fo i 2
+xl = lk_fl i 2
+if eq xl p
+sr_raw lkol4
+ret
+end
+sr_raw lkol5
+lk_e add xo p sub xl p
+end
+
+note sa-3-dfa217d1 reads "dfa217"; any other owner stays as written.
+fn lk_oagent i ulong to void
+xo = lk_fo i 2
+xl = lk_fl i 2
+xe = add xo xl
+xa = lk_find 1 xo xe 45
+if and lt xa xe lk_eqt xo sub xa xo lksa
+xb = lk_find 1 add xa 1 xe 45
+if lt xb xe
+xc = lk_find 1 add xb 1 xe 45
+xs = add xb 1
+xn = sub xc xs
+if gt xn 6
+xn = 6
+end
+lk_e xs xn
+ret
+end
+end
+lk_e xo xl
+end
+
+text lkch0 "<span class=\"now-owner now-owner-"
+text lkch1 "\">"
+text lkch2 "<img class=\"now-owner-dog\" src=\"/assets/keeper.svg\" alt=\"\" width=\"42\" height=\"14\">"
+text lkspc "</span>"
+
+fn lk_chip i ulong to void
+sr_raw lkch0
+lk_kind get lkown i
+sr_raw lkch1
+if lk_iskeep i
+sr_raw lkch2
+end
+lk_olabel i
+sr_raw lkspc
+end
+
+note ---------------------------------------------------------------- linkify
+
+text lkrf0 "omega-mv"
+text lkrf1 "aien-sovereign-core-mv"
+text lkrf2 "aienux"
+text lkrf3 "aien-architecture-mv"
+text lkrf4 "physics-mv"
+text lkrf5 "aien-protocols-mv"
+text lkrf6 "benchmarks-mv"
+text lkrf7 "aien-rig"
+text lkrf8 "aienos.com"
+text lkrf9 ".github"
+text lkrs0 "omega"
+text lkrs1 "sc"
+text lkrs2 "aien-sovereign-core"
+text lkrs3 "aienos"
+text lkrs4 "aienos-mv"
+text lkrs5 "arch"
+text lkrs6 "aien-architecture"
+text lkrs7 "physics"
+text lkrs8 "aien-protocols"
+text lkrs9 "benchmarks"
+text lkadv0 "aien-dev/"
+text lkevp "evidence/"
+text lkhttps "https://"
+text lkhttp "http://"
+text lkdots ".."
+text lkgh "https://github.com/aien-dev/"
+text lkgi "/issues/"
+text lkgc "/commit/"
+text lkgt "/tree/"
+text lkslash "/"
+text lkref0 "<a class=\"now-ref\" href=\""
+text lkref1 "</a>"
+
+fn lk_rfull r uchar to void
+if eq r 0
+sr_raw lkrf0
+end
+if eq r 1
+sr_raw lkrf1
+end
+if eq r 2
+sr_raw lkrf2
+end
+if eq r 3
+sr_raw lkrf3
+end
+if eq r 4
+sr_raw lkrf4
+end
+if eq r 5
+sr_raw lkrf5
+end
+if eq r 6
+sr_raw lkrf6
+end
+if eq r 7
+sr_raw lkrf7
+end
+if eq r 8
+sr_raw lkrf8
+end
+if eq r 9
+sr_raw lkrf9
+end
+end
+
+note repo_name(short) over lkcl [a, b): full-name index, 255 when unknown.
+fn lk_repo a ulong b ulong to uchar
+xl = sub b a
+if or lk_eqt a xl lkrs0 lk_eqt a xl lkrf0
+ret 0
+end
+if or or lk_eqt a xl lkrs1 lk_eqt a xl lkrs2 lk_eqt a xl lkrf1
+ret 1
+end
+if or or lk_eqt a xl lkrf2 lk_eqt a xl lkrs3 lk_eqt a xl lkrs4
+ret 2
+end
+if or or lk_eqt a xl lkrs5 lk_eqt a xl lkrs6 lk_eqt a xl lkrf3
+ret 3
+end
+if or lk_eqt a xl lkrs7 lk_eqt a xl lkrf4
+ret 4
+end
+if or lk_eqt a xl lkrs8 lk_eqt a xl lkrf5
+ret 5
+end
+if or lk_eqt a xl lkrs9 lk_eqt a xl lkrf6
+ret 6
+end
+if lk_eqt a xl lkrf7
+ret 7
+end
+if lk_eqt a xl lkrf8
+ret 8
+end
+if lk_eqt a xl lkrf9
+ret 9
+end
+ret 255
+end
+
+fn lk_drepo s uchar to uchar
+if or eq s 0 eq s 4
+ret 0
+end
+if eq s 1
+ret 1
+end
+if eq s 2
+ret 7
+end
+if eq s 3
+ret 2
+end
+if eq s 5
+ret 8
+end
+ret 255
+end
+
+fn lk_tokc c uchar to bool
+if or or lk_up c lk_lo c lk_dg c
+ret true
+end
+ret or or eq c 46 eq c 95 or or eq c 47 eq c 64 or eq c 35 eq c 45
+end
+
+fn lk_tpush s ulong e ulong to void
+xn = get lktn 0
+if ge xn LKTOK
+lk_fail lkemfld 0
+end
+put lkts xn s
+put lkte xn e
+put lktn 0 add xn 1
+end
+
+fn lk_tokens o ulong l ulong to void
+put lktn 0 0
+xs = ulong 0
+xin = false
+for xi ulong l
+xc = get lkcl add o xi
+if lk_tokc xc
+if not xin
+xs = add o xi
+xin = true
+end
+else
+if xin
+lk_tpush xs add o xi
+xin = false
+end
+end
+end
+if xin
+lk_tpush xs add o l
+end
+end
+
+fn lk_starts s ulong e ulong t view uchar * to bool
+if lt sub e s len t
+ret false
+end
+ret lk_eqat s 0 t
+end
+
+note A URL runs to the next White_Space, ')', '"' or '>'.
+fn lk_urlend s ulong e ulong to ulong
+while lt s e bound 999999
+xc = get lkcl s
+if or eq xc 41 or eq xc 34 eq xc 62
+ret s
+end
+if ne lk_wsat 1 s e 0
+ret s
+end
+s = add s 1
+end
+ret e
+end
+
+fn lk_punct c uchar to bool
+ret or or eq c 46 eq c 44 or eq c 59 eq c 58
+end
+
+note Tokens: URL extension, then trailing .,;: stripped, empties dropped; in place.
+fn lk_tfix o ulong l ulong to void
+xe = add o l
+xw = ulong 0
+xskip = o
+for xr ulong get lktn 0
+xs = get lkts xr
+xt = get lkte xr
+if ge xs xskip
+if or lk_starts xs xe lkhttps lk_starts xs xe lkhttp
+xt = lk_urlend xs xe
+xskip = xt
+end
+while gt xt xs bound 999999
+if not lk_punct get lkcl sub xt 1
+break
+end
+xt = sub xt 1
+end
+if gt xt xs
+put lkts xw xs
+put lkte xw xt
+xw = add xw 1
+end
+end
+end
+put lktn 0 xw
+end
+
+fn lk_last s ulong e ulong c uchar to ulong
+xp = e
+while gt xp s bound 999999
+xp = sub xp 1
+if eq get lkcl xp c
+ret xp
+end
+end
+ret e
+end
+
+fn lk_alldg s ulong e ulong to bool
+if ge s e
+ret false
+end
+while lt s e bound 999999
+if not lk_dg get lkcl s
+ret false
+end
+s = add s 1
+end
+ret true
+end
+
+fn lk_issha s ulong e ulong to bool
+xn = sub e s
+if or lt xn 7 gt xn 40
+ret false
+end
+while lt s e bound 64
+xc = get lkcl s
+if not or lk_dg xc and ge xc 97 le xc 102
+ret false
+end
+s = add s 1
+end
+ret true
+end
+
+fn lk_isbr s ulong e ulong to bool
+if ge s e
+ret false
+end
+if or eq get lkcl s 47 eq get lkcl sub e 1 47
+ret false
+end
+while lt s e bound 999999
+xc = get lkcl s
+if not or or lk_lo xc lk_dg xc or or eq xc 47 eq xc 46 or eq xc 95 eq xc 45
+ret false
+end
+s = add s 1
+end
+ret true
+end
+
+fn lk_hasdd s ulong e ulong to bool
+while lt add s 1 e bound 999999
+if and eq get lkcl s 46 eq get lkcl add s 1 46
+ret true
+end
+s = add s 1
+end
+ret false
+end
+
+note Kind: 0 none, 1 issue, 2 commit, 3 url, 4 evidence, 5 repository name (sets the repo).
+fn lk_tclass k ulong to void
+xs = get lkts k
+xe = get lkte k
+put lktk k 0
+put lktr k 255
+if or lk_starts xs xe lkhttps lk_starts xs xe lkhttp
+put lktk k 3
+ret
+end
+xh = lk_last xs xe 35
+if lt xh xe
+lk_tissue k xs xh xe
+ret
+end
+xa = lk_find 1 xs xe 64
+if lt xa xe
+if and lk_isbr xs xa lk_issha add xa 1 xe
+put lktk k 2
+end
+ret
+end
+if lk_starts xs xe lkevp
+if and gt sub xe xs 9 not lk_hasdd add xs 9 xe
+put lktk k 4
+end
+ret
+end
+xr = lk_repo xs xe
+if ne xr 255
+put lktk k 5
+put lktr k xr
+end
+end
+
+fn lk_tissue k ulong s ulong h ulong e ulong to void
+xs = s
+if lk_starts s h lkadv0
+xs = add s 9
+end
+if not lk_alldg add h 1 e
+ret
+end
+xr = lk_repo xs h
+if ne xr 255
+put lktk k 1
+put lktr k xr
+end
+end
+
+note Resolve commit repositories left to right and evidence paths against the first commit.
+fn lk_tresolve s uchar to void
+xlast = lk_drepo s
+put lkfc 0 0
+for xk ulong get lktn 0
+lk_tclass xk
+xt = get lktk xk
+if eq xt 5
+xlast = get lktr xk
+put lktk xk 0
+end
+if eq xt 2
+if eq xlast 255
+put lktk xk 0
+else
+put lktr xk xlast
+lk_tfirst xk xlast
+end
+end
+end
+for xj ulong get lktn 0
+if eq get lktk xj 4
+if eq get lkfc 0 0
+put lktk xj 0
+end
+end
+end
+end
+
+fn lk_tfirst k ulong r uchar to void
+if ne get lkfc 0 0
+ret
+end
+xs = get lkts k
+put lkfc 0 1
+put lkfc 1 ulong r
+put lkfc 2 xs
+put lkfc 3 lk_find 1 xs get lkte k 64
+end
+
+fn lk_thref k ulong to void
+xt = get lktk k
+xs = get lkts k
+xe = get lkte k
+if eq xt 3
+lk_e xs sub xe xs
+ret
+end
+sr_raw lkgh
+if eq xt 4
+lk_evhref xs xe
+ret
+end
+lk_rfull get lktr k
+if eq xt 1
+sr_raw lkgi
+xh = lk_last xs xe 35
+lk_e add xh 1 sub sub xe xh 1
+ret
+end
+sr_raw lkgc
+xa = lk_find 1 xs xe 64
+lk_e add xa 1 sub sub xe xa 1
+end
+
+fn lk_evhref s ulong e ulong to void
+lk_rfull uchar get lkfc 1
+sr_raw lkgt
+xb = get lkfc 2
+lk_e xb sub get lkfc 3 xb
+sr_raw lkslash
+while gt e s bound 999999
+if ne get lkcl sub e 1 47
+break
+end
+e = sub e 1
+end
+lk_e s sub e s
+end
+
+note A note with its references linked; plain runs pass through keeper_name.
+fn lk_note o ulong l ulong s uchar to void
+lk_tokens o l
+lk_tfix o l
+lk_tresolve s
+xcur = o
+for xk ulong get lktn 0
+if ne get lktk xk 0
+xs = get lkts xk
+xe = get lkte xk
+if gt xs xcur
+lk_k xcur sub xs xcur
+end
+sr_raw lkref0
+lk_thref xk
+sr_raw lkfa2
+lk_e xs sub xe xs
+sr_raw lkref1
+xcur = xe
+end
+end
+if lt xcur add o l
+lk_k xcur sub add o l xcur
+end
+end
+
+fn lk_lastnote i ulong to void
+xn = add get lknf i sub get lknc i 1
+lk_note get lkno xn get lknl xn get lkstrm i
+end
+
+note ---------------------------------------------------------------- item sets
+
+fn lk_cur i ulong to bool
+xa = get lkage i
+ret and ge xa 0 lt xa 86400
+end
+
+note 1 operator, 2 queued, 3 moving, 4 moving now, 5 moving quiet, 6 queued now,
+note 7 queued quiet, 8 settled, 9 settled now, 10 open.
+fn lk_in i ulong set uchar to bool
+xs = get lkstat i
+if eq set 8
+ret or eq xs 2 eq xs 3
+end
+if eq set 9
+ret and or eq xs 2 eq xs 3 lk_cur i
+end
+if ne xs 1
+ret false
+end
+if eq set 10
+ret true
+end
+xo = eq get lkown i 1
+if eq set 1
+ret xo
+end
+if xo
+ret false
+end
+xq = or eq get lkown i 4 eq get lknc i 0
+if eq set 2
+ret xq
+end
+if eq set 3
+ret not xq
+end
+if eq set 4
+ret and not xq lk_cur i
+end
+if eq set 5
+ret and not xq not lk_cur i
+end
+if eq set 6
+ret and xq lk_cur i
+end
+ret and xq not lk_cur i
+end
+
+fn lk_count set uchar to ulong
+xn = ulong 0
+for xi ulong get lkn 0
+if lk_in xi set
+xn = add xn 1
+end
+end
+ret xn
+end
+
+fn lk_scount set uchar s uchar to ulong
+xn = ulong 0
+for xi ulong get lkn 0
+if and lk_in xi set eq get lkstrm xi s
+xn = add xn 1
+end
+end
+ret xn
+end
+
+fn lk_akey i ulong to long
+xa = get lkage i
+if lt xa 0
+ret 9223372036854775807
+end
+ret xa
+end
+
+note Stable sort of all rows by age (unknown last) into lkperm.
+fn lk_sort to void
+xn = get lkn 0
+for xi ulong xn
+put lkperm xi xi
+end
+for xj ulong xn
+if gt xj 0
+xv = get lkperm xj
+xk = xj
+while gt xk 0 bound 999999
+if le lk_akey get lkperm sub xk 1 lk_akey xv
+break
+end
+put lkperm xk get lkperm sub xk 1
+xk = sub xk 1
+end
+put lkperm xk xv
+end
+end
+end
+
+fn lk_hands to ulong
+xn = ulong 0
+for xi ulong get lkn 0
+if lk_hand xi
+if not lk_seen xi
+xn = add xn 1
+end
+end
+end
+ret xn
+end
+
+fn lk_hand i ulong to bool
+if or ne get lkstat i 1 ne get lkown i 0
+ret false
+end
+xa = get lkage i
+ret and ge xa 0 lt xa 7200
+end
+
+fn lk_seen i ulong to bool
+for xj ulong i
+if lk_hand xj
+if lk_sameo xj i
+ret true
+end
+end
+end
+ret false
+end
+
+fn lk_sameo a ulong b ulong to bool
+xl = lk_fl a 2
+if ne xl lk_fl b 2
+ret false
+end
+xo = lk_fo a 2
+xp = lk_fo b 2
+for xj ulong xl
+if ne get lkcl add xo xj get lkcl add xp xj
+ret false
+end
+end
+ret true
+end
+
+note ---------------------------------------------------------------- boxes
+
+text lh0 "<article class=\"now-card now-"
+text lh1 " now-k-"
+text lh2 "\" id=\""
+text lh3 "\"><header class=\"now-card-top\"><span class=\"now-id\">"
+text lh4 "<span class=\"now-age\" title=\""
+text lh5 "\"><span class=\"now-dot\" aria-hidden=\"true\"></span>"
+text lh6 "</span></header><h3 class=\"now-item\">"
+text lh7 "</h3>"
+text lh8 "<p class=\"now-note\">"
+text lh9 "</p>"
+text lh10 "<p class=\"now-done\"><span class=\"now-done-k\">done when</span> "
+text lh11 "</article>"
+text lhq "\">"
+
+fn lk_card i ulong to void
+sr_raw lh0
+lk_warm get lkage i
+sr_raw lh1
+lk_kind get lkown i
+sr_raw lh2
+lk_ef i 0
+sr_raw lh3
+lk_ef i 0
+sr_raw lkspc
+lk_chip i
+sr_raw lh4
+lk_ef i 7
+sr_raw lh5
+lk_age get lkage i
+sr_raw lh6
+lk_k lk_fo i 4 lk_fl i 4
+sr_raw lh7
+if gt get lknc i 0
+sr_raw lh8
+lk_lastnote i
+sr_raw lh9
+end
+if gt lk_fl i 5 0
+sr_raw lh10
+lk_k lk_fo i 5 lk_fl i 5
+sr_raw lh9
+end
+lk_lfoot i
+sr_raw lh11
+end
+
+text lh20 "<li class=\"now-queue-row now-row\" id=\""
+text lh21 "\"><span class=\"now-id\">"
+text lh22 "</span><span class=\"now-queue-item\">"
+text lh23 "<span class=\"now-row-note\">"
+text lh24 "<span class=\"now-row-done\">done when "
+text lh25 "</span><span class=\"now-row-meta\">"
+text lh26 "<span class=\"now-row-age\" title=\""
+text lh27 "</span></span>"
+text lh28 "</li>"
+
+fn lk_row1 i ulong to void
+sr_raw lh20
+lk_ef i 0
+sr_raw lh21
+lk_ef i 0
+sr_raw lh22
+lk_k lk_fo i 4 lk_fl i 4
+if gt get lknc i 0
+sr_raw lh23
+lk_lastnote i
+sr_raw lkspc
+end
+if gt lk_fl i 5 0
+sr_raw lh24
+lk_k lk_fo i 5 lk_fl i 5
+sr_raw lkspc
+end
+sr_raw lh25
+lk_chip i
+sr_raw lh26
+lk_ef i 7
+sr_raw lhq
+lk_age get lkage i
+sr_raw lh27
+lk_lfoot i
+sr_raw lh28
+end
+
+text lh30 "<li class=\"now-tl now-tl-"
+text lh31 "\"><span class=\"now-tl-when mono\" title=\""
+text lh32 "</span><div class=\"now-tl-body\"><span class=\"now-verdict now-verdict-"
+text lh33 "</span><span class=\"now-id\">"
+text lh34 "</span><p class=\"now-tl-item\">"
+text lh35 "<p class=\"now-tl-evidence\">"
+text lh36 "</div></li>"
+
+fn lk_tl i ulong to void
+sr_raw lh30
+lk_ef i 3
+sr_raw lh2
+lk_ef i 0
+sr_raw lh31
+lk_ef i 7
+sr_raw lhq
+lk_age get lkage i
+sr_raw lh32
+lk_ef i 3
+sr_raw lhq
+lk_ef i 3
+sr_raw lh33
+lk_ef i 0
+sr_raw lh34
+lk_k lk_fo i 4 lk_fl i 4
+sr_raw lh9
+if gt get lknc i 0
+sr_raw lh35
+lk_lastnote i
+sr_raw lh9
+end
+lk_lfoot i
+sr_raw lh36
+end
+
+text lh40 "<details class=\"now-fold\" id=\""
+text lh41 "\"><summary class=\"now-fold-sum\"><span class=\"now-fold-name\">"
+text lh42 "</span><span class=\"now-fold-n\">"
+text lh43 " line"
+text lh44 " lines"
+text lh45 "<span class=\"now-fold-age\">last written "
+text lh46 "</summary><ol class=\"now-queue now-fold-rows\">"
+text lh47 "</ol></details>"
+text lhqt "quiet-"
+text lhqo "queued-older"
+text lhqn "Queued, not written in the last day"
+
+fn lk_lines n ulong to void
+lk_un n
+if eq n 1
+sr_raw lh43
+ret
+end
+sr_raw lh44
+end
+
+note A fold over set (stream s, or 255 for all); id/title written by the caller's mode.
+fn lk_fold set uchar s uchar to void
+xn = ulong 0
+xmin = long -1
+for xi ulong get lkn 0
+if lk_fin xi set s
+xn = add xn 1
+xa = get lkage xi
+if ge xa 0
+if or lt xmin 0 lt xa xmin
+xmin = xa
+end
+end
+end
+end
+sr_raw lh40
+if eq s 255
+sr_raw lhqo
+else
+sr_raw lhqt
+lk_sslug s
+end
+sr_raw lh41
+if eq s 255
+sr_raw lhqn
+else
+lk_sname s
+end
+sr_raw lh42
+lk_lines xn
+sr_raw lkspc
+if ge xmin 0
+sr_raw lh45
+lk_age xmin
+sr_raw lkspc
+end
+sr_raw lh46
+for xj ulong get lkn 0
+if lk_fin xj set s
+lk_row1 xj
+end
+end
+sr_raw lh47
+end
+
+fn lk_fin i ulong set uchar s uchar to bool
+if not lk_in i set
+ret false
+end
+ret or eq s 255 eq get lkstrm i s
+end
+
+text lh50 "<div class=\"now-river\" aria-hidden=\"true\">"
+text lh51 "<span class=\"now-seg now-"
+text lh52 "\" title=\""
+text lh53 "\"></span>"
+text lh54 "</div>"
+text lhsp " "
+
+fn lk_river s uchar to void
+sr_raw lh50
+for xj ulong get lkn 0
+xi = get lkperm xj
+if and lk_in xi 4 eq get lkstrm xi s
+sr_raw lh51
+lk_warm get lkage xi
+sr_raw lh52
+lk_ef xi 0
+sr_raw lhsp
+lk_age get lkage xi
+sr_raw lh53
+end
+end
+sr_raw lh54
+end
+
+text lh60 "<div class=\"now-stat"
+text lh61 "\"><span class=\"now-stat-n\">"
+text lh62 "</span><span class=\"now-stat-l\">"
+text lh63 "</span></div>"
+
+fn lk_stat n ulong label view uchar * cls view uchar * to void
+sr_raw lh60
+sr_raw cls
+sr_raw lh61
+lk_un n
+sr_raw lh62
+sr_raw label
+sr_raw lh63
+end
+
+note ---------------------------------------------------------------- models
+
+text lkmj0 "plan"
+text lkmj1 "models"
+text lkmj2 "key"
+text lkmj3 "name"
+text lkmj4 "served_match"
+text lkmj5 "absent"
+text lkmj6 "track"
+text lkmj7 "role"
+text lkmj8 "plan_ledger"
+text lkmj9 "source"
+text lkmj10 "figures"
+text lkmj11 "label"
+text lkmj12 "url"
+text lkmj13 "value"
+text lkmj14 "receipt"
+text lkms0 "answering"
+text lkms1 "unknown"
+text lkms2 "not-answering"
+text lkms3 "planned"
+text lkms4 "not-trained"
+
+fn lk_roster to ulong
+xr = sj_load lkroster
+if ne sj_kind xr 1
+lk_fail lkemrj 0
+end
+if ne sj_kind sj_find xr lkmj1 2
+lk_fail lkemrj 0
+end
+if ne sj_kind sj_find xr lkmj0 1
+lk_fail lkemrj 0
+end
+ret xr
+end
+
+note Served id index for model m (first id whose ASCII lowercase contains served_match), or 9999.
+fn lk_served m ulong to ulong
+xp = sj_find m lkmj4
+if ne sj_kind xp 3
+ret 9999
+end
+for xj ulong get lkmidn 0
+if lk_hasn get lkmid mul xj 2 get lkmid add mul xj 2 1 xp
+ret xj
+end
+end
+ret 9999
+end
+
+fn lk_hasn o ulong l ulong p ulong to bool
+xn = sj_size p
+if gt xn l
+ret false
+end
+for xs ulong add sub l xn 1
+if lk_hasat add o xs p xn
+ret true
+end
+end
+ret false
+end
+
+fn lk_hasat o ulong p ulong n ulong to bool
+for xj ulong n
+if ne lk_lb get lkcl add o xj sj_byte p xj
+ret false
+end
+end
+ret true
+end
+
+note 0 answering, 1 unknown, 2 absent string as written.
+fn lk_mstate m ulong to uchar
+if ne lk_served m 9999
+ret 0
+end
+if and eq sj_kind sj_find m lkmj4 3 eq get lkmcv 0 0
+if sj_eq sj_find m lkmj5 lkms2
+ret 1
+end
+end
+ret 2
+end
+
+fn lk_mstx m ulong st uchar to void
+if eq st 0
+sr_raw lkms0
+ret
+end
+if eq st 1
+sr_raw lkms1
+ret
+end
+sj_emit sj_find m lkmj5
+end
+
+text lhw0 "Answering"
+text lhw1 "Not answering"
+text lhw2 "Planned"
+text lhw3 "Not trained yet"
+text lhw4 "Status unknown"
+
+fn lk_mwords m ulong st uchar to void
+if eq st 0
+sr_raw lhw0
+ret
+end
+if eq st 2
+xa = sj_find m lkmj5
+if sj_eq xa lkms2
+sr_raw lhw1
+ret
+end
+if sj_eq xa lkms3
+sr_raw lhw2
+ret
+end
+if sj_eq xa lkms4
+sr_raw lhw3
+ret
+end
+end
+sr_raw lhw4
+end
+
+fn lk_itemid n ulong to ulong
+if ne sj_kind n 3
+ret 9999
+end
+for xi ulong get lkn 0
+if lk_eqsj lk_fo xi 0 lk_fl xi 0 n
+ret xi
+end
+end
+ret 9999
+end
+
+fn lk_eqsj o ulong l ulong n ulong to bool
+if ne sj_size n l
+ret false
+end
+for xj ulong l
+if ne get lkcl add o xj sj_byte n xj
+ret false
+end
+end
+ret true
+end
+
+text lkgh0 "https://github.com/"
+
+fn lk_url n ulong to void
+if not sj_prefix n lkgh0
+lk_fail lkemrj 0
+end
+sj_href n
+end
+
+
+fn lk_mfoot root ulong m ulong to void
+xi = lk_itemid sj_find m lkmj8
+if ne xi 9999
+sr_raw lkfa0
+sr_raw lkledu
+sr_raw lkhl
+lk_un get lkline xi
+sr_raw lkfa2
+sr_raw lkfl2
+lk_ef xi 0
+sr_raw lkfl1
+sr_raw lkfa3
+ret
+end
+xs = sj_find m lkmj9
+if ne sj_kind xs 1
+xs = sj_find root lkmj0
+end
+sr_raw lkfa1
+lk_url sj_find xs lkmj12
+sr_raw lkfa2
+sj_emit sj_find xs lkmj11
+sr_raw lkfa3
+end
+
+text lh70 "<article class=\"now-card now-model now-model-"
+text lh71 "\"><header class=\"now-card-top\"><span class=\"now-model-track\">"
+text lh72 "</span><span class=\"now-model-state now-model-state-"
+text lh73 "</span></header><h3 class=\"now-item\">"
+text lh74 "</h3><p class=\"now-note now-model-role\">"
+text lh75 "<p class=\"now-done\"><span class=\"now-done-k\">serving</span> <span class=\"mono\">"
+text lh76 "</span>, answered the Spark's check at <span class=\"mono\">"
+text lh77 "</span></p>"
+text lh78 "<p class=\"now-done\">Did not answer the Spark's check at <span class=\"mono\">"
+text lh79 "</span>.</p>"
+text lh80 "<p class=\"now-done\">The Spark has not published a model check yet.</p>"
+text lh81 "<dl class=\"now-model-figs\">"
+text lh82 "<dt>"
+text lh83 "</dt><dd>"
+text lh84 " <a class=\"now-ref\" href=\""
+text lh85 "\" target=\"_blank\" rel=\"noopener noreferrer\">receipt</a></dd>"
+text lh86 "</dl>"
+text lhnev "never"
+
+fn lk_mchk to void
+if eq get lkmcv 0 0
+sr_raw lhnev
+ret
+end
+lk_e get lkmc 0 get lkmc 1
+end
+
+fn lk_mcard root ulong m ulong to void
+xst = lk_mstate m
+sr_raw lh70
+lk_mstx m xst
+sr_raw lh2
+sj_emit sj_find m lkmj2
+sr_raw lh71
+sj_emit sj_find m lkmj6
+sr_raw lh72
+lk_mstx m xst
+sr_raw lhq
+lk_mwords m xst
+sr_raw lh73
+sj_emit sj_find m lkmj3
+sr_raw lh74
+sj_emit sj_find m lkmj7
+sr_raw lh9
+lk_mbody m xst
+lk_figs sj_find m lkmj10
+lk_mfoot root m
+sr_raw lh11
+end
+
+fn lk_mbody m ulong st uchar to void
+if eq st 0
+xj = lk_served m
+sr_raw lh75
+lk_e get lkmid mul xj 2 get lkmid add mul xj 2 1
+sr_raw lh76
+lk_mchk
+sr_raw lh77
+ret
+end
+if eq st 1
+sr_raw lh80
+ret
+end
+if sj_eq sj_find m lkmj5 lkms2
+sr_raw lh78
+lk_mchk
+sr_raw lh79
+end
+end
+
+fn lk_figs a ulong to void
+if eq sj_len a 0
+ret
+end
+sr_raw lh81
+xf = sj_first a
+while ne xf 0 bound 65536
+sr_raw lh82
+sj_emit sj_find xf lkmj11
+sr_raw lh83
+sj_emit sj_find xf lkmj13
+sr_raw lh84
+lk_url sj_find xf lkmj14
+sr_raw lh85
+xf = sj_next xf
+end
+sr_raw lh86
+end
+
+text lh90 "<section class=\"now-section\" id=\"models\" aria-labelledby=\"now-models-h\"><div class=\"container\"><p class=\"kicker\">On the Spark</p><h2 id=\"now-models-h\" class=\"now-h2\">Models doing the work</h2><p class=\"now-sub\">The models the plan names, what each one is for, and whether it answered the Spark's own check of its model servers. The Spark checks every five minutes; this page shows the check from its last build"
+text lh91 " (<span class=\"mono\">"
+text lh92 "</span>)"
+text lh93 ". Every speed links to its receipt. A token is a word or a piece of one. The plan: <a class=\"prose-link\" href=\""
+text lh94 "</a>.</p><div class=\"now-grid\">"
+text lh95 "</div></div></section>"
+
+fn lk_models to void
+xr = lk_roster
+sr_raw lh90
+if ne get lkmcv 0 0
+sr_raw lh91
+lk_mchk
+sr_raw lh92
+end
+sr_raw lh93
+xp = sj_find xr lkmj0
+lk_url sj_find xp lkmj12
+sr_raw lhq
+sj_emit sj_find xp lkmj11
+sr_raw lh94
+xm = sj_first sj_find xr lkmj1
+while ne xm 0 bound 65536
+lk_mcard xr xm
+xm = sj_next xm
+end
+sr_raw lh95
+end
+
+fn lk_nmodels to ulong
+xr = lk_roster
+ret sj_len sj_find xr lkmj1
+end
+
+note ---------------------------------------------------------------- usage
+
+text lku0 "This five-hour session"
+text lku1 "This week, all models"
+text lku2 "This week, "
+text lku3 " only"
+text lkuclau "Claude"
+
+fn lk_ulabel i ulong to void
+xk = get lkuk i
+if eq xk 0
+sr_raw lku0
+ret
+end
+if eq xk 1
+sr_raw lku1
+ret
+end
+sr_raw lku2
+lk_e get lkus mul i 2 get lkus add mul i 2 1
+sr_raw lku3
+end
+
+text lh100 "<div class=\"now-usage-row\"><span class=\"now-usage-k\">"
+text lh101 "</span><meter class=\"now-usage-meter\" min=\"0\" max=\"100\" low=\"70\" high=\"90\" optimum=\"0\" value=\""
+text lh102 "% used</meter><span class=\"now-usage-v\"><strong>"
+text lh103 "% left</strong> <span class=\"now-usage-used\">("
+text lh104 "% used)</span></span>"
+text lh105 "<span class=\"now-usage-reset\">resets <span class=\"mono\">"
+text lh106 "</span></span>"
+
+fn lk_urow i ulong to void
+xu = get lkupc i
+sr_raw lh100
+lk_ulabel i
+sr_raw lh101
+lk_un xu
+sr_raw lhq
+lk_un xu
+sr_raw lh102
+lk_un sub 100 xu
+sr_raw lh103
+lk_un xu
+sr_raw lh104
+if gt get lkur add mul i 2 1 0
+sr_raw lh105
+lk_e get lkur mul i 2 get lkur add mul i 2 1
+sr_raw lh106
+end
+sr_raw lh54
+end
+
+text lh110 "<section class=\"now-section\" id=\"claude\" aria-labelledby=\"now-claude-h\"><div class=\"container\"><p class=\"kicker\">Paying for the work</p><h2 id=\"now-claude-h\" class=\"now-h2\">How much Claude is left</h2><p class=\"now-sub\">Many of the agents on this page are Claude models made by Anthropic (Opus, Fable, Sonnet and Haiku), running on Drake's own three Claude subscriptions. The plans allow a set amount of use in each five-hour session and in each week. The Spark reads the plan's own usage meter every five minutes and publishes the percentages, never the login.</p><p class=\"now-sub\">The same work also runs on subscriptions Drake pays for himself: OpenAI Codex, Google Gemini and xAI Grok. Those plans publish no usage meter here, so this page shows no percentage for them. The Claude meter is the only one the Spark can read.</p><div class=\"now-usage-wrap\"><article class=\"now-usage\">"
+text lh111 "<header class=\"now-card-top\"><span class=\"now-usage-plan\">Claude "
+text lh112 " plan</span><span class=\"now-age mono\">read "
+text lh113 "</span></header>"
+text lh114 "<p class=\"now-done\">This is the last reading the Spark published; it has not read a newer one since.</p>"
+text lh115 "<div class=\"now-usage-menu\">"
+text lh116 "<input type=\"radio\" name=\"now-usage\" id=\"now-usage-"
+text lh117 "\" class=\"now-usage-radio\""
+text lh118 " checked"
+text lh119 ">"
+text lh120 "<div class=\"now-usage-tabs\" role=\"tablist\" aria-label=\"Usage limits: choose one to read\">"
+text lh121 "<label class=\"now-usage-tab\" for=\"now-usage-"
+text lh122 "\"><span class=\"now-usage-tab-k\">"
+text lh123 "</span><span class=\"now-usage-tab-v\">"
+text lh124 "% left</span></label>"
+text lh125 "</div><div class=\"now-usage-panels\">"
+text lh126 "<div class=\"now-usage-panel now-usage-panel-"
+text lh127 "</div></div>"
+text lh128 "<p class=\"now-done\">The Spark has not published a reading of the plan yet.</p>"
+text lh129 "Usage reading on GitHub"
+text lh130 "</article><aside class=\"now-give\" aria-labelledby=\"now-give-h\"><h3 id=\"now-give-h\" class=\"now-give-h\">Give compute, not money</h3><p>The work runs on plans and on one Spark. Both can come from you, and Drake takes no payment for either.</p><ul class=\"now-give-steps\"><li><strong>Your agent, your plan. </strong>Pick any repository on <a class=\"prose-link\" href=\"/agents/\">Agents</a> and give your agent its instructions: the rules mine follow and that repository's own AGENTS.md. It claims an open issue and opens a pull request that leads with its evidence, like mine do. Its own subscription pays for it (Claude, Codex, Gemini or Grok); nothing of yours is sent to the Spark.</li><li><strong>Your Spark. </strong>A second GB10 can qualify the same gates and publish its own receipt. The GPU gates are written to run on any Spark, and a PASS from your machine is evidence, not a claim.</li></ul><p class=\"now-give-note\">No keys are collected. Your agent runs on your account, your Spark on your network, and only merged evidence reaches this page.</p><a class=\"now-give-btn\" href=\"https://github.com/aien-dev/open-humanity\" target=\"_blank\" rel=\"noopener noreferrer\">Join in Open Humanity <span aria-hidden=\"true\">↗</span></a></aside></div></div></section>"
+
+fn lk_uplan to void
+if eq get lkup 1 0
+sr_raw lkuclau
+ret
+end
+lk_e get lkup 0 get lkup 1
+end
+
+fn lk_ustale to bool
+xc = lk_utc 1 get lkuc 0 add get lkuc 0 get lkuc 1
+if eq get lkok 0 0
+ret false
+end
+ret gt sub lk_now xc 7200
+end
+
+fn lk_usage1 to void
+sr_raw lh110
+if eq get lkuv 0 0
+sr_raw lh128
+else
+sr_raw lh111
+lk_uplan
+sr_raw lh112
+lk_e get lkuc 0 get lkuc 1
+sr_raw lh113
+if lk_ustale
+sr_raw lh114
+end
+lk_umenu
+end
+lk_tfoot lkusgu lh129
+sr_raw lh130
+end
+
+fn lk_umenu to void
+xn = get lkun 0
+if le xn 1
+for xj ulong xn
+lk_urow xj
+end
+ret
+end
+sr_raw lh115
+for xi ulong xn
+sr_raw lh116
+lk_un xi
+sr_raw lh117
+if eq xi 0
+sr_raw lh118
+end
+sr_raw lh119
+end
+sr_raw lh120
+for xk ulong xn
+sr_raw lh121
+lk_un xk
+sr_raw lh122
+lk_ulabel xk
+sr_raw lh123
+lk_un sub 100 get lkupc xk
+sr_raw lh124
+end
+sr_raw lh125
+for xm ulong xn
+sr_raw lh126
+lk_un xm
+sr_raw lhq
+lk_urow xm
+sr_raw lh54
+end
+sr_raw lh127
+end
+
+note ---------------------------------------------------------------- written stamp
+
+note Latest parsable updated_utc in seconds; lkok 0 when none.
+fn lk_written to long
+xb = long 0
+xh = false
+for xi ulong get lkn 0
+if ne get lkupv xi 0
+if or not xh gt get lkupd xi xb
+xb = get lkupd xi
+xh = true
+end
+end
+end
+put lkok 0 0
+if xh
+put lkok 0 1
+end
+ret xb
+end
+
+fn lk_wfmt to void
+xs = lk_written
+if eq get lkok 0 0
+sr_raw lhnev
+ret
+end
+xc = get lkcn 0
+xo = lk_fmt xs false
+lk_r xo get lklast 0
+put lkcn 0 xc
+end
+
+fn lk_bfmt full bool to void
+xc = get lkcn 0
+xo = lk_fmt lk_now full
+lk_r xo get lklast 0
+put lkcn 0 xc
+end
+
+note RFC 3339 ledger-written stamp (build time when none); cached for the build.
+fn sp_ledger_stamp to void
+if eq get lkwrv 0 0
+lk_load_all
+xs = lk_written
+if eq get lkok 0 0
+xs = lk_now
+end
+put lkwr 0 xs
+put lkwrv 0 1
+end
+xc = get lkcn 0
+xo = lk_fmt get lkwr 0 true
+lk_r xo get lklast 0
+put lkcn 0 xc
+end
+
+note ---------------------------------------------------------------- /now/
+
+text lhn0 "<section class=\"now-hero\" aria-labelledby=\"now-title\"><div class=\"container\"><div class=\"now-hero-top\"><div class=\"now-hero-text\"><p class=\"kicker\">Now</p><h1 id=\"now-title\" class=\"now-title\">What is being done, right now.</h1><p class=\"now-lead\">This is the working ledger of AIEN, published as it is written. Every line is a promise with an owner and an observable finish. Agents write their progress here; the operator writes decisions here. Nothing on this page is composed by hand. Lines written in the last day are shown open; older lines are folded below, each one click away.</p><p class=\"now-lead\"><a href=\"/hive/\"><strong>Hive</strong></a> / Watch the agents work, see their exact models, and follow Drake's instructions and corrections live. <a href=\"/learn/\">Learn to structure your own work with AI.</a></p></div><figure class=\"now-keeper\"><img src=\"/assets/keeper.svg\" width=\"600\" height=\"200\" alt=\"Keeper, the merge desk that lands finished changes: a big cartoon dachshund, long and low, wearing a gold key on its red collar.\"><figcaption>Keeper, the merge desk</figcaption></figure></div>"
+text lhn1 "<p class=\"now-empty\">No ledger has been published yet. The page will fill itself the moment one arrives.</p>"
+text lhn2 "<div class=\"now-stats\">"
+text lhs0 "agents writing in the last two hours"
+text lhs1 "lines in motion, written in the last day"
+text lhs2 "open lines quiet for over a day, quiet and queued"
+text lhs3 "settled in the last day"
+text lhs4 "waiting on the operator"
+text lhc0 " now-stat-hot"
+text lhc1 " "
+text lhc2 " now-stat-done"
+text lhc3 " now-stat-op"
+text lhn3 "</div><nav class=\"now-jump\" aria-label=\"On this page\"><a href=\"#claude\">Paying for the work</a>"
+text lhj0 "<a href=\"#operator\">Operator <span>"
+text lhj1 "<a href=\"#streams\">In motion <span>"
+text lhj2 "<a href=\"#models\">Models <span>"
+text lhj3 "<a href=\"#quiet\">Quiet <span>"
+text lhj4 "<a href=\"#next\">Queued <span>"
+text lhj5 "<a href=\"#settled\">Settled <span>"
+text lhje "</span></a>"
+text lhn4 "<a href=\"#how\">How it is made</a></nav><p class=\"now-stamp\">Ledger last written <span class=\"mono\">"
+text lhn5 "</span>. Page built <span class=\"mono\">"
+text lhn6 "</span>. It rebuilds within the hour of every change.</p>"
+text lhn7 "<ul class=\"now-pulse\">"
+text lhn8 "<li><span class=\"now-pulse-k\">"
+text lhn9 "</span><span class=\"now-pulse-v mono\">"
+text lhn10 "</span></li>"
+text lhn11 "</ul>"
+text lhn12 "</div></section>"
+
+fn lk_hero to void
+sr_raw lhn0
+if eq get lkn 0 0
+sr_raw lhn1
+sr_raw lhn12
+ret
+end
+sr_raw lhn2
+lk_stat lk_hands lhs0 lhc0
+lk_stat lk_count 4 lhs1 lhc1
+lk_stat add lk_count 5 lk_count 7 lhs2 lhc1
+lk_stat lk_count 9 lhs3 lhc2
+lk_stat lk_count 1 lhs4 lhc3
+sr_raw lhn3
+lk_jump
+sr_raw lhn4
+lk_wfmt
+sr_raw lhn5
+lk_bfmt false
+sr_raw lhn6
+if gt get lkpn 0 0
+sr_raw lhn7
+for xi ulong get lkpn 0
+sr_raw lhn8
+lk_e get lkpk mul xi 2 get lkpk add mul xi 2 1
+sr_raw lhn9
+lk_e get lkpv mul xi 2 get lkpv add mul xi 2 1
+sr_raw lhn10
+end
+sr_raw lhn11
+end
+sr_raw lhn12
+end
+
+fn lk_jumpn t view uchar * n ulong to void
+sr_raw t
+lk_un n
+sr_raw lhje
+end
+
+fn lk_jump to void
+xo = lk_count 1
+if gt xo 0
+lk_jumpn lhj0 xo
+end
+lk_jumpn lhj1 lk_count 4
+lk_jumpn lhj2 lk_nmodels
+xq = lk_count 5
+if gt xq 0
+lk_jumpn lhj3 xq
+end
+xn = lk_count 2
+if gt xn 0
+lk_jumpn lhj4 xn
+end
+xs = lk_count 8
+if gt xs 0
+lk_jumpn lhj5 xs
+end
+end
+
+text lho0 "<section class=\"now-section now-op-section\" id=\"operator\" aria-labelledby=\"now-op-h\"><div class=\"container\"><p class=\"kicker\">On the operator's desk</p><h2 id=\"now-op-h\" class=\"now-h2\">Decisions Drake is making</h2><p class=\"now-sub\">Work that cannot move until a human answers. Each line names the answer it needs.</p><div class=\"now-grid\">"
+text lhm0 "<section class=\"now-section\" id=\"streams\" aria-labelledby=\"now-streams-h\"><div class=\"container\"><p class=\"kicker\">In motion</p><h2 id=\"now-streams-h\" class=\"now-h2\">What the agents are doing</h2><p class=\"now-sub\">Lines written in the last day, grouped by stream. The bar under each name is the stream's pulse: one segment per line, bright when written in the last half hour, fading as it cools.</p>"
+text lhm1 "<p class=\"now-empty\">No line in motion was written in the last day.</p>"
+text lhm2 "<div class=\"now-stream\" id=\"stream-"
+text lhm3 "\"><header class=\"now-stream-head\"><h3 class=\"now-stream-name\">"
+text lhm4 "</h3><span class=\"now-stream-n\">"
+text lhm5 "</span></header>"
+text lhm6 "<div class=\"now-grid\">"
+text lhm7 "</div></div>"
+text lhm8 "</div></section>"
+
+fn lk_opsec to void
+if eq lk_count 1 0
+ret
+end
+sr_raw lho0
+for xi ulong get lkn 0
+if lk_in xi 1
+lk_card xi
+end
+end
+sr_raw lh95
+end
+
+fn lk_streams to void
+sr_raw lhm0
+if eq lk_count 4 0
+sr_raw lhm1
+end
+for xs uchar 8
+xn = lk_scount 4 xs
+if gt xn 0
+sr_raw lhm2
+lk_sslug xs
+sr_raw lhm3
+lk_sname xs
+sr_raw lhm4
+lk_lines xn
+sr_raw lhm5
+lk_river xs
+sr_raw lhm6
+for xi ulong get lkn 0
+if and lk_in xi 4 eq get lkstrm xi xs
+lk_card xi
+end
+end
+sr_raw lhm7
+end
+end
+sr_raw lhm8
+end
+
+text lhqs0 "<section class=\"now-section\" id=\"quiet\" aria-labelledby=\"now-quiet-h\"><div class=\"container\"><p class=\"kicker\">Quiet</p><h2 id=\"now-quiet-h\" class=\"now-h2\">Open, not written in the last day</h2><p class=\"now-sub\">Still open, with an owner and notes, but nobody has written to them for over a day. Folded by stream; open a stream to read every line and its latest note.</p><div class=\"now-folds\">"
+text lhqs1 "<section class=\"now-section\" id=\"next\" aria-labelledby=\"now-next-h\"><div class=\"container\"><p class=\"kicker\">Next</p><h2 id=\"now-next-h\" class=\"now-h2\">What is queued</h2><p class=\"now-sub\">Promised, with a finish line, not yet picked up or not yet reported on.</p>"
+text lhqs2 "<ol class=\"now-queue\">"
+text lhqs3 "</ol>"
+text lhqs4 "<div class=\"now-folds\">"
+
+fn lk_quiet to void
+if eq lk_count 5 0
+ret
+end
+sr_raw lhqs0
+for xs uchar 8
+if gt lk_scount 5 xs 0
+lk_fold 5 xs
+end
+end
+sr_raw lh95
+end
+
+fn lk_next to void
+if eq lk_count 2 0
+ret
+end
+sr_raw lhqs1
+if gt lk_count 6 0
+sr_raw lhqs2
+for xi ulong get lkn 0
+if lk_in xi 6
+lk_row1 xi
+end
+end
+sr_raw lhqs3
+end
+if gt lk_count 7 0
+sr_raw lhqs4
+lk_fold 7 255
+sr_raw lh54
+end
+sr_raw lhm8
+end
+
+text lhst0 "<section class=\"now-section\" id=\"settled\" aria-labelledby=\"now-settled-h\"><div class=\"container\"><p class=\"kicker\">Settled</p><h2 id=\"now-settled-h\" class=\"now-h2\">Decisions made, with their evidence</h2><p class=\"now-sub\">A line closes on evidence (a commit, a receipt, a file) or is dropped for a stated reason. The last day is shown open, newest first; earlier days are folded by date (UTC).</p>"
+text lhst1 "<p class=\"now-empty\">Nothing settled in the last day.</p>"
+text lhst2 "<ol class=\"now-timeline\">"
+text lhst3 "settled-"
+text lhst4 "Settled "
+text lhst5 "</span></summary><ol class=\"now-timeline now-fold-rows\">"
+text lhdu "date unknown"
+
+note day_of: the first ten bytes of updated (else opened) when it parses, else "date unknown".
+fn lk_dayo i ulong to ulong
+xk = ulong 7
+if eq lk_fl i 7 0
+xk = 1
+end
+xo = lk_fo i xk
+xv = lk_utc 1 xo add xo lk_fl i xk
+if eq get lkok 0 0
+ret 0
+end
+ret add mul xk 8 1
+end
+
+fn lk_dayout i ulong to void
+xd = lk_dayo i
+if eq xd 0
+sr_raw lhdu
+ret
+end
+xk = div sub xd 1 8
+lk_e lk_fo i xk 10
+end
+
+fn lk_dayeq a ulong b ulong to bool
+xa = lk_dayo a
+xb = lk_dayo b
+if or eq xa 0 eq xb 0
+ret eq xa xb
+end
+xp = lk_fo a div sub xa 1 8
+xq = lk_fo b div sub xb 1 8
+for xj ulong 10
+if ne get lkcl add xp xj get lkcl add xq xj
+ret false
+end
+end
+ret true
+end
+
+fn lk_old j ulong to bool
+xi = get lkperm j
+ret and lk_in xi 8 not lk_cur xi
+end
+
+fn lk_settled to void
+if eq lk_count 8 0
+ret
+end
+sr_raw lhst0
+if eq lk_count 9 0
+sr_raw lhst1
+else
+sr_raw lhst2
+for xj ulong get lkn 0
+if lk_in get lkperm xj 9
+lk_tl get lkperm xj
+end
+end
+sr_raw lhqs3
+end
+sr_raw lhqs4
+lk_days1
+sr_raw lh95
+end
+
+note One fold per run of equal days in the age-sorted old settled lines.
+fn lk_days1 to void
+xn = get lkn 0
+xj = ulong 0
+while lt xj xn bound 999999
+if lk_old xj
+xe = lk_dayend xj
+lk_dayfold xj xe
+xj = xe
+else
+xj = add xj 1
+end
+end
+end
+
+fn lk_dayend j ulong to ulong
+xa = get lkperm j
+xk = add j 1
+while lt xk get lkn 0 bound 999999
+if lk_old xk
+if not lk_dayeq xa get lkperm xk
+ret xk
+end
+end
+xk = add xk 1
+end
+ret xk
+end
+
+fn lk_dayfold j ulong e ulong to void
+xa = get lkperm j
+xc = ulong 0
+for xk ulong sub e j
+if lk_old add j xk
+xc = add xc 1
+end
+end
+sr_raw lh40
+sr_raw lhst3
+lk_dayout xa
+sr_raw lh41
+sr_raw lhst4
+lk_dayout xa
+sr_raw lh42
+lk_lines xc
+sr_raw lhst5
+for xm ulong sub e j
+if lk_old add j xm
+lk_tl get lkperm add j xm
+end
+end
+sr_raw lh47
+end
+
+text lhhow "<section class=\"now-section now-how\" id=\"how\" aria-labelledby=\"now-how-h\"><div class=\"container\"><p class=\"kicker\">How this page is made</p><h2 id=\"now-how-h\" class=\"now-h2\">One file, no hands</h2><p class=\"now-sub\">The coordinator and every agent append to one tab separated file on the Spark. A publisher pushes that file to the <a class=\"prose-link\" href=\"https://github.com/aien-dev/aienos.com/tree/data/now\">data/now branch</a> whenever it changes. The site builder reads it at build time and writes this page and <a class=\"prose-link\" href=\"/now.json\">/now.json</a>. A line that is not in the file is not here. Every card, queue row and settled entry links to its own line of that file, and the commits, pull requests and evidence folders named in a note link to GitHub. Owners shown as &quot;agent&quot; are autonomous coding agents; the operator is one person. Keeper, the merge desk that lands finished changes, was called Renda until 24 October 2026: this page shows the new name, and the ledger on GitHub keeps each line as it was written. Keeper is the dachshund at the top of this page; a small one marks every line Keeper owns.</p></div></section>"
+
+fn sp_now to void
+lk_load_all
+lk_sort
+lk_hero
+lk_usage1
+lk_opsec
+lk_streams
+lk_models
+lk_quiet
+lk_next
+lk_settled
+sr_raw lhhow
+end
+
+note ---------------------------------------------------------------- /dash/
+
+text ldm0 "Jan"
+text ldm1 "Feb"
+text ldm2 "Mar"
+text ldm3 "Apr"
+text ldm4 "May"
+text ldm5 "Jun"
+text ldm6 "Jul"
+text ldm7 "Aug"
+text ldm8 "Sep"
+text ldm9 "Oct"
+text ldm10 "Nov"
+text ldm11 "Dec"
+
+fn lk_mon m long to void
+if eq m 1
+sr_raw ldm0
+end
+if eq m 2
+sr_raw ldm1
+end
+if eq m 3
+sr_raw ldm2
+end
+if eq m 4
+sr_raw ldm3
+end
+if eq m 5
+sr_raw ldm4
+end
+if eq m 6
+sr_raw ldm5
+end
+if eq m 7
+sr_raw ldm6
+end
+if eq m 8
+sr_raw ldm7
+end
+if eq m 9
+sr_raw ldm8
+end
+if eq m 10
+sr_raw ldm9
+end
+if eq m 11
+sr_raw ldm10
+end
+if eq m 12
+sr_raw ldm11
+end
+end
+
+note short_utc over an lkcl string; escaped output.
+fn lk_endz o ulong e ulong to bool
+if le e o
+ret false
+end
+ret eq get lkcl sub e 1 90
+end
+
+fn lk_short o ulong l ulong to void
+xe = add o l
+if lk_endz o xe
+while gt xe o bound 999999
+if ne get lkcl sub xe 1 90
+break
+end
+xe = sub xe 1
+end
+end
+xt = lk_find 1 o xe 84
+if ge xt xe
+lk_e o l
+ret
+end
+xa = lk_find 1 o xt 45
+if ge xa xt
+lk_e o l
+ret
+end
+xb = lk_find 1 add xa 1 xt 45
+xm = lk_pint 1 add xa 1 xb
+if or eq get lkok 0 0 or lt xm 1 gt xm 12
+lk_e o l
+ret
+end
+if ge xb xt
+lk_e o l
+ret
+end
+xc = lk_find 1 add xb 1 xt 45
+lk_mon xm
+sr_raw lhsp
+xd = add xb 1
+while lt xd xc bound 999999
+if ne get lkcl xd 48
+break
+end
+xd = add xd 1
+end
+lk_e xd sub xc xd
+sr_raw lhsp
+lk_e add xt 1 sub sub xe xt 1
+end
+
+fn lk_shbuilt to void
+xc = get lkcn 0
+xo = lk_fmt lk_now false
+lk_short xo get lklast 0
+put lkcn 0 xc
+end
+
+fn lk_shwr to void
+xs = lk_written
+if eq get lkok 0 0
+sr_raw lhnev
+ret
+end
+xc = get lkcn 0
+xo = lk_fmt xs false
+lk_short xo get lklast 0
+put lkcn 0 xc
+end
+
+text ldacu "https://github.com/aien-dev/aienos.com/blob/data/now/accounts.tsv"
+text ldrou "https://github.com/aien-dev/aienos.com/blob/data/now/routing.tsv"
+text ldpuu "https://github.com/aien-dev/aienos.com/blob/data/now/now-pulse.tsv"
+text ldf0 "Reading on GitHub"
+text ldf1 "Pulse on GitHub"
+text ldf2 "Ledger on GitHub"
+text ldf3 "Routing on GitHub"
+text ldcl "Claude "
+
+text ld0 "<div class=\"dash-limit"
+text ld1 " dash-out"
+text ld2 "\"><span class=\"dash-limit-k\">"
+text ld3 "</span><meter class=\"dash-meter\" min=\"0\" max=\"100\" low=\"30\" high=\"70\" optimum=\"100\" value=\""
+text ld4 "% left</meter><span class=\"dash-limit-v mono\">"
+text ld5 "%</span><span class=\"dash-limit-r mono\">"
+text ld6 "</span></div>"
+
+fn lk_dlimit i ulong to void
+xu = get lkapc i
+xlf = sub 100 xu
+sr_raw ld0
+if or ne get lkax i 0 eq xlf 0
+sr_raw ld1
+end
+sr_raw ld2
+xo = get lkal mul i 2
+xl = get lkal add mul i 2 1
+if and eq get lkap i 0 lk_eqpre xo xl ldcl
+xo = add xo 7
+xl = sub xl 7
+end
+lk_e xo xl
+sr_raw ld3
+lk_un xlf
+sr_raw lhq
+lk_un xlf
+sr_raw ld4
+lk_un xlf
+sr_raw ld5
+xr = get lkar add mul i 2 1
+if gt xr 0
+xc = get lkcn 0
+lk_short get lkar mul i 2 xr
+put lkcn 0 xc
+end
+sr_raw ld6
+end
+
+text ld10 "<article class=\"dash-card\"><h2 class=\"dash-h\">"
+text ld11 " <span class=\"dash-h-note\">% left</span></h2>"
+text ld12 "<div class=\"dash-acct\"><div class=\"dash-acct-h\">Account "
+text ld13 "<span class=\"dash-plan\">"
+text ld14 "</div>"
+
+fn lk_pvname p uchar to void
+if eq p 0
+sr_raw lkpv0
+end
+if eq p 1
+sr_raw lkpv1
+end
+if eq p 2
+sr_raw lkpv2
+end
+if eq p 3
+sr_raw lkpv3
+end
+end
+
+note Smallest account number above prev (or any when first) for provider p; 0 flag in lkok.
+fn lk_nexta p uchar prev ulong first bool to ulong
+xb = ulong 0
+put lkok 0 0
+for xi ulong get lkann 0
+if eq get lkap xi p
+xn = get lkan xi
+if or first gt xn prev
+if or eq get lkok 0 0 lt xn xb
+xb = xn
+put lkok 0 1
+end
+end
+end
+end
+ret xb
+end
+
+fn lk_acct p uchar n ulong to void
+sr_raw ld12
+lk_un n
+xf = lk_afirst p n
+xl = get lkapl add mul xf 2 1
+if gt xl 0
+sr_raw ld13
+lk_e get lkapl mul xf 2 xl
+sr_raw lkspc
+end
+sr_raw ld14
+for xw uchar 2
+for xi ulong get lkann 0
+if eq get lkap xi p
+if eq get lkan xi n
+if eq get lkaw xi xw
+lk_dlimit xi
+end
+end
+end
+end
+end
+sr_raw ld14
+end
+
+fn lk_afirst p uchar n ulong to ulong
+for xi ulong get lkann 0
+if and eq get lkap xi p eq get lkan xi n
+ret xi
+end
+end
+ret 0
+end
+
+fn lk_pcard p uchar to void
+xn = lk_nexta p 0 true
+if eq get lkok 0 0
+ret
+end
+sr_raw ld10
+lk_pvname p
+sr_raw ld11
+while true bound 1025
+lk_acct p xn
+xn = lk_nexta p xn false
+if eq get lkok 0 0
+break
+end
+end
+lk_tfoot ldacu ldf0
+sr_raw lh11
+end
+
+text ld20 "<article class=\"dash container\"><header class=\"dash-top\"><h1 class=\"dash-title\">Dashboard</h1><p class=\"dash-meta mono\">quota read "
+text ld21 " · built "
+text ld22 " UTC</p></header>"
+text ld23 "<p class=\"dash-warn\">This is the last quota reading the Spark published; nothing newer has arrived since.</p>"
+text ld24 "<div class=\"dash-flow\">"
+text ld25 "<article class=\"dash-card\"><h2 class=\"dash-h\">Quota</h2><p class=\"dash-none\">No quota reading has been published yet.</p>"
+text ld26 "<article class=\"dash-card\"><h2 class=\"dash-h\">Spark</h2><dl class=\"dash-kv\"><dt>Serving</dt><dd>"
+text ld27 "nothing answered"
+text ld28 ", "
+text ld29 "</dd>"
+text ld30 "</dl>"
+text ld31 "<article class=\"dash-card\"><h2 class=\"dash-h\"><a href=\"/now/\">Work</a></h2><dl class=\"dash-kv\"><dt>Open</dt><dd>"
+text ld32 "</dd><dt>Waiting on Drake</dt><dd>"
+text ld33 "</dd><dt>Settled, last day</dt><dd>"
+text ld34 "</dd><dt>Ledger written</dt><dd>"
+text ld35 "<article class=\"dash-card\"><h2 class=\"dash-h\">Which model does what</h2>"
+text ld36 "</div></article>"
+text ld37 "<dt>"
+text ld38 "</dt><dd>"
+text ldpk0 "memory free"
+text ldpk1 "disk free"
+text ldpk2 "wall power"
+text ldr0 "Roles"
+text ldr1 "Subagents"
+text ldr2 "Advisor seats"
+text ld40 "<div class=\"dash-pairs\"><h3 class=\"dash-pairs-h\">"
+text ld41 "</h3>"
+text ld42 "<p class=\"dash-none\">Not published.</p>"
+text ld43 "<dl>"
+text ld44 "</dt><dd class=\"mono\">"
+
+fn lk_dstale to bool
+if eq get lkdcv 0 0
+ret false
+end
+xc = lk_utc 1 get lkdc 0 add get lkdc 0 get lkdc 1
+if eq get lkok 0 0
+ret false
+end
+ret gt sub lk_now xc 7200
+end
+
+fn lk_pulsekv k view uchar * to void
+for xi ulong get lkpn 0
+if lk_eqt get lkpk mul xi 2 get lkpk add mul xi 2 1 k
+sr_raw ld37
+sr_raw k
+sr_raw ld38
+lk_e get lkpv mul xi 2 get lkpv add mul xi 2 1
+sr_raw ld29
+ret
+end
+end
+end
+
+fn lk_serving to void
+xr = lk_roster
+xn = ulong 0
+xm = sj_first sj_find xr lkmj1
+while ne xm 0 bound 65536
+if eq lk_mstate xm 0
+if gt xn 0
+sr_raw ld28
+end
+sj_emit sj_find xm lkmj3
+xn = add xn 1
+end
+xm = sj_next xm
+end
+if eq xn 0
+sr_raw ld27
+end
+end
+
+fn lk_rskip k uchar i ulong to bool
+if ne get lkrk i k
+ret true
+end
+if and eq k 0 ne get lkseat 0 0
+ret lk_eqt get lkrnm mul i 2 get lkrnm add mul i 2 1 lkadv
+end
+ret false
+end
+
+note lk_pairv: one route pair's name and mode cells (split out of lk_pairs for registers).
+fn lk_pairv j ulong to void
+lk_e get lkrnm mul j 2 get lkrnm add mul j 2 1
+sr_raw ld44
+lk_e get lkrmd mul j 2 get lkrmd add mul j 2 1
+end
+
+fn lk_pairs k uchar title view uchar * to void
+sr_raw ld40
+sr_raw title
+sr_raw ld41
+xn = ulong 0
+for xi ulong get lkrcnt 0
+if not lk_rskip k xi
+xn = add xn 1
+end
+end
+if eq xn 0
+sr_raw ld42
+else
+sr_raw ld43
+for xj ulong get lkrcnt 0
+if not lk_rskip k xj
+sr_raw ld37
+lk_pairv xj
+sr_raw ld29
+end
+end
+sr_raw ld30
+end
+sr_raw lh54
+end
+
+fn sp_dash to void
+lk_load_all
+sr_raw ld20
+if ne get lkdcv 0 0
+lk_short get lkdc 0 get lkdc 1
+else
+sr_raw lhnev
+end
+sr_raw ld21
+lk_shbuilt
+sr_raw ld22
+if lk_dstale
+sr_raw ld23
+end
+sr_raw ld24
+if eq get lkann 0 0
+sr_raw ld25
+lk_tfoot ldacu ldf0
+sr_raw lh11
+end
+for xp uchar 4
+lk_pcard xp
+end
+sr_raw ld26
+lk_serving
+sr_raw ld29
+lk_pulsekv ldpk0
+lk_pulsekv ldpk1
+lk_pulsekv ldpk2
+sr_raw ld30
+lk_tfoot ldpuu ldf1
+sr_raw lh11
+sr_raw ld31
+lk_un lk_count 10
+sr_raw ld32
+lk_un lk_count 1
+sr_raw ld33
+lk_un lk_count 9
+sr_raw ld34
+lk_shwr
+sr_raw ld29
+sr_raw ld30
+lk_tfoot lkledu ldf2
+sr_raw lh11
+sr_raw ld35
+lk_pairs 0 ldr0
+lk_pairs 1 ldr1
+lk_pairs 2 ldr2
+lk_tfoot ldrou ldf3
+sr_raw lh11
+sr_raw ld36
+end
+
+note ---------------------------------------------------------------- /now.json
+
+text ljhex "0123456789abcdef"
+text ljq "\""
+text ljbs "\\\\"
+text ljbq "\\\""
+text ljb "\\b"
+text ljf "\\f"
+text ljn "\\n"
+text ljr "\\r"
+text ljt "\\t"
+text lju "\\u00"
+text ljnull "null"
+text ljind "  "
+text ljkc "\": "
+text ljcm ","
+text ljnl "\n"
+text ljob "{"
+text ljoe "}"
+text ljab "["
+text ljae "]"
+text ljempty "[]"
+
+fn lk_jc c uchar to void
+if eq c 34
+sr_raw ljbq
+ret
+end
+if eq c 92
+sr_raw ljbs
+ret
+end
+if ge c 32
+sr_byte c
+ret
+end
+if eq c 8
+sr_raw ljb
+ret
+end
+if eq c 12
+sr_raw ljf
+ret
+end
+if eq c 10
+sr_raw ljn
+ret
+end
+if eq c 13
+sr_raw ljr
+ret
+end
+if eq c 9
+sr_raw ljt
+ret
+end
+sr_raw lju
+sr_byte get ljhex ulong shr c 4
+sr_byte get ljhex ulong and c 15
+end
+
+fn lk_js o ulong l ulong to void
+sr_raw ljq
+for xj ulong l
+lk_jc get lkcl add o xj
+end
+sr_raw ljq
+end
+
+fn lk_jt s view uchar * to void
+sr_raw ljq
+for xj ulong len s
+lk_jc get s xj
+end
+sr_raw ljq
+end
+
+fn lk_jn n ulong to void
+sr_raw ljq
+for xj ulong sj_size n
+lk_jc sj_byte n xj
+end
+sr_raw ljq
+end
+
+note Newline, indent d levels, "key": .
+fn lk_jk d ulong k view uchar * first bool to void
+if not first
+sr_raw ljcm
+end
+sr_raw ljnl
+for xj ulong d
+sr_raw ljind
+end
+lk_jt k
+sr_raw ljkc
+end
+
+fn lk_jnl d ulong first bool to void
+if not first
+sr_raw ljcm
+end
+sr_raw ljnl
+for xj ulong d
+sr_raw ljind
+end
+end
+
+fn lk_jclose d ulong c view uchar * to void
+sr_raw ljnl
+for xj ulong d
+sr_raw ljind
+end
+sr_raw c
+end
+
+text ljk0 "built_utc"
+text ljk1 "ledger_written_utc"
+text ljk2 "items"
+text ljk3 "pulse"
+text ljk4 "models_checked_utc"
+text ljk5 "claude"
+text lji0 "id"
+text lji1 "line"
+text lji2 "opened_utc"
+text lji3 "owner"
+text lji4 "owner_kind"
+text lji5 "status"
+text lji6 "item"
+text lji7 "done_when"
+text lji8 "notes"
+text lji9 "updated_utc"
+text lji10 "stream"
+text lji11 "age_s"
+text ljm0 "state"
+text ljm1 "served_as"
+text ljc0 "checked_utc"
+text ljc1 "limits"
+text ljc2 "used_pct"
+text ljc3 "resets_utc"
+
+fn lk_jitem i ulong first bool to void
+lk_jnl 2 first
+sr_raw ljob
+lk_jk 3 lji0 true
+lk_js lk_fo i 0 lk_fl i 0
+lk_jk 3 lji1 false
+lk_un get lkline i
+lk_jk 3 lji2 false
+lk_js lk_fo i 1 lk_fl i 1
+lk_jk 3 lji3 false
+lk_js lk_fo i 2 lk_fl i 2
+lk_jk 3 lji4 false
+sr_raw ljq
+lk_kind get lkown i
+sr_raw ljq
+lk_jk 3 lji5 false
+lk_js lk_fo i 3 lk_fl i 3
+lk_jk 3 lji6 false
+lk_js lk_fo i 4 lk_fl i 4
+lk_jk 3 lji7 false
+lk_js lk_fo i 5 lk_fl i 5
+lk_jk 3 lji8 false
+lk_jnotes i
+lk_jk 3 lji9 false
+lk_js lk_fo i 7 lk_fl i 7
+lk_jk 3 lji10 false
+sr_raw ljq
+lk_sname get lkstrm i
+sr_raw ljq
+lk_jk 3 lji11 false
+lk_ln get lkage i
+lk_jclose 2 ljoe
+end
+
+fn lk_jnotes i ulong to void
+xc = get lknc i
+if eq xc 0
+sr_raw ljempty
+ret
+end
+sr_raw ljab
+xf = get lknf i
+for xj ulong xc
+lk_jnl 4 eq xj 0
+lk_js get lkno add xf xj get lknl add xf xj
+end
+lk_jclose 3 ljae
+end
+
+fn lk_jlink d ulong n ulong to void
+if ne sj_kind n 1
+sr_raw ljnull
+ret
+end
+sr_raw ljob
+lk_jk add d 1 lkmj11 true
+lk_jn sj_find n lkmj11
+lk_jk add d 1 lkmj12 false
+lk_jn sj_find n lkmj12
+lk_jclose d ljoe
+end
+
+fn lk_jopt n ulong to void
+if ne sj_kind n 3
+sr_raw ljnull
+ret
+end
+lk_jn n
+end
+
+fn lk_jmodel m ulong first bool to void
+xst = lk_mstate m
+lk_jnl 2 first
+sr_raw ljob
+lk_jk 3 lkmj2 true
+lk_jn sj_find m lkmj2
+lk_jk 3 lkmj3 false
+lk_jn sj_find m lkmj3
+lk_jk 3 ljm0 false
+if eq xst 0
+lk_jt lkms0
+else
+if eq xst 1
+lk_jt lkms1
+else
+lk_jn sj_find m lkmj5
+end
+end
+lk_jk 3 ljm1 false
+xj = lk_served m
+if eq xj 9999
+sr_raw ljnull
+else
+lk_js get lkmid mul xj 2 get lkmid add mul xj 2 1
+end
+lk_jmrest m
+lk_jclose 2 ljoe
+end
+
+fn lk_jmrest m ulong to void
+lk_jk 3 lkmj6 false
+lk_jn sj_find m lkmj6
+lk_jk 3 lkmj7 false
+lk_jn sj_find m lkmj7
+lk_jk 3 lkmj8 false
+lk_jopt sj_find m lkmj8
+lk_jk 3 lkmj9 false
+lk_jlink 3 sj_find m lkmj9
+lk_jk 3 lkmj10 false
+xa = sj_find m lkmj10
+if eq sj_len xa 0
+sr_raw ljempty
+ret
+end
+sr_raw ljab
+xf = sj_first xa
+xfirst = true
+while ne xf 0 bound 65536
+lk_jnl 4 xfirst
+xfirst = false
+sr_raw ljob
+lk_jk 5 lkmj11 true
+lk_jn sj_find xf lkmj11
+lk_jk 5 lkmj13 false
+lk_jn sj_find xf lkmj13
+lk_jk 5 lkmj14 false
+lk_jn sj_find xf lkmj14
+lk_jclose 4 ljoe
+xf = sj_next xf
+end
+lk_jclose 3 ljae
+end
+
+fn lk_jusage to void
+if eq get lkuv 0 0
+sr_raw ljnull
+ret
+end
+sr_raw ljob
+lk_jk 2 ljc0 true
+lk_js get lkuc 0 get lkuc 1
+lk_jk 2 lkmj0 false
+if eq get lkup 1 0
+lk_jt lkuclau
+else
+lk_js get lkup 0 get lkup 1
+end
+lk_jk 2 ljc1 false
+sr_raw ljab
+for xi ulong get lkun 0
+lk_jnl 3 eq xi 0
+sr_raw ljob
+lk_jk 4 lkmj11 true
+sr_raw ljq
+lk_julabel xi
+sr_raw ljq
+lk_jk 4 ljc2 false
+lk_un get lkupc xi
+lk_jk 4 ljc3 false
+lk_js get lkur mul xi 2 get lkur add mul xi 2 1
+lk_jclose 3 ljoe
+end
+lk_jclose 2 ljae
+lk_jclose 1 ljoe
+end
+
+note Labels are fixed ASCII plus usage_words output, so no JSON escapes are needed.
+fn lk_julabel i ulong to void
+xk = get lkuk i
+if eq xk 0
+sr_raw lku0
+ret
+end
+if eq xk 1
+sr_raw lku1
+ret
+end
+sr_raw lku2
+lk_r get lkus mul i 2 get lkus add mul i 2 1
+sr_raw lku3
+end
+
+fn lk_jwr to void
+xs = lk_written
+if eq get lkok 0 0
+lk_jt lhnev
+ret
+end
+xc = get lkcn 0
+xo = lk_fmt xs false
+lk_js xo get lklast 0
+put lkcn 0 xc
+end
+
+fn lk_jmc to void
+if eq get lkmcv 0 0
+lk_jt lhnev
+ret
+end
+lk_js get lkmc 0 get lkmc 1
+end
+
+fn sp_now_json to void
+lk_load_all
+sr_raw ljob
+lk_jk 1 ljk0 true
+xc = get lkcn 0
+xo = lk_fmt lk_now false
+lk_js xo get lklast 0
+put lkcn 0 xc
+lk_jk 1 ljk1 false
+lk_jwr
+lk_jk 1 ljk2 false
+if eq get lkn 0 0
+sr_raw ljempty
+else
+sr_raw ljab
+for xi ulong get lkn 0
+lk_jitem xi eq xi 0
+end
+lk_jclose 1 ljae
+end
+lk_jk 1 ljk3 false
+lk_jpulse
+lk_jk 1 ljk4 false
+lk_jmc
+lk_jmods
+lk_jk 1 ljk5 false
+lk_jusage
+lk_jclose 0 ljoe
+end
+
+fn lk_jpulse to void
+if eq get lkpn 0 0
+sr_raw ljempty
+ret
+end
+sr_raw ljab
+for xi ulong get lkpn 0
+lk_jnl 2 eq xi 0
+sr_raw ljob
+lk_jk 3 lkmj2 true
+lk_js get lkpk mul xi 2 get lkpk add mul xi 2 1
+lk_jk 3 lkmj13 false
+lk_js get lkpv mul xi 2 get lkpv add mul xi 2 1
+lk_jclose 2 ljoe
+end
+lk_jclose 1 ljae
+end
+
+fn lk_jmods to void
+xr = lk_roster
+lk_jk 1 lkmj0 false
+lk_jlink 1 sj_find xr lkmj0
+lk_jk 1 lkmj1 false
+xa = sj_find xr lkmj1
+if eq sj_len xa 0
+sr_raw ljempty
+ret
+end
+sr_raw ljab
+xm = sj_first xa
+xfirst = true
+while ne xm 0 bound 65536
+lk_jmodel xm xfirst
+xfirst = false
+xm = sj_next xm
+end
+lk_jclose 1 ljae
+end
+
+note ---------------------------------------------------------------- /now/feed.xml
+
+text lfx0 "&amp;"
+text lfx1 "&lt;"
+text lfx2 "&gt;"
+text lfx3 "&quot;"
+text lfhead0 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<feed xmlns=\"http://www.w3.org/2005/Atom\">\n  <title>AienOS: settled work from the live ledger</title>\n  <subtitle>Every coordination ledger line that reached done or dropped, with the evidence that settled it.</subtitle>\n  <link href=\"https://www.aienos.com/now/feed.xml\" rel=\"self\" type=\"application/atom+xml\"/>\n  <link href=\"https://www.aienos.com/\" rel=\"alternate\" type=\"text/html\"/>\n  <id>https://www.aienos.com/now/feed.xml</id>\n  <updated>"
+text lfhead1 "</updated>\n  <author><name>M. Drake Stapleton</name><uri>https://www.drakestapleton.com</uri></author>\n  <rights>Apache-2.0 WITH LLVM-exception</rights>\n  <icon>https://www.aienos.com/logo.png</icon>\n  <logo>https://www.aienos.com/og.png</logo>\n"
+text lfe0 "  <entry>\n    <title>"
+text lfe1 ": "
+text lfe2 " ("
+text lfe3 ")</title>\n    <link href=\"https://www.aienos.com/now/#"
+text lfe4 "\" rel=\"alternate\" type=\"text/html\"/>\n    <id>https://www.aienos.com/now/#"
+text lfe5 "</id>\n    <published>"
+text lfe6 "</published>\n    <updated>"
+text lfe7 "</updated>\n    <content type=\"text\">"
+text lfe8 "</content>\n    <category term=\""
+text lfe9 "\"/>\n  </entry>\n"
+text lfend "</feed>\n"
+text lfb0 "Status: "
+text lfb1 ". Owner: "
+text lfb2 ". Stream: "
+text lfb3 "."
+text lfb4 "\nDone when: "
+text lfb5 "\nEvidence:"
+text lfb6 "\n- "
+
+fn lk_xc c uchar to void
+if eq c 38
+sr_raw lfx0
+ret
+end
+if eq c 60
+sr_raw lfx1
+ret
+end
+if eq c 62
+sr_raw lfx2
+ret
+end
+if eq c 34
+sr_raw lfx3
+ret
+end
+sr_byte c
+end
+
+fn lk_x o ulong l ulong to void
+for xj ulong l
+lk_xc get lkcl add o xj
+end
+end
+
+fn lk_xf i ulong k ulong to void
+lk_x lk_fo i k lk_fl i k
+end
+
+note Feed order: updated descending (unparsable last), then id descending, bytewise.
+fn lk_fbefore a ulong b ulong to bool
+xa = get lkupv a
+xb = get lkupv b
+if ne xa xb
+ret gt xa xb
+end
+if and ne xa 0 ne get lkupd a get lkupd b
+ret gt get lkupd a get lkupd b
+end
+ret lk_idgt a b
+end
+
+fn lk_idgt a ulong b ulong to bool
+xo = lk_fo a 0
+xl = lk_fl a 0
+xp = lk_fo b 0
+xm = lk_fl b 0
+for xj ulong xl
+if ge xj xm
+ret true
+end
+xc = get lkcl add xo xj
+xd = get lkcl add xp xj
+if ne xc xd
+ret gt xc xd
+end
+end
+ret false
+end
+
+fn lk_fsort to ulong
+xn = ulong 0
+for xi ulong get lkn 0
+if lk_in xi 8
+xk = xn
+while gt xk 0 bound 999999
+if not lk_fbefore xi get lkperm sub xk 1
+break
+end
+put lkperm xk get lkperm sub xk 1
+xk = sub xk 1
+end
+put lkperm xk xi
+xn = add xn 1
+end
+end
+ret xn
+end
+
+fn lk_rfc s long to void
+xc = get lkcn 0
+xo = lk_fmt s true
+lk_r xo get lklast 0
+put lkcn 0 xc
+end
+
+fn lk_fwr to void
+xs = lk_written
+if eq get lkok 0 0
+xs = lk_now
+end
+lk_rfc xs
+end
+
+fn lk_fentry i ulong to void
+sr_raw lfe0
+lk_xf i 0
+sr_raw lfe1
+lk_xf i 4
+sr_raw lfe2
+lk_xf i 3
+sr_raw lfe3
+lk_xf i 0
+sr_raw lfe4
+lk_xf i 0
+sr_raw lfe5
+if ne get lkopv i 0
+lk_rfc get lkopd i
+else
+lk_fupd i
+end
+sr_raw lfe6
+lk_fupd i
+sr_raw lfe7
+lk_fbody i
+sr_raw lfe8
+lk_xf i 3
+sr_raw lfe9
+end
+
+fn lk_fupd i ulong to void
+if ne get lkupv i 0
+lk_rfc get lkupd i
+ret
+end
+lk_fwr
+end
+
+fn lk_fbody i ulong to void
+sr_raw lfb0
+lk_xf i 3
+sr_raw lfb1
+lk_xf i 2
+sr_raw lfb2
+lk_sname get lkstrm i
+sr_raw lfb3
+if gt lk_fl i 5 0
+sr_raw lfb4
+lk_xf i 5
+end
+xc = get lknc i
+if gt xc 0
+sr_raw lfb5
+xf = get lknf i
+for xj ulong xc
+sr_raw lfb6
+lk_x get lkno add xf xj get lknl add xf xj
+end
+end
+end
+
+fn sp_now_feed to void
+lk_load_all
+xn = lk_fsort
+sr_raw lfhead0
+lk_fwr
+sr_raw lfhead1
+for xj ulong xn
+lk_fentry get lkperm xj
+end
+sr_raw lfend
+end

@@ -1,0 +1,355 @@
+note Whole-site orchestrator. Compose after runtime/json/chrome/content/copy/markdown/seo.
+note Metadata is copied once before any renderer can replace the JSON arena.
+
+fn st_fail message view uchar * to void
+sr_fail message
+end
+
+fn st_append dst edit uchar * src view uchar * pos ulong to ulong
+if gt len src sub len dst pos
+trap 3
+end
+for i ulong len src
+put dst add pos i get src i
+end
+ret add pos len src
+end
+
+fn st_store node ulong key view uchar * slot ulong to void
+buf = new uchar 4096 0
+fnode = sj_find node key
+if eq fnode 0
+trap 10
+end
+n = sj_string fnode buf
+p = get stused 0
+if gt n sub len stpool p
+trap 3
+end
+put stoff slot p
+put stlens slot n
+for i ulong n
+put stpool add p i get buf i
+end
+put stused 0 add p n
+end
+
+fn st_row node ulong to void
+row = get stcount 0
+if ge row STCAP
+trap 3
+end
+base = mul row STFIELDS
+st_store node stk0 base
+st_store node stk1 add base 1
+st_store node stk2 add base 2
+st_store node stk3 add base 3
+st_store node stk4 add base 4
+st_store node stk5 add base 5
+st_store node stk6 add base 6
+st_store node stk7 add base 7
+st_store node stk8 add base 8
+st_store node stk9 add base 9
+st_store node stk10 add base 10
+put stcount 0 add row 1
+end
+
+fn st_registry path view uchar * to void
+root = sj_load path
+if ne sj_kind root 2
+trap 10
+end
+if eq sj_len root 0
+trap 10
+end
+node = sj_first root
+while ne node 0 bound 128
+st_row node
+node = sj_next node
+end
+end
+
+fn st_field row ulong col ulong dst edit uchar * to ulong
+slot = add mul row STFIELDS col
+n = get stlens slot
+if gt n len dst
+trap 3
+end
+p = get stoff slot
+for i ulong n
+put dst i get stpool add p i
+end
+ret n
+end
+
+fn st_match row ulong col ulong value view uchar * to bool
+slot = add mul row STFIELDS col
+if ne get stlens slot len value
+ret false
+end
+p = get stoff slot
+for i ulong len value
+if ne get stpool add p i get value i
+ret false
+end
+end
+ret true
+end
+
+fn st_emit row ulong col ulong escaped bool to void
+buf = new uchar 4096 0
+n = st_field row col buf
+if escaped
+sr_esc part buf 0 n
+else
+sr_raw part buf 0 n
+end
+end
+
+fn st_path suffix view uchar * dst edit uchar * to ulong
+n = get stoutn 0
+if ge n len dst
+trap 3
+end
+for i ulong n
+put dst i get stout i
+end
+if eq len suffix 0
+ret n
+end
+if ne get suffix 0 47
+put dst n 47
+n = add n 1
+end
+ret st_append dst suffix n
+end
+
+fn st_open suffix view uchar * to void
+buf = new uchar 8192 0
+n = st_path suffix buf
+sr_open part buf 0 n
+end
+
+fn st_copy src view uchar * dest view uchar * to void
+buf = new uchar 8192 0
+n = st_path dest buf
+sr_copy src part buf 0 n
+end
+
+fn st_stamp to void
+buf = new uchar 64 0
+n = get stdaten 0
+for i ulong n
+put buf i get stdate i
+end
+sr_raw part buf 0 n
+end
+
+fn st_route_ok row ulong to void
+buf = new uchar 512 0
+for fieldno ulong 4
+if eq get stlens add mul row STFIELDS fieldno 0
+trap 10
+end
+end
+if ne get stlens add mul row STFIELDS 7 10
+trap 10
+end
+n = st_field row 0 buf
+if eq n 0
+trap 10
+end
+if ne get buf 0 47
+trap 10
+end
+if ne get buf sub n 1 47
+trap 10
+end
+for i ulong n
+c = get buf i
+if eq c 47
+if gt i 0
+if eq get buf sub i 1 47
+trap 10
+end
+end
+else
+if not or or and ge c 97 le c 122 and ge c 48 le c 57 eq c 45
+xpok = and eq i 4 eq c 67
+xpok = or xpok and eq i 5 eq c 78
+xpok = and ge row get steng 0 xpok
+if not xpok
+trap 10
+end
+end
+end
+end
+for j ulong row
+if st_match j 0 part buf 0 n
+trap 10
+end
+end
+end
+
+fn st_html_path row ulong dst edit uchar * to ulong
+n = st_field row 0 dst
+ret st_append dst stindex n
+end
+
+fn st_page_body row ulong route view uchar * to void
+src = new uchar 4096 0
+n = st_field row 5 src
+if st_match row 4 stfront
+door_home
+sh_allen_home part src 0 n
+sr_raw stnoscr
+ret
+end
+if st_match row 4 sthtml
+sh_body part src 0 n route
+ret
+end
+if st_match row 4 startif
+sr_file part src 0 n
+ret
+end
+if st_match row 4 stprof
+ss_profiles
+ret
+end
+if st_match row 4 stemode
+if not se_page route
+st_fail ST0001
+end
+ret
+end
+if not st_match row 4 strender
+trap 10
+end
+if sm_page route
+ret
+end
+if sp_page route
+ret
+end
+if sd_page route
+ret
+end
+st_fail ST0001
+end
+
+fn st_page row ulong to void
+route = new uchar 512 0
+titlebuf = new uchar 4096 0
+descbuf = new uchar 4096 0
+areabuf = new uchar 32 0
+rn = st_field row 0 route
+tn = st_field row 1 titlebuf
+dn = st_field row 2 descbuf
+an = st_field row 3 areabuf
+st_popen row
+sc_begin part titlebuf 0 tn part descbuf 0 dn
+sc_route part route 0 rn part areabuf 0 an
+st_page_body row part route 0 rn
+sc_end
+sr_close
+end
+
+note st_popen: the page's output file (split out of st_page for registers).
+fn st_popen row ulong to void
+filebuf = new uchar 1024 0
+fnn = st_html_path row filebuf
+st_open part filebuf 0 fnn
+end
+
+fn st_export to void
+st_copy ST0002 stfacts
+st_copy ST0003 ST0004
+st_copy ST0005 ST0006
+st_copy ST0007 ST0008
+st_copy ST0009 ST0010
+st_copy ST0011 ST0012
+st_copy ST0013 stagents
+st_open ST0014
+ss_page_registry
+sr_close
+end
+
+fn st_assets to void
+st_open stdoor
+door_css
+sr_close
+st_open ST0017
+css_tokens
+sr_close
+st_open ST0015
+css_emit
+sr_close
+st_open ST0016
+client_emit
+sr_close
+end
+
+fn st_args to void
+src = new uchar 4096 0
+outbuf = new uchar 4096 0
+datebuf = new uchar 64 0
+if ne argcnt 4
+st_fail ST0018
+end
+sn = argread 1 src 0 len src
+on = argread 2 outbuf 0 len outbuf
+dn = argread 3 datebuf 0 len datebuf
+if or or le sn 0 le on 1 le dn 0
+trap 10
+end
+if ne get outbuf 0 47
+st_fail ST0019
+end
+existing = faccess outbuf 0 ulong on 0
+if eq existing 0
+st_fail ST0020
+end
+if ne existing -2
+trap 10
+end
+n = ulong on
+if eq get outbuf sub n 1 47
+n = sub n 1
+end
+for i ulong n
+put stout i get outbuf i
+end
+put stoutn 0 n
+sf_safe part datebuf 0 ulong dn
+for j ulong ulong dn
+put stdate j get datebuf j
+end
+put stdaten 0 ulong dn
+r = chdir src 0 ulong sn
+if ne r 0
+st_fail ST0021
+end
+end
+
+fn main to int
+st_args
+st_registry streg
+st_engineer_registry
+put steng 0 get stcount 0
+st_registry sttrans
+sf_load
+for i ulong get stcount 0
+st_route_ok i
+end
+sp_ledger_check
+sx_tree stpub 0
+st_export
+sa_emit
+st_assets
+for j ulong get stcount 0
+st_page j
+end
+ss_surfaces
+ret 0
+end

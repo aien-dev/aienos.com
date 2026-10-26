@@ -1,0 +1,690 @@
+note Strict JSON DOM for site source data. No float conversion: numbers retain input spelling.
+note sj_load replaces all nodes; only render/copy values before the next load. Node 0 is missing.
+note Kinds: object 1, array 2, string 3, number 4, true 5, false 6, null 7.
+note Object children are value nodes carrying decoded keys; arrays carry no key. Duplicate keys
+note remain in source order; sj_find selects the last occurrence, matching serde_json source behavior.
+note sj_first/sj_next/sj_len iterate immediate children, never keys or descendants.
+note sj_emit emits escaped decoded strings, lexical numbers or canonical literals, not containers.
+note sj_href is string-only. sj_string copies decoded bytes without a terminator, refusing short dst.
+note sj_size/byte/slice/prefix/same operate on strings; sj_key escapes an object member key.
+note sj_kind/first/next/len accept missing 0 as empty; sj_eq/prefix return false on missing/non-string.
+note Other string/emission APIs refuse missing/wrong kind. sj_find returns 0 for a missing parent.
+note Capacity decision at baseline 3d36bd7: wc -c measured facts 5128, agent-repos 22213,
+note project-progress 30538, cudaplusplus 11108, machines 13530, models 1900, omega 21057,
+note research_status 37411 bytes. Input and decoded pools each 262144 bytes; 65535 live nodes;
+note nesting at most 128. Each limit is a named refusal, never truncation. No external runtime.
+note UTF-8 validator adapts om/hive-render/render.om utf8; string grammar is general RFC 8259.
+note WolframLanguageEvaluator: {0xd800,0xdbff,0xdc00,0xdfff,0x10ffff} expressed using
+note FromDigits[...,16] returned {55296,56319,56320,57343,1114111}; 2^10=1024,2^16=65536.
+note Evaluator: (55357-55296)*1024+(56832-56320)+65536 -> 128512;
+note ToCharacterCode[FromCharacterCode[128512],"UTF8"] -> {240,159,152,128}.
+note Integration cases/instructions (NOT_RUN): compose om2 + runtime + json + test main; compile
+note with the owner's pinned OM-2 compiler only after all lanes land. Run each refusal in a fresh
+note process and assert status 70, named stderr, no successful sj_load return. Capture bytes, not floats.
+note Accept: whitespace around {"s":"<&\"'\\\/\b\f\n\r\t\u0000\u00E9\uD83D\uDE00","n":-0.123E+004,"a":[true,false,null,[],{}]}.
+note Assert sj_string preserves NUL and UTF-8; sj_emit escapes markup and keeps -0.123E+004 exactly.
+note Accept numeric roots 0,-0,1,1.0,1e0,1E-999999999999999999999; last duplicate key wins.
+note Accept unescaped non-ASCII including Chinese and emoji; equivalent escaped/raw keys compare equal.
+note Refuse: empty input, BOM, trailing bytes, two roots, NaN, Infinity, +1, 01, -01, 1., .1,
+note 1e, 1e+, -, tru, nullx, [1,], {"a":1,}, missing colon/comma, raw string control, unknown escape,
+note lone high/low surrogate, high followed by non-low, truncated escape, overlong UTF-8, surrogate
+note UTF-8, invalid continuation, truncated sequence and values above U+10FFFF. Test every byte cutoff.
+note Boundary cases: exactly 262144 bytes valid with padding accepted; one more refused JSON_CAPACITY;
+note 65535 total nodes accepted when byte cap permits, next refused JSON_NODES; depth 128 accepted,
+note depth 129 refused JSON_DEPTH. Check missing/invalid indices and short sj_string destination.
+note Load every current registry/data JSON afresh. Negative control: change expected escaped bytes,
+note require test failure. Partial read fixture must deliver input in pieces, not only regular files.
+text sjesyn "JSON_SYNTAX"
+text sjeutf "JSON_UTF8"
+text sjeun "JSON_UNICODE"
+text sjecap "JSON_CAPACITY"
+text sjenod "JSON_NODES"
+text sjedep "JSON_DEPTH"
+text sjeknd "JSON_KIND"
+text sjeidx "JSON_INDEX"
+text sjeio "JSON_READ"
+text sjetrue "true"
+text sjefalse "false"
+text sjenull "null"
+global sjin uchar 262144
+global sjdec uchar 262144
+global sjst ulong 4
+global sjtyp uchar 65536
+global sjoff uint 65536
+global sjcnt uint 65536
+global sjko uint 65536
+global sjkl uint 65536
+global sjhas uchar 65536
+global sjfst uint 65536
+global sjnxt uint 65536
+global sjnum uint 65536
+note sjst: cursor, input length, decoded length, next free node (starts at 1).
+fn sj_peek to uchar
+if ge get sjst 0 get sjst 1
+ret 0
+end
+ret get sjin get sjst 0
+end
+fn sj_take c uchar to void
+if ge get sjst 0 get sjst 1
+sr_fail sjesyn
+end
+if ne sj_peek c
+sr_fail sjesyn
+end
+put sjst 0 add get sjst 0 1
+end
+fn sj_ws to void
+while lt get sjst 0 get sjst 1 bound 262144
+c = sj_peek
+if not or or eq c 32 eq c 9 or eq c 10 eq c 13
+ret
+end
+put sjst 0 add get sjst 0 1
+end
+end
+fn sj_decbyte c uchar to void
+if ge get sjst 2 len sjdec
+sr_fail sjecap
+end
+put sjdec get sjst 2 c
+put sjst 2 add get sjst 2 1
+end
+fn sj_codepoint cp ulong to void
+if or gt cp 1114111 and ge cp 55296 le cp 57343
+sr_fail sjeun
+end
+if lt cp 128
+sj_decbyte uchar cp
+ret
+end
+if lt cp 2048
+sj_decbyte uchar or ulong 192 shr cp 6
+else
+if lt cp 65536
+sj_decbyte uchar or ulong 224 shr cp 12
+else
+sj_decbyte uchar or ulong 240 shr cp 18
+sj_decbyte uchar or ulong 128 and shr cp 12 63
+end
+sj_decbyte uchar or ulong 128 and shr cp 6 63
+end
+sj_decbyte uchar or ulong 128 and cp 63
+end
+fn sj_hex4 to ulong
+v = ulong 0
+for j ulong 4
+c = sj_peek
+if and ge c 48 le c 57
+v = add mul v 16 ulong sub c 48
+else
+if and ge c 65 le c 70
+v = add mul v 16 add ulong sub c 65 10
+else
+if and ge c 97 le c 102
+v = add mul v 16 add ulong sub c 97 10
+else
+sr_fail sjeun
+end
+end
+end
+put sjst 0 add get sjst 0 1
+end
+ret v
+end
+fn sj_unicode to void
+cp = sj_hex4
+if and ge cp 55296 le cp 56319
+sj_take 92
+sj_take 117
+low = sj_hex4
+if or lt low 56320 gt low 57343
+sr_fail sjeun
+end
+cp = add add mul sub cp 55296 1024 sub low 56320 65536
+end
+sj_codepoint cp
+end
+fn sj_escape to void
+c = sj_peek
+if eq c 0
+sr_fail sjesyn
+end
+put sjst 0 add get sjst 0 1
+if eq c 117
+sj_unicode
+ret
+end
+if or or eq c 34 eq c 92 eq c 47
+sj_decbyte c
+ret
+end
+if eq c 98
+sj_decbyte 8
+ret
+end
+if eq c 102
+sj_decbyte 12
+ret
+end
+if eq c 110
+sj_decbyte 10
+ret
+end
+if eq c 114
+sj_decbyte 13
+ret
+end
+if eq c 116
+sj_decbyte 9
+ret
+end
+sr_fail sjesyn
+end
+fn sj_utf8 lead uchar to void
+need = ulong 0
+cp = ulong 0
+low = ulong 0
+if and ge lead 194 le lead 223
+need = 1
+cp = ulong and lead 31
+low = 128
+else
+if and ge lead 224 le lead 239
+need = 2
+cp = ulong and lead 15
+low = 2048
+else
+if and ge lead 240 le lead 244
+need = 3
+cp = ulong and lead 7
+low = 65536
+else
+sr_fail sjeutf
+end
+end
+end
+for j ulong need
+c = sj_peek
+if or lt c 128 gt c 191
+sr_fail sjeutf
+end
+cp = add mul cp 64 ulong and c 63
+put sjst 0 add get sjst 0 1
+end
+if or lt cp low gt cp 1114111
+sr_fail sjeutf
+end
+if and ge cp 55296 le cp 57343
+sr_fail sjeutf
+end
+sj_codepoint cp
+end
+fn sj_parse_string to ulong
+sj_take 34
+start = get sjst 2
+while lt get sjst 0 get sjst 1 bound 262144
+c = sj_peek
+put sjst 0 add get sjst 0 1
+if eq c 34
+ret start
+end
+if lt c 32
+sr_fail sjesyn
+end
+if eq c 92
+sj_escape
+else
+if ge c 128
+sj_utf8 c
+else
+sj_decbyte c
+end
+end
+end
+sr_fail sjesyn
+ret 0
+end
+fn sj_digit to bool
+c = sj_peek
+ret and ge c 48 le c 57
+end
+fn sj_digits to void
+if not sj_digit
+sr_fail sjesyn
+end
+while sj_digit bound 262144
+put sjst 0 add get sjst 0 1
+end
+end
+fn sj_number node ulong to void
+put sjtyp node 4
+put sjoff node uint get sjst 0
+if eq sj_peek 45
+sj_take 45
+end
+if eq sj_peek 48
+sj_take 48
+else
+sj_digits
+end
+if eq sj_peek 46
+sj_take 46
+sj_digits
+end
+if or eq sj_peek 101 eq sj_peek 69
+put sjst 0 add get sjst 0 1
+if or eq sj_peek 43 eq sj_peek 45
+put sjst 0 add get sjst 0 1
+end
+sj_digits
+end
+put sjcnt node uint sub get sjst 0 ulong get sjoff node
+end
+fn sj_literal s view uchar * to void
+for j ulong len s
+sj_take get s j
+end
+end
+fn sj_alloc to ulong
+node = get sjst 3
+if ge node len sjtyp
+sr_fail sjenod
+end
+put sjst 3 add node 1
+put sjtyp node 0
+put sjoff node 0
+put sjcnt node 0
+put sjko node 0
+put sjkl node 0
+put sjhas node 0
+put sjfst node 0
+put sjnxt node 0
+put sjnum node 0
+ret node
+end
+fn sj_append parent ulong prev ulong child ulong to void
+if eq prev 0
+put sjfst parent uint child
+else
+put sjnxt prev uint child
+end
+put sjnum parent add get sjnum parent 1
+end
+fn sj_array node ulong depth ulong to void
+put sjtyp node 2
+sj_take 91
+sj_ws
+if eq sj_peek 93
+sj_take 93
+ret
+end
+prev = ulong 0
+while true bound 65536
+child = sj_value add depth 1
+sj_append node prev child
+prev = child
+sj_ws
+if eq sj_peek 93
+sj_take 93
+ret
+end
+sj_take 44
+sj_ws
+end
+end
+fn sj_object node ulong depth ulong to void
+put sjtyp node 1
+sj_take 123
+sj_ws
+if eq sj_peek 125
+sj_take 125
+ret
+end
+prev = ulong 0
+while true bound 65536
+start = sj_parse_string
+cnt = sub get sjst 2 start
+sj_ws
+sj_take 58
+child = sj_value add depth 1
+put sjko child uint start
+put sjkl child uint cnt
+put sjhas child 1
+sj_append node prev child
+prev = child
+sj_ws
+if eq sj_peek 125
+sj_take 125
+ret
+end
+sj_take 44
+sj_ws
+end
+end
+fn sj_value depth ulong to ulong
+if gt depth 128
+sr_fail sjedep
+end
+sj_ws
+node = sj_alloc
+c = sj_peek
+if eq c 123
+sj_object node depth
+ret node
+end
+if eq c 91
+sj_array node depth
+ret node
+end
+if eq c 34
+start = sj_parse_string
+put sjtyp node 3
+put sjoff node uint start
+put sjcnt node uint sub get sjst 2 start
+ret node
+end
+if eq c 116
+sj_literal sjetrue
+put sjtyp node 5
+ret node
+end
+if eq c 102
+sj_literal sjefalse
+put sjtyp node 6
+ret node
+end
+if eq c 110
+sj_literal sjenull
+put sjtyp node 7
+ret node
+end
+if or eq c 45 sj_digit
+sj_number node
+ret node
+end
+sr_fail sjesyn
+ret 0
+end
+fn sj_read fd int to void
+probe = new uchar 1 0
+put sjst 1 0
+while lt get sjst 1 len sjin bound 262144
+k = read fd sjin get sjst 1 sub len sjin get sjst 1
+if lt k 0
+sr_fail sjeio
+end
+if eq k 0
+ret
+end
+put sjst 1 add get sjst 1 ulong k
+end
+k = read fd probe 0 1
+if lt k 0
+sr_fail sjeio
+end
+if ne k 0
+sr_fail sjecap
+end
+end
+fn sj_parse to ulong
+put sjst 0 0
+put sjst 2 0
+put sjst 3 1
+root = sj_value 0
+sj_ws
+if ne get sjst 0 get sjst 1
+sr_fail sjesyn
+end
+ret root
+end
+fn sj_load path view uchar * to ulong
+sr_path path
+fd = fopen path 0 len path 0 0
+if lt fd 0
+sr_fail sjeio
+end
+sj_read int fd
+sr_fclose int fd
+ret sj_parse
+end
+note sj_loadat parses exactly cnt bytes starting at off; outside-file ranges fail JSON_READ.
+note Bytes before/after the slice are not JSON input. cnt shares the normal JSON_CAPACITY bound.
+note Integration cases NOT_RUN: prefix+valid JSON+suffix exact slice succeeds; include suffix fails;
+note short file, unseekable file, empty slice and oversized slice refuse; fragmented reads succeed.
+fn sj_loadat path view uchar * off ulong cnt ulong to ulong
+sr_path path
+if or gt cnt len sjin gt off 9223372036854775807
+sr_fail sjecap
+end
+fd = fopen path 0 len path 0 0
+if lt fd 0
+sr_fail sjeio
+end
+k = fseek int fd long off 0
+if ne k long off
+sr_fail sjeio
+end
+put sjst 1 0
+while lt get sjst 1 cnt bound 262144
+k = read int fd sjin get sjst 1 sub cnt get sjst 1
+if le k 0
+sr_fail sjeio
+end
+put sjst 1 add get sjst 1 ulong k
+end
+sr_fclose int fd
+ret sj_parse
+end
+note sj_numsize/numbyte expose kind4 lexical bytes; no conversion or rounding occurs.
+note Integration cases NOT_RUN: -0.123E+004 byte comparison, wrong kind and past-end refusal.
+fn sj_numsize node ulong to ulong
+sj_check node
+if ne get sjtyp node 4
+sr_fail sjeknd
+end
+ret ulong get sjcnt node
+end
+fn sj_numbyte node ulong index ulong to uchar
+cnt = sj_numsize node
+if ge index cnt
+sr_fail sjeidx
+end
+ret get sjin add ulong get sjoff node index
+end
+note sj_keyis compares the decoded member key; array items/root/missing return false.
+note Integration cases NOT_RUN: escaped equivalent key true; root/array item/other key false.
+fn sj_keyis node ulong key view uchar * to bool
+if eq node 0
+ret false
+end
+sj_check node
+if eq get sjhas node 0
+ret false
+end
+ret sj_dec_equal ulong get sjko node ulong get sjkl node key
+end
+fn sj_check node ulong to void
+if or eq node 0 ge node get sjst 3
+sr_fail sjeidx
+end
+end
+fn sj_kind node ulong to uchar
+if eq node 0
+ret 0
+end
+sj_check node
+ret get sjtyp node
+end
+fn sj_first node ulong to ulong
+if eq node 0
+ret 0
+end
+sj_check node
+ret ulong get sjfst node
+end
+fn sj_next node ulong to ulong
+if eq node 0
+ret 0
+end
+sj_check node
+ret ulong get sjnxt node
+end
+fn sj_len node ulong to ulong
+if eq node 0
+ret 0
+end
+sj_check node
+ret ulong get sjnum node
+end
+fn sj_string_check node ulong to void
+sj_check node
+if ne get sjtyp node 3
+sr_fail sjeknd
+end
+end
+fn sj_dec_equal off ulong cnt ulong s view uchar * to bool
+if ne cnt len s
+ret false
+end
+for j ulong cnt
+if ne get sjdec add off j get s j
+ret false
+end
+end
+ret true
+end
+fn sj_find node ulong key view uchar * to ulong
+if eq node 0
+ret 0
+end
+sj_check node
+if ne get sjtyp node 1
+sr_fail sjeknd
+end
+child = sj_first node
+found = ulong 0
+while ne child 0 bound 65536
+if sj_dec_equal ulong get sjko child ulong get sjkl child key
+found = child
+end
+child = sj_next child
+end
+ret found
+end
+fn sj_eq node ulong s view uchar * to bool
+if eq node 0
+ret false
+end
+sj_check node
+if ne get sjtyp node 3
+ret false
+end
+ret sj_dec_equal ulong get sjoff node ulong get sjcnt node s
+end
+fn sj_size node ulong to ulong
+sj_string_check node
+ret ulong get sjcnt node
+end
+fn sj_byte node ulong index ulong to uchar
+sj_string_check node
+if ge index ulong get sjcnt node
+sr_fail sjeidx
+end
+ret get sjdec add ulong get sjoff node index
+end
+fn sj_string node ulong dst edit uchar * to ulong
+cnt = sj_size node
+if gt cnt len dst
+sr_fail sjecap
+end
+for j ulong cnt
+put dst j get sjdec add ulong get sjoff node j
+end
+ret cnt
+end
+fn sj_prefix node ulong s view uchar * to bool
+if eq node 0
+ret false
+end
+sj_check node
+if ne get sjtyp node 3
+ret false
+end
+if gt len s ulong get sjcnt node
+ret false
+end
+for j ulong len s
+if ne get s j get sjdec add ulong get sjoff node j
+ret false
+end
+end
+ret true
+end
+fn sj_same a ulong b ulong to bool
+sj_string_check a
+sj_string_check b
+cnt = get sjcnt a
+if ne cnt get sjcnt b
+ret false
+end
+a = ulong get sjoff a
+b = ulong get sjoff b
+for j ulong ulong cnt
+x = get sjdec add a j
+y = get sjdec add b j
+if ne x y
+ret false
+end
+end
+ret true
+end
+fn sj_dec_emit off ulong cnt ulong to void
+for j ulong cnt
+sr_escape get sjdec add off j
+end
+end
+fn sj_slice node ulong start ulong to void
+cnt = sj_size node
+if gt start cnt
+sr_fail sjeidx
+end
+sj_dec_emit add ulong get sjoff node start sub cnt start
+end
+fn sj_key node ulong to void
+sj_check node
+if eq get sjhas node 0
+sr_fail sjeknd
+end
+sj_dec_emit ulong get sjko node ulong get sjkl node
+end
+fn sj_emit node ulong to void
+kind = sj_kind node
+if eq kind 3
+sj_dec_emit ulong get sjoff node ulong get sjcnt node
+ret
+end
+if eq kind 4
+for j ulong ulong get sjcnt node
+sr_byte get sjin add ulong get sjoff node j
+end
+ret
+end
+if eq kind 5
+sr_raw sjetrue
+ret
+end
+if eq kind 6
+sr_raw sjefalse
+ret
+end
+if eq kind 7
+sr_raw sjenull
+ret
+end
+sr_fail sjeknd
+end
+fn sj_href node ulong to void
+sj_string_check node
+sj_emit node
+end

@@ -1,0 +1,306 @@
+note Shared native site runtime; concatenate after the unit's leading om2.
+note API sr_raw/sr_bytes write exact bytes; sr_esc escapes HTML text and quoted attributes.
+note sr_open creates checked parents and truncates a file; sr_close flushes and restores stdout.
+note sofd is the current output descriptor after sr_init or sr_open. Never mutate it without sr_flush.
+note sr_copy preserves bytes, not mode; refuses same inode before truncation. All I/O errors exit 70.
+note Paths use the host's 4095-byte limit; zero bytes and empty paths are refused by name.
+note Streaming operations allow 999998 read attempts, then refuse IO_LIMIT rather than trap/truncate.
+note Integration cases (NOT_RUN): nested parents; existing regular-file parent refusal; missing source;
+note same-inode copy refusal including hardlink; empty and multi-block copy; /dev/full write refusal;
+note partial pipe reads/writes; empty strings; equality length mismatch; escaping ampersand/angles/quotes.
+text srepre "site runtime: "
+text srenl "\n"
+text srewr "WRITE"
+text srerd "READ"
+text srecl "CLOSE"
+text sreop "OPEN"
+text sremk "MKDIR"
+text srepa "PATH"
+text srebo "BOUNDS"
+text sreli "IO_LIMIT"
+text sresa "COPY_SAME_FILE"
+text srest "STAT"
+text sretr "TRUNCATE"
+text sreamp "&amp;"
+text srelt "&lt;"
+text sregt "&gt;"
+text srequ "&quot;"
+text sreapo "&#39;"
+global sofd int 1
+global srb uchar 16384
+global srn ulong 1
+global sri uchar 1
+fn sr_diag s view uchar * to void
+p = ulong 0
+while lt p len s bound 4096
+k = write 2 s p sub len s p
+if le k 0
+exit 70
+end
+p = add p ulong k
+end
+end
+fn sr_fail why view uchar * to void
+sr_diag srepre
+sr_diag why
+sr_diag srenl
+exit 70
+end
+fn sr_init to void
+if eq get sri 0 0
+put sofd 0 1
+put sri 0 1
+end
+end
+fn sr_flush to void
+sr_init
+p = ulong 0
+while lt p get srn 0 bound 16384
+k = write get sofd 0 srb p sub get srn 0 p
+if le k 0
+sr_fail srewr
+end
+p = add p ulong k
+end
+put srn 0 0
+end
+fn sr_byte c uchar to void
+if eq get srn 0 len srb
+sr_flush
+end
+put srb get srn 0 c
+put srn 0 add get srn 0 1
+end
+fn sr_write fd int s view uchar * off ulong cnt ulong to void
+note A chunk is at most 65536 bytes, so even one-byte progress respects the loop bound.
+p = ulong 0
+while lt p cnt bound 65536
+k = write fd s add off p sub cnt p
+if le k 0
+sr_fail srewr
+end
+p = add p ulong k
+end
+end
+fn sr_bytes s view uchar * off ulong cnt ulong to void
+if gt off len s
+sr_fail srebo
+end
+if gt cnt sub len s off
+sr_fail srebo
+end
+note Compiler array limit is 16777216 bytes. Chunking avoids the million-iteration guard.
+if gt cnt 16777216
+sr_fail srebo
+end
+p = ulong 0
+while lt p cnt bound 16384
+n = sub cnt p
+if ge n len srb
+sr_flush
+if gt n 65536
+n = 65536
+end
+sr_write get sofd 0 s add off p n
+p = add p n
+else
+for j ulong n
+sr_byte get s add add off p j
+end
+p = add p n
+end
+end
+end
+fn sr_raw s view uchar * to void
+sr_bytes s 0 len s
+end
+fn sr_escape c uchar to void
+if eq c 38
+sr_raw sreamp
+ret
+end
+if eq c 60
+sr_raw srelt
+ret
+end
+if eq c 62
+sr_raw sregt
+ret
+end
+if eq c 34
+sr_raw srequ
+ret
+end
+if eq c 39
+sr_raw sreapo
+ret
+end
+sr_byte c
+end
+fn sr_esc s view uchar * to void
+p = ulong 0
+while lt p len s bound 16384
+n = sub len s p
+if gt n 65536
+n = 65536
+end
+for j ulong n
+sr_escape get s add p j
+end
+p = add p n
+end
+end
+fn sr_equal a view uchar * b view uchar * to bool
+if ne len a len b
+ret false
+end
+p = ulong 0
+while lt p len a bound 16384
+n = sub len a p
+if gt n 65536
+n = 65536
+end
+for j ulong n
+if ne get a add p j get b add p j
+ret false
+end
+end
+p = add p n
+end
+ret true
+end
+fn sr_num n ulong to void
+buf = new uchar 20 0
+p = ulong 20
+while true bound 20
+p = sub p 1
+put buf p uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+sr_bytes buf p sub ulong 20 p
+end
+fn sr_path path view uchar * to void
+if or eq len path 0 gt len path 4095
+sr_fail srepa
+end
+for j ulong len path
+if eq get path j 0
+sr_fail srepa
+end
+end
+end
+fn sr_fclose fd int to void
+k = fclose fd
+if ne k 0
+sr_fail srecl
+end
+end
+fn sr_dir path view uchar * n ulong to void
+k = makedir path 0 n 493
+if and lt k 0 ne k -17
+sr_fail sremk
+end
+note EEXIST alone is not success: Linux AArch64 O_DIRECTORY (16384) proves a directory.
+k = fopen path 0 n 16384 0
+if lt k 0
+sr_fail sremk
+end
+sr_fclose int k
+end
+fn sr_parents path view uchar * to void
+sr_path path
+for j ulong len path
+if gt j 0
+if eq get path j 47
+sr_dir path j
+end
+end
+end
+end
+fn sr_open path view uchar * to void
+sr_close
+sr_parents path
+k = fopen path 0 len path 577 420
+if lt k 0
+sr_fail sreop
+end
+put sofd 0 int k
+put sri 0 2
+end
+fn sr_close to void
+sr_flush
+if eq get sri 0 2
+sr_fclose get sofd 0
+end
+put sofd 0 1
+put sri 0 1
+end
+fn sr_stream fd int dest int to void
+buf = new uchar 65536 0
+for tries ulong 999998
+k = read fd buf 0 len buf
+if lt k 0
+sr_fail srerd
+end
+if eq k 0
+ret
+end
+sr_write dest buf 0 ulong k
+end
+sr_fail sreli
+end
+fn sr_file path view uchar * to void
+sr_path path
+k = fopen path 0 len path 0 0
+if lt k 0
+sr_fail sreop
+end
+sr_flush
+sr_stream int k get sofd 0
+sr_fclose int k
+end
+fn sr_distinct src int dst int to void
+a = new uchar 128 0
+b = new uchar 128 0
+k = fstat src a 0 len a
+if ne k 0
+sr_fail srest
+end
+k = fstat dst b 0 len b
+if ne k 0
+sr_fail srest
+end
+note Linux AArch64 stat begins with st_dev and st_ino, each eight bytes.
+same = true
+for j ulong 16
+if ne get a j get b j
+same = false
+end
+end
+if same
+sr_fail sresa
+end
+end
+fn sr_copy src view uchar * dst view uchar * to void
+sr_path src
+sr_parents dst
+fd = fopen src 0 len src 0 0
+if lt fd 0
+sr_fail sreop
+end
+od = fopen dst 0 len dst 65 420
+if lt od 0
+sr_fail sreop
+end
+sr_distinct int fd int od
+k = ftrunc int od 0
+if ne k 0
+sr_fail sretr
+end
+sr_stream int fd int od
+sr_fclose int fd
+sr_fclose int od
+end

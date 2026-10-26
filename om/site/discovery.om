@@ -1,0 +1,1335 @@
+note Discovery renderer. Compose after runtime/json; the core supplies the leading om2.
+note Source content baseline 3d36bd7829d1. Canonical research data is read on every entry.
+note All counts are source-record bookkeeping, never claims of current activity or qualification.
+text dpath "crates/site-builder/data/research_status.json"
+text dcopy "om/site/discovery.json"
+text dsource "https://github.com/aien-dev/aienos.com/blob/main/crates/site-builder/data/research_status.json"
+text dqs "https://github.com/aien-dev/omega-mv/blob/main/docs/turing/TURING_SCIENTIFIC_QUALIFICATION_STATE.md"
+text dgit "https://github.com/aien-dev/"
+text dblob "/blob/main/"
+text domega "omega-mv"
+text daienux "aienux"
+text darch "aien-architecture-mv"
+text datlas "atlas"
+text dpreom "omega "
+text dpreos "aienos "
+text dprear "aien-architecture "
+text dpreat "atlas "
+text dcurdoc "TURING_CURRENT_STATE.md"
+text dcurpth "docs/turing/TURING_CURRENT_STATE.md"
+text dqsword "QS"
+text dqscolon "QS:"
+text dline "#L"
+text dslash "/"
+text dhttps "https://"
+text deh ".h"
+text dec ".c"
+text demd ".md"
+text desh ".sh"
+text dejson ".json"
+text demk ".mk"
+text detxt ".txt"
+text detsv ".tsv"
+text dkid "id"
+text dktitle "title"
+text dkdesc "description"
+text dkhref "href"
+text dksource "source"
+text dklink "link"
+text dkevid "evidence"
+text dklevel "level"
+text dksum "summary"
+text dkout "outside_scope"
+text dknote "note"
+text dkmean "meaning"
+text dklimit "limitations"
+text dkcurr "current_level"
+text dkladder "ladder"
+text dkstate "state"
+text dkname "name"
+text dkdetail "detail"
+text dkbasis "basis"
+text dkattemp "attempts"
+text dkbeside "beside"
+text dkoutcom "outcome"
+text dkled "led_to"
+text dkturing "turing_rows"
+text dkimpl "implementation_rows"
+text dkstatus "status"
+text dkstatdt "status_detail"
+text dkplain "plain"
+text dkhead "headline"
+text dknyield "not_yield"
+text dkscope "scope"
+text dkclaim "claim_level"
+text dkrcpt "receipt"
+text dkcommit "commit"
+text dkdate "date"
+text dknext "next_dependency"
+text dkclass "class"
+text dkasof "as_of"
+text dktable "source_table"
+text dkcomm "source_commits"
+text dkhier "evidence_hierarchy"
+text dkcaveat "caveats"
+text dkdefine "turing_definition"
+text dkabbrev "abbreviations"
+text dkshort "short"
+text dklong "long"
+text dkallow "allowed_statuses"
+text dkastate "allowed_ladder_states"
+text dkacls "allowed_classes"
+text dkom "omega"
+text dkos "aienos"
+text dkar "aien_architecture"
+text dksite "aienos_com"
+text dkcards "cards"
+text dkparas "paragraphs"
+text dklabel "label"
+text dkintro "intro"
+text dkphilo "philosophy"
+text dkehub "evidence"
+text dkorder "hierarchy"
+text dkexams "exams"
+text dkrecid "record_id"
+text dkcaps "capabilities"
+text dkrcpts "receipts"
+text dkverd "verdict"
+text dkfigure "figure"
+text dkenv "environment"
+text dkgate "gate"
+text dkproves "proves"
+text dknotpr "not_proves"
+text dkpapers "papers"
+text dty2 "TY-2"
+text dpass "PASS"
+text dfail "FAIL"
+text dincompl "INCOMPLETE"
+text dblocked "BLOCKED"
+text dpartial "PARTIAL"
+text dnotest "NOT ESTABLISHED"
+text dnotstrt "NOT STARTED"
+text dachieve "achieved"
+text dpart "partial"
+text dnotach "not achieved"
+text dnotatt "not attempted"
+text dimpl "Implemented"
+text dpimpl "Partially implemented"
+text dexper "Experimental"
+text dplan "Planned"
+text dhypoth "Research hypothesis"
+text dl0 "L0"
+text dl1 "L1"
+text dl2 "L2"
+text dl3 "L3"
+text dl4 "L4"
+text dl5 "L5"
+text dl6 "L6"
+text dl7 "L7+"
+text dp "<p>"
+text dpend "</p>"
+text dstrong "<strong>"
+text dstend "</strong>"
+text dspace " "
+text ddash "-"
+text dcolon ": "
+text dperiod ". "
+text dli "<li>"
+text dliend "</li>"
+text dul "<ul>"
+text dulend "</ul>"
+text ddivend "</div>"
+text dsecend "</section>"
+text dartend "</article>"
+text dh2 "<h2>"
+text dh2end "</h2>"
+text dh3 "<h3>"
+text dh3end "</h3>"
+text ddlist "<dl class=\"rs-facts\">"
+text ddlend "</dl>"
+text ddt "<div><dt>"
+text ddd "</dt><dd>"
+text dddend "</dd></div>"
+text danchor "<a href=\""
+text dclose "\">"
+text dfoot "<a class=\"box-link\" href=\""
+text dfsrc "<a class=\"box-link box-link-source\" href=\""
+text dfoote "\" target=\"_blank\" rel=\"noopener noreferrer\">Evidence on GitHub <span class=\"box-arrow\" aria-hidden=\"true\">↗</span></a>"
+text dfoots "\" target=\"_blank\" rel=\"noopener noreferrer\">Source on GitHub <span class=\"box-arrow\" aria-hidden=\"true\">↗</span></a>"
+text dlstatus "Status"
+text dlscope "Scope"
+text dlclaim "Claim level"
+text dllimit "Limitations"
+text dlnext "Next dependency"
+text dlevid "Evidence"
+text dlrcpt "Receipt"
+text dlcommit "Commit"
+text dldate "Date"
+text dlenv "Environment"
+text dlgate "Gate"
+text dlproves "Proves"
+text dlnotpr "Does not prove"
+text dlsource "Receipt source"
+
+fn sd_get node ulong key view uchar * to ulong
+v = sj_find node key
+if ne sj_kind v 3
+exit 72
+end
+ret v
+end
+
+fn sd_arr node ulong key view uchar * to ulong
+v = sj_find node key
+if ne sj_kind v 2
+exit 72
+end
+ret v
+end
+
+fn sd_value node ulong key view uchar * to void
+sj_emit sd_get node key
+end
+
+fn sd_field node ulong key view uchar * label view uchar * to void
+sr_raw ddt
+sr_esc label
+sr_raw ddd
+sd_value node key
+sr_raw dddend
+end
+
+fn sd_nth arr ulong idx ulong to ulong
+item = sj_first arr
+for k ulong idx
+if eq item 0
+exit 72
+end
+item = sj_next item
+end
+if eq item 0
+exit 72
+end
+ret item
+end
+
+fn sd_expect arr ulong idx ulong value view uchar * to void
+if not sj_eq sd_nth arr idx value
+exit 72
+end
+end
+
+fn sd_member node ulong arr ulong to bool
+item = sj_first arr
+while ne item 0 bound 999999
+if sj_same node item
+ret true
+end
+item = sj_next item
+end
+ret false
+end
+
+fn sd_find arr ulong key view uchar * value ulong to ulong
+item = sj_first arr
+while ne item 0 bound 999999
+if sj_same sd_get item key value
+ret item
+end
+item = sj_next item
+end
+ret 0
+end
+
+fn sd_named arr ulong value view uchar * to ulong
+item = sj_first arr
+while ne item 0 bound 999999
+if sj_eq sd_get item dkid value
+ret item
+end
+item = sj_next item
+end
+exit 72
+end
+
+fn sd_enums root ulong to void
+a = sd_arr root dkallow
+if ne sj_len a 7
+exit 72
+end
+sd_expect a 0 dpass
+sd_expect a 1 dfail
+sd_expect a 2 dincompl
+sd_expect a 3 dblocked
+sd_expect a 4 dpartial
+sd_expect a 5 dnotest
+sd_expect a 6 dnotstrt
+b = sd_arr root dkastate
+if ne sj_len b 4
+exit 72
+end
+sd_expect b 0 dachieve
+sd_expect b 1 dpart
+sd_expect b 2 dnotach
+sd_expect b 3 dnotatt
+c = sd_arr root dkacls
+if ne sj_len c 5
+exit 72
+end
+sd_expect c 0 dimpl
+sd_expect c 1 dpimpl
+sd_expect c 2 dexper
+sd_expect c 3 dplan
+sd_expect c 4 dhypoth
+end
+
+fn sd_check_rows arr ulong allowed ulong key view uchar * to void
+item = sj_first arr
+if eq item 0
+exit 72
+end
+while ne item 0 bound 999999
+ident = sd_get item dkid
+if not sd_member sd_get item key allowed
+exit 72
+end
+other = sj_next item
+while ne other 0 bound 999999
+if sj_same ident sd_get other dkid
+exit 72
+end
+other = sj_next other
+end
+item = sj_next item
+end
+end
+
+fn sd_check_ladder root ulong to void
+arr = sd_arr root dkladder
+if ne sj_len arr 8
+exit 72
+end
+sd_expect_level arr 0 dl0
+sd_expect_level arr 1 dl1
+sd_expect_level arr 2 dl2
+sd_expect_level arr 3 dl3
+sd_expect_level arr 4 dl4
+sd_expect_level arr 5 dl5
+sd_expect_level arr 6 dl6
+sd_expect_level arr 7 dl7
+allowed = sd_arr root dkastate
+item = sj_first arr
+top = ulong 0
+gap = false
+while ne item 0 bound 999999
+value = sd_get item dkstate
+if not sd_member value allowed
+exit 72
+end
+if sj_eq value dachieve
+if gap
+exit 72
+end
+top = sd_get item dklevel
+else
+gap = true
+end
+item = sj_next item
+end
+if eq top 0
+exit 72
+end
+if not sj_same top sd_get sj_find root dkcurr dklevel
+exit 72
+end
+end
+
+fn sd_expect_level arr ulong idx ulong value view uchar * to void
+if not sj_eq sd_get sd_nth arr idx dklevel value
+exit 72
+end
+end
+
+fn sd_check_attempts root ulong to void
+arr = sd_arr root dkattemp
+item = sj_first arr
+while ne item 0 bound 999999
+row = sd_find sd_arr root dkturing dkid sd_get item dkid
+if eq row 0
+exit 72
+end
+if not sj_same sd_get row dkstatus sd_get item dkoutcom
+exit 72
+end
+if eq sd_find sd_arr root dkladder dklevel sd_get item dkbeside 0
+exit 72
+end
+if eq sd_find sd_arr root dkturing dkid sd_get item dkled 0
+exit 72
+end
+item = sj_next item
+end
+end
+
+fn sd_load to ulong
+root = sj_load dpath
+sd_enums root
+sd_check_ladder root
+sd_check_rows sd_arr root dkturing sd_arr root dkallow dkstatus
+sd_check_rows sd_arr root dkimpl sd_arr root dkacls dkclass
+sd_check_attempts root
+ret root
+end
+
+fn sd_prefix txt view uchar * prefix view uchar * to bool
+if lt len txt len prefix
+ret false
+end
+for k ulong len prefix
+if ne get txt k get prefix k
+ret false
+end
+end
+ret true
+end
+
+fn sd_suffix txt view uchar * suffix view uchar * to bool
+if lt len txt len suffix
+ret false
+end
+start = sub len txt len suffix
+for k ulong len suffix
+if ne get txt add start k get suffix k
+ret false
+end
+end
+ret true
+end
+
+fn sd_safehref node ulong github bool to void
+if github
+if not sj_prefix node dgit
+exit 72
+end
+else
+if sj_prefix node dslash
+if gt sj_size node 1
+if eq sj_byte node 1 47
+exit 72
+end
+end
+else
+if not sj_prefix node dhttps
+exit 72
+end
+end
+end
+sj_href node
+end
+
+fn sd_source to void
+sr_raw dfsrc
+sr_raw dsource
+sr_raw dfoots
+end
+
+fn sd_urlfoot url ulong evidence bool to void
+if evidence
+sr_raw dfoot
+else
+sr_raw dfsrc
+end
+sd_safehref url true
+if evidence
+sr_raw dfoote
+else
+sr_raw dfoots
+end
+end
+
+fn sd_fileext txt view uchar * to bool
+if sd_suffix txt deh
+ret true
+end
+if sd_suffix txt dec
+ret true
+end
+if sd_suffix txt demd
+ret true
+end
+if sd_suffix txt desh
+ret true
+end
+if sd_suffix txt dejson
+ret true
+end
+if sd_suffix txt demk
+ret true
+end
+if sd_suffix txt detxt
+ret true
+end
+if sd_suffix txt detsv
+ret true
+end
+ret false
+end
+
+fn sd_qsfoot txt view uchar * to void
+sr_raw dfoot
+sr_raw dqs
+if gt len txt 3
+k = ulong 3
+while lt k len txt bound 999999
+b = get txt k
+if or lt b 48 gt b 57
+break
+end
+k = add k 1
+end
+if gt k 3
+sr_raw dline
+sr_esc part txt 3 sub k 3
+end
+end
+sr_raw dfoote
+end
+
+fn sd_pathfoot txt view uchar * repo ulong to bool
+colon = len txt
+slash = false
+for k ulong len txt
+b = get txt k
+if eq b 58
+colon = k
+break
+end
+if eq b 47
+slash = true
+end
+if eq b 46
+if lt add k 1 len txt
+if eq get txt add k 1 46
+ret false
+end
+end
+end
+end
+special = sr_equal part txt 0 colon dcurdoc
+if not special
+if not slash
+ret false
+end
+if eq get txt 0 47
+ret false
+end
+if not sd_fileext part txt 0 colon
+ret false
+end
+end
+sr_raw dfoot
+sr_raw dgit
+if eq repo 1
+sr_raw daienux
+else
+if eq repo 2
+sr_raw darch
+else
+if eq repo 3
+sr_raw datlas
+else
+sr_raw domega
+end
+end
+end
+sr_raw dblob
+if special
+sr_raw dcurpth
+else
+sr_esc part txt 0 colon
+end
+if lt colon len txt
+start = add colon 1
+finish = start
+while lt finish len txt bound 999999
+b = get txt finish
+if or lt b 48 gt b 57
+break
+end
+finish = add finish 1
+end
+if gt finish start
+sr_raw dline
+sr_esc part txt start sub finish start
+end
+end
+sr_raw dfoote
+ret true
+end
+
+fn sd_citation txt view uchar * to bool
+start = ulong 0
+while lt start len txt bound 999999
+if gt get txt start 32
+break
+end
+start = add start 1
+end
+repo = ulong 0
+if sd_prefix part txt start sub len txt start dpreos
+repo = 1
+start = add start len dpreos
+else
+if sd_prefix part txt start sub len txt start dprear
+repo = 2
+start = add start len dprear
+else
+if sd_prefix part txt start sub len txt start dpreat
+repo = 3
+start = add start len dpreat
+else
+if sd_prefix part txt start sub len txt start dpreom
+start = add start len dpreom
+end
+end
+end
+end
+finish = start
+while lt finish len txt bound 999999
+if le get txt finish 32
+break
+end
+finish = add finish 1
+end
+while gt finish start bound 999999
+b = get txt sub finish 1
+if not or or eq b 44 eq b 59 eq b 58
+break
+end
+finish = sub finish 1
+end
+if eq finish start
+ret false
+end
+if or sr_equal part txt start sub finish start dqsword sd_prefix part txt start sub finish start dqscolon
+sd_qsfoot part txt start sub finish start
+ret true
+end
+ret sd_pathfoot part txt start sub finish start repo
+end
+
+fn sd_optional_link node ulong to ulong
+url = sj_find node dklink
+if eq url 0
+ret 0
+end
+if eq sj_kind url 7
+ret 0
+end
+if ne sj_kind url 3
+exit 72
+end
+ret url
+end
+
+fn sd_evidence node ulong key view uchar * to void
+buf = new uchar 4096 0
+url = sd_optional_link node
+if ne url 0
+sd_urlfoot url true
+ret
+end
+ev = sd_get node key
+n = sj_string ev buf
+if not sd_citation part buf 0 n
+sd_source
+end
+end
+
+fn sd_slug node ulong to void
+buf = new uchar 1 0
+pending = false
+wrote = false
+for k ulong sj_size node
+b = sj_byte node k
+if and ge b 65 le b 90
+b = add b 32
+end
+if or and ge b 97 le b 122 and ge b 48 le b 57
+if pending
+sr_raw ddash
+pending = false
+end
+put buf 0 b
+sr_raw buf
+wrote = true
+else
+if wrote
+pending = true
+end
+end
+end
+end
+
+text dbadge "<span class=\"rs-badge rs-badge--"
+text dspend "</span>"
+fn sd_badge node ulong to void
+sr_raw dbadge
+sd_slug node
+sr_raw dclose
+sj_emit node
+sr_raw dspend
+end
+
+text dcurrent "<p class=\"rs-current\"><strong>Current level: "
+text dcurrmid ".</strong> "
+fn sd_current root ulong to void
+cur = sj_find root dkcurr
+sr_raw dcurrent
+sd_value cur dksum
+sr_raw dcurrmid
+sd_value cur dkout
+sr_raw dspace
+sd_value cur dknote
+sr_raw dpend
+sr_raw dp
+sd_value cur dkmean
+sr_raw dpend
+end
+
+text dladopen "<div class=\"rs-ladder evidence-ladder\">"
+text dladhint "<p class=\"muted\">Each step rests on the one below it. The state is written on every step; a partial step above a gap does not raise the claim ceiling.</p><ol class=\"stack\">"
+text dladend "</ol></div>"
+text dstep "<li class=\"rs-step panel\" data-level=\""
+text dststate "\" data-state=\""
+text dsteph "\"><h3>"
+text dbasis "<p>Evidence: "
+text dattempt "<div class=\"rs-attempt\" data-attempt=\""
+text datth "\"><p>"
+text dattkeep " failed attempt, kept on the record</p><p>"
+text dledto " Led to "
+fn sd_attempts root ulong level ulong to void
+item = sj_first sd_arr root dkattemp
+while ne item 0 bound 999999
+if sj_same sd_get item dkbeside level
+sr_raw dattempt
+sd_value item dkid
+sr_raw datth
+sd_badge sd_get item dkoutcom
+sr_raw dspace
+sd_value item dkid
+sr_raw dattkeep
+sd_value item dksum
+sr_raw dledto
+sd_value item dkled
+sr_raw dpend
+sr_raw ddivend
+end
+item = sj_next item
+end
+end
+
+fn sd_ladder_data root ulong to void
+sr_raw dladopen
+sd_current root
+sr_raw dladhint
+item = sj_first sd_arr root dkladder
+while ne item 0 bound 999999
+sr_raw dstep
+sd_value item dklevel
+sr_raw dststate
+sd_value item dkstate
+sr_raw dsteph
+sd_value item dklevel
+sr_raw dcolon
+sd_value item dkname
+sr_raw dh3end
+sr_raw dp
+sd_value item dkstate
+sr_raw dpend
+sr_raw dp
+sd_value item dkdetail
+sr_raw dpend
+sr_raw dbasis
+sd_value item dkbasis
+sr_raw dpend
+sd_evidence item dkbasis
+sd_attempts root sd_get item dklevel
+sr_raw dliend
+item = sj_next item
+end
+sr_raw dladend
+end
+
+fn sd_ladder to void
+root = sd_load
+sd_ladder_data root
+end
+
+fn sd_facts node ulong to void
+sr_raw ddlist
+sd_field node dkstatdt dlstatus
+sd_field node dkscope dlscope
+sd_field node dkclaim dlclaim
+sd_field node dklimit dllimit
+sd_field node dknext dlnext
+sd_field node dkevid dlevid
+sd_field node dkrcpt dlrcpt
+sd_field node dkcommit dlcommit
+sd_field node dkdate dldate
+sr_raw ddlend
+end
+
+text dcards "<div class=\"rs-cards\">"
+text dcard "<article class=\"rs-card panel\" id=\"rs-"
+text drow "\" data-row=\""
+text dstat "\" data-status=\""
+text dtitle "<h3 class=\"rs-card-title\" data-role=\"result-label\">"
+text dhead "<p class=\"rs-card-headline\" data-role=\"result-label\">"
+text dcallout "<p class=\"rs-card-callout\">"
+text dmore "<details><summary>Scope, limits and receipt</summary>"
+text dmend "</details>"
+fn sd_turing_card row ulong to void
+sr_raw dcard
+sd_slug sd_get row dkid
+sr_raw drow
+sd_value row dkid
+sr_raw dstat
+sd_value row dkstatus
+sr_raw dclose
+sd_badge sd_get row dkstatus
+sr_raw dspace
+sd_value row dkid
+sr_raw dtitle
+sd_value row dktitle
+sr_raw dh3end
+h = sj_find row dkhead
+if ne h 0
+sr_raw dhead
+sj_emit h
+sr_raw dpend
+end
+n = sj_find row dknyield
+if ne n 0
+sr_raw dcallout
+sj_emit n
+sr_raw dpend
+end
+sr_raw dp
+sd_value row dkplain
+sr_raw dpend
+sr_raw dmore
+sd_facts row
+sr_raw dmend
+sd_evidence row dkevid
+sr_raw dartend
+end
+
+fn sd_cards root ulong to void
+sr_raw dcards
+item = sj_first sd_arr root dkturing
+while ne item 0 bound 999999
+sd_turing_card item
+item = sj_next item
+end
+sr_raw ddivend
+end
+
+text dgroup "<section class=\"rs-group section\" data-class=\""
+text dcount " ("
+text dcounten ")"
+text dibuilt "<p>Code and tests exist. Each entry says how far that goes.</p>"
+text dipart "<p>Some of it exists. The missing part is named.</p>"
+text diexper "<p>Being tried. Results so far, including failures, are on the record.</p>"
+text diplan "<p>Written down as a plan or specification. No code yet.</p>"
+text dihyp "<p>Not built. An idea to test, not a feature.</p>"
+text diitem "<li class=\"rs-impl-item panel\" data-impl=\""
+fn sd_class_intro cls ulong to void
+if sj_eq cls dimpl
+sr_raw dibuilt
+end
+if sj_eq cls dpimpl
+sr_raw dipart
+end
+if sj_eq cls dexper
+sr_raw diexper
+end
+if sj_eq cls dplan
+sr_raw diplan
+end
+if sj_eq cls dhypoth
+sr_raw dihyp
+end
+end
+
+fn sd_group arr ulong cls ulong to void
+count = ulong 0
+item = sj_first arr
+while ne item 0 bound 999999
+if sj_same sd_get item dkclass cls
+count = add count 1
+end
+item = sj_next item
+end
+if eq count 0
+ret
+end
+sr_raw dgroup
+sj_emit cls
+sr_raw dclose
+sr_raw dh3
+sj_emit cls
+sr_raw dcount
+sr_num count
+sr_raw dcounten
+sr_raw dh3end
+sd_class_intro cls
+sr_raw dul
+item = sj_first arr
+while ne item 0 bound 999999
+if sj_same sd_get item dkclass cls
+sr_raw diitem
+sd_value item dkid
+sr_raw dclose
+sr_raw dh3
+sd_value item dkid
+sr_raw dh3end
+sr_raw dp
+sd_value item dkstatdt
+sr_raw dpend
+sr_raw dp
+sd_value item dkscope
+sr_raw dpend
+sr_raw dmore
+sd_facts item
+sr_raw dmend
+sd_evidence item dkevid
+sr_raw dliend
+end
+item = sj_next item
+end
+sr_raw dulend
+sr_raw dsecend
+end
+
+text dimplbox "<div class=\"rs-impl\">"
+fn sd_implementation_data root ulong to void
+sr_raw dimplbox
+item = sj_first sd_arr root dkacls
+while ne item 0 bound 999999
+sd_group sd_arr root dkimpl item
+item = sj_next item
+end
+sr_raw ddivend
+end
+
+fn sd_implementation to void
+root = sd_load
+sd_implementation_data root
+end
+
+text dsources "<section id=\"sources\" class=\"section rs-sources\"><h2>Sources and caveats</h2>"
+text drepocom "<p>Repository commits read: omega "
+text doscomm ", aienos "
+text darcomm ", aien-architecture "
+text dsitecom ", aienos.com "
+text derank "<p>Evidence ranks: "
+text dlevlim " Evidence for the current level: "
+text dabhead "<h3>Abbreviations</h3>"
+fn sd_sources root ulong to void
+sr_raw dsources
+sr_raw dp
+sd_value root dktable
+sr_raw dpend
+c = sj_find root dkcomm
+sr_raw drepocom
+sd_value c dkom
+sr_raw doscomm
+sd_value c dkos
+sr_raw darcomm
+sd_value c dkar
+sr_raw dsitecom
+sd_value c dksite
+sr_raw dpend
+sr_raw derank
+sd_value root dkhier
+sr_raw dpend
+sr_raw dul
+item = sj_first sd_arr root dkcaveat
+while ne item 0 bound 999999
+sr_raw dli
+sj_emit item
+sr_raw dliend
+item = sj_next item
+end
+cur = sj_find root dkcurr
+sr_raw dli
+sd_value cur dklimit
+sr_raw dlevlim
+sd_value cur dkevid
+sr_raw dliend
+sr_raw dulend
+sr_raw dabhead
+sr_raw ddlist
+item = sj_first sd_arr root dkabbrev
+while ne item 0 bound 999999
+sr_raw ddt
+sd_value item dkshort
+sr_raw ddd
+sd_value item dklong
+sr_raw dddend
+item = sj_next item
+end
+sr_raw ddlend
+sd_source
+sr_raw dsecend
+end
+
+text dhubcard "<article class=\"hub-card panel\">"
+text dcardhd "</a></h3>"
+text dcardgr "<div class=\"dashboard-grid\">"
+fn sd_content_card node ulong to void
+sr_raw dhubcard
+label = sj_find node dklabel
+if ne label 0
+sr_raw dp
+sj_emit label
+sr_raw dpend
+end
+sr_raw dh3
+sr_raw danchor
+sd_safehref sd_get node dkhref false
+sr_raw dclose
+sd_value node dktitle
+sr_raw dcardhd
+sr_raw dp
+sd_value node dkdesc
+sr_raw dpend
+url = sd_optional_link node
+if ne url 0
+sd_urlfoot url true
+else
+sd_urlfoot sd_get node dksource false
+end
+sr_raw dartend
+end
+
+fn sd_content_cards arr ulong to void
+sr_raw dcardgr
+item = sj_first arr
+while ne item 0 bound 999999
+sd_content_card item
+item = sj_next item
+end
+sr_raw ddivend
+end
+
+fn sd_paragraphs arr ulong to void
+item = sj_first arr
+while ne item 0 bound 999999
+sr_raw dp
+sj_emit item
+sr_raw dpend
+item = sj_next item
+end
+end
+
+text dhubhead "<header class=\"page-intro\"><p class=\"eyebrow\">Discoveries</p><h1>"
+text dhubmid "</h1><p class=\"lede\">"
+text dhubend "</p></header>"
+text dphiloh "<section class=\"section prose\"><h2>What these papers argue</h2>"
+text dphilol "<p><a href=\"/evidence/\">Evidence</a> · <a href=\"/research/status/\">Research status record</a></p></section>"
+fn sd_philosophy to void
+root = sj_load dcopy
+node = sj_find root dkphilo
+sr_raw dhubhead
+sd_value node dktitle
+sr_raw dhubmid
+sd_value node dklabel
+sr_raw dhubend
+sr_raw dp
+sd_value node dkintro
+sr_raw dpend
+sr_raw dphiloh
+sd_paragraphs sd_arr node dkparas
+sr_raw dphilol
+sd_content_cards sd_arr node dkcards
+end
+
+text deorder "<section class=\"section\"><h2 id=\"evidence-order\">What counts as evidence</h2><ol class=\"evidence-ladder\">"
+text deordend "</ol><p>Website prose never overrides code, tests, or receipts.</p></section><section class=\"section\"><h2>Where to inspect it</h2>"
+text defail "<section class=\"section prose\" aria-labelledby=\"evidence-failure\"><h2 id=\"evidence-failure\">Failure is evidence.</h2><p>Failed and incomplete experiments stay on the record. They are never deleted, hidden, or rewritten into success. A meter you cannot fail is not a meter.</p><p><a href=\"/discoveries/#receipts\">Dated receipt trail</a> · <a href=\"/hive/\">The Hive</a>. Activity is not qualification; each receipt keeps its own date, scope and limits.</p></section>"
+fn sd_evidence_hub to void
+root = sj_load dcopy
+node = sj_find root dkehub
+sr_raw dhubhead
+sd_value node dktitle
+sr_raw dhubmid
+sd_value node dkintro
+sr_raw dhubend
+sr_raw deorder
+item = sj_first sd_arr node dkorder
+while ne item 0 bound 999999
+sr_raw dli
+sr_raw dstrong
+sd_value item dktitle
+sr_raw dstend
+sr_raw dspace
+sd_value item dkdesc
+sr_raw dliend
+item = sj_next item
+end
+sr_raw deordend
+sd_content_cards sd_arr node dkcards
+sr_raw dsecend
+sr_raw defail
+end
+
+text drshead "<header class=\"page-intro\"><p class=\"eyebrow\">Research status</p><h1>Where the research stands</h1><p class=\"lede\">"
+text drsasof "<p>Every status on this page is rendered from one data file, built from the consolidated research status table. Failed and incomplete experiments are shown, not hidden. As of "
+text drstoc "</p><nav class=\"cluster\" aria-label=\"On this page\"><a href=\"#ladder\">The ladder</a><a href=\"#experiments\">Experiments</a><a href=\"#implementation\">What is built</a><a href=\"#sources\">Sources</a><a href=\"/research-status.json\">Data file (JSON)</a></nav></header>"
+text dladsect "<section id=\"ladder\" class=\"section\"><h2>The research ladder</h2>"
+text dexpsect "<section id=\"experiments\" class=\"section\"><h2>Experiment status</h2><p>One card per result. The badge is the verdict; the lines below say what it covers, what it does not, and what it waits on.</p>"
+text dimplsec "<section id=\"implementation\" class=\"section\"><h2>What is built and what is still an idea</h2><p>Implemented work and research hypotheses are kept apart. A hypothesis listed here is a question, not a feature.</p>"
+fn sd_status_page to void
+root = sd_load
+sr_raw drshead
+sd_value root dkdefine
+sr_raw dpend
+sr_raw drsasof
+sd_value root dkasof
+sr_raw drstoc
+sr_raw dladsect
+sd_ladder_data root
+sr_raw dsecend
+sr_raw dexpsect
+sd_cards root
+sr_raw dsecend
+sr_raw dimplsec
+sd_implementation_data root
+sr_raw dsecend
+sd_sources root
+end
+
+text dexphead "<header class=\"page-intro\"><p class=\"eyebrow\">Experiments</p><h1>Experiments</h1><p class=\"lede\">Every experiment on the AIEN research ladder, with its scope, its receipt and its outcome, failures included. Everything below is rendered from one data file, so this page cannot drift from the record.</p></header><section class=\"section\" aria-labelledby=\"experiments-ladder\"><h2 id=\"experiments-ladder\">Where the research stands</h2>"
+text dexpopen "<section id=\"experiment-cards\" class=\"section\" data-source=\"research_status.json\" aria-labelledby=\"experiment-cards-title\"><h2 id=\"experiment-cards-title\">Experiment cards</h2><p>One card per result. The badge is the verdict; the lines below say what it covers, what it does not, and what it waits on.</p>"
+text dexpfoot "<p><a class=\"hub-button\" href=\"/research/status/\">Open the full research status record</a></p></section><section class=\"section prose\"><h2>Check it yourself</h2><p>An experiment is frozen before it is scored, and its record stays public whatever the outcome. The same record is published as <a href=\"/research-status.json\">machine-readable data</a>, the protocols sit with the <a href=\"/research/computing-machinery-and-understanding/\">Turing paper</a>, and the <a href=\"/evidence/\">Evidence</a> page explains which sources count and where to find them.</p></section>"
+fn sd_experiments to void
+root = sd_load
+sr_raw dexphead
+sd_ladder_data root
+sr_raw dsecend
+sr_raw dexpopen
+sd_cards root
+sr_raw dexpfoot
+sd_sources root
+end
+
+text dclassop "<span class=\"rs-badge rs-class--"
+text dclassid "\" data-impl=\""
+text dclassvh "\"><span class=\"visually-hidden\">Status: </span>"
+fn sd_record_badge ident view uchar * to void
+root = sd_load
+row = sd_named sd_arr root dkimpl ident
+sr_raw dclassop
+sd_slug sd_get row dkclass
+sr_raw dclassid
+sd_value row dkid
+sr_raw dclassvh
+sd_value row dkclass
+sr_raw dspend
+end
+
+text dexamop "<section class=\"section prose narr-exam\" id=\""
+text dnorec "<p class=\"narr-norecord\">Not on the status record yet.</p>"
+text dcaphead "<h3>Generic capabilities it will receive</h3>"
+fn sd_exam idx ulong to void
+buf = new uchar 4096 0
+root = sj_load dcopy
+row = sd_nth sd_arr root dkexams idx
+sr_raw dexamop
+sd_value row dkid
+sr_raw dclose
+sr_raw dh2
+sd_value row dktitle
+ident = sj_find row dkrecid
+hasrec = eq sj_kind ident 3
+if hasrec
+n = sj_string ident buf
+sr_raw dspace
+sd_record_badge part buf 0 n
+end
+sr_raw dh2end
+if not hasrec
+sr_raw dnorec
+end
+root = sj_load dcopy
+row = sd_nth sd_arr root dkexams idx
+sd_paragraphs sd_arr row dksum
+caps = sd_arr row dkcaps
+if gt sj_len caps 0
+sr_raw dcaphead
+sr_raw dul
+item = sj_first caps
+while ne item 0 bound 999999
+sr_raw dli
+sj_emit item
+sr_raw dliend
+item = sj_next item
+end
+sr_raw dulend
+end
+sr_raw dsecend
+end
+
+text dexamsin "<article class=\"prose\"><header class=\"page-intro\"><p class=\"eyebrow\">Scientific Discovery</p><h1>Examinations of representation discovery</h1><p class=\"lede\">Physics Zero, Dirac, Zeta and supersymmetry are examinations the program means to run. None of them is an AIEN feature. Each one will test whether the machine can find a representation because it explains unseen observations better, after paying for its own complexity.</p></header><section id=\"rule\" class=\"section\"><h2>The rule</h2><blockquote><p>Never give AIEN the named answer when the experiment is intended to test discovery.</p></blockquote><p>Each exam will supply generic mathematical machinery instead of the answer. A structure that emerges will count only if it earns positive Turings on held-out data. <a href=\"/machine/#turing\">How the Turing scores.</a></p><p>Each exam carries its entry from the <a href=\"/research/status/#implementation\">research status record</a>, where one exists.</p></section>"
+text dexamsen "<section id=\"later\" class=\"section\"><h2>When</h2><p>The full design of these exams belongs to a later phase of the program, after the general mathematical machinery exists. Until then they remain designs and open questions. <a href=\"/machine/#today\">See what exists today.</a></p><p><a href=\"/research/status/#implementation\">Read the complete implementation record</a>, including the separate Dirac workstream record and its limits. The exam mapping above is preserved from its authored source; a missing exam badge is not an assertion that the workstream has no record.</p><a class=\"source-link\" href=\"https://github.com/aien-dev/aienos.com/blob/main/om/site/discovery.json\">Exam design source</a></section></article>"
+fn sd_discovery to void
+sr_raw dexamsin
+root = sj_load dcopy
+count = sj_len sd_arr root dkexams
+for idx ulong count
+sd_exam idx
+end
+sr_raw dexamsen
+end
+
+text drcptop "<article class=\"receipt panel\"><p class=\"badge\">"
+text drcptfig "</p><p class=\"stat\">"
+fn sd_receipt row ulong to void
+sr_raw drcptop
+sd_value row dkverd
+sr_raw drcptfig
+sd_value row dkfigure
+sr_raw dpend
+sr_raw dh3
+sd_value row dktitle
+sr_raw dh3end
+sr_raw dp
+sd_value row dkdesc
+sr_raw dpend
+sr_raw ddlist
+sd_field row dkproves dlproves
+sd_field row dknotpr dlnotpr
+sd_field row dkdate dldate
+sd_field row dkenv dlenv
+sd_field row dkgate dlgate
+sd_field row dksource dlsource
+sr_raw ddlend
+sd_urlfoot sd_get row dklink true
+sr_raw dartend
+end
+
+text drcptin "<section id=\"receipts\" class=\"section\"><header><p class=\"eyebrow\">Proof, not promises</p><h2>Every claim carries a receipt</h2><p>This project does not ask to be believed. Each card names its environment, its gate, its date, and its verdict, and states plainly what the receipt proves and what it does not prove. That includes the failures, especially the failures.</p><p class=\"muted\">Dated evidence, not a live dashboard: these preserved receipt cards describe the runs and branch states recorded in the site inventory of 2026-10-19. Words such as today and newest inside a card refer to that dated record, not the current machine. Research results below retain the canonical record's own date.</p></header>"
+text dtyenv "<p>Environment: Omega verification suite, turing-yield CI on main. Receipt source: <a href=\"https://github.com/aien-dev/omega/pull/88\">aien-dev/omega · PR #88</a>.</p>"
+fn sd_receipts to void
+sr_raw drcptin
+root = sj_load dcopy
+sr_raw dcardgr
+item = sj_first sd_arr root dkrcpts
+while ne item 0 bound 999999
+sd_receipt item
+item = sj_next item
+end
+sr_raw ddivend
+root = sd_load
+sr_raw dtyenv
+sd_turing_card sd_named sd_arr root dkturing dty2
+sr_raw dsecend
+end
+
+text dresrch "<section id=\"research\" class=\"section\"><header><p class=\"eyebrow\">Published research</p><h2>Do not take my word for it. Check the receipts.</h2><p>Most AI asks you to trust a demo and a promise. This project publishes its science in the open instead: the Turing, a unit of net held-out explanatory compression (one operational component of machine understanding), plus the papers behind it and the data anyone can recheck. It starts with the Turing.</p></header><article class=\"hub-card panel\"><p class=\"eyebrow\">The Turing (T)</p><h3>A unit of net held-out explanatory compression</h3><p>One Turing is one bit of net held-out description-length improvement: a short explanation that predicts things it has never seen earns Turings. Guessing earns nothing. Memorizing earns nothing, because the test data is new.</p>"
+text drlinks "<p class=\"cluster\"><a class=\"button\" href=\"/turing/\">Explore the Turing</a><a href=\"/research/computing-machinery-and-understanding\">Read the formal paper</a><a href=\"/research/status/\">See the full research ladder.</a></p>"
+text dgame "<div id=\"turing-game\" class=\"panel\"><h3>Try it: earn your first Turings</h3><p id=\"tg-round\">Round 0 / 12</p><p>A hidden rule is generating this stream of bits. Watch it, find the pattern, and call the next bit before it lands.</p><div id=\"tg-stream\" aria-live=\"polite\"></div><div class=\"cluster\"><button type=\"button\" id=\"tg-zero\">0</button><button type=\"button\" id=\"tg-one\">1</button></div><p>Score: <span id=\"tg-score\">0 T</span></p><button type=\"button\" id=\"tg-reset\">New stream</button><p id=\"tg-msg\" aria-live=\"polite\">Each call you get right earns 1 T, each miss costs 1 T. A coin flip averages zero.</p><noscript><p>The interactive stream needs JavaScript. <a href=\"/turing/\">Read the Turing explanation</a> or <a href=\"/research/computing-machinery-and-understanding/\">inspect the paper and protocols</a> without it.</p></noscript></div>"
+text drend "<p>Everything, including protocols, sealed experiment profiles, and source files: <a href=\"/research/\">the full research index</a> · <a href=\"https://github.com/aien-dev\">the public code and receipts on GitHub</a>.</p></section>"
+fn sd_research_home to void
+root = sd_load
+sr_raw dresrch
+sr_raw dp
+sd_value root dkdefine
+sr_raw dpend
+sd_current root
+sr_raw drlinks
+sr_raw dfoot
+sr_raw dqs
+sr_raw dfoote
+sr_raw dartend
+sr_raw dgame
+root = sj_load dcopy
+sd_content_cards sd_arr root dkpapers
+sr_raw drend
+end
+
+text ddiscint "<header class=\"page-intro\"><p class=\"eyebrow\">Discoveries</p><h1>Follow a question all the way to its evidence.</h1><p class=\"lede\">I keep the experiments, the failures and the limits together. Start with the research record, inspect a receipt, or follow the work through the Hive.</p></header><nav class=\"cluster\" aria-label=\"Discovery trails\"><a href=\"/research/\">Papers and protocols</a><a href=\"/experiments/\">Experiments</a><a href=\"/evidence/\">Evidence rules</a><a href=\"/discovery/\">Future examinations</a><a href=\"/philosophy/\">Philosophy</a><a href=\"/hive/\">Hive activity</a></nav><section class=\"section\" aria-labelledby=\"discovery-record\"><h2 id=\"discovery-record\">The recorded research state</h2><p>Read from <a href=\"/research-status.json\">research-status.json</a> at build time. Record as of "
+text ddiscage "</p><p class=\"muted\">These are counts of records, not successful discoveries, live agents, or hardware qualifications. The Hive publishes its own observation time and freshness state. Activity there does not promote a research verdict here.</p><div class=\"stat-grid\">"
+text dstatop "<div class=\"stat\"><strong>"
+text dstature "</strong> experiment and instrument records</div>"
+text dstaimpl "</strong> implementation and hypothesis records</div>"
+text dstaladd "</strong> ladder steps</div>"
+text ddashend "</section><section class=\"section\"><h2>Take the next trail</h2><div class=\"dashboard-grid\"><article class=\"hub-card panel\"><h3><a href=\"/research/\">Read the science</a></h3><p>The formal paper, emergence companion, protocols, profiles and source artifacts remain fully readable.</p><a class=\"box-link box-link-source\" href=\"https://github.com/aien-dev/aienos.com/tree/main/public/research\">Source on GitHub</a></article><article class=\"hub-card panel\"><h3><a href=\"/evidence/\">Inspect the evidence</a></h3><p>Code, tests and receipts outrank a website. Check the scope and the limits before drawing a conclusion.</p><a class=\"box-link box-link-source\" href=\"https://github.com/aien-dev/aienos.com/blob/main/om/site/discovery.json\">Source on GitHub</a></article><article class=\"hub-card panel\"><h3><a href=\"/hive/\">Follow the Hive</a></h3><p>Open the observation board for source-timestamped activity and evidence trails. A stale observation remains stale; this dashboard makes no live count claim.</p><p><a href=\"/hive/board/\">Open the no-JavaScript board</a></p><a class=\"box-link box-link-source\" href=\"https://github.com/aien-dev/aienos.com/blob/main/om/hive-render/render.om\">Source on GitHub</a></article></div></section>"
+text ddmore "<details class=\"section\"><summary>Every experiment, including failures</summary>"
+text ddimpl "<details class=\"section\"><summary>Every implementation record and research hypothesis</summary><p>Hypothesis, implementation, exercise, qualification, merge and deployment are different claims. A badge never erases the row's scope or limitations.</p>"
+text ddashsrc "<p><a class=\"hub-button\" href=\"/research/status/\">Open the full research status record</a> · <a href=\"/research-status.json\">Canonical data</a></p>"
+fn sd_dashboard to void
+root = sd_load
+sr_raw ddiscint
+sd_value root dkasof
+sr_raw ddiscage
+sr_raw dstatop
+sr_num sj_len sd_arr root dkturing
+sr_raw dstature
+sr_raw dstatop
+sr_num sj_len sd_arr root dkimpl
+sr_raw dstaimpl
+sr_raw dstatop
+sr_num sj_len sd_arr root dkladder
+sr_raw dstaladd
+sr_raw ddivend
+sd_source
+sd_ladder_data root
+sr_raw ddashsrc
+sr_raw ddashend
+sr_raw ddmore
+sd_cards root
+sr_raw dmend
+sr_raw ddimpl
+sd_implementation_data root
+sr_raw dmend
+sd_sources root
+sd_receipts
+end
+
+text drdash "/discoveries/"
+text drstatus "/research/status/"
+text drexp "/experiments/"
+text drdiscov "/discovery/"
+text drevid "/evidence/"
+text drphilo "/philosophy/"
+fn sd_page route view uchar * to bool
+if sr_equal route drdash
+sd_dashboard
+ret true
+end
+if sr_equal route drstatus
+sd_status_page
+ret true
+end
+if sr_equal route drexp
+sd_experiments
+ret true
+end
+if sr_equal route drdiscov
+sd_discovery
+ret true
+end
+if sr_equal route drevid
+sd_evidence_hub
+ret true
+end
+if sr_equal route drphilo
+sd_philosophy
+ret true
+end
+note /research/ and all static paper bodies remain core-owned, with their complete assets.
+ret false
+end

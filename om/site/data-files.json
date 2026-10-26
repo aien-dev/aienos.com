@@ -1,0 +1,226 @@
+[
+  {
+    "path": "/data/index.json",
+    "purpose": "This list: every machine-readable file on the site with its purpose and cadence.",
+    "schema": "{ generated, license, files: [{ path, url, purpose, schema, cadence, media_type }] }",
+    "cadence": "every build",
+    "media_type": "application/json",
+    "url": "https://www.aienos.com/data/index.json"
+  },
+  {
+    "path": "/llms.txt",
+    "purpose": "The site for AI readers: one summary and every page with a one-line description (llms.txt convention).",
+    "schema": "Markdown: H1, blockquote summary, H2 sections of links.",
+    "cadence": "every build",
+    "media_type": "text/markdown",
+    "url": "https://www.aienos.com/llms.txt"
+  },
+  {
+    "path": "/llms-full.txt",
+    "purpose": "The full text of every page, concatenated, generated from the same sources as the HTML.",
+    "schema": "Markdown: one H1 per page with its source URL.",
+    "cadence": "every build",
+    "media_type": "text/markdown",
+    "url": "https://www.aienos.com/llms-full.txt"
+  },
+  {
+    "path": "/now.json",
+    "purpose": "The live coordination ledger: every item with owner, status, done-when, evidence notes and timestamps.",
+    "schema": "{ built_utc, ledger_written_utc, items: [{ id, opened_utc, owner, owner_kind, status, item, done_when, notes[], updated_utc, stream, age_s }], pulse: [{ key, value }] }",
+    "cadence": "whenever the ledger changes, at most hourly",
+    "media_type": "application/json",
+    "url": "https://www.aienos.com/now.json"
+  },
+  {
+    "path": "/now/feed.xml",
+    "purpose": "Atom feed of settled ledger lines (done or dropped) with their evidence, newest first.",
+    "schema": "Atom 1.0",
+    "cadence": "whenever the ledger changes, at most hourly",
+    "media_type": "application/atom+xml",
+    "url": "https://www.aienos.com/now/feed.xml"
+  },
+  {
+    "path": "/machines.json",
+    "purpose": "The five real machines, what runs on each today, and every measured speed beside its physical ceiling, each with a receipt link.",
+    "schema": "{ as_of, source, judging, ceilings: [{ id, model, machine, tok_s, how, link, receipt, branch, on_main }], machines: [{ id, name, detail, role, today, evidence_date, evidence, link, branch, on_main, more[] }], speeds: [...] }",
+    "cadence": "when a new receipt is published",
+    "media_type": "application/json",
+    "url": "https://www.aienos.com/machines.json"
+  },
+  {
+    "path": "/omega.json",
+    "purpose": "What Omega is: its parts, every CUDA piece with Omega's replacement and status, the live no-CUDA receipt, what is not true yet, and the bar C1 to C6, each with its GitHub link.",
+    "schema": "{ source, claim, claim_rest[], true_today, not_true_yet, parts[], below, layers: [{ cuda, job, omega, status, note, links, box }], receipt, not_yet[], bar: [{ id, title, done_when, status, now, receipt, links }], beyond[] }; links are short forms (o: omega file, o/: omega folder, p: physics) expanded as on /omega/",
+    "cadence": "when a bar row or map row changes",
+    "media_type": "application/json",
+    "url": "https://www.aienos.com/omega.json"
+  },
+  {
+    "path": "/cudaplusplus.json",
+    "purpose": "CUDA++: what it is for, every step from program to chip with whose code runs there and its status, how I did it, CUDA's pain points and the swap, each with its GitHub link.",
+    "schema": "{ source, claim, claim_rest[], purpose_title, purpose, hops: [{ step, cuda, ours, status, note, ledger, links, box }], steps[], did_not[], pains: [{ title, text, status, ledger, command, receipt, links, box }], swaps[] }; links are short forms (cp: CUDA++ main, cp@: CUDA++ at a commit, om@: omega at a commit) expanded as on /cudaplusplus/",
+    "cadence": "when a step or row changes",
+    "media_type": "application/json",
+    "url": "https://www.aienos.com/cudaplusplus.json"
+  },
+  {
+    "path": "/facts.json",
+    "purpose": "The public GitHub record read at build time: components, last merges, open PR counts, latest decision records, latest verification receipt.",
+    "schema": "{ generated_at, components: [{ key, name, repo, role, url, pushed_at, open_prs, last_merge }], decisions: [{ id, title, url }], receipt: { repo, sha, state, description, target_url, updated_at } }",
+    "cadence": "hourly",
+    "media_type": "application/json",
+    "url": "https://www.aienos.com/facts.json"
+  },
+  {
+    "path": "/status.json",
+    "purpose": "The status of every layer of the stack (IMPLEMENTED, QUALIFIED, EXPERIMENTAL, BLOCKED, PLANNED) with a note and a receipt.",
+    "schema": "{ project, updated, canonical, statuses[], layers: [{ name, status, note, receipt }] }",
+    "cadence": "when a layer changes state",
+    "media_type": "application/json",
+    "url": "https://www.aienos.com/status.json"
+  },
+  {
+    "path": "/research-status.json",
+    "purpose": "The research ladder: every experiment with its verdict, receipt and limits; the one source for every status badge on the site.",
+    "schema": "{ ladder, experiments, implementations, ... } as rendered on /research/status/",
+    "cadence": "when an experiment settles",
+    "media_type": "application/json",
+    "url": "https://www.aienos.com/research-status.json"
+  },
+  {
+    "path": "/data/project-progress.json",
+    "purpose": "Retained public history of every project repository: source lines, revisions, PRs, CI runs over time.",
+    "schema": "{ asof, repos: [...], series: [...], events: [...], policy }",
+    "cadence": "hourly",
+    "media_type": "application/json",
+    "url": "https://www.aienos.com/data/project-progress.json"
+  },
+  {
+    "path": "/data/now.tsv",
+    "purpose": "The line-preserving public ledger projection with private paths and identifiers withheld.",
+    "schema": "Columns: id, opened_utc, owner, status, item, done_when, evidence, updated_utc.",
+    "cadence": "whenever a safe ledger projection is accepted",
+    "media_type": "text/tab-separated-values",
+    "url": "https://www.aienos.com/data/now.tsv"
+  },
+  {
+    "path": "/data/accounts.tsv",
+    "purpose": "Model quota left on every account the agents run on, as the Spark read it. Accounts are numbered; no email or account id is published.",
+    "schema": "checked, utc; then limit, provider, account, plan, window, label, percent used, resets utc, ok|exhausted.",
+    "cadence": "with the ledger, at most every 30 minutes on its own",
+    "media_type": "text/tab-separated-values",
+    "url": "https://www.aienos.com/data/accounts.tsv"
+  },
+  {
+    "path": "/data/routing.tsv",
+    "purpose": "Which model each omp role, subagent and advisor seat uses on the Spark.",
+    "schema": "role|agent|seat, name, model selector.",
+    "cadence": "when the configuration changes",
+    "media_type": "text/tab-separated-values",
+    "url": "https://www.aienos.com/data/routing.tsv"
+  },
+  {
+    "path": "/feed.xml",
+    "purpose": "Atom feed of the blog posts and research papers, newest first.",
+    "schema": "Atom 1.0",
+    "cadence": "when a page is published or revised",
+    "media_type": "application/atom+xml",
+    "url": "https://www.aienos.com/feed.xml"
+  },
+  {
+    "path": "/sitemap.xml",
+    "purpose": "Every page, both languages, with lastmod and hreflang alternates. Walked from the files actually written.",
+    "schema": "sitemaps.org 0.9 with xhtml:link alternates",
+    "cadence": "every build",
+    "media_type": "application/xml",
+    "url": "https://www.aienos.com/sitemap.xml"
+  },
+  {
+    "path": "/sitemap.md",
+    "purpose": "The readable twin of sitemap.xml: every page grouped in H2 sections with a one-line description.",
+    "schema": "Markdown: H1, blockquote summary, H2 sections of links.",
+    "cadence": "every build",
+    "media_type": "text/markdown",
+    "url": "https://www.aienos.com/sitemap.md"
+  },
+  {
+    "path": "/AGENTS.md",
+    "purpose": "The repository brief for coding agents: installation, configuration, usage, conventions and approval boundaries.",
+    "schema": "Markdown: H1, Installation, Configuration, Usage, Conventions, Safety and approvals.",
+    "cadence": "when the build or conventions change",
+    "media_type": "text/markdown",
+    "url": "https://www.aienos.com/AGENTS.md"
+  },
+  {
+    "path": "/agents/RULES.md",
+    "purpose": "The working rules every AIEN agent follows, public edition: read first by any agent working on an aien-dev repository, before that repository's own AGENTS.md.",
+    "schema": "Markdown: H1, blockquote scope, numbered H2 sections, Where to go next.",
+    "cadence": "when the rules change",
+    "media_type": "text/markdown",
+    "url": "https://www.aienos.com/agents/RULES.md"
+  },
+  {
+    "path": "/data/agent-repos.json",
+    "purpose": "Every public, unarchived aien-dev repository with its description, default branch and the agent brief it carries (AGENTS.md or CLAUDE.md).",
+    "schema": "{ generated_at, org, repos: [{ name, description, url, default_branch, fork, pushed_at, brief }] }; brief is null when the repository has none",
+    "cadence": "hourly",
+    "media_type": "application/json",
+    "url": "https://www.aienos.com/data/agent-repos.json"
+  },
+  {
+    "path": "/index.md",
+    "purpose": "The front page as Markdown: the same content as the HTML, with frontmatter, the page body and a sitemap section. Every page has a mirror at the same path with .md.",
+    "schema": "Markdown: YAML frontmatter (title, description, last_updated, canonical_url), body, Sitemap section.",
+    "cadence": "every build",
+    "media_type": "text/markdown",
+    "url": "https://www.aienos.com/index.md"
+  },
+  {
+    "path": "/research/CITATION.cff",
+    "purpose": "Citation metadata for the Turing preprints.",
+    "schema": "Citation File Format 1.2.0",
+    "cadence": "when a paper is revised",
+    "media_type": "text/yaml",
+    "url": "https://www.aienos.com/research/CITATION.cff"
+  },
+  {
+    "path": "/research/aien-research-plan.md",
+    "purpose": "The ratified V3 research plan in Markdown.",
+    "schema": "Markdown",
+    "cadence": "when the plan is revised",
+    "media_type": "text/markdown",
+    "url": "https://www.aienos.com/research/aien-research-plan.md"
+  },
+  {
+    "path": "/humans.txt",
+    "purpose": "Who builds this: the person, the agents and the machines.",
+    "schema": "humanstxt.org",
+    "cadence": "rarely",
+    "media_type": "text/plain",
+    "url": "https://www.aienos.com/humans.txt"
+  },
+  {
+    "path": "/robots.txt",
+    "purpose": "Every crawler and AI agent is allowed everywhere; points at the sitemap.",
+    "schema": "robots.txt",
+    "cadence": "every build",
+    "media_type": "text/plain",
+    "url": "https://www.aienos.com/robots.txt"
+  },
+  {
+    "path": "/data/pages.json",
+    "url": "https://www.aienos.com/data/pages.json",
+    "purpose": "Canonical English page registry for live catalog consumers.",
+    "schema": "[{path,title,description,area}]",
+    "cadence": "every build",
+    "media_type": "application/json"
+  },
+  {
+    "path": "/data/engineer.json",
+    "url": "https://www.aienos.com/data/engineer.json",
+    "purpose": "The complete migrated engineer page record, including source provenance, old paths and full authored bodies.",
+    "schema": "{source,note,pages:[{path,old,name,title,description,kind,body_html}]}",
+    "cadence": "when the authored record changes",
+    "media_type": "application/json"
+  }
+]

@@ -1,0 +1,644 @@
+note verify-site.om: main.rs verify_site rules V1-V19, the hub gates H (hubs.rs), box links E
+note (boxlink.rs), the /now/ body rule N1 (now.rs page_holds_invariants), the file loop that runs
+note C1/C2/G/O5/F on every file, the pre-generation gate (B1-B4) and the CLI entry point.
+text vrv2 "V2"
+text vrv3 "V3"
+text vrv4 "V4"
+text vrv5 "V5"
+text vrv6 "V6"
+text vrv7 "V7"
+text vrv8 "V8"
+text vrv9 "V9"
+text vrv10 "V10"
+text vrv11 "V11"
+text vrv12 "V12"
+text vrv13 "V13"
+text vrv15 "V15"
+text vrv16 "V16"
+text vrv17 "V17"
+text vrv18 "V18"
+text vrv19 "V19"
+text vrh "H"
+text vre "E"
+text vrn1 "N1"
+text vrr0 "R0"
+text vtmisspg "missing or unreadable"
+text vtneed "missing required text"
+text vtnot "carries forbidden text"
+text vtbrace "assets/style.css braces do not balance"
+text vtcrumb "local coordination file is published"
+text vtorder "real-machines must come before the loop"
+text vtfloor "fewer boxes than its floor"
+text vtnobox "box without a GitHub link"
+text vtoffgh "box-link off GitHub"
+text vtstatw "status word on a hub that must carry none"
+text vtrow "experiment card missing or not from data"
+text vtnowb "the /now/ body must carry no script and no Renda dial"
+text vfcls "classic/index.html"
+text vfzhp "zh-CN/progress/index.html"
+text vfroot "index.html"
+text vfmach "machine/index.html"
+text vfdisc "discovery/index.html"
+text vfown "owned/index.html"
+text vfstart "start/index.html"
+text vfomega "omega/index.html"
+text vfcuda "cudaplusplus/index.html"
+text vfnowp "now/index.html"
+text vftl "assets/turing-look.css"
+text vfsty "assets/style.css"
+text vfrsj "research-status.json"
+text vagd "id=\"ag-data\""
+text vfont "fonts.googleapis.com"
+text vv3 "<div id=\"root\"\n<main id=\"main-content\"\nid=\"terminal-output\"\nid=\"follow\"\nhref=\"/now/\"\nid=\"receipt\"\nid=\"live\"\n"
+text vv4 "AienOS is an owned experimental machine for turning search into verified understanding.\nWeights suggest. Programs explain. Verification decides. Evidence teaches. The Turing keeps score.\nDid it learn anything?\nWhat did it cost to learn?\nDid what it learned make future discovery easier?\n<ol class=\"loop-stages\"\n"
+text vv5 "id=\"machines\"\nid=\"speed\"\nid=\"machine-spark\"\nid=\"machine-imac\"\nid=\"machine-pi5\"\nid=\"machine-qemu\"\nid=\"machine-rig\"\nid=\"speed-27b-live\"\n7.63 tok/s\n"
+text vv5f "facts.json\nassets/machines.css\nmachines.json\nassets/style.css\njs/terminal.js\nprogress/index.html\ndata/project-progress.json\nsitemap.xml\nrobots.txt\nblog/index.html\nblog/aien-v3-research-plan/index.html\nresearch/status/index.html\nnow/index.html\nnow.json\nassets/now.css\nresearch-status.json\nomega/index.html\nomega.json\nassets/omega.css\ncudaplusplus/index.html\ncudaplusplus.json\nassets/cudaplusplus.css\n"
+text vv6 ".aien-footer\n.aien-footer-sections\n.aien-footer-heading\n.aien-footer-group\n.aien-footer-legal\n.aien-footer-mottos\n"
+text vcrumb "data/.crumb.local"
+text vv11 "On the GPU, that makes Omega the replacement for CUDA.\nid=\"cuda-map\"\nid=\"today\"\nid=\"not-yet\"\nid=\"bar\"\nevidence/WHAT-OMEGA-IS-20261021/live-serve-no-cuda.txt\n"
+text vv11a "Omega is AIEN&#39;s language for all computing, GPU to CPU."
+text vv11b "Omega is AIEN's language for all computing, GPU to CPU."
+text vv12 "CUDA++ is the GPU half of Omega\nLess computation, out of the big data centers.\nid=\"path\"\nid=\"how\"\nid=\"pain-points\"\nid=\"swap\"\nhttps://github.com/aien-dev/CUDApp\n"
+text vcpl "href=\"/cudaplusplus/\""
+text vomh "href=\"/omega/\""
+text vv13 "blog/index.html\nblog/aien-v3-research-plan/index.html\nresearch/status/index.html\nnow/index.html\nomega/index.html\ncudaplusplus/index.html\n"
+text vogt "og:title"
+text vrsb "rs-badge"
+text vstb "status-badge"
+text vthes "Intelligence should be owned by the people who made it."
+text vsign "Drake Stapleton"
+text vv17 "Weights suggest. Programs explain. Verification decides. Evidence teaches. The Turing keeps score.\nT(M; B, D, P) = [L(B) + L(D | B)] - [L(M) + L(D | M)]\nid=\"real-machines\"\nid=\"research-ladder\"\nclass=\"rs-ladder\"\nclass=\"rs-impl\"\n"
+text vrm "id=\"real-machines\""
+text vloop "id=\"loop\""
+text vv18 "/machine/#today\n/research/status/#implementation\n/evidence/\n/AGENTS.md\nhttps://www.drakestapleton.com\nhttps://interplane.io/\n"
+text vblafter ".box-link::after"
+note main.rs GENERATED_PAGES (RustOracle lane) with each page's least number of boxes.
+text vgen "index.html\nclassic/index.html\ndiscoveries/index.html\nallen/index.html\nalpha/index.html\nresearch/computing-machinery-and-understanding/profiles/index.html\nstart/index.html\nprivacy/index.html\ncontact/index.html\nmachine/index.html\ndiscovery/index.html\nexperiments/index.html\nevidence/index.html\nphilosophy/index.html\nowned/index.html\nresearch/status/index.html\nnow/index.html\ndash/index.html\nhive/index.html\nlearn/index.html\nomega/index.html\ncudaplusplus/index.html\nprogress/index.html\nagents/index.html\nblog/index.html\nblog/aien-v3-research-plan/index.html\n"
+text vgenf "0\n30\n0\n0\n0\n0\n0\n0\n0\n15\n0\n15\n7\n4\n7\n40\n0\n0\n0\n0\n30\n12\n0\n10\n2\n0\n"
+note boxlink.rs BOX_CLASSES
+text vboxc "mx-card\nmx-row\nglow-box\nlineage-card\nlineage-role\nstatus-row\nlive-row\nreceipt\nrs-card\nrs-step\nrs-impl-item\nhub-card\nnarr-card\nblog-card\nnow-card\nnow-queue-row\nnow-tl\nnow-usage\nom-part\nom-layer\nom-receipt\nom-gap\nom-bar-row\nom-beyond\ncp-hop\ncp-card\ncp-row\ndash-card\n"
+text vbcls "class=\""
+text vbhref "href=\""
+text vbla "<a "
+text vblink "box-link"
+text vgh "https://github.com/"
+text vhubs "experiments/index.html\nevidence/index.html\nphilosophy/index.html\n"
+text vhub0 "<section id=\"experiment-cards\"\n<div class=\"rs-cards\">\n<a class=\"hub-button\" href=\"/research/status/\">\n"
+text vhub1 "Failure is evidence.\nhref=\"/research/status/\"\nhref=\"/research-status.json\"\n"
+text vhub2 "Position, not evidence\n"
+text vfooter "<footer"
+text vdrow "data-row=\""
+text vdst "\" data-status=\""
+text vxquote "\""
+text vrenda "renda"
+text vxmainc "</main>"
+
+note ---------------------------------------------------------------- helpers
+fn sv_pg rel view uchar * rule view uchar * to ulong
+ws = sv_loadrel rel
+if eq ws 0
+sv_fail rule vtmisspg
+end
+ret ws
+end
+fn sv_must s ulong t view uchar * rule view uchar * to void
+for wk ulong sv_tcount t
+wa = sv_tat t wk
+if not sv_has s part t wa sv_tlen t wa
+sv_failt rule vtneed part t wa sv_tlen t wa
+end
+end
+end
+fn sv_must1 s ulong n view uchar * rule view uchar * to void
+if not sv_has s n
+sv_failt rule vtneed n
+end
+end
+fn sv_mustno s ulong n view uchar * rule view uchar * to void
+if sv_has s n
+sv_failt rule vtnot n
+end
+end
+fn sv_files t view uchar * rule view uchar * to void
+for wk ulong sv_tcount t
+wa = sv_tat t wk
+sv_prel part t wa sv_tlen t wa
+if not sv_exists
+sv_failt rule vtmisspg part t wa sv_tlen t wa
+end
+end
+end
+fn sv_nodash s ulong rule view uchar * to void
+if sv_dash s
+sv_fail rule vtdsh
+end
+end
+fn sv_forbid s ulong rule view uchar * to void
+for wk ulong sv_tcount vforbid
+wa = sv_tat vforbid wk
+if sv_hasc s part vforbid wa sv_tlen vforbid wa
+sv_failt rule vtfor part vforbid wa sv_tlen vforbid wa
+end
+end
+end
+
+note ---------------------------------------------------------------- V1-V18
+fn sv_v1v2 to void
+if sv_there vfnow
+sv_prel vfnow
+wled = sv_vledger
+end
+wz = sv_pg vfzhp vrv2
+if ne wz 0
+sv_mustno wz vagd vrv2
+sv_drop wz
+end
+end
+fn sv_vroot to void
+wr = sv_pg vfroot vrr0
+if eq wr 0
+ret
+end
+sv_mustno wr vfont vrr0
+sv_nodash wr vrr0
+sv_forbid wr vrv5
+sv_root wr
+sv_drop wr
+end
+fn sv_vclassic to void
+wc = sv_pg vfcls vrv3
+if eq wc 0
+ret
+end
+sv_must wc vv3 vrv3
+sv_mustno wc vfont vrv3
+sv_must wc vv4 vrv4
+sv_must wc vv5 vrv5
+sv_forbid wc vrv5
+sv_nodash wc vrv7
+sv_must1 wc vomh vrv11
+sv_must1 wc vcpl vrv12
+sv_drop wc
+end
+fn sv_v6 to void
+ws = sv_pg vfsty vrv6
+if eq ws 0
+ret
+end
+wd = long 0
+wneg = false
+for wj ulong sv_n ws
+c = sv_b ws wj
+if eq c 123
+wd = add wd 1
+end
+if eq c 125
+wd = sub wd 1
+end
+if lt wd 0
+wneg = true
+end
+end
+if or wneg ne wd 0
+sv_fail vrv6 vtbrace
+end
+sv_must ws vv6 vrv6
+sv_drop ws
+end
+fn sv_v8 to void
+if sv_there vcrumb
+sv_fail vrv8 vtcrumb
+end
+end
+fn sv_v11 to void
+wo = sv_pg vfomega vrv11
+if eq wo 0
+ret
+end
+if not or sv_has wo vv11a sv_has wo vv11b
+sv_failt vrv11 vtneed vv11a
+end
+sv_must wo vv11 vrv11
+sv_must1 wo vcpl vrv12
+sv_drop wo
+wc = sv_pg vfcuda vrv12
+if eq wc 0
+ret
+end
+sv_must wc vv12 vrv12
+sv_drop wc
+end
+fn sv_v13 to void
+for wk ulong sv_tcount vv13
+wa = sv_tat vv13 wk
+ws = sv_pg part vv13 wa sv_tlen vv13 wa vrv13
+if ne ws 0
+sv_nodash ws vrv13
+sv_must1 ws vogt vrv13
+sv_drop ws
+end
+end
+end
+fn sv_v15 rel view uchar * to void
+ws = sv_pg rel vrv15
+if eq ws 0
+ret
+end
+sv_nodash ws vrv15
+sv_must1 ws vogt vrv15
+sv_must1 ws vrsb vrv15
+sv_mustno ws vstb vrv15
+if sv_fis0 rel vfmach
+sv_must ws vv17 vrv17
+wa = sv_find ws vrm 0
+wb = sv_find ws vloop 0
+if or eq wb VNONE ge wa wb
+sv_fail vrv17 vtorder
+end
+end
+sv_drop ws
+end
+fn sv_fis0 a view uchar * b view uchar * to bool
+ret sr_equal a b
+end
+fn sv_v16 to void
+ws = sv_pg vfown vrv16
+if eq ws 0
+ret
+end
+sv_must1 ws vthes vrv16
+sv_must1 ws vsign vrv16
+sv_must1 ws vogt vrv16
+sv_nodash ws vrv16
+sv_mustno ws vrsb vrv16
+sv_drop ws
+end
+fn sv_v18 to void
+ws = sv_pg vfstart vrv18
+if eq ws 0
+ret
+end
+sv_must ws vv18 vrv18
+sv_drop ws
+end
+fn sv_v19 to void
+for wk ulong sv_tcount vgen
+wa = sv_tat vgen wk
+wf = sv_tat vgenf wk
+wfl = ulong 0
+for wj ulong sv_tlen vgenf wf
+wfl = add mul wfl 10 ulong sub get vgenf add wf wj 48
+end
+ws = sv_pg part vgen wa sv_tlen vgen wa vrv19
+if ne ws 0
+wn = sv_boxes ws vrv19
+if lt wn wfl
+sv_failn vrv19 vtfloor wn
+end
+sv_drop ws
+end
+end
+wt = sv_pg vftl vrv19
+if ne wt 0
+sv_must1 wt vblafter vrv19
+sv_drop wt
+end
+end
+note N1: now.rs page_holds_invariants, on the published page: inside the <main> element (the
+note rendered /now/ body; the shared head, JSON-LD and consent loader stay outside it) no <script
+note and no Renda dial.
+fn sv_n1 to void
+ws = sv_pg vfnowp vrn1
+if eq ws 0
+ret
+end
+wa = sv_findc ws vxmain 0
+wb = VNONE
+if ne wa VNONE
+wb = sv_findx ws vxmainc wa sv_n ws true
+end
+if or eq wa VNONE eq wb VNONE
+sv_fail vrn1 vtnowb
+else
+wl = sv_lower ws
+if or sv_hasn wl vxscro wa wb sv_hasn wl vrenda wa wb
+sv_fail vrn1 vtnowb
+end
+end
+sv_drop ws
+end
+
+note ---------------------------------------------------------------- E box links
+note sv_boxes: boxlink.rs check_boxes over page slot s; returns the number of boxes, failures reported.
+fn sv_cval s ulong t0 ulong t1 ulong to ulong
+wv = sv_findn s vbcls t0 add t1 1
+if eq wv VNONE
+ret VNONE
+end
+wv = add wv len vbcls
+wz = sv_findb2 s 34 wv
+if or eq wz VNONE gt wz t1
+ret VNONE
+end
+put vav 0 sub wz wv
+ret wv
+end
+fn sv_isbox s ulong t0 ulong t1 ulong to bool
+wv = sv_cval s t0 t1
+if eq wv VNONE
+ret false
+end
+wn = get vav 0
+for wk ulong sv_tcount vboxc
+wa = sv_tat vboxc wk
+if sv_hastok s wv wn part vboxc wa sv_tlen vboxc wa true
+ret true
+end
+end
+ret false
+end
+fn sv_islink s ulong t0 ulong t1 ulong to bool
+if not sv_eqat s t0 vbla
+ret false
+end
+wv = sv_cval s t0 t1
+if eq wv VNONE
+ret false
+end
+ret sv_hastok s wv get vav 0 vblink true
+end
+fn sv_linkok s ulong t0 ulong t1 ulong to bool
+wv = sv_findn s vbhref t0 add t1 1
+if eq wv VNONE
+ret false
+end
+wv = add wv len vbhref
+wz = sv_findb2 s 34 wv
+if or eq wz VNONE gt wz t1
+ret false
+end
+ret and ge sub wz wv len vgh sv_eqat s wv vgh
+end
+fn sv_boxes s ulong rule view uchar * to ulong
+wn = ulong 0
+wopen = false
+wres = true
+wbx = ulong 0
+wi = ulong 0
+while true bound 999999
+wl = sv_findb2 s 60 wi
+if eq wl VNONE
+break
+end
+wg = sv_tagend s wl
+if eq wg VNONE
+break
+end
+wi = add wg 1
+wc = sv_bat s add wl 1
+if not or eq wc 47 eq wc 33
+if sv_isbox s wl wg
+if and wopen not wres
+sv_boxfail s wbx vtnobox rule
+end
+wopen = true
+wres = false
+wbx = wl
+wn = add wn 1
+else
+if and wopen not wres
+if sv_islink s wl wg
+wres = true
+if not sv_linkok s wl wg
+sv_boxfail s wbx vtoffgh rule
+end
+end
+end
+end
+end
+end
+if and wopen not wres
+sv_boxfail s wbx vtnobox rule
+end
+ret wn
+end
+fn sv_boxfail s ulong wpos ulong why view uchar * rule view uchar * to void
+wg = sv_tagend s wpos
+wn = sub add wg 1 wpos
+if gt wn 90
+wn = 90
+end
+sv_failx rule why add sv_off s wpos wn
+end
+
+note ---------------------------------------------------------------- H hubs
+fn sv_hub k ulong to void
+wa = sv_tat vhubs k
+ws = sv_pg part vhubs wa sv_tlen vhubs wa vrh
+if eq ws 0
+ret
+end
+wf = sv_find ws vfooter 0
+if eq wf VNONE
+wf = sv_n ws
+end
+if eq k 0
+sv_hubreq ws vhub0 wf
+sv_hubrows ws
+end
+if eq k 1
+sv_hubreq ws vhub1 wf
+sv_hubnost ws
+end
+if eq k 2
+sv_hubreq ws vhub2 wf
+sv_hubnost ws
+end
+sv_nodash ws vrh
+wb = sv_boxes ws vrh
+sv_dests ws
+sv_drop ws
+end
+fn sv_hubreq s ulong t view uchar * wf ulong to void
+for wk ulong sv_tcount t
+wa = sv_tat t wk
+if not sv_hasn s part t wa sv_tlen t wa 0 wf
+sv_failt vrh vtneed part t wa sv_tlen t wa
+end
+end
+end
+fn sv_hubnost s ulong to void
+for wk ulong sv_tcount vrstat
+wa = sv_tat vrstat wk
+if sv_has s part vrstat wa sv_tlen vrstat wa
+sv_failt vrh vtstatw part vrstat wa sv_tlen vrstat wa
+end
+end
+end
+note sv_hubrows: every turing row of the published research-status.json has its card,
+note data-row="ID" data-status="STATUS" (the hub renders from the same data).
+fn sv_hubrows s ulong to void
+sv_prel vfrsj
+if not sv_exists
+sv_fail vrh vtrow
+ret
+end
+wr = sv_jload
+wc = sj_first sj_find wr vktrows
+while ne wc 0 bound 65536
+wn = sv_snew
+sv_pusht vdrow
+sv_pushn sj_find wc vkid
+sv_pusht vdst
+sv_pushn sj_find wc vkstatus
+sv_pusht vxquote
+if eq sv_finda s 0 sv_n s sv_off wn sv_n wn VNONE
+sv_failx vrh vtrow sv_off wn sv_n wn
+end
+sv_drop wn
+wc = sj_next wc
+end
+end
+fn sv_pushn node ulong to void
+if ne sj_kind node 3
+ret
+end
+for wj ulong sj_size node
+sv_push sj_byte node wj
+end
+end
+
+note ---------------------------------------------------------------- file loop
+fn sv_each1 q ulong to void
+if eq get vfk q 2
+ret
+end
+wh = ulong 0
+if sv_fext q vxhtm
+wh = sv_fload q
+if eq wh 0
+ret
+end
+sv_c1 wh
+sv_contact q wh
+sv_assets wh
+sv_voice1 q wh
+sv_drop wh
+ret
+end
+if or sv_fext q vxmd sv_fext q vxtxt
+wh = sv_fload q
+if ne wh 0
+sv_voice1 q wh
+sv_drop wh
+end
+ret
+end
+if sv_fext q vxjs
+wh = sv_fload q
+if ne wh 0
+sv_c1js q wh
+sv_drop wh
+end
+end
+end
+fn sv_eachf to void
+for wq ulong get vfc 0
+sv_pfile wq
+sv_each1 wq
+end
+end
+
+note ---------------------------------------------------------------- whole runs
+text vkmach2 "machines"
+text vfmj "machines.json"
+text vfoj "omega.json"
+text vfcj "cudaplusplus.json"
+text vfsj "status.json"
+text vfpp "data/project-progress.json"
+text vfdi "data/index.json"
+text vfdp "data/pages.json"
+text vfnj "now.json"
+text vffj "facts.json"
+text vfar "data/agent-repos.json"
+fn sv_dgates to bool
+wok = sv_vdist vkmach vfmj
+wok = and sv_vdist vkomega vfoj wok
+wok = and sv_vdist vkcuda vfcj wok
+wok = and sv_vdist vkres vfrsj wok
+wok = and sv_vdist vkstat vfsj wok
+wok = and sv_vdist vkprog vfpp wok
+wok = and sv_vdist vkindex vfdi wok
+wok = and sv_vdist vkpages vfdp wok
+wok = and sv_vdist vknow vfnj wok
+wok = and sv_vdist vkfacts vffj wok
+ret and sv_vdist vkagent vfar wok
+end
+note sv_dist: the whole dist verification. dist, quotes and engineer are paths as given.
+fn sv_dist dist view uchar * quotes view uchar * engr view uchar * to bool
+sv_vinit
+sv_setroot dist
+wok = sv_vdata vkquote quotes
+wok = and sv_vdata vkengr engr wok
+sv_vrec
+sv_walk
+sv_regw
+sv_pages
+sv_sitemap
+wok = and sv_dgates wok
+sv_eachf
+sv_c2
+sv_cseo
+sv_v1v2
+sv_vroot
+sv_vclassic
+sv_files vv5f vrv10
+sv_v6
+sv_v8
+sv_v11
+sv_v13
+for wk ulong 3
+sv_hub wk
+end
+sv_v15 vfmach
+sv_v15 vfdisc
+sv_v16
+sv_v18
+sv_v19
+sv_n1
+ret and wok eq get vfail 0 0
+end
+note sv_pregen: B1-B4 over the repository before any output is written (paths relative to the
+note current directory: the repository root). The generator calls this first and stops on false.
+text vsnow "public/data/now.tsv"
+text vsfacts "facts.json"
+text vsagent "public/data/agent-repos.json"
+text vsmach "crates/site-builder/data/machines.json"
+text vsomega "crates/site-builder/data/omega.json"
+text vscuda "crates/site-builder/data/cudaplusplus.json"
+text vsres "crates/site-builder/data/research_status.json"
+text vsstat "crates/site-builder/data/status.json"
+text vsprog "public/data/project-progress.json"
+text vsquote "data/quotes.json"
+text vsengr "public/data/engineer.json"
+fn sv_pregen to bool
+sv_vinit
+wok = true
+put vpn 0 0
+sv_padd vsnow
+sv_ctxp
+if sv_exists
+wok = sv_vdata vkledg vsnow
+end
+wok = and sv_vdata vkfacts vsfacts wok
+wok = and sv_vdata vkagent vsagent wok
+wok = and sv_vdata vkmach vsmach wok
+wok = and sv_vdata vkomega vsomega wok
+wok = and sv_vdata vkcuda vscuda wok
+wok = and sv_vdata vkres vsres wok
+wok = and sv_vdata vkstat vsstat wok
+wok = and sv_vdata vkprog vsprog wok
+wok = and sv_vdata vkquote vsquote wok
+wok = and sv_vdata vkengr vsengr wok
+ret and wok eq get vfail 0 0
+end

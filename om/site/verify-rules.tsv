@@ -1,0 +1,56 @@
+rule	oracle check	Omega function	failure label	mutation ids	port note
+B1	public ledger is its projection (build)	sv_pregen > sv_vledger (verify-data2.om)	L	B1-a,B1-b,B1-c,B1-d,B1-e,B1-f,B1-g,B1-h,B1-i,B1-j,B1-k,B1-l,B1-m,B1-n,B1-o,B1-p,B1-q,B1-r,B1-s,B1-pos-rfc,B1-pos-repo,B1-hdr,B1-cr,B1-few,B1-many,B1-nonl,B1-src	exact port of ledger_public.rs: header, LF, no CR, 5..8 columns, every regex with regex-crate Unicode \s \w \d \b and (?i) folding, value-bound RFC 8032 exemption with leftmost-first find_iter
+B2	facts.json loads (build)	sv_pregen/sv_vdist > sv_vfacts	B4	B2-a,B2-b,B2-c,B2-d	serde shape: required fields, types, u64, known fields at most once; unknown fields allowed as in serde
+B3	agent-repos.json loads (build)	sv_vagent	B4	B3-a,B3-b,B3-c	serde shape incl. #[serde(default)] archived, Option brief
+B4	data validators (build)	sv_vmach sv_vomega sv_vcuda sv_vres (verify-data.om)	B4	B4-m1,B4-m2,B4-m3,B4-m4,B4-m5,B4-m6,B4-m7,B4-m8,B4-m9,B4-m10,B4-m11,B4-m12,B4-m13,B4-m14,B4-m15,B4-o1,B4-o2,B4-o3,B4-o4,B4-o5,B4-o6,B4-o7,B4-o8,B4-o9,B4-o10,B4-o11,B4-o12,B4-o13,B4-o14,B4-c1,B4-c2,B4-c3,B4-c4,B4-c5,B4-c6,B4-c7,B4-c8,B4-c9,B4-c10,B4-r1,B4-r2,B4-r3,B4-r4,B4-r5,B4-r6,B4-r7,B4-r8,B4-r9,B4-r10,B4-r11,B4-r12,B4-dist	deny_unknown_fields, every validate() rule; numbers compared lexically (exponent forms refused, stricter than f64)
+B5	dist page set equals the registry (build only before)	sv_regw (verify-seo.om)	O1	O1-a,O1-b,O1-c	registry = seo::PAGES plus the engineer record (RustOracle), translations via TRANSLATED_ELSEWHERE
+B6	head, title, description, zh twin (build only before)	sv_pages > sv_chead	O2	O2-a,O2-b,O2-c,O2-d,O2-e,O2-f,O2-g,O2-h,O2-i	oracle.rs check_head: one title, description/og, one canonical = og:url, html lang, hreflang pairs
+B7	enrich panics without nav/head/body (build)	sv_contact, sv_dests, sv_chead	G/O3/O2	G-a,G-b,G-c,O3-a	approved redesign: no nav bar; replaced by visible contact, X-before-main, home link and the six destinations
+B8	Hive artifacts match their sha256 sidecars	verify-mutations.py hash_gate (pinned sha256sum, oracle only)	HASH	B8-a,B8-b	Omega successor proposed: reuse omega-mv om/sha256/sha256-om2.om at 19f014f2 in the verifier unit
+V1	published ledger is projected	sv_v1v2 > sv_vledger	L	V1-a	
+V2	zh-CN progress has no inline dataset	sv_v1v2	V2	V2-a	
+V3	former home ids, /now/ link, no outside font, facts.json	sv_vclassic, sv_files	V3/V10	V3-a,V3-b,V3-c,V3-d	targets classic/index.html (approved root move)
+V4	five homepage phrases and loop-stages	sv_vclassic	V4	V4-a,V4-b	classic/index.html
+V5	machine ids, 7.63 tok/s, FORBIDDEN, machines.css/json	sv_vclassic, sv_vroot, sv_files	V5/V10	V5-a,V5-b,V5-c,V5-d,V5-e	FORBIDDEN also on the new root
+V6	style.css braces and footer selectors, terminal.js	sv_v6, sv_files	V6/V10	V6-a,V6-b,V6-c,V6-d	
+V7	no dash on the former home	sv_vclassic	V7	V7-a	root: R0
+V8	progress page and dataset, no .crumb.local	sv_v8, sv_files	V8/V10	V8-a,V8-b	
+V9	sitemap, robots, seo::verify	sv_files, sv_cseo, sv_c1, sv_c2	V10/C*	V9-a,C3-a	
+V10	required pages and files exist	sv_files	V10	V10-blog_aien-v3-research-plan_index.html,V10-now.json,V10-assets_now.css,V10-research-status.json,V10-omega.json,V10-assets_omega.css,V10-cudaplusplus.json,V10-assets_cudaplusplus.css	
+V11	/omega/ phrases and the front-page link	sv_v11, sv_vclassic	V11	V11-a,V11-b,V11-c	
+V12	/cudaplusplus/ phrases and links	sv_v11, sv_vclassic	V12	V12-a,V12-b,V12-c	
+V13	six pages no dash and og:title	sv_v13	V13	V13-a,V13-b	
+V14	hubs (H)	sv_hub	H	H-a,H-b,H-c,H-d,H-e,O3-a,O3-b	required markup before <footer, no dash, boxes, destinations, status words / data-row cards; cards compared with the published research-status.json
+V15	machine and discovery badges	sv_v15	V15	V15-a,V15-b	
+V16	owned thesis, signature, no rs-badge	sv_v16	V16	V16-a,V16-b	
+V17	machine slogan, formula, order, ladder markup	sv_v15	V17	V17-a,V17-b,V17-c,V17-d	
+V18	/start/ routes	sv_v18	V18	V18-a	
+V19	box floors per page, .box-link::after	sv_v19 > sv_boxes	V19	V19-a,V19-b,V19-c	GENERATED_PAGES updated by RustOracle (classic 30, root 0, new pages 0)
+V20	singular voice (F)	sv_voice1	F	F-a,F-b,F-c,F-d,F-e,F-f,F-g,F-pos-a,F-pos-b,F-pos-c	sourced-quote exemption only for data-quote-id elements whose text equals data/quotes.json exactly; md/txt only exact quote strings; data-speaker not exempt until #119
+V21	contact (G)	sv_contact	G	G-a,G-b,G-c,G-d,G-e,G-f,G-g,G-h	no header: visible X link with X in its text before the one visible <main>, /contact/, mailto, home link except root/404, last aien-reach-foot with X and mailto
+C1	consent boundary on every .html	sv_c1	C1	C1-a,C1-b,C1-c,C1-d,C1-e,C1-f,C1-g,C1-h	
+C2	only allen-intro.js initializes the pixel	sv_c1js, sv_c2	C2	C2-a,C2-b	
+C3	robots and www sitemap	sv_c3	C3	C3-a,C3-b,C3-c	
+C4	sitemap.md, AGENTS.md, root glossary and BreadcrumbList	sv_c4	C4	C4-a,C4-b,C4-c,C4-d	checks the served root index.html as the oracle does
+C5	DATA_FILES exist and are linked	sv_c5	C5	C5-a,C5-b	27 files incl. /data/pages.json
+C6	per-page machine surface (exact markup)	sv_c6	C6	C6-a,C6-b,C6-c,C6-d,C6-e,C6-f,C6-g,C6-h,C6-i	kept byte-exact as the oracle (canonical, markdown, describedby strings)
+C7	machine files exist	sv_c78	C7	C7-a	
+C8	machine files have no dash	sv_c78	C8	C8-a	
+H	hub gates	sv_hub	H	H-a,H-b,H-c,H-d,H-e	
+E	every box links GitHub	sv_boxes	V19/H	E-c,E-a,E-b	region = until the next box (oracle semantics, layout-coupled; a link after the box's close still counts, as in the oracle)
+F	voice	sv_voice1	F	F-a,F-b,F-c,F-d,F-e,F-f,F-g,F-pos-a,F-pos-b,F-pos-c,Q-a,Q-b	
+G	contact	sv_contact	G	G-a,G-b,G-c,G-d,G-e,G-f,G-g,G-h	
+O1	registry (oracle.rs check_registry)	sv_regw	O1	O1-a,O1-b,O1-c,O7-f	
+O2	heads (oracle.rs check_head)	sv_chead	O2	O2-a,O2-b,O2-c,O2-d,O2-e,O2-f,O2-g,O2-h,O2-i	
+O3	six destinations on every page (navbar::check_destinations)	sv_dests	O3	O3-a,O3-b	SI->/classic/ Omega Machine Discoveries Learn Allen in order, visible
+O4	root door (oracle.rs check_root)	sv_root	O4	O4-a,O4-b,O4-c,O4-d	ids in real markup, reachable /classic/ link, <noscript> /classic/ link
+O5	assets resolve (oracle.rs verify_assets)	sv_assets	O5	O5-a,O5-b,O5-c,O5-d	lstat regular file, no empty/./.. segments
+O6	sitemap lists the registry (oracle.rs check_sitemap)	sv_sitemap	O6	O6-a	
+O7	engineer record (oracle.rs engineer_paths)	sv_vengine	O7	O7-a,O7-b,O7-c,O7-d,O7-e,O7-f	
+D1	project-progress (collector validate_snapshot)	sv_vprog	D1	D1-a,D1-b,D1-c,D1-d,D1-e,D1-f	integers exact; non-integral f64 sums refused (stricter)
+D2	status.json (oracle check_status)	sv_vstatus	D2	D2-a,D2-b,D2-c	
+D3	data/index.json exact set (oracle check_data_index)	sv_vindex	D3	D3-a,D3-b	
+D4	data/pages.json equals the registry (oracle check_pages_json)	sv_vpages > sv_regset	D4	D4-a,D4-b,D4-c	
+D5	now.json parses; published data present	sv_vnow, sv_vdist	D5/EXIT70	D5-a,D5-b	
+N1	/now/ body: no script, no Renda (now.rs unit invariant)	sv_n1	N1	N1-a	inside <main> only; shared head/JSON-LD/consent allowed
+R0	root: no outside font, no dash	sv_vroot	R0	R0-a,R0-b	

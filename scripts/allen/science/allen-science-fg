@@ -1,0 +1,16 @@
+#!/bin/sh
+# Interim foreground launcher for allen-science, run as `sudo -n` by spark-supervisor until
+# aien-supervise owns it (allen-science.svc). No systemd unit. Same privilege drop as
+# cortex-visitors-fg; it writes nothing: output goes to the supervisor.
+# Install: root:root 0755 at /usr/local/libexec/aien-supervise/allen-science-fg.
+# NOT ACTIVE here: the aggregate memory, task and CPU limits in allen-science.svc. Under this
+# interim launcher only the per-process rlimits (prlimit in science_sandbox.py) and the service's
+# concurrency slots bound resources; the cgroup limits apply once aien-supervise runs the service.
+set -eu
+umask 077
+exec </dev/null
+if ss -ltnH 'sport = :18113' | grep -q .; then echo "allen-science-fg: port 18113 already in use" >&2; exit 1; fi
+exec /usr/bin/setpriv --reuid=allen-science --regid=allen-science --clear-groups \
+  --no-new-privs --inh-caps=-all --bounding-set=-all \
+  /usr/bin/env -i PATH=/usr/bin:/bin \
+  /usr/bin/python3.12 -I /opt/allen-science/launch.py --listen 127.0.0.1:18113

@@ -1,0 +1,638 @@
+note verify-text.om: the HTML reading the oracle does (oracle.rs, seo.rs attr/tag_name,
+note boxlink.rs, voice.rs), ported byte for byte. Every function works on arena slots
+note (verify-core.om); positions are slot-relative. A function that builds text returns a new
+note slot that the caller drops.
+global vtn uchar 64
+global vtnn ulong 1
+global vav ulong 2
+global vax ulong 4
+global vlab uchar 64
+global vlabn ulong 1
+text vxscr "script"
+text vxsty "style"
+text vxtpl "template"
+text vxnos "noscript"
+text vxvoid "area\nbase\nbr\ncol\nembed\nhr\nimg\ninput\nlink\nmeta\nsource\ntrack\nwbr\n"
+text vxcom "<!--"
+text vxcomx "-->"
+text vxhid "hidden"
+text vxah "aria-hidden"
+text vxtrue "true"
+text vxclass "class"
+text vxhref "href"
+text vxa "<a"
+text vxaend "</a>"
+text vxclo "</"
+text vxsl "/>"
+text vxlt "<"
+text vxid "id"
+text vxmain "<main"
+text vxnoso "<noscript"
+text vxnosc "</noscript>"
+note entity tables: pattern LF replacement LF ... in the order Rust applies its replace calls
+text vxent1 "&nbsp;\n \n&quot;\n\"\n&#39;\n'\n&lt;\n<\n&gt;\n>\n&amp;\n&\n"
+text vxent2 "&amp;\n&\n&#39;\n'\n&apos;\n'\n&quot;\n\"\n&lt;\n<\n&gt;\n>\n&nbsp;\n \n"
+
+note ---------------------------------------------------------------- bytes in a slot
+fn sv_aws c uchar to bool
+ret or or eq c 32 eq c 9 or or eq c 10 eq c 12 eq c 13
+end
+fn sv_awsr c uchar to bool
+note the set Rust's starts_with(['>', ' ', '\t', '\n', '\r']) accepts after a tag name
+ret or or eq c 62 eq c 32 or or eq c 9 eq c 10 eq c 13
+end
+fn sv_bat s ulong i ulong to uchar
+if ge i sv_n s
+ret 0
+end
+ret sv_b s i
+end
+note sv_tagend: index of the first '>' at or after i, VNONE.
+fn sv_tagend s ulong i ulong to ulong
+ret sv_findb2 s 62 i
+end
+fn sv_findb2 s ulong c uchar from ulong to ulong
+wn = sv_n s
+wb = sv_off s
+wi = from
+while lt wi wn bound 64
+wk = ulong 0
+while and lt wi wn lt wk 262144 bound 262144
+if eq get va add wb wi c
+ret wi
+end
+wi = add wi 1
+wk = add wk 1
+end
+end
+ret VNONE
+end
+note sv_tname: seo.rs tag_name: skip every leading '<', then every '/', then ASCII alphanumerics,
+note lowercased, into vtn; returns the length.
+fn sv_tname s ulong i ulong to ulong
+while eq sv_bat s i 60 bound 999999
+i = add i 1
+end
+while eq sv_bat s i 47 bound 999999
+i = add i 1
+end
+wn = ulong 0
+while lt wn 64 bound 64
+c = sv_bat s i
+if not or sv_isdig c or and ge c 65 le c 90 and ge c 97 le c 122
+break
+end
+put vtn wn sv_lc c
+wn = add wn 1
+i = add i 1
+end
+put vtnn 0 wn
+ret wn
+end
+fn sv_tnis pat view uchar * to bool
+if ne get vtnn 0 len pat
+ret false
+end
+for wj ulong len pat
+if ne get vtn wj get pat wj
+ret false
+end
+end
+ret true
+end
+fn sv_tnin t view uchar * to bool
+for wk ulong sv_tcount t
+wa = sv_tat t wk
+if sv_tnis part t wa sv_tlen t wa
+ret true
+end
+end
+ret false
+end
+note sv_aqval: the quoted value opening at wj (< we) for sv_attr: its start (>= 1, length in
+note vav[0]); VNONE when unterminated before we; 0 when wj holds no quote (keep scanning).
+fn sv_aqval s ulong wj ulong we ulong to ulong
+wq = sv_bat s wj
+if and lt wj we or eq wq 34 eq wq 39
+wz = sv_findb2 s wq add wj 1
+if or eq wz VNONE ge wz we
+ret VNONE
+end
+put vav 0 sub wz add wj 1
+ret add wj 1
+end
+ret 0
+end
+note sv_attr: seo.rs attr(tag, name) over the tag bytes [t0, t1] ('>' at t1). Found: value offset,
+note vav[0] its length. Missing: VNONE. A value whose closing quote is missing ends the search
+note (Rust's `?`).
+fn sv_attr s ulong t0 ulong t1 ulong name view uchar * to ulong
+wi = t0
+we = add t1 1
+while true bound 999999
+wst = sv_findn s name wi we
+if eq wst VNONE
+ret VNONE
+end
+wok = and gt wst t0 sv_aws sv_b s sub wst 1
+wj = add wst len name
+while and lt wj we sv_aws sv_bat s wj bound 999999
+wj = add wj 1
+end
+if and wok and lt wj we eq sv_bat s wj 61
+wj = add wj 1
+while and lt wj we sv_aws sv_bat s wj bound 999999
+wj = add wj 1
+end
+wv = sv_aqval s wj we
+if ne wv 0
+ret wv
+end
+end
+wi = add wst len name
+end
+ret VNONE
+end
+note sv_aeq: the attribute value at v (length vav[0], from sv_attr) equals want; v VNONE is false.
+fn sv_aeq s ulong v ulong want view uchar * to bool
+if eq v VNONE
+ret false
+end
+if ne get vav 0 len want
+ret false
+end
+ret sv_eqat s v want
+end
+note sv_anstp: byte i of slot s ends an attribute-name run (space, '>' or '/').
+fn sv_anstp s ulong i ulong to bool
+c = sv_bat s i
+ret or or sv_aws c eq c 62 eq c 47
+end
+note sv_anend: byte i of slot s ends an attribute name (space, '=', '>' or '/').
+fn sv_anend s ulong i ulong to bool
+c = sv_bat s i
+ret or or sv_aws c eq c 61 or eq c 62 eq c 47
+end
+note sv_anames: oracle.rs attr_names(tag) contains the lowercase name.
+fn sv_anames s ulong t0 ulong t1 ulong name view uchar * to bool
+we = add t1 1
+wi = add t0 1
+while and lt wi we not sv_anstp s wi bound 999999
+wi = add wi 1
+end
+while true bound 999999
+while and lt wi we or sv_aws sv_bat s wi eq sv_bat s wi 47 bound 999999
+wi = add wi 1
+end
+if or ge wi we eq sv_bat s wi 62
+ret false
+end
+wst = wi
+while and lt wi we not sv_anend s wi bound 999999
+wi = add wi 1
+end
+if eq sub wi wst len name
+if sv_eqatc s wst name
+ret true
+end
+end
+wi = sv_anval s wi we
+end
+ret false
+end
+fn sv_anval s ulong wi ulong we ulong to ulong
+while and lt wi we sv_aws sv_bat s wi bound 999999
+wi = add wi 1
+end
+if and lt wi we eq sv_bat s wi 61
+wi = add wi 1
+while and lt wi we sv_aws sv_bat s wi bound 999999
+wi = add wi 1
+end
+wq = sv_bat s wi
+if and lt wi we or eq wq 34 eq wq 39
+wi = add wi 1
+while and lt wi we ne sv_bat s wi wq bound 999999
+wi = add wi 1
+end
+ret add wi 1
+end
+while and lt wi we not or sv_aws sv_bat s wi eq sv_bat s wi 62 bound 999999
+wi = add wi 1
+end
+end
+ret wi
+end
+note sv_eend: oracle.rs element_end(html, body, name) with name in vtn: index just past the
+note matching close tag (ASCII case-insensitive), counting nested opens; VNONE.
+fn sv_eend s ulong body ulong to ulong
+wd = ulong 1
+wi = body
+wn = get vtnn 0
+while true bound 999999
+wl = sv_findb2 s 60 wi
+if eq wl VNONE
+ret VNONE
+end
+if sv_isclose s wl
+wd = sub wd 1
+if eq wd 0
+ret add add wl 3 wn
+end
+else
+if sv_isopen s wl
+wd = add wd 1
+end
+end
+wi = add wl 1
+end
+ret VNONE
+end
+fn sv_vtnat s ulong i ulong to bool
+wn = get vtnn 0
+if gt add i wn sv_n s
+ret false
+end
+for wj ulong wn
+if ne sv_lc sv_b s add i wj get vtn wj
+ret false
+end
+end
+ret true
+end
+fn sv_isclose s ulong wl ulong to bool
+if ne sv_bat s add wl 1 47
+ret false
+end
+if not sv_vtnat s add wl 2
+ret false
+end
+ret eq sv_bat s add add wl 2 get vtnn 0 62
+end
+fn sv_isopen s ulong wl ulong to bool
+if not sv_vtnat s add wl 1
+ret false
+end
+wi = add add wl 1 get vtnn 0
+if ge wi sv_n s
+ret false
+end
+c = sv_b s wi
+ret or sv_awsr c eq c 47
+end
+
+note ---------------------------------------------------------------- strip
+note sv_strip: oracle.rs strip(html, drop, hidden) over slot s. Flags: 1 script, 2 style,
+note 4 template, 8 noscript dropped; 16 hidden (the hidden attribute or aria-hidden="true").
+note markup = 7, reachable = 31, the noscript source = 23, reader text = 23, page_assets = 0.
+fn sv_dropn fl ulong to bool
+if and ne and fl 1 0 sv_tnis vxscr
+ret true
+end
+if and ne and fl 2 0 sv_tnis vxsty
+ret true
+end
+if and ne and fl 4 0 sv_tnis vxtpl
+ret true
+end
+ret and ne and fl 8 0 sv_tnis vxnos
+end
+fn sv_strip s ulong fl ulong to ulong
+wo = sv_snew
+wi = ulong 0
+wn = sv_n s
+while lt wi wn bound 999999
+wl = sv_findb2 s 60 wi
+if eq wl VNONE
+break
+end
+sv_pusha add sv_off s wi sub wl wi
+wi = sv_strip1 s fl wl
+end
+if lt wi wn
+sv_pusha add sv_off s wi sub wn wi
+end
+ret wo
+end
+note sv_strip1: one '<' at wl: push what the pass keeps, return where scanning resumes.
+fn sv_strip1 s ulong fl ulong wl ulong to ulong
+wn = sv_n s
+if sv_eqat s wl vxcom
+wz = sv_find s vxcomx wl
+sv_push 32
+if eq wz VNONE
+ret wn
+end
+ret add wz 3
+end
+wnl = sv_tname s wl
+wg = sv_tagend s wl
+if eq wg VNONE
+ret wn
+end
+wop = and gt wnl 0 not or eq sv_bat s add wl 1 47 eq sv_bat s add wl 1 33
+whide = false
+if wop
+whide = sv_dropn fl
+if and not whide ne and fl 16 0
+whide = or sv_anames s wl wg vxhid sv_aeq s sv_attr s wl wg vxah vxtrue
+end
+end
+if whide
+sv_push 32
+if or sv_tnin vxvoid eq sv_b s sub wg 1 47
+ret add wg 1
+end
+wz = sv_eend s add wg 1
+if eq wz VNONE
+ret wn
+end
+ret wz
+end
+sv_pusha add sv_off s wl add sub wg wl 1
+ret add wg 1
+end
+
+note ---------------------------------------------------------------- reader text
+fn sv_slot1 a ulong b ulong src ulong to ulong
+ws = sv_snew
+sv_pusha add sv_off src a sub b a
+ret ws
+end
+note sv_coll: move slot g (the newest) down onto slot f and pop everything above f.
+fn sv_coll f ulong g ulong to void
+wn = sv_n g
+wfo = sv_off f
+wgo = sv_off g
+for wj ulong wn
+put va add wfo wj get va add wgo wj
+end
+put vns 0 add f 1
+put vsn f wn
+put vtop 0 add wfo wn
+end
+note sv_untag: in place, '<' opens a tag, '>' in a tag becomes one space (oracle reader_text).
+fn sv_untag s ulong to void
+wo = sv_off s
+wn = sv_n s
+wout = ulong 0
+win = false
+for wi ulong wn
+c = get va add wo wi
+if eq c 60
+win = true
+else
+if and eq c 62 win
+win = false
+put va add wo wout 32
+wout = add wout 1
+else
+if not win
+put va add wo wout c
+wout = add wout 1
+end
+end
+end
+end
+sv_trunc s wout
+end
+note sv_aput: copy rep into the arena at dst (split out of sv_repl for registers).
+fn sv_aput dst ulong rep view uchar * to void
+for wj ulong len rep
+put va add dst wj get rep wj
+end
+end
+note sv_repl: in place, every non-overlapping pat (left to right) becomes rep (len rep <= len pat).
+fn sv_repl s ulong pat view uchar * rep view uchar * to void
+note the slot offset and length are read per use (unchanged until sv_trunc): register budget.
+wout = ulong 0
+wi = ulong 0
+while lt wi sv_n s bound 64
+wk = ulong 0
+while and lt wi sv_n s lt wk 262144 bound 262144
+if sv_eqat s wi pat
+sv_aput add sv_off s wout rep
+wout = add wout len rep
+wi = add wi len pat
+else
+sv_amove add sv_off s wout add sv_off s wi 1
+wout = add wout 1
+wi = add wi 1
+end
+wk = add wk 1
+end
+end
+sv_trunc s wout
+end
+fn sv_ents s ulong t view uchar * to void
+wk = ulong 0
+note wrep: the replacement half of one pair; omc error 19 refuses two parts of t in one call.
+wrep = new uchar 64 0
+while lt wk sv_tcount t bound 64
+wa = sv_tat t wk
+wb = sv_tat t add wk 1
+wn = sv_tlen t wb
+if gt wn 64
+trap 10
+end
+for wj ulong wn
+put wrep wj get t add wb wj
+end
+sv_repl s part t wa sv_tlen t wa part wrep 0 wn
+wk = add wk 2
+end
+end
+note sv_rtext: oracle reader_text of [a, b) in slot src, as a new slot.
+fn sv_rtext src ulong a ulong b ulong to ulong
+wf = sv_slot1 a b src
+wg = sv_strip wf 23
+sv_untag wg
+sv_ents wg vxent1
+sv_squash wg
+sv_coll wf wg
+ret wf
+end
+
+note ---------------------------------------------------------------- anchors
+note sv_anx: the next anchor at or after i in [0, lim) of slot r (oracle anchors over the prefix
+note r[..lim]). Returns its '<' or VNONE; vax[0] = '>' of the open tag, vax[1] = the close (or lim),
+note vax[2] = href offset or VNONE, vax[3] = href length.
+fn sv_anx r ulong i ulong lim ulong to ulong
+while true bound 999999
+wa = sv_findx r vxa i lim true
+if eq wa VNONE
+ret VNONE
+end
+i = add wa 2
+if lt i lim
+if sv_awsr sv_lc sv_b r i
+wg = sv_findb2 r 62 wa
+if or eq wg VNONE ge wg lim
+ret VNONE
+end
+wc = sv_findx r vxaend wg lim true
+if eq wc VNONE
+wc = lim
+end
+put vax 0 wg
+put vax 1 wc
+put vax 2 sv_attr r wa wg vxhref
+put vax 3 get vav 0
+ret wa
+end
+end
+end
+ret VNONE
+end
+fn sv_hrefis r ulong want view uchar * to bool
+if eq get vax 2 VNONE
+ret eq len want 0
+end
+if ne get vax 3 len want
+ret false
+end
+ret sv_eqat r get vax 2 want
+end
+note sv_alink: first anchor from i in r[..lim] with href == want whose reader text satisfies mode:
+note 0 not empty, 1 contains 'X', 2 equals the label set by sv_setlab. Returns the index after it
+note (its close) or VNONE.
+fn sv_setlab label view uchar * to void
+if gt len label len vlab
+sr_fail vtcap
+end
+for wj ulong len label
+put vlab wj get label wj
+end
+put vlabn 0 len label
+end
+fn sv_labis t ulong to bool
+if ne sv_n t get vlabn 0
+ret false
+end
+for wj ulong sv_n t
+if ne sv_b t wj get vlab wj
+ret false
+end
+end
+ret true
+end
+fn sv_alink r ulong i ulong lim ulong want view uchar * mode ulong to ulong
+while true bound 999999
+wa = sv_anx r i lim
+if eq wa VNONE
+ret VNONE
+end
+wc = get vax 1
+if sv_hrefis r want
+wt = sv_rtext r add get vax 0 1 wc
+wok = gt sv_n wt 0
+if eq mode 1
+wok = ne sv_findb wt 88 VNONE
+end
+if eq mode 2
+wok = sv_labis wt
+end
+sv_drop wt
+if wok
+ret wc
+end
+end
+i = wc
+end
+ret VNONE
+end
+
+note ---------------------------------------------------------------- classes and ids
+note sv_fclass: oracle find_class: the first tag from i (not </ or <!) whose class attribute holds
+note token as an ASCII-whitespace-separated word; returns its '<' (vax[0] = its '>'), VNONE.
+fn sv_fclass s ulong i ulong token view uchar * to ulong
+while true bound 999999
+wl = sv_findb2 s 60 i
+if eq wl VNONE
+ret VNONE
+end
+wg = sv_tagend s wl
+if eq wg VNONE
+ret VNONE
+end
+wc = sv_bat s add wl 1
+if not or eq wc 47 eq wc 33
+wv = sv_attr s wl wg vxclass
+if ne wv VNONE
+if sv_hastok s wv get vav 0 token false
+put vax 0 wg
+ret wl
+end
+end
+end
+i = add wg 1
+end
+ret VNONE
+end
+note sv_hastok: the value [v, v+n) split on whitespace (ASCII, or Unicode when uni) holds token.
+fn sv_hastok s ulong v ulong n ulong token view uchar * uni bool to bool
+wi = v
+we = add v n
+while lt wi we bound 999999
+while and lt wi we sv_tokws s wi uni bound 999999
+wi = add wi sv_cpl s wi
+end
+wst = wi
+while and lt wi we not sv_tokws s wi uni bound 999999
+wi = add wi sv_cpl s wi
+end
+if and gt wi wst eq sub wi wst len token
+if sv_eqat s wst token
+ret true
+end
+end
+end
+ret false
+end
+fn sv_tokws s ulong i ulong uni bool to bool
+if uni
+ret sv_ins sv_cp s i
+end
+ret sv_aws sv_b s i
+end
+note sv_hasid: oracle has_id over the markup slot m (already stripped with flags 7).
+fn sv_hasid m ulong id view uchar * to bool
+wi = ulong 0
+while true bound 999999
+wl = sv_findb2 m 60 wi
+if eq wl VNONE
+ret false
+end
+wg = sv_tagend m wl
+if eq wg VNONE
+ret false
+end
+if ne sv_bat m add wl 1 47
+if sv_aeq m sv_attr m wl wg vxid id
+ret true
+end
+end
+wi = add wg 1
+end
+ret false
+end
+note sv_mains: the number of "<main" followed by > or whitespace in r (ASCII case-insensitive),
+note vax[0] = the first one.
+fn sv_mains r ulong to ulong
+wc = ulong 0
+wi = ulong 0
+while true bound 999999
+wm = sv_findc r vxmain wi
+if eq wm VNONE
+ret wc
+end
+if sv_awsr sv_lc sv_bat r add wm 5
+if eq wc 0
+put vax 0 wm
+end
+wc = add wc 1
+end
+wi = add wm 1
+end
+ret wc
+end

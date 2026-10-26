@@ -1,23 +1,23 @@
 use maud::{html, Markup, PreEscaped};
 
-/// The six top-level sections of the site, in reading order
-/// (research synthesis handoff, section 21). Every page header uses this
-/// list: the generated pages render it here, and the hand-written pages
-/// under public/ carry the same links (checked by the tests below).
+/// The six destinations of the site, in reading order (the approved Omega
+/// redesign, 2026-10-26): Sovereign Intelligence in its classic readable
+/// form, then Omega, the Machine, Discoveries, Learn and Allen. The root is
+/// Allen's native front door and the redesign has no top nav bar; every page
+/// still links all six, in this order, somewhere a reader can reach (a quiet
+/// index or footer). [`check_destinations`] holds every page in dist to that.
 pub const NAV_PRIMARY: [(&str, &str); 6] = [
-    ("The Machine", "/machine/"),
-    ("The Turing", "/turing/"),
-    ("Experiments", "/experiments/"),
-    ("Scientific Discovery", "/discovery/"),
-    ("Evidence", "/evidence/"),
-    ("Philosophy", "/philosophy/"),
+    ("SI", "/classic/"),
+    ("Omega", "/omega/"),
+    ("Machine", "/machine/"),
+    ("Discoveries", "/discoveries/"),
+    ("Learn", "/learn/"),
+    ("Allen", "/allen/"),
 ];
 
 /// Secondary links: smaller, after a divider.
-pub const NAV_SECONDARY: [(&str, &str); 9] = [
-    ("Sovereign Intelligence", "/alpha/"),
+pub const NAV_SECONDARY: [(&str, &str); 7] = [
     ("Start here", "/start/"),
-    ("Omega", "/omega/"),
     ("CUDA++", "/cudaplusplus/"),
     ("Now", "/now/"),
     ("Progress", "/progress/"),
@@ -31,10 +31,22 @@ pub const NAV_SECONDARY: [(&str, &str); 9] = [
 /// (code, the language's own name). Each needs public/<code>/index.html.
 pub const LANGUAGES: [(&str, &str); 1] = [("zh-CN", "简体中文")];
 
-/// The exact anchor markup for one primary nav link. Hand-written pages
-/// copy this markup byte for byte so the tests can find it.
-pub fn primary_link_markup(label: &str, href: &str) -> String {
-    format!("<a class=\"aien-nav-link\" href=\"{href}\">{label}</a>")
+/// Every page links the six [`NAV_PRIMARY`] dashboards, in order, each an
+/// `<a>` with exactly that href and that reader-visible label, among the
+/// links a reader can reach (scripts, templates and `aria-hidden` content
+/// do not count). Where they sit (a quiet index, a footer) and the markup
+/// around them are free, and other links may come between them.
+pub fn check_destinations(html: &str) -> Result<(), String> {
+    let links = crate::oracle::anchors(&crate::oracle::reachable(html));
+    let mut next = 0usize;
+    for (label, href) in NAV_PRIMARY {
+        let at = links[next..]
+            .iter()
+            .position(|(h, t)| h == href && t == label)
+            .ok_or(format!("destination {label} ({href}) missing, hidden or out of order"))?;
+        next += at + 1;
+    }
+    Ok(())
 }
 
 pub fn render_navbar() -> Markup {
@@ -82,26 +94,18 @@ mod tests {
     /// Written out independently of NAV_PRIMARY so reordering or dropping
     /// an entry in the const makes these tests fail.
     const EXPECTED_PRIMARY: [(&str, &str); 6] = [
-        ("The Machine", "/machine/"),
-        ("The Turing", "/turing/"),
-        ("Experiments", "/experiments/"),
-        ("Scientific Discovery", "/discovery/"),
-        ("Evidence", "/evidence/"),
-        ("Philosophy", "/philosophy/"),
-    ];
-
-    /// Hand-written pages that must carry the same six links.
-    const HAND_WRITTEN: [&str; 4] = [
-        "public/turing/index.html",
-        "public/post-llm-case/index.html",
-        "public/research/the-stapleton-doctrine/index.html",
-        "public/licensing/index.html",
+        ("SI", "/classic/"),
+        ("Omega", "/omega/"),
+        ("Machine", "/machine/"),
+        ("Discoveries", "/discoveries/"),
+        ("Learn", "/learn/"),
+        ("Allen", "/allen/"),
     ];
 
     fn assert_six_in_order(haystack: &str, what: &str) {
         let mut last = 0usize;
         for (i, (label, href)) in EXPECTED_PRIMARY.iter().enumerate() {
-            let needle = primary_link_markup(label, href);
+            let needle = format!("<a class=\"aien-nav-link\" href=\"{href}\">{label}</a>");
             let pos = haystack[last..]
                 .find(&needle)
                 .unwrap_or_else(|| panic!("{what}: nav item {i} ({label}) missing or out of order"));
@@ -109,15 +113,28 @@ mod tests {
         }
     }
 
+    /// A page in the shape of the redesign: no top nav, the six
+    /// destinations in a quiet footer index, each a glyph marked
+    /// aria-hidden plus its label.
+    fn quiet(items: &[(&str, &str)]) -> String {
+        let mut s = String::from("<body><a class=\"site-brand\" href=\"/\"><span aria-hidden=\"true\">SI</span>Sovereign Intelligence</a><main>body</main><footer><nav class=\"quiet-index\" aria-label=\"Destinations\">");
+        for (label, href) in items {
+            s.push_str(&format!("<a href=\"{href}\"><span class=\"nav-glyph\" aria-hidden=\"true\">&#937;</span><span>{label}</span></a>"));
+        }
+        s.push_str("</nav></footer></body>");
+        s
+    }
+
     #[test]
-    fn primary_nav_const_matches_section_21() {
-        assert_eq!(NAV_PRIMARY, EXPECTED_PRIMARY, "NAV_PRIMARY differs from section 21 order");
+    fn primary_nav_const_matches_the_six_dashboards() {
+        assert_eq!(NAV_PRIMARY, EXPECTED_PRIMARY, "NAV_PRIMARY differs from the approved six dashboards");
     }
 
     #[test]
     fn rendered_navbar_has_six_sections_in_order_before_secondary() {
         let html = render_navbar().into_string();
         assert_six_in_order(&html, "generated navbar");
+        check_destinations(&html).expect("the Rust navbar passes the dist check");
         let primary_end = html.find("</ul>").expect("primary list closes");
         let secondary = html.find("aien-nav-secondary").expect("secondary list present");
         assert!(secondary > primary_end, "secondary links must come after the six sections");
@@ -128,15 +145,37 @@ mod tests {
     }
 
     #[test]
-    fn hand_written_pages_carry_the_same_six_links() {
-        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-        for rel in HAND_WRITTEN {
-            let page = std::fs::read_to_string(root.join(rel))
-                .unwrap_or_else(|_| panic!("cannot read {rel}"));
-            assert!(page.contains("class=\"aien-header\""), "{rel}: missing shared header markup");
-            assert!(page.contains("/assets/site-nav.css"), "{rel}: missing shared nav stylesheet");
-            assert!(page.contains("href=\"/alpha/\""), "{rel}: missing alpha testing entry");
-            assert_six_in_order(&page, rel);
+    fn quiet_index_passes_the_destination_check() {
+        check_destinations(&quiet(&EXPECTED_PRIMARY)).expect("six in order, glyphs hidden");
+        let mut extra = EXPECTED_PRIMARY.to_vec();
+        extra.insert(2, ("Now", "/now/"));
+        check_destinations(&quiet(&extra)).expect("other links between the six are allowed");
+    }
+
+    #[test]
+    fn destination_check_negative_controls() {
+        let six = EXPECTED_PRIMARY;
+        let mut swapped = six.to_vec();
+        swapped.swap(1, 2);
+        let mut relabelled = six.to_vec();
+        relabelled[3] = ("Scientific Discovery", "/discoveries/");
+        let mut rerouted = six.to_vec();
+        rerouted[3] = ("Discoveries", "/discovery/");
+        let good = quiet(&six);
+        let learn = "<a href=\"/learn/\"><span class=\"nav-glyph\" aria-hidden=\"true\">&#937;</span><span>Learn</span></a>";
+        let cases = [
+            ("one item dropped", quiet(&six[..5])),
+            ("two items swapped", quiet(&swapped)),
+            ("label changed", quiet(&relabelled)),
+            ("href changed", quiet(&rerouted)),
+            ("label only in the hidden glyph", good.replace(learn, "<a href=\"/learn/\"><span aria-hidden=\"true\">Learn</span></a>")),
+            ("link inside an aria-hidden index", good.replace("aria-label=\"Destinations\"", "aria-hidden=\"true\"")),
+            ("link only in a script", good.replace(learn, &format!("<script>document.write('{learn}')</script>"))),
+            ("link only in a template", good.replace(learn, &format!("<template>{learn}</template>"))),
+            ("hidden element never closes", good.replace("<nav class=\"quiet-index\"", "<div aria-hidden=\"true\"></div><nav class=\"quiet-index\"").replace("<div aria-hidden=\"true\"></div>", "<div aria-hidden=\"true\">")),
+        ];
+        for (what, html) in cases {
+            assert!(check_destinations(&html).is_err(), "must reject: {what}");
         }
     }
 

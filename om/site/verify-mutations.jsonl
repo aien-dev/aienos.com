@@ -1,0 +1,243 @@
+{"id": "B1-a", "mode": "data", "rule": "B1", "expect": "L", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["app", "$F", "L999\t2026-10-26T00:00Z\tagent\topen\tsee /home/person/x\n"]], "oracle": "yes", "note": "path root"}
+{"id": "B1-b", "mode": "data", "rule": "B1", "expect": "L", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["app", "$F", "L999\t2026-10-26T00:00Z\tagent\topen\tmail owner@example.org\n"]], "oracle": "yes", "note": "email"}
+{"id": "B1-c", "mode": "data", "rule": "B1", "expect": "L", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["app", "$F", "L999\t2026-10-26T00:00Z\tagent\topen\tpassword=hunter22\n"]], "oracle": "yes", "note": "credential"}
+{"id": "B1-d", "mode": "data", "rule": "B1", "expect": "L", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["app", "$F", "L999\t2026-10-26T00:00Z\tagent\topen\t--api-key shortvalue\n"]], "oracle": "yes", "note": "flag credential"}
+{"id": "B1-e", "mode": "data", "rule": "B1", "expect": "L", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["app", "$F", "L999\t2026-10-26T00:00Z\tagent\topen\tghp_abcdef123\n"]], "oracle": "yes", "note": "token"}
+{"id": "B1-f", "mode": "data", "rule": "B1", "expect": "L", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["app", "$F", "L999\t2026-10-26T00:00Z\tagent\topen\tBearer abcdefgh12\n"]], "oracle": "yes", "note": "bearer"}
+{"id": "B1-g", "mode": "data", "rule": "B1", "expect": "L", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["app", "$F", "L999\t2026-10-26T00:00Z\tagent\topen\thttps://u:p@host/x\n"]], "oracle": "yes", "note": "url credentials"}
+{"id": "B1-h", "mode": "data", "rule": "B1", "expect": "L", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["app", "$F", "L999\t2026-10-26T00:00Z\tagent\topen\t-----BEGIN RSA PRIVATE KEY\n"]], "oracle": "yes", "note": "pem"}
+{"id": "B1-i", "mode": "data", "rule": "B1", "expect": "L", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["app", "$F", "L999\t2026-10-26T00:00Z\tagent\topen\tRFC 8032 7.1 TEST 1 secret is a4c618e50b7d92f3c4e1d690a5b7c8d9e0f1a2b3c4d5e6f789ab01cd23ef4567;\n"]], "oracle": "yes", "note": "rfc context, other secret"}
+{"id": "B1-j", "mode": "data", "rule": "B1", "expect": "L", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["app", "$F", "L999\t2026-10-26T00:00Z\tagent\topen\tworker at 10.0.0.1\n"]], "oracle": "yes", "note": "ipv4"}
+{"id": "B1-k", "mode": "data", "rule": "B1", "expect": "L", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["app", "$F", "L999\t2026-10-26T00:00Z\tagent\topen\tid 550e8400-e29b-41d4-a716-446655440000\n"]], "oracle": "yes", "note": "uuid"}
+{"id": "B1-l", "mode": "data", "rule": "B1", "expect": "L", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["app", "$F", "L999\t2026-10-26T00:00Z\tagent\topen\ton spark.local now\n"]], "oracle": "yes", "note": "host"}
+{"id": "B1-m", "mode": "data", "rule": "B1", "expect": "L", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["app", "$F", "L999\t2026-10-26T00:00Z\tagent\topen\taddr [fe80::1]\n"]], "oracle": "yes", "note": "ipv6"}
+{"id": "B1-n", "mode": "data", "rule": "B1", "expect": "L", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["app", "$F", "L999\t2026-10-26T00:00Z\tagent\topen\tport :18091\n"]], "oracle": "yes", "note": "port"}
+{"id": "B1-o", "mode": "data", "rule": "B1", "expect": "L", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["app", "$F", "L999\t2026-10-26T00:00Z\tagent\topen\tpid 2344210\n"]], "oracle": "yes", "note": "pid"}
+{"id": "B1-p", "mode": "data", "rule": "B1", "expect": "L", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["app", "$F", "L999\t2026-10-26T00:00Z\tagent\topen\tctl \u0001 char\n"]], "oracle": "yes", "note": "control"}
+{"id": "B1-q", "mode": "data", "rule": "B1", "expect": "L", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["app", "$F", "L999\t2026-10-26T00:00Z\tagent\topen\tcfg (~/notes/x)\n"]], "oracle": "yes", "note": "tilde path"}
+{"id": "B1-r", "mode": "data", "rule": "B1", "expect": "L", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["app", "$F", "L999\t2026-10-26T00:00Z\tagent\topen\tbrief/tmp/x\n"]], "oracle": "yes", "note": "glued root"}
+{"id": "B1-s", "mode": "data", "rule": "B1", "expect": "L", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["app", "$F", "L999\t2026-10-26T00:00Z\tagent\topen\tis localhost up\n"]], "oracle": "yes", "note": "localhost"}
+{"id": "B1-pos-rfc", "mode": "data", "rule": "B1", "expect": "PASS", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["app", "$F", "L999\t2026-10-26T00:00Z\tagent\topen\tRFC 8032 7.1 TEST 1 secret is 9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60;\n"]], "oracle": "yes", "note": "value-bound RFC 8032 vector stays public"}
+{"id": "B1-pos-repo", "mode": "data", "rule": "B1", "expect": "PASS", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["app", "$F", "L999\t2026-10-26T00:00Z\tagent\topen\tevidence/run.log https://github.com/aien-dev/omega-mv repo@abcdef1\n"]], "oracle": "yes", "note": "repository-relative paths and https links are public"}
+{"id": "B1-hdr", "mode": "data", "rule": "B1", "expect": "L", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["sub", "$F", "id\topened_utc", "ID\topened_utc"]], "oracle": "yes", "note": ""}
+{"id": "B1-cr", "mode": "data", "rule": "B1", "expect": "L", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["app", "$F", "L998\td\ta\topen\tx\r\n"]], "oracle": "yes", "note": ""}
+{"id": "B1-few", "mode": "data", "rule": "B1", "expect": "L", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["app", "$F", "L997\tbad\n"]], "oracle": "yes", "note": ""}
+{"id": "B1-many", "mode": "data", "rule": "B1", "expect": "L", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["app", "$F", "L996\ta\tb\tc\td\te\tf\tg\th\n"]], "oracle": "yes", "note": ""}
+{"id": "B1-nonl", "mode": "data", "rule": "B1", "expect": "L", "kind": "ledger", "src": "public/data/now.tsv", "ops": [["trunc", "$F", 1]], "oracle": "yes", "note": ""}
+{"id": "B1-src", "mode": "sources", "rule": "B1", "expect": "L", "src": "public/data/now.tsv", "ops": [["app", "$F", "L999\t2026-10-26T00:00Z\tagent\topen\tsee /home/person/x\n"]], "oracle": "n/a", "note": "--sources refuses before generation"}
+{"id": "B2-a", "mode": "data", "rule": "B2", "expect": "B4", "kind": "facts", "src": "facts.json", "ops": [["jdel", "$F", "receipt"]], "oracle": "yes", "note": ""}
+{"id": "B2-b", "mode": "data", "rule": "B2", "expect": "B4", "kind": "facts", "src": "facts.json", "ops": [["jset", "$F", "components.0.open_prs", -1]], "oracle": "yes", "note": ""}
+{"id": "B2-c", "mode": "data", "rule": "B2", "expect": "B4", "kind": "facts", "src": "facts.json", "ops": [["jset", "$F", "decisions.0.title", 7]], "oracle": "yes", "note": ""}
+{"id": "B2-d", "mode": "data", "rule": "B2", "expect": "EXIT70", "kind": "facts", "src": "facts.json", "ops": [["put", "$F", "{\"generated_at\":"]], "oracle": "yes", "note": "malformed JSON refuses with JSON_SYNTAX (status 70)"}
+{"id": "B3-a", "mode": "data", "rule": "B3", "expect": "B4", "kind": "agents", "src": "public/data/agent-repos.json", "ops": [["jset", "$F", "repos.0.fork", "no"]], "oracle": "yes", "note": ""}
+{"id": "B3-b", "mode": "data", "rule": "B3", "expect": "B4", "kind": "agents", "src": "public/data/agent-repos.json", "ops": [["jdel", "$F", "repos.0.name"]], "oracle": "yes", "note": ""}
+{"id": "B3-c", "mode": "data", "rule": "B3", "expect": "B4", "kind": "agents", "src": "public/data/agent-repos.json", "ops": [["jset", "$F", "repos.0.brief", 3]], "oracle": "yes", "note": ""}
+{"id": "B4-m1", "mode": "data", "rule": "B4", "expect": "B4", "kind": "machines", "src": "crates/site-builder/data/machines.json", "ops": [["jset", "$F", "ceilings.0.tok_s", 0]], "oracle": "yes", "note": "ceiling not positive"}
+{"id": "B4-m2", "mode": "data", "rule": "B4", "expect": "B4", "kind": "machines", "src": "crates/site-builder/data/machines.json", "ops": [["jset", "$F", "machines.0.link", "http://example.com/x"]], "oracle": "yes", "note": "link not https"}
+{"id": "B4-m3", "mode": "data", "rule": "B4", "expect": "B4", "kind": "machines", "src": "crates/site-builder/data/machines.json", "ops": [["jset", "$F", "machines.0.extra", 1]], "oracle": "yes", "note": "unknown field"}
+{"id": "B4-m4", "mode": "data", "rule": "B4", "expect": "B4", "kind": "machines", "src": "crates/site-builder/data/machines.json", "ops": [["jset", "$F", "machines.0.today", "faster than llama.cpp"]], "oracle": "yes", "note": "forbidden comparison"}
+{"id": "B4-m5", "mode": "data", "rule": "B4", "expect": "B4", "kind": "machines", "src": "crates/site-builder/data/machines.json", "ops": [["jset", "$F", "as_of", "2026 — x"]], "oracle": "yes", "note": "em dash"}
+{"id": "B4-m6", "mode": "data", "rule": "B4", "expect": "B4", "kind": "machines", "src": "crates/site-builder/data/machines.json", "ops": [["jcopy", "$F", "speeds.0.id", "speeds.1.id"]], "oracle": "yes", "note": "duplicate speed id"}
+{"id": "B4-m7", "mode": "data", "rule": "B4", "expect": "B4", "kind": "machines", "src": "crates/site-builder/data/machines.json", "ops": [["jset", "$F", "machines.0.evidence_date", "2026-1-1"]], "oracle": "yes", "note": "evidence_date shape"}
+{"id": "B4-m8", "mode": "data", "rule": "B4", "expect": "B4", "kind": "machines", "src": "crates/site-builder/data/machines.json", "ops": [["jset", "$F", "speeds", []]], "oracle": "yes", "note": "no speeds"}
+{"id": "B4-m9", "mode": "data", "rule": "B4", "expect": "B4", "kind": "machines", "src": "crates/site-builder/data/machines.json", "ops": [["machines_above_ceiling", "$F"]], "oracle": "yes", "note": "speed above its ceiling"}
+{"id": "B4-m10", "mode": "data", "rule": "B4", "expect": "B4", "kind": "machines", "src": "crates/site-builder/data/machines.json", "ops": [["jset", "$F", "speeds.0.on_main", true], ["jset", "$F", "speeds.0.branch", "feat/x"]], "oracle": "yes", "note": "on_main with a branch"}
+{"id": "B4-m11", "mode": "data", "rule": "B4", "expect": "B4", "kind": "machines", "src": "crates/site-builder/data/machines.json", "ops": [["jset", "$F", "speeds.0.ceiling", "nope"]], "oracle": "yes", "note": "unknown ceiling"}
+{"id": "B4-m12", "mode": "data", "rule": "B4", "expect": "B4", "kind": "machines", "src": "crates/site-builder/data/machines.json", "ops": [["jdel", "$F", "judging"]], "oracle": "yes", "note": "missing field"}
+{"id": "B4-m13", "mode": "data", "rule": "B4", "expect": "B4", "kind": "machines", "src": "crates/site-builder/data/machines.json", "ops": [["jset", "$F", "machines.0.on_main", "yes"]], "oracle": "yes", "note": "wrong type"}
+{"id": "B4-m14", "mode": "data", "rule": "B4", "expect": "B4", "kind": "machines", "src": "crates/site-builder/data/machines.json", "ops": [["jset", "$F", "machines", []]], "oracle": "yes", "note": "no machines"}
+{"id": "B4-m15", "mode": "data", "rule": "B4", "expect": "B4", "kind": "machines", "src": "crates/site-builder/data/machines.json", "ops": [["jset", "$F", "machines.0.more.0.link", "ftp://x"]], "oracle": "yes", "note": "more link not https"}
+{"id": "B4-o1", "mode": "data", "rule": "B4", "expect": "B4", "kind": "omega", "src": "crates/site-builder/data/omega.json", "ops": [["jset", "$F", "layers.0.status", "ALMOST"]], "oracle": "yes", "note": "unknown layer status"}
+{"id": "B4-o2", "mode": "data", "rule": "B4", "expect": "B4", "kind": "omega", "src": "crates/site-builder/data/omega.json", "ops": [["jset", "$F", "bar.0.id", "C9"]], "oracle": "yes", "note": "bar order"}
+{"id": "B4-o3", "mode": "data", "rule": "B4", "expect": "B4", "kind": "omega", "src": "crates/site-builder/data/omega.json", "ops": [["jset", "$F", "bar.0.status", "PASS"], ["jset", "$F", "bar.0.receipt", null]], "oracle": "yes", "note": "PASS without receipt"}
+{"id": "B4-o4", "mode": "data", "rule": "B4", "expect": "B4", "kind": "omega", "src": "crates/site-builder/data/omega.json", "ops": [["jset", "$F", "bar.0.status", "PASS"], ["jset", "$F", "bar.0.receipt", "o:docs/x.md"]], "oracle": "yes", "note": "PASS receipt outside evidence/"}
+{"id": "B4-o5", "mode": "data", "rule": "B4", "expect": "B4", "kind": "omega", "src": "crates/site-builder/data/omega.json", "ops": [["jset", "$F", "bar.0.status", "MISSING"], ["jset", "$F", "bar.0.receipt", "o:evidence/x.txt"]], "oracle": "yes", "note": "receipt on a non-PASS row"}
+{"id": "B4-o6", "mode": "data", "rule": "B4", "expect": "B4", "kind": "omega", "src": "crates/site-builder/data/omega.json", "ops": [["jset", "$F", "parts.0.box", "/omega/"]], "oracle": "yes", "note": "box off GitHub"}
+{"id": "B4-o7", "mode": "data", "rule": "B4", "expect": "B4", "kind": "omega", "src": "crates/site-builder/data/omega.json", "ops": [["jset", "$F", "layers.0.links", [["x", "zz:unknown"]]]], "oracle": "yes", "note": "unknown link form"}
+{"id": "B4-o8", "mode": "data", "rule": "B4", "expect": "B4", "kind": "omega", "src": "crates/site-builder/data/omega.json", "ops": [["jset", "$F", "layers.0.links", [["x", "o:../x"]]]], "oracle": "yes", "note": "dotdot link"}
+{"id": "B4-o9", "mode": "data", "rule": "B4", "expect": "B4", "kind": "omega", "src": "crates/site-builder/data/omega.json", "ops": [["jset", "$F", "source.doc", "o:README.md"]], "oracle": "yes", "note": "source.doc"}
+{"id": "B4-o10", "mode": "data", "rule": "B4", "expect": "B4", "kind": "omega", "src": "crates/site-builder/data/omega.json", "ops": [["jtrunc", "$F", "layers", 12]], "oracle": "yes", "note": "CUDA map rows"}
+{"id": "B4-o11", "mode": "data", "rule": "B4", "expect": "B4", "kind": "omega", "src": "crates/site-builder/data/omega.json", "ops": [["jset", "$F", "zzz", 1]], "oracle": "yes", "note": "unknown top field"}
+{"id": "B4-o12", "mode": "data", "rule": "B4", "expect": "B4", "kind": "omega", "src": "crates/site-builder/data/omega.json", "ops": [["jset", "$F", "claim", "a — b"]], "oracle": "yes", "note": "raw dash"}
+{"id": "B4-o13", "mode": "data", "rule": "B4", "expect": "B4", "kind": "omega", "src": "crates/site-builder/data/omega.json", "ops": [["jset", "$F", "performance.bar.0.id", "P9"]], "oracle": "yes", "note": "performance bar order"}
+{"id": "B4-o14", "mode": "data", "rule": "B4", "expect": "B4", "kind": "omega", "src": "crates/site-builder/data/omega.json", "ops": [["jset", "$F", "layers.0.cuda", ""]], "oracle": "yes", "note": "empty cell"}
+{"id": "B4-c1", "mode": "data", "rule": "B4", "expect": "B4", "kind": "cuda", "src": "crates/site-builder/data/cudaplusplus.json", "ops": [["jset", "$F", "hops.0.status", "DONE"]], "oracle": "yes", "note": "unknown status"}
+{"id": "B4-c2", "mode": "data", "rule": "B4", "expect": "B4", "kind": "cuda", "src": "crates/site-builder/data/cudaplusplus.json", "ops": [["jset", "$F", "hops.0.status", "IN PROGRESS"], ["jset", "$F", "hops.0.ledger", null]], "oracle": "yes", "note": "IN PROGRESS without ledger"}
+{"id": "B4-c3", "mode": "data", "rule": "B4", "expect": "B4", "kind": "cuda", "src": "crates/site-builder/data/cudaplusplus.json", "ops": [["jset", "$F", "hops.0.box", "om@:abc/README.md"]], "oracle": "yes", "note": "unpinned commit"}
+{"id": "B4-c4", "mode": "data", "rule": "B4", "expect": "B4", "kind": "cuda", "src": "crates/site-builder/data/cudaplusplus.json", "ops": [["jset", "$F", "pains.0.status", "NVIDIA"]], "oracle": "yes", "note": "pain row status"}
+{"id": "B4-c5", "mode": "data", "rule": "B4", "expect": "B4", "kind": "cuda", "src": "crates/site-builder/data/cudaplusplus.json", "ops": [["jset", "$F", "source.visibility", "secret"]], "oracle": "yes", "note": "visibility"}
+{"id": "B4-c6", "mode": "data", "rule": "B4", "expect": "B4", "kind": "cuda", "src": "crates/site-builder/data/cudaplusplus.json", "ops": [["jtrunc", "$F", "hops", 7]], "oracle": "yes", "note": "hop count"}
+{"id": "B4-c7", "mode": "data", "rule": "B4", "expect": "B4", "kind": "cuda", "src": "crates/site-builder/data/cudaplusplus.json", "ops": [["jset", "$F", "pains.0.status", "PASS"], ["jset", "$F", "pains.0.receipt", "cp:evidence/x.txt"], ["jset", "$F", "pains.0.command", null]], "oracle": "yes", "note": "PASS without command"}
+{"id": "B4-c8", "mode": "data", "rule": "B4", "expect": "B4", "kind": "cuda", "src": "crates/site-builder/data/cudaplusplus.json", "ops": [["jset", "$F", "hops.0.status", "PASS"], ["jset", "$F", "hops.0.box", "cp:README.md"]], "oracle": "yes", "note": "PASS hop without evidence/ receipt"}
+{"id": "B4-c9", "mode": "data", "rule": "B4", "expect": "B4", "kind": "cuda", "src": "crates/site-builder/data/cudaplusplus.json", "ops": [["jset", "$F", "purpose_link", "/cudaplusplus/"]], "oracle": "yes", "note": "box off GitHub"}
+{"id": "B4-c10", "mode": "data", "rule": "B4", "expect": "B4", "kind": "cuda", "src": "crates/site-builder/data/cudaplusplus.json", "ops": [["jset", "$F", "hops.0.zzz", 1]], "oracle": "yes", "note": "unknown field"}
+{"id": "B4-r1", "mode": "data", "rule": "B4", "expect": "B4", "kind": "research", "src": "crates/site-builder/data/research_status.json", "ops": [["jset", "$F", "turing_rows.0.status", "ALMOST"]], "oracle": "yes", "note": "row status"}
+{"id": "B4-r2", "mode": "data", "rule": "B4", "expect": "B4", "kind": "research", "src": "crates/site-builder/data/research_status.json", "ops": [["jset", "$F", "ladder.0.state", "partial"]], "oracle": "yes", "note": "current level"}
+{"id": "B4-r3", "mode": "data", "rule": "B4", "expect": "B4", "kind": "research", "src": "crates/site-builder/data/research_status.json", "ops": [["jset", "$F", "ladder.0.state", "partial"], ["jset", "$F", "ladder.7.state", "achieved"]], "oracle": "yes", "note": "achieved above a gap"}
+{"id": "B4-r4", "mode": "data", "rule": "B4", "expect": "B4", "kind": "research", "src": "crates/site-builder/data/research_status.json", "ops": [["jset", "$F", "allowed_statuses.0", "OK"]], "oracle": "yes", "note": "allowed list"}
+{"id": "B4-r5", "mode": "data", "rule": "B4", "expect": "B4", "kind": "research", "src": "crates/site-builder/data/research_status.json", "ops": [["jset", "$F", "ladder.0.level", "L9"]], "oracle": "yes", "note": "ladder levels"}
+{"id": "B4-r6", "mode": "data", "rule": "B4", "expect": "B4", "kind": "research", "src": "crates/site-builder/data/research_status.json", "ops": [["jcopy", "$F", "turing_rows.0.id", "turing_rows.1.id"]], "oracle": "yes", "note": "duplicate row"}
+{"id": "B4-r7", "mode": "data", "rule": "B4", "expect": "B4", "kind": "research", "src": "crates/site-builder/data/research_status.json", "ops": [["jset", "$F", "implementation_rows.0.class", "Done"]], "oracle": "yes", "note": "class"}
+{"id": "B4-r8", "mode": "data", "rule": "B4", "expect": "B4", "kind": "research", "src": "crates/site-builder/data/research_status.json", "ops": [["jset", "$F", "attempts.0.outcome", "XYZ"]], "oracle": "yes", "note": "attempt outcome"}
+{"id": "B4-r9", "mode": "data", "rule": "B4", "expect": "B4", "kind": "research", "src": "crates/site-builder/data/research_status.json", "ops": [["jset", "$F", "turing_rows.0.link", "https://example.com/x"]], "oracle": "yes", "note": "row link"}
+{"id": "B4-r10", "mode": "data", "rule": "B4", "expect": "B4", "kind": "research", "src": "crates/site-builder/data/research_status.json", "ops": [["jset", "$F", "as_of", "x – y"]], "oracle": "yes", "note": "en dash"}
+{"id": "B4-r11", "mode": "data", "rule": "B4", "expect": "B4", "kind": "research", "src": "crates/site-builder/data/research_status.json", "ops": [["jset", "$F", "ladder.0.state", "maybe"]], "oracle": "yes", "note": "ladder state"}
+{"id": "B4-r12", "mode": "data", "rule": "B4", "expect": "B4", "kind": "research", "src": "crates/site-builder/data/research_status.json", "ops": [["jset", "$F", "turing_rows.0.zzz", 1]], "oracle": "yes", "note": "unknown field"}
+{"id": "D1-a", "mode": "dist", "rule": "D1", "expect": "D1", "ops": [["jset", "data/project-progress.json", "series.0.date", "2026-13-40"]], "oracle": "yes", "note": ""}
+{"id": "D1-b", "mode": "dist", "rule": "D1", "expect": "D1", "ops": [["jset", "data/project-progress.json", "summary.ci", -1]], "oracle": "yes", "note": ""}
+{"id": "D1-c", "mode": "dist", "rule": "D1", "expect": "D1", "ops": [["jset", "data/project-progress.json", "repos.0.head", "abc"]], "oracle": "yes", "note": ""}
+{"id": "D1-d", "mode": "dist", "rule": "D1", "expect": "D1", "ops": [["jset", "data/project-progress.json", "series.0.loc", 1.5]], "oracle": "yes", "note": ""}
+{"id": "D1-e", "mode": "dist", "rule": "D1", "expect": "D1", "ops": [["jset", "data/project-progress.json", "repos.0.url", "https://github.com/a/b/c"]], "oracle": "yes", "note": ""}
+{"id": "D1-f", "mode": "dist", "rule": "D1", "expect": "D1", "ops": [["jset", "data/project-progress.json", "asof", "yesterday"]], "oracle": "yes", "note": ""}
+{"id": "D2-a", "mode": "dist", "rule": "D2", "expect": "D2", "ops": [["jset", "status.json", "statuses.0", "DONE"]], "oracle": "yes", "note": ""}
+{"id": "D2-b", "mode": "dist", "rule": "D2", "expect": "D2", "ops": [["jset", "status.json", "layers.0.note", "  "]], "oracle": "yes", "note": ""}
+{"id": "D2-c", "mode": "dist", "rule": "D2", "expect": "D2", "ops": [["jset", "status.json", "layers.0.receipt", "http://x"]], "oracle": "yes", "note": ""}
+{"id": "D3-a", "mode": "dist", "rule": "D3", "expect": "D3", "ops": [["jdel", "data/index.json", "files.0"]], "oracle": "yes", "note": ""}
+{"id": "D3-b", "mode": "dist", "rule": "D3", "expect": "D3", "ops": [["jset", "data/index.json", "files.0.url", "https://aienos.com/x"]], "oracle": "yes", "note": ""}
+{"id": "D4-a", "mode": "dist", "rule": "D4", "expect": "D4", "ops": [["jdel", "data/pages.json", "0"]], "oracle": "yes", "note": ""}
+{"id": "D4-b", "mode": "dist", "rule": "D4", "expect": "D4", "ops": [["jset", "data/pages.json", "0.english", "/nope/"]], "oracle": "yes", "note": ""}
+{"id": "D4-c", "mode": "dist", "rule": "D4", "expect": "D4", "ops": [["jset", "data/pages.json", "0.title", "  "]], "oracle": "yes", "note": ""}
+{"id": "D5-a", "mode": "dist", "rule": "D5", "expect": "EXIT70", "ops": [["put", "now.json", "{"]], "oracle": "yes", "note": "now.json must parse; malformed JSON is a JSON_SYNTAX refusal (70)"}
+{"id": "D5-b", "mode": "dist", "rule": "D5", "expect": "D5", "ops": [["del", "machines.json"]], "oracle": "yes", "note": "a published data file is missing"}
+{"id": "B4-dist", "mode": "dist", "rule": "B4", "expect": "B4", "ops": [["jset", "machines.json", "ceilings.0.tok_s", 0]], "oracle": "yes", "note": "the dist copy is validated too"}
+{"id": "Q-a", "mode": "dist", "rule": "F", "expect": "Q", "ops": [["jcopy", "$QUOTES", "quotes.0.id", "quotes.1.id"]], "oracle": "n/a", "note": "quote ids unique"}
+{"id": "Q-b", "mode": "dist", "rule": "F", "expect": "Q", "ops": [["jset", "$QUOTES", "quotes.0.quote", ""]], "oracle": "n/a", "note": ""}
+{"id": "O7-a", "mode": "dist", "rule": "O7", "expect": "O7", "ops": [["jset", "$ENGINEER", "pages.0.path", "/Engineer/"]], "oracle": "n/a", "note": ""}
+{"id": "O7-b", "mode": "dist", "rule": "O7", "expect": "O7", "ops": [["engineer_second_home", "$ENGINEER"]], "oracle": "n/a", "note": ""}
+{"id": "O7-c", "mode": "dist", "rule": "O7", "expect": "O7", "ops": [["jset", "$ENGINEER", "pages.0.old", ["//x"]]], "oracle": "n/a", "note": ""}
+{"id": "O7-d", "mode": "dist", "rule": "O7", "expect": "O7", "ops": [["jset", "$ENGINEER", "pages.0.kind", "blog"]], "oracle": "n/a", "note": ""}
+{"id": "O7-e", "mode": "dist", "rule": "O7", "expect": "O7", "ops": [["jset", "$ENGINEER", "pages.0.title", " "]], "oracle": "n/a", "note": ""}
+{"id": "O7-f", "mode": "dist", "rule": "O7", "expect": "O1", "ops": [["jappend", "$ENGINEER", "pages", {"path": "/engineer/unwritten/", "name": "x", "title": "x", "description": "x", "kind": "page", "old": ["/x/"]}]], "oracle": "n/a", "note": "a registered engineer page that was not written"}
+{"id": "O1-a", "mode": "dist", "rule": "B5", "expect": "O1", "ops": [["put", "extra-page/index.html", "<!doctype html><html lang=\"en\"><head><title>x</title></head><body><main>x</main></body></html>"]], "oracle": "yes", "note": "extra page only build mode caught before"}
+{"id": "O1-b", "mode": "dist", "rule": "B5", "expect": "O1", "ops": [["del", "glossary/index.html"]], "oracle": "yes", "note": ""}
+{"id": "O1-c", "mode": "dist", "rule": "B5", "expect": "O1", "ops": [["put", "zh-CN/not-a-page/index.html", "<!doctype html><html lang=\"zh-CN\"><head><title>x</title></head><body><main>x</main></body></html>"]], "oracle": "yes", "note": ""}
+{"id": "O2-a", "mode": "dist", "rule": "B6", "expect": "O2", "ops": [["sub", "start/index.html", "<title>", "<titlx>"]], "oracle": "yes", "note": ""}
+{"id": "O2-b", "mode": "dist", "rule": "B6", "expect": "O2", "ops": [["ins", "start/index.html", "</head>", "<link rel=\"canonical\" href=\"https://www.aienos.com/x/\">"]], "oracle": "yes", "note": ""}
+{"id": "O2-c", "mode": "dist", "rule": "B6", "expect": "O2", "ops": [["sub", "start/index.html", "property=\"og:url\" content=\"https://www.aienos.com", "property=\"og:url\" content=\"https://aienos.com"]], "oracle": "yes", "note": ""}
+{"id": "O2-d", "mode": "dist", "rule": "B6", "expect": "O2", "ops": [["sub", "start/index.html", "<html lang=\"en\"", "<html lang=\"fr\""]], "oracle": "yes", "note": ""}
+{"id": "O2-e", "mode": "dist", "rule": "B6", "expect": "O2", "ops": [["ins", "start/index.html", "</head>", "<link rel=\"alternate\" hreflang=\"zh-CN\" href=\"https://www.aienos.com/zh-CN/nowhere/\">"]], "oracle": "yes", "note": ""}
+{"id": "O2-f", "mode": "dist", "rule": "B6", "expect": "O2", "ops": [["suball", "start/index.html", "description\"", "descriptioz\""]], "oracle": "yes", "note": ""}
+{"id": "O2-g", "mode": "dist", "rule": "B6", "expect": "O2", "ops": [["suball", "start/index.html", "og:title", "og:titlx"]], "oracle": "yes", "note": ""}
+{"id": "O2-h", "mode": "dist", "rule": "B6", "expect": "O2", "ops": [["ins", "start/index.html", "</head>", "<title>second</title>"]], "oracle": "yes", "note": ""}
+{"id": "O2-i", "mode": "dist", "rule": "B6", "expect": "O2", "ops": [["ins", "index.html", "</head>", "<link rel=\"alternate\" hreflang=\"zh-CN\" href=\"https://www.aienos.com/zh-CN/\">"]], "oracle": "yes", "note": "the root has no translation of its own"}
+{"id": "O3-a", "mode": "dist", "rule": "H/V14", "expect": "O3", "ops": [["suball", "omega/index.html", "href=\"/discoveries/\"", "href=\"/discoverie/\""]], "oracle": "yes", "note": ""}
+{"id": "O3-b", "mode": "dist", "rule": "H/V14", "expect": "O3", "ops": [["hide_destinations", "learn/index.html"]], "oracle": "yes", "note": "destinations present only inside aria-hidden"}
+{"id": "O4-a", "mode": "dist", "rule": "R0", "expect": "O4", "ops": [["suball", "index.html", "id=\"site-door\"", "id=\"site-dorr\""]], "oracle": "yes", "note": ""}
+{"id": "O4-b", "mode": "dist", "rule": "R0", "expect": "O4", "ops": [["suball", "index.html", "<noscript", "<noscripx"]], "oracle": "yes", "note": ""}
+{"id": "O4-c", "mode": "dist", "rule": "R0", "expect": "O4", "ops": [["suball", "index.html", "href=\"/classic/\"", "href=\"/classix/\""]], "oracle": "yes", "note": ""}
+{"id": "O4-d", "mode": "dist", "rule": "R0", "expect": "O4", "ops": [["suball", "index.html", "id=\"allen\"", "data-id=\"allen\""], ["ins", "index.html", "</body>", "<!-- <div id=\"allen\"></div> --><script>var s='<div id=\"allen\">';</script>"]], "oracle": "yes", "note": "ids in comments or scripts are not elements"}
+{"id": "O5-a", "mode": "dist", "rule": "O5", "expect": "O5", "ops": [["ins", "index.html", "</head>", "<script defer src=\"/js/missing-scene.js\"></script>"]], "oracle": "yes", "note": ""}
+{"id": "O5-b", "mode": "dist", "rule": "O5", "expect": "O5", "ops": [["ins", "start/index.html", "</head>", "<link rel=\"stylesheet\" href=\"/assets/\">"]], "oracle": "yes", "note": ""}
+{"id": "O5-c", "mode": "dist", "rule": "O5", "expect": "O5", "ops": [["ins", "start/index.html", "</head>", "<script defer src=\"/js/../js/allen-intro.js\"></script>"]], "oracle": "yes", "note": ""}
+{"id": "O5-d", "mode": "dist", "rule": "O5", "expect": "O5", "ops": [["symlink", "js/allen-intro.js", "js/linked.js"], ["ins", "start/index.html", "</head>", "<script defer src=\"/js/linked.js\"></script>"]], "oracle": "yes", "note": ""}
+{"id": "O6-a", "mode": "dist", "rule": "O6", "expect": "O6", "ops": [["sub", "sitemap.xml", "<loc>https://www.aienos.com/glossary/</loc>", ""]], "oracle": "yes", "note": ""}
+{"id": "V1-a", "mode": "dist", "rule": "V1", "expect": "L", "ops": [["app", "data/now.tsv", "L999\t2026-10-26T00:00Z\tagent\topen\tsee /home/person/x\n"]], "oracle": "yes", "note": ""}
+{"id": "V2-a", "mode": "dist", "rule": "V2", "expect": "V2", "ops": [["ins", "zh-CN/progress/index.html", "</body>", "<script id=\"ag-data\" type=\"application/json\">{}</script>"]], "oracle": "yes", "note": ""}
+{"id": "R0-a", "mode": "dist", "rule": "R0", "expect": "R0", "ops": [["ins", "index.html", "</head>", "<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css\">"]], "oracle": "yes", "note": ""}
+{"id": "R0-b", "mode": "dist", "rule": "R0", "expect": "R0", "ops": [["ins", "index.html", "</body>", "<p>—</p>"]], "oracle": "yes", "note": ""}
+{"id": "V3-a", "mode": "dist", "rule": "V3", "expect": "V3", "ops": [["sub", "classic/index.html", "id=\"live\"", "id=\"gone\""]], "oracle": "yes", "note": ""}
+{"id": "V3-b", "mode": "dist", "rule": "V3", "expect": "V3", "ops": [["sub", "classic/index.html", "<div id=\"root\"", "<div id=\"rooot\""]], "oracle": "yes", "note": ""}
+{"id": "V3-c", "mode": "dist", "rule": "V3", "expect": "V3", "ops": [["suball", "classic/index.html", "href=\"/now/\"", "href=\"/now\""]], "oracle": "yes", "note": ""}
+{"id": "V3-d", "mode": "dist", "rule": "V3", "expect": "V10", "ops": [["del", "facts.json"]], "oracle": "yes", "note": ""}
+{"id": "V4-a", "mode": "dist", "rule": "V4", "expect": "V4", "ops": [["sub", "classic/index.html", "Did it learn anything?", "Did it learn?"]], "oracle": "yes", "note": ""}
+{"id": "V4-b", "mode": "dist", "rule": "V4", "expect": "V4", "ops": [["sub", "classic/index.html", "<ol class=\"loop-stages\"", "<ol class=\"loop-stage\""]], "oracle": "yes", "note": ""}
+{"id": "V5-a", "mode": "dist", "rule": "V5", "expect": "V5", "ops": [["sub", "classic/index.html", "7.63 tok/s", "7.64 tok/s"]], "oracle": "yes", "note": ""}
+{"id": "V5-b", "mode": "dist", "rule": "V5", "expect": "V5", "ops": [["sub", "classic/index.html", "id=\"machine-pi5\"", "id=\"machine-pi4\""]], "oracle": "yes", "note": ""}
+{"id": "V5-c", "mode": "dist", "rule": "V5", "expect": "V5", "ops": [["ins", "classic/index.html", "</main>", "<p>vLLM</p>"]], "oracle": "yes", "note": ""}
+{"id": "V5-d", "mode": "dist", "rule": "V5", "expect": "V5", "ops": [["ins", "index.html", "</body>", "<p>llama.cpp</p>"]], "oracle": "yes", "note": ""}
+{"id": "V5-e", "mode": "dist", "rule": "V5", "expect": "V10", "ops": [["del", "assets/machines.css"]], "oracle": "yes", "note": ""}
+{"id": "V6-a", "mode": "dist", "rule": "V6", "expect": "V6", "ops": [["app", "assets/style.css", "}"]], "oracle": "yes", "note": ""}
+{"id": "V6-b", "mode": "dist", "rule": "V6", "expect": "V6", "ops": [["sub", "assets/style.css", ".aien-footer-legal", ".aien-foot-legal"]], "oracle": "yes", "note": ""}
+{"id": "V6-c", "mode": "dist", "rule": "V6", "expect": "V6", "ops": [["app", "assets/style.css", ".x{"]], "oracle": "yes", "note": ""}
+{"id": "V6-d", "mode": "dist", "rule": "V6", "expect": "V10", "ops": [["del", "js/terminal.js"]], "oracle": "yes", "note": ""}
+{"id": "V7-a", "mode": "dist", "rule": "V7", "expect": "V7", "ops": [["ins", "classic/index.html", "</main>", "<p>–</p>"]], "oracle": "yes", "note": ""}
+{"id": "V8-a", "mode": "dist", "rule": "V8", "expect": "V8", "ops": [["put", "data/.crumb.local", "x"]], "oracle": "yes", "note": ""}
+{"id": "V8-b", "mode": "dist", "rule": "V8", "expect": "V10", "ops": [["del", "progress/index.html"]], "oracle": "yes", "note": ""}
+{"id": "V9-a", "mode": "dist", "rule": "V9", "expect": "V10", "ops": [["del", "robots.txt"]], "oracle": "yes", "note": ""}
+{"id": "V10-blog_aien-v3-research-plan_index.html", "mode": "dist", "rule": "V10", "expect": "V10", "ops": [["del", "blog/aien-v3-research-plan/index.html"]], "oracle": "yes", "note": ""}
+{"id": "V10-now.json", "mode": "dist", "rule": "V10", "expect": "V10", "ops": [["del", "now.json"]], "oracle": "yes", "note": ""}
+{"id": "V10-assets_now.css", "mode": "dist", "rule": "V10", "expect": "V10", "ops": [["del", "assets/now.css"]], "oracle": "yes", "note": ""}
+{"id": "V10-research-status.json", "mode": "dist", "rule": "V10", "expect": "V10", "ops": [["del", "research-status.json"]], "oracle": "yes", "note": ""}
+{"id": "V10-omega.json", "mode": "dist", "rule": "V10", "expect": "V10", "ops": [["del", "omega.json"]], "oracle": "yes", "note": ""}
+{"id": "V10-assets_omega.css", "mode": "dist", "rule": "V10", "expect": "V10", "ops": [["del", "assets/omega.css"]], "oracle": "yes", "note": ""}
+{"id": "V10-cudaplusplus.json", "mode": "dist", "rule": "V10", "expect": "V10", "ops": [["del", "cudaplusplus.json"]], "oracle": "yes", "note": ""}
+{"id": "V10-assets_cudaplusplus.css", "mode": "dist", "rule": "V10", "expect": "V10", "ops": [["del", "assets/cudaplusplus.css"]], "oracle": "yes", "note": ""}
+{"id": "V11-a", "mode": "dist", "rule": "V11", "expect": "V11", "ops": [["sub", "omega/index.html", "id=\"bar\"", "id=\"baz\""]], "oracle": "yes", "note": ""}
+{"id": "V11-b", "mode": "dist", "rule": "V11", "expect": "V11", "ops": [["suball", "omega/index.html", "Omega is AIEN&#39;s language for all computing, GPU to CPU.", "Omega is a language."], ["suball", "omega/index.html", "Omega is AIEN's language for all computing, GPU to CPU.", "Omega is a language."]], "oracle": "yes", "note": "either spelling satisfies; neither fails"}
+{"id": "V11-c", "mode": "dist", "rule": "V11", "expect": "V11", "ops": [["suball", "classic/index.html", "href=\"/omega/\"", "href=\"/omega\""]], "oracle": "yes", "note": ""}
+{"id": "V12-a", "mode": "dist", "rule": "V12", "expect": "V12", "ops": [["sub", "cudaplusplus/index.html", "id=\"swap\"", "id=\"swop\""]], "oracle": "yes", "note": ""}
+{"id": "V12-b", "mode": "dist", "rule": "V12", "expect": "V12", "ops": [["suball", "omega/index.html", "href=\"/cudaplusplus/\"", "href=\"/cudaplusplus\""]], "oracle": "yes", "note": ""}
+{"id": "V12-c", "mode": "dist", "rule": "V12", "expect": "V12", "ops": [["suball", "classic/index.html", "href=\"/cudaplusplus/\"", "href=\"/cudaplusplus\""]], "oracle": "yes", "note": ""}
+{"id": "V13-a", "mode": "dist", "rule": "V13", "expect": "V13", "ops": [["ins", "blog/index.html", "</main>", "<p>—</p>"]], "oracle": "yes", "note": ""}
+{"id": "V13-b", "mode": "dist", "rule": "V13", "expect": "V13", "ops": [["suball", "now/index.html", "og:title", "og:titlx"]], "oracle": "yes", "note": ""}
+{"id": "H-a", "mode": "dist", "rule": "V14", "expect": "H", "ops": [["suball", "experiments/index.html", "class=\"hub-button\"", "class=\"hub-buttn\""]], "oracle": "yes", "note": ""}
+{"id": "H-b", "mode": "dist", "rule": "V14", "expect": "H", "ops": [["sub", "evidence/index.html", "Failure is evidence.", "Failure is data."]], "oracle": "yes", "note": ""}
+{"id": "H-c", "mode": "dist", "rule": "V14", "expect": "H", "ops": [["ins", "philosophy/index.html", "</main>", "<p>PASS</p>"]], "oracle": "yes", "note": ""}
+{"id": "H-d", "mode": "dist", "rule": "V14", "expect": "H", "ops": [["sub", "experiments/index.html", "data-status=\"", "data-statux=\""]], "oracle": "yes", "note": ""}
+{"id": "H-e", "mode": "dist", "rule": "V14", "expect": "H", "ops": [["move_before_footer_into_footer", "evidence/index.html", "href=\"/research-status.json\""]], "oracle": "yes", "note": "a required link that only the footer carries does not count"}
+{"id": "V15-a", "mode": "dist", "rule": "V15", "expect": "V15", "ops": [["suball", "machine/index.html", "rs-badge", "rs-bdge"]], "oracle": "yes", "note": ""}
+{"id": "V15-b", "mode": "dist", "rule": "V15", "expect": "V15", "ops": [["ins", "discovery/index.html", "</main>", "<span class=\"status-badge\">x</span>"]], "oracle": "yes", "note": ""}
+{"id": "V16-a", "mode": "dist", "rule": "V16", "expect": "V16", "ops": [["sub", "owned/index.html", "Intelligence should be owned by the people who made it.", "Intelligence should be owned."]], "oracle": "yes", "note": ""}
+{"id": "V16-b", "mode": "dist", "rule": "V16", "expect": "V16", "ops": [["ins", "owned/index.html", "</main>", "<span class=\"rs-badge\">x</span>"]], "oracle": "yes", "note": ""}
+{"id": "V17-a", "mode": "dist", "rule": "V17", "expect": "V17", "ops": [["suball", "machine/index.html", "id=\"loop\"", "id=\"lop\""]], "oracle": "yes", "note": ""}
+{"id": "V17-b", "mode": "dist", "rule": "V17", "expect": "V17", "ops": [["swap_ids", "machine/index.html", "id=\"real-machines\"", "id=\"loop\""]], "oracle": "yes", "note": "real machines after the loop"}
+{"id": "V17-c", "mode": "dist", "rule": "V17", "expect": "V17", "ops": [["sub", "machine/index.html", "T(M; B, D, P) = [L(B) + L(D | B)] - [L(M) + L(D | M)]", "T(M)"]], "oracle": "yes", "note": ""}
+{"id": "V17-d", "mode": "dist", "rule": "V17", "expect": "V17", "ops": [["sub", "machine/index.html", "class=\"rs-impl\"", "class=\"rs-imp\""]], "oracle": "yes", "note": ""}
+{"id": "V18-a", "mode": "dist", "rule": "V18", "expect": "V18", "ops": [["suball", "start/index.html", "/research/status/#implementation", "/research/status/"]], "oracle": "yes", "note": ""}
+{"id": "V19-a", "mode": "dist", "rule": "V19", "expect": "V19", "ops": [["unbox", "classic/index.html"]], "oracle": "yes", "note": "floor 30"}
+{"id": "V19-b", "mode": "dist", "rule": "V19", "expect": "V19", "ops": [["unbox", "research/status/index.html"]], "oracle": "yes", "note": "floor 40"}
+{"id": "V19-c", "mode": "dist", "rule": "V19", "expect": "V19", "ops": [["sub", "assets/turing-look.css", ".box-link::after", ".box-link::before"]], "oracle": "yes", "note": ""}
+{"id": "E-a", "mode": "dist", "rule": "V19/E", "expect": "V19", "ops": [["boxlink_off", "omega/index.html"]], "oracle": "yes", "note": "box-link off GitHub"}
+{"id": "E-b", "mode": "dist", "rule": "V19/E", "expect": "V19", "ops": [["boxlink_drop", "omega/index.html"]], "oracle": "yes", "note": "box without its link"}
+{"id": "E-c", "mode": "dist", "rule": "E", "expect": "V19", "ops": [["boxlink_drop", "experiments/index.html"]], "oracle": "yes", "note": "hub boxes are checked by H and V19"}
+{"id": "N1-a", "mode": "dist", "rule": "N1", "expect": "N1", "ops": [["ins", "now/index.html", "</main>", "<script src=\"/js/site.js\"></script>"]], "oracle": "n/a", "note": "now.rs unit invariant, published page body only"}
+{"id": "F-a", "mode": "dist", "rule": "V20", "expect": "F", "ops": [["ins", "learn/index.html", "</main>", "<p>We build it together.</p>"]], "oracle": "yes", "note": ""}
+{"id": "F-b", "mode": "dist", "rule": "V20", "expect": "F", "ops": [["ins", "learn/index.html", "</main>", "<blockquote data-quote-id=\"q05\">changed words we said</blockquote>"]], "oracle": "yes", "note": ""}
+{"id": "F-c", "mode": "dist", "rule": "V20", "expect": "F", "ops": [["ins", "learn/index.html", "</main>", "<blockquote data-quote-id=\"q999\">x</blockquote>"]], "oracle": "yes", "note": ""}
+{"id": "F-d", "mode": "dist", "rule": "V20", "expect": "F", "ops": [["app", "learn.md", "\nWe ship it.\n"]], "oracle": "yes", "note": ""}
+{"id": "F-e", "mode": "dist", "rule": "V20", "expect": "F", "ops": [["ins", "learn/index.html", "</main>", "<p data-speaker=\"allen\">We can chat.</p>"]], "oracle": "yes", "note": "data-speaker is not an exemption until #119 lands"}
+{"id": "F-f", "mode": "dist", "rule": "V20", "expect": "F", "ops": [["ins", "zh-CN/progress/index.html", "</body>", "<p>our work</p>"]], "oracle": "yes", "note": "translations are in scope"}
+{"id": "F-g", "mode": "dist", "rule": "V20", "expect": "F", "ops": [["app", "llms-full.txt", "\nTell us more.\n"]], "oracle": "yes", "note": ""}
+{"id": "F-pos-a", "mode": "dist", "rule": "V20", "expect": "PASS", "ops": [["quote_html", "learn/index.html", "q05"]], "oracle": "yes", "note": "an exact marked quote is exempt"}
+{"id": "F-pos-b", "mode": "dist", "rule": "V20", "expect": "PASS", "ops": [["quote_raw", "learn.md", "q05"]], "oracle": "yes", "note": "an exact quote string in markdown is exempt"}
+{"id": "F-pos-c", "mode": "dist", "rule": "V20", "expect": "PASS", "ops": [["ins", "learn/index.html", "</main>", "<p>US dollars, 50 us, docs/how-we-did-it</p>"]], "oracle": "yes", "note": ""}
+{"id": "G-a", "mode": "dist", "rule": "V21", "expect": "G", "ops": [["suball", "start/index.html", "href=\"mailto:drake@aienos.com\"", "href=\"mailto:x@aienos.com\""]], "oracle": "yes", "note": ""}
+{"id": "G-b", "mode": "dist", "rule": "V21", "expect": "G", "ops": [["suball", "start/index.html", "href=\"https://x.com/mdrakestapleton\"", "href=\"https://x.com/someone\""]], "oracle": "yes", "note": ""}
+{"id": "G-c", "mode": "dist", "rule": "V21", "expect": "G", "ops": [["ins", "start/index.html", "</main>", "<main>x</main>"]], "oracle": "yes", "note": ""}
+{"id": "G-d", "mode": "dist", "rule": "V21", "expect": "G", "ops": [["suball", "contact/index.html", "href=\"/\"", "href=\"/x\""]], "oracle": "yes", "note": ""}
+{"id": "G-e", "mode": "dist", "rule": "V21", "expect": "G", "ops": [["suball", "start/index.html", "aien-reach-foot", "aien-reach-fot"]], "oracle": "yes", "note": ""}
+{"id": "G-f", "mode": "dist", "rule": "V21", "expect": "G", "ops": [["suball", "allen/index.html", "href=\"/contact/\"", "href=\"/contactx/\""]], "oracle": "yes", "note": "/allen/ keeps an accessible contact route"}
+{"id": "G-g", "mode": "dist", "rule": "V21", "expect": "G", "ops": [["suball", "404.html", "href=\"mailto:drake@aienos.com\"", "href=\"mailto:x@aienos.com\""]], "oracle": "yes", "note": ""}
+{"id": "G-h", "mode": "dist", "rule": "V21", "expect": "G", "ops": [["x_after_main", "start/index.html"]], "oracle": "yes", "note": "the X link must precede <main>"}
+{"id": "C1-a", "mode": "dist", "rule": "C1", "expect": "C1", "ops": [["ins", "start/index.html", "</head>", "<script src=\"//cdn.example.com/x.js\"></script>"]], "oracle": "yes", "note": ""}
+{"id": "C1-b", "mode": "dist", "rule": "C1", "expect": "C1", "ops": [["ins", "start/index.html", "</head>", "<script src=/x.js></script>"]], "oracle": "yes", "note": ""}
+{"id": "C1-c", "mode": "dist", "rule": "C1", "expect": "C1", "ops": [["ins", "start/index.html", "</body>", "<script defer src=\"/js/allen-intro.js\"></script>"]], "oracle": "yes", "note": ""}
+{"id": "C1-d", "mode": "dist", "rule": "C1", "expect": "C1", "ops": [["ins", "start/index.html", "</body>", "<script>twq('x')</script>"]], "oracle": "yes", "note": ""}
+{"id": "C1-e", "mode": "dist", "rule": "C1", "expect": "C1", "ops": [["suball", "start/index.html", "href=\"/privacy/\"", "href=\"/privacyx/\""]], "oracle": "yes", "note": ""}
+{"id": "C1-f", "mode": "dist", "rule": "C1", "expect": "C1", "ops": [["ins", "start/index.html", "</body>", "<div id=\"aien-allen-intro\"></div>"]], "oracle": "yes", "note": ""}
+{"id": "C1-g", "mode": "dist", "rule": "C1", "expect": "C1", "ops": [["ins", "404.html", "</head>", "<link rel=\"stylesheet\" href=\"https://fonts.gstatic.com/x\">"]], "oracle": "yes", "note": ""}
+{"id": "C1-h", "mode": "dist", "rule": "C1", "expect": "C1", "ops": [["ins", "start/index.html", "</head>", "<SCRIPT SRC='https://example.com/a.js'></SCRIPT>"]], "oracle": "yes", "note": ""}
+{"id": "C2-a", "mode": "dist", "rule": "C2", "expect": "C2", "ops": [["app", "js/hive.js", "\ntwq('track');\n"]], "oracle": "yes", "note": ""}
+{"id": "C2-b", "mode": "dist", "rule": "C2", "expect": "C2", "ops": [["sub", "js/allen-intro.js", "twq('config','rfrlz')", "twq('config','other')"]], "oracle": "yes", "note": ""}
+{"id": "C3-a", "mode": "dist", "rule": "C3", "expect": "C3", "ops": [["sub", "robots.txt", "User-agent: GPTBot", "User-agent: GPTBotx"]], "oracle": "yes", "note": ""}
+{"id": "C3-b", "mode": "dist", "rule": "C3", "expect": "C3", "ops": [["ins", "sitemap.xml", "</urlset>", "<url><loc>https://aienos.com/x</loc></url>"]], "oracle": "yes", "note": ""}
+{"id": "C3-c", "mode": "dist", "rule": "C3", "expect": "C3", "ops": [["sub", "robots.txt", "Sitemap: https://www.aienos.com/sitemap.xml", "Sitemap: /sitemap.xml"]], "oracle": "yes", "note": ""}
+{"id": "C4-a", "mode": "dist", "rule": "C4", "expect": "C4", "ops": [["sub", "sitemap.md", "# Sitemap\n", "# Site map\n"]], "oracle": "yes", "note": ""}
+{"id": "C4-b", "mode": "dist", "rule": "C4", "expect": "C4", "ops": [["sub", "AGENTS.md", "## Usage", "## Use"]], "oracle": "yes", "note": ""}
+{"id": "C4-c", "mode": "dist", "rule": "C4", "expect": "C4", "ops": [["suball", "index.html", "\"BreadcrumbList\"", "\"Breadcrumbs\""]], "oracle": "yes", "note": ""}
+{"id": "C4-d", "mode": "dist", "rule": "C4", "expect": "C4", "ops": [["suball", "sitemap.md", "](https://www.aienos.com/glossary/)", "](https://www.aienos.com/gloss/)"]], "oracle": "yes", "note": ""}
+{"id": "C5-a", "mode": "dist", "rule": "C5", "expect": "C5", "ops": [["del", "data/routing.tsv"]], "oracle": "yes", "note": ""}
+{"id": "C5-b", "mode": "dist", "rule": "C5", "expect": "C5", "ops": [["suball", "llms.txt", "/data/accounts.tsv", "/data/acct.tsv"]], "oracle": "yes", "note": ""}
+{"id": "C6-a", "mode": "dist", "rule": "C6", "expect": "C6", "ops": [["sub", "glossary/index.html", "<link rel=\"canonical\"", "<link  rel=\"canonical\""]], "oracle": "yes", "note": "exact markup rule; the parsed head check still passes"}
+{"id": "C6-b", "mode": "dist", "rule": "C6", "expect": "C6", "ops": [["ldgraph_trunc", "glossary/index.html", 3]], "oracle": "yes", "note": ""}
+{"id": "C6-c", "mode": "dist", "rule": "C6", "expect": "C6", "ops": [["del", "glossary.md"]], "oracle": "yes", "note": ""}
+{"id": "C6-d", "mode": "dist", "rule": "C6", "expect": "C6", "ops": [["del", "glossary/index.md"]], "oracle": "yes", "note": ""}
+{"id": "C6-e", "mode": "dist", "rule": "C6", "expect": "C6", "ops": [["suball", "llms.txt", "](https://www.aienos.com/glossary/)", "](https://www.aienos.com/gloss/)"]], "oracle": "yes", "note": ""}
+{"id": "C6-f", "mode": "dist", "rule": "C6", "expect": "C6", "ops": [["suball", "glossary/index.html", "twitter:site", "twitter:sitx"]], "oracle": "yes", "note": ""}
+{"id": "C6-g", "mode": "dist", "rule": "C6", "expect": "C6", "ops": [["suball", "glossary/index.html", "max-snippet:-1", "max-snippet:0"]], "oracle": "yes", "note": ""}
+{"id": "C6-h", "mode": "dist", "rule": "C6", "expect": "C6", "ops": [["sub", "glossary.md", "canonical_url:", "canonical:"]], "oracle": "yes", "note": ""}
+{"id": "C6-i", "mode": "dist", "rule": "C6", "expect": "C6", "ops": [["suball", "glossary/index.html", "<link rel=\"describedby\" href=\"https://www.aienos.com/llms.txt\">", ""]], "oracle": "yes", "note": ""}
+{"id": "C7-a", "mode": "dist", "rule": "C7", "expect": "C7", "ops": [["del", "logo.png"]], "oracle": "yes", "note": ""}
+{"id": "C8-a", "mode": "dist", "rule": "C8", "expect": "C8", "ops": [["app", "humans.txt", "—"]], "oracle": "yes", "note": ""}
+{"id": "B8-a", "mode": "dist", "rule": "B8", "expect": "HASH", "ops": [["flipbyte", "js/hive.js"]], "oracle": "n/a", "note": "runner hash gate (pinned sha256sum)"}
+{"id": "B8-b", "mode": "dist", "rule": "B8", "expect": "HASH", "ops": [["flipbyte", "wasm/hive-fresh.wasm"]], "oracle": "n/a", "note": ""}

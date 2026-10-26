@@ -1,0 +1,1416 @@
+note verify-data2.om: second half of the data gates (compose right after verify-data.om):
+note facts.json, agent-repos.json, project-progress.json, status.json, data/index.json,
+note data/pages.json, now.json, quotes.json, the public ledger projection, and sv_vdata.
+
+note ---------------------------------------------------------------- facts / agents (serde)
+fn sv_vfacts to bool
+wf = get vfail 0
+sv_ctxp
+wr = sv_jload
+if not sv_shape wr vsft false
+ret false
+end
+wok = sv_each wr vkcomp vsfc false
+wok = and wok sv_each wr vkdec vsfd false
+wok = and wok sv_shapeat wr vkrcpt vsfr false
+wc = sj_first sj_find wr vkcomp
+while ne wc 0 bound 65536
+wm = sj_find wc vklm
+if eq sj_kind wm 1
+wok = and wok sv_shape wm vsfm false
+end
+wc = sj_next wc
+end
+ret and wok eq get vfail 0 wf
+end
+fn sv_vagent to bool
+wf = get vfail 0
+sv_ctxp
+wr = sv_jload
+if not sv_shape wr vsat false
+ret false
+end
+wok = sv_each wr vkrepos vsar false
+ret and wok eq get vfail 0 wf
+end
+
+note ---------------------------------------------------------------- project-progress.json
+note collector.rs parse_time_ms: YYYY-MM-DD, optionally THH:MM:SS[.digits](Z|z|+HH:MM|-HH:MM),
+note with real month lengths (Gregorian leap years).
+fn sv_d2 ws ulong i ulong n ulong to ulong
+wv = ulong 0
+for wj ulong n
+c = sv_b ws add i wj
+if not sv_isdig c
+ret VNONE
+end
+wv = add mul wv 10 ulong sub c 48
+end
+ret wv
+end
+fn sv_mdays y ulong m ulong to ulong
+if eq m 2
+wl = and eq rem y 4 0 or ne rem y 100 0 eq rem y 400 0
+if wl
+ret 29
+end
+ret 28
+end
+if or or eq m 4 eq m 6 or eq m 9 eq m 11
+ret 30
+end
+ret 31
+end
+fn sv_day ws ulong to bool
+if lt sv_n ws 10
+ret false
+end
+if or ne sv_b ws 4 45 ne sv_b ws 7 45
+ret false
+end
+wy = sv_d2 ws 0 4
+wm = sv_d2 ws 5 2
+wd = sv_d2 ws 8 2
+if or or eq wy VNONE eq wm VNONE eq wd VNONE
+ret false
+end
+if or lt wm 1 gt wm 12
+ret false
+end
+ret and ge wd 1 le wd sv_mdays wy wm
+end
+fn sv_time ws ulong to bool
+if not sv_day ws
+ret false
+end
+wn = sv_n ws
+if eq wn 10
+ret true
+end
+if lt wn 20
+ret false
+end
+if or or ne sv_b ws 10 84 ne sv_b ws 13 58 ne sv_b ws 16 58
+ret false
+end
+wh = sv_d2 ws 11 2
+wm = sv_d2 ws 14 2
+wsx = sv_d2 ws 17 2
+if or or eq wh VNONE eq wm VNONE eq wsx VNONE
+ret false
+end
+if or or gt wh 23 gt wm 59 gt wsx 59
+ret false
+end
+wi = ulong 19
+if eq sv_b ws wi 46
+wi = add wi 1
+wd = ulong 0
+while and lt wi wn sv_isdig sv_b ws wi bound 999999
+wi = add wi 1
+wd = add wd 1
+end
+if eq wd 0
+ret false
+end
+end
+ret sv_tz ws wi
+end
+fn sv_tz ws ulong wi ulong to bool
+wn = sv_n ws
+if eq sub wn wi 1
+c = sv_b ws wi
+ret or eq c 90 eq c 122
+end
+if ne sub wn wi 6
+ret false
+end
+c = sv_b ws wi
+if not or eq c 43 eq c 45
+ret false
+end
+if ne sv_b ws add wi 3 58
+ret false
+end
+wh = sv_d2 ws add wi 1 2
+wm = sv_d2 ws add wi 4 2
+if or eq wh VNONE eq wm VNONE
+ret false
+end
+ret and le wh 23 le wm 59
+end
+fn sv_strtest node ulong which ulong to bool
+ws = sv_jsl node
+if eq ws 0
+ret false
+end
+wr = false
+if eq which 0
+wr = sv_day ws
+if wr
+wr = eq sv_n ws 10
+end
+else
+wr = sv_time ws
+end
+sv_drop ws
+ret wr
+end
+note sv_numeq: serde Value equality for the summary copies: both numbers of the same class
+note (integer token or float token) with the same exact safe value.
+fn sv_isint node ulong to bool
+for wj ulong sj_numsize node
+c = sj_numbyte node wj
+if or or eq c 46 eq c 101 eq c 69
+ret false
+end
+end
+ret true
+end
+fn sv_numeq a ulong b ulong to bool
+if or ne sj_kind a 4 ne sj_kind b 4
+ret false
+end
+if ne sv_isint a sv_isint b
+ret false
+end
+wx = sv_safe a
+ret and ne wx VNONE eq wx sv_safe b
+end
+fn sv_psum arr ulong key view uchar * to ulong
+wt = ulong 0
+wc = sj_first arr
+while ne wc 0 bound 65536
+wv = sv_safe sj_find wc key
+if eq wv VNONE
+ret VNONE
+end
+wt = add wt wv
+wc = sj_next wc
+end
+ret wt
+end
+fn sv_osum obj ulong to ulong
+if ne sj_kind obj 1
+ret VNONE
+end
+wt = ulong 0
+wc = sj_first obj
+while ne wc 0 bound 65536
+wv = sv_safe wc
+if eq wv VNONE
+ret VNONE
+end
+wt = add wt wv
+wc = sj_next wc
+end
+ret wt
+end
+fn sv_metric row ulong k ulong to ulong
+ret sv_safe sv_fld row vmet k
+end
+fn sv_prow row ulong to void
+for wk ulong sv_tcount vmet
+if eq sv_metric row wk VNONE
+sv_failt vrd1 vtsmet vmet
+ret
+end
+end
+wl = sv_safe sj_find row vkloc
+wsrc = sv_metric row 0
+if ne wl add wsrc sv_safe sj_find row vktest
+sv_fail vrd1 vtsrec
+end
+if gt sv_safe sj_find row vkmerged sv_safe sj_find row vkprs
+sv_fail vrd1 vtsrec
+end
+if gt sv_safe sj_find row vktfiles sv_safe sj_find row vkfiles
+sv_fail vrd1 vtsrec
+end
+wg = sv_osum sj_find row vklangs
+if or eq wg VNONE ne wg wl
+sv_fail vrd1 vtslang
+end
+end
+fn sv_pseries ser ulong to ulong
+wprev = ulong 0
+wc = sj_first ser
+wlast = ulong 0
+while ne wc 0 bound 65536
+wd = sj_find wc vkdate
+if not sv_strtest wd 0
+sv_fail vrd1 vtsord
+ret wc
+end
+if ne wprev 0
+if not sv_after wd wprev
+sv_fail vrd1 vtsord
+end
+end
+wprev = wd
+sv_prow wc
+wlast = wc
+wc = sj_next wc
+end
+ret wlast
+end
+note sv_after: decoded string a > decoded string b, bytewise (Rust str ordering).
+fn sv_after a ulong b ulong to bool
+wn = sj_size a
+wm = sj_size b
+wl = wn
+if lt wm wl
+wl = wm
+end
+for wj ulong wl
+wx = sj_byte a wj
+wy = sj_byte b wj
+if gt wx wy
+ret true
+end
+if lt wx wy
+ret false
+end
+end
+ret gt wn wm
+end
+fn sv_prepo repo ulong to void
+wh = sj_find repo vkhead
+wok = eq sj_kind wh 3
+if wok
+wok = eq sj_size wh 40
+end
+if wok
+for wj ulong 40
+c = sj_byte wh wj
+if not or sv_isdig c and ge c 97 le c 102
+wok = false
+end
+end
+end
+if not wok
+sv_fail vrd1 vtshead
+end
+if gt sv_keycnt repo vkurl 0
+if not sv_ghrepo sj_find repo vkurl
+sv_fail vrd1 vtsurl
+end
+end
+end
+note sv_ghrepo: https://github.com/ then exactly two non-empty segments of [A-Za-z0-9._-], neither
+note made only of dots.
+fn sv_ghrepo node ulong to bool
+if not sj_prefix node vkghp
+ret false
+end
+ws = sv_jsl node
+wi = len vkghp
+wseg = ulong 0
+wnl = ulong 0
+wdots = true
+wok = true
+while lt wi sv_n ws bound 999999
+c = sv_b ws wi
+if eq c 47
+if or eq wnl 0 wdots
+wok = false
+end
+wseg = add wseg 1
+wnl = 0
+wdots = true
+else
+wv = sv_isdig c
+wv = or wv and ge c 65 le c 90
+wv = or wv and ge c 97 le c 122
+wv = or wv eq c 46
+wv = or wv eq c 95
+wv = or wv eq c 45
+if not wv
+wok = false
+end
+if ne c 46
+wdots = false
+end
+wnl = add wnl 1
+end
+wi = add wi 1
+end
+sv_drop ws
+if or eq wnl 0 wdots
+wok = false
+end
+ret and wok eq wseg 1
+end
+fn sv_vprog to bool
+wf = get vfail 0
+sv_ctxp
+wr = sv_jload
+wser = sj_find wr vkseries
+wrep = sj_find wr vkrepos
+wok = and eq sj_kind wser 2 gt sj_len wser 0
+wok = and wok and eq sj_kind wrep 2 gt sj_len wrep 0
+wok = and wok sv_strtest sj_find wr vkasof 1
+if not wok
+sv_fail vrd1 vtsnap
+ret false
+end
+wlast = sv_pseries wser
+wsum = sj_find wr vksum
+if eq wsum 0
+sv_fail vrd1 vtssum
+else
+for wk ulong sv_tcount vmet
+if not sv_numeq sv_fld wsum vmet wk sv_fld wlast vmet wk
+sv_failt vrd1 vtssum vmet
+end
+end
+end
+sv_prepos wr wrep wsum
+ret eq get vfail 0 wf
+end
+fn sv_prepos wr ulong wrep ulong wsum ulong to void
+wc = sj_first wrep
+wi = ulong 0
+while ne wc 0 bound 4096
+wn = sj_find wc vkname
+if ne sj_kind wn 3
+sv_fail vrd1 vtsrepo
+end
+put vseen wi wn
+for wj ulong wi
+if and eq sj_kind get vseen wj 3 eq sj_kind wn 3
+if sj_same get vseen wj wn
+sv_fail vrd1 vtsrepo
+end
+end
+end
+sv_prepo wc
+wi = add wi 1
+wc = sj_next wc
+end
+wp = sv_safe sj_find wsum vkprs
+if or eq wp VNONE ne wp sv_psum wrep vkprc
+sv_fail vrd1 vtsprs
+end
+wc = sv_safe sj_find wsum vkci
+if or eq wc VNONE ne wc sv_psum wrep vkcic
+sv_fail vrd1 vtsci
+end
+if or eq wc VNONE ne wc sv_osum sj_find wr vkcico
+sv_fail vrd1 vtscic
+end
+end
+
+note ---------------------------------------------------------------- status.json (oracle check_status)
+fn sv_blank node ulong to bool
+ws = sv_jsl node
+if eq ws 0
+ret true
+end
+wb = true
+wi = ulong 0
+while lt wi sv_n ws bound 999999
+if not sv_ins sv_cp ws wi
+wb = false
+end
+wi = add wi sv_cpl ws wi
+end
+sv_drop ws
+ret wb
+end
+fn sv_vstatus to bool
+wf = get vfail 0
+sv_ctxp
+sv_rawdash vrd2
+wr = sv_jload
+note statuses: the string items, in order, must be exactly the five (non-strings are skipped).
+wst = sj_find wr vkstats
+wk = ulong 0
+wok = true
+wc = sj_first wst
+while ne wc 0 bound 65536
+if eq sj_kind wc 3
+if or ge wk sv_tcount vst5 not sv_teq wc vst5 wk
+wok = false
+end
+wk = add wk 1
+end
+wc = sj_next wc
+end
+if or not wok ne wk sv_tcount vst5
+sv_fail vrd2 vtst5
+end
+wl = sj_find wr vklayers
+if or ne sj_kind wl 2 eq sj_len wl 0
+sv_fail vrd2 vtstl
+ret false
+end
+wc = sj_first wl
+while ne wc 0 bound 65536
+sv_slayer wc
+wc = sj_next wc
+end
+ret eq get vfail 0 wf
+end
+fn sv_slayer wc ulong to void
+if sv_blank sj_find wc vkname
+sv_fail vrd2 vtstn
+ret
+end
+if not sv_tin sj_find wc vkstatus vst5
+sv_fail vrd2 vtsts
+end
+if sv_blank sj_find wc vknote
+sv_fail vrd2 vtstno
+end
+wrc = sj_find wc vkrcpt
+wkd = sj_kind wrc
+if not or or eq wkd 0 eq wkd 7 sj_prefix wrc vkhttps
+sv_fail vrd2 vtstr
+end
+end
+
+note ---------------------------------------------------------------- data/index.json, data/pages.json
+note sv_hosteq: the decoded string equals https://www.aienos.com followed by the path node.
+fn sv_hosteq url ulong path ulong to bool
+if ne sj_kind url 3
+ret false
+end
+if ne sj_size url add len vhost sj_size path
+ret false
+end
+if not sj_prefix url vhost
+ret false
+end
+for wj ulong sj_size path
+if ne sj_byte url add len vhost wj sj_byte path wj
+ret false
+end
+end
+ret true
+end
+note sv_setchk: the string nodes in vseen[0..n) are distinct members of DATA_FILES and cover it.
+fn sv_setchk n ulong to void
+for wi ulong n
+for wj ulong wi
+if sj_same get vseen wj get vseen wi
+sv_failt vrd3 vtixd vtixm
+end
+end
+if not sv_tin get vseen wi vdfiles
+sv_failt vrd3 vtixm vtixm2
+end
+end
+for wk ulong sv_tcount vdfiles
+wfound = false
+for wi ulong n
+if sv_teq get vseen wi vdfiles wk
+wfound = true
+end
+end
+if not wfound
+wa = sv_tat vdfiles wk
+sv_failt vrd3 vtixm part vdfiles wa sv_tlen vdfiles wa
+end
+end
+end
+fn sv_vindex to bool
+wf = get vfail 0
+sv_ctxp
+wr = sv_jload
+wfl = sj_find wr vkfiles
+if ne sj_kind wfl 2
+sv_fail vrd3 vtixm
+ret false
+end
+wc = sj_first wfl
+wn = ulong 0
+while ne wc 0 bound 4096
+wp = sj_find wc vkpath
+if ne sj_kind wp 3
+sv_fail vrd3 vtixp
+ret false
+end
+if not sv_hosteq sj_find wc vkurl wp
+sv_fail vrd3 vtixu
+end
+put vseen wn wp
+wn = add wn 1
+wc = sj_next wc
+end
+sv_setchk wn
+ret eq get vfail 0 wf
+end
+fn sv_vpages to bool
+wf = get vfail 0
+sv_ctxp
+wr = sv_jload
+if ne sj_kind wr 2
+sv_fail vrd4 vtnar
+ret false
+end
+wc = sj_first wr
+wn = ulong 0
+while ne wc 0 bound 4096
+wp = sj_find wc vkpath
+if ne sj_kind wp 3
+sv_fail vrd4 vtixp
+ret false
+end
+if or sv_blank sj_find wc vktitle sv_blank sj_find wc vkdesc
+sv_fail vrd4 vtpgt
+end
+we = sj_find wc vkeng
+wok = eq sj_kind we 3
+if wok
+wok = sj_same we wp
+end
+if not wok
+sv_fail vrd4 vtpge
+end
+put vseen wn wp
+wn = add wn 1
+wc = sj_next wc
+end
+sv_regset wn
+ret eq get vfail 0 wf
+end
+fn sv_vnow to bool
+sv_ctxp
+wr = sv_jload
+ret ne wr 0
+end
+
+note ---------------------------------------------------------------- data/quotes.json
+note The voice exemption source (Drake's verbatim words, DRAFT until Main approves). Shape:
+note object with array quotes of objects carrying non-empty string id (unique) and quote.
+note sv_qload records each quote's decoded text in arena slots for the voice check (verify-text).
+fn sv_vquote to bool
+wf = get vfail 0
+sv_ctxp
+wr = sv_jload
+if ne sj_kind wr 1
+sv_fail vrq vtnob
+ret false
+end
+wq = sj_find wr vkquotes
+if ne sj_kind wq 2
+sv_fail vrq vtnob
+ret false
+end
+wc = sj_first wq
+wn = ulong 0
+while ne wc 0 bound 512
+wi = sj_find wc vkid
+if or ne sj_kind wi 3 sv_blank wi
+sv_fail vrq vtqid
+else
+put vseen wn wi
+for wj ulong wn
+if sj_same get vseen wj wi
+sv_fail vrq vtqid
+end
+end
+wn = add wn 1
+end
+if or ne sj_kind sj_find wc vkqtxt 3 sv_blank sj_find wc vkqtxt
+sv_fail vrq vtqq
+end
+wc = sj_next wc
+end
+put vqc 0 0
+if eq get vfail 0 wf
+sv_qkeep wq
+end
+ret eq get vfail 0 wf
+end
+note sv_qkeep: keep every quote as three arena slots for the whole run: id (vqio), raw text (vqin),
+note whitespace-squashed text (vqo).
+fn sv_qkeep wq ulong to void
+wc = sj_first wq
+wk = ulong 0
+while ne wc 0 bound 512
+wi = sv_jsl sj_find wc vkid
+put vqio wk wi
+wt = sv_jsl sj_find wc vkqtxt
+put vqin wk wt
+wt = sv_jsl sj_find wc vkqtxt
+sv_squash wt
+put vqo wk wt
+wk = add wk 1
+wc = sj_next wc
+end
+put vqc 0 wk
+end
+note sv_squash: the newest slot s in place: Unicode whitespace runs become one space, trimmed
+note (Rust split_whitespace().join(" ")).
+fn sv_squash s ulong to void
+wn = sv_n s
+wo = sv_off s
+wi = ulong 0
+wout = ulong 0
+wpend = false
+while lt wi wn bound 64
+wk = ulong 0
+while and lt wi wn lt wk 262144 bound 262144
+wl = sv_cpl s wi
+if sv_ins sv_cp s wi
+if gt wout 0
+wpend = true
+end
+else
+if wpend
+put va add wo wout 32
+wout = add wout 1
+wpend = false
+end
+sv_amove add wo wout add wo wi wl
+wout = add wout wl
+end
+wi = add wi wl
+wk = add wk 1
+end
+end
+sv_trunc s wout
+end
+
+note ---------------------------------------------------------------- the public ledger (B1, V1)
+note ledger_public.rs check_public(x) holds exactly when project(x) == x. Every replacement writes
+note a bracketed marker that none of the patterns can match, so a field is public iff: no
+note credential match other than the value-bound RFC 8032 vector, no email, no control character,
+note and none of path, root, uuid, host, ipv4, ipv6, port, pid matches. Each regex is ported as an
+note anchored matcher with the regex crate's semantics: Unicode \s \w \d \b (verify-unicode.om),
+note (?i) as simple case folding (sv_fold), leftmost-first find_iter for the RFC exemption.
+note Field bounds: [vlx0, vlx1) of slot vlx2; \b and lookarounds stop at the field edges.
+text vkw "password\npasswd\nsecret\napikey\napi_key\napi-key\nprivatekey\nprivate_key\nprivate-key\naccesstoken\naccess_token\naccess-token\nauthorization\nauth\ncookie\nsessionkey\nsession_key\nsession-key\nsessiontoken\nsession_token\nsession-token\nsessionid\nsession_id\nsession-id\n"
+text vtokp "sk-\nghp_\ngho_\ngithub_pat_\nxoxb-\nxoxa-\nxoxp-\nxoxr-\nxoxs-\nakia\n"
+text vroots "/home/\n/root/\n/tmp/\n/var/\n/etc/\n/opt/\n/srv/\n/run/\n/proc/\n/mnt/\n/media/\n/Users/\n/private/\n"
+text vhsuf ".local\n.internal\n.ts.net\n"
+text vlbeg "-----begin"
+text vlpriv "private"
+text vlkey "key"
+text vlbear "bearer"
+text vlis "is"
+text vlpid "pid"
+text vllh "localhost"
+text vlcss "://"
+text vlsch "--"
+text vldel "(<`\"'[=:,"
+text vttab "\t"
+fn sv_lb to ulong
+ret get vlx 0
+end
+fn sv_le to ulong
+ret get vlx 1
+end
+fn sv_ls to ulong
+ret get vlx 2
+end
+fn sv_lcp i ulong to ulong
+if or lt i sv_lb ge i sv_le
+ret 1114112
+end
+ret sv_cp sv_ls i
+end
+fn sv_lnx i ulong to ulong
+ret add i sv_cpl sv_ls i
+end
+fn sv_lw i ulong to bool
+if or lt i sv_lb ge i sv_le
+ret false
+end
+ret sv_inw sv_cp sv_ls i
+end
+fn sv_lwp i ulong to bool
+if le i sv_lb
+ret false
+end
+ret sv_inw sv_cp sv_ls sv_pv sv_ls i
+end
+fn sv_lbd i ulong to bool
+ret ne sv_lwp i sv_lw i
+end
+fn sv_lsp i ulong to bool
+if ge i sv_le
+ret false
+end
+ret sv_ins sv_cp sv_ls i
+end
+fn sv_lskip i ulong to ulong
+while sv_lsp i bound 999999
+i = sv_lnx i
+end
+ret i
+end
+note sv_lmc: case-insensitive match of lowercase ASCII pat at i (fold per code point); end or VNONE.
+fn sv_lmc i ulong pat view uchar * to ulong
+for wj ulong len pat
+if ge i sv_le
+ret VNONE
+end
+if ne sv_fold sv_lcp i ulong get pat wj
+ret VNONE
+end
+i = sv_lnx i
+end
+ret i
+end
+fn sv_lmct i ulong t view uchar * k ulong to ulong
+wa = sv_tat t k
+ret sv_lmc i part t wa sv_tlen t wa
+end
+fn sv_laz i ulong to bool
+wc = sv_fold sv_lcp i
+ret and ge wc 97 le wc 122
+end
+fn sv_lan i ulong to bool
+wc = sv_fold sv_lcp i
+ret or and ge wc 97 le wc 122 and ge wc 48 le wc 57
+end
+fn sv_lisc i ulong c ulong to bool
+ret eq sv_lcp i c
+end
+note sv_lrun: end of the run of class k from i: 0 [a-z0-9_-], 1 [a-z0-9._-], 2 [a-z0-9+.-],
+note 3 [a-z0-9._%+-], 4 [a-z0-9.-], 5 [a-z], 6 [0-9a-f:], 7 not (\s / @), 8 [a-z0-9].
+fn sv_lcls i ulong k ulong to bool
+if ge i sv_le
+ret false
+end
+wc = sv_fold sv_lcp i
+wan = or and ge wc 97 le wc 122 and ge wc 48 le wc 57
+if eq k 0
+ret or wan or eq wc 95 eq wc 45
+end
+if eq k 1
+ret or wan or or eq wc 46 eq wc 95 eq wc 45
+end
+if eq k 2
+ret or wan or or eq wc 43 eq wc 46 eq wc 45
+end
+if eq k 3
+ret or or wan or eq wc 46 eq wc 95 or or eq wc 37 eq wc 43 eq wc 45
+end
+if eq k 4
+ret or wan or eq wc 46 eq wc 45
+end
+if eq k 5
+ret and ge wc 97 le wc 122
+end
+if eq k 6
+ret or or and ge wc 48 le wc 57 and ge wc 97 le wc 102 eq wc 58
+end
+if eq k 7
+ret not or sv_lsp i or eq wc 47 eq wc 64
+end
+ret wan
+end
+fn sv_lrun i ulong k ulong to ulong
+while sv_lcls i k bound 999999
+i = sv_lnx i
+end
+ret i
+end
+fn sv_lrunn i ulong k ulong to ulong
+wn = ulong 0
+while sv_lcls i k bound 999999
+i = sv_lnx i
+wn = add wn 1
+end
+ret wn
+end
+note A: \b KEYWORD \s* (= | : | \bis\b) \s* \S+
+fn sv_lsa p ulong to bool
+if not sv_lbd p
+ret false
+end
+for wk ulong sv_tcount vkw
+wq = sv_lmct p vkw wk
+if ne wq VNONE
+wr = sv_lskip wq
+wt = VNONE
+if or sv_lisc wr 61 sv_lisc wr 58
+wt = sv_lnx wr
+else
+if sv_lbd wr
+wu = sv_lmc wr vlis
+if ne wu VNONE
+if sv_lbd wu
+wt = wu
+end
+end
+end
+end
+if ne wt VNONE
+wu = sv_lskip wt
+if and lt wu sv_le not sv_lsp wu
+ret true
+end
+end
+end
+end
+ret false
+end
+note B: -- ([a-z0-9]+[_-])* KEYWORD \s+ \S+
+fn sv_lsb p ulong to bool
+if ne sv_lmc p vlsch add p 2
+ret false
+end
+wr = add p 2
+while true bound 4096
+for wk ulong sv_tcount vkw
+wq = sv_lmct wr vkw wk
+if ne wq VNONE
+if sv_lsp wq
+wu = sv_lskip wq
+if and lt wu sv_le not sv_lsp wu
+ret true
+end
+end
+end
+end
+we = sv_lrun wr 8
+if eq we wr
+ret false
+end
+if not or sv_lisc we 95 sv_lisc we 45
+ret false
+end
+wr = add we 1
+end
+ret false
+end
+note C: \b (sk-|ghp_|gho_|github_pat_|xox[baprs]-|AKIA) [a-z0-9_-]+
+fn sv_lsc p ulong to bool
+if not sv_lbd p
+ret false
+end
+for wk ulong sv_tcount vtokp
+wq = sv_lmct p vtokp wk
+if ne wq VNONE
+if sv_lcls wq 0
+ret true
+end
+end
+end
+ret false
+end
+note D: -----BEGIN \s+ ([A-Z]+ \s+)* PRIVATE \s+ KEY
+fn sv_lsd p ulong to bool
+wq = sv_lmc p vlbeg
+if eq wq VNONE
+ret false
+end
+if not sv_lsp wq
+ret false
+end
+wr = sv_lskip wq
+while true bound 4096
+wt = sv_lmc wr vlpriv
+if ne wt VNONE
+if sv_lsp wt
+if ne sv_lmc sv_lskip wt vlkey VNONE
+ret true
+end
+end
+end
+we = sv_lrun wr 5
+if or eq we wr not sv_lsp we
+ret false
+end
+wr = sv_lskip we
+end
+ret false
+end
+note E: \b Bearer \s+ [a-z0-9._-]{8,}
+fn sv_lse p ulong to bool
+if not sv_lbd p
+ret false
+end
+wq = sv_lmc p vlbear
+if eq wq VNONE
+ret false
+end
+if not sv_lsp wq
+ret false
+end
+ret ge sv_lrunn sv_lskip wq 1 8
+end
+note F: [a-z][a-z0-9+.-]*:// [^\s/@]+ : [^\s/@]+ @
+fn sv_lsf p ulong to bool
+if not sv_laz p
+ret false
+end
+wq = sv_lrun sv_lnx p 2
+wq = sv_lmc wq vlcss
+if eq wq VNONE
+ret false
+end
+we = sv_lrun wq 7
+if not sv_lisc we 64
+ret false
+end
+wi = sv_lnx wq
+while lt wi we bound 999999
+if sv_lisc wi 58
+if lt sv_lnx wi we
+ret true
+end
+end
+wi = sv_lnx wi
+end
+ret false
+end
+fn sv_lsec p ulong to bool
+if or sv_lsa p sv_lsb p
+ret true
+end
+if or sv_lsc p sv_lsd p
+ret true
+end
+ret or sv_lse p sv_lsf p
+end
+note sv_lrfc: the RFC 8032 TEST 1 value sits at p (ASCII case-insensitive, Rust
+note eq_ignore_ascii_case) and \S+ ends right after it.
+fn sv_lrfc p ulong to bool
+we = add p len vrfcval
+if gt we sv_le
+ret false
+end
+for wj ulong len vrfcval
+if ne sv_lc get va add sv_off sv_ls add p wj sv_lc get vrfcval wj
+ret false
+end
+end
+ret not and lt we sv_le not sv_lsp we
+end
+fn sv_lctx to bool
+for wi ulong sub sv_le sv_lb
+wok = le add add sv_lb wi len vrfcctx sv_le
+if wok
+if sv_eqmc add sv_off sv_ls add sv_lb wi vrfcctx
+ret true
+end
+end
+end
+ret false
+end
+fn sv_lsecf to bool
+wctx = sv_lctx
+p = sv_lb
+while lt p sv_le bound 999999
+if sv_lsec p
+if and wctx sv_lrfc p
+p = add p len vrfcval
+continue
+end
+ret true
+end
+p = sv_lnx p
+end
+ret false
+end
+note email: \b [a-z0-9._%+-]+ @ [a-z0-9.-]+ \. [a-z]{2,} \b
+fn sv_lmail wat ulong to bool
+wok = false
+wi = wat
+while gt wi sv_lb bound 999999
+wp = sv_pv sv_ls wi
+if not sv_lcls wp 3
+break
+end
+if sv_lbd wp
+wok = true
+end
+wi = wp
+end
+if not wok
+ret false
+end
+if not sv_lcls add wat 1 4
+ret false
+end
+wr = sv_lrun add wat 1 4
+wd = sv_lnx add wat 1
+while lt wd wr bound 999999
+if sv_lisc wd 46
+wl = sv_lrunn add wd 1 5
+if ge wl 2
+if not sv_lw sv_lrun add wd 1 5
+ret true
+end
+end
+end
+wd = sv_lnx wd
+end
+ret false
+end
+note path: (^ | [\s(<`"'\[=:,]) (~[/\\] | /([a-z0-9._-]+/)+)
+fn sv_ldel p ulong to bool
+if eq p sv_lb
+ret true
+end
+wq = sv_pv sv_ls p
+if sv_lsp wq
+ret true
+end
+wc = sv_lcp wq
+for wj ulong len vldel
+if eq wc ulong get vldel wj
+ret true
+end
+end
+ret false
+end
+fn sv_lpath p ulong to bool
+if not sv_ldel p
+ret false
+end
+if sv_lisc p 126
+ret or sv_lisc add p 1 47 sv_lisc add p 1 92
+end
+if not sv_lisc p 47
+ret false
+end
+we = sv_lrun add p 1 1
+ret and gt we add p 1 sv_lisc we 47
+end
+note root (case-sensitive): ~/ or ~\ or /NAME/ anywhere.
+fn sv_lroot p ulong to bool
+if sv_lisc p 126
+if or sv_lisc add p 1 47 sv_lisc add p 1 92
+ret true
+end
+end
+for wk ulong sv_tcount vroots
+wa = sv_tat vroots wk
+wl = sv_tlen vroots wa
+if le add p wl sv_le
+if sv_eqm add sv_off sv_ls p part vroots wa wl
+ret true
+end
+end
+end
+ret false
+end
+note uuid: \b hex{8}-hex{4}-hex{4}-hex{4}-hex{12} \b
+fn sv_lhexn p ulong n ulong to bool
+for wj ulong n
+wc = sv_fold sv_lcp add p wj
+if not or and ge wc 48 le wc 57 and ge wc 97 le wc 102
+ret false
+end
+end
+ret true
+end
+fn sv_luuid p ulong to bool
+if not sv_lbd p
+ret false
+end
+if gt add p 36 sv_le
+ret false
+end
+wok = and sv_lhexn p 8 sv_lisc add p 8 45
+wok = and wok and sv_lhexn add p 9 4 sv_lisc add p 13 45
+wok = and wok and sv_lhexn add p 14 4 sv_lisc add p 18 45
+wok = and wok and sv_lhexn add p 19 4 sv_lisc add p 23 45
+wok = and wok sv_lhexn add p 24 12
+ret and wok sv_lbd add p 36
+end
+note host: \b (localhost | [a-z0-9_-]+(\.[a-z0-9_-]+)*\.(local|internal|ts\.net)) \b
+fn sv_lhost p ulong to bool
+wq = sv_lmc p vllh
+if ne wq VNONE
+if and sv_lbd p sv_lbd wq
+ret true
+end
+end
+if not sv_lisc p 46
+ret false
+end
+for wk ulong sv_tcount vhsuf
+we = sv_lmct p vhsuf wk
+if ne we VNONE
+if and sv_lbd we sv_lhstart p
+ret true
+end
+end
+end
+ret false
+end
+fn sv_lhstart d ulong to bool
+if le d sv_lb
+ret false
+end
+wj = sv_pv sv_ls d
+if not sv_lcls wj 0
+ret false
+end
+wdot = false
+while true bound 999999
+if sv_lisc wj 46
+if wdot
+ret false
+end
+wdot = true
+else
+if not sv_lcls wj 0
+ret false
+end
+wdot = false
+if sv_lbd wj
+ret true
+end
+end
+if le wj sv_lb
+ret false
+end
+wj = sv_pv sv_ls wj
+end
+ret false
+end
+note ipv4: \b (\d{1,3}\.){3} \d{1,3} \b  (\d is Unicode)
+fn sv_ldig i ulong to bool
+if ge i sv_le
+ret false
+end
+ret sv_ind sv_lcp i
+end
+fn sv_lip4 p ulong to bool
+if not and sv_ldig p sv_lbd p
+ret false
+end
+wi = p
+for wg ulong 4
+wn = ulong 0
+while sv_ldig wi bound 999999
+wi = sv_lnx wi
+wn = add wn 1
+end
+if or eq wn 0 gt wn 3
+ret false
+end
+if lt wg 3
+if not sv_lisc wi 46
+ret false
+end
+wi = add wi 1
+end
+end
+ret not sv_lw wi
+end
+note ipv6: \[ [0-9a-f:]{2,} \]
+fn sv_lip6 p ulong to bool
+if not sv_lisc p 91
+ret false
+end
+wn = sv_lrunn add p 1 6
+ret and ge wn 2 sv_lisc sv_lrun add p 1 6 93
+end
+note port: :18[0-9]{3}\b (ASCII digits)
+fn sv_ladig i ulong to bool
+wc = sv_lcp i
+ret and ge wc 48 le wc 57
+end
+fn sv_lport p ulong to bool
+if not and sv_lisc p 58 and sv_lisc add p 1 49 sv_lisc add p 2 56
+ret false
+end
+if not and sv_ladig add p 3 and sv_ladig add p 4 sv_ladig add p 5
+ret false
+end
+ret not sv_lw add p 6
+end
+note pid: \b pid \s* [0-9]+ \b
+fn sv_lpid p ulong to bool
+if not sv_lbd p
+ret false
+end
+wq = sv_lmc p vlpid
+if eq wq VNONE
+ret false
+end
+wq = sv_lskip wq
+if not sv_ladig wq
+ret false
+end
+while sv_ladig wq bound 999999
+wq = add wq 1
+end
+ret not sv_lw wq
+end
+fn sv_lctl c ulong to bool
+ret or lt c 32 and ge c 127 le c 159
+end
+note sv_lfield: the verdict for one field; reports the first reason (Rust returns one error too)
+fn sv_lfield to bool
+if sv_lsecf
+sv_failx vrl vtls add sv_off sv_ls sv_lb sub sv_le sv_lb
+ret false
+end
+wp = sv_lb
+while lt wp sv_le bound 999999
+if sv_lisc wp 64
+if sv_lmail wp
+sv_fail vrl vtle
+ret false
+end
+end
+if sv_lctl sv_lcp wp
+sv_fail vrl vtlx
+ret false
+end
+wp = sv_lnx wp
+end
+wp = sv_lb
+while lt wp sv_le bound 999999
+if sv_lpriv wp
+sv_failx vrl vtlp add sv_off sv_ls sv_lb sub sv_le sv_lb
+ret false
+end
+wp = sv_lnx wp
+end
+ret true
+end
+fn sv_lpriv p ulong to bool
+if or sv_lpath p sv_lroot p
+ret true
+end
+if or sv_luuid p sv_lhost p
+ret true
+end
+if or sv_lip4 p sv_lip6 p
+ret true
+end
+ret or sv_lport p sv_lpid p
+end
+note sv_vledger: the file at vpath is LF-terminated, has no CR, starts with the exact header and
+note every row has 5..8 tab-separated fields that are all public. Rows keep their line numbers.
+fn sv_vledger to bool
+wf = get vfail 0
+sv_ctxp
+ws = sv_load
+if eq ws 0
+sv_fail vrl vtnf
+ret false
+end
+wn = sv_n ws
+wok = sv_ends ws vtnl
+wok = and wok eq sv_findb ws 13 VNONE
+wok = and wok sv_starts ws vlhead
+if not wok
+sv_fail vrl vtlh
+sv_drop ws
+ret false
+end
+put vlx 2 ws
+wi = len vlhead
+while lt wi wn bound 999999
+we = sv_find ws vtnl wi
+sv_lrow wi we
+wi = add we 1
+end
+sv_drop ws
+ret eq get vfail 0 wf
+end
+fn sv_lrow a ulong b ulong to void
+wc = ulong 0
+wi = a
+while true bound 16
+we = sv_findn sv_ls vttab wi b
+if eq we VNONE
+we = b
+end
+if eq wc 8
+sv_fail vrl vtlc
+ret
+end
+put vlx 0 wi
+put vlx 1 we
+if not sv_lfield
+ret
+end
+wc = add wc 1
+if eq we b
+break
+end
+wi = add we 1
+end
+if lt wc 5
+sv_fail vrl vtlc
+end
+end
+
+note ---------------------------------------------------------------- dispatcher
+note sv_vdata kind path: validate one file; true when it passes. Usable before any page is
+note written (B1-B4) and by the dist verifier (V1, D1-D5). An unknown kind is a refusal.
+fn sv_vdata kind view uchar * path view uchar * to bool
+put vpn 0 0
+sv_padd path
+sv_ctxp
+if not sv_exists
+sv_failt vrd5 vtnf path
+ret false
+end
+ret sv_vkind kind
+end
+note sv_vdist: the same for a file under the dist root.
+fn sv_vdist kind view uchar * rel view uchar * to bool
+sv_prel rel
+if not sv_exists
+sv_failt vrd5 vtnf rel
+ret false
+end
+ret sv_vkind kind
+end
+fn sv_vkind kind view uchar * to bool
+if sr_equal kind vkmach
+ret sv_vmach
+end
+if sr_equal kind vkomega
+ret sv_vomega
+end
+if sr_equal kind vkcuda
+ret sv_vcuda
+end
+if sr_equal kind vkres
+ret sv_vres
+end
+ret sv_vdat2 kind
+end
+fn sv_vdat2 kind view uchar * to bool
+if sr_equal kind vkfacts
+ret sv_vfacts
+end
+if sr_equal kind vkagent
+ret sv_vagent
+end
+if sr_equal kind vkprog
+ret sv_vprog
+end
+if sr_equal kind vkstat
+ret sv_vstatus
+end
+if sr_equal kind vkindex
+ret sv_vindex
+end
+ret sv_vdat3 kind
+end
+fn sv_vdat3 kind view uchar * to bool
+if sr_equal kind vkpages
+ret sv_vpages
+end
+if sr_equal kind vknow
+ret sv_vnow
+end
+if sr_equal kind vkquote
+ret sv_vquote
+end
+if sr_equal kind vkledg
+ret sv_vledger
+end
+if sr_equal kind vkengr
+ret sv_vengine
+end
+sr_fail vtsetx
+ret false
+end

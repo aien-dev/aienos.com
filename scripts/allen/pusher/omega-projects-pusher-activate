@@ -1,0 +1,31 @@
+#!/bin/bash
+# omega-projects-pusher-activate: seal Drake's fine-grained token for the pusher.
+#
+# Drake first creates, in the GitHub web UI, a fine-grained personal access token with
+# resource owner aien-dev, repository access "Only select repositories: omega-projects",
+# and repository permissions Contents: Read and write, Issues: Read and write,
+# Pull requests: Read and write (Metadata: Read is added automatically). Then:
+#
+#   vault-add-secret OMEGA_PROJECTS_TOKEN      # paste it; nothing is echoed
+#   omega-projects-pusher-activate             # seal it for the pusher unit
+#
+# The value goes from the atlas vault straight into systemd-creds (host+tpm2) at
+# /etc/credstore.encrypted/omega-projects-token; it is never printed or written in clear.
+# The unit imports it with ImportCredential=; only the service's private credentials
+# directory ever holds the decrypted value.
+set -euo pipefail
+cred=/etc/credstore.encrypted/omega-projects-token
+token=$(atlas-vault get OMEGA_PROJECTS_TOKEN) || { echo "OMEGA_PROJECTS_TOKEN is not in the atlas vault" >&2; exit 1; }
+if [[ ! $token =~ ^github_pat_[A-Za-z0-9_]{20,250}$ ]]; then
+    unset token
+    echo "OMEGA_PROJECTS_TOKEN is not a fine-grained github_pat_ token; refusing it" >&2
+    exit 1
+fi
+sudo -n install -d -m 0700 -o root -g root /etc/credstore.encrypted
+printf '%s' "$token" | sudo -n systemd-creds encrypt --with-key=host+tpm2 \
+    --name=omega-projects-token - "$cred.new"
+unset token
+sudo -n chmod 0600 "$cred.new"
+sudo -n mv "$cred.new" "$cred"
+echo "sealed $cred; starting omega-projects-pusher.service for any queued items"
+sudo -n systemctl start --no-block omega-projects-pusher.service
