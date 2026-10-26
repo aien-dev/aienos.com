@@ -1,0 +1,4926 @@
+<article class="alpha"><header class="alpha-hero"><p class="alpha-kicker">AienOS / ALPHA TESTING</p><h1>Keep the GPU.<br><span>Lose the stack.</span></h1><p class="alpha-lead">Alpha testing is open. I am building a different path from your model to your GPU, without NVIDIA's user-space stack in the middle.</p><div class="alpha-install"><code id="alpha-command">curl -fsSL https://aienos.com/install.sh | sh</code><button id="alpha-copy" type="button">Copy command</button></div><p id="alpha-copy-status" class="alpha-copy-status" role="status" aria-live="polite"></p><p class="alpha-small">Linux arm64 + NVIDIA GB10 only. Experimental software, installed beside your existing stack. <a href="/install.sh">Read the bootstrap first</a>.</p><a class="alpha-scroll" href="#alpha-next">See what happens next ↓</a></header>
+<figure class="alpha-scene" aria-labelledby="alpha-scene-caption"><div class="alpha-space" aria-hidden="true"><svg class="alpha-orbits" viewBox="0 0 1000 500" fill="none"><ellipse cx="500" cy="250" rx="445" ry="125"/><ellipse cx="500" cy="250" rx="360" ry="95"/><ellipse cx="500" cy="250" rx="270" ry="65"/><path d="M35 110 Q500 480 965 110 M35 390 Q500 20 965 390"/></svg><div class="alpha-disc"></div><div class="alpha-hole"></div><div class="alpha-infall"><span data-stack="0">CUDA toolkit</span><span data-stack="1">libcuda</span><span data-stack="2">cuBLAS</span><span data-stack="3">nvcc</span></div><div class="alpha-kept"><span>YOUR GPU / STAYS</span><span>KERNEL DRIVER / STAYS</span></div></div><figcaption id="alpha-scene-caption"><strong>The event horizon is a metaphor.</strong> I am cutting the NVIDIA user-space dependency out of my inference path, not deleting your CUDA packages. Your GPU and NVIDIA kernel driver stay.</figcaption><button class="alpha-motion" id="alpha-motion" type="button" aria-pressed="false">Play the event horizon</button></figure>
+<section class="alpha-section" id="alpha-next"><p class="alpha-kicker">01 / THE ARRIVAL</p><h2>One download. Then a walkthrough.</h2><ol class="alpha-steps"><li><span>DOWNLOAD</span><h3>Run the command.</h3><p>The bootstrap checks your machine before downloading. It verifies the bundle, then adds a launcher at user level.</p></li><li><span>DOUBLE-CLICK</span><h3>Open the launcher.</h3><p>Open AienOS Alpha from your applications menu. The terminal wizard shows what it will change before asking for consent.</p></li><li><span>WIZARD</span><h3>Make the first run yours.</h3><p>Doctor, plan, consent, install, model download, first chat. The wizard names the download and its size before you agree.</p></li></ol><div class="alpha-capture"><p class="alpha-terminal-bar">AienOS ALPHA / OMEGA TERMINAL WIZARD</p><img src="/alpha/wizard-plan.svg" width="900" height="612" loading="lazy" decoding="async" alt="Captured Omega wizard plan screen: the side-by-side release and model paths, with NVIDIA packages left untouched."><details><summary>Read the captured terminal text</summary><pre>▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀nvcc▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀libcuda.so▀▀▀▀A tool▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀u▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀TensorRT▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀cuBLAS▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+ AienOS alpha   step 3 of 8  plan  written in Omega (.om)
+  Here is exactly what changes, all inside your home folder:
+
+  ~/.local/share/aienos/releases/alpha-20261026.1   this release, already unpacked and checked
+  ~/.local/share/aienos/models/qwen3.8-27b-fp8-017b9c7a
+     the model: 30.9 GB in 81 files.
+  ~/.local/share/aienos/engine.log   the engine's log, when it runs
+  ~/.local/bin/aienos, the menu entry and the desktop icon (already there)
+
+  Not touched: NVIDIA's driver, the CUDA toolkit, libcuda, cuBLAS, /usr, /etc. No sudo.
+  Undo everything at any time:  aienos uninstall
+
+
+
+
+  &gt; Press Enter for the last question
+</pre></details></div><p class="alpha-small">Captured from the real Omega wizard in a fake-root host run. This is not a GPU installation receipt.</p></section><section class="alpha-section" id="alpha-hardware"><p class="alpha-kicker">02 / KNOW THE BOUNDARY</p><h2>One machine family first.</h2><div class="alpha-columns"><div><h3>NVIDIA DGX Spark / GB10</h3><p>The install target is Linux arm64 with an NVIDIA GB10 (sm_121) and its kernel driver. I am not offering a Windows, macOS, x86 Linux or other-GPU installer yet. Unsupported machines receive a friendly “not yet” without an installation.</p><p>The default model is <strong>Qwen3.8-27B-FP8</strong>, pinned to revision <code>017b9c7a</code>: 30,890,049,597 bytes from Hugging Face, with each file hash-checked. The live Spark's 35B model is not offered because it needs an unmerged engine path.</p><h3>What is coming for other machines?</h3><p><strong>PROPOSED:</strong> more hardware and operating systems, after a working port and device-specific evidence. I will not label a machine supported because the code compiles. <a href="https://github.com/aien-dev/omega-projects/issues">Tell me which machine you want to test</a>.</p></div><aside class="alpha-evidence"><p class="alpha-kicker">EVIDENCE, NOT A PROMISE</p><h3>Alpha is a testing phase.</h3><p><strong>IMPLEMENTED:</strong> the Omega wizard and the side-by-side install path.</p><p><strong>EXERCISED:</strong> Core commit <code>cf239078</code> passed <code>SC-GB10-SERVE-CHAT</code> once (1 token), under tag <code>alpha/20261025.1</code>. <a href="https://github.com/aien-dev/aien-receipts/blob/main/aien-sovereign-core/cf239078d05a47d84353c1508a08663273f00c3e/bundle.json">Read the engine receipt</a>.</p><p><strong>NOT_RUN:</strong> This release binary: GPU NOT_RUN. A user's GB10 install through first token and the new install's three-pass physical qualification are also NOT_RUN. I am not calling this installer hardware-qualified.</p><p><a href="https://github.com/aien-dev/AienOS-nv/releases/tag/alpha-20261026.1">Release, exact artifacts and evidence</a></p></aside></div></section>
+<section class="alpha-section" id="alpha-source"><p class="alpha-kicker">03 / NOTHING BEHIND THE CURTAIN</p><h2>Built entirely in Omega.</h2><p class="alpha-lead">The walkthrough wizard is a seeded <code>.om</code> program. This page's structure and small motion client are generated by Omega too. Read the source, keep a copy, change it.</p><p>I mean the wizard, not every dependency in the delivery chain: the download bootstrap is POSIX sh, the website builder is Rust, and the host still supplies Linux, a terminal, signature verification and the NVIDIA kernel driver. Those boundaries are explicit.</p><p>The wizard source below targets seeded Omega compiler revision <code>3364a1dfd</code>. This page generator uses its separately pinned compiler; they are not interchangeable.</p><div class="alpha-links"><a href="https://github.com/aien-dev/AienOS-nv/tree/alpha-20261026.1/installer/wizard">Browse the wizard source</a><a href="/alpha/wizard.om" download="wizard.om">Download wizard.om ↓</a><a href="https://github.com/aien-dev/aienos.com/tree/main/om/alpha-page">Read this page's Omega</a></div><details class="alpha-source"><summary>Read the wizard's .om source</summary><pre><code>note SPDX-License-Identifier: Apache-2.0
+note sha256.om: vendored from aien-dev/omega-mv 3364a1dfd0ca50c1b82bf19ba34932d8bc10a7a9 om/sha256/sha256-om2.om
+note (source sha256 dbf002dd6aa36585632b9d01d98ac3f0bd2fa0f0475082940de53638847994bb). Derived mechanically: every "export fn" became "fn", because a
+note program-mode unit (one with fn main) refuses export (OMEGESE 9.13, error 9). build.sh re-derives
+note this file from the pinned source and refuses any other difference.
+note SPDX-License-Identifier: Apache-2.0
+note sha256-om2.om: FIPS 180-4 SHA-256 in OM-2 (spec/omegese-om2.md, #747/#748, ledger L838).
+note The four entries are the API of src/sha256.h, exported through omega-bridge ABI v2 as
+note omega2_sha256_init/update/final/hash; the bridge's generated omega_api.h maps the C names.
+note
+note Invariants:
+note - All hashing state is the caller's 104-byte context (layout shactx below, equal to sha256_ctx
+note   on LP64 AArch64). Nothing else persists between calls, so a byte copy of a live context is an
+note   equivalent context (erratum E3).
+note - count is the number of bytes absorbed since init, modulo 2^64. buf[0 .. count mod 64) holds the
+note   pending bytes of the current block; the rest of buf is unspecified. state is the chaining value
+note   after the count div 64 whole blocks.
+note - final reads the context and writes only the digest, so the context is unchanged by it. The
+note   contract promises less (after final the context is unspecified, memory safety only).
+note - Every branch and every loop count depends only on lengths, never on message bytes (section 8).
+note - Indices into the unsized input view are checked at run time (trap 3); indices into sized
+note   arrays inside unrolled bodies are constants and checked when compiled.
+note bridge c-type shactx sha256_ctx
+note bridge c-define SHA256_DIGEST_SIZE 32
+note bridge c-define SHA256_BLOCK_SIZE 64
+om2
+
+layout shactx 104
+field state uint 8 at 0 little
+field count ulong at 32 little
+field buf uchar 64 at 40 little
+end
+
+note K[0..63]: the first 32 bits of the fractional parts of the cube roots of the first 64 primes.
+note Copied mechanically from seed/qualification/om2/fixtures/sha256-k.dec (tool-computed, never typed).
+fn kinit k edit uint 64 to void
+put k 0 0x428a2f98
+put k 1 0x71374491
+put k 2 0xb5c0fbcf
+put k 3 0xe9b5dba5
+put k 4 0x3956c25b
+put k 5 0x59f111f1
+put k 6 0x923f82a4
+put k 7 0xab1c5ed5
+put k 8 0xd807aa98
+put k 9 0x12835b01
+put k 10 0x243185be
+put k 11 0x550c7dc3
+put k 12 0x72be5d74
+put k 13 0x80deb1fe
+put k 14 0x9bdc06a7
+put k 15 0xc19bf174
+put k 16 0xe49b69c1
+put k 17 0xefbe4786
+put k 18 0x0fc19dc6
+put k 19 0x240ca1cc
+put k 20 0x2de92c6f
+put k 21 0x4a7484aa
+put k 22 0x5cb0a9dc
+put k 23 0x76f988da
+put k 24 0x983e5152
+put k 25 0xa831c66d
+put k 26 0xb00327c8
+put k 27 0xbf597fc7
+put k 28 0xc6e00bf3
+put k 29 0xd5a79147
+put k 30 0x06ca6351
+put k 31 0x14292967
+put k 32 0x27b70a85
+put k 33 0x2e1b2138
+put k 34 0x4d2c6dfc
+put k 35 0x53380d13
+put k 36 0x650a7354
+put k 37 0x766a0abb
+put k 38 0x81c2c92e
+put k 39 0x92722c85
+put k 40 0xa2bfe8a1
+put k 41 0xa81a664b
+put k 42 0xc24b8b70
+put k 43 0xc76c51a3
+put k 44 0xd192e819
+put k 45 0xd6990624
+put k 46 0xf40e3585
+put k 47 0x106aa070
+put k 48 0x19a4c116
+put k 49 0x1e376c08
+put k 50 0x2748774c
+put k 51 0x34b0bcb5
+put k 52 0x391c0cb3
+put k 53 0x4ed8aa4a
+put k 54 0x5b9cca4f
+put k 55 0x682e6ff3
+put k 56 0x748f82ee
+put k 57 0x78a5636f
+put k 58 0x84c87814
+put k 59 0x8cc70208
+put k 60 0x90befffa
+put k 61 0xa4506ceb
+put k 62 0xbef9a3f7
+put k 63 0xc67178f2
+end
+
+note H(0): the first 32 bits of the fractional parts of the square roots of the first 8 primes
+note (fixtures/sha256-iv.dec).
+fn iv s edit uint 8 to void
+put s 0 0x6a09e667
+put s 1 0xbb67ae85
+put s 2 0x3c6ef372
+put s 3 0xa54ff53a
+put s 4 0x510e527f
+put s 5 0x9b05688c
+put s 6 0x1f83d9ab
+put s 7 0x5be0cd19
+end
+
+note Message schedule of the block m[o .. o+64). w is fresh: its incoming contents are never read.
+note The compiler proves that every get of w reads an element written earlier in this function
+note (error 27 otherwise): w[0..16) are the block's big-endian words, w[16..64) the FIPS recurrence.
+fn sched w edit uint 64 fresh m view uchar * o ulong to void
+q = ulong 0
+x = uint 0
+y = uint 0
+for i ulong 16 unroll
+q = add o mul i 4
+x = uint get m q
+x = or shl x 8 uint get m add q 1
+x = or shl x 8 uint get m add q 2
+put w i or shl x 8 uint get m add q 3
+end
+for i ulong 48 unroll
+x = get w add i 1
+y = get w add i 14
+x = add add get w i get w add i 9 xor xor rotr x 7 rotr x 18 shr x 3
+put w add i 16 add x xor xor rotr y 17 rotr y 19 shr y 10
+end
+end
+
+note The 64 rounds on the chaining value s. One round body, emitted 64 times by unroll; i is a constant
+note in each copy, so get kt i and get w i need no run-time check. uint arithmetic wraps mod 2^32.
+note Ch(e,f,g) = (e and f) xor (not e and g) is written g xor (e and (f xor g)); Maj(a,b,c) =
+note (a and b) xor (a and c) xor (b and c) is written (a and b) or (c and (a or b)). Both are bitwise
+note identities. h first becomes T1, then T1 + T2, which is the next a; the names then shift by one.
+note The sums are built a term per line and each Sigma in two lines through t: 12 names are live, and
+note omc hands out 16 registers with no spilling (error 12 under compiler-s1/s2 for longer lines).
+fn rounds s edit uint 8 w view uint 64 kt view uint 64 to void
+a = get s 0
+b = get s 1
+c = get s 2
+d = get s 3
+e = get s 4
+f = get s 5
+g = get s 6
+h = get s 7
+t = uint 0
+for i ulong 64 unroll
+h = add h get kt i
+h = add h get w i
+t = xor rotr e 6 rotr e 11
+t = xor t rotr e 25
+h = add h t
+h = add h xor g and e xor f g
+d = add d h
+t = xor rotr a 2 rotr a 13
+t = xor t rotr a 22
+h = add h t
+t = and c or a b
+h = add h or and a b t
+t = h
+h = g
+g = f
+f = e
+e = d
+d = c
+c = b
+b = a
+a = t
+end
+put s 0 add get s 0 a
+put s 1 add get s 1 b
+put s 2 add get s 2 c
+put s 3 add get s 3 d
+put s 4 add get s 4 e
+put s 5 add get s 5 f
+put s 6 add get s 6 g
+put s 7 add get s 7 h
+end
+
+note One block m[o .. o+64) into s. sched and rounds stay calls: inlined, their names would share
+note one 16-register frame with this function's parameters (no spilling, error 12).
+fn compress s edit uint 8 w edit uint 64 kt view uint 64 m view uchar * o ulong to void
+sched w m o
+rounds s w kt
+end
+
+note The whole blocks of m (len m is a multiple of 64 and at most 2^25, so under 2^19 passes).
+fn run s edit uint 8 w edit uint 64 kt view uint 64 m view uchar * to void
+for j ulong shr len m 6
+compress s w kt m shl j 6
+end
+end
+
+note The whole blocks of m (len m a multiple of 64). A rolled loop traps 4 after 1000000 passes
+note (OMEGESE.md section 2; omc s_for), so m is cut into runs of 2^25 bytes (2^19 blocks):
+note len m = top * 2^44 + mid * 2^25 + rest, and no loop passes 2^20 times. top reaches 1000000
+note only above 1.7e19 bytes, which no AArch64 address space holds.
+fn blocks s edit uint 8 w edit uint 64 kt view uint 64 m view uchar * to void
+q = ulong 0
+for a ulong shr len m 44
+for b ulong 0x80000
+run s w kt part m q 0x2000000
+q = add q 0x2000000
+end
+end
+for b ulong and shr len m 25 0x7ffff
+run s w kt part m q 0x2000000
+q = add q 0x2000000
+end
+run s w kt part m q sub len m q
+end
+
+note Pad the k pending bytes already in p (k &lt; 64; p was all zero past them): 0x80, zeros, and the
+note 64-bit big-endian bit length of the n-byte message in the last 8 bytes of one or two blocks.
+fn finish s edit uint 8 w edit uint 64 kt view uint 64 p edit uchar 128 k ulong n ulong to void
+put p k 0x80
+e = ulong 64
+if ge k 56
+e = 128
+end
+bits = shl n 3
+for i ulong 8 unroll
+put p sub e add i 1 uchar and shr bits mul i 8 0xff
+end
+compress s w kt view p 0
+if eq e 128
+compress s w kt view p 64
+end
+end
+
+fn sha256_init c edit shactx to void
+s = new uint 8 0
+iv s
+for i ulong 8 unroll
+put c state i get s i
+end
+put c count 0
+end
+
+note k bytes of d from o into the context's buffer at bi (bi + k &lt;= 64). A function of its own: inside
+note absorb the copy loop needs more than the 16 registers (error 12 under compiler-s4).
+fn tobuf c edit shactx bi ulong d view uchar * o ulong k ulong to void
+for i ulong k
+put c buf add bi i get d add o i
+end
+end
+
+note Whole blocks are hashed straight from d; the bytes that complete a pending block go through blk.
+fn absorb c edit shactx d view uchar * bi ulong to void
+n = len d
+s = new uint 8 0
+w = new uint 64 0
+kt = new uint 64 0
+blk = new uchar 64 0
+kinit kt
+for i ulong 8 unroll
+put s i get c state i
+end
+off = ulong 0
+if gt bi 0
+off = sub 64 bi
+for i ulong bi
+put blk i get c buf i
+end
+for i ulong off
+put blk add bi i get d i
+end
+compress s w kt view blk 0
+end
+nb = shr sub n off 6
+blocks s w kt part d off shl nb 6
+off = add off shl nb 6
+tobuf c 0 d off sub n off
+for i ulong 8 unroll
+put c state i get s i
+end
+end
+
+note Any length, including 0 and &gt;= 2^32. lt n sub 64 bi cannot wrap (bi &lt; 64); add bi n could.
+fn sha256_update c edit shactx d view uchar * to void
+n = len d
+cnt = get c count
+bi = and cnt 63
+put c count add cnt n
+if lt n sub 64 bi
+tobuf c bi d 0 n
+ret
+end
+absorb c d bi
+end
+
+fn sha256_final c edit shactx o out uchar 32 to void
+s = new uint 8 0
+w = new uint 64 0
+kt = new uint 64 0
+p = new uchar 128 0
+v = ulong 0
+kinit kt
+for i ulong 8 unroll
+put s i get c state i
+end
+cnt = get c count
+k = and cnt 63
+for i ulong k
+put p i get c buf i
+end
+finish s w kt p k cnt
+for i ulong 8 unroll
+v = ulong get s i
+for j ulong 4 unroll
+put o add mul i 4 j uchar and shr v sub 24 mul j 8 0xff
+end
+end
+end
+
+note Equal to init, update(d), final on a fresh context (section 7), with the state in locals. o may
+note overlap d: the binding copies o out only after the call returns status 0.
+fn sha256_hash d view uchar * o out uchar 32 to void
+s = new uint 8 0
+w = new uint 64 0
+kt = new uint 64 0
+p = new uchar 128 0
+v = ulong 0
+kinit kt
+iv s
+n = len d
+nb = shr n 6
+blocks s w kt part d 0 shl nb 6
+off = shl nb 6
+k = sub n off
+for i ulong k
+put p i get d add off i
+end
+finish s w kt p k n
+for i ulong 8 unroll
+v = ulong get s i
+for j ulong 4 unroll
+put o add mul i 4 j uchar and shr v sub 24 mul j 8 0xff
+end
+end
+end
+note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+note lib.om: the output buffer, numbers, ANSI escapes, paths, files, environment and child
+note processes shared by every screen of the AienOS wizard. Linux arm64 only; every kernel result is
+note a count or minus the Linux errno and is checked where it is used.
+
+global ob uchar 262144
+global obn ulong 1
+global pb uchar 4096
+global pbn ulong 1
+global rb uchar 524288
+global rbn ulong 1
+global hb uchar 1024
+global hbn ulong 1
+global rt uchar 1024
+global rtn ulong 1
+global pr uchar 512
+global prn ulong 1
+global ib uchar 4096
+global ibn ulong 1
+global eb uchar 4096
+global pk uchar 4096
+global pkn ulong 1
+global sb uchar 128
+global ws uchar 8
+global sn int 64
+text tslash "/"
+text t_yes "yes"
+text tusrbin "/usr/bin/"
+text tbin "/bin/"
+
+note Append t to the output buffer. A frame never comes near the 256 KiB cap; past it the
+note bytes are dropped rather than trapping, and the next flush starts clean.
+fn emit t view uchar * to void
+n = get obn 0
+if gt add n len t len ob
+ret
+end
+for i ulong len t
+put ob add n i get t i
+end
+put obn 0 add n len t
+end
+
+fn putb b uchar to void
+n = get obn 0
+if lt n len ob
+put ob n b
+put obn 0 add n 1
+end
+end
+
+note Decimal digits of v, most significant first.
+fn num v ulong to void
+d = new uchar 20 0
+k = ulong 0
+x = v
+while true bound 21
+put d k uchar add rem x 10 48
+k = add k 1
+x = div x 10
+if eq x 0
+break
+end
+end
+for i ulong k
+putb get d sub sub k 1 i
+end
+end
+
+fn snum v long to void
+if lt v 0
+putb 45
+num ulong neg v
+ret
+end
+num ulong v
+end
+
+fn numw v ulong w ulong to void
+x = v
+k = ulong 1
+while ge x 10 bound 21
+x = div x 10
+k = add k 1
+end
+while lt k w bound 64
+putb 32
+k = add k 1
+end
+num v
+end
+
+note Write the whole buffer to fd 1 with a partial-write loop, then empty it.
+fn flush to long
+n = get obn 0
+o = ulong 0
+while lt o n bound 262145
+w = write 1 ob o sub n o
+if le w 0
+put obn 0 0
+ret w
+end
+o = add o ulong w
+end
+put obn 0 0
+ret long n
+end
+
+fn csi to void
+putb 27
+putb 91
+end
+
+fn mv r ulong c ulong to void
+csi
+num r
+putb 59
+num c
+putb 72
+end
+
+fn fg r ulong g ulong b ulong to void
+csi
+putb 51
+putb 56
+putb 59
+putb 50
+putb 59
+num r
+putb 59
+num g
+putb 59
+num b
+putb 109
+end
+
+fn bg r ulong g ulong b ulong to void
+csi
+putb 52
+putb 56
+putb 59
+putb 50
+putb 59
+num r
+putb 59
+num g
+putb 59
+num b
+putb 109
+end
+
+fn sgr0 to void
+csi
+putb 48
+putb 109
+end
+
+fn bold to void
+csi
+putb 49
+putb 109
+end
+
+note Erase from the cursor to the end of the line.
+fn eol to void
+csi
+putb 75
+end
+
+fn cls to void
+csi
+putb 50
+putb 74
+end
+
+note Cursor home with no parameters: every animation frame starts with it.
+fn home to void
+csi
+putb 72
+end
+
+note Alternate screen and hidden cursor on (true) or the user's screen and cursor back (false).
+fn scrn on bool to void
+csi
+putb 63
+num 1049
+if on
+putb 104
+csi
+putb 63
+num 25
+putb 108
+else
+putb 108
+csi
+putb 63
+num 25
+putb 104
+end
+end
+
+note The 64-entry sine table, sin(2 pi k / 64) scaled by 1000, computed with Wolfram:
+note Table[Round[1000*Sin[2 Pi k/64]], {k, 0, 63}]. Only the first quadrant is stored by hand;
+note the rest follows from sin(pi - x) = sin x and sin(x + pi) = -sin x.
+fn sinit to void
+q = new int 17 0
+put q 1 98
+put q 2 195
+put q 3 290
+put q 4 383
+put q 5 471
+put q 6 556
+put q 7 634
+put q 8 707
+put q 9 773
+put q 10 831
+put q 11 882
+put q 12 924
+put q 13 957
+put q 14 981
+put q 15 995
+put q 16 1000
+for k ulong 17
+put sn k get q k
+put sn sub 32 k get q k
+end
+for k ulong 32
+put sn add k 32 neg get sn k
+end
+end
+
+fn isin k ulong to long
+ret long get sn and k 63
+end
+
+fn icos k ulong to long
+ret long get sn and add k 16 63
+end
+
+note Paths: pb is built piece by piece and handed to the host words with its length pbn.
+fn pclr to void
+put pbn 0 0
+end
+
+fn pstr t view uchar * to void
+n = get pbn 0
+if gt add n len t len pb
+trap 3
+end
+for i ulong len t
+put pb add n i get t i
+end
+put pbn 0 add n len t
+end
+
+fn pbyte b uchar to void
+n = get pbn 0
+put pb n b
+put pbn 0 add n 1
+end
+
+fn pnum v ulong to void
+d = new uchar 20 0
+k = ulong 0
+x = v
+while true bound 21
+put d k uchar add rem x 10 48
+k = add k 1
+x = div x 10
+if eq x 0
+break
+end
+end
+for i ulong k
+pbyte get d sub sub k 1 i
+end
+end
+
+fn phome to void
+for i ulong get hbn 0
+pbyte get hb i
+end
+end
+
+fn proot to void
+for i ulong get rtn 0
+pbyte get rt i
+end
+end
+
+note A probe path: the test-only prefix AIENOS_PROBE_ROOT (empty in normal use) then t.
+fn pprobe t view uchar * to void
+pclr
+for i ulong get prn 0
+pbyte get pr i
+end
+pstr t
+end
+
+note Append rb[o .. o+n) to the path.
+fn prb o ulong n ulong to void
+for i ulong n
+pbyte get rb add o i
+end
+end
+
+fn pdrop k ulong to void
+put pbn 0 sub get pbn 0 k
+end
+
+note Stat pb into sb. Returns 0 or minus errno.
+fn pstat to long
+ret stat pb 0 get pbn 0 sb 0 128
+end
+
+note File type bits of the last stat: 4 directory, 2 character device, 8 regular, 10 link.
+fn stype to ulong
+m = or or uint get sb 16 shl uint get sb 17 8 shl uint get sb 18 16
+ret ulong shr and m 61440 12
+end
+
+fn ssize to ulong
+x = ulong 0
+for i ulong 8
+x = or x shl ulong get sb add 48 i mul i 8
+end
+ret x
+end
+
+fn sino to ulong
+x = ulong 0
+for i ulong 8
+x = or x shl ulong get sb add 8 i mul i 8
+end
+ret x
+end
+
+fn pexist to bool
+ret eq pstat 0
+end
+
+note Read the whole file named by pb into rb (at most len rb bytes). Returns the count or -errno.
+fn slurp to long
+put rbn 0 0
+fd = fopen pb 0 get pbn 0 524288 0
+if lt fd 0
+ret fd
+end
+n = ulong 0
+while lt n len rb bound 524289
+k = read int fd rb n sub len rb n
+if lt k 0
+c = fclose int fd
+ret k
+end
+if eq k 0
+break
+end
+n = add n ulong k
+end
+c = fclose int fd
+put rbn 0 n
+ret long n
+end
+
+note Write rb[0 .. n) to the file named by pb, created or truncated, mode 0644.
+fn spill n ulong to long
+fd = fopen pb 0 get pbn 0 525889 420
+if lt fd 0
+ret fd
+end
+o = ulong 0
+while lt o n bound 524289
+k = write int fd rb o sub n o
+if le k 0
+c = fclose int fd
+ret -5
+end
+o = add o ulong k
+end
+c = fclose int fd
+ret 0
+end
+
+note Does rb start, at offset o, with the bytes of t?
+fn rbat o ulong t view uchar * to bool
+if gt add o len t get rbn 0
+ret false
+end
+for i ulong len t
+if ne get rb add o i get t i
+ret false
+end
+end
+ret true
+end
+
+note First offset at or after o where t occurs in rb, or the length of rb's content when absent.
+fn rbfind o ulong t view uchar * to ulong
+n = get rbn 0
+i = o
+while lt i n bound 524289
+if rbat i t
+ret i
+end
+i = add i 1
+end
+ret n
+end
+
+note Does t occur inside rb[o .. e)?
+fn rbin o ulong e ulong t view uchar * to bool
+if lt e len t
+ret false
+end
+i = o
+while le add i len t e bound 524289
+if rbat i t
+ret true
+end
+i = add i 1
+end
+ret false
+end
+
+note Decimal number in rb at o; stops at the first non-digit.
+fn rbnum o ulong to ulong
+x = ulong 0
+i = o
+while lt i get rbn 0 bound 21
+c = get rb i
+if or lt c 48 gt c 57
+break
+end
+x = add mul x 10 ulong sub c 48
+i = add i 1
+end
+ret x
+end
+
+note Copy the environment entry KEY=value whose key is k into eb; returns the value length, or
+note -1 when the key is absent. The value starts at eb[len k + 1].
+fn envget k view uchar * to long
+c = envcnt
+for i ulong ulong c
+n = envread i eb 0 len eb
+if gt n long len k
+m = true
+for j ulong len k
+if ne get eb j get k j
+m = false
+end
+end
+if and m eq get eb len k 61
+ret sub n add long len k 1
+end
+end
+end
+ret -1
+end
+
+note Read one line from fd 0 into ib (without its newline). Returns its length, or -1 at end of input.
+fn rline to long
+n = ulong 0
+put ibn 0 0
+while lt n sub len ib 1 bound 4096
+k = read 0 ib n 1
+if le k 0
+if eq n 0
+ret -1
+end
+break
+end
+if eq get ib n 10
+break
+end
+n = add n 1
+end
+put ibn 0 n
+ret long n
+end
+
+fn ibis t view uchar * to bool
+if ne get ibn 0 len t
+ret false
+end
+for i ulong len t
+if ne get ib i get t i
+ret false
+end
+end
+ret true
+end
+
+note Packed argument lists for execprog: a little-endian u16 count, then u16 length + bytes records.
+fn pkclr to void
+put pk 0 0
+put pk 1 0
+put pkn 0 2
+end
+
+fn pkrec n ulong to ulong
+c = add or uint get pk 0 shl uint get pk 1 8 1
+put pk 0 uchar and c 255
+put pk 1 uchar shr c 8
+o = get pkn 0
+put pk o uchar and n 255
+put pk add o 1 uchar shr n 8
+put pkn 0 add add o 2 n
+ret add o 2
+end
+
+fn pkstr t view uchar * to void
+o = pkrec len t
+for i ulong len t
+put pk add o i get t i
+end
+end
+
+note The current path pb as one argument.
+fn pkpath to void
+o = pkrec get pbn 0
+for i ulong get pbn 0
+put pk add o i get pb i
+end
+end
+
+fn pknum v ulong to void
+pclr
+pnum v
+pkpath
+end
+
+note Exit status from the 4-byte wait status in ws: the exit code, or 128 + signal.
+fn wcode to long
+s = uint get ws 0
+if ne and s 127 0
+ret long add and s 127 128
+end
+ret long uint get ws 1
+end
+
+note Run the packed program in pk with fd 1 and 2 sent to the file named by pb (appended) or, when
+note pb is empty, inherited. Returns the exit status or a negative errno from fork.
+fn runpk to long
+lfd = long -1
+if gt get pbn 0 0
+lfd = fopen pb 0 get pbn 0 525377 420
+if lt lfd 0
+ret lfd
+end
+end
+pid = fork
+if lt pid 0
+ret pid
+end
+if eq pid 0
+if ge lfd 0
+d = dupfd int lfd 1 0
+d = dupfd int lfd 2 0
+end
+r = execprog pk 0 get pkn 0
+exit 127
+end
+if ge lfd 0
+c = fclose int lfd
+end
+r = waitpid int pid ws 0 4 0
+if ne r pid
+ret -10
+end
+ret wcode
+end
+
+note Run pk with its stdout captured into rb (at most len rb bytes); stdin and stderr are inherited.
+note Returns the exit status; rbn holds the captured length.
+fn runcap to long
+put rbn 0 0
+r = pipefds ws 0 8 524288
+if ne r 0
+ret r
+end
+rd = or or uint get ws 0 shl uint get ws 1 8 shl uint get ws 2 16
+wr = or or uint get ws 4 shl uint get ws 5 8 shl uint get ws 6 16
+pid = fork
+if lt pid 0
+ret pid
+end
+if eq pid 0
+d = dupfd int wr 1 0
+r = execprog pk 0 get pkn 0
+exit 127
+end
+c = fclose int wr
+n = ulong 0
+while lt n len rb bound 524289
+k = read int rd rb n sub len rb n
+if le k 0
+break
+end
+n = add n ulong k
+end
+c = fclose int rd
+put rbn 0 n
+r = waitpid int pid ws 0 4 0
+if ne r pid
+ret -10
+end
+ret wcode
+end
+
+note Find a host helper by name in /usr/bin then /bin; leaves its path in pb. False when absent.
+fn findbin t view uchar * to bool
+pclr
+pstr tusrbin
+pstr t
+if eq faccess pb 0 get pbn 0 1 0
+ret true
+end
+pclr
+pstr tbin
+pstr t
+ret eq faccess pb 0 get pbn 0 1 0
+end
+note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+note hole.om: the animated black hole. Each terminal cell shows two square pixels with the upper
+note half block (U+2580): the foreground colour is the upper pixel, the background the lower one.
+note No floating point and no trigonometry beyond the 64-entry sine table: the angle around the
+note hole is the integer "diamond angle" (0..255 for one turn), and every radius is compared squared.
+
+global gm long 12
+global tw ulong 1
+global th ulong 1
+global tick ulong 1
+text lb0 "libcuda.so"
+text lb1 "cuBLAS"
+text lb2 "nvcc"
+text lb3 "CUDA toolkit"
+text lb4 "libcudart"
+text lb5 "cuDNN"
+text lb6 "NCCL"
+text lb7 "TensorRT"
+text tblk "▀"
+
+note gm: 0 cx, 1 cy (pixels), 2 R, 3 horizon^2, 4 photon ring^2, 5 disk inner^2, 6 disk outer^2,
+note 7 glow^2, 8 scene rows, 9 horizon radius, 10 lensed arc^2.
+fn hgeom rows ulong to void
+cx = long div get tw 0 2
+cy = long rows
+r = cx
+if lt cy r
+r = cy
+end
+r = div mul r 95 100
+rh = div mul r 44 100
+put gm 0 cx
+put gm 1 cy
+put gm 2 r
+put gm 3 mul rh rh
+rp = add rh add div r 16 1
+put gm 4 mul rp rp
+di = div mul rh 135 100
+put gm 5 mul di di
+ro = div mul r 26 10
+lim = div mul cx 92 100
+if gt ro lim
+ro = lim
+end
+put gm 6 mul ro ro
+gl = div mul rp 160 100
+put gm 7 mul gl gl
+put gm 8 long rows
+put gm 9 rh
+lz = div mul rh 150 100
+put gm 10 mul lz lz
+end
+
+note Diamond angle of (x, y): 0..255 for one counter-clockwise turn, monotone in the true angle.
+fn dang x long y long to ulong
+ax = x
+if lt ax 0
+ax = neg ax
+end
+ay = y
+if lt ay 0
+ay = neg ay
+end
+s = add ax ay
+if eq s 0
+ret 0
+end
+if ge y 0
+if ge x 0
+ret ulong div mul 64 ay s
+end
+ret ulong add 64 div mul 64 ax s
+end
+if lt x 0
+ret ulong add 128 div mul 64 ay s
+end
+ret ulong add 192 div mul 64 ax s
+end
+
+fn pack r long g long b long to ulong
+ret or or shl ulong r 16 shl ulong g 8 ulong b
+end
+
+note Scale a packed colour by m/1000 and clamp each channel to 255.
+fn scale c ulong m long to ulong
+r = div mul long and shr c 16 255 m 1000
+g = div mul long and shr c 8 255 m 1000
+b = div mul long and c 255 m 1000
+if gt r 255
+r = 255
+end
+if gt g 255
+g = 255
+end
+if gt b 255
+b = 255
+end
+if lt r 0
+r = 0
+end
+if lt g 0
+g = 0
+end
+if lt b 0
+b = 0
+end
+ret pack r g b
+end
+
+note One channel of a mix: (x u + y t) / 256.
+fn mixc x long y long u long t long to long
+ret div add mul x u mul y t 256
+end
+
+note Mix two packed colours: t/256 of b over a.
+fn mix a ulong b ulong t long to ulong
+u = sub 256 t
+r = mixc long and shr a 16 255 long and shr b 16 255 u t
+g = mixc long and shr a 8 255 long and shr b 8 255 u t
+c = mixc long and a 255 long and b 255 u t
+ret pack r g c
+end
+
+note Accretion disk at (dx, dyd) with dd2 = dx^2 + dyd^2: hot white at the inner edge through orange
+note to violet at the rim, three spiral arms that wind tighter inward, the approaching side brighter.
+fn dcol t long to ulong
+if ge t 128
+ret mix pack 255 132 36 pack 110 28 120 mul sub t 128 2
+end
+ret mix pack 255 240 210 pack 255 132 36 mul t 2
+end
+
+fn dlum dx long dyd long tw2 long to long
+p = add div dang dx dyd 4 ulong tw2
+p = add p mul get tick 0 2
+ret add 640 div mul 360 isin mul p 3 1000
+end
+
+fn diskc dx long dyd long dd2 long to ulong
+in2 = get gm 5
+t = div mul sub dd2 in2 256 add sub get gm 6 in2 1
+c = dcol t
+i = dlum dx dyd div mul in2 40 add dd2 1
+dop = sub 1000 div mul dx 350 add get gm 2 1
+ret scale c div mul i dop 1000
+end
+
+fn shash x ulong y ulong to ulong
+h = xor mul x 374761393 mul y 668265263
+h = mul xor h shr h 13 1274126177
+ret and shr xor h shr h 16 7 2047
+end
+
+fn star x ulong y ulong to ulong
+h = shash x y
+if ge h 12
+ret pack 3 3 10
+end
+v = long add 70 mul h 15
+if eq and shr add get tick 0 mul h 5 3 1 1
+v = div mul v 2 3
+end
+ret pack v v add v 25
+end
+
+note The far side of the disk, bent over and under the shadow by the hole's gravity.
+fn lensc dx long dy long d2 long to ulong
+rp2 = get gm 4
+t = div mul sub d2 rp2 256 add sub get gm 10 rp2 1
+c = dcol t
+ret scale c dlum dx mul dy 4 64
+end
+
+note Faint orange halo just outside the photon ring, fading into the stars.
+fn glow x ulong y ulong d2 long to ulong
+g7 = get gm 7
+t = div mul sub g7 d2 200 sub g7 get gm 4
+ret mix star x y pack 160 60 20 t
+end
+
+note Colour of pixel (x, y) of the scene.
+fn px x ulong y ulong to ulong
+dx = sub long x get gm 0
+dy = sub long y get gm 1
+d2 = add mul dx dx mul dy dy
+dyd = mul dy 4
+dd2 = add mul dx dx mul dyd dyd
+indisk = and ge dd2 get gm 5 le dd2 get gm 6
+if and indisk ge dy 0
+ret diskc dx dyd dd2
+end
+if lt d2 get gm 3
+ret 0
+end
+if lt d2 get gm 4
+f = add 820 div mul 180 isin add div dang dx dy 4 get tick 0 1000
+ret scale pack 255 226 170 f
+end
+if lt d2 get gm 10
+ret lensc dx dy d2
+end
+if indisk
+ret diskc dx dyd dd2
+end
+if lt d2 get gm 7
+ret glow x y d2
+end
+ret star x y
+end
+
+fn hpix c ulong top bool to void
+r = and shr c 16 255
+g = and shr c 8 255
+b = and c 255
+if top
+fg r g b
+else
+bg r g b
+end
+end
+
+note Draw the scene rows 1..rows at full terminal width into the output buffer.
+fn hdraw rows ulong to void
+lf = ulong 16777216
+lb = ulong 16777216
+for row ulong rows
+mv add row 1 1
+lf = 16777216
+lb = 16777216
+for x ulong get tw 0
+a = px x mul row 2
+b = px x add mul row 2 1
+if ne a lf
+hpix a true
+lf = a
+end
+if ne b lb
+hpix b false
+lb = b
+end
+emit tblk
+end
+sgr0
+end
+end
+
+fn lemit i ulong o ulong k ulong to void
+if eq i 0
+emit part lb0 o k
+end
+if eq i 1
+emit part lb1 o k
+end
+if eq i 2
+emit part lb2 o k
+end
+if eq i 3
+emit part lb3 o k
+end
+if eq i 4
+emit part lb4 o k
+end
+if eq i 5
+emit part lb5 o k
+end
+if eq i 6
+emit part lb6 o k
+end
+if eq i 7
+emit part lb7 o k
+end
+end
+
+fn llen i ulong to ulong
+if eq i 0
+ret len lb0
+end
+if eq i 1
+ret len lb1
+end
+if eq i 2
+ret len lb2
+end
+if eq i 3
+ret len lb3
+end
+if eq i 4
+ret len lb4
+end
+if eq i 5
+ret len lb5
+end
+if eq i 6
+ret len lb6
+end
+ret len lb7
+end
+
+note Label i of the NVIDIA user-space stack spirals inward along the disk plane. It starts green
+note at the edge of the picture, turns red as it falls, loses letters at the horizon and is gone.
+fn lfrm i ulong to ulong
+ret rem add get tick 0 mul i 15 120
+end
+
+fn lrad i ulong to long
+f = lfrm i
+ret div mul mul get gm 2 3 long sub 120 f 240
+end
+
+fn lang i ulong to ulong
+f = lfrm i
+ret add add mul i 8 div mul f 3 2 div mul f f 90
+end
+
+fn lpos i ulong to void
+r = lrad i
+a = lang i
+x = add get gm 0 div mul r icos a 1000
+y = add get gm 1 div mul mul r isin a 2 5000
+rh = get gm 9
+if or le r rh lt y 0
+ret
+end
+lshow i r x y
+end
+
+fn lshow i ulong r long x long y long to void
+rh = get gm 9
+n = llen i
+k = n
+if lt r mul rh 2
+k = ulong div mul long n sub r rh rh
+end
+if eq k 0
+ret
+end
+row = add ulong div y 2 1
+if gt row ulong get gm 8
+ret
+end
+col = sub x long div k 2
+if or lt col 1 gt add ulong col k get tw 0
+ret
+end
+lpaint i sub n k k lfade r row ulong col
+end
+
+fn lfade r long to long
+d = mul sub r get gm 9 256
+t = div d add mul get gm 2 2 1
+if gt t 256
+ret 256
+end
+ret t
+end
+
+fn lpaint i ulong d ulong k ulong t long row ulong col ulong to void
+c = mix pack 255 70 30 pack 118 185 0 t
+mv row col
+fg and shr c 16 255 and shr c 8 255 and c 255
+bg 0 0 0
+bold
+lemit i div d 2 k
+sgr0
+end
+
+fn hlabels to void
+for i ulong 8
+lpos i
+end
+end
+
+note One complete frame of the scene: picture, then labels over it.
+fn hframe rows ulong to void
+hgeom rows
+hdraw rows
+hlabels
+put tick 0 add get tick 0 1
+end
+note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+note doctor.om: what this machine is, read only. Nothing here writes a file or loads a library.
+note Every absolute path goes through pprobe, so a test can point the doctor at a fake tree with
+note AIENOS_PROBE_ROOT; in normal use that prefix is empty.
+
+const NCHK ulong 8
+global dk ulong 8
+global dt uchar 1536
+global dtn ulong 8
+global dci ulong 1
+global db uchar 32768
+global dv ulong 8
+text c_arch "/proc/sys/kernel/arch"
+text c_a64 "aarch64"
+text c_pci "/sys/bus/pci/devices"
+text c_vend "/vendor"
+text c_dev "/device"
+text c_nvv "0x10de"
+text c_gb10 "0x2e12"
+text c_dctl "/dev/nvidiactl"
+text c_dn0 "/dev/nvidia0"
+text c_duvm "/dev/nvidia-uvm"
+text c_pdrv "/proc/driver/nvidia/version"
+text c_mver "/sys/module/nvidia/version"
+text c_good "580.173.02"
+text c_mem "/proc/meminfo"
+text c_mtot "MemTotal:"
+text c_mav "MemAvailable:"
+text c_mmap "Mapped:"
+text c_lock "/tmp/aien-gb10.lock"
+text c_plk "/proc/locks"
+text c_cuda "/usr/local/cuda"
+text c_lcu "/usr/lib/aarch64-linux-gnu/libcuda.so.1"
+text c_smi "/usr/bin/nvidia-smi"
+text t_gb " GB"
+text t_nl "\n"
+text n_arch "CPU"
+text n_gpu "GPU"
+text n_drv "Driver"
+text n_mem "Memory"
+text n_disk "Disk"
+text n_inst "AienOS"
+text n_busy "GPU lock"
+text n_nv "NVIDIA"
+text d_a1 "arm64 (aarch64), Linux"
+text d_a2 "not arm64: this alpha needs Linux arm64"
+text d_g1 "NVIDIA GB10 found (PCI 10de:2e12), device nodes present"
+text d_g2 "no NVIDIA GB10 found: this alpha runs only on a DGX Spark (GB10)"
+text d_g3 "GB10 found but /dev/nvidiactl, /dev/nvidia0 or /dev/nvidia-uvm is missing"
+text d_d1 "kernel driver "
+text d_d2 " (the version this alpha was built and tested against)"
+text d_d3 " found; this alpha only knows 580.173.02, so it stops here"
+text d_d4 "no NVIDIA kernel module loaded (/sys/module/nvidia/version missing)"
+text d_m1 " GB memory, "
+text d_m2 " GB free for a model"
+text d_m3 "; another model is using memory, so the first chat waits until it is free"
+text d_m4 "; this alpha needs a 128 GB GB10"
+text h_df "df"
+text h_b1 "-B1"
+text h_av "--output=avail"
+text d_k1 " free in your home"
+text d_k2 "; the model needs "
+text d_k3 "unknown free space (df not found); the model needs "
+text d_i1 "not installed yet"
+text d_i2 "installed: "
+text d_i3 ", model verified"
+text d_i4 ", model not downloaded yet"
+text t_cur "/.local/share/aienos/current"
+text d_b1 "the GB10 lock (/tmp/aien-gb10.lock) is not held right now"
+text d_b2 "busy: process "
+text d_b3 " holds the GB10 lock, so I start no second model"
+text d_n1 "found "
+text d_n2 "libcuda"
+text d_n3 "the CUDA toolkit"
+text d_n4 "nvidia-smi"
+text d_n5 ": they stay installed and untouched, and AienOS never loads them"
+text d_nc ", "
+text d_n6 "no NVIDIA user-space libraries found; AienOS does not need them"
+text k_ok "  ok  "
+text k_wn " note "
+text k_no "  no  "
+text k_in " info "
+
+note Detail line of check i, built with dstr/dnum/drb.
+fn dsel i ulong to void
+put dci 0 i
+put dtn i 0
+end
+
+fn dstr t view uchar * to void
+i = get dci 0
+n = get dtn i
+for j ulong len t
+if lt add n j 190
+put dt add mul i 192 add n j get t j
+end
+end
+m = add n len t
+if gt m 190
+m = 190
+end
+put dtn i m
+end
+
+fn dbyte b uchar to void
+i = get dci 0
+n = get dtn i
+if lt n 190
+put dt add mul i 192 n b
+put dtn i add n 1
+end
+end
+
+fn dnum v ulong to void
+d = new uchar 20 0
+k = ulong 0
+x = v
+while true bound 21
+put d k uchar add rem x 10 48
+k = add k 1
+x = div x 10
+if eq x 0
+break
+end
+end
+for j ulong k
+dbyte get d sub sub k 1 j
+end
+end
+
+note Bytes of rb[o ..) up to the first newline or n bytes.
+fn drb o ulong n ulong to void
+for j ulong n
+if ge add o j get rbn 0
+ret
+end
+c = get rb add o j
+if eq c 10
+ret
+end
+dbyte c
+end
+end
+
+note Size in GB, rounded to one decimal, from a byte count (1 GB = 10^9 bytes).
+fn dgb v ulong to void
+r = add v 50000000
+dnum div r 1000000000
+dbyte 46
+dnum div rem r 1000000000 100000000
+dstr t_gb
+end
+
+fn verdict i ulong k ulong to void
+put dk i k
+end
+
+note 0 CPU architecture. The binary itself is aarch64 and static, so running at all proves the ISA;
+note the kernel's own word is shown when it has one.
+fn ckarch to void
+dsel 0
+pprobe c_arch
+n = slurp
+if lt n 0
+verdict 0 0
+dstr d_a1
+ret
+end
+if rbat 0 c_a64
+verdict 0 0
+dstr d_a1
+ret
+end
+verdict 0 2
+dstr d_a2
+end
+
+note Is pci device directory entry rb-name a GB10? Builds devices/NAME/vendor and /device.
+fn pcidev o ulong n ulong to bool
+pprobe c_pci
+pbyte 47
+for j ulong n
+pbyte get db add o j
+end
+k = get pbn 0
+pstr c_vend
+r = slurp
+if or lt r 0 not rbat 0 c_nvv
+ret false
+end
+put pbn 0 k
+pstr c_dev
+r = slurp
+if lt r 0
+ret false
+end
+ret rbat 0 c_gb10
+end
+
+fn dbu16 o ulong to ulong
+lo = ulong get db o
+hi = ulong get db add o 1
+ret or lo shl hi 8
+end
+
+note Length of the zero-terminated name at db[o].
+fn dname o ulong to ulong
+k = ulong 0
+while lt add o k len db bound 300
+if eq get db add o k 0
+ret k
+end
+k = add k 1
+end
+ret k
+end
+
+note Count GB10 devices (PCI 10de:2e12) under /sys/bus/pci/devices.
+fn gbcount to ulong
+pprobe c_pci
+fd = fopen pb 0 get pbn 0 540672 0
+if lt fd 0
+ret 0
+end
+found = ulong 0
+while true bound 4096
+n = getdnts int fd db 0 len db
+if le n 0
+break
+end
+o = ulong 0
+while lt o ulong n bound 32768
+rl = dbu16 add o 16
+nl = dname add o 19
+if and gt nl 0 ne get db add o 19 46
+if pcidev add o 19 nl
+found = add found 1
+end
+end
+if eq rl 0
+break
+end
+o = add o rl
+end
+end
+c = fclose int fd
+ret found
+end
+
+fn chrdev t view uchar * to bool
+pprobe t
+if ne pstat 0
+ret false
+end
+ret eq stype 2
+end
+
+fn ckgpu to void
+dsel 1
+g = gbcount
+put dv 1 g
+if eq g 0
+verdict 1 2
+dstr d_g2
+ret
+end
+ok = and and chrdev c_dctl chrdev c_dn0 chrdev c_duvm
+pprobe c_pdrv
+if or not ok not pexist
+verdict 1 2
+dstr d_g3
+ret
+end
+verdict 1 0
+dstr d_g1
+end
+
+fn ckdrv to void
+dsel 2
+pprobe c_mver
+n = slurp
+if lt n 0
+verdict 2 2
+dstr d_d4
+ret
+end
+dstr d_d1
+drb 0 40
+if rbat 0 c_good
+verdict 2 0
+dstr d_d2
+ret
+end
+verdict 2 2
+dstr d_d3
+end
+
+note The kB value after key k in /proc/meminfo (rb), 0 when absent.
+fn memkb k view uchar * to ulong
+o = rbfind 0 k
+if ge o get rbn 0
+ret 0
+end
+o = add o len k
+while eq get rb o 32 bound 64
+o = add o 1
+end
+ret rbnum o
+end
+
+fn ckmem to void
+dsel 3
+pprobe c_mem
+n = slurp
+if lt n 0
+verdict 3 2
+ret
+end
+tot = memkb c_mtot
+av = memkb c_mav
+mp = memkb c_mmap
+fr = ulong 0
+if gt av mp
+fr = sub av mp
+end
+put dv 3 fr
+dgbk tot
+dstr d_m1
+dgbk fr
+dstr d_m2
+if lt tot 67108864
+verdict 3 2
+dstr d_m4
+ret
+end
+if lt fr 50684928
+verdict 3 1
+dstr d_m3
+ret
+end
+verdict 3 0
+end
+
+fn dgbk kb ulong to void
+dnum div mul kb 1024 1000000000
+end
+
+note Free bytes where the model will live, read with the host's df (Omega has no statfs word yet).
+fn dfree to ulong
+if not findbin h_df
+ret 0
+end
+pkclr
+pkpath
+pkstr h_b1
+pkstr h_av
+pclr
+phome
+pkpath
+r = runcap
+if ne r 0
+ret 0
+end
+o = rbfind 0 t_nl
+ret rbnum add o 1
+end
+
+fn ckdisk need ulong to void
+dsel 4
+f = dfree
+put dv 4 f
+if eq f 0
+verdict 4 1
+dstr d_k3
+dgb need
+ret
+end
+dgb f
+dstr d_k1
+if lt f need
+verdict 4 2
+dstr d_k2
+dgb need
+ret
+end
+verdict 4 0
+end
+
+fn ckinst to void
+dsel 5
+verdict 5 3
+pclr
+phome
+pstr t_cur
+n = readlnk pb 0 get pbn 0 rb 0 256
+if le n 0
+dstr d_i1
+ret
+end
+put rbn 0 ulong n
+dstr d_i2
+s = ulong 0
+for j ulong ulong n
+if eq get rb j 47
+s = add j 1
+end
+end
+drb s sub ulong n s
+if mdone
+dstr d_i3
+else
+dstr d_i4
+end
+end
+
+note Is the GB10 lock file held? Its inode is looked up in /proc/locks. Returns the holder pid or 0.
+fn lockpid to ulong
+pprobe c_lock
+if ne pstat 0
+ret 0
+end
+ino = sino
+pprobe c_plk
+n = slurp
+if lt n 0
+ret 0
+end
+o = ulong 0
+while lt o get rbn 0 bound 524289
+e = rbfind o t_nl
+p = lkline o e ino
+if gt p 0
+ret p
+end
+o = add e 1
+end
+ret 0
+end
+
+note One /proc/locks line in rb[o..e): "1: POSIX ADVISORY WRITE PID MAJ:MIN:INODE START END".
+note Returns PID when INODE equals ino.
+fn lkline o ulong e ulong ino ulong to ulong
+f = ulong 0
+i = o
+pid = ulong 0
+while lt i e bound 4096
+if eq get rb i 32
+while and lt i e eq get rb i 32 bound 4096
+i = add i 1
+end
+f = add f 1
+if eq f 4
+pid = rbnum i
+end
+if eq f 5
+ret lkino i e ino pid
+end
+else
+i = add i 1
+end
+end
+ret 0
+end
+
+fn lkino i ulong e ulong ino ulong pid ulong to ulong
+j = i
+c = ulong 0
+while and lt j e lt c 2 bound 64
+if eq get rb j 58
+c = add c 1
+end
+j = add j 1
+end
+if eq rbnum j ino
+ret pid
+end
+ret 0
+end
+
+fn ckbusy to void
+dsel 6
+p = lockpid
+put dv 6 p
+if eq p 0
+verdict 6 0
+dstr d_b1
+ret
+end
+verdict 6 1
+dstr d_b2
+dnum p
+dstr d_b3
+end
+
+fn cknv to void
+dsel 7
+verdict 7 3
+k = ulong 0
+pprobe c_lcu
+a = pexist
+pprobe c_cuda
+b = pexist
+pprobe c_smi
+c = pexist
+if not or or a b c
+dstr d_n6
+ret
+end
+dstr d_n1
+if a
+dstr d_n2
+end
+if and a or b c
+dstr d_nc
+end
+if b
+dstr d_n3
+end
+if and b c
+dstr d_nc
+end
+if c
+dstr d_n4
+end
+dstr d_n5
+end
+
+note Run every check. Returns true when the machine can take this alpha (no check failed).
+fn doctor need ulong to bool
+ckarch
+ckgpu
+ckdrv
+ckmem
+ckdisk need
+ckinst
+ckbusy
+cknv
+ok = true
+for i ulong NCHK
+if eq get dk i 2
+ok = false
+end
+end
+ret ok
+end
+
+fn cname i ulong to void
+if eq i 0
+emit n_arch
+end
+if eq i 1
+emit n_gpu
+end
+if eq i 2
+emit n_drv
+end
+if eq i 3
+emit n_mem
+end
+if eq i 4
+emit n_disk
+end
+if eq i 5
+emit n_inst
+end
+if eq i 6
+emit n_busy
+end
+if eq i 7
+emit n_nv
+end
+end
+
+fn ctag k ulong colour bool to void
+if colour
+if eq k 0
+fg 120 220 120
+end
+if eq k 1
+fg 250 200 80
+end
+if eq k 2
+fg 255 90 80
+end
+if eq k 3
+fg 140 170 255
+end
+end
+if eq k 0
+emit k_ok
+end
+if eq k 1
+emit k_wn
+end
+if eq k 2
+emit k_no
+end
+if eq k 3
+emit k_in
+end
+if colour
+sgr0
+end
+end
+
+note One check as one line: [tag] name padded to 8, then the detail.
+fn cline i ulong colour bool to void
+putb 91
+ctag get dk i colour
+putb 93
+putb 32
+cname i
+n = cnlen i
+while lt n 9 bound 16
+putb 32
+n = add n 1
+end
+dline i
+end
+
+fn dline i ulong to void
+for j ulong get dtn i
+putb get dt add mul i 192 j
+end
+end
+
+fn cnlen i ulong to ulong
+if eq i 0
+ret len n_arch
+end
+if eq i 1
+ret len n_gpu
+end
+if eq i 2
+ret len n_drv
+end
+if eq i 3
+ret len n_mem
+end
+if eq i 4
+ret len n_disk
+end
+if eq i 5
+ret len n_inst
+end
+if eq i 6
+ret len n_busy
+end
+ret len n_nv
+end
+note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+note net.om: a small HTTP/1.0 client for the engine on 127.0.0.1, written with the native socket
+note words, and the JSON string escaping it needs. No TLS: it only ever talks to the loopback door.
+note Chat replies are read as a server-sent event stream and shown token by token.
+
+global qb uchar 65536
+global qbn ulong 1
+global hs uchar 262144
+global hsn ulong 1
+global ab uchar 65536
+global abn ulong 1
+global nt ulong 4
+text j_open "{\"stream\":true,\"max_tokens\":1024,\"messages\":["
+text j_close "]}"
+text j_user "{\"role\":\"user\",\"content\":\""
+text j_asst "{\"role\":\"assistant\",\"content\":\""
+text j_end "\"}"
+text j_comma ","
+text h_post "POST /v1/chat/completions HTTP/1.0"
+text h_host "Host: 127.0.0.1"
+text h_ctype "Content-Type: application/json"
+text h_clen "Content-Length: "
+text h_get1 "GET "
+text h_get2 " HTTP/1.0"
+text h_data "data: "
+text h_done "[DONE]"
+text h_cont "\"content\":\""
+text h_health "/health"
+
+fn qstr t view uchar * to void
+n = get qbn 0
+if gt add n len t len qb
+trap 3
+end
+for i ulong len t
+put qb add n i get t i
+end
+put qbn 0 add n len t
+end
+
+fn qcrlf to void
+qbyte 13
+qbyte 10
+end
+
+fn qline t view uchar * to void
+qstr t
+qcrlf
+end
+
+note Offset of the blank line that ends the headers in rb, or the content length when absent.
+fn hend to ulong
+e4 = new uchar 4 13
+put e4 1 10
+put e4 3 10
+ret rbfind 0 e4
+end
+
+fn qbyte b uchar to void
+n = get qbn 0
+put qb n b
+put qbn 0 add n 1
+end
+
+fn qnum v ulong to void
+d = new uchar 20 0
+k = ulong 0
+x = v
+while true bound 21
+put d k uchar add rem x 10 48
+k = add k 1
+x = div x 10
+if eq x 0
+break
+end
+end
+for i ulong k
+qbyte get d sub sub k 1 i
+end
+end
+
+note Append one byte to the conversation history hs (JSON already escaped).
+fn hbyte b uchar to void
+n = get hsn 0
+if lt n len hs
+put hs n b
+put hsn 0 add n 1
+end
+end
+
+fn hstr t view uchar * to void
+for i ulong len t
+hbyte get t i
+end
+end
+
+fn hexd v ulong to uchar
+if lt v 10
+ret uchar add v 48
+end
+ret uchar add v 87
+end
+
+note The user's line ib, escaped as a JSON string body, appended to the history.
+fn hesc to void
+for i ulong get ibn 0
+c = get ib i
+if or eq c 34 eq c 92
+hbyte 92
+hbyte c
+else
+if lt c 32
+hbyte 92
+hbyte 117
+hbyte 48
+hbyte 48
+hbyte hexd ulong shr c 4
+hbyte hexd ulong and c 15
+else
+hbyte c
+end
+end
+end
+end
+
+note A loopback TCP connection to port p. Returns the descriptor or -errno.
+fn tcp p ulong to long
+a = new uchar 16 0
+put a 0 2
+put a 2 uchar shr p 8
+put a 3 uchar and p 255
+put a 4 127
+put a 7 1
+fd = socknew 2 524289 0
+if lt fd 0
+ret fd
+end
+r = connect int fd a 0 16
+if ne r 0
+c = fclose int fd
+ret r
+end
+ret fd
+end
+
+fn sendq fd int to long
+n = get qbn 0
+o = ulong 0
+while lt o n bound 65537
+k = send fd qb o sub n o 0
+if le k 0
+ret -5
+end
+o = add o ulong k
+end
+ret 0
+end
+
+note GET path on 127.0.0.1:p. Returns the HTTP status (200 ..), or a negative error.
+fn hget p ulong t view uchar * to long
+fd = tcp p
+if lt fd 0
+ret fd
+end
+put qbn 0 0
+qstr h_get1
+qstr t
+qline h_get2
+qline h_host
+qcrlf
+r = sendq int fd
+if ne r 0
+c = fclose int fd
+ret r
+end
+put rbn 0 0
+k = waitio int fd 1 5000000000
+if le k 0
+c = fclose int fd
+ret -110
+end
+k = recv int fd rb 0 64 0
+c = fclose int fd
+if lt k 12
+ret -71
+end
+put rbn 0 ulong k
+ret long rbnum 9
+end
+
+fn alive p ulong to bool
+ret eq hget p h_health 200
+end
+
+note Decode one \uXXXX escape's four hex digits at rb[o].
+fn hex4 o ulong to ulong
+v = ulong 0
+for i ulong 4
+c = ulong get rb add o i
+d = ulong 0
+if and ge c 48 le c 57
+d = sub c 48
+end
+if and ge c 97 le c 102
+d = sub c 87
+end
+if and ge c 65 le c 70
+d = sub c 55
+end
+v = or shl v 4 d
+end
+ret v
+end
+
+note UTF-8 of code point v to the output buffer.
+fn utf8 v ulong to void
+if lt v 128
+putb uchar v
+ret
+end
+if lt v 2048
+putb uchar or 192 shr v 6
+putb uchar or 128 and v 63
+ret
+end
+if lt v 65536
+putb uchar or 224 shr v 12
+putb uchar or 128 and shr v 6 63
+putb uchar or 128 and v 63
+ret
+end
+putb uchar or 240 shr v 18
+putb uchar or 128 and shr v 12 63
+putb uchar or 128 and shr v 6 63
+putb uchar or 128 and v 63
+end
+
+note Print the JSON string body starting at rb[o] up to its closing quote, decoding escapes, and keep
+note the raw escaped bytes in ab for the history. Returns the offset after the closing quote.
+fn jshow o ulong e ulong to ulong
+i = o
+while lt i e bound 524289
+c = get rb i
+if eq c 34
+ret add i 1
+end
+abyte c
+if ne c 92
+putb c
+i = add i 1
+else
+i = jesc add i 1 e
+end
+end
+ret i
+end
+
+fn abyte c uchar to void
+n = get abn 0
+if lt n len ab
+put ab n c
+put abn 0 add n 1
+end
+end
+
+note One escape after a backslash at rb[i]; returns the offset after it.
+fn jesc i ulong e ulong to ulong
+if ge i e
+ret i
+end
+c = get rb i
+abyte c
+if eq c 110
+putb 10
+ret add i 1
+end
+if eq c 116
+putb 9
+ret add i 1
+end
+if eq c 114
+ret add i 1
+end
+if eq c 117
+if le add i 5 e
+for k ulong 4
+abyte get rb add add i 1 k
+end
+v = hex4 add i 1
+if and ge v 55296 lt v 56320
+ret jsur i e v
+end
+utf8 v
+ret add i 5
+end
+ret e
+end
+putb c
+ret add i 1
+end
+
+note A high surrogate at rb[i-1..i+5) followed by \uDC00..\uDFFF.
+fn jsur i ulong e ulong v ulong to ulong
+if and le add i 11 e eq get rb add i 5 92
+for k ulong 6
+abyte get rb add add i 5 k
+end
+lo = hex4 add i 7
+utf8 add 65536 add shl sub v 55296 10 sub lo 56320
+ret add i 11
+end
+utf8 65533
+ret add i 5
+end
+
+note Handle the complete event lines in rb[o .. e): print every content delta. Returns the offset of
+note the first incomplete line, or the length of rb's content plus one after [DONE].
+fn events o ulong to ulong
+i = o
+while lt i get rbn 0 bound 524289
+nl = rbfind i t_nl
+if ge nl get rbn 0
+ret i
+end
+if rbat i h_data
+if rbat add i len h_data h_done
+ret add get rbn 0 1
+end
+c = rbfind i h_cont
+if lt c nl
+if eq get nt 0 0
+put nt 1 ulong sub monons long get nt 2
+end
+put nt 0 add get nt 0 1
+x = jshow add c len h_cont nl
+w = flush
+end
+end
+i = add nl 1
+end
+ret i
+end
+
+note Send the history as one chat request and stream the answer to the screen. The answer's escaped
+note text is kept in ab for the history. Returns 0, a negative error, or the HTTP status when not 200.
+fn chatreq p ulong to long
+body = add add len j_open get hsn 0 len j_close
+put qbn 0 0
+qline h_post
+qline h_host
+qline h_ctype
+qstr h_clen
+qnum body
+qcrlf
+qcrlf
+if gt add get qbn 0 body len qb
+ret -7
+end
+qstr j_open
+for i ulong get hsn 0
+qbyte get hs i
+end
+qstr j_close
+fd = tcp p
+if lt fd 0
+ret fd
+end
+r = sendq int fd
+if ne r 0
+c = fclose int fd
+ret r
+end
+put abn 0 0
+put nt 0 0
+put nt 2 ulong monons
+r = chatrx int fd
+c = fclose int fd
+ret r
+end
+
+note Receive the reply: status line, headers, then events until [DONE] or the server closes.
+fn chatrx fd int to long
+put rbn 0 0
+hb2 = ulong 0
+st = long 0
+o = ulong 0
+while lt get rbn 0 len rb bound 524289
+k = waitio fd 1 600000000000
+if le k 0
+ret -110
+end
+k = recv fd rb get rbn 0 sub len rb get rbn 0 0
+if le k 0
+break
+end
+put rbn 0 add get rbn 0 ulong k
+if eq hb2 0
+e = hend
+if lt e get rbn 0
+hb2 = add e 4
+st = long rbnum 9
+o = hb2
+if ne st 200
+ret st
+end
+end
+end
+if gt hb2 0
+o = events o
+if gt o get rbn 0
+ret 0
+end
+end
+end
+if eq hb2 0
+ret -71
+end
+ret 0
+end
+note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+note steps.om: the screens of the wizard (welcome, doctor, plan, consent, install, model, first chat,
+note done), the panel under the black hole, the progress bar, file hashing with the Omega SHA-256 unit,
+note the model download and the engine's start and stop.
+note
+note Panel markup: byte 1 gold, 2 plain, 3 green, 4 red, 5 dim, 6 bright. A line ends at byte 10.
+
+global ui ulong 12
+global pt uchar 8192
+global ptn ulong 1
+global pp uchar 256
+global ppn ulong 1
+global mf uchar 65536
+global mfn ulong 1
+global mnm uchar 128
+global mnn ulong 1
+global dg uchar 32
+global bs uchar 1024
+global bsn ulong 1
+global pidb uchar 32
+global ppt uchar 4096
+global pptn ulong 1
+text s_title " AienOS alpha "
+text s_step "  step "
+text s_of " of 8  "
+text s_n0 "welcome"
+text s_n1 "doctor"
+text s_n2 "plan"
+text s_n3 "your yes"
+text s_n4 "install"
+text s_n5 "model"
+text s_n6 "first chat"
+text s_n7 "done"
+text s_omega "  written in Omega (.om)"
+text t_tbase "~/.local/share/aienos"
+text t_files " files"
+text t_slash " / "
+text m_name "name "
+text m_url "url "
+text m_bytes "bytes "
+text m_files "files "
+text t_share "/share/aienos/model.manifest"
+text t_base "/.local/share/aienos"
+text t_models "/models/"
+text t_vfy "/.aienos-verified"
+text t_sums "/SHA256SUMS"
+text i_l1 "Checking every file of this release with SHA-256."
+text i_l2 "The hash runs in Omega (the sha256.om unit shipped beside me)."
+text i_ok " files match SHA256SUMS."
+text i_bad "A file does not match SHA256SUMS: "
+text i_bad2 "This copy is damaged or was changed. Install again with the curl command."
+text i_cut "Meanwhile the user-space stack falls into the hole: libcuda, cuBLAS, nvcc."
+text i_cut2 "That is the picture only. On disk those stay installed; AienOS just never loads them."
+text i_md1 "Created "
+text i_md2 " for the model."
+text t_mkfail "I could not create the model folder in ~/.local/share/aienos."
+text t_wait "working, please wait"
+text t_next "Press Enter to continue"
+text t_close "Press Enter to close"
+text h_curl "curl"
+text c_f "-fL"
+text c_s "-sS"
+text c_r "--retry"
+text c_5 "5"
+text c_c "-C"
+text c_dash "-"
+text c_o "-o"
+text c_ua "--user-agent"
+text c_uav "aienos-wizard/alpha"
+text t_part ".part"
+text t_curlog "/download.log"
+text m_have "The model is already here and verified. Nothing to download."
+text m_l1 "Downloading "
+text m_l2 "from Hugging Face: "
+text m_l3 " in "
+text m_l4 " files."
+text m_l5 "Every file is checked against its SHA-256 before it is used."
+text m_l6 "A cut connection resumes where it stopped. q is not read here; Ctrl+C stops."
+text m_fail "The download or a hash check failed. Nothing broken was kept."
+text m_fail2 "Run aienos again to resume. The log is ~/.local/share/aienos/download.log."
+text m_done "Every model file is downloaded and matches its SHA-256."
+text t_dlocal "/.local"
+text t_dshare "/share"
+
+note ui: 0 animate, 1 scene rows, 2 step, 3 last frame ns, 4 bytes done, 5 bytes total,
+note 6 bar shown, 7 files done, 8 files total, 9 engine pid, 10 frames since step entry.
+
+fn pclear to void
+put ptn 0 0
+end
+
+fn pl t view uchar * to void
+n = get ptn 0
+for i ulong len t
+if lt add n i len pt
+put pt add n i get t i
+end
+end
+m = add n len t
+if gt m len pt
+m = len pt
+end
+put ptn 0 m
+end
+
+fn pc b uchar to void
+n = get ptn 0
+if lt n len pt
+put pt n b
+put ptn 0 add n 1
+end
+end
+
+fn pln to void
+pc 10
+end
+
+fn plnum v ulong to void
+d = new uchar 20 0
+k = ulong 0
+x = v
+while true bound 21
+put d k uchar add rem x 10 48
+k = add k 1
+x = div x 10
+if eq x 0
+break
+end
+end
+for i ulong k
+pc get d sub sub k 1 i
+end
+end
+
+note Gigabytes (10^9 bytes) rounded to one decimal.
+fn plgb v ulong to void
+r = add v 50000000
+plnum div r 1000000000
+pc 46
+plnum div rem r 1000000000 100000000
+pl t_gb
+end
+
+note The base folder ~/.local/share/aienos as text in the panel, spelled with a tilde.
+fn plbase to void
+pl t_tbase
+end
+
+fn prompt t view uchar * to void
+put ppn 0 0
+for i ulong len t
+if lt i len pp
+put pp i get t i
+end
+end
+put ppn 0 len t
+end
+
+fn mark b uchar to void
+if eq b 1
+fg 255 196 90
+end
+if eq b 2
+sgr0
+end
+if eq b 3
+fg 120 220 120
+end
+if eq b 4
+fg 255 100 90
+end
+if eq b 5
+fg 140 140 165
+end
+if eq b 6
+bold
+fg 245 245 255
+end
+end
+
+fn sname i ulong to void
+if eq i 0
+emit s_n0
+end
+if eq i 1
+emit s_n1
+end
+if eq i 2
+emit s_n2
+end
+if eq i 3
+emit s_n3
+end
+if eq i 4
+emit s_n4
+end
+if eq i 5
+emit s_n5
+end
+if eq i 6
+emit s_n6
+end
+if eq i 7
+emit s_n7
+end
+end
+
+fn header row ulong to void
+mv row 1
+bg 18 16 28
+fg 255 196 90
+bold
+emit s_title
+sgr0
+bg 18 16 28
+fg 200 200 220
+emit s_step
+num add get ui 2 1
+emit s_of
+sname get ui 2
+fg 120 120 150
+emit s_omega
+eol
+sgr0
+end
+
+note Draw the panel lines from row r0 on, at most rows lines, each cleared to the end of the line.
+note Put one panel byte at column col (counted from 3); bytes past the terminal's width are
+note dropped so a long line never wraps into the next one. Returns the new column.
+fn pput b uchar col ulong to ulong
+if ge col sub get tw 0 1
+ret col
+end
+putb b
+if eq and b 192 128
+ret col
+end
+ret add col 1
+end
+
+fn pdraw r0 ulong rows ulong colour bool to void
+row = r0
+col = ulong 3
+i = ulong 0
+n = get ptn 0
+mv row 3
+eol
+while lt i n bound 8193
+b = get pt i
+if eq b 10
+row = add row 1
+if ge row add r0 rows
+ret
+end
+if colour
+sgr0
+end
+mv row 1
+eol
+mv row 3
+col = 3
+else
+if lt b 7
+if colour
+mark b
+end
+else
+col = pput b col
+end
+end
+i = add i 1
+end
+if colour
+sgr0
+end
+row = add row 1
+while lt row add r0 rows bound 256
+mv row 1
+eol
+row = add row 1
+end
+end
+
+note The progress bar: done/total bytes as a gold bar, the percentage and the file count.
+fn pbar row ulong to void
+mv row 3
+eol
+if eq get ui 6 0
+ret
+end
+w = ulong 40
+tot = get ui 5
+if eq tot 0
+tot = 1
+end
+dn = get ui 4
+if gt dn tot
+dn = tot
+end
+f = div mul dn w tot
+fg 255 196 90
+for i ulong w
+if lt i f
+bg 255 170 60
+else
+bg 50 44 70
+end
+putb 32
+end
+sgr0
+putb 32
+numw div mul dn 100 tot 3
+putb 37
+putb 32
+putb 32
+num get ui 7
+emit t_slash
+num get ui 8
+emit t_files
+end
+
+fn pprompt row ulong colour bool to void
+mv row 3
+eol
+if colour
+fg 255 196 90
+bold
+end
+putb 62
+putb 32
+for i ulong get ppn 0
+putb get pp i
+end
+if colour
+sgr0
+end
+end
+
+note One animation frame: the scene, the header, the panel, the bar and the prompt.
+fn frame to void
+if eq get ui 0 0
+ret
+end
+sh = get ui 1
+t = get th 0
+home
+hframe sh
+header add sh 1
+pdraw add sh 2 sub sub t sh 4 true
+pbar sub t 1
+pprompt t true
+w = flush
+put ui 3 ulong monons
+put ui 10 add get ui 10 1
+end
+
+note Draw a frame only when 80 ms have passed since the last one; used inside long loops.
+fn tickui to void
+if eq get ui 0 0
+ret
+end
+if gt sub ulong monons get ui 3 80000000
+frame
+end
+end
+
+note Plain mode (no terminal or too small): print the panel once, without colour or animation.
+fn plainout to void
+putb 10
+emit s_title
+emit s_step
+num add get ui 2 1
+emit s_of
+sname get ui 2
+putb 10
+for i ulong get ptn 0
+b = get pt i
+if or ge b 7 eq b 10
+putb b
+end
+end
+putb 10
+if gt get ui 6 0
+pbarp
+end
+w = flush
+end
+
+fn pbarp to void
+tot = get ui 5
+if eq tot 0
+tot = 1
+end
+num div mul get ui 4 100 tot
+putb 37
+putb 32
+num get ui 7
+emit t_slash
+num get ui 8
+emit t_files
+putb 10
+end
+
+fn enter i ulong to void
+put ui 2 i
+put ui 6 0
+put ui 10 0
+if eq get ui 0 1
+cls
+end
+end
+
+note Show the step: a frame, or in plain mode the panel text.
+fn show to void
+if eq get ui 0 1
+frame
+else
+plainout
+end
+end
+
+note Wait for one line of input while the hole keeps turning. Returns its length or -1 at end of input.
+fn ask to long
+if eq get ui 0 1
+while true bound 999999
+frame
+k = waitio 0 1 80000000
+if ne k 0
+break
+end
+end
+else
+for i ulong get ppn 0
+putb get pp i
+end
+putb 58
+putb 32
+w = flush
+end
+ret rline
+end
+
+note Keep animating for about ms milliseconds (plain mode returns at once).
+fn hold ms ulong to void
+if eq get ui 0 0
+ret
+end
+st = ulong monons
+while lt sub ulong monons st mul ms 1000000 bound 100000
+frame
+s = sleepns 60000000
+end
+end
+
+note ---------- SHA-256 of a file, with the Omega unit in sha256.om ----------
+
+note Hash the file named by pb into dg, adding its bytes to ui 4 as it goes. Returns the size or -errno.
+fn fhash to long
+c = new uchar 104 0
+buf = new uchar 1048576 0
+o = new uchar 32 0
+fd = fopen pb 0 get pbn 0 524288 0
+if lt fd 0
+ret fd
+end
+sha256_init c
+tot = ulong 0
+while true bound 999999
+k = read int fd buf 0 len buf
+if lt k 0
+x = fclose int fd
+ret k
+end
+if eq k 0
+break
+end
+sha256_update c part buf 0 ulong k
+tot = add tot ulong k
+put ui 4 add get ui 4 ulong k
+tickui
+end
+x = fclose int fd
+sha256_final c o
+for i ulong 32
+put dg i get o i
+end
+ret long tot
+end
+
+note Does dg equal the 64 lowercase hex digits at mf[o]?
+fn dgis o ulong to bool
+for i ulong 32
+b = get dg i
+if ne get mf add o mul i 2 hexd ulong shr b 4
+ret false
+end
+if ne get mf add add o mul i 2 1 hexd ulong and b 15
+ret false
+end
+end
+ret true
+end
+
+note ---------- manifests ----------
+
+note Load the file named by pb into mf. Returns its length or -errno.
+fn mload to long
+n = slurp
+if lt n 0
+ret n
+end
+if gt get rbn 0 len mf
+ret -27
+end
+for i ulong get rbn 0
+put mf i get rb i
+end
+put mfn 0 get rbn 0
+ret n
+end
+
+fn mfat o ulong t view uchar * to bool
+if gt add o len t get mfn 0
+ret false
+end
+for i ulong len t
+if ne get mf add o i get t i
+ret false
+end
+end
+ret true
+end
+
+fn mfnl o ulong to ulong
+i = o
+while lt i get mfn 0 bound 65537
+if eq get mf i 10
+ret i
+end
+i = add i 1
+end
+ret get mfn 0
+end
+
+fn mfnum o ulong to ulong
+x = ulong 0
+i = o
+while lt i get mfn 0 bound 21
+c = get mf i
+if or lt c 48 gt c 57
+ret x
+end
+x = add mul x 10 ulong sub c 48
+i = add i 1
+end
+ret x
+end
+
+note Model manifest lines: "name N", "url U", "bytes B", "files F", then "SHA256 SIZE PATH" per file.
+
+note Offset of the value after key t at the start of a manifest line, or the manifest length.
+fn mkey t view uchar * to ulong
+o = ulong 0
+while lt o get mfn 0 bound 65537
+if mfat o t
+ret add o len t
+end
+o = add mfnl o 1
+end
+ret get mfn 0
+end
+
+fn mopen to bool
+pclr
+proot
+pstr t_share
+n = mload
+if lt n 0
+ret false
+end
+o = mkey m_name
+e = mfnl o
+if ge o e
+ret false
+end
+put mnn 0 0
+for i ulong sub e o
+if lt i len mnm
+put mnm i get mf add o i
+put mnn 0 add i 1
+end
+end
+ret true
+end
+
+fn mbytes to ulong
+ret mfnum mkey m_bytes
+end
+
+fn mfiles to ulong
+ret mfnum mkey m_files
+end
+
+fn pbase to void
+pclr
+phome
+pstr t_base
+end
+
+note pb = ~/.local/share/aienos/models/NAME
+fn pmodel to void
+pbase
+pstr t_models
+for i ulong get mnn 0
+pbyte get mnm i
+end
+end
+
+fn mdone to bool
+if not mopen
+ret false
+end
+pmodel
+pstr t_vfy
+ret pexist
+end
+
+note ---------- install step: verify this release ----------
+
+note Verify root/SHA256SUMS ("HEX  PATH" lines). Returns the number of files checked, or the
+note negative offset+1 of the first bad line.
+fn sums to long
+pclr
+proot
+pstr t_sums
+n = mload
+if lt n 0
+ret -1
+end
+put ui 4 0
+put ui 5 sumbytes
+put ui 6 1
+put ui 7 0
+put ui 8 sumcount
+o = ulong 0
+k = long 0
+while lt o get mfn 0 bound 65537
+e = mfnl o
+if ishex o e
+r = sumline o e
+if not r
+ret neg long add o 1
+end
+k = add k 1
+put ui 7 ulong k
+end
+o = add e 1
+end
+ret k
+end
+
+fn sumline o ulong e ulong to bool
+pclr
+proot
+pbyte 47
+for i ulong sub sub e o 66
+pbyte get mf add add o 66 i
+end
+r = fhash
+if lt r 0
+ret false
+end
+ret dgis o
+end
+
+fn sumcount to ulong
+k = ulong 0
+o = ulong 0
+while lt o get mfn 0 bound 65537
+e = mfnl o
+if ishex o e
+k = add k 1
+end
+o = add e 1
+end
+ret k
+end
+
+note Total size of the files listed in SHA256SUMS (for the progress bar).
+fn sumbytes to ulong
+t = ulong 0
+o = ulong 0
+while lt o get mfn 0 bound 65537
+e = mfnl o
+if ishex o e
+pclr
+proot
+pbyte 47
+for i ulong sub sub e o 66
+pbyte get mf add add o 66 i
+end
+if eq pstat 0
+t = add t ssize
+end
+end
+o = add e 1
+end
+ret t
+end
+
+fn mkdirs to bool
+pclr
+phome
+pstr t_dlocal
+r = makedir pb 0 get pbn 0 493
+pstr t_dshare
+r = makedir pb 0 get pbn 0 493
+pbase
+r = makedir pb 0 get pbn 0 448
+pmodel
+pdrop add get mnn 0 1
+r = makedir pb 0 get pbn 0 448
+pmodel
+r = makedir pb 0 get pbn 0 448
+ret or eq r 0 eq r -17
+end
+
+fn stinst to bool
+enter 4
+pclear
+pl i_l1
+pln
+pl i_l2
+pln
+pln
+pc 5
+pl i_cut
+pln
+pl i_cut2
+pc 2
+prompt t_wait
+show
+k = sums
+put ui 6 0
+pclear
+if lt k 0
+pc 4
+pl i_bad
+pc 2
+pln
+pl i_bad2
+prompt t_close
+show
+r = ask
+ret false
+end
+pc 3
+plnum ulong k
+pl i_ok
+pc 2
+pln
+if not mkdirs
+pc 4
+pl t_mkfail
+pc 2
+prompt t_close
+show
+r = ask
+ret false
+end
+pl i_md1
+plbase
+pl t_models
+for i ulong get mnn 0
+pc get mnm i
+end
+pl i_md2
+pln
+pln
+pc 5
+pl i_cut
+pln
+pl i_cut2
+pc 2
+prompt t_next
+hold 1500
+show
+r = ask
+ret ge r 0
+end
+
+note ---------- model download ----------
+
+note Per file line at mf[o..e): "SHA SIZE PATH". Puts the path start in ui 11 and returns the size.
+fn fline o ulong e ulong to ulong
+s = add o 65
+sz = mfnum s
+i = s
+while and lt i e ne get mf i 32 bound 32
+i = add i 1
+end
+put ui 11 add i 1
+ret sz
+end
+
+note pb = model folder / PATH (from mf[ui 11 .. e)).
+fn pmfile e ulong to void
+pmodel
+pbyte 47
+for i ulong sub e get ui 11
+pbyte get mf add get ui 11 i
+end
+end
+
+note Run curl for URL base + PATH into pb + ".part", animating while it runs. Returns curl's status.
+fn fetch e ulong sz ulong to long
+pkclr
+if not findbin h_curl
+ret -2
+end
+pkpath
+pkstr c_f
+pkstr c_s
+pkstr c_r
+pkstr c_5
+pkstr c_ua
+pkstr c_uav
+pkstr c_c
+pkstr c_dash
+pkstr c_o
+pmfile e
+pstr t_part
+savep
+pkpath
+pkurl e
+pbase
+pstr t_curlog
+ret runbg sz
+end
+
+note The URL: the manifest's url value, then PATH.
+fn pkurl e ulong to void
+u = mkey m_url
+ue = mfnl u
+pclr
+for i ulong sub ue u
+pbyte get mf add u i
+end
+for i ulong sub e get ui 11
+pbyte get mf add get ui 11 i
+end
+pkpath
+end
+
+note Like runpk, but animates and follows the .part file's size while the child runs.
+fn runbg sz ulong to long
+lfd = fopen pb 0 get pbn 0 525377 384
+if lt lfd 0
+ret lfd
+end
+pid = fork
+if lt pid 0
+ret pid
+end
+if eq pid 0
+d = dupfd int lfd 1 0
+d = dupfd int lfd 2 0
+r = execprog pk 0 get pkn 0
+exit 127
+end
+c = fclose int lfd
+base = get ui 4
+while true bound 999999
+r = waitpid int pid ws 0 4 1
+if eq r pid
+ret wcode
+end
+if lt r 0
+ret r
+end
+put ui 4 add base partsz
+frame
+s = sleepns 200000000
+end
+ret -4
+end
+
+note Size of the .part file being written (its path was saved in ppt by fetch).
+fn partsz to ulong
+r = stat ppt 0 get pptn 0 sb 0 128
+if ne r 0
+ret 0
+end
+ret ssize
+end
+
+fn savep to void
+for i ulong get pbn 0
+put ppt i get pb i
+end
+put pptn 0 get pbn 0
+end
+
+fn mstep to bool
+enter 5
+if not mopen
+ret false
+end
+if mdone
+pclear
+pc 3
+pl m_have
+pc 2
+pln
+prompt t_next
+show
+r = ask
+ret ge r 0
+end
+pclear
+pl m_l1
+pc 6
+for i ulong get mnn 0
+pc get mnm i
+end
+pc 2
+pln
+pl m_l2
+plgb mbytes
+pl m_l3
+plnum mfiles
+pl m_l4
+pln
+pl m_l5
+pln
+pln
+pc 5
+pl m_l6
+pc 2
+prompt t_wait
+put ui 4 0
+put ui 5 mbytes
+put ui 6 1
+put ui 7 0
+put ui 8 mfiles
+show
+r = mall
+put ui 6 0
+if not r
+pclear
+pc 4
+pl m_fail
+pc 2
+pln
+pl m_fail2
+prompt t_close
+show
+x = ask
+ret false
+end
+pmodel
+pstr t_vfy
+put rb 0 111
+put rb 1 107
+put rb 2 10
+x = spill 3
+pclear
+pc 3
+pl m_done
+pc 2
+pln
+prompt t_next
+show
+x = ask
+ret ge x 0
+end
+
+note Is mf[o..e) a file line: 64 lowercase hex digits, then a space?
+fn ishex o ulong e ulong to bool
+if le sub e o 66
+ret false
+end
+for i ulong 64
+c = get mf add o i
+if not or and ge c 48 le c 57 and ge c 97 le c 102
+ret false
+end
+end
+ret eq get mf add o 64 32
+end
+
+note Fetch and verify every file of the model manifest.
+fn mall to bool
+o = ulong 0
+while lt o get mfn 0 bound 65537
+e = mfnl o
+if ishex o e
+if not mfile o e
+ret false
+end
+put ui 7 add get ui 7 1
+end
+o = add e 1
+end
+ret true
+end
+
+note One model file: keep it if it is there and hashes right, else download to .part, check the
+note size and hash, then rename it into place. A file that fails its hash is deleted.
+fn mfile o ulong e ulong to bool
+sz = fline o e
+pmfile e
+if eq pstat 0
+if eq ssize sz
+r = fhash
+if and ge r 0 dgis o
+ret true
+end
+put ui 4 sub get ui 4 sz
+end
+r = unlink pb 0 get pbn 0
+end
+ret mget o e sz
+end
+
+fn mget o ulong e ulong sz ulong to bool
+for tries ulong 2
+pmfile e
+pstr t_part
+st = get ui 4
+if eq pstat 0
+if gt ssize sz
+r = unlink pb 0 get pbn 0
+end
+end
+c = fetch e sz
+put ui 4 st
+pmfile e
+pstr t_part
+if and eq c 0 eq pstat 0
+if eq ssize sz
+h = fhash
+if dgis o
+ret mplace e
+end
+end
+end
+pmfile e
+pstr t_part
+r = unlink pb 0 get pbn 0
+end
+ret false
+end
+
+note Rename model/PATH.part to model/PATH with renameat2 (packed list of the two paths).
+fn mplace e ulong to bool
+pkclr
+pmfile e
+pstr t_part
+pkpath
+pmfile e
+pkpath
+r = renames pk 0 get pkn 0 0
+ret eq r 0
+end
+note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+note engine.om: start, watch and stop the engine (aien-serve-http from Core, engine omega) on
+note 127.0.0.1, check from /proc that it loaded no CUDA library, the first-chat screen, the done
+note screen, the uninstaller and the rollback.
+
+const PORT ulong 18100
+text e_bin "/bin/aien-serve-http"
+text e_eng "--engine"
+text e_omega "omega"
+text e_mdir "--model-dir"
+text e_port "--port"
+text e_ctx "--max-context"
+text e_ctxv "131072"
+text e_cap "--max-tokens-cap"
+text e_capv "16384"
+text e_thk "--thinking"
+text e_off "off"
+text e_log "/engine.log"
+text e_pid "/engine.pid"
+text e_null "/dev/null"
+text e_proc "/proc/"
+text e_exe "/exe"
+text e_maps "/maps"
+text e_name "aien-serve-http"
+text e_cu1 "libcuda"
+text e_cu2 "libcublas"
+text e_cu3 "libcudart"
+text e_cu4 "libnvidia-"
+text f_skip1 "I am not starting the engine now: "
+text f_mem "another model is using this GB10's memory."
+text f_lock "another process holds the GB10 lock."
+text f_skip2 "Your model is installed. When the GPU is free, run:  aienos chat"
+text f_load1 "Starting the engine from Core cf239078 and loading the model onto the GB10."
+text f_load2 "The first load reads about 31 GB, so it can take a few minutes."
+text f_fail1 "The engine stopped before it was ready. Its log: ~/.local/share/aienos/engine.log"
+text f_q "Say hello in one short sentence, and tell me what you are."
+text f_you "you    "
+text f_ai "model  "
+text f_ttf "first token after "
+text f_ms " ms"
+text f_cuda "CUDA libraries in the engine's memory map (/proc/"
+text f_cuda2 "/maps): "
+text f_run "The engine keeps running on 127.0.0.1:18100. Stop it with:  aienos stop"
+text d_l1 "Your local model is ready."
+text d_l0 "Your model is installed and verified. Start it with aienos chat when the GPU is free."
+text d_l2 "  aienos chat        talk to it in this terminal"
+text d_l3 "  aienos doctor      check this machine again"
+text d_l4 "  aienos stop        stop the engine"
+text d_l5 "  aienos source      where my .om source lives"
+text d_l6 "  aienos uninstall   remove everything AienOS put on this machine"
+text d_l7 "OpenAI-style API:    http://127.0.0.1:18100/v1/chat/completions"
+text u_list "/installed-files"
+text u_sure "This removes AienOS from this machine. Type yes to remove it"
+text u_keep "--keep-model"
+text u_yes "--yes"
+text u_done "AienOS is removed. NVIDIA's driver and CUDA were never touched."
+text u_kept "The model was kept in ~/.local/share/aienos/models."
+text u_no "Nothing was removed."
+text u_stop "The engine did not stop; nothing was removed."
+text u_dot ".."
+text u_mods "models"
+text r_rel "/releases"
+text r_cur "/current"
+text r_new "/current.new"
+text r_pre "releases/"
+text r_none "There is no other release to roll back to."
+text r_ok "current now points to "
+
+note The packed argument list of the receipted serve command (Core tools/serve-27b.sh), on PORT.
+fn eargs to void
+pkclr
+pclr
+proot
+pstr e_bin
+pkpath
+pkstr e_eng
+pkstr e_omega
+pkstr e_mdir
+pmodel
+pkpath
+pkstr e_port
+pknum PORT
+pkstr e_ctx
+pkstr e_ctxv
+pkstr e_cap
+pkstr e_capv
+pkstr e_thk
+pkstr e_off
+end
+
+note Start the engine in its own session, output appended to engine.log, pid in engine.pid.
+fn estart to long
+eargs
+pbase
+pstr e_log
+lfd = fopen pb 0 get pbn 0 525377 384
+if lt lfd 0
+ret lfd
+end
+nfd = fopen e_null 0 len e_null 524288 0
+pid = fork
+if lt pid 0
+ret pid
+end
+if eq pid 0
+s = setsid
+d = dupfd int nfd 0 0
+d = dupfd int lfd 1 0
+d = dupfd int lfd 2 0
+r = execprog pk 0 get pkn 0
+exit 127
+end
+c = fclose int lfd
+c = fclose int nfd
+put ui 9 ulong pid
+put rbn 0 0
+pclr
+pnum ulong pid
+for i ulong get pbn 0
+put rb i get pb i
+end
+put rb get pbn 0 10
+k = add get pbn 0 1
+pbase
+pstr e_pid
+r = spill k
+ret pid
+end
+
+note The pid in engine.pid when that process is still aien-serve-http, else 0.
+fn epid to ulong
+pbase
+pstr e_pid
+n = slurp
+if le n 0
+ret 0
+end
+p = rbnum 0
+if eq p 0
+ret 0
+end
+pclr
+pstr e_proc
+pnum p
+pstr e_exe
+n = readlnk pb 0 get pbn 0 rb 0 4096
+if le n 0
+ret 0
+end
+put rbn 0 ulong n
+if lt ulong n len e_name
+ret 0
+end
+if rbat sub ulong n len e_name e_name
+ret p
+end
+ret 0
+end
+
+note Stop the engine: SIGTERM, then wait up to 120 s for it to go. Returns true when it is gone.
+fn estop to bool
+p = epid
+if eq p 0
+ret true
+end
+r = killpid int p 15
+for i ulong 1200
+x = waitpid int p ws 0 4 1
+if eq epid 0
+pbase
+pstr e_pid
+x = unlink pb 0 get pbn 0
+ret true
+end
+s = sleepns 100000000
+end
+ret false
+end
+
+note Count the CUDA user-space libraries in /proc/PID/maps (libcuda, libcublas, libcudart,
+note libnvidia-*). Returns the count, or -1 when the maps could not be read.
+fn ecuda p ulong to long
+pclr
+pstr e_proc
+pnum p
+pstr e_maps
+n = slurp
+if lt n 0
+ret -1
+end
+k = long 0
+o = ulong 0
+while lt o get rbn 0 bound 524289
+e = rbfind o t_nl
+if culine o e
+k = add k 1
+end
+o = add e 1
+end
+ret k
+end
+
+fn culine o ulong e ulong to bool
+a = or rbin o e e_cu1 rbin o e e_cu2
+b = or rbin o e e_cu3 rbin o e e_cu4
+ret or a b
+end
+
+note Wait for the engine's /health while the hole turns. Gives up after limit seconds or when the
+note process exits. Returns true when it answers.
+fn ewait limit ulong to bool
+st = ulong monons
+p = get ui 9
+while lt sub ulong monons st mul limit 1000000000 bound 999999
+if alive PORT
+ret true
+end
+x = waitpid int p ws 0 4 1
+if eq x long p
+ret false
+end
+put ui 4 div sub ulong monons st 1000000000
+for k ulong 20
+frame
+s = sleepns 100000000
+end
+end
+ret false
+end
+
+fn ckskip to bool
+if eq get dk 6 1
+pl f_skip1
+pl f_lock
+ret true
+end
+if eq get dk 3 1
+pl f_skip1
+pl f_mem
+ret true
+end
+ret false
+end
+
+note The first-chat step. Returns false only when the engine failed to come up.
+fn stchat to bool
+enter 6
+pclear
+put ui 11 0
+if ckskip
+pln
+pln
+pl f_skip2
+prompt t_next
+show
+r = ask
+ret true
+end
+if not alive PORT
+pl f_load1
+pln
+pl f_load2
+prompt t_wait
+put ui 6 0
+show
+p = estart
+if lt p 0
+ret false
+end
+if not ewait 2400
+pclear
+pc 4
+pl f_fail1
+pc 2
+prompt t_close
+show
+r = ask
+ret false
+end
+end
+put ui 11 1
+firstq
+ret true
+end
+
+note Ask the first question and stream the answer under the picture, then show the evidence lines.
+fn firstq to void
+put hsn 0 0
+hstr j_user
+put ibn 0 len f_q
+for i ulong len f_q
+put ib i get f_q i
+end
+hesc
+hstr j_end
+pclear
+pc 5
+pl f_you
+pc 2
+pl f_q
+pln
+pc 1
+pl f_ai
+pc 2
+prompt t_wait
+show
+if eq get ui 0 1
+mv add get ui 1 4 10
+end
+r = chatreq PORT
+w = flush
+ftail
+end
+
+fn ftail to void
+pclear
+pc 3
+pl f_ttf
+plnum div get nt 1 1000000
+pl f_ms
+pc 2
+pln
+p = epid
+if gt p 0
+pl f_cuda
+plnum p
+pl f_cuda2
+c = ecuda p
+if eq c 0
+pc 3
+end
+plnum ulong c
+pc 2
+pln
+end
+pl f_run
+prompt t_next
+if eq get ui 0 1
+pdraw sub get th 0 4 3 true
+pprompt get th 0 true
+x = flush
+else
+plainout
+end
+r = rline
+end
+
+fn stdone ready bool to void
+enter 7
+pclear
+pc 3
+if ready
+pl d_l1
+else
+pl d_l0
+end
+pc 2
+pln
+pln
+pl d_l2
+pln
+pl d_l3
+pln
+pl d_l4
+pln
+pl d_l5
+pln
+pl d_l6
+pln
+pln
+pc 5
+pl d_l7
+pc 2
+prompt t_close
+show
+r = ask
+end
+
+note ---------- uninstall ----------
+
+note Is pb inside the home folder: HOME + "/" + something, with no ".." component?
+fn inhome to bool
+h = get hbn 0
+if le get pbn 0 add h 1
+ret false
+end
+if le h 1
+ret false
+end
+for i ulong h
+if ne get pb i get hb i
+ret false
+end
+end
+if ne get pb h 47
+ret false
+end
+for i ulong sub get pbn 0 1
+if and eq get pb i 46 eq get pb add i 1 46
+ret false
+end
+end
+ret true
+end
+
+note Unlink every path in installed-files that lies inside the home folder.
+fn ulist to void
+pbase
+pstr u_list
+n = mload
+if lt n 0
+ret
+end
+o = ulong 0
+while lt o get mfn 0 bound 65537
+e = mfnl o
+pclr
+for i ulong sub e o
+pbyte get mf add o i
+end
+if inhome
+r = unlink pb 0 get pbn 0
+end
+o = add e 1
+end
+end
+
+note Remove the tree at pb (not following links). depth guards the recursion; keep skips the
+note models folder at the top level.
+fn rmt depth ulong keep bool to void
+d = new uchar 8192 0
+if gt depth 32
+ret
+end
+for pass ulong 3
+fd = fopen pb 0 get pbn 0 573440 0
+if lt fd 0
+r = unlink pb 0 get pbn 0
+ret
+end
+while true bound 100000
+n = getdnts int fd d 0 8192
+if le n 0
+break
+end
+o = ulong 0
+while lt o ulong n bound 8192
+o = rment d o depth keep
+end
+end
+c = fclose int fd
+r = rmdir pb 0 get pbn 0
+if or eq r 0 eq r -2
+ret
+end
+end
+end
+
+note One directory entry at d[o]: remove it (recursing into directories). Returns the next offset.
+fn rment d view uchar 8192 o ulong depth ulong keep bool to ulong
+rl = or ulong get d add o 16 shl ulong get d add o 17 8
+if eq rl 0
+ret 8192
+end
+k = ulong 0
+while ne get d add add o 19 k 0 bound 256
+k = add k 1
+end
+if isdot d add o 19 k
+ret add o rl
+end
+if and and keep eq depth 0 isname d add o 19 k
+ret add o rl
+end
+sv = get pbn 0
+pbyte 47
+for i ulong k
+pbyte get d add add o 19 i
+end
+if eq get d add o 18 4
+rmt add depth 1 keep
+else
+r = unlink pb 0 get pbn 0
+end
+put pbn 0 sv
+ret add o rl
+end
+
+fn isdot d view uchar 8192 o ulong k ulong to bool
+if ne get d o 46
+ret false
+end
+if eq k 1
+ret true
+end
+ret and eq k 2 eq get d add o 1 46
+end
+
+fn isname d view uchar 8192 o ulong k ulong to bool
+if ne k len u_mods
+ret false
+end
+for i ulong k
+if ne get d add o i get u_mods i
+ret false
+end
+end
+ret true
+end
+
+note aienos uninstall [--keep-model] [--yes]
+fn uninst keep bool yes bool to int
+if not yes
+emit u_sure
+putb 58
+putb 32
+w = flush
+n = rline
+if not ibis t_yes
+emit u_no
+putb 10
+w = flush
+ret 0
+end
+end
+if not estop
+emit u_stop
+putb 10
+w = flush
+ret 1
+end
+ulist
+pbase
+rmt 0 keep
+emit u_done
+putb 10
+if keep
+emit u_kept
+putb 10
+end
+w = flush
+ret 0
+end
+
+note ---------- rollback ----------
+
+note aienos rollback: point current at the newest other release in releases/.
+fn rollbk to int
+best = new uchar 256 0
+pbase
+pstr r_cur
+n = readlnk pb 0 get pbn 0 rb 0 512
+put rbn 0 0
+if gt n 0
+put rbn 0 ulong n
+end
+bn = rpick best
+if eq bn 0
+emit r_none
+putb 10
+w = flush
+ret 1
+end
+ret rswap best bn
+end
+
+note Pick the greatest release name that is not the current target (rb holds the link text).
+fn rpick best edit uchar 256 to ulong
+d = new uchar 8192 0
+bn = ulong 0
+pbase
+pstr r_rel
+fd = fopen pb 0 get pbn 0 540672 0
+if lt fd 0
+ret 0
+end
+n = getdnts int fd d 0 8192
+c = fclose int fd
+if le n 0
+ret 0
+end
+o = ulong 0
+while lt o ulong n bound 8192
+rl = or ulong get d add o 16 shl ulong get d add o 17 8
+if eq rl 0
+break
+end
+bn = rcand d add o 19 best bn
+o = add o rl
+end
+ret bn
+end
+
+note Consider entry name d[o..]: keep it in best when it is greater than best and not current.
+fn rcand d view uchar 8192 o ulong best edit uchar 256 bn ulong to ulong
+k = ulong 0
+while and ne get d add o k 0 lt k 200 bound 256
+k = add k 1
+end
+if eq get d o 46
+ret bn
+end
+if and eq get rbn 0 add len r_pre k rbat len r_pre part d o k
+ret bn
+end
+if not gtname d o k best bn
+ret bn
+end
+for i ulong k
+put best i get d add o i
+end
+ret k
+end
+
+fn gtname d view uchar 8192 o ulong k ulong best view uchar 256 bn ulong to bool
+for i ulong k
+if ge i bn
+ret true
+end
+a = get d add o i
+b = get best i
+if ne a b
+ret gt a b
+end
+end
+ret false
+end
+
+fn rswap best view uchar 256 bn ulong to int
+pkclr
+pclr
+pstr r_pre
+for i ulong bn
+pbyte get best i
+end
+pkpath
+pbase
+pstr r_new
+x = unlink pb 0 get pbn 0
+pkpath
+r = symlnk pk 0 get pkn 0
+if ne r 0
+ret 1
+end
+pkclr
+pbase
+pstr r_new
+pkpath
+pbase
+pstr r_cur
+pkpath
+r = renames pk 0 get pkn 0 0
+if ne r 0
+ret 1
+end
+emit r_ok
+emit r_pre
+for i ulong bn
+putb get best i
+end
+putb 10
+w = flush
+ret 0
+end
+note SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+note main.om: the aienos command. With no argument (or "wizard") it runs the full-screen wizard;
+note "doctor", "chat", "start", "stop", "verify", "source", "about", "uninstall" and "rollback" are the
+note small commands beside it. Build: concatenate sha256.om lib.om hole.om doctor.om net.om steps.om
+note engine.om main.om, in that order, and compile the result with the pinned omc (see build.sh).
+
+text v_tag "alpha-20261026.1"
+text a_l1 "AienOS alpha-20261026.1, the installer and the aienos command"
+text a_l2 "written in Omega (.om), compiled by omc sha256 befb8199db8c4bca188a494dfaac2a6f0ee5c36fcea11188c75666c55fce8a1d"
+text a_l3 "  (aien-dev/omega-mv 3364a1dfd0ca50c1b82bf19ba34932d8bc10a7a9, seed/out/omc)"
+text a_l4 "engine: aien-serve-http, aien-dev/aien-sovereign-core-mv tag alpha/20261025.1 = cf239078d05a47d84353c1508a08663273f00c3e"
+text a_l5 "  receipt: aien-dev/aien-receipts aien-sovereign-core/cf239078d05a47d84353c1508a08663273f00c3e/bundle.json"
+text a_l6 "  (bundle sha256 44edcc9aa10cb7669093d8dfed3399374a6aaa312fc89beace8e39f934938687: 35 checks PASS,"
+text a_l7 "   including SC-GB10-SERVE-CHAT on a GB10 and SC-ZERO-CUDA)"
+text a_l8 "GPU path: the engine's statically linked libomega_gpu.a (omega-mv 18f8fdd9) talks to"
+text a_l9 "  /dev/nvidiactl, /dev/nvidia0 and /dev/nvidia-uvm. There is no separate CUDA++ runtime."
+text a_l10 "model: Qwen/Qwen3.8-27B-FP8 revision 017b9c7af6b5689d5dd426a76e0bc077eb5ca20a (30.9 GB)"
+text a_l11 "  The Qwen3.6-35B the Spark serves is not offered yet: it runs on an engine branch that is not merged."
+text a_l12 "evidence: GB10 serve and chat EXERCISED by the Core receipt above; this installer's full GPU run"
+text a_l13 "  and first token on a GB10, and the 3x physical qualification: NOT_RUN."
+text a_l14 "signature: Ed25519 alpha release key ff949504b427680039d53c33c85c448546b57d590eb1ecee3bb2ed6c2eaaf54a"
+text a_l15 "  (an alpha key; it is rotated to a ceremony key before beta)"
+text s_l1 "My Omega source ships with this release:"
+text s_l2 "/share/aienos/wizard/"
+text s_l3 "  sha256.om lib.om hole.om doctor.om net.om steps.om engine.om main.om"
+text s_l4 "/share/aienos/aienos.om"
+text s_l5 "  the same files concatenated in build order: one unit, one compile"
+text s_l6 "Also online: https://www.aienos.com/alpha/ and https://github.com/aien-dev/AienOS-nv"
+text w_l1 "Welcome. I am Drake, and this is the AienOS alpha."
+text w_l2 "This installer is written in Omega, my own language. It sets up a local model on"
+text w_l3 "your DGX Spark that runs on my own engine: no CUDA toolkit, no libcuda, no cuBLAS."
+text w_l4 "NVIDIA's kernel driver stays. Everything else NVIDIA ships stays installed, unused."
+text w_l5 "Next: doctor, plan, your yes, install, model, first chat. Nothing changes before your yes."
+text w_l6 "Type about for versions and evidence, source for my .om source, q to quit."
+text w_go "Press Enter to run the doctor"
+text x_l1 "This alpha runs on Linux arm64 with an NVIDIA GB10 (DGX Spark) only."
+text x_l2 "Here is what is coming: https://www.aienos.com/alpha/"
+text x_l3 "I changed nothing. The files the installer unpacked go away with:  aienos uninstall"
+text p_l1 "Here is exactly what changes, all inside your home folder:"
+text p_l2 "/releases/"
+text p_l3 "   this release, already unpacked and checked"
+text p_l4 "/models/"
+text p_l5 "~/.local/bin/aienos, the menu entry and the desktop icon (already there)"
+text p_l6 "/engine.log   the engine's log, when it runs"
+text p_l7 "Not touched: NVIDIA's driver, the CUDA toolkit, libcuda, cuBLAS, /usr, /etc. No sudo."
+text p_l8 "Undo everything at any time:  aienos uninstall"
+text p_l9 "   the model: "
+text p_ok "Press Enter for the last question"
+text c_l1 "Type yes to begin. Anything else stops here, and nothing changes."
+text c_q "yes or no"
+text c_stop "Stopped. Nothing was changed."
+text c_fail "Stopped. Run aienos again once the problem above is fixed; it picks up where it left off."
+text t_q "q"
+text t_about "about"
+text t_source "source"
+text t_probe "AIENOS_PROBE_ROOT"
+text t_home "HOME"
+text t_plain "--plain"
+text t_exe "/proc/self/exe"
+text h_stty "stty"
+text h_size "size"
+text k_wiz "wizard"
+text k_doc "doctor"
+text k_chat "chat"
+text k_start "start"
+text k_stop "stop"
+text k_vfy "verify"
+text k_unin "uninstall"
+text k_roll "rollback"
+text k_help "usage: aienos [wizard [--plain] | doctor | chat | start | stop | verify | source | about | uninstall [--keep-model] [--yes] | rollback]"
+text n_nohome "HOME is not set; I cannot tell where to install."
+text n_badrt "I cannot find my own folder (/proc/self/exe)."
+text n_vok " files match SHA256SUMS"
+text n_vbad "a file does not match SHA256SUMS"
+text n_start "engine started, pid "
+text n_ready "engine ready on http://127.0.0.1:18100/v1"
+text n_nostrt "engine did not become ready; see ~/.local/share/aienos/engine.log"
+text n_stopd "engine stopped"
+text n_chat1 "aienos chat: type a message and press Enter. /bye leaves."
+text n_bye "/bye"
+text n_you "you&gt; "
+text n_ai "model&gt; "
+text n_err "request failed: "
+text t_sp " "
+
+note argument i into ib; returns its length or -1.
+fn arg i ulong to long
+if ge i ulong argcnt
+ret -1
+end
+n = argread i ib 0 len ib
+if lt n 0
+ret -1
+end
+put ibn 0 ulong n
+ret n
+end
+
+note HOME, the probe prefix and this release's folder (the parent of bin/aienos).
+fn setup to bool
+sinit
+n = envget t_home
+if le n 0
+ret false
+end
+for i ulong ulong n
+put hb i get eb add len t_home add i 1
+end
+put hbn 0 ulong n
+n = envget t_probe
+if gt n 0
+for i ulong ulong n
+put pr i get eb add len t_probe add i 1
+end
+put prn 0 ulong n
+end
+ret selfdir
+end
+
+fn selfdir to bool
+n = readlnk t_exe 0 len t_exe rt 0 len rt
+if or le n 0 ge n long len rt
+ret false
+end
+k = ulong n
+s = ulong 0
+for pass ulong 2
+while and gt k 0 ne get rt sub k 1 47 bound 1024
+k = sub k 1
+end
+if gt k 0
+k = sub k 1
+end
+end
+put rtn 0 k
+ret gt k 0
+end
+
+note Terminal: animate when stdin and stdout are character devices and stty reports at least
+note 64 columns and 22 rows; the picture takes what the 12-line panel leaves. The size comes from the host's stty (Omega has no window-size word yet).
+fn term plain bool to void
+put ui 0 0
+put tw 0 80
+put th 0 24
+if plain
+ret
+end
+r = fstat 0 sb 0 128
+if or ne r 0 ne stype 2
+ret
+end
+r = fstat 1 sb 0 128
+if or ne r 0 ne stype 2
+ret
+end
+if not findbin h_stty
+ret
+end
+pkclr
+pkpath
+pkstr h_size
+r = runcap
+if ne r 0
+ret
+end
+rows = rbnum 0
+sp = rbfind 0 t_sp
+cols = rbnum add sp 1
+if or lt cols 64 lt rows 22
+ret
+end
+if gt cols 400
+cols = 400
+end
+put tw 0 cols
+put th 0 rows
+note The panel under the picture keeps 12 lines: the plan and the doctor must fit whole.
+sh = ulong 6
+if gt rows 22
+sh = sub rows 16
+end
+if gt sh 30
+sh = 30
+end
+put ui 1 sh
+put ui 0 1
+end
+
+fn plines to void
+pl w_l1
+pln
+pln
+pl w_l2
+pln
+pl w_l3
+pln
+pl w_l4
+pln
+pln
+pl w_l5
+pln
+pc 5
+pl w_l6
+pc 2
+end
+
+fn about to void
+pl a_l1
+pln
+pl a_l2
+pln
+pl a_l3
+pln
+pl a_l4
+pln
+pl a_l5
+pln
+pl a_l6
+pln
+pl a_l7
+pln
+pl a_l8
+pln
+pl a_l9
+pln
+pl a_l10
+pln
+pl a_l11
+pln
+pl a_l12
+pln
+pl a_l13
+pln
+pl a_l14
+pln
+pl a_l15
+end
+
+fn source to void
+pl s_l1
+pln
+pc 6
+plroot
+pl s_l2
+pc 2
+pln
+pl s_l3
+pln
+pc 6
+plroot
+pl s_l4
+pc 2
+pln
+pl s_l5
+pln
+pln
+pl s_l6
+end
+
+fn plroot to void
+for i ulong get rtn 0
+pc get rt i
+end
+end
+
+note Welcome; loops on about and source. Returns false to quit.
+fn stwel to bool
+while true bound 1000
+enter 0
+pclear
+plines
+prompt w_go
+show
+r = ask
+if lt r 0
+ret false
+end
+if ibis t_q
+ret false
+end
+if ibis t_about
+sub1 true
+end
+if ibis t_source
+sub1 false
+end
+if not or ibis t_about ibis t_source
+ret true
+end
+end
+ret false
+end
+
+fn sub1 isab bool to void
+pclear
+if isab
+about
+else
+source
+end
+prompt t_next
+show
+r = ask
+end
+
+note Doctor screen. Returns true when the machine can take this alpha.
+fn stdoc to bool
+enter 1
+pclear
+need = mneed
+ok = doctor need
+for i ulong NCHK
+dpanel i
+end
+if not ok
+pln
+pc 4
+pl x_l1
+pc 2
+pln
+pl x_l2
+pln
+pl x_l3
+prompt t_close
+show
+r = ask
+ret false
+end
+prompt t_next
+show
+r = ask
+ret ge r 0
+end
+
+note Bytes the model still needs on disk: none when verified, else its size plus 1 GB.
+fn mneed to ulong
+if not mopen
+ret 0
+end
+if mdone
+ret 0
+end
+ret add mbytes 1000000000
+end
+
+fn dpanel i ulong to void
+k = get dk i
+if eq k 0
+pc 3
+pl k_ok
+end
+if eq k 1
+pc 1
+pl k_wn
+end
+if eq k 2
+pc 4
+pl k_no
+end
+if eq k 3
+pc 5
+pl k_in
+end
+pc 2
+pc 32
+n = get ptn 0
+dnm i
+while lt sub get ptn 0 n 9 bound 16
+pc 32
+end
+for j ulong get dtn i
+pc get dt add mul i 192 j
+end
+pln
+end
+
+fn dnm i ulong to void
+if eq i 0
+pl n_arch
+end
+if eq i 1
+pl n_gpu
+end
+if eq i 2
+pl n_drv
+end
+if eq i 3
+pl n_mem
+end
+if eq i 4
+pl n_disk
+end
+if eq i 5
+pl n_inst
+end
+if eq i 6
+pl n_busy
+end
+if eq i 7
+pl n_nv
+end
+end
+
+fn stplan to bool
+enter 2
+pclear
+pl p_l1
+pln
+pln
+pc 6
+plbase
+pl p_l2
+pl v_tag
+pc 2
+pl p_l3
+pln
+pc 6
+plbase
+pl p_l4
+for i ulong get mnn 0
+pc get mnm i
+end
+pc 2
+pln
+pl p_l9
+plgb mbytes
+pl m_l3
+plnum mfiles
+pl m_l4
+pln
+pc 6
+plbase
+pc 2
+pl p_l6
+pln
+pl p_l5
+pln
+pln
+pl p_l7
+pln
+pc 1
+pl p_l8
+pc 2
+prompt p_ok
+show
+r = ask
+ret ge r 0
+end
+
+fn styes to bool
+enter 3
+pclear
+pc 6
+pl c_l1
+pc 2
+prompt c_q
+show
+r = ask
+ret and ge r 0 ibis t_yes
+end
+
+fn bye t view uchar * to void
+if eq get ui 0 1
+scrn false
+end
+sgr0
+putb 10
+emit t
+putb 10
+w = flush
+end
+
+note The full wizard. Exit 0 for a finished run and for a friendly refusal; 1 when a step failed.
+fn wizard plain bool to int
+term plain
+if not mopen
+ret 3
+end
+if eq get ui 0 1
+scrn true
+w = flush
+end
+if not stwel
+bye c_stop
+ret 0
+end
+if not stdoc
+bye x_l3
+ret 0
+end
+if not stplan
+bye c_stop
+ret 0
+end
+if not styes
+bye c_stop
+ret 0
+end
+if not stinst
+bye c_fail
+ret 1
+end
+if not mstep
+bye c_fail
+ret 1
+end
+if not stchat
+bye c_fail
+ret 1
+end
+stdone eq get ui 11 1
+if eq get ui 11 1
+bye d_l1
+else
+bye d_l0
+end
+ret 0
+end
+
+fn istty fd int to bool
+r = fstat fd sb 0 128
+ret and eq r 0 eq stype 2
+end
+
+fn cdoctor to int
+need = mneed
+ok = doctor need
+col = istty 1
+for i ulong NCHK
+cline i col
+putb 10
+end
+w = flush
+if ok
+ret 0
+end
+emit x_l1
+putb 10
+emit x_l2
+putb 10
+w = flush
+ret 1
+end
+
+fn cverify to int
+x = mopen
+k = sums
+if lt k 0
+emit n_vbad
+putb 10
+w = flush
+ret 1
+end
+num ulong k
+emit n_vok
+putb 10
+w = flush
+ret 0
+end
+
+note Start the engine when the doctor allows it and wait until it answers.
+fn cstart to int
+x = mopen
+if alive PORT
+emit n_ready
+putb 10
+w = flush
+ret 0
+end
+ok = doctor 0
+pclear
+if ckskip
+for i ulong get ptn 0
+putb get pt i
+end
+putb 10
+w = flush
+ret 2
+end
+p = estart
+if lt p 0
+ret 1
+end
+emit n_start
+num ulong p
+putb 10
+w = flush
+if not ewait 2400
+emit n_nostrt
+putb 10
+w = flush
+ret 1
+end
+emit n_ready
+putb 10
+w = flush
+ret 0
+end
+
+fn cstop to int
+if estop
+emit n_stopd
+putb 10
+w = flush
+ret 0
+end
+ret 1
+end
+
+fn cchat to int
+r = cstart
+if ne r 0
+ret r
+end
+emit n_chat1
+putb 10
+put hsn 0 0
+while true bound 100000
+emit n_you
+w = flush
+n = rline
+if or lt n 0 ibis n_bye
+ret 0
+end
+if gt get hsn 0 0
+hstr j_comma
+end
+hstr j_user
+hesc
+hstr j_end
+emit n_ai
+w = flush
+q = chatreq PORT
+putb 10
+w = flush
+if ne q 0
+emit n_err
+snum q
+putb 10
+w = flush
+else
+hstr j_comma
+hstr j_asst
+for i ulong get abn 0
+hbyte get ab i
+end
+hstr j_end
+end
+end
+ret 0
+end
+
+fn cprint to int
+for i ulong get ptn 0
+b = get pt i
+if or ge b 7 eq b 10
+putb b
+end
+end
+putb 10
+w = flush
+ret 0
+end
+
+fn iskey t view uchar * to bool
+ret ibis t
+end
+
+fn main to int
+if not setup
+emit n_nohome
+putb 10
+w = flush
+ret 2
+end
+if lt arg 1 0
+ret wizard false
+end
+if iskey k_wiz
+plain = false
+if ge arg 2 0
+plain = ibis t_plain
+end
+ret wizard plain
+end
+if iskey k_doc
+ret cdoctor
+end
+if iskey k_chat
+ret cchat
+end
+if iskey k_start
+ret cstart
+end
+if iskey k_stop
+ret cstop
+end
+if iskey k_vfy
+ret cverify
+end
+if iskey t_source
+pclear
+source
+ret cprint
+end
+if iskey t_about
+pclear
+about
+ret cprint
+end
+if iskey k_unin
+ret cunin
+end
+if iskey k_roll
+ret rollbk
+end
+emit k_help
+putb 10
+w = flush
+ret 2
+end
+
+fn cunin to int
+keep = false
+yes = false
+for i ulong 2
+if ge arg add i 2 0
+if ibis u_keep
+keep = true
+end
+if ibis u_yes
+yes = true
+end
+end
+end
+x = mopen
+ret uninst keep yes
+end
+</code></pre></details></section><section class="alpha-section" id="alpha-feedback"><p class="alpha-kicker">04 / BUILD IT WITH ME</p><h2>Tell me what happened.</h2><p>Ask <a href="/allen/">Allen</a> about the project, or <a href="https://github.com/aien-dev/omega-projects/issues">open an issue in omega-projects</a>. Include your hardware, operating system, release tag, the step that failed and the exact error. Remove tokens, personal paths, private prompts and model data before sharing a log.</p></section><section class="alpha-section alpha-exit" id="alpha-uninstall"><p class="alpha-kicker">05 / THE WAY BACK</p><h2>No one-way door.</h2><p>The installation lives under <code>~/.local/share/aienos</code>. It does not uninstall or overwrite NVIDIA packages or CUDA. Run <code>aienos uninstall</code> and type <code>yes</code> when asked. It removes the alpha installation, downloaded model, command and launchers. To keep the downloaded model, use <code>aienos uninstall --keep-model</code>. If the command is missing, run <code>~/.local/share/aienos/current/bin/aienos uninstall</code>.</p><p><a href="https://github.com/aien-dev/AienOS-nv">Uninstaller source and release instructions</a></p><p class="alpha-small">I would rather hear why you left than make it difficult to leave.</p></section></article>

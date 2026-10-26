@@ -59,6 +59,8 @@ pub fn render_start_page() -> Markup {
                     p {
                         "Release state: alpha testing for Linux arm64 and NVIDIA GB10. The installer and its evidence boundaries are at "
                         a href="/alpha/" { "/alpha/" }
+                        ". The canonical layer record remains "
+                        a href="/status.json" { "status.json" }
                         "."
                     }
                 }

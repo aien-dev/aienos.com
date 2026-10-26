@@ -1,0 +1,20 @@
+{
+  "extensions": {
+    "generated": {
+      "children": [],
+      "children_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compiled_at": "2026-10-26T16:13:42Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:c669b37544e1aedf656fcd1901c149bdc7ad5b8339ee10307c1d253e70be546d",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 2,
+      "generated_at_commit": "5a2f2141a5d96aa673f127971caa6bdfe9fca001",
+      "source_tree": "sha256:8915d72896e6eb7ee7b6812b57922ce799335c31cacaeba6ff0aa6235122d013"
+    }
+  },
+  "layer": "website",
+  "name": "alpha",
+  "purpose": "Pinned alpha wizard source and unmodified terminal capture assets",
+  "schema_version": "1.0.0"
+}

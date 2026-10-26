@@ -1,6 +1,20 @@
 {
-  "schema_version": "1.0.0",
-  "name": "alpha-page",
+  "extensions": {
+    "generated": {
+      "children": [],
+      "children_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compiled_at": "2026-10-26T16:13:42Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:7ec954e89c7f1a7948fcc2d7b09f85aec4e35dd9ff536f7c3c38fc9b6a6cad4f",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 8,
+      "generated_at_commit": "5a2f2141a5d96aa673f127971caa6bdfe9fca001",
+      "source_tree": "sha256:d77d9c56190c40350086fe0922b5398f266751fcaddeab26649f4b75eccf18ae"
+    }
+  },
   "layer": "website",
-  "purpose": "Seeded Omega alpha landing page and client, with pinned wizard source and real terminal capture"
+  "name": "alpha-page",
+  "purpose": "Seeded Omega alpha landing page and client, with pinned wizard source and real terminal capture",
+  "schema_version": "1.0.0"
 }

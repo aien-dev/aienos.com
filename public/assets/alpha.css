@@ -41,6 +41,8 @@
 .alpha-steps span{font-family:var(--font-mono);font-size:11px;letter-spacing:.15em;color:var(--accent-green)}
 .alpha-steps p{font-size:15px;margin:0}
 .alpha-capture{background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:8px;overflow:hidden}
+.alpha-capture img{display:block;width:100%;height:auto}
+.alpha-capture summary{padding:14px 24px;cursor:pointer;color:var(--accent-green);font-family:var(--font-mono);font-size:12px}
 .alpha-terminal-bar{margin:0!important;padding:14px 24px;border-bottom:1px solid var(--border-subtle);font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;color:var(--accent-green)!important;max-width:none!important}
 .alpha pre{font-family:var(--font-mono);font-size:13px;line-height:1.6;overflow:auto;padding:24px;margin:0;tab-size:2}
 .alpha-capture pre{color:var(--accent-green);max-height:520px}
