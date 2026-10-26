@@ -6,6 +6,8 @@ on:
       - 'om/alpha-page/**'
       - 'public/js/alpha.js'
       - 'public/alpha/**'
+      - 'om/allen-intro/**'
+      - 'public/js/allen-intro.js'
       - 'public/js/hive.js'
       - 'public/js/turing-look.js'
       - 'crates/site-builder/**'
@@ -17,6 +19,8 @@ on:
       - 'om/alpha-page/**'
       - 'public/js/alpha.js'
       - 'public/alpha/**'
+      - 'om/allen-intro/**'
+      - 'public/js/allen-intro.js'
       - 'public/js/hive.js'
       - 'public/js/turing-look.js'
       - 'crates/site-builder/**'
@@ -35,3 +39,5 @@ jobs:
         run: cargo test --manifest-path crates/site-builder/Cargo.toml components::hive::tests::served_scripts_match_their_omega_generated_sha256 -- --exact
       - name: Check generated Alpha page and source
         run: cargo test --manifest-path crates/site-builder/Cargo.toml components::alpha::tests -- --nocapture
+      - name: Check generated Allen consent aside and script
+        run: cargo test --manifest-path crates/site-builder/Cargo.toml components::allen_intro::tests::allen_intro_artifacts_match_their_omega_generated_sha256 -- --exact

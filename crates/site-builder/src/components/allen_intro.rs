@@ -2,79 +2,12 @@ use maud::{html, Markup};
 
 pub const HEAD: &str = "<link rel=\"stylesheet\" href=\"/assets/allen-intro.css\"><script defer src=\"/js/allen-intro.js\"></script><script defer src=\"/js/allen-scene.js\"></script><script defer src=\"/js/allen-presence.js\"></script>";
 
-/// Allen's greeting (Drake's words), static and client-rendered so it appears instantly.
-/// Allen's speech carries `data-speaker="allen"`: his "we" means Allen and the visitor,
-/// so `voice` exempts exactly those elements. Allen calls Drake by name.
-pub const GREETING: &str = "Hey, I'm Allen. It's nice to meet you!";
-pub const INTRO: &str = "You don't have to tell me your name, but if you do, that would be super awesome and we could chat over time. When you come back, I can remember who you are and we can pick up where we left off. We can talk about all kinds of good things in the universe.";
-/// The X pixel ask, kept separate from memory: one tap never means both.
-pub const OFFER: &str = "Separately, if you'd like, say hi and I'll let Drake know you stopped by. That uses Drake's X pixel to note the visit. Totally fine if not.";
-/// Shown instead of the offer when the browser sends Global Privacy Control.
-pub const GPC_NOTE: &str = "Your browser sends Global Privacy Control, so I'm not offering Drake's X pixel. It stays off.";
-/// After No thanks: no pixel, no memory, and Allen is still there to talk to.
-pub const AFTER_NO: &str = "No problem. You can still chat with me anonymously; I won't remember you or tell X anything.";
-
-/// A non-blocking aside, not a modal: no backdrop, no focus theft, page stays usable.
-fn dialog() -> Markup {
-    html! {
-        aside id="aien-allen-intro" role="complementary" aria-label="Allen says hello" aria-live="polite" hidden {
-            div class="allen-intro-bubble" {
-                p class="allen-intro-name" { "Allen" }
-                button id="allen-intro-close" class="allen-intro-close" type="button" aria-label="Close, no thanks" { "\u{00d7}" }
-                p id="allen-intro-message" class="allen-intro-message" aria-hidden="true" data-speaker="allen" {
-                    span class="allen-intro-ghost" {
-                        strong id="allen-intro-title" { (GREETING) } " "
-                        span id="allen-intro-intro" { (INTRO) }
-                    }
-                    span id="allen-intro-typed" { strong {} span {} }
-                }
-                p id="allen-intro-spoken" class="allen-intro-sr" {}
-                div id="allen-intro-chat" class="allen-intro-chips" {
-                    a href="/allen/?mode=remember" { "Tell Allen my name" }
-                    a href="/allen/?mode=anonymous" { "Chat anonymously" }
-                }
-                div id="allen-intro-x" {
-                    p id="allen-intro-offer" class="allen-intro-note" data-speaker="allen" { (OFFER) }
-                    div id="allen-intro-chips" class="allen-intro-chips" {
-                        button id="allen-intro-yes" type="button" { "Say hi" }
-                        button id="allen-intro-no" type="button" { "No thanks" }
-                    }
-                }
-                p id="allen-intro-gpc" class="allen-intro-note" data-speaker="allen" hidden { (GPC_NOTE) }
-                div id="allen-intro-after" hidden {
-                    p id="allen-intro-after-text" data-speaker="allen" { (AFTER_NO) }
-                    p class="allen-intro-links" { a id="allen-intro-anon" href="/allen/?mode=anonymous" { "Chat anonymously" } }
-                }
-                (who_panel())
-                p class="allen-intro-links" { a href="/privacy/" { "Privacy" } }
-            }
-        }
-    }
-}
-
-/// Local-only: everything is read from this document and browser, shown to the
-/// visitor, never sent or stored. No fingerprint hash, probing or IP lookup.
-fn who_panel() -> Markup {
-    html! {
-        details id="allen-intro-who" class="allen-intro-who" {
-            summary { "Who can see me right now?" }
-            div class="allen-intro-who-body" {
-                h3 { "Trackers on this page right now: " span id="allen-intro-tracker-count" { "checking" } }
-                ul id="allen-intro-trackers" {}
-                p id="allen-intro-trackers-none" hidden { "None. Only this site's own files have loaded in this tab." }
-                h3 { "What your browser tells every website automatically" }
-                dl id="allen-intro-facts" {}
-                p { "Every site you visit can see this. I don't keep it. Your IP address is visible to Drake's web host, like every site's." }
-                h3 { "What this page can't see" }
-                p { "Trackers on other sites, in other tabs or inside embedded frames, tracking by your internet provider or network, and your browser extensions. Tools that check more:" }
-                ul {
-                    li { a href="https://coveryourtracks.eff.org/" rel="noopener noreferrer" { "EFF Cover Your Tracks" } }
-                    li { a href="https://themarkup.org/blacklight" rel="noopener noreferrer" { "The Markup's Blacklight" } }
-                }
-            }
-        }
-    }
-}
+/// Allen's consent aside, generated by seeded Omega (`om/allen-intro/intro.om`, run by
+/// `om/allen-intro/check.sh` on arm64). Every structural and copy decision lives there,
+/// including Drake's greeting, the separate memory links and X buttons, and the
+/// local-only "Who can see me right now?" panel. Allen's speech carries
+/// `data-speaker="allen"` for the voice rule. This builder only embeds the bytes.
+pub const INTRO: &str = include_str!("../../../../om/allen-intro/intro.html");
 
 /// Final shared document pass covers generated, hand-written and translated pages.
 /// Idempotence prevents duplicate loaders if an already-enriched page is copied.
@@ -90,7 +23,7 @@ pub fn enrich(mut page: String) -> String {
     }
     if !page.contains("id=\"aien-allen-intro\"") {
         let end = page.rfind("</body>").expect("allen-intro page has a body");
-        page.insert_str(end, &dialog().into_string());
+        page.insert_str(end, INTRO);
     }
     if !page.contains("id=\"aien-allen-launcher\"") {
         let end = page.rfind("</body>").expect("Allen presence page has a body");
@@ -142,6 +75,28 @@ pub fn render_privacy() -> Markup {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use sha2::{Digest, Sha256};
+
+    #[test]
+    fn allen_intro_artifacts_match_their_omega_generated_sha256() {
+        // Both artifacts come from om/allen-intro/intro.om: the aside on fd 1, the script on fd 3.
+        for (bytes, recorded, name) in [
+            (INTRO.as_bytes(), include_str!("../../../../om/allen-intro/intro.html.sha256"), "intro.html"),
+            (
+                &include_bytes!("../../../../public/js/allen-intro.js")[..],
+                include_str!("../../../../om/allen-intro/allen-intro.js.sha256"),
+                "allen-intro.js",
+            ),
+        ] {
+            let want = recorded.split_whitespace().next().expect("sidecar holds a digest");
+            assert_eq!(want.len(), 64, "{name} sidecar must hold one sha256 digest");
+            let got = Sha256::digest(bytes).iter().fold(String::new(), |mut acc, byte| {
+                acc.push_str(&format!("{byte:02x}"));
+                acc
+            });
+            assert_eq!(got, want, "{name} and its digest disagree; run: sh om/allen-intro/check.sh");
+        }
+    }
 
     #[test]
     fn every_document_gets_one_local_loader_and_accessible_dialog() {
@@ -151,7 +106,8 @@ mod tests {
         assert_eq!(page.matches("id=\"aien-allen-intro\"").count(), 1);
         assert!(page.contains("role=\"complementary\""));
         assert!(page.contains("aria-live=\"polite\""));
-        assert!(page.contains(GREETING) && page.contains(INTRO));
+        assert!(page.contains("Hey, I'm Allen. It's nice to meet you!"));
+        assert!(page.contains("we could chat over time"));
         assert!(page.contains("data-speaker=\"allen\""), "Allen's speech is tagged for the voice rule");
         // Memory and X consent are separate controls: links for memory, buttons for X.
         assert!(page.contains("<a href=\"/allen/?mode=remember\">Tell Allen my name</a>"));
