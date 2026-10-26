@@ -247,6 +247,69 @@ The compiler (`omc`, sha256 `734f0a39...6b61`) and the IR-to-WebAssembly
 translator (`irwasm`, sha256 `2d235a70...82e6`) are seeded Omega binaries
 (`om/hive-page/`); the gateway refuses to start on any other bytes.
 
+## Catalog (allen-catalog)
+
+`catalog.py` writes three files into `/var/lib/allen-catalog/`:
+
+- `catalog.txt`: the list of Drake's public work that the gateway appends to Allen's system
+  prompt (the cached prefix). It holds only what the model reads (no head shas), so a push
+  does not rewrite it; each rewrite costs one cold prefill.
+- `catalog-detail.jsonl`: one record per non-fork public repo (active and archived) with
+  state, last push date, head sha, latest commit date and subject, the repo's own status or
+  evidence line ("not stated" when it has none), a how-to line from its install/usage
+  section (omitted when absent) and docs links (README, `docs/`, `STATUS.md`, wiki). The
+  first record (`_sources`) holds the aienos.com head and page-source digest.
+  `retrieve.py` `select(load(path), user_text)` returns up to 5 matching lines for the
+  gateway to append to the LAST user turn, never to the system text.
+- `areas.txt`: active public repo names, one per line (the issue `Area:` values).
+
+Sources, all unauthenticated, so a private repository cannot appear:
+
+- `GET https://api.github.com/orgs/aien-dev/repos?type=public&per_page=100` (paginated, no
+  Authorization header). Forks and archived repos are named on one line; every other repo
+  gets a line with its description (truncated at a sentence or clause, never reworded),
+  license, last push month and head.
+- `git ls-remote https://github.com/aien-dev/<repo> HEAD` with `-c credential.helper=`,
+  `GIT_CONFIG_GLOBAL=/dev/null`, `GIT_CONFIG_NOSYSTEM=1`, `GIT_TERMINAL_PROMPT=0` and no
+  SSH agent. An empty repository (no HEAD) is listed as `empty`.
+- `README.md` at that head from raw.githubusercontent.com (its first sentence is used
+  only when a repo has no description; a 404 means no README).
+- `crates/site-builder/src/seo.rs` of aienos.com at its head: every `PageInfo` becomes
+  a page line with its full https://www.aienos.com URL. `/allen/` is added from the
+  feat/allen-chat text until it reaches main.
+
+Output is ASCII and LF, sorted, with no clock time. The `Sources:` line records the
+aienos.com head and a digest of every input (full head shas, README digests, seo.rs digest),
+so the file changes only when an input changes. Text containing we, our or us is cut
+before that clause. A failed fetch exits 1 and the old files stay. Files are written
+through temporaries and renamed. Unchanged output is not rewritten, so the gateway's mtime
+stays put and the opening snapshot stays warm.
+
+Units (system units; `allen-catalog` is a system user with no home and no credential):
+
+- `allen-catalog.service`: oneshot; `/opt/allen-catalog/catalog.py /var/lib/allen-catalog`.
+  NoNewPrivileges, empty CapabilityBoundingSet, PrivateUsers, ProtectSystem=strict,
+  ProtectHome=yes, ReadWritePaths=/var/lib/allen-catalog, PrivateTmp, PrivateDevices,
+  RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX, SystemCallFilter=@system-service.
+  IPAddressDeny covers loopback, LAN, tailnet and ULA; only the DNS stub 127.0.0.53 is
+  allowed, so the unit reaches GitHub and nothing local (not the model server on 18091).
+- `allen-catalog.timer`: hourly (Persistent, up to 2 min random delay) and 5 minutes after boot.
+  One GitHub API request per run; everything else is git smart HTTP and raw files. Per-commit
+  data is cached in `/var/lib/allen-catalog/.cache/` by head sha, so a quiet hour costs
+  one API call and one `ls-remote` per repo and wiki.
+
+Install:
+
+    sudo install -d -o root -g root -m 0755 /opt/allen-catalog
+    sudo install -o root -g root -m 0644 catalog.py retrieve.py /opt/allen-catalog/
+    sudo install -d -o allen-catalog -g allen-catalog -m 0755 /var/lib/allen-catalog
+    sudo install -m 0644 allen-catalog.service allen-catalog.timer /etc/systemd/system/
+    sudo systemctl daemon-reload && sudo systemctl enable --now allen-catalog.timer
+    sudo systemctl start allen-catalog.service
+
+The gateway reads `--catalog /var/lib/allen-catalog/catalog.txt --areas-file
+/var/lib/allen-catalog/areas.txt` through a read-only bind.
+
 ## Deploy (Spark)
 
 ```sh

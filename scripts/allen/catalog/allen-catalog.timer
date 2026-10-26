@@ -1,9 +1,10 @@
 [Unit]
-Description=Refresh Allen's public catalog daily and after boot
+Description=Refresh Allen's public catalog hourly and after boot
 
 [Timer]
 OnBootSec=5min
-OnCalendar=daily
+OnCalendar=hourly
+RandomizedDelaySec=120
 Persistent=true
 Unit=allen-catalog.service
 
