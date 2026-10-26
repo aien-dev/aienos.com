@@ -10,21 +10,21 @@
     "generated": {
       "children": [
         {
-          "digest": "fe709ae6492a249e8e67039a47fb59c1b068f1fc6844bbfd3166d12681d183d6",
-          "last_commit": "9872de6",
+          "digest": "a2d446735b008f99a4ee37605bd88a603cedfbc8e6501557fc182e4e476484e9",
+          "last_commit": "940cc43",
           "name": "components",
           "purpose": "Reusable page content and navigation"
         }
       ],
-      "children_root": "sha256:655c7e88df1f843bbe8544de48bdcb25f67de9dec267ac0dad77a06767b2a867",
-      "compiled_at": "2026-10-26T16:22:37Z",
+      "children_root": "sha256:6fdff992cb8ba4040a9b65533ffee614c23cd2cb43103085b8a8b545b48a00de",
+      "compiled_at": "2026-10-26T16:55:01Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:3c114a316b708b2f138bdfc646d45c6926778e48175ff165f4beece7363cdd8b",
+      "digest": "sha256:bc07b02373e66f8e90b856cb1f08a890a7b5541be5b75fac3dbbcb1a0e4f677d",
       "evidence_files": 0,
       "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "files": 42,
-      "generated_at_commit": "9872de66af56a3a21933b00cd7ce68480bb80dba",
-      "source_tree": "sha256:5b986149436df3178ba4798d8acbeb75349b83b73b58a8596afb6e5b1ae603bf"
+      "files": 43,
+      "generated_at_commit": "5d8144b6d5ed8afb34055130f4969e47047aa25d",
+      "source_tree": "sha256:22e6b5cc9a51e5582c96ba1ef0cfee843734bdaea8909dc2dbb95f7b8031264b"
     }
   },
   "invariants": [

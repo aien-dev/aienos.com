@@ -12,7 +12,9 @@ Item, version 1:
    "title":str, "body":str, "area":str}
   {"v":1, "kind":"project", "slug":str, "title":str, "description":str,
    "files":[{"name":str, "content":str}, ...]}
-Status: {"id":..., "state":"queued"|"filed"|"rejected", "url":str|null, "reason":str|null}
+Status: {"id":..., "state":"queued"|"filed"|"rejected"|"failed", "url":str|null, "reason":str|null}
+  queued = not filed yet; filed = url set; rejected = content broke a rule (fixable);
+  failed = GitHub did not take it after N attempts or the daily cap was hit (offer the relay).
 """
 
 import hashlib
@@ -161,11 +163,21 @@ def write_item(spool_in, item):
     return iid, True
 
 
-def read_status(spool_status, iid):
+def spool_file(directory, iid):
+    """directory/iid.json for a well-formed id, or None; the real path must stay in directory."""
     if not ID.match(iid or ""):
         return None
+    root = os.path.realpath(directory)
+    path = os.path.realpath(os.path.join(root, iid + ".json"))
+    return path if path.startswith(root + os.sep) else None
+
+
+def read_status(spool_status, iid):
+    path = spool_file(spool_status, iid)
+    if path is None:
+        return None
     try:
-        with open(os.path.join(spool_status, iid + ".json"), encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             st = json.load(f)
     except (OSError, ValueError):
         return None
@@ -173,5 +185,96 @@ def read_status(spool_status, iid):
     if url is not None and not (isinstance(url, str) and re.match(
             r"^https://github\.com/aien-dev/omega-projects/(issues|pull)/\d+$", url)):
         url = None
-    return {"id": iid, "state": st.get("state") if st.get("state") in ("queued", "filed", "rejected")
+    return {"id": iid, "state": st.get("state") if st.get("state") in ("queued", "filed", "rejected", "failed")
             else "queued", "url": url, "reason": st.get("reason") if isinstance(st.get("reason"), str) else None}
+
+
+# Reaching Drake: relay messages (gateway writes, allen-relay mailer reads) and live text.
+RELAY_MESSAGE = 4000
+RELAY_FIELD = 200
+TRANSCRIPT_MSGS = 24
+TRANSCRIPT_CHARS = 16000
+RELAY_ID = re.compile(r"^r_[0-9a-f]{16}$")
+CONV = re.compile(r"^[0-9a-f]{16}$")
+RECEIVED = re.compile(r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$")
+
+
+def validate_transcript(t):
+    """A conversation the visitor chose to include: [] or up to 24 user/assistant messages."""
+    if t is None:
+        return []
+    if not isinstance(t, list):
+        raise Invalid("transcript must be a list of messages")
+    if len(t) > TRANSCRIPT_MSGS:
+        raise Invalid("transcript is limited to %d messages" % TRANSCRIPT_MSGS)
+    out, total = [], 0
+    for m in t:
+        if not isinstance(m, dict) or set(m) != {"role", "content"} or m.get("role") not in ("user", "assistant"):
+            raise Invalid("each transcript message has a role (user or assistant) and a content")
+        c = _text(m["content"], "transcript message", 0, RELAY_MESSAGE)
+        total += len(c)
+        out.append({"role": m["role"], "content": c})
+    if total > TRANSCRIPT_CHARS:
+        raise Invalid("transcript is limited to %d characters" % TRANSCRIPT_CHARS)
+    return out
+
+
+def validate_relay(req):
+    """{"message", "name", "contact", "transcript"} -> canonical relay fields or Invalid."""
+    if not isinstance(req, dict):
+        raise Invalid("send a JSON object")
+    extra = set(req) - {"message", "name", "contact", "transcript"}
+    if extra:
+        raise Invalid("unknown fields: " + ", ".join(sorted(extra))[:200])
+    message = _text(req.get("message"), "message", 1, RELAY_MESSAGE).strip()
+    if not message:
+        raise Invalid("message is empty")
+    name = req.get("name") or ""
+    contact = req.get("contact") or ""
+    return {"message": message,
+            "name": _text(name, "name", 0, RELAY_FIELD, line=True).strip(),
+            "contact": _text(contact, "contact", 0, RELAY_FIELD, line=True).strip(),
+            "transcript": validate_transcript(req.get("transcript"))}
+
+
+def validate_relay_record(rec):
+    """A relay drop file as the gateway writes it; the mailer re-checks every field."""
+    if not isinstance(rec, dict) or rec.get("v") != 1 or rec.get("type") != "relay":
+        raise Invalid("not a version 1 relay record")
+    if set(rec) != {"v", "type", "id", "received", "conv", "message", "name", "contact", "transcript"}:
+        raise Invalid("relay record fields do not match")
+    if not isinstance(rec["id"], str) or not RELAY_ID.match(rec["id"]):
+        raise Invalid("bad relay id")
+    if not isinstance(rec["received"], str) or not RECEIVED.match(rec["received"]):
+        raise Invalid("bad received time")
+    if not isinstance(rec["conv"], str) or not (rec["conv"] == "" or CONV.match(rec["conv"])):
+        raise Invalid("bad conversation id")
+    item = validate_relay({k: rec[k] for k in ("message", "name", "contact", "transcript")})
+    return dict(item, v=1, type="relay", id=rec["id"], received=rec["received"], conv=rec["conv"])
+
+
+def validate_say(req):
+    """{"text"} the visitor types while Drake is there."""
+    if not isinstance(req, dict) or set(req) != {"text"}:
+        raise Invalid("say takes only text")
+    text = _text(req["text"], "text", 1, RELAY_MESSAGE).strip()
+    if not text:
+        raise Invalid("text is empty")
+    return text
+
+
+def validate_summary(req):
+    """{"summary", "consent"} for POST project-summary: the visitor's own short project summary,
+    text only (no code or file fields), no secrets, emails or phone numbers."""
+    if not isinstance(req, dict) or set(req) - {"summary", "consent"}:
+        raise Invalid("project-summary takes only summary and consent")
+    s = req.get("summary")
+    if not isinstance(s, str):
+        raise Invalid("summary must be text")
+    s = s.strip()
+    if not s or len(s.encode("utf-8")) > 1000:
+        raise Invalid("summary must be 1 to 1000 bytes")
+    _text(s, "summary", 1, 1000)
+    if EMAIL.search(s) or PHONE.search(s):
+        raise Invalid("summary must not contain an email address or a phone number")
+    return s

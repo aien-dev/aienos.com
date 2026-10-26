@@ -23,13 +23,26 @@ Public Allen cannot deploy anything: not to this site, not to any repository,
 not to the hub and not to the Spark. This is enforced by structure, not by the
 prompt, and each point is tested with a negative control (results in the PR):
 
-1. **No capability in the gateway.** It exposes exactly these routes:
-   `POST chat`, `POST omega`, `POST submit`, `GET status/<id>`,
-   `POST introduce`, `POST forget`. It has no tools, no function calling, no
-   shell, no git, gh or ssh, and no credential of any kind. Model output is
-   relayed to the browser as text; the server never parses it for actions.
-   A prompt asking Allen to deploy, push, commit or run a shell command produces
-   text and nothing else.
+1. **Compute only, never deployment.** Native function calls are admitted only
+   for `math_compute`, `omega_compile`, `web_app`, `paper`, `research`, and
+   `plot`, with strict schemas, bounded arguments and at most three tool rounds.
+   The gateway forwards them only to a separate `allen-science` process on
+   loopback. Its inherited listener is its only network access: the science
+   process has an empty network namespace, no credentials, a read-only install,
+   private temporary storage, and bounded compiler/math subprocess sandboxes.
+   Neither process has shell, git, gh, ssh, deployment or arbitrary URL tools.
+   Unknown tool names and malformed calls are refused, never executed as text.
+   Math comes from the pinned pure-Omega aien-math engine, not model arithmetic;
+   unsupported expressions remain unsupported. Engine output is experimental,
+   not proof of correctness. Panes retain its exact expression, result and pin.
+   Research has no live web search. Papers and research are unverified drafts;
+   plots show input data. Browser apps and WASM require explicit visitor Run.
+   Projects stay in browser IndexedDB; optional memory sync sends only a short
+   summary after a separate visitor action, never an anonymous server write.
+   There is no Wolfram integration, account, key or public-use dependency.
+   `pane-contract.om` versions the SSE pane contract; `science_protocol.py`
+   validates it on the host. These Python HTTP/JSON adapters are recorded
+   migration dependencies, not represented as Omega implementation.
 2. **Sandboxed process.** `allen-chat.service` is a system unit running as
    drakestapleton (the user manager on this Spark silently skips mount
    namespacing, so a --user unit would not enforce these):
@@ -39,8 +52,8 @@ prompt, and each point is tested with a negative control (results in the PR):
    read-write binds of only the two drop directories, `PrivateTmp`,
    `PrivateDevices`, `RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
    AF_NETLINK` (netlink only so bwrap can bring up the sandbox's own
-   loopback), `IPAddressDeny=any` with `IPAddressAllow=127.0.0.1 100.64.0.2
-   100.64.0.3`, `LockPersonality`, `MemoryDenyWriteExecute`,
+   loopback), `IPAddressDeny=any` with `IPAddressAllow=127.0.0.1 100.64.0.1
+   100.64.0.2 100.64.0.3 100.64.0.4` (.1 and .4 are my devices, for the console), `LockPersonality`, `MemoryDenyWriteExecute`,
    `SystemCallFilter=@system-service @mount unshare setns`. Measured: it cannot
    read `~/.ssh`, `~/.config/gh`, `~/.omp`, the vault, the contact store or the
    gb10 lock (also not through `/proc/<pid>/root`), cannot `sudo`, and cannot
@@ -97,6 +110,18 @@ address only inside `/allen/api/`; `$remote_addr` stays the loopback for the res
 of the site, so the site's own access log is unchanged, and `/allen/api/` is not
 logged at all.
 
+### Temporary workaround: the native pre-check
+
+The gateway compiles every Omega unit twice: first in omc's native function mode
+(output discarded), then in IR mode. This is a workaround for check gaps in the
+IR mode of the pinned omc `734f0a39` (extra words at the end of a line, names
+over 8 characters, shadowing are accepted in IR mode, and one unknown-word case
+lowers a different program). OmegaNext has routed the repros to OmegaMemory;
+remove the pre-check once that fix merges into omega-mv and the site's omc pin
+moves past it (link the PR here when it exists). When the pin changes, also
+recheck the system prompt's "names at most 8 characters" line: omega-mv main
+has different name-length rules.
+
 ## Privacy
 
 No prompt, reply, source, address or path is written anywhere: the handler's
@@ -104,6 +129,36 @@ access log is disabled, nginx has `access_log off` on these routes, and the
 rate-limit keys are salted BLAKE2 hashes held in memory. The journal gets one
 aggregate counter line every ten minutes. Introductions are the only personal
 data kept, only with consent, as described above.
+
+## Reaching me (relay, live takeover, console)
+
+- `POST relay` drops a visitor-confirmed message into
+  `/var/lib/allen-chat/relay-drop/` (allen-relay:allen-relaydrop 2730; the
+  gateway can create files but not list or read them). Caps: message 4000,
+  name/contact 200, transcript 24 messages / 16000 characters, secret shapes
+  refused; one per conversation and message; 3 per address per hour; 30 per
+  day. The relay mailer (`/opt/allen-relay/`, user `allen-relay`, started by
+  `/opt/allen-relay/start`, no systemd unit) re-validates each file and emails
+  it from aien@aienos.com to drake@aienos.com only, over SMTPS to
+  mail.gandi.net:465. The Gandi password comes from atlas-vault on its stdin.
+  nft (`chain output`) lets uid allen-relay reach only loopback DNS and port 465.
+- `GET presence`, `POST handoff` (only while I am online), `GET session`
+  (SSE: `state`, `human`, heartbeat every 15 s), `POST say`. While I have
+  joined a conversation, `POST chat` answers `event: error {"code":"human"}`
+  without calling the model. `event: human` is written only by the console.
+- The console is a second listener in the gateway on `100.64.0.2:18112`. The
+  hub never proxies it, and nft admits it only from 100.64.0.1 and 100.64.0.4
+  (plus the Spark itself over loopback). Login is with the token held in
+  atlas-vault as `ALLEN_CONSOLE_TOKEN`; the gateway holds only its sha256
+  (`ALLEN_CONSOLE_TOKEN_SHA256` in `/etc/allen-chat/env`). Sessions use an
+  HttpOnly SameSite=Strict cookie that lasts 12 h, with a CSRF token on every
+  POST, no CORS and a pinned Host. Availability is kept in
+  `/var/lib/allen-chat/console/presence.json`.
+- Anonymous mode: `X-Allen-Anonymous: 1` means no recall and no notes, whatever
+  key is sent, and `introduce` answers 409 `anonymous`.
+- `POST project-summary` {"summary" (at most 1000 bytes of text, no email,
+  phone or secret), "consent": true}, key holders only (409 in anonymous mode):
+  one Cortex note "Project summary: ..." per visitor, replacing the previous one.
 
 ## Dependencies and the Omega path
 
@@ -161,6 +216,8 @@ python3 scripts/allen/test_sandbox.py              # compile sandbox escape test
 python3 scripts/allen/test_gateway.py --omc om/hive-page/omc --irwasm om/hive-page/irwasm \
     --system-prompt scripts/allen/system-prompt.txt [--skip-model]
 python3 scripts/allen/probe.py                     # run inside the unit's properties (systemd-run) and outside
+python3 scripts/allen/relay/test_relay_mailer.py      # relay mailer against a loopback SMTP stub, each with a control
+python3 scripts/allen/test_reaching_drake_prod.py  # production: console reachability, one real TEST relay email, live takeover
 ```
 
 `test_gateway.py` starts throwaway loopback gateways (never the production

@@ -134,6 +134,12 @@
   color: var(--an-green);
 }
 
+.aien-nav a[href="/alpha/"] {
+  color: var(--accent-green, var(--an-green));
+  font-weight: 700;
+  border-bottom: 1px solid currentColor;
+}
+
 .aien-nav a.aien-nav-link:hover,
 .aien-nav a.aien-nav-minor:hover {
   color: var(--an-text);

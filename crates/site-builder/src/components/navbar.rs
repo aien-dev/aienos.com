@@ -14,7 +14,8 @@ pub const NAV_PRIMARY: [(&str, &str); 6] = [
 ];
 
 /// Secondary links: smaller, after a divider.
-pub const NAV_SECONDARY: [(&str, &str); 8] = [
+pub const NAV_SECONDARY: [(&str, &str); 9] = [
+    ("Sovereign Intelligence", "/alpha/"),
     ("Start here", "/start/"),
     ("Omega", "/omega/"),
     ("CUDA++", "/cudaplusplus/"),
@@ -134,6 +135,7 @@ mod tests {
                 .unwrap_or_else(|_| panic!("cannot read {rel}"));
             assert!(page.contains("class=\"aien-header\""), "{rel}: missing shared header markup");
             assert!(page.contains("/assets/site-nav.css"), "{rel}: missing shared nav stylesheet");
+            assert!(page.contains("href=\"/alpha/\""), "{rel}: missing alpha testing entry");
             assert_six_in_order(&page, rel);
         }
     }

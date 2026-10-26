@@ -63,7 +63,7 @@ Rollback: delete the `www` A record and restore `CNAME www aien-dev.github.io.` 
 
 ## Installer script
 
-`public/install.sh` is published at `https://aienos.com/install.sh`. It is the AienOS alpha bootstrap for an NVIDIA DGX Spark (GB10), byte-identical to the signed copy in the [alpha-20261026.1 release](https://github.com/aien-dev/AienOS-nv/releases/tag/alpha-20261026.1) of aien-dev/AienOS-nv (sha256 `fc966a2686aff6b0c4177991d8ca9f0d5a665258339694b8a9dec4f27bb4aff5`, listed in that release's signed SHA256SUMS). It checks the platform first, then downloads that release, checks its Ed25519 signature and SHA-256 before unpacking, and installs into `~/.local/share/aienos`. Its source is `installer/install.sh` in aien-dev/AienOS-nv; change it there and copy it here, never edit this copy alone. The /alpha/ page links to it.
+`public/install.sh` is published at `https://aienos.com/install.sh`. It is the Sovereign Intelligence bootstrap (built on AienOS) for an NVIDIA DGX Spark (GB10), byte-identical to the signed copy in the [alpha-20261026.1 release](https://github.com/aien-dev/sovereign-intelligence/releases/tag/alpha-20261026.1) of aien-dev/sovereign-intelligence (sha256 `2c15afb5080dc69dc7c1fb0a9a35b4f1fc8b3a38db27d0569d22bace8632bacb`, listed in that release's signed SHA256SUMS). It checks the platform first, then downloads that release, checks its Ed25519 signature and SHA-256 before unpacking, and installs into `~/.local/share/aienos`. Its source is `installer/install.sh` in aien-dev/sovereign-intelligence; change it there and copy it here, never edit this copy alone. The /alpha/ page links to it.
 
 ```sh
 curl -fsSL https://aienos.com/install.sh | sh

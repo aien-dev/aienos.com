@@ -111,6 +111,31 @@ check("environment cleared", b"ALLENCHAT_CANARY" not in o and b"END" in o, "env=
 o, e, rc, _ = inside("@ls /proc 2>&1; echo END")
 check("no /proc in the sandbox", b"END" in o and b"self" not in o, "out=%r" % o[:80])
 
+# 11. Output floods are cut while they are read, not after: stdout past the cap ends the run.
+t0 = time.monotonic()
+o, e, rc = sandboxed(BB, b"", 5, 1 << 20, ["sh", "-c", PRE + "b yes"], argv0="busybox")
+dt = time.monotonic() - t0
+check("stdout flood cut at the cap", o is None and e == b"output too large" and rc == -1 and dt < 3,
+      "rc=%s err=%r after %.1fs" % (rc, e, dt))
+# 12. A stderr flood keeps only 4096 bytes and still ends at the wall clock.
+t0 = time.monotonic()
+o, e, rc = sandboxed(BB, b"", 2, 1 << 20, ["sh", "-c", PRE + "b yes >&2"], argv0="busybox")
+dt = time.monotonic() - t0
+check("stderr flood bounded and timed out", rc == -9 and e == b"timeout" and dt < 4, "rc=%s after %.1fs" % (rc, dt))
+o, e, rc = sandboxed(BB, b"", 5, 1 << 20, ["sh", "-c", PRE + "b head -c 100000 /dev/zero | b tr '\\0' e >&2"],
+                     argv0="busybox")
+check("stderr kept to its first 4096 bytes (control: the run completes)", rc == 0 and len(e) == 4096,
+      "rc=%s stderr %d bytes" % (rc, len(e)))
+# 13. 8 MiB of stdin is fed in full (control for the non-blocking writer).
+big = b"z" * (8 << 20)
+o, e, rc = sandboxed(BB, big, 10, 1 << 20, ["sh", "-c", PRE + "b wc -c"], argv0="busybox")
+check("8 MiB stdin delivered", rc == 0 and o and o.strip() == b"8388608", "rc=%s out=%r" % (rc, (o or b"")[:20]))
+# 14. A tool that never reads its 8 MiB stdin is still killed at the wall clock.
+t0 = time.monotonic()
+o, e, rc = sandboxed(BB, big, 2, 1 << 20, ["sh", "-c", PRE + "b sleep 30"], argv0="busybox")
+dt = time.monotonic() - t0
+check("unread stdin cannot outlast the wall clock", rc == -9 and dt < 4, "rc=%s after %.1fs" % (rc, dt))
+
 failed = [n for n, ok in results if not ok]
 print("%d/%d passed" % (len(results) - len(failed), len(results)))
 sys.exit(1 if failed else 0)

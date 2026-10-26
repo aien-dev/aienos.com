@@ -179,6 +179,73 @@ mod tests {
     }
 
     #[test]
+    fn a_draft_link_fills_the_input_and_sends_nothing() {
+        // /allen/#draft=<text> only fills the input: no request, no send, the
+        // hash cleared, the text capped and stripped of control characters.
+        let script = include_str!("../../../../public/js/allen.js");
+        let draft = function_body(script, "takeDraft");
+        for banned in ["fetch(", "ask(", "send", "submit", "click(", "say"] {
+            assert!(!draft.contains(banned), "takeDraft must not {banned}");
+        }
+        assert!(draft.contains("history.replaceState(null, '', location.pathname + location.search);"));
+        assert!(draft.contains(", 2000);"));
+        assert!(draft.contains("input.value = text;"));
+        assert!(script.contains("  takeDraft();\n})();"), "the draft is taken after allen-ready, at the end of load");
+        assert_eq!(script.matches("takeDraft").count(), 3, "defined, on hashchange, once at load");
+    }
+
+    #[test]
+    fn filing_status_covers_failed_and_rejected() {
+        // filed shows the link, rejected lets the visitor edit and resend,
+        // failed says so plainly and offers the relay with the text prefilled,
+        // queued keeps polling with its reason (retrying ones a while longer).
+        let script = include_str!("../../../../public/js/allen.js");
+        let status = function_body(script, "showStatus");
+        for needle in ["status.state === 'filed'", "status.state === 'rejected'", "editIssue(item, state)", "status.state === 'failed'", "`I could not file this: ${reason || 'no reason given'}`", "relayCard({ fields: Object.create(null), body: relayText(item) }, relayOut)", "Waiting to file on GitHub"] {
+            assert!(status.contains(needle), "showStatus lacks {needle}");
+        }
+        // The relay still waits for Send to Drake; the offer only builds the card.
+        assert!(!status.contains("sendRelay("));
+        assert!(function_body(script, "track").contains("current.reason.startsWith('retrying')"));
+        assert!(function_body(script, "editIssue").contains("submitItem(next, note, resend)"));
+    }
+
+    #[test]
+    fn the_frame_policy_is_placed_by_a_linear_scan() {
+        // CodeQL js/redos: the head search must not backtrack. sandboxed() scans
+        // with startsWith/indexOf; no quantified group or lazy match is left.
+        let script = include_str!("../../../../public/js/allen.js");
+        let body = function_body(script, "sandboxed");
+        for banned in ["*?", ")*", ".exec(source)", "[\\s\\S]"] {
+            assert!(!body.contains(banned), "sandboxed must not use {banned}");
+        }
+        for needle in ["lower.startsWith('<!--', at)", "source.indexOf('-->', at + 4)", "if (tag('head')) return source.slice(0, at) + meta + source.slice(at);"] {
+            assert!(body.contains(needle), "sandboxed lacks {needle}");
+        }
+    }
+
+    #[test]
+    fn volunteer_inference_is_an_anonymous_opt_in() {
+        // Open Humanity disclosure (aien-dev/open-humanity PR #41): the box is
+        // unticked in the markup, only anonymous chat sends X-Allen-Volunteer,
+        // and a volunteer's reply says so.
+        let script = include_str!("../../../../public/js/allen.js");
+        assert!(SKELETON.contains("<input type=\"checkbox\" id=\"allen-volunteer\"> <span>Let a volunteer&#39;s Spark answer me when Drake&#39;s is busy.</span>"));
+        assert!(SKELETON.contains("If you tick this and my Spark is full, your messages in this chat go to a computer owned by a volunteer, outside my house. It gets only the text of this anonymous conversation. I add no visitor key, stored memories, contact record or IP address, but anything you type here is sent as you typed it. I check a sample of volunteer replies, not every one. A volunteer could still send a wrong or bad reply that I don&#39;t catch. Each reply says which machine answered."));
+        assert!(!SKELETON.contains("id=\"allen-volunteer\" checked"));
+        assert_eq!(script.matches("'X-Allen-Volunteer'").count(), 1);
+        let headers = function_body(script, "volunteerHeaders");
+        assert!(headers.contains("if (remembered || !tick || !tick.checked) return {};"));
+        assert!(function_body(script, "setVolunteer").contains("tick.checked = Boolean(on) && !remembered;"));
+        assert!(function_body(script, "showMode").contains("if (remembered) setVolunteer(false);"));
+        // Remembered chat carries the key, so the volunteer header is never beside it.
+        assert!(function_body(script, "keyHeaders").contains("if (!remembered) return { 'X-Allen-Anonymous': '1' };"));
+        assert!(script.contains("`answered by a volunteer's Spark (${clock.volunteer})`"));
+        assert!(function_body(script, "volunteerModel").contains("oh.answered_by !== 'volunteer'"));
+        assert!(script.contains("response.headers.get('X-OH-Model')"));
+    }
+
+    #[test]
     fn only_allen_nodes_carry_the_allen_speaker_mark() {
         let script = include_str!("../../../../public/js/allen.js");
         assert!(function_body(script, "message").contains("if (role === 'allen') item.dataset.speaker = 'allen';"));
@@ -194,7 +261,7 @@ mod tests {
         for id in [
             "allen", "allen-log", "allen-form", "allen-input", "allen-send", "allen-stop", "allen-status", "allen-new",
             "allen-model", "allen-queue", "allen-ttft", "allen-first", "allen-rate", "allen-tokens", "allen-server", "allen-examples",
-            "allen-key", "allen-key-body", "allen-introduce", "allen-drake", "allen-mode",
+            "allen-key", "allen-key-body", "allen-introduce", "allen-drake", "allen-mode", "allen-volunteer", "allen-volunteer-box",
         ] {
             assert_eq!(SKELETON.matches(&format!(" id=\"{id}\"")).count(), 1, "exactly one #{id} in the skeleton");
         }

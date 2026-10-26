@@ -607,12 +607,15 @@
       again.disabled = false;
       return;
     }
-    track(reply, state);
+    track(reply, state, item, again);
   }
-  /* Status every POLL_MS until filed, rejected or POLL_LIMIT; only a link to
-     an issue or pull request in aien-dev/omega-projects becomes an anchor. */
-  function showStatus(status, state, id) {
+  /* Status every POLL_MS until filed, rejected or failed. Only a link to an
+     issue or pull request in aien-dev/omega-projects becomes an anchor. A
+     rejected item can be edited and sent again; a failed one can go to Drake
+     as a relay instead, with its text prefilled and nothing sent unconfirmed. */
+  function showStatus(status, state, id, item, again) {
     const url = typeof status.url === 'string' && /^https:\/\/github\.com\/aien-dev\/omega-projects\/(issues|pull)\/\d+$/.test(status.url) ? status.url : '';
+    const reason = typeof status.reason === 'string' && status.reason ? status.reason.slice(0, 300) : '';
     if (status.state === 'filed') {
       const done = el('p', 'allen-ok', url ? 'Filed: ' : 'Filed, without a tracking link.');
       if (url) {
@@ -626,14 +629,34 @@
       return true;
     }
     if (status.state === 'rejected') {
-      state.replaceChildren(el('p', 'allen-err', `Not filed: ${typeof status.reason === 'string' ? status.reason.slice(0, 300) : 'no reason given'}`));
+      state.replaceChildren(el('p', 'allen-err', `Not filed: ${reason || 'no reason given'}`));
+      if (item.kind === 'issue') {
+        state.append(editIssue(item, state));
+      } else {
+        again.hidden = false;
+        again.disabled = false;
+        state.append(el('p', 'allen-note', 'Edit the fields above and submit again.'));
+      }
       return true;
     }
-    const why = typeof status.reason === 'string' && status.reason ? status.reason.slice(0, 200) : '';
-    state.replaceChildren(el('p', 'allen-note', `Queued${why ? `: ${why}` : ''} (item ${id}${status.duplicate ? ', the same text was sent before' : ''}). Checking every ${POLL_MS / 1000} s for up to ${POLL_LIMIT / 60000} minutes.`));
+    if (status.state === 'failed') {
+      const box = el('div', 'allen-fail');
+      const relayOut = el('div', 'allen-out');
+      const offer = button('Send it to Drake instead', () => {
+        offer.remove();
+        relayCard({ fields: Object.create(null), body: relayText(item) }, relayOut);
+      });
+      box.append(el('p', 'allen-err', `I could not file this: ${reason || 'no reason given'}`), offer, relayOut);
+      state.replaceChildren(box);
+      return true;
+    }
+    state.replaceChildren(el('p', 'allen-note', `Waiting to file on GitHub${reason ? `: ${reason}` : ''} (item ${id}${status.duplicate ? ', the same text was sent before' : ''}). Checking every ${POLL_MS / 1000} s.`));
     return false;
   }
-  async function track(first, state) {
+  function relayText(item) {
+    return item.kind === 'issue' ? `Issue for ${item.area} (${item.template}): ${item.title}\n\n${item.body}` : `Omega project ${item.slug}: ${item.title}\n\n${item.description}`;
+  }
+  async function track(first, state, item, again) {
     const id = typeof first.id === 'string' && /^[0-9a-f]{20}$/.test(first.id) ? first.id : '';
     if (!id) {
       state.replaceChildren(el('p', 'allen-err', 'The gateway returned no tracking id.'));
@@ -642,10 +665,13 @@
     const began = performance.now();
     let current = first;
     for (;;) {
-      if (showStatus(current, state, id)) return;
-      if (performance.now() - began >= POLL_LIMIT) {
+      if (showStatus(current, state, id, item, again)) return;
+      /* A token not yet installed never resolves, so stop after POLL_LIMIT;
+         retries end in filed or failed within a few minutes, so wait longer. */
+      const retrying = typeof current.reason === 'string' && current.reason.startsWith('retrying');
+      if (performance.now() - began >= (retrying ? 3 * POLL_LIMIT : POLL_LIMIT)) {
         const why = typeof current.reason === 'string' && current.reason ? current.reason.slice(0, 200) : 'not filed yet';
-        state.replaceChildren(el('p', 'allen-note', `queued: ${why} (item ${id}). The request is kept and is filed when Drake's filing service runs; checking stopped after ${POLL_LIMIT / 60000} minutes.`));
+        state.replaceChildren(el('p', 'allen-note', `queued: ${why} (item ${id}). The request is kept and is filed when Drake's filing service runs; checking stopped.`));
         return;
       }
       await new Promise(done => setTimeout(done, POLL_MS));
@@ -657,6 +683,30 @@
         /* Keep the last status and try again on the next tick. */
       }
     }
+  }
+  /* After a rejection: the same issue, editable, sent again only on a click. */
+  function editIssue(item, state) {
+    const form = el('form', 'allen-card allen-reissue');
+    form.noValidate = true;
+    const title = field(form, 'Title', 'input', 120);
+    title.value = item.title;
+    const body = field(form, 'Body', 'textarea', 6000);
+    body.value = item.body;
+    const resend = el('button', 'allen-tool', 'File the edited issue');
+    resend.type = 'submit';
+    const note = el('p', 'allen-card-state');
+    form.append(resend, note);
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      const next = { ...item, title: title.value.trim(), body: body.value.trim() };
+      if (next.title.length < 8 || next.title.length > 120 || next.body.length < 20 || next.body.length > 6000) {
+        setText(note, 'The title must be 8 to 120 characters and the body 20 to 6000.');
+        return;
+      }
+      resend.disabled = true;
+      submitItem(next, note, resend);
+    });
+    return form;
   }
   const INTRO = [
     ['name', 'Name', 100, 'input'],
@@ -925,11 +975,32 @@
     }
     trigger.disabled = false;
   }
+  /* Open Humanity volunteer inference: an anonymous visitor may tick the box
+     to let a volunteer's Spark answer when Drake's is full. Never with a key,
+     never in remember-me mode, never ticked by the page. */
+  function volunteerHeaders() {
+    const tick = byId('allen-volunteer');
+    if (remembered || !tick || !tick.checked) return {};
+    return { 'X-Allen-Volunteer': '1' };
+  }
+  function setVolunteer(on) {
+    const tick = byId('allen-volunteer');
+    if (tick) tick.checked = Boolean(on) && !remembered;
+  }
+  function volunteerModel(value) {
+    const oh = value && typeof value.oh === 'object' && value.oh !== null && !Array.isArray(value.oh) ? value.oh : null;
+    if (!oh || oh.answered_by !== 'volunteer') return '';
+    return typeof oh.model === 'string' && oh.model ? oh.model.slice(0, 80) : 'model not reported';
+  }
   /* The badge says which mode the chat is in; its one button switches. */
   function showMode() {
     root.dataset.mode = remembered ? 'remembered' : 'anonymous';
     setText(byId('allen-mode'), remembered ? 'Remembered: Allen knows you by your Allen key' : "Anonymous: Allen won't remember this chat");
     setText(byId('allen-introduce'), remembered ? 'Go anonymous' : 'Remember me');
+    /* The volunteer opt-in belongs to anonymous chat only, and starts off. */
+    const box = byId('allen-volunteer-box');
+    if (box) box.hidden = remembered;
+    if (remembered) setVolunteer(false);
     emit('mode', { mode: remembered ? 'remembered' : 'anonymous' });
   }
   function switchMode() {
@@ -1255,14 +1326,56 @@
     setTimeout(() => setText(node, node.dataset.label), 1500);
   }
   /* The policy becomes the first element of the program's head: after an
-     existing head tag that only a doctype, html tag or comments precede, else
-     in a head of its own placed after any doctype and html tag. */
+     existing head tag that only whitespace, a doctype, comments and an html
+     tag precede, else in a head of its own placed after any doctype and html
+     tag. A linear scan (no backtracking regex): each comment ends at its
+     first -->, as the HTML parser ends it. */
   function sandboxed(source) {
     const meta = `<meta http-equiv="Content-Security-Policy" content="${CSP}">`;
-    const head = /^\s*(?:<!doctype[^>]*>\s*)?(?:<!--[\s\S]*?-->\s*)*(?:<html(?:\s[^>]*)?>\s*)?(?:<!--[\s\S]*?-->\s*)*<head(?:\s[^>]*)?>/i.exec(source);
-    if (head) return source.slice(0, head[0].length) + meta + source.slice(head[0].length);
-    const lead = /^\s*(?:<!doctype[^>]*>\s*)?(?:<html(?:\s[^>]*)?>)?/i.exec(source)[0];
-    return `${lead}<head>${meta}</head>${source.slice(lead.length)}`;
+    const lower = source.toLowerCase();
+    let at = 0;
+    const space = () => {
+      while (at < source.length && /\s/.test(source[at])) at += 1;
+    };
+    const tag = name => {
+      const open = `<${name}`;
+      if (!lower.startsWith(open, at)) return false;
+      const next = source[at + open.length];
+      if (next !== '>' && !(next && /\s/.test(next))) return false;
+      const close = source.indexOf('>', at + open.length);
+      if (close < 0) return false;
+      at = close + 1;
+      return true;
+    };
+    const doctype = () => {
+      if (!lower.startsWith('<!doctype', at)) return false;
+      const close = source.indexOf('>', at + 9);
+      if (close < 0) return false;
+      at = close + 1;
+      return true;
+    };
+    const comments = () => {
+      for (;;) {
+        space();
+        if (!lower.startsWith('<!--', at)) return;
+        const close = source.indexOf('-->', at + 4);
+        if (close < 0) return;
+        at = close + 3;
+      }
+    };
+    space();
+    if (doctype()) space();
+    const lead = (() => {
+      const mark = at;
+      const html = tag('html');
+      const end = at;
+      at = mark;
+      return html ? end : mark;
+    })();
+    comments();
+    if (tag('html')) comments();
+    if (tag('head')) return source.slice(0, at) + meta + source.slice(at);
+    return `${source.slice(0, lead)}<head>${meta}</head>${source.slice(lead)}`;
   }
   function runHtml(source, out) {
     const frame = document.createElement('iframe');
@@ -1576,12 +1689,14 @@
       notice(`In line: ${value.position} ${value.position === 1 ? 'request' : 'requests'} ahead of you.`);
       emit('queue', { position: value.position });
     } else if (name === 'start' && value) {
+      if (volunteerModel(value)) clock.volunteer = volunteerModel(value);
       clock.start = now;
       setText(speed.queue, `${ms(now - clock.sent)} (server ${count(value.queued_ms)} ms)`);
       if (typeof value.model === 'string' && value.model.length <= 80) setText(speed.model, value.model);
       notice('The model has your message.');
       emit('start', { model: typeof value.model === 'string' ? value.model.slice(0, 80) : '', queuedMs: Number.isFinite(value.queued_ms) ? value.queued_ms : NaN, queueWaitMs: now - clock.sent });
     } else if (name === 'done' && value) {
+      if (volunteerModel(value)) clock.volunteer = volunteerModel(value);
       clock.finished = true;
       setText(speed.server, `prompt ${count(value.prompt_tokens)}, completion ${count(value.completion_tokens)} tokens; first token ${count(value.upstream_ttft_ms)} ms, whole reply ${count(value.upstream_ms)} ms`);
       if (value.finish === 'length') clock.outcome = 'The reply reached its length limit and was cut off.';
@@ -1635,11 +1750,11 @@
     reply.item.setAttribute('aria-busy', 'true');
     const render = renderer(reply.body);
     emit('send', { text, silent });
-    const clock = { sent: performance.now(), start: NaN, first: NaN, last: NaN, tokens: 0, after: 0, finished: false, outcome: '' };
+    const clock = { sent: performance.now(), start: NaN, first: NaN, last: NaN, tokens: 0, after: 0, finished: false, outcome: '', volunteer: '' };
     let wait = 0;
     notice('Sending.');
     try {
-      const response = await fetch(CHAT, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream', ...keyHeaders(true) }, body: JSON.stringify({ messages: fit(turns) }), cache: 'no-store', credentials: 'omit', signal: controller.signal });
+      const response = await fetch(CHAT, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream', ...keyHeaders(true), ...volunteerHeaders() }, body: JSON.stringify({ messages: fit(turns) }), cache: 'no-store', credentials: 'omit', signal: controller.signal });
       if (!response.ok) {
         const body = await response.json().catch(() => null);
         wait = retryAfter(response, body);
@@ -1647,6 +1762,10 @@
       } else if (!response.body || !(response.headers.get('content-type') || '').includes('text/event-stream')) {
         clock.outcome = 'Allen answered in a form this page does not read.';
       } else {
+        /* The coordinator names the volunteer's model in X-OH-Model, and the
+           final chunk's oh object says the same. */
+        const header = response.headers.get('X-OH-Model') || response.headers.get('X-OH-Volunteer');
+        if (header) clock.volunteer = /^[\x20-\x7e]{1,80}$/.test(header) && header !== '1' ? header : 'model not reported';
         await stream(response.body, clock, render);
       }
     } catch (error) {
@@ -1663,9 +1782,10 @@
       turns.pop();
       if (!input.value) input.value = text;
     }
+    if (clock.volunteer) reply.item.append(el('p', 'allen-note allen-volunteer-note', `answered by a volunteer's Spark (${clock.volunteer})`));
     if (clock.outcome) reply.item.append(el('p', 'allen-err', clock.outcome));
     notice(clock.outcome && !said ? clock.outcome : '', wait);
-    emit('reply', { text: said, outcome: clock.outcome });
+    emit('reply', { text: said, outcome: clock.outcome, volunteer: clock.volunteer });
   }
   /* Ask again for the last reply: the last answer leaves the history and the
      same user turn is sent once more, unshown, so it is never duplicated. */
@@ -1677,6 +1797,30 @@
     const last = turns.pop();
     ask(last.content, true);
     return true;
+  }
+  /* /allen/#draft=<text>: another page hands the visitor a message to start
+     from. It only fills the input for editing and is never sent by itself;
+     the hash is cleared at once. */
+  let draftText = '';
+  function takeDraft() {
+    const match = /^#draft=([\s\S]*)$/.exec(location.hash);
+    if (!match) return;
+    let text = '';
+    try {
+      text = decodeURIComponent(match[1]);
+    } catch (_) {
+      text = '';
+    }
+    try {
+      history.replaceState(null, '', location.pathname + location.search);
+    } catch (_) {
+      /* The draft still fills the input. */
+    }
+    text = cut(text.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, ''), 2000);
+    if (!text.trim()) return;
+    draftText = text;
+    input.value = text;
+    emit('draft', { text });
   }
   form.addEventListener('submit', event => {
     event.preventDefault();
@@ -1718,6 +1862,7 @@
   }
   byId('allen-introduce').addEventListener('click', switchMode);
   window.addEventListener('hashchange', forgetOffer);
+  window.addEventListener('hashchange', takeDraft);
   conversation = conversationId();
   /* /allen/?mode=anonymous forces anonymous and clears any key; otherwise a
      key kept after an earlier Remember me means this visitor opted in.
@@ -1764,6 +1909,12 @@
       await handoff(el('button'));
       return drake.state === 'waiting';
     },
+    draft: () => draftText,
+    volunteer: on => {
+      if (on !== undefined) setVolunteer(on);
+      const tick = byId('allen-volunteer');
+      return Boolean(tick && tick.checked && !remembered);
+    },
     say: text => {
       const said = cut(String(text).trim(), LIMIT.each);
       if (said && drake.state === 'joined') sayToDrake(said);
@@ -1771,4 +1922,5 @@
   });
   root.dataset.ready = 'true';
   document.dispatchEvent(new Event('allen-ready'));
+  takeDraft();
 })();
