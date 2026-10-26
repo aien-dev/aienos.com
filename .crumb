@@ -18,19 +18,19 @@
       "children": [
         {
           "digest": "4f9a052700291113ffed83006c9f1b639b51a8d0a4841a221c0c873e233c244f",
-          "last_commit": "dab78c1",
+          "last_commit": "7fd18a6",
           "name": ".github",
           "purpose": "GitHub automation configuration"
         },
         {
           "digest": "0f0f43c88db88ed58d2f8d49880ef05d13c216d25082e35bf334d11f08dab241",
-          "last_commit": "5399316",
+          "last_commit": "7fd18a6",
           "name": "crates",
           "purpose": "Native Rust website crates"
         },
         {
           "digest": "e8dc3c7418b234d841efa6eae442f932c728e4e48cf3a564b24f85c3cb4ccf5c",
-          "last_commit": "da2a360",
+          "last_commit": "96d38f3",
           "name": "om/alpha-page",
           "purpose": "Seeded Omega alpha landing page and client, with pinned wizard source and real terminal capture"
         },
@@ -42,13 +42,13 @@
         },
         {
           "digest": "e79851d237209ec2b187ac8a93656add164229df9194ab1517cc52c66158b4b1",
-          "last_commit": "",
+          "last_commit": "d266bc3",
           "name": "om/support-page",
           "purpose": "Seeded Omega support page, shared invitation and CSS with deterministic artifact checks"
         },
         {
           "digest": "b251e22f0e2a3a8a14ea7c3b03cfb37987accf105892c615fb4b7529f2490419",
-          "last_commit": "3ef4004",
+          "last_commit": "7fd18a6",
           "name": "public",
           "purpose": "Static public website assets"
         },
@@ -60,14 +60,14 @@
         }
       ],
       "children_root": "sha256:2fcfe7c911b4d946b051f48d75e3d385395900aa0fff2a77cab23585cc73d9e9",
-      "compiled_at": "2026-10-26T19:10:07Z",
+      "compiled_at": "2026-10-26T19:19:28Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:d9e66287e5d28a9524bedf082fc8b93e4607d269fa848727f6230bda25e235fb",
+      "digest": "sha256:ede15305b5a3789d49c26e5f82714fcd2d7a1e6997c3bbf20270bb52523a9a93",
       "evidence_files": 6,
       "evidence_root": "sha256:7fde48972a09dd4b0f7206aca4e313cd02c8cd195ec602e3924e59246c016aa5",
       "files": 361,
-      "generated_at_commit": "8fc8cc6bb076825abc24c2d7c7be23f0e3bc74f4",
-      "source_tree": "sha256:e57c97eec0fa1a769840f6fb9e9dd153c12689487ba2427b435ce1bcbd7ef212"
+      "generated_at_commit": "9ddc4a1d87ba879d871ff898e1d1d63f989b0efe",
+      "source_tree": "sha256:7ba50eab346f12ca994d5b755983b546039c9209d5afe80b7a0cf751bb4d6806"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",

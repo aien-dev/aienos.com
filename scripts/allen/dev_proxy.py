@@ -11,7 +11,7 @@ from urllib.parse import urlsplit
 
 TYPES = {".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css",
          ".svg": "image/svg+xml", ".wasm": "application/wasm", ".json": "application/json",
-         ".png": "image/png", ".ico": "image/x-icon", ".txt": "text/plain"}
+         ".png": "image/png", ".ico": "image/x-icon", ".txt": "text/plain", ".mp3": "audio/mpeg"}
 # Upstream headers the page reads or the browser needs; nothing else is forwarded.
 FORWARD = ("Content-Type", "Cache-Control", "Retry-After", "X-Allen-Source", "X-OH-Model",
            "X-OH-Volunteer", "X-Content-Type-Options", "Content-Security-Policy")
@@ -45,10 +45,11 @@ class H(BaseHTTPRequestHandler):
         body = self.rfile.read(n) if n else None
         host, _, port = self.server.gateway.rpartition(":")
         c = http.client.HTTPConnection(host, int(port), timeout=200)
-        hdrs = {"Content-Type": self.headers.get("Content-Type", "application/json"),
+        hdrs = {"Content-Type": self.headers.get("Content-Type", ""),
                 "X-Real-IP": self.headers.get("X-Real-IP", self.client_address[0])}
-        for k, v in self.headers.items():  # the page's identity and conversation headers
-            if k.lower().startswith("x-allen-"):
+        for k, v in self.headers.items():  # the page's identity and conversation headers, and
+            # Origin / Sec-Fetch-Site so the gateway's cross-site gate (F1) sees what nginx passes
+            if k.lower().startswith("x-allen-") or k.lower() in ("origin", "sec-fetch-site"):
                 hdrs[k] = v
         c.request(self.command, self.path, body, hdrs)
         r = c.getresponse()
