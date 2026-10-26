@@ -8,7 +8,7 @@
       "children": [
         {
           "digest": "cc554e254ae410733fa14833103355955a2326eddd3817c558e9b6826ed79c73",
-          "last_commit": "c1021f8",
+          "last_commit": "f31f6df",
           "name": "src",
           "purpose": "Page assembly and site build verification"
         },
@@ -20,13 +20,13 @@
         }
       ],
       "children_root": "sha256:47bf2b8c1db8922268ec7311faee31dfc732b8b081549baed2aa9be6ddd0e215",
-      "compiled_at": "2026-10-26T13:48:37Z",
+      "compiled_at": "2026-10-26T14:55:31Z",
       "compiler": "crumb-compile/1",
       "digest": "sha256:a2f0c7820400633a8155ebf756c1b16932cd1dddf5185c7ba81996cd97945665",
       "evidence_files": 0,
       "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "files": 44,
-      "generated_at_commit": "2166a329491815ba1850e969d05f1286895172ac",
+      "generated_at_commit": "f31f6dfa89c950122cc922f9bbe43da46cc770ea",
       "source_tree": "sha256:872b6fb847489335ea9d2e4f8e57fafc8d337265ff7ef3a91d0447a1e76fd109"
     }
   },

@@ -7,7 +7,7 @@
     "generated": {
       "children": [
         {
-          "digest": "21262ed07adc9c27128d72ca9536922acd37d0f3dfb8897a3a880f46113b3986",
+          "digest": "3e5e663fd33557fe15ce62153fb8dbe03fa50ba99b4a61c556299c8adc6a7ab0",
           "last_commit": "c1021f8",
           "name": "assets",
           "purpose": "Website styles including the project dashboard"
@@ -20,7 +20,7 @@
         },
         {
           "digest": "7f4aa48fce22d67842cbb6a5732ea43a5102b4ee99d0fa378dd8ea17015f9a4d",
-          "last_commit": "c3a98f3",
+          "last_commit": "f31f6df",
           "name": "js",
           "purpose": "Browser interactions using public data only"
         },
@@ -43,15 +43,15 @@
           "purpose": "Public static research or licensing pages using the shared website navigation"
         }
       ],
-      "children_root": "sha256:012b4ab5a8711ef6202da518256e291bb8db0186476fae2b69e5bc58586a0d77",
-      "compiled_at": "2026-10-26T13:48:37Z",
+      "children_root": "sha256:096d1a7cbeb7c685980ca66c13d4e2a3066491f3f1b6bcb5342c6afd9ec6a9bc",
+      "compiled_at": "2026-10-26T14:55:31Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:7c947afeb823c511664920fb83102de90d9fac5f27725bce0b11fa91876e5725",
+      "digest": "sha256:3c1c945f90f626b5543f978794a218a99188b1e7f129920ba3057c58f845f775",
       "evidence_files": 1,
       "evidence_root": "sha256:1f6f4b14373405a3b91d0e7aa6ba11d0dd332d4543ad01421a5451cca3e7de0c",
       "files": 119,
-      "generated_at_commit": "2166a329491815ba1850e969d05f1286895172ac",
-      "source_tree": "sha256:6b8c9a359e3a24fef1b347eda6c649d7ed0bb40411644c5108dd7f19753930d7"
+      "generated_at_commit": "f31f6dfa89c950122cc922f9bbe43da46cc770ea",
+      "source_tree": "sha256:dd08752e7f32917c6c02587c629805f1fb1f8aa3c3a708bce5441ab7c534a715"
     }
   },
   "invariants": [
