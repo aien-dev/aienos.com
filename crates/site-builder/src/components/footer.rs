@@ -59,13 +59,14 @@ pub const FOOTER_GROUPS: [(&str, &[FooterLink]); 6] = [
 ];
 
 /// Secondary links, after the six sections.
-const FOOTER_MORE: [FooterLink; 9] = [
+const FOOTER_MORE: [FooterLink; 10] = [
     ("Start here", "/start/", false),
     ("Progress", "/progress/", false),
     ("Blog", "/blog", false),
     ("Follow", "/#follow", false),
     ("Glossary", "/glossary/", false),
     ("Licensing", "/licensing/", false),
+    ("Privacy & the logbook", "/privacy/", false),
     ("GitHub", "https://github.com/aien-dev", true),
     ("Interplane", "https://interplane.io/", true),
     ("Drake Stapleton", "https://www.drakestapleton.com", true),
@@ -141,6 +142,10 @@ pub fn render_footer() -> Markup {
                         "AIEN © 2026. Licensed under "
                         a href="/licensing/" { "Apache-2.0 WITH LLVM-exception" }
                         "."
+                    }
+                    p {
+                        "No outside fonts or trackers, unless you sign the logbook to allow the X pixel. "
+                        a href="/privacy/" { "Your privacy and choice" }
                     }
                     div class="aien-footer-mottos" {
                         span { "RECEIPTS OVER CLAIMS" }
