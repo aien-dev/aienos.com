@@ -97,6 +97,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
 
     // Render landing page in Maud
     let page_content = html! {
+        (components::support::render_entry())
         (components::alpha::render_alpha_entry())
         (components::home_loop::render_home_loop())
         (components::story::render_story())
@@ -247,7 +248,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
             link rel="stylesheet" href="/assets/alpha.css";
             script defer src="/js/alpha.js" {}
         },
-        components::alpha::render_alpha_page(),
+        html! { (components::support::render_entry()) (components::alpha::render_alpha_page()) },
     );
     fs::create_dir_all(dist.join("alpha")).expect("Create Alpha directory");
     fs::write(dist.join("alpha/index.html"), alpha_page.into_string()).expect("Write Alpha page");
@@ -372,10 +373,21 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
         components::contact::URL,
         "website",
         html! {},
-        components::contact::render_contact(),
+        html! { (components::support::render_entry()) (components::contact::render_contact()) },
     );
     fs::create_dir_all(dist.join("contact")).expect("Create contact directory");
     fs::write(dist.join("contact/index.html"), contact.into_string()).expect("Write contact page");
+
+    let support = render_page_layout(
+        components::support::TITLE,
+        components::support::DESCRIPTION,
+        components::support::URL,
+        "website",
+        html! {},
+        components::support::render_page(),
+    );
+    fs::create_dir_all(dist.join("support")).expect("Create support directory");
+    fs::write(dist.join("support/index.html"), support.into_string()).expect("Write support page");
     println!("  [PAGE] Emitted /contact/ (index.html)");
 
     // Section hubs: /experiments/, /evidence/, /philosophy/ (NARR-NAV)
@@ -390,7 +402,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
         seo::head_404(),
         seo::render_404(),
     );
-    fs::write(dist.join("404.html"), components::allen_intro::enrich(not_found.into_string())).expect("Failed to write 404.html");
+    fs::write(dist.join("404.html"), components::allen_intro::enrich(components::support::enrich(not_found.into_string()))).expect("Failed to write 404.html");
 
     // Every page written above (generated or copied from public/) gets the same
     // head: www canonical, cards, hreflang, feeds, JSON-LD. Then the machine
@@ -648,6 +660,7 @@ fn verify_site(dist: &Path) {
 /// must carry. /now/ has no floor because the ledger may be absent.
 const GENERATED_PAGES: &[(&str, usize)] = &[
     ("index.html", 30),
+    ("support/index.html", 0),
     ("start/index.html", 0),
     ("privacy/index.html", 0),
     ("contact/index.html", 0),

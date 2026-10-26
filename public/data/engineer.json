@@ -106,11 +106,11 @@
    "old": [
     "/donate"
    ],
-   "name": "Donate",
-   "title": "Donate | About the engineer | AienOS",
-   "description": "Back independent AienOS development on Manifund and keep the work public and free for everyone.",
+   "name": "Support my work",
+   "title": "Support my work | About the engineer | AienOS",
+   "description": "Help me keep building free and open source software through X Money, with US-only eligibility and the exact steps.",
    "kind": "page",
-   "body_html": "<div class=\"container reading-width\" style=\"padding: clamp(48px, 6vw, 96px) var(--gutter);\"><header class=\"section-header\"><p class=\"eyebrow\">SUPPORT THE WORK</p><h1>Fuel the Build</h1><p class=\"section-desc\">AienOS is independent research, built in the open by one researcher with a public record. Backing from readers keeps the machines running and the work free for everyone.</p></header><div class=\"prose\"><p>I build this with my own hands and my own money. Every dollar you give goes straight into the work.</p><div style=\"margin-top: 32px; padding: 32px; border: 1px solid var(--line-strong); background: var(--surface-raised);\"><p class=\"eyebrow\">MANIFUND</p><h2 style=\"margin: 12px 0;\">Back the Project Publicly</h2><p>The Manifund page carries a $5,000 goal for independent AienOS development, open through October 24, 2026. Every contribution shows on the public record.</p><p style=\"margin-top: 20px;\"><a href=\"https://manifund.org/projects/aienos-personally-owned-ai--intelligence-as-property-not-rent\" target=\"_blank\" rel=\"noreferrer\" class=\"btn btn-primary\">Donate on Manifund</a></p></div></div></div>"
+   "body_html": "<section class=\"engineer-support\"><p class=\"eyebrow\">SUPPORT</p><h1>Help me keep building.</h1><p>Everything here is free and open source, and it will stay that way. I&#39;m one person building this, and I&#39;m running low on funds.</p><p>My current support page explains how to send support through X Money. X Money is currently US-only and requires an eligible X account. Nothing here is gated on a donation.</p><p><a class=\"button\" href=\"/support/\">Read how to support my work</a></p><p>The former Manifund campaign has ended and is no longer the current way to support this project.</p></section>"
   },
   {
    "path": "/engineer/glossary/",

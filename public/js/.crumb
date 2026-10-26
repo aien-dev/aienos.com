@@ -7,14 +7,14 @@
     "generated": {
       "children": [],
       "children_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "compiled_at": "2026-10-26T16:13:42Z",
+      "compiled_at": "2026-10-26T17:06:26Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:cad0547f9a3097659575b1c5249067cd29bd21c337312835c1155de84d754d18",
+      "digest": "sha256:08b80034ba5ae730d705211412f5fe382cec989bd325800b5074d0315b9a7253",
       "evidence_files": 0,
       "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "files": 7,
-      "generated_at_commit": "5a2f2141a5d96aa673f127971caa6bdfe9fca001",
-      "source_tree": "sha256:30928f224f4d8723d3e06d5971cf1085d227359e329148f6f51aab169389badd"
+      "files": 8,
+      "generated_at_commit": "90cd2989d619293951ee909b5132d9d5483ad10b",
+      "source_tree": "sha256:1249574c05e30b50bdf5ca6005b21ae6ff3bb3f5959a67f67b6066af039d3da6"
     }
   },
   "invariants": [
