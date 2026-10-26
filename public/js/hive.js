@@ -9,7 +9,8 @@
   'use strict';
   const page = document.getElementById('hive');
   if (!page) return;
-  const get = id => document.getElementById(`hive-${id}`);
+  const ids = {"tree": "hive-tree", "search-count": "hive-search-count", "tree-empty": "hive-tree-empty", "manifest-body": "hive-manifest-body", "manifest-empty": "hive-manifest-empty", "manifest-name": "hive-manifest-name", "manifest-context": "hive-manifest-context", "manifest-state": "hive-manifest-state", "manifest-identity": "hive-manifest-identity", "manifest-task": "hive-manifest-task", "manifest-action-label": "hive-manifest-action-label", "manifest-action": "hive-manifest-action", "manifest-times": "hive-manifest-times", "manifest-family": "hive-manifest-family", "chat": "hive-chat", "chat-empty": "hive-chat-empty", "conversation-range": "hive-conversation-range", "chat-latest": "hive-chat-latest", "connection": "hive-connection", "freshness": "hive-freshness", "source-time": "hive-source-time", "fetch-time": "hive-fetch-time", "counts": "hive-counts", "coverage": "hive-coverage", "content-type": "hive-content-type", "date": "hive-date", "motion": "hive-motion", "search": "hive-search", "show-selected": "hive-show-selected", "chat-all": "hive-chat-all", "chat-selected": "hive-chat-selected"};
+  const get = id => document.getElementById(ids[id]);
   const slot = (root, name) => (root ? root.querySelector(`[data-f="${name}"]`) : null);
   const clone = id => {
     const source = document.getElementById(id);

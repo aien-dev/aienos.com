@@ -7,21 +7,21 @@
     "generated": {
       "children": [
         {
-          "digest": "3de0fb09e09d99be17e42487e50dd3c6c630c19d51bd40b4b353660b88b662df",
-          "last_commit": "76bed61",
+          "digest": "a2f0c7820400633a8155ebf756c1b16932cd1dddf5185c7ba81996cd97945665",
+          "last_commit": "c1021f8",
           "name": "site-builder",
           "purpose": "Rust static site generator"
         }
       ],
-      "children_root": "sha256:00fdebbb3b311a1f15572111c9922703b562a9836d5bd19c815857f73bb21f86",
-      "compiled_at": "2026-10-16T18:15:51Z",
+      "children_root": "sha256:de8d7b627bd2cb20c891c99339be03f7441c1426c8041ba70419740aff557faf",
+      "compiled_at": "2026-10-26T13:48:37Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:82701deff3cda7d59357842abe2ffbd44bd308a394dddc38a0d47425be955ff1",
+      "digest": "sha256:5c40958bfb64c0ab2ffc63758d4071140a574b010058242ef5310d73afb9d85e",
       "evidence_files": 0,
       "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "files": 27,
-      "generated_at_commit": "76bed617ef3625a7e36370f22a65260a58550286",
-      "source_tree": "sha256:73b8f10402ad6a565b107e1c4a00c0cc56b1e91909e83cdb466b1e9cfcbbbae0"
+      "files": 52,
+      "generated_at_commit": "2166a329491815ba1850e969d05f1286895172ac",
+      "source_tree": "sha256:539d20c3e091f54c17353f1a6a9fa893d78d60cbc4d1e5111da0cf2a704f8d34"
     }
   },
   "invariants": [

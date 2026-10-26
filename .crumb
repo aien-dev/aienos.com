@@ -17,33 +17,33 @@
     "generated": {
       "children": [
         {
-          "digest": "dcd866cb3324e65b9f3fe06a0b9c8f8d66afac2047d7dadfe8b5ae24c1604fb9",
-          "last_commit": "76bed61",
+          "digest": "0b583086787004c64a5563391f90762fd720f6323cdc8a4db30612f3d176e72f",
+          "last_commit": "9346a76",
           "name": ".github",
           "purpose": "GitHub automation configuration"
         },
         {
-          "digest": "82701deff3cda7d59357842abe2ffbd44bd308a394dddc38a0d47425be955ff1",
-          "last_commit": "76bed61",
+          "digest": "5c40958bfb64c0ab2ffc63758d4071140a574b010058242ef5310d73afb9d85e",
+          "last_commit": "c1021f8",
           "name": "crates",
           "purpose": "Native Rust website crates"
         },
         {
-          "digest": "e0b4dff98c0dc1e40508cfeba2cb433eca4242bd885328a41503b1ebc84513d8",
-          "last_commit": "76bed61",
+          "digest": "7c947afeb823c511664920fb83102de90d9fac5f27725bce0b11fa91876e5725",
+          "last_commit": "c1021f8",
           "name": "public",
           "purpose": "Static public website assets"
         }
       ],
-      "children_root": "sha256:3c5d933b7e2f248c65eddc99f5586a580c85ba71aa43c54e8466e91e8736f227",
-      "compiled_at": "2026-10-16T18:15:51Z",
+      "children_root": "sha256:7bc94b9983167eb811f94f77529c6537516296d6965edaa7f09ef7fafdc8e68a",
+      "compiled_at": "2026-10-26T13:50:26Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:6ef95afcc7dfc802fcc9e3dae64d647e46f7813eca46a36d52841141d99f7dfc",
-      "evidence_files": 0,
-      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "files": 107,
-      "generated_at_commit": "76bed617ef3625a7e36370f22a65260a58550286",
-      "source_tree": "sha256:145d7e3eb81fcd4f8e5d514815dd14aa78264833392f97f6bfc4782abc77976c"
+      "digest": "sha256:05efd67cc41c19313705c113f2c40a3ccc6ba5096380ab71f197eac26408f74a",
+      "evidence_files": 1,
+      "evidence_root": "sha256:1f6f4b14373405a3b91d0e7aa6ba11d0dd332d4543ad01421a5451cca3e7de0c",
+      "files": 199,
+      "generated_at_commit": "2166a329491815ba1850e969d05f1286895172ac",
+      "source_tree": "sha256:5d2255d0c5c5c60c0639a41f56f1175baf98f37341b89d1a90e21251e0a0ed8b"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",
