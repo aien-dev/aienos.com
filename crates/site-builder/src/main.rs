@@ -238,6 +238,25 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     );
     fs::create_dir_all(dist.join("hive")).expect("Create Hive directory");
     fs::write(dist.join("hive/index.html"), hive_page.into_string()).expect("Write Hive page");
+    let allen_page = render_page_layout(
+        components::allen::TITLE,
+        components::allen::DESCRIPTION,
+        components::allen::URL,
+        "website",
+        html! {
+            link rel="stylesheet" href="/assets/allen.css";
+            link rel="stylesheet" href="/assets/allen-panes.css";
+            link rel="stylesheet" href="/assets/allen-install.css";
+            script defer src="/js/allen-audio.js" {}
+            script defer src="/js/allen-panes.js" {}
+            script defer src="/js/allen.js" {}
+            script defer src="/js/allen-voice.js" {}
+            script defer src="/js/allen-install.js" {}
+        },
+        components::allen::render_allen_page(),
+    );
+    fs::create_dir_all(dist.join("allen")).expect("Create Allen directory");
+    fs::write(dist.join("allen/index.html"), allen_page.into_string()).expect("Write Allen page");
     let alpha_page = render_page_layout(
         components::alpha::TITLE,
         components::alpha::DESCRIPTION,
@@ -355,8 +374,8 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     println!("  [PAGE] Emitted /glossary/ (index.html)");
 
     let privacy = render_page_layout(
-        "Privacy & saying hello to Allen | AienOS",
-        "Read without tracking. Saying hello to Allen consents to X pixel rfrlz; No refuses it.",
+        "Privacy & saying hi to Allen | AienOS",
+        "Read without tracking. Saying hi to Allen consents to X pixel rfrlz; No thanks refuses it.",
         "https://www.aienos.com/privacy/",
         "website",
         html! {},
@@ -661,6 +680,7 @@ const GENERATED_PAGES: &[(&str, usize)] = &[
     ("now/index.html", 0),
     ("dash/index.html", 0),
     ("hive/index.html", 0),
+    ("allen/index.html", 0),
     ("alpha/index.html", 0),
     ("learn/index.html", 0),
     ("omega/index.html", 30),

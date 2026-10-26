@@ -1,0 +1,56 @@
+[Unit]
+Description=allen-contacts-ingest: move Allen contact drops into the private store
+Documentation=file:///opt/allen-contacts/allen_contacts_ingest.om
+
+[Service]
+Type=oneshot
+# System user (nologin, no sudo); member of allen-drop to read the gateway's 0640 drops.
+User=allen-contacts
+UMask=0077
+Nice=19
+# Seeded-Omega binary built from allen_contacts_ingest.om by the pinned omc (install-contacts.sh).
+ExecStart=/opt/allen-contacts/allen-contacts-ingest ingest
+TimeoutStartSec=60
+StandardOutput=journal
+StandardError=journal
+
+# Filesystem: writes only the drop dir (to delete drops) and the store; code is root-owned.
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/allen-chat/contacts-drop /var/lib/allen-contacts
+PrivateTmp=yes
+PrivateDevices=yes
+PrivateIPC=yes
+DevicePolicy=closed
+# Without these a sandbox can read other processes' files through /proc/<pid>/root.
+PrivateUsers=yes
+ProtectProc=invisible
+ProcSubset=pid
+
+# No network at all.
+PrivateNetwork=yes
+IPAddressDeny=any
+RestrictAddressFamilies=AF_UNIX
+
+# Privileges and kernel surface.
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+KeyringMode=private
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources
+SystemCallErrorNumber=EPERM
+MemoryMax=128M
+TasksMax=8

@@ -4,6 +4,9 @@
 //! and code identifiers are the only exceptions, listed in `ALLOW`. Text
 //! copied verbatim from the published work ledger (`data/now.tsv`, shown on
 //! /now/) is a dated record of what was said, not copy, and is matched out.
+//! The rule covers Drake's voice only. Allen's speech, the elements marked
+//! exactly `data-speaker="allen"`, is his own voice ("we" there means Allen and
+//! the visitor) and is removed before matching; nothing else is.
 
 use regex::Regex;
 use std::fs;
@@ -39,8 +42,57 @@ pub const ALLOW: &[(&str, &str)] = &[
 /// Pages that embed ledger rows; only these may match text out of the ledger.
 pub const LEDGER_PAGES: &[&str] = &["now/index.html", "now/index.md", "now.md", "llms-full.txt"];
 
+/// The one marker for Allen's speech. Exact match: attribute spelling and value.
+pub const ALLEN_SPEECH: &str = "data-speaker=\"allen\"";
+
 fn plural() -> Regex {
     Regex::new(r"(?i)\b(?:we|we['\u{2019}](?:re|ve|ll|d)|us|our|ours|ourselves)\b").unwrap()
+}
+
+/// Removes each element whose opening tag carries `ALLEN_SPEECH`, through its
+/// matching close tag (same-name nesting counted). An unclosed element is kept,
+/// so malformed markup can never hide the rest of a page from the check.
+fn without_allen_speech(raw: &str) -> String {
+    let mut out = String::with_capacity(raw.len());
+    let mut rest = raw;
+    while let Some(at) = rest.find(ALLEN_SPEECH) {
+        let Some(open) = rest[..at].rfind('<') else { break };
+        let name: String = rest[open + 1..].chars().take_while(|c| c.is_ascii_alphanumeric()).collect();
+        let attribute = rest[..at].ends_with(|c: char| c.is_ascii_whitespace());
+        if name.is_empty() || !attribute || rest[open..at].contains('>') {
+            out.push_str(&rest[..at + ALLEN_SPEECH.len()]);
+            rest = &rest[at + ALLEN_SPEECH.len()..];
+            continue;
+        }
+        let (start_tag, end_tag) = (format!("<{name}"), format!("</{name}>"));
+        let mut depth = 0usize;
+        let mut i = open;
+        let mut end = None;
+        while let Some(next) = rest[i..].find('<').map(|n| i + n) {
+            let tail = &rest[next..];
+            let boundary = |s: &str| tail[s.len()..].starts_with(|c: char| c == '>' || c.is_whitespace() || c == '/');
+            if tail.starts_with(&end_tag) {
+                depth -= 1;
+                if depth == 0 {
+                    end = Some(next + end_tag.len());
+                    break;
+                }
+            } else if tail.starts_with(&start_tag) && boundary(&start_tag) {
+                depth += 1;
+            }
+            i = next + 1;
+        }
+        let Some(end) = end else {
+            out.push_str(&rest[..at + ALLEN_SPEECH.len()]);
+            rest = &rest[at + ALLEN_SPEECH.len()..];
+            continue;
+        };
+        out.push_str(&rest[..open]);
+        out.push(' ');
+        rest = &rest[end..];
+    }
+    out.push_str(rest);
+    out
 }
 
 /// Visible text of an HTML page: scripts, styles and tags removed, common
@@ -52,6 +104,7 @@ pub fn visible_text(name: &str, raw: &str) -> String {
     let blocks = Regex::new(r"(?is)<script\b.*?</script>|<style\b.*?</style>").unwrap();
     let tags = Regex::new(r"(?s)<[^>]*>").unwrap();
     let t = blocks.replace_all(raw, " ");
+    let t = without_allen_speech(&t);
     let t = tags.replace_all(&t, " ");
     t.replace("&amp;", "&")
         .replace("&#39;", "'")
@@ -165,5 +218,25 @@ mod tests {
     fn markup_and_scripts_are_not_copy() {
         let html = "<p class=\"our\">mine</p><script>var us=1</script><style>.we{}</style>";
         assert!(violations("x.html", &visible_text("x.html", html), "").is_empty());
+    }
+
+    #[test]
+    fn allen_speech_is_exempt_and_nothing_else_is() {
+        let words = "we could chat over time and pick up where we left off";
+        let check = |html: &str| violations("index.html", &visible_text("index.html", html), "");
+        // Allen-tagged speech passes, nested markup included; the page around it is still checked.
+        assert!(check(&format!("<p data-speaker=\"allen\"><strong>Hey</strong> <span>{words}</span></p><p>I build it.</p>")).is_empty());
+        assert!(check(&format!("<div id=\"x\" data-speaker=\"allen\"><div>{words}</div></div>")).is_empty());
+        // Negative controls: the same words fail untagged, after the tagged element,
+        // under a lookalike attribute, as text, or in an unclosed element.
+        assert!(!check(&format!("<p>{words}</p>")).is_empty());
+        assert!(!check(&format!("<p data-speaker=\"allen\">hi</p><p>{words}</p>")).is_empty());
+        assert!(!check(&format!("<p data-speaker=\"allenx\">{words}</p>")).is_empty());
+        assert!(!check(&format!("<p data-speaker=\"drake\">{words}</p>")).is_empty());
+        assert!(!check(&format!("<p xdata-speaker=\"allen\">{words}</p>")).is_empty());
+        assert!(!check(&format!("<p>data-speaker=\"allen\" {words}</p>")).is_empty());
+        assert!(!check(&format!("<p data-speaker=\"allen\">{words}")).is_empty());
+        // Markdown and text mirrors have no markup to tag, so the rule applies in full.
+        assert!(!violations("index.md", &visible_text("index.md", &format!("<p data-speaker=\"allen\">{words}</p>")), "").is_empty());
     }
 }

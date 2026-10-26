@@ -1,0 +1,1116 @@
+note Browser controller for native Allen. See provenance.txt for temporary C-WASM boundary.
+note Text literals are emitted verbatim; public JS is never edited.
+global out uchar 16384
+global used ulong 1
+fn flush to void
+off = ulong 0
+while lt off get used 0
+n = write int 1 out off sub get used 0 off
+if le n 0
+exit 2
+end
+off = add off ulong n
+end
+put used 0 0
+end
+fn byteput c uchar to void
+if eq get used 0 len out
+flush
+end
+put out get used 0 c
+put used 0 add get used 0 1
+end
+text j0 "/* Generated from om/allen-scene/scene.om by pinned seeded Omega.\n"
+text j1 " * Controller: Omega-generated JavaScript. Rendering/audio: unchanged native C,\n"
+text j2 " * aien-dev/aienux@da55660ea7337f2b6a42095fcd1fb6ddebe1cc7c, compiled to WASM.\n"
+text j3 " * This source pin was staged, not hardware-confirmed by the available report.\n"
+text j4 " * Web opening reuses native dusk; enter('birth') is the original binary merger.\n"
+text j5 " * Catalogue/licences and native dependency boundary: om/allen-scene/provenance.txt.\n"
+text j6 " * WolframLanguageEvaluator: 1000/60 -> 50/3 ms; (1000/60)/2 -> 25/3 ms;\n"
+text j7 " * 48000 (12300-11360)/1000 -> 45120 frames (native chirp non-silent window).\n"
+text j8 " */\n"
+text j9 "(() => {\n"
+text j10 "  'use strict';\n"
+text j11 "  const PIN = 'da55660ea7337f2b6a42095fcd1fb6ddebe1cc7c';\n"
+text j12 "  const mounted = new WeakMap();\n"
+text j13 "  let compiled;\n"
+text j14 "  function module() {\n"
+text j15 "    if (!compiled) compiled = fetch('/allen/scene.wasm', {credentials:'omit'})\n"
+text j16 "      .then(response => { if (!response.ok) throw new Error('Native scene unavailable'); return response.arrayBuffer(); })\n"
+text j17 "      .then(bytes => WebAssembly.compile(bytes)).catch(error => { compiled = null; throw error; });\n"
+text j18 "    return compiled;\n"
+text j19 "  }\n"
+text j20 "  function mount(canvas, options = {}) {\n"
+text j21 "    if (!(canvas instanceof HTMLCanvasElement)) throw new TypeError('AllenScene requires a canvas');\n"
+text j22 "    if (mounted.has(canvas)) return mounted.get(canvas);\n"
+text j23 "    const compact = Boolean(options.compact), interactive = Boolean(options.interactive) && !compact;\n    const opening = options.opening === undefined ? (compact ? 'idle' : 'dusk') : options.opening;\n    if(opening !== 'idle' && opening !== 'dusk' && opening !== 'birth') throw new RangeError('Invalid Allen scene opening');\n"
+text j24 "    const ctx = canvas.getContext('2d', {alpha:false});\n"
+text j25 "    if (!ctx) throw new Error('Canvas rendering unavailable');\n"
+text j26 "    const motion = matchMedia('(prefers-reduced-motion: reduce)');\n"
+text j27 "    const cleanup = [], letters = Array.from({length:64}, () => ({char:0,start:0,slot:0}));\n"
+text j28 "    const wordTimes = new Float64Array(256);\n"
+text j29 "    let ex, image, width = 0, height = 0, disposed = false, failed = false;\n"
+text j30 "    let raf = 0, lastWall = 0, clock = 20000, kind = 0, modeValue = 0;\n"
+text j31 "    let visible = true, reduced = motion.matches, dirty = true, resizePending = true;\n    const connection = typeof navigator === 'object' ? navigator.connection : null;\n    let calm = options.calm === undefined ? Boolean(connection && connection.saveData) : Boolean(options.calm);\n    let quality = 0, overBudget = 0, underBudget = 0, qualityHold = 0, samples = 0;\n    const renderScales = [1, 3/4, 9/16, 9/16];\n    const qualityNames = ['full-60','balanced-60','small-60','small-30'];\n    const frameBudget = 1000/60;\n    // Wolfram: 1000/60 -> 50/3 ms; budget/2 -> 25/3; 1280*{1,3/4,9/16} -> {1280,960,720}.\n    function still() { return reduced || compact || calm; }\n    function qualityLabel() { canvas.dataset.sceneQuality = reduced ? 'reduced' : compact ? 'compact' : calm ? 'calm' : qualityNames[quality]; }\n    function measureDraw(cost) {\n      samples++;\n      if(samples % 60 === 0) canvas.dataset.sceneDrawMs=String(cost);\n      if(qualityHold) { qualityHold--; return; }\n      overBudget=cost>frameBudget?overBudget+1:0;\n      underBudget=cost<frameBudget/2?underBudget+1:0;\n      const next=overBudget>=8?Math.min(3,quality+1):underBudget>=180?Math.max(0,quality-1):quality;\n      if(next!==quality) {\n        quality=next;qualityHold=60;overBudget=underBudget=0;\n        resizePending=dirty=true;canvas.dataset.sceneDrawMs=String(cost);qualityLabel();\n      }\n    }\n"
+text j32 "    let letterHead = 0, wordRead = 0, wordWrite = 0, lastWord = -1000, speakUntil = 0, keyUntil = 0;\n"
+text j33 "    let ra = 113697000, dec = -72757000, fov = 80000, viewPending = false;\n"
+text j34 "    let dragId = null, dragX = 0, dragY = 0, pinchDistance = 0;\n    const touches = [{id:null,x:0,y:0},{id:null,x:0,y:0}];\n"
+text j35 "    let ownsAudio = false, completeSent = false, resolveSize, rejectSize;\n"
+text j36 "    let pendingEnter = compact || opening === 'idle' ? 0 : opening === 'birth' ? 2 : 1, pendingStatic = false;\n"
+text j37 "    canvas.dataset.sceneSource = PIN;\n"
+text j38 "    canvas.dataset.sceneEngine = 'loading';\n    qualityLabel();\n"
+text j39 "    function listen(target, name, fn, opts) {\n"
+text j40 "      target.addEventListener(name, fn, opts);\n"
+text j41 "      cleanup.push(() => target.removeEventListener(name, fn, opts));\n"
+text j42 "    }\n"
+text j43 "    function stopAudio() {\n"
+text j44 "      if (ownsAudio && window.AllenAudio) window.AllenAudio.stop();\n"
+text j45 "      ownsAudio=false;\n"
+text j46 "    }\n"
+text j47 "    function awake() { return !disposed && !failed && !document.hidden && visible; }\n"
+text j48 "    function request() {\n"
+text j49 "      if (!raf && ex && awake() && (!still() || dirty)) raf = requestAnimationFrame(tick);\n"
+text j50 "    }\n"
+text j51 "    function size() {\n"
+text j52 "      const box = canvas.getBoundingClientRect();\n"
+text j53 "      if (box.width <= 0 || box.height <= 0) return false;\n"
+text j54 "      // Policy bound, not a physical-resolution claim. Same aspect ratio, native design scaling.\n"
+text j55 "      const scale = Math.min(devicePixelRatio || 1, 1280 / Math.max(box.width,box.height))*renderScales[quality];\n"
+text j56 "      const w = Math.max(64,Math.round(box.width*scale)), h = Math.max(64,Math.round(box.height*scale));\n"
+text j57 "      resizePending = false;\n"
+text j58 "      if (w === width && h === height) return true;\n"
+text j59 "      width=w; height=h; canvas.width=w; canvas.height=h;\n"
+text j60 "      if (!ex.scene_init(w,h,compact?1:0)) throw new Error('Native scene size refused');\n"
+text j61 "      image = new ImageData(new Uint8ClampedArray(ex.memory.buffer,ex.scene_pixels(),w*h*4),w,h);\n"
+text j62 "      ex.scene_enter(kind);\n"
+text j63 "      // Resize keeps phase and mode but does not manufacture the old frame history.\n"
+text j64 "      ex.scene_step(Math.floor(clock),modeValue,0);\n"
+text j65 "      viewPending=true;\n      if(resolveSize) {resolveSize();resolveSize=null;rejectSize=null;}\n"
+text j66 "      return true;\n"
+text j67 "    }\n"
+text j68 "    function reset(kindValue) {\n"
+text j69 "      kind=kindValue; clock=kind===0?20000:0; lastWall=0;completeSent=false;\n"
+text j70 "      wordRead=wordWrite=0; lastWord=-1000; speakUntil=keyUntil=0; modeValue=0;\n"
+text j71 "      for (const letter of letters) letter.char=0;\n"
+text j72 "      stopAudio();\n"
+text j73 "      if (ex && width) ex.scene_enter(kind);\n"
+text j74 "      dirty=true; request();\n"
+text j75 "    }\n"
+text j76 "    function render() {\n"
+text j77 "      if (!ex || !awake()) return;\n"
+text j78 "      if (resizePending && !size()) return;\n"
+text j79 "      if (!image) return;\n"
+text j80 "      if (viewPending && !(kind===1 && clock<4200)) {\n"
+text j81 "        if (!ex.scene_view(Math.round(ra),Math.round(dec),Math.round(fov))) throw new Error('Native sky view refused');\n"
+text j82 "        viewPending=false;\n"
+text j83 "      }\n"
+text j84 "      const time=Math.floor(clock);\n"
+text j85 "      while(wordRead!==wordWrite && wordTimes[wordRead]<=clock) {\n"
+text j86 "        lastWord=wordTimes[wordRead];ex.scene_word(Math.floor(lastWord));wordRead=(wordRead+1)%wordTimes.length;\n"
+text j87 "      }\n"
+text j88 "      let currentMode=modeValue;\n"
+text j89 "      if(clock<speakUntil) currentMode=3;\n"
+text j90 "      else if(currentMode===3) currentMode=0;\n"
+text j91 "      if(currentMode===0 && clock<keyUntil) currentMode=1;\n"
+text j92 "      // Native allen_ui.c voice envelope (per-word exp decay, 200 ms).\n"
+text j93 "      const voice=clock<speakUntil && lastWord>=0?ex.scene_voice(time,Math.floor(lastWord)):0;\n"
+text j94 "      const shimmer=clock<speakUntil?256:0;\n"
+text j95 "      ex.scene_step(time,currentMode,reduced?0:voice);\n"
+text j96 "      ex.scene_draw(reduced?0:shimmer,reduced?0:voice);\n"
+text j97 "      if(!reduced && !compact) for(const letter of letters) {\n"
+text j98 "        if(!letter.char || clock<letter.start) continue;\n"
+text j99 "        const u=Math.min(1,(clock-letter.start)/900);\n"
+text j100 "        if(u>=1) {letter.char=0;continue;}\n"
+text j101 "        // Web enhancement: native glyphs lift from input to Allen. No HTML/text injection.\n"
+text j102 "        const ease=1-(1-u)*(1-u)*(1-u);\n"
+text j103 "        const x=width/2+(letter.slot-4)*width/90*(1-ease);\n"
+text j104 "        const y=height*(0.86+(0.4-0.86)*ease);\n"
+text j105 "        ex.scene_glyph(letter.char,Math.round(x),Math.round(y),Math.round(256*(1-u)));\n"
+text j106 "      }\n"
+text j107 "      ctx.putImageData(image,0,0);\n"
+text j108 "      canvas.dataset.scenePhase=kind===1 && clock<4200?'tube':kind===2 && clock<12300?'merger':clock<(kind===1?7200:15300)?'forming':'presence';\n"
+text j109 "      canvas.dataset.sceneTime=String(time);\n"
+text j110 "      canvas.dataset.sceneEngine='native-wasm';\n"
+text j111 "      dirty=false;\n      if(!completeSent && (kind===0 || clock>=(kind===1?7200:15300))) {\n        completeSent=true;\n        canvas.dispatchEvent(new CustomEvent('allen-scene-complete',{bubbles:true,detail:{kind:kind===2?'birth':kind===1?'dusk':'idle',time}}));\n      }\n      return true;\n"
+text j112 "    }\n"
+text j113 "    function error(err) {\n"
+text j114 "      failed=true;cancelAnimationFrame(raf);raf=0;stopAudio();\n      if(rejectSize) {rejectSize(err);resolveSize=null;rejectSize=null;}\n"
+text j115 "      canvas.dataset.sceneEngine='unavailable';\n"
+text j116 "      canvas.dispatchEvent(new CustomEvent('allen-scene-error',{bubbles:true,detail:{message:String(err.message||err)}}));\n"
+text j117 "    }\n"
+text j118 "    function tick(wall) {\n"
+text j119 "      raf=0;\n"
+text j120 "      if(!awake()) {lastWall=0;return;}\n"
+text j121 "      const dt=lastWall?wall-lastWall:0;\n"
+text j122 "      // Lowest level skips alternate 60 Hz callbacks; 25 ms tolerates timestamp jitter around 50/3 and 100/3 ms.\n      if(!still() && quality===3 && dt<25 && !dirty) {request();return;}\n"
+text j123 "      lastWall=wall;\n"
+text j124 "      if(!still()) clock+=dt; // source clock advances; native integrators bound their own catch-up\n"
+text j125 "      const sample=!still() && !resizePending && !viewPending;\n      const began=sample?performance.now():0;\n      let drawn=false;\n      try { drawn=render(); } catch(err) { error(err); }\n      if(sample && drawn) measureDraw(performance.now()-began);\n"
+text j126 "      if(drawn && !still()) request();\n"
+text j127 "    }\n"
+text j128 "    function motionChanged() {\n"
+text j129 "      reduced=motion.matches;lastWall=0;cancelAnimationFrame(raf);raf=0;stopAudio();\n"
+text j130 "      if(still()) { reset(0); pendingStatic=true; }\n      overBudget=underBudget=0;qualityLabel();\n"
+text j131 "      dirty=true;request();\n"
+text j132 "    }\n"
+text j133 "    function visibility() {\n"
+text j134 "      lastWall=0;\n"
+text j135 "      if(!awake()) {cancelAnimationFrame(raf);raf=0;if(ownsAudio && window.AllenAudio) window.AllenAudio.pause();}\n"
+text j136 "      else {if(ownsAudio && !still() && window.AllenAudio) void window.AllenAudio.resume();overBudget=underBudget=0;dirty=true;request();}\n"
+text j137 "    }\n"
+text j138 "    function changeView(dx,dy,zoom) {\n"
+text j139 "      if(!interactive || kind===1 && clock<4200) return;\n"
+text j140 "      ra=((ra+dx)%360000000+360000000)%360000000;\n"
+text j141 "      dec=Math.max(-89000000,Math.min(89000000,dec+dy));\n"
+text j142 "      fov=Math.max(10000,Math.min(120000,fov*zoom));\n"
+text j143 "      viewPending=dirty=true;request();\n"
+text j144 "    }\n"
+text j145 "    function home() {ra=113697000;dec=-72757000;fov=80000;viewPending=dirty=true;request();}\n"
+text j146 "    const api = {\n"
+text j147 "      key(text) {\n"
+text j148 "        if(disposed) return;\n"
+text j149 "        text=String(text).slice(-64);keyUntil=clock+4000;\n"
+text j150 "        if(ex) ex.scene_key(Math.floor(clock));\n"
+text j151 "        if(!reduced && !compact) for(let i=0;i<text.length;i++) {\n"
+text j152 "          const c=text.charCodeAt(i);if(c<32 || c>126) continue;\n"
+text j153 "          const letter=letters[letterHead];letterHead=(letterHead+1)%letters.length;\n"
+text j154 "          letter.char=c;letter.start=clock+i*35;letter.slot=i%9;\n"
+text j155 "        }\n"
+text j156 "        dirty=true;request();\n"
+text j157 "      },\n"
+text j158 "      speak(text) {\n"
+text j159 "        if(disposed) return;\n"
+text j160 "        text=String(text).slice(0,4096);\n"
+text j161 "        let offset=0;const start=Math.max(clock,speakUntil-300);\n"
+text j162 "        for(let i=0;i<text.length;i++) {\n"
+text j163 "          if(!/\\s/.test(text[i]) && (i===0 || /\\s/.test(text[i-1]))) {\n"
+text j164 "            const next=(wordWrite+1)%wordTimes.length;\n"
+text j165 "            if(next===wordRead) break;\n"
+text j166 "            wordTimes[wordWrite]=start+offset;wordWrite=next;\n"
+text j167 "          }\n"
+text j168 "          offset+=35;\n"
+text j169 "        }\n"
+text j170 "        speakUntil=Math.min(clock+30000,start+offset+300);dirty=true;request();\n"
+text j171 "      },\n"
+text j172 "      mode(name) {\n"
+text j173 "        const modes={idle:0,listening:1,listen:1,thinking:2,think:2,speaking:3,speak:3};\n"
+text j174 "        if(Object.prototype.hasOwnProperty.call(modes,name)) {modeValue=modes[name];dirty=true;request();}\n"
+text j175 "      },\n"
+text j176 "      enter(name='dusk') {\n"
+text j177 "        if(disposed) return;\n"
+text j178 "        const next=still() || name==='idle'?0:(name==='birth' || name==='boot' || name==='night')?2:1;\n"
+text j179 "        if(next===2) ownsAudio=false; // caller starts audio in this same gesture before entering\n        pendingEnter=next;reset(next);\n"
+text j180 "        if(next===2 && window.AllenAudio) {\n"
+text j181 "          ownsAudio=true;\n"
+text j182 "          // AudioPort is invoked by the caller's gesture; this instance only owns its pause/stop lifecycle.\n"
+text j183 "        }\n"
+text j184 "        if(ex && width) pendingEnter=null;\n"
+text j185 "        request();\n"
+text j186 "      },\n"
+text j187 "      home,\n      zoom(direction) {\n        if(direction!=='in' && direction!=='out') throw new RangeError('Scene zoom must be in or out');\n        changeView(0,0,direction==='in'?1/1.1:1.1);\n      },\n      calm(enabled) {\n        if(disposed) return;\n        calm=Boolean(enabled);lastWall=0;cancelAnimationFrame(raf);raf=0;\n        if(calm) reset(0);\n        overBudget=underBudget=0;qualityLabel();dirty=true;request();\n      },\n"
+text j188 "      frame(ms) {\n"
+text j189 "        if(!Number.isFinite(ms) || ms<0 || ms>86400000) throw new RangeError('Scene time outside one day');\n"
+text j190 "        cancelAnimationFrame(raf);raf=0;lastWall=0;\n"
+text j191 "        if(reduced) clock=20000;else clock=ms;\n"
+text j192 "        dirty=true;\n"
+text j193 "        if(ex) {try {render();} catch(err) {error(err);}}\n"
+text j194 "      },\n"
+text j195 "      destroy() {\n"
+text j196 "        if(disposed) return;\n"
+text j197 "        disposed=true;cancelAnimationFrame(raf);raf=0;stopAudio();\n        if(rejectSize) {rejectSize(new Error('Scene destroyed before initialization'));resolveSize=null;rejectSize=null;}\n"
+text j198 "        for(const fn of cleanup) fn();\n"
+text j199 "        mounted.delete(canvas);image=null;ex=null;\n"
+text j200 "        canvas.dataset.sceneEngine='destroyed';\n"
+text j201 "      }\n"
+text j202 "    };\n"
+text j203 "    mounted.set(canvas,api);\n"
+text j204 "    listen(document,'visibilitychange',visibility);\n"
+text j205 "    listen(motion,'change',motionChanged);\n"
+text j206 "    if(typeof ResizeObserver==='function') {\n"
+text j207 "      const resize=new ResizeObserver(() => {resizePending=dirty=true;request();});resize.observe(canvas);cleanup.push(() => resize.disconnect());\n"
+text j208 "    } else listen(window,'resize',() => {resizePending=dirty=true;request();});\n"
+text j209 "    if(typeof IntersectionObserver==='function') {\n"
+text j210 "      const observer=new IntersectionObserver(entries => {visible=entries[0].isIntersecting;visibility();});observer.observe(canvas);cleanup.push(() => observer.disconnect());\n"
+text j211 "    }\n"
+text j212 "    if(interactive) {\n"
+text j213 "      const oldTouch=canvas.style.touchAction;canvas.style.touchAction='pinch-zoom';cleanup.push(() => {canvas.style.touchAction=oldTouch;});\n"
+text j214 "      listen(canvas,'pointerdown',event => {\n"
+text j215 "        if(event.button!==0) return;\n        if(event.pointerType==='touch') {\n          const slot=touches.find(touch => touch.id===null);\n          if(!slot) return;\n          slot.id=event.pointerId;slot.x=event.clientX;slot.y=event.clientY;\n          if(touches[0].id!==null && touches[1].id!==null) pinchDistance=Math.hypot(touches[0].x-touches[1].x,touches[0].y-touches[1].y);\n        }\n"
+text j216 "        dragId=event.pointerId;dragX=event.clientX;dragY=event.clientY;\n"
+text j217 "        canvas.setPointerCapture(dragId);canvas.focus({preventScroll:true});\n"
+text j218 "      });\n"
+text j219 "      listen(canvas,'pointermove',event => {\n"
+text j220 "        if(event.pointerType==='touch') {\n          const touch=touches.find(touch => touch.id===event.pointerId);\n          if(!touch) return;\n          touch.x=event.clientX;touch.y=event.clientY;\n          if(touches[0].id!==null && touches[1].id!==null) {\n            const distance=Math.hypot(touches[0].x-touches[1].x,touches[0].y-touches[1].y);\n            if(distance>0 && pinchDistance>0) changeView(0,0,pinchDistance/distance);\n            pinchDistance=distance;return;\n          }\n        }\n        if(event.pointerId!==dragId) return;\n"
+text j221 "        const box=canvas.getBoundingClientRect();\n"
+text j222 "        changeView(-(event.clientX-dragX)*fov*1000/Math.max(1,box.width),(event.clientY-dragY)*fov*1000/Math.max(1,box.width),1);\n"
+text j223 "        dragX=event.clientX;dragY=event.clientY;\n"
+text j224 "      });\n"
+text j225 "      const release=event => {\n        for(const touch of touches) if(touch.id===event.pointerId) touch.id=null;\n        pinchDistance=0;\n        if(event.pointerId===dragId) {\n          dragId=null;\n          if(canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);\n          const remaining=touches.find(touch => touch.id!==null);\n          if(remaining) {dragId=remaining.id;dragX=remaining.x;dragY=remaining.y;}\n        }\n      };\n"
+text j226 "      listen(canvas,'pointerup',release);listen(canvas,'pointercancel',release);listen(canvas,'lostpointercapture',release);\n"
+text j227 "      listen(canvas,'wheel',event => {if(event.ctrlKey || event.metaKey) return;event.preventDefault();changeView(0,0,Math.pow(2,Math.max(-600,Math.min(600,event.deltaY))/600));},{passive:false});\n"
+text j228 "      listen(canvas,'keydown',event => {\n"
+text j229 "        const step=fov*1000/20;\n"
+text j230 "        switch(event.key) {\n"
+text j231 "          case 'ArrowLeft':changeView(-step,0,1);break;\n"
+text j232 "          case 'ArrowRight':changeView(step,0,1);break;\n"
+text j233 "          case 'ArrowUp':changeView(0,step,1);break;\n"
+text j234 "          case 'ArrowDown':changeView(0,-step,1);break;\n"
+text j235 "          case '+':case '=':changeView(0,0,1/1.1);break;\n"
+text j236 "          case '-':changeView(0,0,1.1);break;\n"
+text j237 "          case 'Home':home();break;\n"
+text j238 "          default:return;\n"
+text j239 "        }\n"
+text j240 "        event.preventDefault();\n"
+text j241 "      });\n"
+text j242 "    }\n"
+text j243 "    api.ready=module().then(module => WebAssembly.instantiate(module,{})).then(async instance => {\n"
+text j244 "      if(disposed) return api;\n"
+text j245 "      ex=instance.exports;\n"
+text j246 "      const initial=still()?0:pendingEnter===null?0:pendingEnter;\n"
+text j247 "      // Preserve an audio gesture made before compilation completes.\n"
+text j248 "      const audioOwner=ownsAudio;ownsAudio=false;reset(initial);ownsAudio=audioOwner;\n"
+text j249 "      pendingEnter=null;\n"
+text j250 "      if(!size()) await new Promise((resolve,reject) => {resolveSize=resolve;rejectSize=reject;});\n      if(disposed) return api;\n"
+text j251 "      if(still() || pendingStatic) {clock=20000;ex.scene_step(20000,0,0);pendingStatic=false;}\n"
+text j252 "      render();request();\n      canvas.dispatchEvent(new CustomEvent('allen-scene-initialized',{bubbles:true,detail:{source:PIN}}));\n"
+text j253 "      return api;\n"
+text j254 "    }).catch(err => {if(!disposed) error(err);throw err;});\n"
+text j255 "    // Expose the rejection to callers while avoiding an unhandled rejection for decorative mounts.\n"
+text j256 "    api.ready.catch(() => {});\n"
+text j257 "    return api;\n"
+text j258 "  }\n"
+text j259 "  window.AllenScene=Object.freeze({mount,source:PIN});\n"
+text j260 "  document.dispatchEvent(new CustomEvent('allen-scene-ready'));\n"
+text j261 "})();\n"
+fn part0 to void
+for i ulong len j0
+byteput get j0 i
+end
+for i ulong len j1
+byteput get j1 i
+end
+for i ulong len j2
+byteput get j2 i
+end
+for i ulong len j3
+byteput get j3 i
+end
+for i ulong len j4
+byteput get j4 i
+end
+for i ulong len j5
+byteput get j5 i
+end
+for i ulong len j6
+byteput get j6 i
+end
+for i ulong len j7
+byteput get j7 i
+end
+for i ulong len j8
+byteput get j8 i
+end
+for i ulong len j9
+byteput get j9 i
+end
+for i ulong len j10
+byteput get j10 i
+end
+for i ulong len j11
+byteput get j11 i
+end
+for i ulong len j12
+byteput get j12 i
+end
+for i ulong len j13
+byteput get j13 i
+end
+for i ulong len j14
+byteput get j14 i
+end
+for i ulong len j15
+byteput get j15 i
+end
+for i ulong len j16
+byteput get j16 i
+end
+for i ulong len j17
+byteput get j17 i
+end
+for i ulong len j18
+byteput get j18 i
+end
+for i ulong len j19
+byteput get j19 i
+end
+end
+fn part20 to void
+for i ulong len j20
+byteput get j20 i
+end
+for i ulong len j21
+byteput get j21 i
+end
+for i ulong len j22
+byteput get j22 i
+end
+for i ulong len j23
+byteput get j23 i
+end
+for i ulong len j24
+byteput get j24 i
+end
+for i ulong len j25
+byteput get j25 i
+end
+for i ulong len j26
+byteput get j26 i
+end
+for i ulong len j27
+byteput get j27 i
+end
+for i ulong len j28
+byteput get j28 i
+end
+for i ulong len j29
+byteput get j29 i
+end
+for i ulong len j30
+byteput get j30 i
+end
+for i ulong len j31
+byteput get j31 i
+end
+for i ulong len j32
+byteput get j32 i
+end
+for i ulong len j33
+byteput get j33 i
+end
+for i ulong len j34
+byteput get j34 i
+end
+for i ulong len j35
+byteput get j35 i
+end
+for i ulong len j36
+byteput get j36 i
+end
+for i ulong len j37
+byteput get j37 i
+end
+for i ulong len j38
+byteput get j38 i
+end
+for i ulong len j39
+byteput get j39 i
+end
+end
+fn part40 to void
+for i ulong len j40
+byteput get j40 i
+end
+for i ulong len j41
+byteput get j41 i
+end
+for i ulong len j42
+byteput get j42 i
+end
+for i ulong len j43
+byteput get j43 i
+end
+for i ulong len j44
+byteput get j44 i
+end
+for i ulong len j45
+byteput get j45 i
+end
+for i ulong len j46
+byteput get j46 i
+end
+for i ulong len j47
+byteput get j47 i
+end
+for i ulong len j48
+byteput get j48 i
+end
+for i ulong len j49
+byteput get j49 i
+end
+for i ulong len j50
+byteput get j50 i
+end
+for i ulong len j51
+byteput get j51 i
+end
+for i ulong len j52
+byteput get j52 i
+end
+for i ulong len j53
+byteput get j53 i
+end
+for i ulong len j54
+byteput get j54 i
+end
+for i ulong len j55
+byteput get j55 i
+end
+for i ulong len j56
+byteput get j56 i
+end
+for i ulong len j57
+byteput get j57 i
+end
+for i ulong len j58
+byteput get j58 i
+end
+for i ulong len j59
+byteput get j59 i
+end
+end
+fn part60 to void
+for i ulong len j60
+byteput get j60 i
+end
+for i ulong len j61
+byteput get j61 i
+end
+for i ulong len j62
+byteput get j62 i
+end
+for i ulong len j63
+byteput get j63 i
+end
+for i ulong len j64
+byteput get j64 i
+end
+for i ulong len j65
+byteput get j65 i
+end
+for i ulong len j66
+byteput get j66 i
+end
+for i ulong len j67
+byteput get j67 i
+end
+for i ulong len j68
+byteput get j68 i
+end
+for i ulong len j69
+byteput get j69 i
+end
+for i ulong len j70
+byteput get j70 i
+end
+for i ulong len j71
+byteput get j71 i
+end
+for i ulong len j72
+byteput get j72 i
+end
+for i ulong len j73
+byteput get j73 i
+end
+for i ulong len j74
+byteput get j74 i
+end
+for i ulong len j75
+byteput get j75 i
+end
+for i ulong len j76
+byteput get j76 i
+end
+for i ulong len j77
+byteput get j77 i
+end
+for i ulong len j78
+byteput get j78 i
+end
+for i ulong len j79
+byteput get j79 i
+end
+end
+fn part80 to void
+for i ulong len j80
+byteput get j80 i
+end
+for i ulong len j81
+byteput get j81 i
+end
+for i ulong len j82
+byteput get j82 i
+end
+for i ulong len j83
+byteput get j83 i
+end
+for i ulong len j84
+byteput get j84 i
+end
+for i ulong len j85
+byteput get j85 i
+end
+for i ulong len j86
+byteput get j86 i
+end
+for i ulong len j87
+byteput get j87 i
+end
+for i ulong len j88
+byteput get j88 i
+end
+for i ulong len j89
+byteput get j89 i
+end
+for i ulong len j90
+byteput get j90 i
+end
+for i ulong len j91
+byteput get j91 i
+end
+for i ulong len j92
+byteput get j92 i
+end
+for i ulong len j93
+byteput get j93 i
+end
+for i ulong len j94
+byteput get j94 i
+end
+for i ulong len j95
+byteput get j95 i
+end
+for i ulong len j96
+byteput get j96 i
+end
+for i ulong len j97
+byteput get j97 i
+end
+for i ulong len j98
+byteput get j98 i
+end
+for i ulong len j99
+byteput get j99 i
+end
+end
+fn part100 to void
+for i ulong len j100
+byteput get j100 i
+end
+for i ulong len j101
+byteput get j101 i
+end
+for i ulong len j102
+byteput get j102 i
+end
+for i ulong len j103
+byteput get j103 i
+end
+for i ulong len j104
+byteput get j104 i
+end
+for i ulong len j105
+byteput get j105 i
+end
+for i ulong len j106
+byteput get j106 i
+end
+for i ulong len j107
+byteput get j107 i
+end
+for i ulong len j108
+byteput get j108 i
+end
+for i ulong len j109
+byteput get j109 i
+end
+for i ulong len j110
+byteput get j110 i
+end
+for i ulong len j111
+byteput get j111 i
+end
+for i ulong len j112
+byteput get j112 i
+end
+for i ulong len j113
+byteput get j113 i
+end
+for i ulong len j114
+byteput get j114 i
+end
+for i ulong len j115
+byteput get j115 i
+end
+for i ulong len j116
+byteput get j116 i
+end
+for i ulong len j117
+byteput get j117 i
+end
+for i ulong len j118
+byteput get j118 i
+end
+for i ulong len j119
+byteput get j119 i
+end
+end
+fn part120 to void
+for i ulong len j120
+byteput get j120 i
+end
+for i ulong len j121
+byteput get j121 i
+end
+for i ulong len j122
+byteput get j122 i
+end
+for i ulong len j123
+byteput get j123 i
+end
+for i ulong len j124
+byteput get j124 i
+end
+for i ulong len j125
+byteput get j125 i
+end
+for i ulong len j126
+byteput get j126 i
+end
+for i ulong len j127
+byteput get j127 i
+end
+for i ulong len j128
+byteput get j128 i
+end
+for i ulong len j129
+byteput get j129 i
+end
+for i ulong len j130
+byteput get j130 i
+end
+for i ulong len j131
+byteput get j131 i
+end
+for i ulong len j132
+byteput get j132 i
+end
+for i ulong len j133
+byteput get j133 i
+end
+for i ulong len j134
+byteput get j134 i
+end
+for i ulong len j135
+byteput get j135 i
+end
+for i ulong len j136
+byteput get j136 i
+end
+for i ulong len j137
+byteput get j137 i
+end
+for i ulong len j138
+byteput get j138 i
+end
+for i ulong len j139
+byteput get j139 i
+end
+end
+fn part140 to void
+for i ulong len j140
+byteput get j140 i
+end
+for i ulong len j141
+byteput get j141 i
+end
+for i ulong len j142
+byteput get j142 i
+end
+for i ulong len j143
+byteput get j143 i
+end
+for i ulong len j144
+byteput get j144 i
+end
+for i ulong len j145
+byteput get j145 i
+end
+for i ulong len j146
+byteput get j146 i
+end
+for i ulong len j147
+byteput get j147 i
+end
+for i ulong len j148
+byteput get j148 i
+end
+for i ulong len j149
+byteput get j149 i
+end
+for i ulong len j150
+byteput get j150 i
+end
+for i ulong len j151
+byteput get j151 i
+end
+for i ulong len j152
+byteput get j152 i
+end
+for i ulong len j153
+byteput get j153 i
+end
+for i ulong len j154
+byteput get j154 i
+end
+for i ulong len j155
+byteput get j155 i
+end
+for i ulong len j156
+byteput get j156 i
+end
+for i ulong len j157
+byteput get j157 i
+end
+for i ulong len j158
+byteput get j158 i
+end
+for i ulong len j159
+byteput get j159 i
+end
+end
+fn part160 to void
+for i ulong len j160
+byteput get j160 i
+end
+for i ulong len j161
+byteput get j161 i
+end
+for i ulong len j162
+byteput get j162 i
+end
+for i ulong len j163
+byteput get j163 i
+end
+for i ulong len j164
+byteput get j164 i
+end
+for i ulong len j165
+byteput get j165 i
+end
+for i ulong len j166
+byteput get j166 i
+end
+for i ulong len j167
+byteput get j167 i
+end
+for i ulong len j168
+byteput get j168 i
+end
+for i ulong len j169
+byteput get j169 i
+end
+for i ulong len j170
+byteput get j170 i
+end
+for i ulong len j171
+byteput get j171 i
+end
+for i ulong len j172
+byteput get j172 i
+end
+for i ulong len j173
+byteput get j173 i
+end
+for i ulong len j174
+byteput get j174 i
+end
+for i ulong len j175
+byteput get j175 i
+end
+for i ulong len j176
+byteput get j176 i
+end
+for i ulong len j177
+byteput get j177 i
+end
+for i ulong len j178
+byteput get j178 i
+end
+for i ulong len j179
+byteput get j179 i
+end
+end
+fn part180 to void
+for i ulong len j180
+byteput get j180 i
+end
+for i ulong len j181
+byteput get j181 i
+end
+for i ulong len j182
+byteput get j182 i
+end
+for i ulong len j183
+byteput get j183 i
+end
+for i ulong len j184
+byteput get j184 i
+end
+for i ulong len j185
+byteput get j185 i
+end
+for i ulong len j186
+byteput get j186 i
+end
+for i ulong len j187
+byteput get j187 i
+end
+for i ulong len j188
+byteput get j188 i
+end
+for i ulong len j189
+byteput get j189 i
+end
+for i ulong len j190
+byteput get j190 i
+end
+for i ulong len j191
+byteput get j191 i
+end
+for i ulong len j192
+byteput get j192 i
+end
+for i ulong len j193
+byteput get j193 i
+end
+for i ulong len j194
+byteput get j194 i
+end
+for i ulong len j195
+byteput get j195 i
+end
+for i ulong len j196
+byteput get j196 i
+end
+for i ulong len j197
+byteput get j197 i
+end
+for i ulong len j198
+byteput get j198 i
+end
+for i ulong len j199
+byteput get j199 i
+end
+end
+fn part200 to void
+for i ulong len j200
+byteput get j200 i
+end
+for i ulong len j201
+byteput get j201 i
+end
+for i ulong len j202
+byteput get j202 i
+end
+for i ulong len j203
+byteput get j203 i
+end
+for i ulong len j204
+byteput get j204 i
+end
+for i ulong len j205
+byteput get j205 i
+end
+for i ulong len j206
+byteput get j206 i
+end
+for i ulong len j207
+byteput get j207 i
+end
+for i ulong len j208
+byteput get j208 i
+end
+for i ulong len j209
+byteput get j209 i
+end
+for i ulong len j210
+byteput get j210 i
+end
+for i ulong len j211
+byteput get j211 i
+end
+for i ulong len j212
+byteput get j212 i
+end
+for i ulong len j213
+byteput get j213 i
+end
+for i ulong len j214
+byteput get j214 i
+end
+for i ulong len j215
+byteput get j215 i
+end
+for i ulong len j216
+byteput get j216 i
+end
+for i ulong len j217
+byteput get j217 i
+end
+for i ulong len j218
+byteput get j218 i
+end
+for i ulong len j219
+byteput get j219 i
+end
+end
+fn part220 to void
+for i ulong len j220
+byteput get j220 i
+end
+for i ulong len j221
+byteput get j221 i
+end
+for i ulong len j222
+byteput get j222 i
+end
+for i ulong len j223
+byteput get j223 i
+end
+for i ulong len j224
+byteput get j224 i
+end
+for i ulong len j225
+byteput get j225 i
+end
+for i ulong len j226
+byteput get j226 i
+end
+for i ulong len j227
+byteput get j227 i
+end
+for i ulong len j228
+byteput get j228 i
+end
+for i ulong len j229
+byteput get j229 i
+end
+for i ulong len j230
+byteput get j230 i
+end
+for i ulong len j231
+byteput get j231 i
+end
+for i ulong len j232
+byteput get j232 i
+end
+for i ulong len j233
+byteput get j233 i
+end
+for i ulong len j234
+byteput get j234 i
+end
+for i ulong len j235
+byteput get j235 i
+end
+for i ulong len j236
+byteput get j236 i
+end
+for i ulong len j237
+byteput get j237 i
+end
+for i ulong len j238
+byteput get j238 i
+end
+for i ulong len j239
+byteput get j239 i
+end
+end
+fn part240 to void
+for i ulong len j240
+byteput get j240 i
+end
+for i ulong len j241
+byteput get j241 i
+end
+for i ulong len j242
+byteput get j242 i
+end
+for i ulong len j243
+byteput get j243 i
+end
+for i ulong len j244
+byteput get j244 i
+end
+for i ulong len j245
+byteput get j245 i
+end
+for i ulong len j246
+byteput get j246 i
+end
+for i ulong len j247
+byteput get j247 i
+end
+for i ulong len j248
+byteput get j248 i
+end
+for i ulong len j249
+byteput get j249 i
+end
+for i ulong len j250
+byteput get j250 i
+end
+for i ulong len j251
+byteput get j251 i
+end
+for i ulong len j252
+byteput get j252 i
+end
+for i ulong len j253
+byteput get j253 i
+end
+for i ulong len j254
+byteput get j254 i
+end
+for i ulong len j255
+byteput get j255 i
+end
+for i ulong len j256
+byteput get j256 i
+end
+for i ulong len j257
+byteput get j257 i
+end
+for i ulong len j258
+byteput get j258 i
+end
+for i ulong len j259
+byteput get j259 i
+end
+end
+fn part260 to void
+for i ulong len j260
+byteput get j260 i
+end
+for i ulong len j261
+byteput get j261 i
+end
+end
+fn main to int
+part0
+part20
+part40
+part60
+part80
+part100
+part120
+part140
+part160
+part180
+part200
+part220
+part240
+part260
+flush
+ret 0
+end

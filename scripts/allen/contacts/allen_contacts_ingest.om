@@ -1,0 +1,1738 @@
+note allen-contacts-ingest: seeded Omega port of allen_contacts_ingest.py, which stays the parity oracle.
+note Moves consented contact drops from the gateway into the private store. Logs counts, never a field.
+note Usage: allen-contacts-ingest ingest [DROP STORE EPOCH]. EPOCH fixes the audit/quarantine stamp (tests).
+const OSTO ulong 0
+const NSTO ulong 14
+const OAUD ulong 14
+const NAUD ulong 9
+const OLCK ulong 23
+const NLCK ulong 7
+const OQDR ulong 30
+const NQDR ulong 10
+const OTMP ulong 40
+const NTMP ulong 20
+const OJSN ulong 60
+const NJSN ulong 5
+const OING ulong 65
+const NING ulong 6
+const ODDR ulong 71
+const NDDR ulong 33
+const OSDR ulong 104
+const NSDR ulong 23
+const OFRM ulong 127
+const NFRM ulong 16
+const OHDR ulong 143
+const NHDR ulong 22
+const ONTH ulong 165
+const NNTH ulong 8
+const OINT ulong 173
+const NINT ulong 9
+const OFGT ulong 182
+const NFGT ulong 6
+const OHUM ulong 188
+const NHUM ulong 5
+const OAGT ulong 193
+const NAGT ulong 5
+const OCHT ulong 198
+const NCHT ulong 4
+const OAPI ulong 202
+const NAPI ulong 3
+const OHTP ulong 205
+const NHTP ulong 8
+const OIDP ulong 213
+const NIDP ulong 9
+const OSHP ulong 222
+const NSHP ulong 24
+const ODOT ulong 246
+const NDOT ulong 1
+const OSLS ulong 247
+const NSLS ulong 1
+const ONL ulong 248
+const NNL ulong 1
+const OUSE ulong 249
+const NUSE ulong 55
+const OEDR ulong 304
+const NEDR ulong 47
+const OELK ulong 351
+const NELK ulong 32
+const OEST ulong 383
+const NEST ulong 46
+const OEQT ulong 429
+const NEQT ulong 44
+const OFVR ulong 473
+const NFVR ulong 24
+const OVDP ulong 497
+const NVDP ulong 10
+const OFVT ulong 507
+const NFVT ulong 14
+note Counter slots, in the sorted order the summary line prints them.
+const CFM ulong 0
+const CFU ulong 1
+const CVM ulong 2
+const CVU ulong 3
+const CIA ulong 4
+const CIS ulong 5
+const CQD long 6
+const CQI long 7
+const CQN long 8
+const CQO long 9
+const CQF ulong 10
+const CQ ulong 11
+const CRN ulong 12
+const CST ulong 13
+const CTP ulong 14
+const CTS ulong 15
+const MAXD ulong 65536
+const MAXR ulong 65537
+const MAXE ulong 4096
+const QCAP long 1000
+const SCAP ulong 16777216
+note Slots of gu (ulong state).
+const GDL ulong 0
+const GSL ulong 1
+const GDN ulong 2
+const GPL ulong 3
+const GNE ulong 4
+const GWSC ulong 5
+const GFW ulong 6
+const GLW ulong 7
+const GOL ulong 8
+const GADV ulong 9
+const GSN ulong 10
+const GNK ulong 11
+const GIDF ulong 12
+const GAL ulong 13
+const GTL ulong 14
+const GLK ulong 15
+const GLE ulong 16
+const GMOD ulong 17
+note Slots of gl (long state).
+const LNOW ulong 0
+text lit "contacts.jsonlaudit.log.lock.dquarantine.contacts.jsonl.tmp-.jsoningest/var/lib/allen-chat/contacts-drop/var/lib/allen-contacts forget removed=allen-contacts-ingest: nothingintroduceforgethumanagentchatapihttps://, \"id\": \"\"delete_token_sha256\": \"./\nusage: allen-contacts-ingest ingest [DROP STORE EPOCH]\nallen-contacts: unsafe drop or store directory\nallen-contacts: store is locked\nallen-contacts: store too large or unreadable\nallen-contacts: quarantine directory unsafe\n forget_visitor removed=, \"vid\": \"forget_visitor"
+text kin "contact delete_token_sha256 framework github homepage human id kind model name org origin purpose received type v via vid"
+text kfo "id received token_sha256 type v"
+text kfv "received type v vid"
+text cn "forget_matched forget_unmatched forget_visitor_matched forget_visitor_unmatched introduce_already_stored introduce_stored q_duplicate_id q_invalid q_name q_oversize quarantine_full_discarded quarantined removed_nonregular stuck_nonregular temp_pending temp_stale_removed"
+global gu ulong 32
+global gl long 8
+global cnt long 16
+global ddir uchar 4096
+global sdir uchar 4096
+global pth uchar 4096
+global pk uchar 8192
+global dbuf uchar 65537
+global sbuf uchar 16777216
+global nbuf uchar 1048576
+global nlen ulong 4096
+global nmt long 4096
+global ordx ulong 4096
+global dents uchar 65536
+global stb uchar 128
+global fs ulong 32
+global fe ulong 32
+global keys uchar 256
+global kof ulong 32
+global kln ulong 32
+global rnd uchar 16
+global ob uchar 2048
+global ab uchar 128
+global tb uchar 32
+
+note ---------------------------------------------------------------- small helpers
+
+fn bump i ulong to void
+put cnt i add get cnt i 1
+end
+
+fn pset to void
+put gu GPL 0
+end
+
+fn pb b uchar to void
+n = get gu GPL
+put pth n b
+put gu GPL add n 1
+end
+
+fn plit o ulong n ulong to void
+for i ulong n
+pb get lit add o i
+end
+end
+
+fn pdd to void
+for i ulong get gu GDL
+pb get ddir i
+end
+end
+
+fn psd to void
+for i ulong get gu GSL
+pb get sdir i
+end
+end
+
+fn pnam i ulong to void
+b = mul i 256
+for j ulong get nlen i
+pb get nbuf add b j
+end
+end
+
+fn hexch v ulong to uchar
+if lt v 10
+ret uchar add v 48
+end
+ret uchar add v 87
+end
+
+fn phex k ulong to long
+r = random rnd 0 k 0
+if ne r long k
+ret -1
+end
+for i ulong k
+v = ulong get rnd i
+pb hexch shr v 4
+pb hexch and v 15
+end
+ret 0
+end
+
+fn rd32 o ulong to ulong
+v = ulong get stb o
+v = or v shl ulong get stb add o 1 8
+v = or v shl ulong get stb add o 2 16
+v = or v shl ulong get stb add o 3 24
+ret v
+end
+
+fn rd64 o ulong to long
+v = rd32 o
+h = rd32 add o 4
+ret bitcast long or v shl h 32
+end
+
+fn mtns to long
+ret add mul rd64 88 1000000000 rd64 96
+end
+
+fn plstat to long
+ret lstat pth 0 get gu GPL stb 0 128
+end
+
+note ------------------------------------------------------------------ output buffers
+
+fn ob1 b uchar to void
+n = get gu GOL
+put ob n b
+put gu GOL add n 1
+end
+
+fn ab1 b uchar to void
+n = get gu GAL
+put ab n b
+put gu GAL add n 1
+end
+
+fn olit o ulong n ulong to void
+for i ulong n
+ob1 get lit add o i
+end
+end
+
+fn onum v long to void
+d = new uchar 24 0
+k = ulong 0
+x = v
+while true bound 30
+put d k uchar add rem x 10 48
+k = add k 1
+x = div x 10
+if eq x 0
+break
+end
+end
+while gt k 0 bound 30
+k = sub k 1
+ob1 get d k
+end
+end
+
+fn anum v long to void
+d = new uchar 24 0
+k = ulong 0
+x = v
+while true bound 30
+put d k uchar add rem x 10 48
+k = add k 1
+x = div x 10
+if eq x 0
+break
+end
+end
+while gt k 0 bound 30
+k = sub k 1
+ab1 get d k
+end
+end
+
+fn emsg o ulong n ulong to void
+w = write 2 lit o n
+end
+
+note -------------------------------------------------------------------------- clock
+
+fn nowsec to long
+t = get gl LNOW
+if ge t 0
+ret t
+end
+ret div realns 1000000000
+end
+
+fn t2 v long to void
+put tb get gu GTL uchar add div v 10 48
+put tb add get gu GTL 1 uchar add rem v 10 48
+put gu GTL add get gu GTL 2
+end
+
+fn tch b uchar to void
+put tb get gu GTL b
+put gu GTL add get gu GTL 1
+end
+
+note Civil date from days since 1970-01-01 (proleptic Gregorian), packed y*10000 + m*100 + d.
+fn civil days long to long
+z = add days 719468
+era = div z 146097
+doe = sub z mul era 146097
+yoe = div sub add sub doe div doe 1460 div doe 36524 div doe 146096 365
+ret civil2 doe yoe add yoe mul era 400
+end
+
+fn civil2 doe long yoe long y long to long
+doy = sub doe sub add mul 365 yoe div yoe 4 div yoe 100
+mp = div add mul 5 doy 2 153
+d = add sub doy div add mul 153 mp 2 5 1
+m = add mp 3
+yy = y
+if ge mp 10
+m = sub mp 9
+yy = add y 1
+end
+ret add add mul yy 10000 mul m 100 d
+end
+
+note full: 2026-10-26T15:28:56Z (audit), else 20261026T152856Z (quarantine names).
+fn tstamp full bool to void
+t = nowsec
+put gu GTL 0
+v = civil div t 86400
+y = div v 10000
+t2 div y 100
+t2 rem y 100
+if full
+tch 45
+end
+t2 div rem v 10000 100
+if full
+tch 45
+end
+t2 rem v 100
+tch 84
+s = rem t 86400
+t2 div s 3600
+if full
+tch 58
+end
+t2 div rem s 3600 60
+if full
+tch 58
+end
+t2 rem s 60
+tch 90
+end
+
+note ----------------------------------------------------------------- drop bytes access
+
+fn at p ulong to ulong
+if ge p get gu GDN
+ret 256
+end
+ret ulong get dbuf p
+end
+
+fn ishex b ulong to bool
+ret or and ge b 48 le b 57 and ge b 97 le b 102
+end
+
+fn eqlit p ulong o ulong n ulong to bool
+for i ulong n
+if ne at add p i ulong get lit add o i
+ret false
+end
+end
+ret true
+end
+
+fn spaneq k ulong o ulong n ulong to bool
+s = get fs k
+if ne sub get fe k s n
+ret false
+end
+ret eqlit s o n
+end
+
+fn hexspan k ulong n ulong to bool
+s = get fs k
+if ne sub get fe k s n
+ret false
+end
+for i ulong n
+if not ishex at add s i
+ret false
+end
+end
+ret true
+end
+
+note ---------------------------------------------------------------- strict UTF-8 text
+
+fn isws c ulong to bool
+if or and ge c 9 le c 13 and ge c 28 le c 32
+ret true
+end
+if or eq c 133 eq c 160
+ret true
+end
+if or eq c 5760 and ge c 8192 le c 8202
+ret true
+end
+if or or eq c 8232 eq c 8233 eq c 8239
+ret true
+end
+ret or eq c 8287 eq c 12288
+end
+
+fn dmb p ulong e ulong b ulong to long
+k = ulong 0
+lo = ulong 128
+hi = ulong 191
+if and ge b 194 le b 223
+k = 1
+end
+if or eq b 224 or and ge b 225 le b 236 and ge b 238 le b 239
+k = 2
+end
+if eq b 237
+k = 2
+end
+if and ge b 240 le b 244
+k = 3
+end
+if eq k 0
+ret -1
+end
+if eq b 224
+lo = 160
+end
+if eq b 237
+hi = 159
+end
+if eq b 240
+lo = 144
+end
+if eq b 244
+hi = 143
+end
+if ge add p k e
+ret -1
+end
+cp = and b shr ulong 127 add k 1
+for j ulong k
+x = at add add p j 1
+if eq j 0
+if or lt x lo gt x hi
+ret -1
+end
+end
+if or lt x 128 gt x 191
+ret -1
+end
+cp = or shl cp 6 and x 63
+end
+put gu GADV add k 1
+ret long cp
+end
+
+fn dcp p ulong e ulong to long
+b = at p
+put gu GADV 1
+if eq b 92
+put gu GADV 2
+q = at add p 1
+if eq q 34
+ret 34
+end
+if eq q 92
+ret 92
+end
+if eq q 110
+ret 10
+end
+if eq q 116
+ret 9
+end
+ret -1
+end
+if or lt b 32 eq b 127
+ret -1
+end
+if lt b 128
+ret long b
+end
+ret dmb p e b
+end
+
+note Code points in [s, e) of dbuf, -1 if invalid; whitespace count and first/last flags in gu.
+fn chkstr s ulong e ulong to long
+p = s
+c = long 0
+ws = ulong 0
+put gu GFW 0
+put gu GLW 0
+while lt p e bound 999999
+cp = dcp p e
+if lt cp 0
+ret -1
+end
+if isws ulong cp
+ws = add ws 1
+if eq c 0
+put gu GFW 1
+end
+put gu GLW 1
+else
+put gu GLW 0
+end
+c = add c 1
+p = add p get gu GADV
+end
+put gu GWSC ws
+ret c
+end
+
+note ------------------------------------------------------------------ fixed-schema parse
+
+note Schema w: 1 introduce (kin), 2 forget (kfo), 3 forget_visitor (kfv); sorted key names.
+fn keyb w ulong i ulong to uchar
+if eq w 1
+ret get kin i
+end
+if eq w 2
+ret get kfo i
+end
+ret get kfv i
+end
+
+fn loadkeys w ulong to void
+n = len kin
+if eq w 2
+n = len kfo
+end
+if eq w 3
+n = len kfv
+end
+k = ulong 0
+put kof 0 0
+for i ulong n
+b = keyb w i
+if eq b 32
+put kln k sub i get kof k
+k = add k 1
+put kof k add i 1
+else
+put keys i b
+end
+end
+put kln k sub n get kof k
+put gu GNK add k 1
+end
+
+note Key k, written as "key": , at p. Returns the position after it or -1.
+fn pkey k ulong p ulong to long
+q = p
+if gt k 0
+if or ne at q 44 ne at add q 1 32
+ret -1
+end
+q = add q 2
+end
+if ne at q 34
+ret -1
+end
+q = add q 1
+o = get kof k
+for i ulong get kln k
+if ne at add q i ulong get keys add o i
+ret -1
+end
+end
+q = add q get kln k
+if or ne at q 34 or ne at add q 1 58 ne at add q 2 32
+ret -1
+end
+ret long add q 3
+end
+
+note Value of key k at p: the number 1 for "v", else a string. Records the raw span.
+fn pval k ulong p ulong to long
+if and eq get kln k 1 eq get keys get kof k 118
+if ne at p 49
+ret -1
+end
+put fs k p
+put fe k add p 1
+ret long add p 1
+end
+if ne at p 34
+ret -1
+end
+q = add p 1
+put fs k q
+n = get gu GDN
+while lt q n bound 999999
+b = at q
+if eq b 34
+put fe k q
+ret long add q 1
+end
+if eq b 92
+q = add q 2
+else
+q = add q 1
+end
+end
+ret -1
+end
+
+fn parse w ulong to bool
+loadkeys w
+if ne at 0 123
+ret false
+end
+p = long 1
+for k ulong get gu GNK
+p = pkey k ulong p
+if lt p 0
+ret false
+end
+p = pval k ulong p
+if lt p 0
+ret false
+end
+end
+if ne at ulong p 125
+ret false
+end
+ret eq add ulong p 1 get gu GDN
+end
+
+note ---------------------------------------------------------------------- validation
+
+fn txt k ulong cap long to bool
+c = chkstr get fs k get fe k
+if or lt c 0 gt c cap
+ret false
+end
+if gt c 0
+if or eq get gu GFW 1 eq get gu GLW 1
+ret false
+end
+end
+ret true
+end
+
+fn valtxt to bool
+if not and and txt 0 200 txt 2 100 and txt 3 39 txt 4 200
+ret false
+end
+if not and and txt 5 200 txt 8 100 and txt 9 100 txt 10 100
+ret false
+end
+ret and txt 11 200 txt 12 1000
+end
+
+fn homeok to bool
+s = get fs 4
+e = get fe 4
+if eq s e
+ret true
+end
+if not eqlit s OHTP NHTP
+ret false
+end
+c = chkstr add s NHTP e
+ret and ge c 4 eq get gu GWSC 0
+end
+
+fn idok k ulong to bool
+s = get fs k
+if ne sub get fe k s 18
+ret false
+end
+if or ne at s 99 ne at add s 1 95
+ret false
+end
+for i ulong 16
+if not ishex at add add s 2 i
+ret false
+end
+end
+ret true
+end
+
+fn dig p ulong n ulong to long
+v = long 0
+for i ulong n
+b = at add p i
+if or lt b 48 gt b 57
+ret -1
+end
+v = add mul v 10 long sub b 48
+end
+ret v
+end
+
+fn dim y long m long to long
+if eq m 2
+if and eq rem y 4 0 or ne rem y 100 0 eq rem y 400 0
+ret 29
+end
+ret 28
+end
+if or or eq m 4 eq m 6 or eq m 9 eq m 11
+ret 30
+end
+ret 31
+end
+
+fn recok k ulong to bool
+s = get fs k
+if ne sub get fe k s 20
+ret false
+end
+if or or ne at add s 4 45 ne at add s 7 45 or ne at add s 10 84 ne at add s 19 90
+ret false
+end
+if or ne at add s 13 58 ne at add s 16 58
+ret false
+end
+y = dig s 4
+m = dig add s 5 2
+d = dig add s 8 2
+if or or lt y 1 lt m 1 gt m 12
+ret false
+end
+if or lt d 1 gt d dim y m
+ret false
+end
+ret tmok s
+end
+
+fn rng v long hi long to bool
+ret and ge v 0 le v hi
+end
+
+fn tmok s ulong to bool
+if not rng dig add s 11 2 23
+ret false
+end
+if not rng dig add s 14 2 59
+ret false
+end
+ret rng dig add s 17 2 59
+end
+
+fn valint to bool
+if not spaneq 14 OINT NINT
+ret false
+end
+if not valtxt
+ret false
+end
+if not or spaneq 7 OHUM NHUM spaneq 7 OAGT NAGT
+ret false
+end
+if not or spaneq 16 OCHT NCHT spaneq 16 OAPI NAPI
+ret false
+end
+if and eq get fs 9 get fe 9 eq get fs 0 get fe 0
+ret false
+end
+if not homeok
+ret false
+end
+if ne get fs 17 get fe 17
+if not hexspan 17 64
+ret false
+end
+end
+ret and and hexspan 1 64 idok 6 recok 13
+end
+
+fn valfgt to bool
+if not spaneq 3 OFGT NFGT
+ret false
+end
+ret and and hexspan 2 64 idok 0 recok 1
+end
+
+note forget_visitor: received, type, v, vid.  The vid must be 64 hex, never empty.
+fn valfv to bool
+if not spaneq 1 OFVT NFVT
+ret false
+end
+ret and hexspan 3 64 recok 0
+end
+
+note 1 introduce, 2 forget, 3 forget_visitor, 0 invalid. Sets GIDF, the id (or vid) field.
+fn classify to ulong
+if parse 1
+put gu GIDF 6
+if valint
+ret 1
+end
+ret 0
+end
+if parse 2
+put gu GIDF 0
+if valfgt
+ret 2
+end
+ret 0
+end
+if parse 3
+put gu GIDF 3
+if valfv
+ret 3
+end
+end
+ret 0
+end
+
+note ------------------------------------------------------------------------ the store
+
+fn loadst to long
+put gu GSN 0
+pset
+plit OSTO NSTO
+fd = fopen pth 0 get gu GPL 557056 0
+if eq fd neg long 2
+ret 0
+end
+if lt fd 0
+ret -1
+end
+n = ulong 0
+while true bound 999
+r = read int fd sbuf n sub SCAP n
+if lt r 0
+r = fclose int fd
+ret -1
+end
+if eq r 0
+break
+end
+n = add n ulong r
+if eq n SCAP
+r = fclose int fd
+ret -1
+end
+end
+r = fclose int fd
+put gu GSN n
+ret 0
+end
+
+fn lend s ulong to ulong
+p = s
+n = get gu GSN
+while lt p n bound 999999
+if eq get sbuf p 10
+ret p
+end
+p = add p 1
+end
+ret n
+end
+
+fn blank s ulong e ulong to bool
+for i ulong sub e s
+b = get sbuf add s i
+if not or eq b 32 and ge b 9 le b 13
+ret false
+end
+end
+ret true
+end
+
+note Is , "id": "<the drop's id>" at sbuf p ?  (28 bytes, caller checks room)
+fn idat p ulong to bool
+for i ulong NIDP
+if ne get sbuf add p i get lit add OIDP i
+ret false
+end
+end
+f = get fs get gu GIDF
+q = add p NIDP
+for i ulong 18
+if ne get sbuf add q i get dbuf add f i
+ret false
+end
+end
+ret eq get sbuf add q 18 34
+end
+
+note Does store line [s, e) carry the drop's id?
+fn hasid s ulong e ulong to bool
+if lt sub e s 28
+ret false
+end
+last = sub e 28
+p = s
+while le p last bound 999999
+if idat p
+ret true
+end
+p = add p 1
+end
+ret false
+end
+
+note Does store line [s, e) end with , "vid": "<the drop's 64-hex vid>"} ?
+fn hasvid s ulong e ulong to bool
+if lt sub e s 76
+ret false
+end
+p = sub e 76
+for i ulong NVDP
+if ne get sbuf add p i get lit add OVDP i
+ret false
+end
+end
+f = get fs get gu GIDF
+q = add p NVDP
+for i ulong 64
+if ne get sbuf add q i get dbuf add f i
+ret false
+end
+end
+ret and eq get sbuf add q 64 34 eq get sbuf add q 65 125
+end
+
+note The line matches the drop: by id (GMOD 0) or by vid (GMOD 1).
+fn hit s ulong e ulong to bool
+if eq get gu GMOD 1
+ret hasvid s e
+end
+ret hasid s e
+end
+
+fn cntvid to long
+c = long 0
+s = ulong 0
+n = get gu GSN
+while lt s n bound 999999
+e = lend s
+if not blank s e
+if hasvid s e
+c = add c 1
+end
+end
+s = add e 1
+end
+ret c
+end
+
+note Start of the first store line with the drop's id, or -1. The line's end goes to gu GLE.
+fn findid to long
+s = ulong 0
+n = get gu GSN
+while lt s n bound 999999
+e = lend s
+if not blank s e
+if hasid s e
+put gu GLE e
+ret long s
+end
+end
+s = add e 1
+end
+ret -1
+end
+
+fn fsyncd o ulong n ulong to long
+pset
+plit o n
+fd = fopen pth 0 get gu GPL 540672 0
+if lt fd 0
+ret fd
+end
+r = fsync int fd
+c = fclose int fd
+ret r
+end
+
+fn appendst to long
+pset
+plit OSTO NSTO
+made = false
+fd = fopen pth 0 get gu GPL 558081 0
+if eq fd neg long 2
+fd = fopen pth 0 get gu GPL 558273 384
+made = true
+end
+if lt fd 0
+ret -1
+end
+r = fchmod int fd 384
+w = write int fd dbuf 0 get gu GDN
+x = write int fd lit ONL 1
+r = fsync int fd
+c = fclose int fd
+if or ne w long get gu GDN ne x 1
+ret -1
+end
+if made
+r = fsyncd ODOT NDOT
+end
+ret 0
+end
+
+note Write the store lines without the drop's id to fd. Returns how many were left out.
+fn wkeep fd int to long
+gone = long 0
+s = ulong 0
+n = get gu GSN
+while lt s n bound 999999
+e = lend s
+if not blank s e
+if hit s e
+gone = add gone 1
+else
+w = write fd sbuf s sub e s
+w = write fd lit ONL 1
+end
+end
+s = add e 1
+end
+ret gone
+end
+
+note Rename the tmp file (the first tl bytes of pth) over contacts.jsonl, then sync the dir.
+fn rnstore tl ulong to long
+put pk 0 2
+put pk 1 0
+put pk 2 uchar tl
+put pk 3 0
+for i ulong tl
+put pk add 4 i get pth i
+end
+o = add 4 tl
+put pk o uchar NSTO
+put pk add o 1 0
+for i ulong NSTO
+put pk add add o 2 i get lit add OSTO i
+end
+r = renames pk 0 add add o 2 NSTO 0
+if ne r 0
+ret -1
+end
+ret fsyncd ODOT NDOT
+end
+
+note Rewrite the store without the lines carrying the drop's id. Returns how many went.
+fn rewrite to long
+pset
+plit OTMP NTMP
+if lt phex 8 0
+ret -1
+end
+tl = get gu GPL
+fd = fopen pth 0 tl 524481 384
+if lt fd 0
+ret -1
+end
+gone = wkeep int fd
+r = fsync int fd
+c = fclose int fd
+if lt rnstore tl 0
+ret -1
+end
+ret gone
+end
+
+note Tombstone line: stamp, event (0 forget, 1 forget_visitor), count.  No id, no field.
+fn audit gone long ev ulong to long
+put gu GAL 0
+tstamp true
+for i ulong get gu GTL
+ab1 get tb i
+end
+if eq ev 0
+for i ulong NFRM
+ab1 get lit add OFRM i
+end
+else
+for i ulong NFVR
+ab1 get lit add OFVR i
+end
+end
+anum gone
+ab1 10
+pset
+plit OAUD NAUD
+fd = fopen pth 0 get gu GPL 558145 384
+if lt fd 0
+ret -1
+end
+w = write int fd ab 0 get gu GAL
+r = fsync int fd
+c = fclose int fd
+ret 0
+end
+
+note ------------------------------------------------------------------------ quarantine
+
+fn reclen p ulong to ulong
+ret add ulong get dents add p 16 shl ulong get dents add p 17 8
+end
+
+note Is the getdents64 record at p named . or .. ?
+fn isdot p ulong to bool
+b0 = get dents add p 19
+b1 = get dents add p 20
+b2 = get dents add p 21
+ret and eq b0 46 or eq b1 0 and eq b1 46 eq b2 0
+end
+
+fn qcount to long
+pset
+plit OQDR NQDR
+fd = fopen pth 0 get gu GPL 540672 0
+if lt fd 0
+ret -1
+end
+c = long 0
+while true bound 99999
+r = getdnts int fd dents 0 len dents
+if le r 0
+break
+end
+p = ulong 0
+while lt p ulong r bound 99999
+if not isdot p
+c = add c 1
+end
+p = add p reclen p
+end
+end
+r = fclose int fd
+ret c
+end
+
+fn quar to long
+pset
+plit OQDR NQDR
+r = makedir pth 0 get gu GPL 448
+if and ne r 0 ne r neg long 17
+ret -1
+end
+if ne plstat 0
+ret -1
+end
+mode = rd32 16
+if or ne and mode 61440 16384 or ne rd32 24 ulong getuid ne and mode 63 0
+ret -1
+end
+c = qcount
+if lt c 0
+ret -1
+end
+if ge c QCAP
+bump CQF
+ret 0
+end
+pset
+plit OQDR NQDR
+plit OSLS NSLS
+tstamp false
+for i ulong get gu GTL
+pb get tb i
+end
+pb 45
+if lt phex 4 0
+ret -1
+end
+plit OJSN NJSN
+fd = fopen pth 0 get gu GPL 557249 384
+if lt fd 0
+ret -1
+end
+n = get gu GDN
+if gt n MAXD
+n = MAXD
+end
+w = write int fd dbuf 0 n
+r = fsync int fd
+c = fclose int fd
+r = fsyncd OQDR NQDR
+ret 0
+end
+
+note ------------------------------------------------------------------------ the drops
+
+note Remove the entry at pth without following it: unlink, else rmdir. key counts a removal.
+fn rment key ulong to void
+r = unlink pth 0 get gu GPL
+if eq r neg long 2
+ret
+end
+if ne r 0
+r = rmdir pth 0 get gu GPL
+if ne r 0
+bump CST
+ret
+end
+end
+bump key
+end
+
+fn entpath i ulong to void
+pset
+pdd
+plit OSLS NSLS
+pnam i
+end
+
+fn namok i ulong to bool
+if ne get nlen i 21
+ret false
+end
+b = mul i 256
+for j ulong 16
+if not ishex ulong get nbuf add b j
+ret false
+end
+end
+for j ulong NJSN
+if ne get nbuf add add b 16 j get lit add OJSN j
+ret false
+end
+end
+ret true
+end
+
+note Read the open drop into dbuf (at most MAXR bytes). Returns 1 regular, 0 not.
+fn slurp fd int to ulong
+r = fstat fd stb 0 128
+if ne r 0
+ret 0
+end
+if or ne and rd32 16 61440 32768 ne rd32 20 1
+ret 0
+end
+n = ulong 0
+while lt n MAXR bound 99999
+r = read fd dbuf n sub MAXR n
+if le r 0
+break
+end
+n = add n ulong r
+end
+put gu GDN n
+ret 1
+end
+
+fn dointro to long
+if ne loadst 0
+ret -1
+end
+f = findid
+if lt f 0
+if ne appendst 0
+ret -1
+end
+bump CIS
+ret 0
+end
+s = ulong f
+e = get gu GLE
+same = eq sub e s get gu GDN
+if same
+for i ulong sub e s
+if ne get sbuf add s i get dbuf i
+same = false
+break
+end
+end
+end
+if same
+bump CIA
+ret 0
+end
+ret CQD
+end
+
+fn shaat p ulong to bool
+for i ulong NSHP
+if ne get sbuf add p i get lit add OSHP i
+ret false
+end
+end
+ret true
+end
+
+note Position of the 64-hex delete_token_sha256 value in the store line found at f, or 0.
+fn shapos f long to ulong
+if lt f 0
+ret 0
+end
+p = ulong f
+e = get gu GLE
+while le add add p NSHP 65 e bound 999999
+if shaat p
+h = add p NSHP
+for i ulong 64
+if not ishex ulong get sbuf add h i
+ret 0
+end
+end
+if ne get sbuf add h 64 34
+ret 0
+end
+ret h
+end
+p = add p 1
+end
+ret 0
+end
+
+note Constant-time compare of the forget token with the target's hash (zeros when none).
+fn tokeq f long to bool
+t = get fs 2
+h = shapos f
+acc = ulong 0
+for i ulong 64
+x = ulong 48
+if ne h 0
+x = ulong get sbuf add h i
+end
+acc = or acc xor x ulong get dbuf add t i
+end
+ret eq acc 0
+end
+
+fn doforget to long
+if ne loadst 0
+ret -1
+end
+f = findid
+m = tokeq f
+if and m ge f 0
+put gu GMOD 0
+g = rewrite
+if lt g 0
+ret -1
+end
+if ne audit g 0 0
+ret -1
+end
+bump CFM
+ret 0
+end
+bump CFU
+ret 0
+end
+
+note Every record with the drop's vid goes; none of them, or an unchanged store, if none match.
+fn dofv to long
+if ne loadst 0
+ret -1
+end
+if eq cntvid 0
+bump CVU
+ret 0
+end
+put gu GMOD 1
+g = rewrite
+if lt g 0
+ret -1
+end
+if ne audit g 1 0
+ret -1
+end
+bump CVM
+ret 0
+end
+
+note Process drop i. Returns 0, or -1 on a store failure (fatal, the drop stays).
+fn procent i ulong to long
+entpath i
+fd = fopen pth 0 get gu GPL 559104 0
+if eq fd neg long 2
+ret 0
+end
+if lt fd 0
+rment CRN
+ret 0
+end
+reg = slurp int fd
+r = fclose int fd
+if eq reg 0
+rment CRN
+ret 0
+end
+why = long 0
+if not namok i
+why = CQN
+end
+if and eq why 0 gt get gu GDN MAXD
+why = CQO
+end
+if eq why 0
+k = classify
+if eq k 0
+why = CQI
+end
+if eq k 1
+why = dointro
+end
+if eq k 2
+why = doforget
+end
+if eq k 3
+why = dofv
+end
+end
+if lt why 0
+ret -1
+end
+if gt why 0
+if ne quar 0
+ret -2
+end
+bump CQ
+bump ulong why
+end
+entpath i
+r = unlink pth 0 get gu GPL
+ret 0
+end
+
+note -------------------------------------------------------------------------- scanning
+
+fn addent p ulong to void
+n = get gu GNE
+nl = ulong 0
+while ne get dents add add p 19 nl 0 bound 300
+nl = add nl 1
+end
+b = mul n 256
+for j ulong nl
+put nbuf add b j get dents add add p 19 j
+end
+put nlen n nl
+entpath n
+r = plstat
+if ne r 0
+ret
+end
+put nmt n mtns
+put ordx n n
+put gu GNE add n 1
+end
+
+fn scan to long
+pset
+pdd
+fd = fopen pth 0 get gu GPL 540672 0
+if lt fd 0
+ret -1
+end
+while lt get gu GNE MAXE bound 99999
+r = getdnts int fd dents 0 len dents
+if le r 0
+break
+end
+p = ulong 0
+while and lt p ulong r lt get gu GNE MAXE bound 99999
+if not isdot p
+addent p
+end
+p = add p reclen p
+end
+end
+r = fclose int fd
+ret 0
+end
+
+fn lessent a ulong b ulong to bool
+if ne get nmt a get nmt b
+ret lt get nmt a get nmt b
+end
+la = get nlen a
+lb = get nlen b
+oa = mul a 256
+o2 = mul b 256
+for i ulong 256
+if or ge i la ge i lb
+ret lt la lb
+end
+x = get nbuf add oa i
+y = get nbuf add o2 i
+if ne x y
+ret lt x y
+end
+end
+ret false
+end
+
+fn sortent to void
+n = get gu GNE
+for i ulong n
+j = i
+while gt j 0 bound 5000
+a = get ordx sub j 1
+b = get ordx j
+if not lessent b a
+break
+end
+put ordx sub j 1 b
+put ordx j a
+j = sub j 1
+end
+end
+end
+
+note ----------------------------------------------------------------- lock and directories
+
+fn dirok which ulong mask ulong to bool
+pset
+if eq which 0
+pdd
+else
+psd
+end
+if ne plstat 0
+ret false
+end
+mode = rd32 16
+if ne and mode 61440 16384
+ret false
+end
+if ne rd32 24 ulong getuid
+ret false
+end
+ret eq and and mode 63 mask 0
+end
+
+fn lockst to long
+deadln = add monons 10000000000
+while true bound 999999
+pset
+plit OLCK NLCK
+r = makedir pth 0 get gu GPL 448
+if eq r 0
+put gu GLK 1
+ret 0
+end
+if ne r neg long 17
+ret -1
+end
+if eq plstat 0
+if gt sub realns mtns 300000000000
+r = rmdir pth 0 get gu GPL
+continue
+end
+end
+if ge monons deadln
+ret -1
+end
+r = sleepns 50000000
+end
+ret -1
+end
+
+fn unlock to void
+if eq get gu GLK 1
+pset
+plit OLCK NLCK
+r = rmdir pth 0 get gu GPL
+put gu GLK 0
+end
+end
+
+note ---------------------------------------------------------------------- arguments
+
+fn argcp i ulong which ulong to long
+n = long 0
+if eq which 0
+n = argread i ddir 0 4095
+put gu GDL ulong n
+else
+n = argread i sdir 0 4095
+put gu GSL ulong n
+end
+ret n
+end
+
+fn args to long
+c = argcnt
+if and ne c 2 ne c 5
+ret -1
+end
+n = argread 1 tb 0 len tb
+if ne n long NING
+ret -1
+end
+for i ulong NING
+if ne get tb i get lit add OING i
+ret -1
+end
+end
+put gl LNOW -1
+if eq c 2
+for i ulong NDDR
+put ddir i get lit add ODDR i
+end
+put gu GDL NDDR
+for i ulong NSDR
+put sdir i get lit add OSDR i
+end
+put gu GSL NSDR
+ret 0
+end
+if le argcp 2 0 0
+ret -1
+end
+if le argcp 3 1 0
+ret -1
+end
+n = argread 4 tb 0 len tb
+if le n 0
+ret -1
+end
+t = long 0
+for i ulong ulong n
+b = get tb i
+if or lt b 48 gt b 57
+ret -1
+end
+t = add mul t 10 long sub b 48
+end
+put gl LNOW t
+ret 0
+end
+
+note -------------------------------------------------------------------------- summary
+
+fn summary to void
+put gu GOL 0
+olit OHDR NHDR
+any = false
+k = ulong 0
+s = ulong 0
+for i ulong add len cn 1
+e = eq i len cn
+if not e
+e = eq get cn i 32
+end
+if e
+if gt get cnt k 0
+any = true
+ob1 32
+for j ulong sub i s
+ob1 get cn add s j
+end
+ob1 61
+onum get cnt k
+end
+k = add k 1
+s = add i 1
+end
+end
+if not any
+olit ONTH NNTH
+end
+ob1 10
+w = write 1 ob 0 get gu GOL
+end
+
+fn runall to long
+n = get gu GNE
+for k ulong n
+i = get ordx k
+if eq get nbuf mul i 256 46
+entpath i
+if ne plstat 0
+continue
+end
+if gt sub realns mtns 60000000000
+rment CTS
+else
+bump CTP
+end
+continue
+end
+r = procent i
+if ne r 0
+ret r
+end
+end
+ret 0
+end
+
+fn main to int
+if ne args 0
+emsg OUSE NUSE
+ret 64
+end
+if not dirok 0 39
+emsg OEDR NEDR
+ret 1
+end
+if not dirok 1 63
+emsg OEDR NEDR
+ret 1
+end
+pset
+psd
+if ne chdir pth 0 get gu GPL 0
+emsg OEDR NEDR
+ret 1
+end
+if ne scan 0
+emsg OEDR NEDR
+ret 1
+end
+if ne lockst 0
+emsg OELK NELK
+ret 1
+end
+sortent
+r = runall
+unlock
+if eq r -2
+emsg OEQT NEQT
+ret 1
+end
+if ne r 0
+emsg OEST NEST
+ret 1
+end
+summary
+ret 0
+end

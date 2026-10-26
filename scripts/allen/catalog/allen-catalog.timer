@@ -1,0 +1,11 @@
+[Unit]
+Description=Refresh Allen's public catalog daily and after boot
+
+[Timer]
+OnBootSec=5min
+OnCalendar=daily
+Persistent=true
+Unit=allen-catalog.service
+
+[Install]
+WantedBy=timers.target

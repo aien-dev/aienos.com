@@ -1,0 +1,115 @@
+note Allen's first-visit greeting on aienos.com: the consent aside that every page carries.
+note Every structural decision lives here: the section order, the ids and aria attributes the
+note consent script (public/js/allen-intro.js) and its tests depend on, Drake's greeting words, the
+note memory links kept apart from the X pixel buttons, the GPC note, the reply after No thanks, and
+note the local-only "Who can see me right now?" panel. The script only toggles and fills these slots.
+note
+note Program mode. check.sh compiles this with the pinned omc shared with om/hive-page, runs it twice,
+note and commits intro.html with its sha256. The Rust site builder embeds intro.html and re-hashes it
+note in a unit test, so x86 CI checks the artifact without running the arm64 compiler.
+note
+note Allen's speech carries data-speaker="allen": his "we" means Allen and the visitor, and the
+note site's singular-voice verifier exempts exactly those elements. Memory consent is links to
+note /allen/?mode=remember and ?mode=anonymous; X consent is the Say hi and No thanks buttons. One tap
+note never means both. Names: at most 8 bytes per data name.
+
+note ihead: Host aside, name and close. The shared native scene is the visible Allen.
+text ihead "<aside id=\"aien-allen-intro\" role=\"complementary\" aria-label=\"Allen says hello\" aria-live=\"polite\" hidden><div class=\"allen-intro-bubble\"><p class=\"allen-intro-name\">Allen</p><button id=\"allen-intro-close\" class=\"allen-intro-close\" type=\"button\" aria-label=\"Close, no thanks\">×</button>"
+
+note igreet: Drake's greeting as Allen says it. The ghost reserves the size; JS types into allen-intro-typed.
+text igreet "<p id=\"allen-intro-message\" class=\"allen-intro-message\" aria-hidden=\"true\" data-speaker=\"allen\"><span class=\"allen-intro-ghost\"><strong id=\"allen-intro-title\">Hey, I'm Allen. It's nice to meet you!</strong> <span id=\"allen-intro-intro\">You don't have to tell me your name, but if you do, that would be super awesome and we could chat over time. When you come back, I can remember who you are and we can pick up where we left off. We can talk about all kinds of good things in the universe.</span></span><span id=\"allen-intro-typed\"><strong></strong><span></span></span></p><p id=\"allen-intro-spoken\" class=\"allen-intro-sr\"></p>"
+
+note ichat: Memory consent: plain links to /allen/, never the X pixel.
+text ichat "<div id=\"allen-intro-chat\" class=\"allen-intro-chips\"><a href=\"/allen/?mode=remember\">Tell Allen my name</a><a href=\"/allen/?mode=anonymous\">Chat anonymously</a></div>"
+
+note ixask: The X pixel ask, its own line and its own buttons.
+text ixask "<div id=\"allen-intro-x\"><p id=\"allen-intro-offer\" class=\"allen-intro-note\" data-speaker=\"allen\">Separately, if you'd like, say hi and I'll let Drake know you stopped by. That uses Drake's X pixel to note the visit. Totally fine if not.</p><div id=\"allen-intro-chips\" class=\"allen-intro-chips\"><button id=\"allen-intro-yes\" type=\"button\">Say hi</button><button id=\"allen-intro-no\" type=\"button\">No thanks</button></div></div>"
+
+note igpc: Shown instead of the X ask when the browser sends Global Privacy Control.
+text igpc "<p id=\"allen-intro-gpc\" class=\"allen-intro-note\" data-speaker=\"allen\" hidden>Your browser sends Global Privacy Control, so I'm not offering Drake's X pixel. It stays off.</p>"
+
+note iafter: After No thanks: no pixel, no memory, an anonymous chat.
+text iafter "<div id=\"allen-intro-after\" hidden><p id=\"allen-intro-after-text\" data-speaker=\"allen\">No problem. You can still chat with me anonymously; I won't remember you or tell X anything.</p><p class=\"allen-intro-links\"><a id=\"allen-intro-anon\" href=\"/allen/?mode=anonymous\">Chat anonymously</a></p></div>"
+
+note iwho: Local-only panel; filled from resource timing and navigator fields, never sent.
+text iwho "<details id=\"allen-intro-who\" class=\"allen-intro-who\"><summary>Who can see me right now?</summary><div class=\"allen-intro-who-body\"><h3>Trackers on this page right now: <span id=\"allen-intro-tracker-count\">checking</span></h3><ul id=\"allen-intro-trackers\"></ul><p id=\"allen-intro-trackers-none\" hidden>None. Only this site's own files have loaded in this tab.</p><h3>What your browser tells every website automatically</h3><dl id=\"allen-intro-facts\"></dl><p>Every site you visit can see this. I don't keep it. Your IP address is visible to Drake's web host, like every site's.</p><h3>What this page can't see</h3><p>Trackers on other sites, in other tabs or inside embedded frames, tracking by your internet provider or network, and your browser extensions. Tools that check more:</p><ul><li><a href=\"https://coveryourtracks.eff.org/\" rel=\"noopener noreferrer\">EFF Cover Your Tracks</a></li><li><a href=\"https://themarkup.org/blacklight\" rel=\"noopener noreferrer\">The Markup's Blacklight</a></li></ul></div></details>"
+
+note ifoot: Privacy link and the closing tags.
+text ifoot "<p class=\"allen-intro-links\"><a href=\"/privacy/\">Privacy</a></p></div></aside>"
+
+note The consent script, public/js/allen-intro.js, written to fd 3 by the same program, so the
+note markup above and the script that drives it share one Omega source. It holds the once-only
+note rule, X consent and refusal, the GPC default, the anonymous /allen/ gate, the local-only panel
+note and the window.aienAllenIntro interface the visual layer calls.
+
+text ijs0 "/* Generated by om/allen-intro/intro.om. Edit the Omega source, then run om/allen-intro/check.sh. */\n/* Allen says hello once. Say hi consents to X pixel rfrlz. No external load before yes. */\n(function () {\n  'use strict';\n  // Drake supplies the real X event IDs. Empty means disabled, never a fake event.\n  const eventIds = Object.freeze({ pageVisit: '', introducedToAllen: '' });\n  var conversionIds = {};\n  var key = 'aien-allen-intro-consent';\n  var seenKey = 'aien-allen-intro-seen';\n  var clickKey = 'aien-allen-intro-twclid';\n  var landingClick = new URLSearchParams(window.location.search).get('twclid');\n  var aside = document.getElementById('aien-allen-intro');\n  if (!aside || aside.dataset.ready) return;\n  aside.dataset.ready = 'true';\n  var choice = null;\n  var loaded = false;\n  var previousFocus = null;\n  var timer = null;\n  var offering = true;\n  var status = document.getElementById('allen-intro-status');\n  var title = document.getElementById('allen-intro-title');\n  var typed = document.getElementById('allen-intro-typed');\n  var spoken = document.getElementById('allen-intro-spoken');\n  var offerLine = document.getElementById('allen-intro-offer');\n  var gpcLine = document.getElementById('allen-intro-gpc');\n  var yes = document.getElementById('allen-intro-yes');\n  var no = document.getElementById('allen-intro-no');\n  var greeting = title.textContent;\n  var message = '';\n  // Global Privacy Control: Allen does not offer the pixel unless the visitor asks to review.\n  var gpc = window.navigator.globalPrivacyControl === true;\n  var still = !window.matchMedia || window.matchMedia('(prefers-reduced-motion: reduce)').matches;\n  try { choice = localStorage.getItem(key); } catch (_) { /* No stored consent. */ }\n  // Session refusal also wins if local storage became read-only after a Yes.\n  try { if (sessionStorage.getItem(key) === 'no') choice = 'no'; } catch (_) {}\n  if (window.location.hash === '#allen-intro-no') choice = 'no';\n\n"
+text ijs1 "  // Once per browser; without local storage, once per tab session.\n  function seen() {\n    var mark = null;\n    try { mark = localStorage.getItem(seenKey); } catch (_) {}\n    if (!mark) try { mark = sessionStorage.getItem(seenKey); } catch (_) {}\n    return !!mark;\n  }\n  function markSeen() {\n    try { localStorage.setItem(seenKey, '1'); return; } catch (_) {}\n    try { sessionStorage.setItem(seenKey, '1'); } catch (_) {}\n  }\n\n  // /allen/ renders #allen with data-mode=\"anonymous\" until its own memory consent.\n  function anonymousChat() {\n    var chat = document.getElementById('allen');\n    return !!chat && chat.dataset.mode !== 'remembered';\n  }\n\n  // Allen's presence layer renders on these events and acts only through the API below.\n  function announce(type, detail) {\n    var data = detail || {};\n    data.type = type;\n    document.dispatchEvent(new window.CustomEvent('aien-allen-intro', { detail: data }));\n  }\n\n  function sendEvent(kind) {\n    var id = eventIds[kind];\n    if (choice !== 'yes' || !loaded || !id || conversionIds[kind]) return;\n    // Keep this exact ID when a future backend sends the matching server event.\n    var conversionId = window.crypto.randomUUID();\n    conversionIds[kind] = conversionId;\n    twq('event', id, { conversion_id: conversionId });\n  }\n\n"
+text ijs2 "  function loadPixel() {\n    // Anonymous chat on /allen/ (#allen data-mode != remembered) never loads the pixel.\n    if (choice !== 'yes' || loaded || anonymousChat()) return;\n    // Retain attribution only in a consenting visitor's browser, not on a server.\n    if (landingClick) {\n      try { localStorage.setItem(clickKey, landingClick); } catch (_) {}\n    }\n    loaded = true;\n    // Official X base code, unchanged, executed only after explicit consent.\n    !function(e,t,n,s,u,a){e.twq||(s=e.twq=function(){s.exe?s.exe.apply(s,arguments):s.queue.push(arguments);\n    },s.version='1.1',s.queue=[],u=t.createElement(n),u.async=!0,u.src='https://static.ads-twitter.com/uwt.js',\n    a=t.getElementsByTagName(n)[0],a.parentNode.insertBefore(u,a))}(window,document,'script');\n    twq('config','rfrlz');\n    sendEvent('pageVisit');\n  }\n\n  function describe(saved) {\n    if (status) status.textContent = (choice === 'yes'\n      ? 'You said hi to Allen. X tracking is allowed in this browser.'\n      : 'You have not said hi to Allen. X tracking is off.')\n      + (saved === false ? ' Your browser could not save this choice; it applies to this page only.' : '');\n  }\n\n  // Static text typed on the client: no model call. Allen's native cadence is one letter per\n  // 35 ms. With data-letters=\"true\" on #allen-intro-typed each letter is its own\n  // span.allen-intro-letter, so the presence CSS can fade, raise and recolour it as it arrives.\n  // Reduced motion shows the whole text at once as plain text.\n  var letterMs = 35;\n  function type() {\n    var head = typed.firstChild;\n    var tail = typed.lastChild;\n    var whole = greeting + ' ' + message;\n    var letters = !still && typed.dataset.letters === 'true';\n    var shown = still ? whole.length : 0;\n    head.textContent = '';\n    tail.textContent = '';\n    function paint() {\n      if (letters) {\n        if (shown > 0) {\n          var letter = document.createElement('span');\n          letter.className = 'allen-intro-letter';\n          letter.textContent = whole.charAt(shown - 1);\n          (shown <= greeting.length ? head : tail).appendChild(letter);\n        }\n      } else {\n        head.textContent = whole.slice(0, Math.min(shown, greeting.length));\n        tail.textContent = whole.slice(greeting.length, shown);\n      }\n      if (shown >= whole.length) { timer = null; return; }\n      shown += 1;\n      timer = setTimeout(paint, letterMs);\n    }\n    paint();\n  }\n\n"
+text ijs3 "  function close() {\n    clearTimeout(timer);\n    timer = null;\n    var wasShown = !aside.hidden;\n    var inside = aside.contains(document.activeElement);\n    aside.classList.remove('allen-intro-in');\n    aside.hidden = true;\n    spoken.textContent = '';\n    if (inside && previousFocus && previousFocus.isConnected) previousFocus.focus();\n    previousFocus = null;\n    if (wasShown) announce('hide');\n  }\n\n  // The greeting, the chat choices and the separate X pixel ask; No thanks swaps them out.\n  var greetingParts = ['allen-intro-message', 'allen-intro-chat', 'allen-intro-x'];\n  function showGreeting(on) {\n    greetingParts.forEach(function (id) { document.getElementById(id).hidden = !on; });\n    document.getElementById('allen-intro-after').hidden = on;\n  }\n\n  // No thanks: no pixel and no memory, but Allen stays to offer an anonymous chat.\n  function replyNo() {\n    clearTimeout(timer);\n    timer = null;\n    showGreeting(false);\n    gpcLine.hidden = true;\n    spoken.textContent = document.getElementById('allen-intro-after-text').textContent;\n    document.getElementById('allen-intro-anon').focus();\n    announce('reply-no');\n  }\n\n  function choose(value, reply) {\n    choice = value;\n    var saved = true;\n    try { localStorage.setItem(key, value); } catch (_) { saved = false; }\n    if (value === 'no') {\n      try { localStorage.removeItem(clickKey); } catch (_) {}\n    }\n    try {\n      if (value === 'no') sessionStorage.setItem(key, 'no');\n      else sessionStorage.removeItem(key);\n    } catch (_) {}\n    if (value === 'yes' && window.location.hash === '#allen-intro-no') {\n      history.replaceState(null, '', window.location.pathname + window.location.search);\n    }\n    if (reply && offering && value === 'no' && !loaded) replyNo();\n    else close();\n    describe(saved);\n    if (value === 'yes') {\n      loadPixel();\n      sendEvent('introducedToAllen');\n      announce('consent', { pixelLoaded: loaded });\n    }\n    // A loaded third-party script cannot be recalled. A fresh document stops it.\n    else if (loaded) {\n      // Preserve refusal through reload even if all browser storage is unavailable.\n      if (!saved) window.location.hash = 'allen-intro-no';\n      window.location.reload();\n    }\n  }\n\n"
+text ijs4 "  // Never a modal: no backdrop, no inert page. Focus moves only when the visitor asked.\n  function open(asked) {\n    if (!aside.hidden) return;\n    // Under GPC the pixel is not offered unless the visitor asked to review it.\n    offering = asked || !gpc;\n    showGreeting(true);\n    document.getElementById('allen-intro-x').hidden = !offering;\n    gpcLine.hidden = offering;\n    message = document.getElementById('allen-intro-intro').textContent;\n    previousFocus = asked ? document.activeElement : null;\n    aside.hidden = false;\n    spoken.textContent = greeting + ' ' + message + ' ' + (offering ? offerLine : gpcLine).textContent;\n    type();\n    void aside.offsetWidth;\n    aside.classList.add('allen-intro-in');\n    if (asked) no.focus();\n    announce('show', { asked: !!asked, offering: offering });\n  }\n\n  // \"Who can see me right now?\": read only from this document and browser, shown\n  // only here, never sent or stored. Resource timing lists every origin this tab loaded.\n  var who = document.getElementById('allen-intro-who');\n  var trackers = document.getElementById('allen-intro-trackers');\n  var thirdParty = [];\n  var facts = [];\n  var trackerListeners = [];\n  var watching = false;\n  function countTrackers() {\n    document.getElementById('allen-intro-tracker-count').textContent = String(thirdParty.length);\n    document.getElementById('allen-intro-trackers-none').hidden = thirdParty.length > 0;\n  }\n  function noteResource(entry) {\n    var url;\n    try { url = new URL(entry.name, window.location.href); } catch (_) { return; }\n    if (!/^https?:$/.test(url.protocol) || url.origin === window.location.origin) return;\n    if (thirdParty.some(function (seenOrigin) { return seenOrigin.origin === url.origin; })) return;\n    // Only an X origin loaded after Say hi in this document is called Drake's pixel.\n    var tracker = { origin: url.origin, pixel: choice === 'yes' && loaded && /(^|\\.)(ads-twitter\\.com|twitter\\.com|x\\.com|t\\.co)$/.test(url.hostname) };\n    thirdParty.push(tracker);\n    var item = document.createElement('li');\n    item.textContent = url.host + (tracker.pixel ? \": that one's Drake's X pixel, because you said hi.\" : '');\n    trackers.appendChild(item);\n    countTrackers();\n    trackerListeners.forEach(function (listener) { listener(Object.assign({}, tracker)); });\n  }\n  function browserFacts() {\n    var nav = window.navigator;\n    var screen = window.screen;\n    facts = [\n      ['Browser', nav.userAgent || 'not shared'],\n      ['Platform', (nav.userAgentData && nav.userAgentData.platform) || nav.platform || 'not shared'],\n      ['Language', (nav.languages && nav.languages.length ? nav.languages.join(', ') : nav.language) || 'not shared'],\n      ['Timezone', Intl.DateTimeFormat().resolvedOptions().timeZone || 'not shared'],\n      ['Screen size', screen ? screen.width + ' x ' + screen.height : 'not shared'],\n      ['Came from', document.referrer || 'no referrer sent'],\n      ['Do Not Track', nav.doNotTrack === '1' ? 'on' : 'off'],\n      ['Global Privacy Control', gpc ? 'on' : 'off'],\n      ['Cookies enabled', nav.cookieEnabled ? 'yes' : 'no'],\n    ];\n    var list = document.getElementById('allen-intro-facts');\n    facts.forEach(function (row) {\n      var term = document.createElement('dt');\n      var value = document.createElement('dd');\n      term.textContent = row[0];\n      value.textContent = row[1];\n      list.appendChild(term);\n      list.appendChild(value);\n    });\n  }\n  function watch() {\n    if (watching) return;\n    watching = true;\n    browserFacts();\n    countTrackers();\n    window.performance.getEntriesByType('resource').forEach(noteResource);\n    // Later loads too, such as the X pixel after Say hi.\n    new window.PerformanceObserver(function (list) { list.getEntries().forEach(noteResource); })\n      .observe({ type: 'resource', buffered: true });\n  }\n  who.addEventListener('toggle', function () { if (who.open) watch(); });\n\n"
+text ijs5 "  no.addEventListener('click', function () { choose('no', true); });\n  document.getElementById('allen-intro-close').addEventListener('click', function () { choose('no'); });\n  yes.addEventListener('click', function () { choose('yes'); });\n  document.addEventListener('keydown', function (event) {\n    if (event.key === 'Escape' && !aside.hidden) choose('no');\n  });\n  document.querySelectorAll('[data-allen-intro-open]').forEach(function (button) {\n    button.hidden = false;\n    button.addEventListener('click', function () { open(true); });\n  });\n  document.querySelectorAll('[data-allen-intro-stop]').forEach(function (button) {\n    button.hidden = false;\n    button.addEventListener('click', function () { choose('no'); });\n  });\n  // A No in another tab also stops this document if the pixel was already loaded.\n  window.addEventListener('storage', function (event) {\n    if (event.storageArea !== localStorage || (event.key !== key && event.key !== null)) return;\n    choice = event.newValue;\n    if (choice !== 'yes') {\n      try { localStorage.removeItem(clickKey); } catch (_) {}\n    }\n    close();\n    describe();\n    if (choice !== 'yes' && loaded) window.location.reload();\n  });\n  // The first-visit greeting, once per browser. Recorded on first display: never\n  // auto-open again, chosen or not. Unanswered means No. Not on /privacy/ or /allen/.\n  function greet() {\n    if (choice === 'yes' || choice === 'no' || seen() || document.getElementById('allen-intro-privacy') || document.getElementById('allen')) return false;\n    markSeen();\n    open(false);\n    return true;\n  }\n\n"
+text ijs6 "  // The interface Allen's presence layer calls. X consent and refusal only: memory\n  // consent lives on /allen/ behind its own step, never here, so one tap never means both.\n  window.aienAllenIntro = Object.freeze({\n    text: Object.freeze({\n      greeting: greeting,\n      intro: document.getElementById('allen-intro-intro').textContent,\n      offer: offerLine.textContent,\n      gpcNote: gpcLine.textContent,\n      afterNo: document.getElementById('allen-intro-after-text').textContent,\n    }),\n    status: function () {\n      return { choice: choice === 'yes' || choice === 'no' ? choice : null, gpc: gpc, offering: offering, pixelLoaded: loaded, shown: !aside.hidden };\n    },\n    sayHi: function () { choose('yes'); },\n    noThanks: function () { choose('no', true); },\n    dismiss: function () { choose('no'); },\n    review: function () { open(true); },\n    // A page that marks [data-allen-intro-defer] (the home door) calls this after its own welcome.\n    greet: greet,\n    who: function () {\n      watch();\n      return { trackers: thirdParty.map(function (t) { return Object.assign({}, t); }), facts: facts.map(function (row) { return row.slice(); }) };\n    },\n    onTrackers: function (listener) { trackerListeners.push(listener); watch(); },\n  });\n  describe();\n  if (choice === 'yes') loadPixel();\n  else if (!document.querySelector('[data-allen-intro-defer]')) greet();\n}());\n"
+
+fn main to int
+n = write 1 ihead 0 len ihead
+if lt n 0
+trap 3
+end
+n = write 1 igreet 0 len igreet
+if lt n 0
+trap 3
+end
+n = write 1 ichat 0 len ichat
+if lt n 0
+trap 3
+end
+n = write 1 ixask 0 len ixask
+if lt n 0
+trap 3
+end
+n = write 1 igpc 0 len igpc
+if lt n 0
+trap 3
+end
+n = write 1 iafter 0 len iafter
+if lt n 0
+trap 3
+end
+n = write 1 iwho 0 len iwho
+if lt n 0
+trap 3
+end
+n = write 1 ifoot 0 len ifoot
+if lt n 0
+trap 3
+end
+n = write 3 ijs0 0 len ijs0
+if lt n 0
+trap 3
+end
+n = write 3 ijs1 0 len ijs1
+if lt n 0
+trap 3
+end
+n = write 3 ijs2 0 len ijs2
+if lt n 0
+trap 3
+end
+n = write 3 ijs3 0 len ijs3
+if lt n 0
+trap 3
+end
+n = write 3 ijs4 0 len ijs4
+if lt n 0
+trap 3
+end
+n = write 3 ijs5 0 len ijs5
+if lt n 0
+trap 3
+end
+n = write 3 ijs6 0 len ijs6
+if lt n 0
+trap 3
+end
+ret 0
+end
