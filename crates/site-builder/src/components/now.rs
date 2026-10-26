@@ -1029,7 +1029,7 @@ fn usage_section(now: &Now) -> Markup {
                         ul class="now-give-steps" {
                             li {
                                 strong { "Your agent, your plan. " }
-                                "Pick any repository on " a class="prose-link" href="/agents/" { "Agents" } " and give your agent its instructions: the rules ours follow and that repository's own AGENTS.md. It claims an open issue and opens a pull request that leads with its evidence, like ours do. Its own subscription pays for it (Claude, Codex, Gemini or Grok); nothing of yours is sent to the Spark."
+                                "Pick any repository on " a class="prose-link" href="/agents/" { "Agents" } " and give your agent its instructions: the rules mine follow and that repository's own AGENTS.md. It claims an open issue and opens a pull request that leads with its evidence, like mine do. Its own subscription pays for it (Claude, Codex, Gemini or Grok); nothing of yours is sent to the Spark."
                             }
                             li {
                                 strong { "Your Spark. " }

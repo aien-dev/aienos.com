@@ -18,7 +18,7 @@ use crate::components::boxlink::{foot_labelled, Target};
 use crate::facts::now_utc;
 
 pub const TITLE: &str = "Agents | AienOS";
-pub const DESCRIPTION: &str = "Point your own coding agent at any public AIEN repository: the rules our agents work by, and each repository's own AGENTS.md, refreshed hourly from GitHub.";
+pub const DESCRIPTION: &str = "Point your own coding agent at any public AIEN repository: the rules my agents work by, and each repository's own AGENTS.md, refreshed hourly from GitHub.";
 pub const URL: &str = "https://www.aienos.com/agents/";
 
 /// The organization whose public repositories are listed.
@@ -235,7 +235,7 @@ pub fn render_agents_page(repos: &Repos) -> Markup {
             section class="hub-section" id="rules" aria-labelledby="agents-rules" {
                 h2 id="agents-rules" class="hub-h2" { "The shared rules" }
                 p {
-                    "These are the working rules of every AIEN agent, published word for word. Our own agents also read a few rules that only work on the project's own machine (its local services, hardware reservations and how to report to the operator). Those are left out because an outside agent cannot follow them."
+                    "These are the working rules of every AIEN agent, published word for word. My own agents also read a few rules that only work on the project's own machine (its local services, hardware reservations and how to report to the operator). Those are left out because an outside agent cannot follow them."
                 }
                 ul class="hub-cards" {
                     li class="hub-card agents-card" {
