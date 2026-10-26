@@ -164,7 +164,7 @@ def scrubbed(item):
 def meta(item, iid, day):
     """meta.json: what the project is, never who the person is."""
     return {"v": 1, "handle": item["handle"], "project": item["project"], "title": item["title"],
-            "description": item["description"], "saved": day, "item": iid, "built_with": "Allen",
+            "description": item["description"], "saved": day, "item": iid, "built_with": "Aien",
             "files": [f["name"] for f in item["files"]]}
 
 

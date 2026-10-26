@@ -232,7 +232,7 @@ class Offline(unittest.TestCase):
         self.assertIn("[phone removed]", text)
         self.assertTrue(body["title"].startswith("[feature] "))
         self.assertIn(P.FOOTER, body["body"])
-        self.assertEqual(body["labels"], ["from-allen", "area:omega-mv"])
+        self.assertEqual(body["labels"], ["from-aien", "area:omega-mv"])
 
     def test_scrub_control_plain_text_unchanged(self):
         self.assertFiled(issue())
@@ -268,12 +268,12 @@ class Offline(unittest.TestCase):
     # unknown areas
     def test_area_unknown(self):
         self.assertFiled(issue(area="not-a-repo"))
-        self.assertEqual(self.gh.posts("issues")[0][2]["labels"], ["from-allen", "area:unknown"])
+        self.assertEqual(self.gh.posts("issues")[0][2]["labels"], ["from-aien", "area:unknown"])
 
     def test_no_areas_file_means_unknown(self):
         os.unlink(self.env.areas)
         self.assertFiled(issue(area="omega-mv"))
-        self.assertEqual(self.gh.posts("issues")[0][2]["labels"], ["from-allen", "area:unknown"])
+        self.assertEqual(self.gh.posts("issues")[0][2]["labels"], ["from-aien", "area:unknown"])
 
     # id
     def test_id_mismatch_rejected(self):
@@ -577,7 +577,7 @@ class StubEndToEnd(unittest.TestCase):
         self.assertEqual(sorted(self.stub.refs), ["refs/heads/main", "refs/heads/p/%s/calc" % ADA])
         self.assertEqual(self.stub.refs["refs/heads/main"], "c" * 40)  # main untouched
         iss = self.stub.issues[0]
-        self.assertEqual(iss["labels"], ["from-allen", "area:omega-mv"])
+        self.assertEqual(iss["labels"], ["from-aien", "area:omega-mv"])
         self.assertTrue(iss["title"].startswith("[feature] "))
         self.assertNotIn("a.b@example.org", iss["body"])
         self.assertNotIn("9999", iss["body"])

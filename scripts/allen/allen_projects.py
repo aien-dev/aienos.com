@@ -13,7 +13,7 @@ Public routes (/allen/api/...):
                                    claim code in X-Allen-Claim; null when there is none.
   POST projects/save    item       one commit on u/<handle> (viewable on GitHub at once)
   POST projects/publish item       a pull request to main for Drake's approval
-  GET  gallery                     merged projects ("Built with Allen")
+  GET  gallery                     merged projects ("Built with Aien")
 Ownership is checked here, server side, for every save and publish: a remembered handle
 must match HMAC(secret, vid) for the caller's own key, an anon- handle must match the
 caller's claim code. Model output cannot set either header.

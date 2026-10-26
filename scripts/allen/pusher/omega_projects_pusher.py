@@ -47,7 +47,7 @@ BACKOFF = (10.0, 20.0, 40.0, 80.0)  # seconds before attempts 2..5; attempts = l
 REQUEST_TIMEOUT = 10
 RUN_BUDGET = 100.0  # seconds per run; the unit has TimeoutStartSec=120
 MAX_ITEM_BYTES = 512 * 1024
-FOOTER = "Filed by Allen from aienos.com/allen/ after the visitor confirmed this exact text."
+FOOTER = "Filed by Aien from aienos.com/aien/ after the visitor confirmed this exact text."
 TITLE_PREFIX = {"feature": "[feature] ", "question": "[question] ", "bug": "[bug] "}
 # Daily caps: kind -> (state key, cap). Decline and refresh come only from Drake's console.
 CAPS = {"issue": ("issues", 40), "publish": ("prs", 20), "save": ("saves", 200)}
@@ -322,7 +322,7 @@ def ensure_label(gh, name, cache):
         try:
             gh.call("POST", REPO_PREFIX + "labels",
                     {"name": name, "color": "c5def5",
-                     "description": ("Concerns aien-dev/" + name[5:]) if name.startswith("area:") else "Allen"})
+                     "description": ("Concerns aien-dev/" + name[5:]) if name.startswith("area:") else "Aien"})
         except HTTPRefused as e2:
             if e2.status != 422:  # 422: created meanwhile
                 raise
@@ -330,8 +330,8 @@ def ensure_label(gh, name, cache):
 
 
 def find_issue(gh, iid):
-    """Recover an issue filed before a crash: search recent from-allen issues for the id marker."""
-    found = gh.call("GET", REPO_PREFIX + "issues?labels=from-allen&state=all&per_page=100&sort=created&direction=desc")
+    """Recover an issue filed before a crash: search recent from-aien issues for the id marker."""
+    found = gh.call("GET", REPO_PREFIX + "issues?labels=from-aien&state=all&per_page=100&sort=created&direction=desc")
     for it in found or []:
         if marker(iid) in (it.get("body") or "") and "pull_request" not in it:
             return it["html_url"]
@@ -340,7 +340,7 @@ def find_issue(gh, iid):
 
 def file_issue(gh, item, iid, extra_labels, label_cache):
     area_label = "area:" + item["area"]
-    labels = ["from-allen", area_label] + list(extra_labels)
+    labels = ["from-aien", area_label] + list(extra_labels)
     for name in labels:
         ensure_label(gh, name, label_cache)
     body = "%s\n\n---\n%s\n%s\n" % (item["body"].rstrip(), FOOTER, marker(iid))
@@ -444,14 +444,14 @@ def publish_project(gh, item, iid, today, extra_labels, label_cache):
         return existing
     d = build.project_dir(item)
     names = "\n".join("- `%s/%s`" % (d, f["name"]) for f in item["files"])
-    body = ("%s\n\n%s\n\nBuilt with Allen by `%s`. Files:\n%s\n- `%s/meta.json`\n\n"
+    body = ("%s\n\n%s\n\nBuilt with Aien by `%s`. Files:\n%s\n- `%s/meta.json`\n\n"
             "Drake reviews this project before it goes live; merging publishes it at %s/%s/\n\n---\n%s\n%s\n") % (
         item["title"], item["description"].rstrip(), item["handle"], names, d, build.PAGES_URL, d, FOOTER,
         marker(iid))
     pr = gh.call("POST", REPO_PREFIX + "pulls",
                  {"title": "Project: " + item["title"], "head": branch, "base": "main", "body": body,
                   "maintainer_can_modify": True})
-    labels = ["from-allen", "built-with-allen"] + list(extra_labels)
+    labels = ["from-aien", "built-with-aien"] + list(extra_labels)
     for name in labels:
         ensure_label(gh, name, label_cache)
     gh.call("POST", REPO_PREFIX + "issues/%d/labels" % pr["number"], {"labels": labels})
@@ -474,7 +474,7 @@ def decline_pull(gh, item):
 
 def write_index(gh, status_dir):
     """spool-status/index.json: open publish requests (Drake's console) and merged projects
-    (the Built with Allen gallery), read from main's meta.json files."""
+    (the Built with Aien gallery), read from main's meta.json files."""
     open_prs = []
     for pr in gh.call("GET", REPO_PREFIX + "pulls?state=open&per_page=100&base=main") or []:
         m = re.fullmatch(r"p/([a-z0-9-]+)/([a-z0-9-]+)", (pr.get("head") or {}).get("ref", ""))

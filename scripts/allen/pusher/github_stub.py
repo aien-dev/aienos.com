@@ -44,7 +44,7 @@ class Stub(http.server.ThreadingHTTPServer):
         self.trees = {"d" * 40: {"README.md": "b" * 40, "projects/README.md": "b" * 40}}
         self.commits = {"c" * 40: {"tree": "d" * 40, "parents": [], "message": "Start"}}
         self.refs = {"refs/heads/main": "c" * 40}
-        self.labels = {"from-allen", "test", "area:unknown"}
+        self.labels = {"from-aien", "test", "area:unknown"}
         self.objects, self.redirect = 0, None
         self.mode, self.count = "ok", 0
 
