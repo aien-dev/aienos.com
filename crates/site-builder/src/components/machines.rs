@@ -376,7 +376,7 @@ pub fn render_speeds_section() -> Markup {
                     p class="kicker" { "Speed, with receipts" }
                     h2 id="speed-title" class="mx-h2" { "A 27B model on my own engine, today" }
                     p class="mx-lead" {
-                        "Qwen3.8-27B answers through my own server on my own GPU kernels, on the Spark. The first row is the door a visitor uses; the rest are the engine alone, the smaller Rig engine and the long-context cost. Every row links to the folder its number came from."
+                        "Qwen3.8-27B answers through my own server on my own GPU kernels, on the Spark. The number below is the door a visitor uses. The full table holds the engine alone, the smaller Rig engine and the long-context cost, and every row links to the folder its number came from."
                     }
                 }
                 div class="mx-hero" {
@@ -402,30 +402,35 @@ pub fn render_speeds_section() -> Markup {
                         "Receipt: " (first.receipt) " " (where_badge(first.on_main, &first.branch))
                     }
                 }
-                div class="mx-table-wrap" {
-                    table class="mx-table" {
-                        thead {
-                            tr {
-                                th { "What" }
-                                th { "Machine and engine" }
-                                th { "Measured" }
-                                th { "Ceiling" }
-                                th { "My previous run" }
-                                th { "Date" }
-                                th { "Receipt" }
+                // One number leads; every other row stays one click away in a
+                // native disclosure, so the section reads as one idea.
+                details class="mx-receipts" {
+                    summary class="mx-receipts-summary" { "All " (d.speeds.len()) " speed receipts, ceilings and how they are judged" }
+                    div class="mx-table-wrap" {
+                        table class="mx-table" {
+                            thead {
+                                tr {
+                                    th { "What" }
+                                    th { "Machine and engine" }
+                                    th { "Measured" }
+                                    th { "Ceiling" }
+                                    th { "My previous run" }
+                                    th { "Date" }
+                                    th { "Receipt" }
+                                }
+                            }
+                            tbody {
+                                @for s in &d.speeds { (speed_row(d, s)) }
                             }
                         }
-                        tbody {
-                            @for s in &d.speeds { (speed_row(d, s)) }
-                        }
                     }
-                }
-                p class="mx-judging" { (d.judging) }
-                @for c in &d.ceilings {
-                    p class="mx-stamp" {
-                        "Ceiling for " (c.model) " on the " (c.machine) ": " span class="mono" { (format!("{:.2} tok/s", c.tok_s)) } ". " (c.how) " "
-                        a href=(c.link) target="_blank" rel="noopener noreferrer" { (c.receipt) }
-                        " " (where_badge(c.on_main, &c.branch))
+                    p class="mx-judging" { (d.judging) }
+                    @for c in &d.ceilings {
+                        p class="mx-stamp" {
+                            "Ceiling for " (c.model) " on the " (c.machine) ": " span class="mono" { (format!("{:.2} tok/s", c.tok_s)) } ". " (c.how) " "
+                            a href=(c.link) target="_blank" rel="noopener noreferrer" { (c.receipt) }
+                            " " (where_badge(c.on_main, &c.branch))
+                        }
                     }
                 }
             }

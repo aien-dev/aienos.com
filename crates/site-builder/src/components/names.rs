@@ -53,10 +53,9 @@ pub const ALLOW: &[&str] = &[
     // The required CI check and its Spark context, named exactly as GitHub shows them.
     "AIEN Verification",
     "AIEN 验证",
-    // A product name, an image caption and an ADR title, kept until Drake decides.
+    // A product name and an image caption, kept until Drake decides.
     "AIEN Rig",
     "AIEN headband",
-    "ADR 0040: three tracks to Allen",
 ];
 
 

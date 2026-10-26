@@ -6,12 +6,13 @@ pub type FooterLink = (&'static str, &'static str);
 /// The whole footer menu. The six sections already sit in the header, and
 /// every other page is one click away in the site map, so the footer keeps
 /// only the few routes a reader looks for at the bottom of a page.
-pub const FOOTER_LINKS: [FooterLink; 7] = [
+pub const FOOTER_LINKS: [FooterLink; 8] = [
     ("Start here", "/start/"),
     ("Evidence", "/evidence/"),
     ("Blog", "/blog"),
     ("Contact", "/contact/"),
     ("Privacy", "/privacy/"),
+    ("Glossary", "/glossary/"),
     ("Site map", "/sitemap.md"),
     ("About the engineer", "/engineer/"),
 ];
@@ -53,7 +54,7 @@ mod tests {
     #[test]
     fn footer_stays_short() {
         let html = render_footer().into_string();
-        assert!(FOOTER_LINKS.len() <= 7, "the footer menu is a handful of links, not a site map");
+        assert!(FOOTER_LINKS.len() <= 8, "the footer menu is a handful of links, not a site map");
         assert!(!html.contains("<h2"), "the footer carries no headed link columns");
         for (_, href) in FOOTER_LINKS {
             assert!(html.contains(&format!("href=\"{href}\"")), "footer lacks {href}");
