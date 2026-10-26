@@ -6,9 +6,8 @@ body:has([id="allen"]) .aien-footer,
 body:has([id="allen"]) [id="aien-allen-launcher"] { display: none; }
 .allen { position: fixed; inset: 0; z-index: 100; color: var(--text-primary); background: var(--bg-base); font-family: var(--font-sans, sans-serif); }
 .allen-universe { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
-.allen-space-nav { position: absolute; inset: max(16px, env(safe-area-inset-top)) 20px auto; display: flex; align-items: center; gap: 10px; z-index: 30; }
-.allen-space-title { font-size: 14px; letter-spacing: .14em; margin-right: auto; }
-.allen-space-nav .allen-tool { background: color-mix(in srgb, var(--bg-base) 72%, transparent); }
+.allen-space-tools { position: absolute; top: max(16px, env(safe-area-inset-top)); right: 20px; display: flex; align-items: center; gap: 10px; z-index: 30; }
+.allen-space-tools .allen-tool { background: color-mix(in srgb, var(--bg-base) 72%, transparent); }
 .allen-arrival { position: absolute; inset: 48% 16px auto; text-align: center; z-index: 20; }
 .allen-arrival h1 { font-size: clamp(20px, 3vw, 34px); font-weight: 400; letter-spacing: -.025em; margin-bottom: 24px; }
 .allen-arrival p { margin-top: 14px; font-size: 12px; color: var(--text-secondary); }
@@ -19,6 +18,10 @@ body:has([id="allen"]) [id="aien-allen-launcher"] { display: none; }
 .allen-guest { color: var(--text-muted); font-size: 12px; max-height: 2.8em; overflow: hidden; margin-bottom: 8px; }
 .allen-speaker { color: var(--text-secondary); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
 .allen-answer { white-space: pre-wrap; overflow-wrap: anywhere; font-size: clamp(16px, 2vw, 21px); line-height: 1.5; max-height: 18vh; overflow-y: auto; pointer-events: auto; scrollbar-width: thin; padding: 8px 12px; background: radial-gradient(ellipse, color-mix(in srgb, var(--bg-base) 80%, transparent), transparent); }
+.allen-letter { position: relative; animation: allen-letter-fade 260ms both, allen-letter-rise 360ms both, allen-letter-color 900ms both; }
+@keyframes allen-letter-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes allen-letter-rise { from { top: 6px; } to { top: 0; } }
+@keyframes allen-letter-color { from { color: rgb(255, 212, 150); } to { color: rgb(234, 238, 252); } }
 .allen-reply-actions { display: flex; justify-content: center; gap: 8px; margin-top: 8px; pointer-events: auto; }
 .allen-reply-actions .allen-tool { font-size: 11px; background: color-mix(in srgb, var(--bg-base) 70%, transparent); }
 .allen-panel { display: contents; }
@@ -311,7 +314,6 @@ body:has([id="allen"]) [id="aien-allen-launcher"] { display: none; }
 .allen-actions button { border-radius: 999px; min-height: 36px; }
 .allen-actions .allen-send { color: var(--text-primary); background: var(--bg-card-hover); }
 .allen-input-hint { text-align: center; font-size: 10px; color: var(--text-muted); margin-top: 7px; }
-.allen-glyph { position: fixed; pointer-events: none; z-index: 24; color: var(--text-primary); font-size: 16px; will-change: transform, opacity; }
 
 .allen-privacy { font-size: 13px; color: var(--text-muted); }
 .allen-foot { margin-top: 14px; font-size: 13px; color: var(--text-muted); }
@@ -328,8 +330,8 @@ body:has([id="allen"]) [id="aien-allen-launcher"] { display: none; }
 }
 
 @media (max-width: 640px) {
-  .allen-space-nav { left: 10px; right: 10px; gap: 5px; }
-  .allen-space-nav .allen-tool { font-size: 11px; padding: 7px; }
+  .allen-space-tools { right: 10px; gap: 5px; }
+  .allen-space-tools .allen-tool { font-size: 11px; padding: 7px; }
   .allen-mode { left: 16px; right: 16px; top: 62px; justify-content: center; }
   .allen-mode span { max-width: 68%; }
   .allen-current { top: 56%; width: calc(100% - 24px); }
@@ -340,6 +342,5 @@ body:has([id="allen"]) [id="aien-allen-launcher"] { display: none; }
   .allen-actions button { padding: 5px 8px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .allen-glyph { display: none; }
   .allen *, .allen *::before, .allen *::after { animation: none !important; transition: none !important; }
 }

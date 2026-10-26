@@ -1,7 +1,7 @@
 <div class="allen" id="allen" data-ready="false" data-busy="false" data-mode="anonymous">
 <canvas id="allen-universe" class="allen-universe" tabindex="0" aria-label="Explore the universe with Allen. Drag to drift, scroll to zoom, or use arrow keys, plus, minus and Home."></canvas>
-<nav class="allen-space-nav" aria-label="Allen controls"><a href="/" class="allen-tool">Back to AienOS</a><span class="allen-space-title">Allen</span><button type="button" class="allen-tool" id="allen-mute" aria-pressed="false">Sound on</button><button type="button" class="allen-tool" id="allen-projects">Projects</button><button type="button" class="allen-tool" id="allen-history" aria-expanded="false" aria-controls="allen-session">Session</button></nav>
-<div class="allen-arrival" id="allen-arrival"><h1>Explore the universe with Allen</h1><button type="button" class="allen-enter" id="allen-enter">Enter Allen's universe</button><p>The opening sound plays only after you enter. Sound is optional.</p></div>
+<div class="allen-space-tools" role="group" aria-label="Allen controls"><button type="button" class="allen-tool" id="allen-mute" aria-pressed="false">Sound on</button><button type="button" class="allen-tool" id="allen-projects">Projects</button><button type="button" class="allen-tool" id="allen-history" aria-expanded="false" aria-controls="allen-session">Session</button></div>
+<div class="allen-arrival" id="allen-arrival"><h1>Explore the universe with Allen</h1><button type="button" class="allen-enter" id="allen-enter">Enter Allen's universe</button></div>
 <div id="allen-panes" class="allen-panes" aria-label="Your workspace"></div>
 <section class="allen-current" aria-label="Latest exchange"><p id="allen-guest" class="allen-guest"></p><p id="allen-speaker" class="allen-speaker">Allen</p><div id="allen-answer" class="allen-answer" data-speaker="allen" aria-live="polite" aria-atomic="false"></div><div class="allen-reply-actions"><button type="button" class="allen-tool" id="allen-copy">Copy reply</button><button type="button" class="allen-tool" id="allen-regenerate">Regenerate</button></div></section>
 <section class="allen-panel" aria-label="Conversation with Allen">
@@ -23,10 +23,11 @@
 <button type="button" class="allen-example">Write an Omega gcd function</button>
 <button type="button" class="allen-example">How fast are you?</button>
 </div>
-<p class="allen-contact">To reach me, Drake, directly: <a href="https://x.com/mdrakestapleton" rel="noopener">follow me on X</a> or email <a href="mailto:drake@aienos.com">drake@aienos.com</a>.</p>
+<p class="allen-contact">To reach me, Drake, directly: <a href="https://x.com/mdrakestapleton" rel="noopener">follow me on X</a> or email <a href="mailto:drake@aienos.com">drake@aienos.com</a>. <a href="/contact/">More ways to reach me</a>.</p>
 <p class="allen-privacy" id="allen-privacy">This session stays in this tab. Reloading clears the conversation. Projects are saved on this device only when you choose Save. Remembering you is a separate choice; <a href="/privacy/">read what I keep</a>.</p>
 <details class="allen-keypanel" id="allen-key" data-key="no"><summary>Your Allen key</summary><div class="allen-keybody" id="allen-key-body"><p class="allen-note">Your Allen key needs JavaScript.</p></div></details>
 <button type="button" class="allen-tool allen-new" id="allen-new">New conversation</button>
+<p class="allen-foot"><a href="/">Allen's front door</a> · <a href="/classic/">Classic site</a></p>
 <p class="allen-foot">The browser controller is <a href="/allen/scene.om">written in Omega</a>. The scene uses the <a href="https://github.com/aien-dev/aienux/tree/da55660ea7337f2b6a42095fcd1fb6ddebe1cc7c/native/kernel/ui" rel="noopener">same native iMac renderer</a>, compiled to WebAssembly.</p>
 <p class="allen-foot"><a href="/alpha/">Own a DGX Spark? Run Sovereign Intelligence on yours</a>.</p></section>
 <div class="allen-bottom"><p class="allen-drake" id="allen-drake" aria-live="polite" hidden></p><p class="allen-status" id="allen-status" role="status" aria-live="polite"></p>

@@ -22,6 +22,8 @@
     if (!(canvas instanceof HTMLCanvasElement)) throw new TypeError('AllenScene requires a canvas');
     if (mounted.has(canvas)) return mounted.get(canvas);
     const compact = Boolean(options.compact), interactive = Boolean(options.interactive) && !compact;
+    const opening = options.opening === undefined ? (compact ? 'idle' : 'dusk') : options.opening;
+    if(opening !== 'idle' && opening !== 'dusk' && opening !== 'birth') throw new RangeError('Invalid Allen scene opening');
     const ctx = canvas.getContext('2d', {alpha:false});
     if (!ctx) throw new Error('Canvas rendering unavailable');
     const motion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -33,8 +35,8 @@
     let letterHead = 0, wordRead = 0, wordWrite = 0, lastWord = -1000, speakUntil = 0, keyUntil = 0;
     let ra = 113697000, dec = -72757000, fov = 80000, viewPending = false;
     let dragId = null, dragX = 0, dragY = 0;
-    let ownsAudio = false;
-    let pendingEnter = compact ? null : 1, pendingStatic = false;
+    let ownsAudio = false, completeSent = false, resolveSize, rejectSize;
+    let pendingEnter = compact || opening === 'idle' ? 0 : opening === 'birth' ? 2 : 1, pendingStatic = false;
     canvas.dataset.sceneSource = PIN;
     canvas.dataset.sceneEngine = 'loading';
     function listen(target, name, fn, opts) {
@@ -64,10 +66,11 @@
       // Resize keeps phase and mode but does not manufacture the old frame history.
       ex.scene_step(Math.floor(clock),modeValue,0);
       viewPending=true;
+      if(resolveSize) {resolveSize();resolveSize=null;rejectSize=null;}
       return true;
     }
     function reset(kindValue) {
-      kind=kindValue; clock=kind===0?20000:0; lastWall=0;
+      kind=kindValue; clock=kind===0?20000:0; lastWall=0;completeSent=false;
       wordRead=wordWrite=0; lastWord=-1000; speakUntil=keyUntil=0; modeValue=0;
       for (const letter of letters) letter.char=0;
       stopAudio();
@@ -110,9 +113,15 @@
       canvas.dataset.sceneTime=String(time);
       canvas.dataset.sceneEngine='native-wasm';
       dirty=false;
+      if(!completeSent && (kind===0 || clock>=(kind===1?7200:15300))) {
+        completeSent=true;
+        canvas.dispatchEvent(new CustomEvent('allen-scene-complete',{bubbles:true,detail:{kind:kind===2?'birth':kind===1?'dusk':'idle',time}}));
+      }
+      return true;
     }
     function error(err) {
       failed=true;cancelAnimationFrame(raf);raf=0;stopAudio();
+      if(rejectSize) {rejectSize(err);resolveSize=null;rejectSize=null;}
       canvas.dataset.sceneEngine='unavailable';
       canvas.dispatchEvent(new CustomEvent('allen-scene-error',{bubbles:true,detail:{message:String(err.message||err)}}));
     }
@@ -122,9 +131,10 @@
       const dt=lastWall?wall-lastWall:0;
       if(!(reduced || compact) && dt<1000/30 && !dirty) {request();return;}
       lastWall=wall;
-      if(!(reduced || compact)) clock+=Math.min(dt,100); // native long-pause policy
-      try { render(); } catch(err) { error(err); }
-      if(!(reduced || compact)) request();
+      if(!(reduced || compact)) clock+=dt; // source clock advances; native integrators bound their own catch-up
+      let drawn=false;
+      try { drawn=render(); } catch(err) { error(err); }
+      if(drawn && !(reduced || compact)) request();
     }
     function motionChanged() {
       reduced=motion.matches;lastWall=0;cancelAnimationFrame(raf);raf=0;stopAudio();
@@ -176,11 +186,12 @@
       },
       enter(name='dusk') {
         if(disposed) return;
-        const next=compact || reduced?0:(name==='birth' || name==='boot' || name==='night')?2:1;
+        const next=compact || reduced || name==='idle'?0:(name==='birth' || name==='boot' || name==='night')?2:1;
+        if(next===2) ownsAudio=false; // caller starts audio in this same gesture before entering
         pendingEnter=next;reset(next);
         if(next===2 && window.AllenAudio) {
           ownsAudio=true;
-          void window.AllenAudio.enter({kind:'night',nightMs:0}).catch(() => {});
+          // AudioPort is invoked by the caller's gesture; this instance only owns its pause/stop lifecycle.
         }
         if(ex && width) pendingEnter=null;
         request();
@@ -196,6 +207,7 @@
       destroy() {
         if(disposed) return;
         disposed=true;cancelAnimationFrame(raf);raf=0;stopAudio();
+        if(rejectSize) {rejectSize(new Error('Scene destroyed before initialization'));resolveSize=null;rejectSize=null;}
         for(const fn of cleanup) fn();
         mounted.delete(canvas);image=null;ex=null;
         canvas.dataset.sceneEngine='destroyed';
@@ -241,16 +253,18 @@
         event.preventDefault();
       });
     }
-    api.ready=module().then(module => WebAssembly.instantiate(module,{})).then(instance => {
+    api.ready=module().then(module => WebAssembly.instantiate(module,{})).then(async instance => {
       if(disposed) return api;
       ex=instance.exports;
       const initial=reduced?0:pendingEnter===null?0:pendingEnter;
       // Preserve an audio gesture made before compilation completes.
       const audioOwner=ownsAudio;ownsAudio=false;reset(initial);ownsAudio=audioOwner;
       pendingEnter=null;
-      if(!size()) return api;
+      if(!size()) await new Promise((resolve,reject) => {resolveSize=resolve;rejectSize=reject;});
+      if(disposed) return api;
       if(reduced || pendingStatic) {clock=20000;ex.scene_step(20000,0,0);pendingStatic=false;}
       render();request();
+      canvas.dispatchEvent(new CustomEvent('allen-scene-initialized',{bubbles:true,detail:{source:PIN}}));
       return api;
     }).catch(err => {if(!disposed) error(err);throw err;});
     // Expose the rejection to callers while avoiding an unhandled rejection for decorative mounts.

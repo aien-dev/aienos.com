@@ -40,6 +40,15 @@ const PANE_MAX ulong 65536
 const TURN_MAX ulong 262144
 const TEXT_MAX ulong 32768
 const TOOL_MAX uint 3
+const TITLEMAX ulong 200
+const LISTMAX ulong 64
+const SERIESMX ulong 8
+const POINTSMX ulong 512
+const REVMAX ulong 1000000
+const PANESMAX ulong 32
+const URLMAX ulong 2048
+const SYNC_MAX ulong 1000
+const PLOTMAX f64 1.0e100
 text paneevt "pane.open|pane.update|pane.close|"
 text panekind "math|plot|doc|code|app|research|data|omega|"
 text toolname "math_compute|omega_compile|web_app|paper|research|plot|"

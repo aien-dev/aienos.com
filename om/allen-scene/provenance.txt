@@ -43,6 +43,9 @@ Scene identity and deliberate web changes
 - The WEB opening reuses the native dusk accretion-tube law (4200 ms), then
   native-duration dawn (900 ms) and mind formation. This is a web-specific
   ordering. enter('birth') replays the original two-hole boot and merger.
+  Its kept picture is the complete original unwoken scene at 20000 ms: formed
+  mind and sky, with the native bar hidden and fluid asleep. It does not pull
+  browser DOM panes or arbitrary website content into the tube.
 - Flowing input glyphs, pointer/keyboard sky exploration, visibility pause,
   reduced-motion static state and responsive sizing are deliberate web additions.
 - Pane/UI text and input belong to the page, not this renderer. Native system
@@ -66,8 +69,33 @@ with r>0,f>=0 -> 0. The native integer law remains authoritative.
 WolframLanguageEvaluator: 1000/30 -> 100/3 ms (browser scheduling policy).
 WolframLanguageEvaluator: 48000 (12300-11360)/1000 -> 45120 audio frames.
 
-Generation: sh om/allen-scene/check.sh --generate
-Determinism/artifact check: sh om/allen-scene/check.sh
+Generation: nice -n 19 ionice -c3 sh om/allen-scene/check.sh --generate
+Determinism/artifact check: nice -n 19 ionice -c3 sh om/allen-scene/check.sh
+Independent oracle: set ALLEN_NATIVE_SOURCE to a clean da55660 aienux checkout,
+then nice -n 19 ionice -c3 sh om/allen-scene/check-native.sh.
 Use ALLEN_CLANG and ALLEN_WASM_LD to select the exact isolated compiler paths.
-Host/WASM parity oracle commands and observations belong to the parent evidence,
-not this provenance description. Compilation alone is not scene verification.
+oracle-ui.c includes the original allen_ui.c and uses its public start/tick/sleep
+APIs, never adapter.c. It checks original boot and dusk frames independently.
+oracle.c additionally checks adapter portability, interactive variants and PCM.
+Neither is an emulator/hardware receipt. Observed results belong to the parent
+evidence, not this provenance description. Compilation alone is not verification.
+
+Browser API
+AllenScene.mount(canvas,{compact,interactive,opening}) returns key(text), speak(text),
+mode(name), enter('idle'|'dusk'|'birth'), home(), frame(ms), destroy(), and ready.
+opening accepts only 'idle', 'dusk' or 'birth'; other provided values are refused.
+Its default is full-page dusk or compact idle. Compact remains static idle even
+with an explicit animated opening. Use opening:'idle' for the settled home shell,
+then enter('birth') from the home entrance gesture.
+enter('idle') skips an active opening to settled native presence and stops owned
+birth audio, without destroying the scene or requiring a caller-supplied time.
+ready resolves only after the WASM instance and sized pixel buffer initialize.
+An initially zero-size canvas waits for ResizeObserver rather than reporting ready.
+Document allen-scene-ready announces API availability only. Canvas events bubble:
+allen-scene-initialized (source pin), allen-scene-complete (kind,time), and
+allen-scene-error (message). Failure is visible in data-scene-engine=unavailable.
+The caller starts AllenAudio.enter('home') in its click before enter('birth');
+the visual controller does not duplicate AudioPort's audio context. It pauses,
+resumes and stops that birth audio when its scene pauses or is destroyed.
+Compact and reduced-motion scenes are static without a continuous frame loop;
+hidden/offscreen scenes pause, preserving visible-time continuity.
