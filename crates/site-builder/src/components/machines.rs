@@ -286,7 +286,7 @@ pub fn render_machines_section() -> Markup {
                     p class="kicker" { "The machines" }
                     h2 id="machines-title" class="mx-h2" { "Five machines, one project" }
                     p class="mx-lead" {
-                        "AIEN is built and judged on a DGX Spark, runs bare metal on an Intel iMac and a Raspberry Pi 5, passes every kernel gate in QEMU first, and is being built for a Windows PC with an RTX 5070. Each card says what runs on that machine today, when the last evidence landed, and where the receipt is."
+                        "Aien is built and judged on a DGX Spark, runs bare metal on an Intel iMac and a Raspberry Pi 5, passes every kernel gate in QEMU first, and is being built for a Windows PC with an RTX 5070. Each card says what runs on that machine today, when the last evidence landed, and where the receipt is."
                     }
                 }
                 (render_machine_cards(d))
@@ -306,7 +306,7 @@ pub fn render_real_machines() -> Markup {
         section id="real-machines" class="narr-section mx-on-narr" aria-labelledby="real-machines-heading" {
             h2 id="real-machines-heading" { "The bodies of one machine" }
             p {
-                "One machine, five physical bodies. AIEN is one system whose work moves between them: a DGX Spark for development and judgment, an Intel iMac and a Raspberry Pi 5 that run the kernel bare metal, QEMU for every gate before hardware, and a Windows PC with an RTX 5070 as the next target. Each card says what runs on that body today, the last evidence for it, and where the receipt is. The loop below is what they are for."
+                "One machine, five physical bodies. Aien is one system whose work moves between them: a DGX Spark for development and judgment, an Intel iMac and a Raspberry Pi 5 that run the kernel bare metal, QEMU for every gate before hardware, and a Windows PC with an RTX 5070 as the next target. Each card says what runs on that body today, the last evidence for it, and where the receipt is. The loop below is what they are for."
             }
             (render_machine_cards(d))
             p class="narr-more" {

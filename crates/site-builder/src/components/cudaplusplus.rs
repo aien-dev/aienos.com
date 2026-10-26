@@ -115,7 +115,7 @@ pub struct Row {
 
 /// Expands a short link from the data file into a full address.
 /// `cp:` / `cp/:` a file / folder on CUDA++ main; `cp@:` a CUDA++ file at a
-/// full commit; `om@:` an omega file at a full commit; `ax@:` an Aienux file
+/// full commit; `om@:` an omega file at a full commit; `ax@:` an aienux file
 /// at a full commit; `sc@/:` an aien-sovereign-core folder at a full commit;
 /// `s:` a file of this site on main. A link starting with `/` or `#` stays
 /// on this site. Files on branches are always pinned to a full commit.

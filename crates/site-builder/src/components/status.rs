@@ -62,7 +62,7 @@ pub fn layer_states() -> Vec<LayerState> {
             receipt_url: Some("https://github.com/aien-dev/omega/pull/119"),
         },
         LayerState {
-            name: "AIEN, the persistent agent",
+            name: "Aien, the persistent agent",
             status: "EXPERIMENTAL",
             note: "Runs in the lab on the DGX Spark. The learning loop, learning from verified experience, is the active build.",
             receipt_label: Some("aien-dev/aienux"),

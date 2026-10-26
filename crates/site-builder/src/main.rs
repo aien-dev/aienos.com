@@ -138,7 +138,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     // Public project measurements, collected before compilation in CI.
     let progress = render_page_layout(
         "Project progress | AienOS",
-        "Explore the retained AIEN project history: codebase growth, revisions, test footprint and verification activity, refreshed hourly from public GitHub sources.",
+        "Explore the retained Aien project history: codebase growth, revisions, test footprint and verification activity, refreshed hourly from public GitHub sources.",
         "https://www.aienos.com/progress/", "website",
         html! {
             link rel="stylesheet" href="/assets/progress.css";
@@ -152,7 +152,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     // Blog index page
     let blog_index = render_page_layout(
         "Blog | AienOS",
-        "Research notes on building AIEN V2: what shipped, what the evidence says, and what remains an open question.",
+        "Research notes on building Aien V2: what shipped, what the evidence says, and what remains an open question.",
         "https://www.aienos.com/blog/",
         "website",
         html! {},
@@ -184,7 +184,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     // published next to it so machines read the same source.
     let research_status = render_page_layout(
         "Research status | AienOS",
-        "Where the AIEN research stands: the qualification ladder, every experiment with its verdict, receipt and limits, and what is built versus still a hypothesis.",
+        "Where the Aien research stands: the qualification ladder, every experiment with its verdict, receipt and limits, and what is built versus still a hypothesis.",
         "https://www.aienos.com/research/status/",
         "website",
         html! {},
@@ -356,8 +356,8 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     println!("  [PAGE] Emitted /glossary/ (index.html)");
 
     let privacy = render_page_layout(
-        "Privacy & saying hello to Allen | AienOS",
-        "Read without tracking. Saying hello to Allen consents to X pixel rfrlz; No refuses it.",
+        "Privacy & saying hello to Aien | AienOS",
+        "Read without tracking. Saying hello to Aien consents to X pixel rfrlz; No refuses it.",
         "https://www.aienos.com/privacy/",
         "website",
         html! {},
@@ -526,7 +526,7 @@ fn verify_site(dist: &Path) {
     {
         let o = fs::read_to_string(&omega_page).expect("read omega page");
         for phrase in [
-            "Omega is AIEN&#39;s language for all computing, GPU to CPU.",
+            "Omega is Aien&#39;s language for all computing, GPU to CPU.",
             "On the GPU, that makes Omega the replacement for CUDA.",
             "id=\"cuda-map\"",
             "id=\"today\"",
@@ -647,6 +647,8 @@ fn verify_site(dist: &Path) {
     components::engineer::verify(dist);
     // Drake writes alone: no we, us, our, ours or ourselves in rendered copy.
     components::voice::verify_singular_voice(dist);
+    // Project, product and vendor names spelled one way: AienOS, Aien, GitHub, NVIDIA.
+    components::names::verify_canonical_names(dist);
     // Every page shows Follow me on X in its header and the contact line in its footer.
     components::contact::verify(dist);
 

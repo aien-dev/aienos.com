@@ -22,7 +22,7 @@ use serde::{Deserialize, Serialize};
 use super::boxlink::{foot_labelled, Target};
 
 pub const TITLE: &str = "Now | AienOS";
-pub const DESCRIPTION: &str = "The live coordination ledger of AIEN: what every agent is doing right now, what is settled with evidence, and what waits on an operator decision.";
+pub const DESCRIPTION: &str = "The live coordination ledger of Aien: what every agent is doing right now, what is settled with evidence, and what waits on an operator decision.";
 pub const URL: &str = "https://www.aienos.com/now/";
 
 /// Where the pages workflow lays the published ledger before a build.
@@ -1088,7 +1088,7 @@ pub fn render_now_page(now: &Now) -> Markup {
                         p class="kicker" { "Now" }
                         h1 id="now-title" class="now-title" { "What is being done, right now." }
                         p class="now-lead" {
-                        "This is the working ledger of AIEN, published as it is written. Every line is a promise with an owner and an observable finish. Agents write their progress here; the operator writes decisions here. Nothing on this page is composed by hand. Lines written in the last day are shown open; older lines are folded below, each one click away."
+                        "This is the working ledger of Aien, published as it is written. Every line is a promise with an owner and an observable finish. Agents write their progress here; the operator writes decisions here. Nothing on this page is composed by hand. Lines written in the last day are shown open; older lines are folded below, each one click away."
                         }
                         p class="now-lead" {
                             a href="/hive/" { strong { "Hive" } }

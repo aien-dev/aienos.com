@@ -90,7 +90,7 @@ fn verdict_card(facts: &Facts) -> Markup {
 fn live_block(facts: &Facts) -> Markup {
     html! {
         section class="live-record" id="live" {
-            h2 { "AIEN today" }
+            h2 { "Aien today" }
             p {
                 "This block is not typed by hand. It is read from the record "
                 a href=(FACTS_URL) { "facts.json" }

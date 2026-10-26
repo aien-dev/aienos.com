@@ -27,7 +27,7 @@ pub fn render_follow() -> Markup {
                             "GitHub: aien-dev"
                         }
                         a href="https://github.com/aien-dev/aien-sovereign-core" target="_blank" rel="noopener noreferrer" style="background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 12px 22px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;" {
-                            "AIEN core tree"
+                            "Aien core tree"
                         }
                         a href="/now/" style="background: transparent; color: var(--text-primary); border: 1px solid var(--accent-green); border-radius: 4px; padding: 12px 22px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;" {
                             "Now: what is being done today"
