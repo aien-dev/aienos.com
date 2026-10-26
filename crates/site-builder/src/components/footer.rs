@@ -70,7 +70,7 @@ const FOOTER_MORE: [FooterLink; 11] = [
     ("Privacy & saying hello to Allen", "/privacy/", false),
     ("GitHub", "https://github.com/aien-dev", true),
     ("Interplane", "https://interplane.io/", true),
-    ("Drake Stapleton", "https://www.drakestapleton.com", true),
+    ("About the engineer", "/engineer/", false),
 ];
 
 fn footer_link(link: &FooterLink) -> Markup {
