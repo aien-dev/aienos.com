@@ -76,8 +76,8 @@ def compose(rec):
     """The email for one validated relay record."""
     msg = EmailMessage()
     first = one_line(rec["message"])
-    msg["Subject"] = "Allen relay: " + first[:60].rstrip()
-    msg["From"] = "Allen relay <%s>" % SENDER
+    msg["Subject"] = "Aien relay: " + first[:60].rstrip()
+    msg["From"] = "Aien relay <%s>" % SENDER
     msg["To"] = RECIPIENT
     msg["Date"] = formatdate(usegmt=True)
     msg["Message-ID"] = "<allen-relay-%s@aienos.com>" % rec["id"][2:]
@@ -137,7 +137,7 @@ def telegram_notify(rec, enabled):
         return "disabled"
     if not (token and chat):
         return "no TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID"
-    text = "Allen relay %s: %s" % (rec["id"], one_line(rec["message"])[:200])
+    text = "Aien relay %s: %s" % (rec["id"], one_line(rec["message"])[:200])
     data = urllib.parse.urlencode({"chat_id": chat, "text": text}).encode()
     urllib.request.urlopen("https://api.telegram.org/bot%s/sendMessage" % token, data, timeout=10).read(4096)
     return "sent"
