@@ -77,7 +77,7 @@ except ImportError:
     allen_voice = None
 
 KEY = re.compile(r"^[0-9a-f]{32}$")
-CONV = re.compile(r"^[0-9a-f]{16}$")
+CONV = re.compile(r"^[0-9a-f]{32}$")  # live-session bearer: 128 random bits from the page
 EXTRACT_SYSTEM = (
     "You keep short private notes for Allen about one visitor of aienos.com/allen/. From the exchange "
     "below, write at most 5 new or updated facts about the VISITOR only: who they are, human or agent, "
@@ -138,6 +138,7 @@ MAX_LIVE_CHARS = 120000
 STREAM_MAX_S = 3600      # one session stream ends after an hour; the page reconnects
 CONSOLE_TTL = 12 * 3600
 CONSOLE_COOKIE = "allen_console"
+CONSOLE_COOKIE_SECURE = "__Host-allen_console"  # --console-secure-cookie (console served over TLS)
 MAX_FORM = 16 * 1024
 
 # Short explanations of the pinned compiler's error codes (OMEGESE.md at
@@ -2138,7 +2139,7 @@ class Handler(BaseHTTPRequestHandler):
         app.stats.add("handoff_requests")
         conv = self.conversation()
         if not conv:
-            return self.refuse(400, "bad_request", "Send X-Allen-Conversation (16 hex).")
+            return self.refuse(400, "bad_request", "Send X-Allen-Conversation (32 hex).")
         req = self.read_json()
         if req is None:
             return
@@ -2168,7 +2169,7 @@ class Handler(BaseHTTPRequestHandler):
         app = self.app
         conv = self.conversation()
         if not conv:
-            return self.refuse(400, "bad_request", "Send X-Allen-Conversation (16 hex).")
+            return self.refuse(400, "bad_request", "Send X-Allen-Conversation (32 hex).")
         req = self.read_json()
         if req is None:
             return
@@ -2199,7 +2200,7 @@ class Handler(BaseHTTPRequestHandler):
         app = self.app
         conv = self.conversation()
         if not conv:
-            return self.refuse(400, "bad_request", "Send X-Allen-Conversation (16 hex).")
+            return self.refuse(400, "bad_request", "Send X-Allen-Conversation (32 hex).")
         retry = app.session_rate.take(app.client_key(self))
         if retry:
             return self.refuse(429, "rate", "Reconnecting too quickly. Try again shortly.", retry)
@@ -2282,8 +2283,9 @@ def esc(s):
 
 class ConsoleHandler(BaseHTTPRequestHandler):
     """Drake's console: tailnet only (nft admits only his devices and the Spark), never
-    proxied by the hub, token login, HttpOnly SameSite=Strict cookie, CSRF token on every
-    POST, no CORS, Host pinned to the listen address. All text is HTML-escaped."""
+    proxied by the hub, token login, HttpOnly SameSite=Strict cookie (Secure with the
+    __Host- prefix under --console-secure-cookie), CSRF token on every POST, no CORS,
+    Host pinned to the listen address. All text is HTML-escaped."""
 
     protocol_version = "HTTP/1.1"
     server_version = "allen-console"
@@ -2326,11 +2328,22 @@ class ConsoleHandler(BaseHTTPRequestHandler):
                        "<script src=/console.js defer></script></head><body>%s</body></html>" % (esc(title), body))
 
     def sid(self):
+        name = self.server.cookie_name
         for part in self.headers.get("Cookie", "").split(";"):
             k, _, v = part.strip().partition("=")
-            if k == CONSOLE_COOKIE:
+            if k == name:
                 return v
         return None
+
+    def set_cookie(self, value, max_age):
+        """The session cookie. Default (security survey F6): no Secure flag, because the console
+        is plain HTTP on the tailnet, where a Secure cookie would never be sent back; the
+        compensating controls are the nft rule and WireGuard encryption on the tailnet path,
+        and the hub never proxies the console. --console-secure-cookie, for a console served
+        over TLS, adds Secure and the __Host- name prefix (host-only, Path=/, Secure)."""
+        secure = "; Secure" if self.server.cookie_secure else ""
+        return ("Set-Cookie", "%s=%s; HttpOnly; SameSite=Strict; Path=/; Max-Age=%d%s"
+                % (self.server.cookie_name, value, max_age, secure))
 
     def host_ok(self):
         return self.headers.get("Host", "") in self.server.hosts
@@ -2432,7 +2445,7 @@ class ConsoleHandler(BaseHTTPRequestHandler):
             return self.login_page(200 if path == "/login" else 401)
         if path == "/":
             return self.dashboard(csrf)
-        m = re.match(r"^/session/([0-9a-f]{16})(\.json)?$", path)
+        m = re.match(r"^/session/([0-9a-f]{32})(\.json)?$", path)
         if m and m.group(2):
             d = self.app.live.detail(m.group(1))
             body = json.dumps(d if d else {"state": "none", "listeners": 0, "transcript": []},
@@ -2459,12 +2472,7 @@ class ConsoleHandler(BaseHTTPRequestHandler):
             if app.console.check(f.get("token", "")):
                 sid = app.console.login()
                 app.stats.add("console_login")
-                # No Secure flag (security survey F6, accepted): the console is plain HTTP on the
-                # tailnet, where a Secure cookie would never be sent back. The compensating controls
-                # are the nft rule (only 100.64.0.1/.4 and loopback reach :18112) and WireGuard
-                # encryption on the tailnet path; the hub never proxies the console.
-                return self.redirect("/", (("Set-Cookie", "%s=%s; HttpOnly; SameSite=Strict; Path=/; Max-Age=%d"
-                                            % (CONSOLE_COOKIE, sid, CONSOLE_TTL)),))
+                return self.redirect("/", (self.set_cookie(sid, CONSOLE_TTL),))
             app.console.fails.take(peer)
             app.stats.add("console_login_fail")
             return self.login_page(401, "Wrong token.")
@@ -2476,8 +2484,7 @@ class ConsoleHandler(BaseHTTPRequestHandler):
             return self.send_body(403, b"missing or wrong CSRF token\n", "text/plain")
         if path == "/logout":
             app.console.logout(sid)
-            return self.redirect("/login", (("Set-Cookie", "%s=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0"
-                                             % CONSOLE_COOKIE),))
+            return self.redirect("/login", (self.set_cookie("", 0),))
         if path == "/presence":
             hours = " ".join(f.get("hours", "").split())[:200]
             app.presence.set(f.get("online") == "on", hours)
@@ -2485,7 +2492,7 @@ class ConsoleHandler(BaseHTTPRequestHandler):
             return self.redirect("/")
         if allen_projects.console_post(self, path, f):
             return
-        m = re.match(r"^/session/([0-9a-f]{16})/(join|reply|handback)$", path)
+        m = re.match(r"^/session/([0-9a-f]{32})/(join|reply|handback)$", path)
         if not m:
             return self.send_body(404, b"not found\n", "text/plain")
         conv, op = m.group(1), m.group(2)
@@ -2586,6 +2593,9 @@ def main():
     ap.add_argument("--console-listen", help="host:port of Drake's console (tailnet address only; never proxied); "
                     "needs ALLEN_CONSOLE_TOKEN_SHA256 in the environment")
     ap.add_argument("--console-state", help="directory for presence.json (Drake's availability)")
+    ap.add_argument("--console-secure-cookie", action="store_true",
+                    help="console session cookie gets Secure and the __Host- prefix; only for a console "
+                    "served over TLS (a browser never returns a Secure cookie over plain HTTP)")
     ap.add_argument("--tools", default="", help="tool registry module beside this file (allen_tools); "
                     "empty = no tools")
     ap.add_argument("--heartbeat", type=float, default=15, help="seconds between session stream heartbeats")
@@ -2610,6 +2620,8 @@ def main():
         csrv = Server((chost, int(cport)), ConsoleHandler)
         csrv.app = app
         csrv.hosts = {args.console_listen}
+        csrv.cookie_secure = args.console_secure_cookie
+        csrv.cookie_name = CONSOLE_COOKIE_SECURE if args.console_secure_cookie else CONSOLE_COOKIE
         threading.Thread(target=csrv.serve_forever, daemon=True).start()
 
     def housekeeping():

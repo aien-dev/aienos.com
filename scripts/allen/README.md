@@ -202,17 +202,27 @@ same rules before proxying.
   (SSE: `state`, `human`, heartbeat every 15 s), `POST say`. While I have
   joined a conversation, `POST chat` answers `event: error {"code":"human"}`
   without calling the model. `event: human` is written only by the console.
+  These routes are keyed by `X-Allen-Conversation`, which is the live-session
+  bearer: 32 hex (128 random bits) made fresh by the page per conversation.
+  `handoff`, `session` and `say` refuse any other length with 400 (`chat`
+  then runs without a conversation), so the page and the gateway deploy
+  together; drain `relay-drop/` first, because the mailer re-validates the
+  same 32-hex rule on every queued file.
 - The console is a second listener in the gateway on `100.64.0.2:18112`. The
   hub never proxies it, and nft admits it only from 100.64.0.1 and 100.64.0.4
   (plus the Spark itself over loopback). Login is with the token held in
   atlas-vault as `ALLEN_CONSOLE_TOKEN`; the gateway holds only its sha256
   (`ALLEN_CONSOLE_TOKEN_SHA256` in `/etc/allen-chat/env`). Sessions use an
   HttpOnly SameSite=Strict cookie that lasts 12 h, with a CSRF token on every
-  POST, no CORS and a pinned Host. The cookie has no `Secure` flag on purpose:
-  the console is plain HTTP inside the tailnet (WireGuard-encrypted), where a
-  Secure cookie would never come back; the nft rule above is the compensating
-  control. Availability is kept in
-  `/var/lib/allen-chat/console/presence.json`.
+  POST, no CORS and a pinned Host. By default the cookie (`allen_console`) has
+  no `Secure` flag on purpose: the console is plain HTTP inside the tailnet
+  (WireGuard-encrypted), where a Secure cookie would never come back; the nft
+  rule above is the compensating control. If the console is ever served over
+  TLS, start the gateway with `--console-secure-cookie`: the cookie becomes
+  `__Host-allen_console` with `Secure` (host-only, `Path=/`), and the plain
+  name is no longer accepted. Do not set it on the plain-HTTP console, or
+  login will loop, because the browser never returns the cookie. Availability
+  is kept in `/var/lib/allen-chat/console/presence.json`.
 - Anonymous mode: `X-Allen-Anonymous: 1` means no recall and no notes, whatever
   key is sent, and `introduce` answers 409 `anonymous`.
 - `POST project-summary` {"summary" (at most 1000 bytes of text, no email,
@@ -403,7 +413,8 @@ routes in `allen_projects.py`:
 ```sh
 python3 scripts/allen/test_sandbox.py              # compile sandbox escape tests, each with a control
 python3 scripts/allen/test_gateway.py --omc om/hive-page/omc --irwasm om/hive-page/irwasm \
-    --system-prompt scripts/allen/system-prompt.txt [--skip-model]
+    --system-prompt scripts/allen/system-prompt.txt [--skip-model --upstream 127.0.0.1:<closed port>]
+    # cookie/edge suites: console cookie flags, nginx copies' guards; NGINX=/path/to/nginx adds nginx -t
 python3 scripts/allen/probe.py                     # run inside the unit's properties (systemd-run) and outside
 python3 scripts/allen/relay/test_relay_mailer.py      # relay mailer against a loopback SMTP stub, each with a control
 python3 scripts/allen/test_reaching_drake_prod.py  # production: console reachability, one real TEST relay email, live takeover

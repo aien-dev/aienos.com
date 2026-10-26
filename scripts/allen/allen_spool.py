@@ -154,7 +154,7 @@ RELAY_FIELD = 200
 TRANSCRIPT_MSGS = 24
 TRANSCRIPT_CHARS = 16000
 RELAY_ID = re.compile(r"^r_[0-9a-f]{16}$")
-CONV = re.compile(r"^[0-9a-f]{16}$")
+CONV = re.compile(r"^[0-9a-f]{32}$")
 RECEIVED = re.compile(r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$")
 
 
