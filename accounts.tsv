@@ -1,18 +1,18 @@
-checked	2026-10-27T16:35Z
-limit	Anthropic	1		5h	Claude 5 Hour	1	2026-10-27T19:59Z	ok
-limit	Anthropic	1		week	Claude 7 Day	91	2026-11-02T03:59Z	ok
-limit	Anthropic	1		week	Claude 7 Day (Fable)	51	2026-11-02T03:59Z	ok
+checked	2026-10-27T17:05Z
+limit	Anthropic	1		5h	Claude 5 Hour	1	2026-10-27T20:00Z	ok
+limit	Anthropic	1		week	Claude 7 Day	91	2026-11-02T04:00Z	ok
+limit	Anthropic	1		week	Claude 7 Day (Fable)	51	2026-11-02T04:00Z	ok
 limit	Anthropic	2		5h	Claude 5 Hour	0		ok
 limit	Anthropic	2		week	Claude 7 Day	100	2026-10-31T16:00Z	exhausted
 limit	Anthropic	2		week	Claude 7 Day (Fable)	100	2026-10-31T16:00Z	exhausted
-limit	Anthropic	3		5h	Claude 5 Hour	3	2026-10-27T20:50Z	ok
-limit	Anthropic	3		week	Claude 7 Day	82	2026-10-31T08:00Z	ok
-limit	Anthropic	3		week	Claude 7 Day (Fable)	59	2026-10-31T07:59Z	ok
+limit	Anthropic	3		5h	Claude 5 Hour	4	2026-10-27T20:50Z	ok
+limit	Anthropic	3		week	Claude 7 Day	83	2026-10-31T08:00Z	ok
+limit	Anthropic	3		week	Claude 7 Day (Fable)	59	2026-10-31T08:00Z	ok
 limit	Anthropic	4		5h	Claude 5 Hour	13	2026-10-27T18:00Z	ok
 limit	Anthropic	4		week	Claude 7 Day	72	2026-11-02T14:00Z	ok
 limit	Anthropic	4		week	Claude 7 Day (Fable)	46	2026-11-02T14:00Z	ok
 limit	Google Antigravity	1		week	Claude & GPT (shared)	100	2026-10-30T16:28Z	exhausted
-limit	Google Antigravity	1		5h	Gemini	0	2026-10-27T21:30Z	ok
+limit	Google Antigravity	1		5h	Gemini	0	2026-10-27T22:05Z	ok
 limit	Google Antigravity	1		week	Gemini	19	2026-10-29T06:54Z	ok
 limit	Google Antigravity	1		week	Gemini (Argon)	100	2026-10-29T06:53Z	exhausted
 limit	OpenAI Codex	1	pro	week	7 days	100	2026-11-02T12:33Z	exhausted
