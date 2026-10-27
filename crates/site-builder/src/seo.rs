@@ -960,8 +960,13 @@ pub fn sitemap_md(pages: &[Emitted]) -> String {
 }
 
 /// Plain text of a page body: scripts, styles, header, nav and footer dropped,
-/// headings marked, links kept with their targets.
+/// headings marked, links kept with their targets. The text of a `<pre>` or
+/// `<textarea>` is code: it is kept byte for byte (indentation, runs of
+/// spaces, blank lines) inside a fenced block, so a program copied from
+/// llms-full.txt is the program on the page.
 pub fn html_to_text(html: &str) -> String {
+    // Marks a line that the whitespace cleanup below must leave alone.
+    const VERBATIM: char = '\u{1}';
     let lower = html.to_ascii_lowercase();
     let start = lower.find("<main").map(|m| lower[m..].find('>').map(|g| m + g + 1).unwrap_or(m)).or_else(|| lower.find("<body").map(|m| lower[m..].find('>').map(|g| m + g + 1).unwrap_or(m))).unwrap_or(0);
     let end = lower.find("</main>").or_else(|| lower.find("<footer")).or_else(|| lower.find("</body>")).unwrap_or(html.len());
@@ -970,12 +975,35 @@ pub fn html_to_text(html: &str) -> String {
     let mut i = 0;
     let mut href: Option<String> = None;
     let mut link_text = String::new();
+    let mut code: Option<(String, String)> = None;
     while i < body.len() {
         let Some(lt) = body[i..].find('<') else { out.push_str(&unescape(&body[i..])); break; };
         let text = &body[i..i + lt];
-        if href.is_some() { link_text.push_str(&unescape(text)); } else { out.push_str(&unescape(text)); }
+        if let Some((_, buf)) = code.as_mut() { buf.push_str(&unescape(text)); } else if href.is_some() { link_text.push_str(&unescape(text)); } else { out.push_str(&unescape(text)); }
         let rest = &body[i + lt..];
         let name = tag_name(rest);
+        if let Some((open, buf)) = code.as_mut() {
+            let e = rest.find('>').map(|e| e + 1).unwrap_or(rest.len());
+            if name == *open && rest.starts_with("</") {
+                // HTML drops one newline right after the opening tag.
+                let src = buf.strip_prefix('\n').unwrap_or(buf).trim_end_matches('\n');
+                if !src.trim().is_empty() {
+                    out.push_str(&format!("\n{VERBATIM}```\n"));
+                    for line in src.split('\n') { out.push_str(&format!("{VERBATIM}{}\n", line.trim_end())); }
+                    out.push_str(&format!("{VERBATIM}```\n"));
+                }
+                code = None;
+            } else if name == "br" {
+                buf.push('\n');
+            }
+            i += lt + e;
+            continue;
+        }
+        if matches!(name.as_str(), "pre" | "textarea") && !rest.starts_with("</") {
+            code = Some((name.clone(), String::new()));
+            i += lt + rest.find('>').map(|e| e + 1).unwrap_or(rest.len());
+            continue;
+        }
         if matches!(name.as_str(), "script" | "style" | "svg" | "nav" | "header" | "template") || rest.starts_with("<!--") {
             let close = if rest.starts_with("<!--") { "-->".to_string() } else { format!("</{name}") };
             let e = rest.to_ascii_lowercase().find(&close).map(|e| rest[e..].find('>').map(|g| e + g + 1).unwrap_or(rest.len())).unwrap_or(rest.len());
@@ -989,7 +1017,7 @@ pub fn html_to_text(html: &str) -> String {
             "h1" if !closing => out.push_str("\n\n# "),
             "h2" if !closing => out.push_str("\n\n## "),
             "h3" | "h4" if !closing => out.push_str("\n\n### "),
-            "p" | "div" | "section" | "article" | "li" | "tr" | "figure" | "figcaption" | "blockquote" | "ul" | "ol" | "table" | "aside" | "pre" | "h1" | "h2" | "h3" | "h4" | "summary" | "details" => out.push('\n'),
+            "p" | "div" | "section" | "article" | "li" | "tr" | "figure" | "figcaption" | "blockquote" | "ul" | "ol" | "table" | "aside" | "h1" | "h2" | "h3" | "h4" | "summary" | "details" => out.push('\n'),
             "br" => out.push('\n'),
             "td" | "th" | "span" | "small" | "em" | "strong" | "b" | "i" | "code" | "time" | "label" | "dt" | "dd" => out.push(' '),
             "a" if !closing => {
@@ -1010,10 +1038,16 @@ pub fn html_to_text(html: &str) -> String {
         if name == "li" && !closing { out.push_str("- "); }
         i += lt + e;
     }
-    // Collapse runs of blank lines and trailing spaces.
+    // Collapse runs of blank lines and spaces, except in code lines.
     let mut cleaned = String::new();
     let mut blank = 0;
     for line in out.lines() {
+        if let Some(code_line) = line.trim_start_matches(|c: char| c != VERBATIM && c.is_whitespace()).strip_prefix(VERBATIM) {
+            blank = 0;
+            cleaned.push_str(code_line);
+            cleaned.push('\n');
+            continue;
+        }
         let l = line.split_whitespace().collect::<Vec<_>>().join(" ");
         if l.is_empty() {
             blank += 1;
@@ -1359,6 +1393,16 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn html_to_text_keeps_code_byte_for_byte() {
+        let h = "<main><p>a   b</p><pre><code>note x\n\ntext k \"  ok  \"\n  indented</code></pre><textarea id=\"t\">fn main to int\nret 0\nend</textarea></main>";
+        let t = html_to_text(h);
+        assert!(t.contains("a b\n"), "{t}");
+        assert!(t.contains("```\nnote x\n\ntext k \"  ok  \"\n  indented\n```\n"), "{t}");
+        assert!(t.contains("```\nfn main to int\nret 0\nend\n```"), "{t}");
+        assert!(!t.contains('\u{1}'), "{t}");
     }
 
     #[test]
