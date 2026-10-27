@@ -3,6 +3,8 @@ use serde_json::json;
 use std::{fs, io::Write, sync::atomic::{AtomicU64, Ordering}};
 
 fn collector() -> Collector { let mut c = Collector::new(vec![7;32],1000); c.ensure("private-root","private-root",None,"Root",2000); c }
+/// A per-run salt: the identifiers only need to be stable within one test.
+fn run_salt() -> Vec<u8> { std::process::id().to_le_bytes().repeat(8) }
 fn message(role: &str, attribution: &str, content: Value, at: i64) -> Value { json!({"type":"message","id":format!("{role}-{at}"),"timestamp":at,"message":{"role":role,"attribution":attribution,"timestamp":at,"stopReason":if role == "assistant" { "stop" } else { "" },"content":content}}) }
 #[test] fn only_final_agent_text_is_published_never_human_messages() {
     let mut c = collector();
@@ -208,7 +210,7 @@ impl Drop for Fixture { fn drop(&mut self) { let _ = fs::remove_dir_all(&self.di
         json!({"type":"event_msg","timestamp":at(8000),"payload":{"type":"task_complete","turn_id":"t1","last_agent_message":"Rebuilt the hive page and ran the checks."}}),
     ];
     fs::write(codex.join("rollout-x.jsonl"),lines.iter().map(|l| format!("{l}\n")).collect::<String>()).unwrap();
-    let mut c=Collector::new(vec![8;32],0).with_transcripts(source::Transcript::Claude,f.dir.join("claude/projects")).with_transcripts(source::Transcript::Codex,f.dir.join("codex/sessions"));
+    let mut c=Collector::new(run_salt(),0).with_transcripts(source::Transcript::Claude,f.dir.join("claude/projects")).with_transcripts(source::Transcript::Codex,f.dir.join("codex/sessions"));
     let feed=c.poll(&f.sessions,Some(&f.hosts),now);
     let output=serde_json::to_string(&feed).unwrap();
     for needle in ["CANARY","chat logs off the website","-home-person","rollout"] { assert!(!output.contains(needle),"{needle} in {output}"); }
@@ -235,7 +237,7 @@ impl Drop for Fixture { fn drop(&mut self) { let _ = fs::remove_dir_all(&self.di
         {"name":"Quoter","solutionSpace":format!("{drake}")},
         {"name":"Plain","solutionSpace":"one fix: split the billing table"}]}}]}}));
     f.append(json!({"type":"custom","customType":"tool_execution_start","timestamp":1004,"data":{"toolCallId":"t","toolName":"bash","intent":drake,"startedAt":1004}}));
-    let mut c=Collector::new(vec![8;32],1000);
+    let mut c=Collector::new(run_salt(),1000);
     c.ensure("private-root/Quoter","private-root",Some("private-root"),"Quoter",1005);
     c.ensure("private-root/Plain","private-root",Some("private-root"),"Plain",1005);
     let output=serde_json::to_string(&c.poll(&f.sessions,Some(&f.hosts),2000)).unwrap();
