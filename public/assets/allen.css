@@ -41,6 +41,18 @@ body:has(.allen) .aien-header {
   z-index: 0;
   background: rgb(0, 0, 0);
 }
+/* The native scene is drawn for a landscape screen (the iMac); on a portrait
+   screen it would sit in a band, so the canvas keeps a landscape width and the
+   container crops the sides around Aien. */
+@media (max-aspect-ratio: 1/1) {
+  .aien-sky {
+    left: 50%;
+    right: auto;
+    width: 150vh;
+    width: 150dvh;
+    translate: -50% 0;
+  }
+}
 /* No WebAssembly: a quiet still of the night instead of the scene. */
 .allen[data-sky="off"] .aien-sky {
   background: radial-gradient(circle at 50% 40%, rgb(0, 0, 0) 0 34px, rgba(255, 190, 120, 0.55) 36px, rgba(90, 110, 255, 0.18) 60px, rgb(2, 3, 10) 62%);
@@ -605,7 +617,7 @@ body:has(.allen) .aien-header {
   gap: 8px;
   margin-top: 2px;
 }
-.aien-tools .allen-tool {
+.aien-tools .aien-tool {
   font-size: 12px;
   color: rgba(210, 218, 255, 0.8);
   background: transparent;
@@ -613,7 +625,7 @@ body:has(.allen) .aien-header {
   border-radius: 999px;
   padding: 3px 12px;
 }
-.aien-tools .allen-tool:hover { color: rgb(255, 255, 255); border-color: rgba(150, 170, 255, 0.4); }
+.aien-tools .aien-tool:hover { color: rgb(255, 255, 255); border-color: rgba(150, 170, 255, 0.4); }
 
 /* Pane bodies built by aien-universe.js. */
 .aien-mathform, .aien-speedpane { display: flex; flex-direction: column; gap: 10px; }
