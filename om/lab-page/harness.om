@@ -1,0 +1,67 @@
+note Host harness for the lab kernel: reads "A N" from stdin, runs the grid in
+note blocks of at most 999999 elements and prints the checksum in decimal.
+fn putdec v long to int
+buf = new uchar 24 0
+i = ulong 23
+put buf i uchar 10
+x = v
+if lt v long 0
+x = neg v
+end
+while true bound 24
+i = sub i ulong 1
+put buf i uchar add rem x long 10 long 48
+x = div x long 10
+if eq x long 0
+break
+end
+end
+if lt v long 0
+i = sub i ulong 1
+put buf i uchar 45
+end
+n = write 1 buf i sub ulong 24 i
+if ne n long sub ulong 24 i
+ret 1
+end
+ret 0
+end
+fn main to int
+inp = new uchar 64 0
+got = read 0 inp 0 len inp
+if le got 0
+ret 2
+end
+vals = new long 2 0
+k = ulong 0
+seen = false
+p = ulong 0
+while lt p ulong got bound 64
+b = get inp p
+if and ge b 48 le b 57
+if lt k ulong 2
+put vals k add mul get vals k long 10 long sub b 48
+end
+seen = true
+else
+if seen
+k = add k ulong 1
+end
+seen = false
+end
+p = add p ulong 1
+end
+a = get vals 0
+n = get vals 1
+s = long 0
+lo = long 0
+while lt lo n bound 999999
+hi = add lo long 999999
+if gt hi n
+hi = n
+end
+s = add s run a lo hi
+lo = hi
+end
+ret putdec s
+end
