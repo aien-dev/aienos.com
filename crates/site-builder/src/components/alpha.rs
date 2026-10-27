@@ -30,8 +30,11 @@ mod tests {
     }
     #[test]
     fn alpha_preserves_install_and_evidence_boundaries() {
-        for text in ["curl -fsSL https://aienos.com/install.sh | sh", "NOT_RUN", "GB10", "kernel driver stay", "alpha-uninstall", "download=\"wizard.om.txt\"", "id=\"alpha-motion\""] {
+        for text in ["git clone --branch alpha-20261026.2 https://github.com/aien-dev/sovereign-intelligence &amp;&amp; cd sovereign-intelligence &amp;&amp; sh installer/install.sh", "Everything comes from the public GitHub repo", "NOT_RUN", "GB10", "kernel driver stay", "alpha-uninstall", "releases/download/alpha-20261026.2/aienos.om", "id=\"alpha-motion\""] {
             assert!(PAGE.contains(text), "missing {text}");
+        }
+        for banned in ["curl -fsSL", "| sh", "href=\"/install.sh\""] {
+            assert!(!PAGE.contains(banned), "/alpha/ must not ask visitors to fetch a script from this site: {banned}");
         }
         let css = include_str!("../../../../public/assets/alpha.css");
         assert!(css.contains("prefers-reduced-motion:no-preference"));

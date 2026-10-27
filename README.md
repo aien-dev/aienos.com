@@ -55,13 +55,15 @@ Rollback: delete the `www` A record and restore `CNAME www aien-dev.github.io.` 
 
 ---
 
-## Installer script
+## Installing Sovereign Intelligence
 
-`public/install.sh` is published at `https://aienos.com/install.sh`. It is the Sovereign Intelligence bootstrap (built on AienOS) for an NVIDIA DGX Spark (GB10), byte-identical to the signed copy in the [alpha-20261026.2 release](https://github.com/aien-dev/sovereign-intelligence/releases/tag/alpha-20261026.2) of aien-dev/sovereign-intelligence (sha256 `b3ba6a3938f418a575c605f8314f62f1aff58de2278509fa23b7266fbb82c93b`, listed in that release's signed SHA256SUMS). It checks the platform first, then downloads that release, checks its Ed25519 signature and SHA-256 before unpacking, and installs into `~/.local/share/aienos`. That release offers one model, Qwen3.6-35B-A3B-FP8. Its source is `installer/install.sh` in aien-dev/sovereign-intelligence; change it there and copy it here, never edit this copy alone. The /alpha/ page links to it.
+This site serves no install script. Every install goes through the public GitHub repo [aien-dev/sovereign-intelligence](https://github.com/aien-dev/sovereign-intelligence), so a visitor can read the script before running it. `/alpha/` publishes this command, pinned to the [alpha-20261026.2 release](https://github.com/aien-dev/sovereign-intelligence/releases/tag/alpha-20261026.2), which offers one model, Qwen3.6-35B-A3B-FP8:
 
 ```sh
-curl -fsSL https://aienos.com/install.sh | sh
+git clone --branch alpha-20261026.2 https://github.com/aien-dev/sovereign-intelligence && cd sovereign-intelligence && sh installer/install.sh
 ```
+
+`installer/install.sh` (sha256 `b3ba6a3938f418a575c605f8314f62f1aff58de2278509fa23b7266fbb82c93b` at that tag, listed in the release's signed SHA256SUMS) checks the platform first, then downloads that release's assets from GitHub Releases, checks the Ed25519 signature and SHA-256 before unpacking, and installs into `~/.local/share/aienos`. The old `https://aienos.com/install.sh` address is a permanent redirect to the repo's install section, set on the hub nginx by `scripts/edge/nginx-install-redirect.conf` (installed as `/etc/nginx/snippets/aienos-install-redirect.conf`).
 
 ---
 
