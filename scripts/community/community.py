@@ -1839,14 +1839,6 @@ class App:
             except Exception as e:  # keep the worker alive; the job stays visible in aien_jobs
                 print("community: aien worker error %s" % type(e).__name__, file=sys.stderr, flush=True)
 
-    def nightly_loop(self):
-        while True:
-            time.sleep(DAY)
-            try:
-                self.refresh_tiers()
-            except Exception as e:
-                print("community: tier refresh error %s" % type(e).__name__, file=sys.stderr, flush=True)
-
 
 # ---------------------------------------------------------------- HTTP
 
@@ -2082,17 +2074,231 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
 @route("GET", "health")
 def api_health(h):
-    h.send_json(200, {"ok": True, "signin_open": h.app.signin_open})
+    h.send_json(200, {"ok": True, "signin": {"passkey": True, "github": h.app.github_open}})
 
 
-@route("GET", "auth/login")
-def api_login(h):
-    app = h.app
-    if not app.signin_open:
-        raise ApiError(503, "signin_closed", "Sign-in is not open yet. Reading works now; please check back soon.")
-    retry = app.auth_rate.take(h.client_ip(), app.clock())
+WC_SHAPE = re.compile(r"^[A-Za-z0-9_-]{43}$")
+
+
+def session_cookie(token):
+    return "cm_s=%s; HttpOnly; Secure; SameSite=Lax; Path=/community/; Max-Age=%d" % (token, SESSION_DAYS * DAY)
+
+
+def auth_cookie(name, value, seconds, samesite="Strict"):
+    return "%s=%s; HttpOnly; Secure; SameSite=%s; Path=/community/api/auth/; Max-Age=%d" % (
+        name, value, samesite, seconds)
+
+
+def auth_limit(h):
+    retry = h.app.auth_rate.take(h.client_ip(), h.app.clock())
     if retry:
         raise ApiError(429, "rate", "Too many sign-in attempts. Try again shortly.", retry_after=retry)
+
+
+def wc_binding(h, create):
+    """The pre-auth ceremony cookie: (value, Set-Cookie list)."""
+    v = h.cookie("cm_wc") or ""
+    if WC_SHAPE.match(v):
+        return v, ([auth_cookie("cm_wc", v, CEREMONY_SECONDS)] if create else [])
+    if not create:
+        return "", []
+    v = secrets.token_urlsafe(32)
+    return v, [auth_cookie("cm_wc", v, CEREMONY_SECONDS)]
+
+
+def ceremony(fn, *a):
+    """Run one passkey step; parse/verify refusals become one generic 400, the reason goes to stderr."""
+    try:
+        return fn(*a)
+    except WebAuthnError as e:
+        print("community: passkey refused: %s" % e, file=sys.stderr, flush=True)
+        raise ApiError(400, "passkey_failed", "That passkey did not check out. Please try again.")
+    except VerifierUnavailable:
+        print("community: signature verifier unavailable", file=sys.stderr, flush=True)
+        raise ApiError(503, "verifier_unavailable", "Passkey sign-in is paused for a moment. Try again shortly.")
+
+
+def signed_in(h, aid, token, csrf, extra_cookies=()):
+    h.send_json(200, {"user": h.app.me_obj(h.app.account(aid)), "csrf": csrf},
+                [("Set-Cookie", c) for c in list(extra_cookies) + [session_cookie(token)]])
+
+
+@route("POST", "auth/passkey/register/options")
+def api_register_options(h):
+    auth_limit(h)
+    binding, cookies = wc_binding(h, True)
+    opts = h.app.register_options(h.body, binding, h.client_ip())
+    h.send_json(200, opts, [("Set-Cookie", c) for c in cookies])
+
+
+@route("POST", "auth/passkey/register/verify")
+def api_register_verify(h):
+    auth_limit(h)
+    binding, _ = wc_binding(h, False)
+    aid, token, csrf = ceremony(h.app.finish_create, h.body.get("credential"), binding)
+    signed_in(h, aid, token, csrf, [auth_cookie("cm_wc", "", 0)])
+
+
+@route("POST", "auth/passkey/login/options")
+def api_login_options(h):
+    auth_limit(h)
+    binding, cookies = wc_binding(h, True)
+    h.send_json(200, h.app.login_options(binding), [("Set-Cookie", c) for c in cookies])
+
+
+@route("POST", "auth/passkey/login/verify")
+def api_login_verify(h):
+    auth_limit(h)
+    binding, _ = wc_binding(h, False)
+    aid, token, csrf = ceremony(h.app.finish_login, h.body.get("credential"), binding)
+    signed_in(h, aid, token, csrf, [auth_cookie("cm_wc", "", 0)])
+
+
+def passkeys_out(app, aid):
+    return [{"id": r["id"], "name": r["name"], "created": iso(r["created"]),
+             "last_used": iso(r["last_used"]) if r["last_used"] else None, "flagged": bool(r["flagged"]),
+             "transports": json.loads(r["transports"]), "alg": r["alg"]}
+            for r in app.q("SELECT * FROM credentials WHERE account_id=? ORDER BY id", (aid,))]
+
+
+@route("GET", "me/passkeys", "user")
+def api_passkeys(h):
+    h.send_json(200, {"passkeys": passkeys_out(h.app, h.viewer["id"]), "github_linked": bool(h.viewer["github_id"])})
+
+
+@route("POST", "me/passkeys/add/options", "user")
+def api_passkey_add_options(h):
+    h.send_json(200, h.app.add_options(h.viewer, h.session["token"]))
+
+
+@route("POST", "me/passkeys/add/verify", "user")
+def api_passkey_add_verify(h):
+    ceremony(h.app.finish_create, h.body.get("credential"), h.session["token"], h.viewer)
+    h.send_json(200, {"passkeys": passkeys_out(h.app, h.viewer["id"])})
+
+
+@route("POST", r"me/passkeys/([0-9]{1,18})/remove", "user")
+def api_passkey_remove(h, pk):
+    app, v = h.app, h.viewer
+    with app.tx() as db:
+        if db.execute("SELECT 1 FROM credentials WHERE id=? AND account_id=?", (int(pk), v["id"])).fetchone() is None:
+            raise ApiError(404, "not_found", "No such passkey.")
+        n = db.execute("SELECT COUNT(*) FROM credentials WHERE account_id=?", (v["id"],)).fetchone()[0]
+        if n <= 1 and not v["github_id"]:
+            raise ApiError(409, "last_passkey", "This is your only way to sign in. Add another passkey or link "
+                           "GitHub first.")
+        db.execute("DELETE FROM credentials WHERE id=? AND account_id=?", (int(pk), v["id"]))
+    h.send_json(200, {"passkeys": passkeys_out(app, v["id"])})
+
+
+@route("POST", r"me/passkeys/([0-9]{1,18})/rename", "user")
+def api_passkey_rename(h, pk):
+    app, v = h.app, h.viewer
+    name = clean_line(h.body.get("name") if h.body.get("name") is not None else "", 40)
+    if not name:
+        raise ApiError(400, "bad_name", "Give the passkey a name of 1 to 40 characters.")
+    with app.tx() as db:
+        cur = db.execute("UPDATE credentials SET name=? WHERE id=? AND account_id=?", (name, int(pk), v["id"]))
+        if not cur.rowcount:
+            raise ApiError(404, "not_found", "No such passkey.")
+    h.send_json(200, {"passkeys": passkeys_out(app, v["id"])})
+
+
+# -- invites
+
+@route("POST", "invites", "user")
+def api_invite_create(h):
+    h.send_json(200, h.app.create_invite(h.viewer, h.body.get("note")))
+
+
+@route("GET", "me/invites", "user")
+def api_my_invites(h):
+    app, v = h.app, h.viewer
+    now = app.now()
+    out = []
+    for r in app.q("SELECT i.*, u.handle AS used_handle FROM invites i LEFT JOIN accounts u ON u.id=i.used_by"
+                   " WHERE i.inviter_id=? AND i.kind='invite' ORDER BY i.id DESC LIMIT 200", (v["id"],)):
+        if r["used_at"] is not None:
+            status = "used"
+        elif r["cancelled"] or r["tries"] >= INVITE_TRIES:
+            status = "cancelled"
+        elif r["expires"] <= now:
+            status = "expired"
+        else:
+            status = "open"
+        out.append({"id": r["id"], "note": r["note"], "created": iso(r["created"]), "expires": iso(r["expires"]),
+                    "status": status, "used_by": r["used_handle"]})
+    left, why = app.invite_left(v)
+    h.send_json(200, {"invites": out, "invites_left": left, "can_invite": left > 0, "reason": why})
+
+
+@route("POST", r"invites/([0-9]{1,18})/cancel", "user")
+def api_invite_cancel(h, iid):
+    app, v = h.app, h.viewer
+    with app.tx() as db:
+        cur = db.execute("UPDATE invites SET cancelled=1 WHERE id=? AND inviter_id=? AND kind='invite'"
+                         " AND used_by IS NULL AND cancelled=0", (int(iid), v["id"]))
+        if not cur.rowcount:
+            raise ApiError(404, "not_found", "No open invite with that id.")
+    h.send_json(200, {"ok": True})
+
+
+def target_user(app, handle):
+    t = app.by_handle(handle)
+    if t is None:
+        raise ApiError(404, "not_found", "No such account.")
+    return t
+
+
+@route("POST", "invites/revoke", "user")
+def api_invite_revoke(h):
+    app, b = h.app, h.body
+    t = target_user(app, b.get("handle"))
+    reason = clean_line(b.get("reason_public") if b.get("reason_public") is not None else "", 200)
+    n = app.revoke_vouch(h.viewer, t, b.get("cascade") is True, reason)
+    h.send_json(200, {"ok": True, "count": n})
+
+
+@route("POST", "invites/revouch", "user")
+def api_invite_revouch(h):
+    app = h.app
+    t = target_user(app, h.body.get("handle"))
+    app.revouch(h.viewer, t)
+    h.send_json(200, {"user": app.user_obj(app.account(t["id"]), app.account(h.viewer["id"]))})
+
+
+@route("GET", r"users/([a-z0-9_-]{1,44})/invitees")
+def api_invitees(h, handle):
+    app = h.app
+    t = target_user(app, handle)
+    rows = app.q("SELECT a.*, (SELECT COUNT(*) FROM accounts c WHERE c.inviter_id=a.id) AS n FROM accounts a"
+                 " WHERE a.inviter_id=? ORDER BY a.joined, a.id LIMIT 500", (t["id"],))
+    out = []
+    for r in rows:
+        u = app.user_obj(r, full=False)
+        u.update({"created": iso(r["joined"]), "invitees": r["n"], "vouch_revoked": bool(r["vouch_revoked"]),
+                  "suspended": bool(r["suspended"])})
+        out.append(u)
+    h.send_json(200, {"handle": t["handle"], "invitees": out})
+
+
+# -- GitHub (optional)
+
+GH_CALLBACK = "/community/api/auth/github/callback"
+
+
+@route("GET", "auth/github/start")
+def api_github_start(h):
+    app = h.app
+    mode = h.qs.get("mode", ["signin"])[0]
+    if mode not in ("link", "signin", "signup"):
+        raise ApiError(400, "bad_request", "Unknown mode.")
+    if not app.github_open:
+        return h.redirect("/community/?signin=closed")
+    if app.auth_rate.take(h.client_ip(), app.clock()):
+        return h.redirect("/community/?signin=rate")
+    if mode == "link" and (h.viewer is None or h.session is None):
+        raise ApiError(401, "signin", "Sign in with a passkey first.")
     nxt = h.qs.get("next", ["/community/"])[0]
     if not NEXT_PATH.match(nxt) or "//" in nxt or "/../" in nxt:
         nxt = "/community/"
@@ -2100,43 +2306,71 @@ def api_login(h):
     now = app.now()
     with app.tx() as db:
         db.execute("DELETE FROM oauth_states WHERE created<?", (now - STATE_SECONDS,))
-        db.execute("INSERT INTO oauth_states(state, next, created) VALUES (?,?,?)", (sha256(state), nxt, now))
-    h.redirect(app.gh.authorize_url(app.args.public_base + "/community/api/auth/callback", state),
-               ["cm_st=%s; HttpOnly; Secure; SameSite=Lax; Path=/community/api/auth/; Max-Age=%d"
-                % (state, STATE_SECONDS)])
+        db.execute("INSERT INTO oauth_states(state, next, created, mode, account_id) VALUES (?,?,?,?,?)",
+                   (sha256(state), nxt, now, mode, h.viewer["id"] if mode == "link" else None))
+    h.redirect(app.gh.authorize_url(app.args.public_base + GH_CALLBACK, state),
+               [auth_cookie("cm_st", state, STATE_SECONDS, "Lax")])
 
 
-@route("GET", "auth/callback")
-def api_callback(h):
+@route("GET", "auth/github/callback")
+def api_github_callback(h):
     app = h.app
-    clear = "cm_st=; HttpOnly; Secure; SameSite=Lax; Path=/community/api/auth/; Max-Age=0"
+    clear = auth_cookie("cm_st", "", 0, "Lax")
+
+    def to(code):
+        return h.redirect("/community/?signin=%s" % code, [clear])
     state = h.qs.get("state", [""])[0]
     code = h.qs.get("code", [""])[0]
     cookie = h.cookie("cm_st") or ""
-    if not app.signin_open:
-        return h.redirect("/community/?signin=closed", [clear])
-    retry = app.auth_rate.take(h.client_ip(), app.clock())
-    if retry:
-        return h.redirect("/community/?signin=rate", [clear])
+    if not app.github_open:
+        return to("closed")
+    if app.auth_rate.take(h.client_ip(), app.clock()):
+        return to("rate")
     ok_shape = 20 <= len(state) <= 100 and 1 <= len(code) <= 200 and re.match(r"^[A-Za-z0-9_-]+$", state) \
         and re.match(r"^[A-Za-z0-9_.-]+$", code)
     if not ok_shape or not hmac.compare_digest(cookie.encode(), state.encode()):
-        return h.redirect("/community/?signin=failed", [clear])
+        return to("failed")
     now = app.now()
     with app.tx() as db:
-        row = db.execute("SELECT next, created FROM oauth_states WHERE state=?", (sha256(state),)).fetchone()
+        row = db.execute("SELECT * FROM oauth_states WHERE state=?", (sha256(state),)).fetchone()
         db.execute("DELETE FROM oauth_states WHERE state=?", (sha256(state),))
     if row is None or now - row["created"] > STATE_SECONDS:
-        return h.redirect("/community/?signin=failed", [clear])
-    user = app.gh.exchange(code, app.args.public_base + "/community/api/auth/callback")
+        return to("failed")
+    user = app.gh.exchange(code, app.args.public_base + GH_CALLBACK)
     if user is None:
-        return h.redirect("/community/?signin=failed", [clear])
+        return to("failed")
     try:
-        _, token, _ = app.sign_in(user)
+        prof = app.github_profile(user)
+        if row["mode"] == "link":
+            if h.viewer is None or h.session is None or h.viewer["id"] != row["account_id"]:
+                return to("failed")
+            app.github_link(h.viewer["id"], prof)
+            return h.redirect(row["next"], [clear])
+        with app.lock:
+            gh_banned = app.banned(app.db, "gh", prof["id"])
+        if gh_banned:
+            return to("refused")
+        got = app.github_signin(prof)
+        if got is not None:
+            return h.redirect(row["next"], [clear, session_cookie(got[1])])
+        if row["mode"] == "signin":
+            return to("unknown")
+        if not app.github_established(prof):
+            return to("young")
+        token = app.github_pending(prof)
     except ApiError as e:
-        return h.redirect("/community/?signin=%s" % ("refused" if e.code == "banned" else "failed"), [clear])
-    h.redirect(row["next"], [clear, "cm_s=%s; HttpOnly; Secure; SameSite=Lax; Path=/community/; Max-Age=%d"
-                             % (token, SESSION_DAYS * DAY)])
+        return to({"banned": "refused", "github_taken": "taken"}.get(e.code, "failed"))
+    h.redirect("/community/?github=finish", [clear, auth_cookie("cm_gp", token, PENDING_SECONDS)])
+
+
+@route("POST", "auth/github/finish")
+def api_github_finish(h):
+    auth_limit(h)
+    if not h.app.github_open:
+        raise ApiError(503, "signin_closed", "GitHub sign-in is not open yet.")
+    b = h.body
+    aid, token, csrf = h.app.github_finish(h.cookie("cm_gp") or "", b.get("handle"), b.get("display_name"))
+    signed_in(h, aid, token, csrf, [auth_cookie("cm_gp", "", 0)])
 
 
 @route("POST", "auth/logout")
@@ -2151,8 +2385,11 @@ def api_logout(h):
 def api_me(h):
     app = h.app
     v = h.viewer
+    left = app.invite_left(v)[0] if v else 0
     h.send_json(200, {"user": app.me_obj(v) if v else None, "csrf": h.session["csrf"] if h.session else None,
-                      "unread": app.unread(v["id"]) if v else 0, "signin_open": app.signin_open})
+                      "unread": app.unread(v["id"]) if v else 0,
+                      "signin": {"passkey": True, "github": app.github_open},
+                      "can_invite": left > 0, "invites_left": left})
 
 
 @route("POST", "me/profile", "user")
