@@ -1,0 +1,53 @@
+note om2_views: view T * is an unsized read-only parameter; part A off n passes a checked slice
+om2
+note ---- OM-2 output helpers: an unsized view parameter takes an array or text of any length
+note outv: write all of a to stdout; a short write continues, 0 or an error exits 90
+fn outv a view uchar * to void
+e = len a
+p = ulong 0
+while lt p e bound 65536
+k = write 1 a p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline
+note a part of a global is error 19, so the digits go in a local array
+fn putu v ulong to void
+b = new uchar 21 0
+i = ulong 20
+put b 20 10
+n = v
+while true bound 20
+i = sub i 1
+put b i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outv part b i sub 21 i
+end
+text greet "views and slices\n"
+fn sum a view uint * to ulong
+s = ulong 0
+for i ulong len a
+s = add s ulong get a i
+end
+ret s
+end
+fn main to int
+outv greet
+a = new uint 6 0
+for i ulong 6
+put a i uint add i 1
+end
+putu sum a
+putu sum part a 1 3
+putu sum part a 5 1
+outv part greet 0 6
+outv part greet 16 1
+ret 0
+end

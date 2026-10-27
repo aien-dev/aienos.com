@@ -17,14 +17,14 @@
     "generated": {
       "children": [
         {
-          "digest": "fb6a793ff545f28610e02cf74e6ec37564270d85499c8b55cfd53be94ba0652a",
-          "last_commit": "05a9b12",
+          "digest": "fb93d1ca5cd13c56b992eae45885e181348b21ea8c072c11ab9dfec4798667ae",
+          "last_commit": "21c485c",
           "name": ".github",
           "purpose": "GitHub automation configuration"
         },
         {
-          "digest": "4acc8dbf4f73e7a15755adc97d3ba96ee2f0a260485e94611a378af5bc5b2185",
-          "last_commit": "ee3833c",
+          "digest": "d5378d424259c651af947d9ab712826312c50dbcd4b194b88a17e63141936188",
+          "last_commit": "356174c",
           "name": "crates",
           "purpose": "Native Rust website crates"
         },
@@ -47,14 +47,20 @@
           "purpose": "Seeded Omega edge rendering of validated canonical Hive JSON with fail-closed escaping and deter"
         },
         {
-          "digest": "c9937a6476422dcaa0f2939b9ccca6251ff240f9f6c3778c0cd0a525e0b2ca5c",
+          "digest": "679153341779296d8c4d44f67d95e31e66dcb182a966817e280a37eec60cc743",
+          "last_commit": "21c485c",
+          "name": "om/omega-reference",
+          "purpose": "Seeded Omega generator of /omega/reference/ from a pinned, hash-recorded omega-harness vendor tr"
+        },
+        {
+          "digest": "f3688673f9ce0597ad2cb249368c873301045a4b5f7677af596593b6a24639c4",
           "last_commit": "a5b073f",
           "name": "om/support-page",
           "purpose": "Seeded Omega support page, shared invitation and CSS with deterministic artifact checks"
         },
         {
-          "digest": "6d13e211f8e7a6eb867a65539c945dca21bb485ef8f34779a9a8d5e099c4322b",
-          "last_commit": "ee3833c",
+          "digest": "17f99651397164ac91401a6d2f91f0c3ce448847cee0d63586071a86fe09b488",
+          "last_commit": "356174c",
           "name": "public",
           "purpose": "Static public website assets"
         },
@@ -65,15 +71,15 @@
           "purpose": "Isolated compute-only Allen tools and versioned glass-pane protocol; temporary host transport ar"
         }
       ],
-      "children_root": "sha256:0eda27cfc9760a261f9b894df0dbc491b32f022f74216da47e344bb073c6ad92",
-      "compiled_at": "2026-10-27T12:12:01Z",
+      "children_root": "sha256:7a27016892804a9b7fbddab7bf4007b6b093da2e160b8722d6eb5babbee40f8b",
+      "compiled_at": "2026-10-27T17:25:31Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:7185f7debea1acd2ce534bcc115f571da7450e8593a066bf3d525474127e60f6",
+      "digest": "sha256:cccfb01b4ff86468dc6d310cea013515594bd2860e6cfe1940450fbc6d270fe9",
       "evidence_files": 6,
       "evidence_root": "sha256:7fde48972a09dd4b0f7206aca4e313cd02c8cd195ec602e3924e59246c016aa5",
-      "files": 440,
-      "generated_at_commit": "ee3833cf07c25087cd86efe04a5b88bc60c16e7e",
-      "source_tree": "sha256:b75838ec0df7f27b3d775c891d8b8f2d755349b650a006a67919c583cc648845"
+      "files": 691,
+      "generated_at_commit": "d877b71d12b95624a6926bc4299f5505f72a6327",
+      "source_tree": "sha256:df13d52a4dea3b8225a54720ed91f1884c6c6d657a657c2c7c2b74d8025f705d"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",

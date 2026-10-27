@@ -1,0 +1,3 @@
+output full
+compile 2
+stderr omc: line 5: error 2

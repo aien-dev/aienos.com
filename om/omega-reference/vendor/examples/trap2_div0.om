@@ -1,0 +1,8 @@
+note trap2_div0: integer div or rem by zero traps 2, exit 102
+text before "before\n"
+fn main to int
+k = write 1 before 0 len before
+d = uint 0
+q = div uint 10 d
+ret 0
+end

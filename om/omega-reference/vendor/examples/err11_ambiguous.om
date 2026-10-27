@@ -1,0 +1,5 @@
+note err11_ambiguous: a bare number with nothing to give it a type. Fix: x = uint 5
+fn main to int
+x = 5
+ret 0
+end

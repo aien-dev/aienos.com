@@ -346,6 +346,19 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     fs::write(dist.join("omega/index.html"), omega_page.into_string()).expect("Failed to write omega/index.html");
     fs::write(dist.join("omega.json"), components::omega::RAW).expect("Failed to write omega.json");
     println!("  [PAGE] Emitted /omega/ and /omega.json");
+    // /omega/reference/: the agent-facing language reference, written by
+    // seeded Omega (om/omega-reference/page.om, gated by its check.sh).
+    let omega_ref_page = render_page_layout(
+        components::omega_reference::TITLE,
+        components::omega_reference::DESCRIPTION,
+        components::omega_reference::URL,
+        "website",
+        html! { link rel="stylesheet" href="/assets/omega.css"; },
+        components::omega_reference::render_omega_reference_page(),
+    );
+    fs::create_dir_all(dist.join("omega/reference")).expect("Failed to create omega/reference dir");
+    fs::write(dist.join("omega/reference/index.html"), omega_ref_page.into_string()).expect("Failed to write omega/reference/index.html");
+    println!("  [PAGE] Emitted /omega/reference/");
 
     // /cudaplusplus/: CUDA++, the GPU half of Omega, from
     // data/cudaplusplus.json, published next to it as /cudaplusplus.json.
@@ -590,6 +603,15 @@ fn verify_site(dist: &Path) {
             assert!(o.contains(phrase) || o.contains(&phrase.replace("&#39;", "'")), "Missing on /omega/: {phrase}");
         }
         assert!(content.contains("href=\"/omega/\""), "The front page must link /omega/ where it names Omega");
+        assert!(o.contains("href=\"/omega/reference/\""), "/omega/ must link /omega/reference/");
+    }
+    // /omega/reference/ (components::omega_reference): every vendored example
+    // file is in llms-full.txt byte for byte, so an agent can copy and gate it.
+    let omega_ref = dist.join("omega/reference/index.html");
+    {
+        let r = fs::read_to_string(&omega_ref).expect("Missing omega/reference/index.html");
+        assert!(r.contains(components::omega_reference::PAGE), "/omega/reference/ must carry om/omega-reference/main.html whole");
+        components::omega_reference::verify_llms_full(dist);
     }
     // /cudaplusplus/ (components::cudaplusplus): CUDA++ with the plus
     // signs, its four sections, linked from the nav, the front page and /omega/.
@@ -614,7 +636,7 @@ fn verify_site(dist: &Path) {
         let o = fs::read_to_string(&omega_page).expect("read omega page");
         assert!(o.contains("href=\"/cudaplusplus/\""), "/omega/ must link /cudaplusplus/");
     }
-    for page in [&blog_index, &blog_post, &research_status, &now_page, &omega_page, &cudapp_page] {
+    for page in [&blog_index, &blog_post, &research_status, &now_page, &omega_page, &omega_ref, &cudapp_page] {
         let page_content = fs::read_to_string(page)
             .unwrap_or_else(|_| panic!("Failed to read {}", page.display()));
         assert!(
@@ -734,6 +756,7 @@ const GENERATED_PAGES: &[(&str, usize)] = &[
     ("lab/index.html", 0),
     ("learn/index.html", 0),
     ("omega/index.html", 30),
+    ("omega/reference/index.html", 0),
     ("cudaplusplus/index.html", 12),
     ("progress/index.html", 0),
     ("agents/index.html", 10),

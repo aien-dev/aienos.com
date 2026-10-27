@@ -1,0 +1,6 @@
+note mistake_infix: there are no infix operators; write the prefix word. Fix: y = add x 1
+fn main to int
+x = int 1
+y = x + 1
+ret y
+end

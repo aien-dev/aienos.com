@@ -1,0 +1,9 @@
+note contract_release: om2 release erases contracts; the false precondition no longer traps
+om2 release
+fn half x uint to uint
+requires eq rem x 2 0
+ret div x 2
+end
+fn main to int
+ret int half 7
+end
