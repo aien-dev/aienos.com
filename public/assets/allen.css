@@ -1,24 +1,159 @@
-/* /allen/: the chat window. Structure comes from om/allen-page/allen.om; this
-   file only lays it out with the palette tokens of style.css. The only motion
-   is opacity, and it stops for reduced-motion. Nothing loads from outside. */
+/* /aien/: the iMac experience on the web. Structure comes from
+   om/allen-page/allen.om and behaviour from om/aien-universe (aien-universe.js);
+   this file lays it out with the palette tokens of style.css. The page is the
+   native sky: Aien floats in the middle, one glass oval sits under him, his
+   reply is one bubble beside him, and anything that is not chat opens as a
+   glass pane. Nothing scrolls but the menu. Motion is opacity and transform
+   only, and stops for reduced-motion. Nothing loads from outside. */
 
-.allen {
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 10px 20px 28px;
-  color: var(--text-primary);
+body:has(.allen) { overflow: hidden; background: rgb(0, 0, 0); }
+body:has(.allen) .aien-footer { display: none; }
+/* Over a 60 fps canvas a backdrop blur costs every frame, so the header here
+   is a plain translucent band. */
+body:has(.allen) .aien-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 60;
+  --an-bg: rgba(0, 0, 0, 0.42);
+  --an-border: rgba(110, 130, 255, 0.10);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
-.allen-head { margin-bottom: 8px; }
-.allen-eyebrow {
+.allen {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  color: var(--text-primary);
+  --aien-oval-y: 86vh;
+  --aien-oval-y: 86dvh;
+  --aien-glass: linear-gradient(180deg, rgba(36, 40, 62, 0.62), rgba(10, 12, 22, 0.78));
+  --aien-edge: rgba(150, 170, 255, 0.22);
+}
+.aien-sky {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 0;
+  background: rgb(0, 0, 0);
+}
+/* No WebAssembly: a quiet still of the night instead of the scene. */
+.allen[data-sky="off"] .aien-sky {
+  background: radial-gradient(circle at 50% 40%, rgb(0, 0, 0) 0 34px, rgba(255, 190, 120, 0.55) 36px, rgba(90, 110, 255, 0.18) 60px, rgb(2, 3, 10) 62%);
+}
+
+/* The panes overlay the whole sky; panes themselves take the pointer. */
+.aien-panes {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  --allen-panes-dock-top: 72px;
+  --allen-panes-sheet-bottom: calc(100vh - var(--aien-oval-y) + 40px);
+}
+.aien-panes .allen-panes-dock[data-empty="yes"] { display: none; }
+
+/* His reply: one bubble, centred above him (Aien's heart is at 40% of the
+   height), long replies turn pages inside it instead of scrolling. */
+.aien-bubble {
+  position: absolute;
+  z-index: 30;
+  left: 50%;
+  translate: -50% 0;
+  bottom: calc(60vh + 12vmin);
+  bottom: calc(60dvh + 12vmin);
+  width: max-content;
+  max-width: min(600px, calc(100vw - 32px));
+  padding: 14px 22px 15px;
+  color: rgb(238, 241, 255);
+  background: var(--aien-glass);
+  border: 1px solid var(--aien-edge);
+  border-radius: 22px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45), 0 0 26px rgba(110, 130, 255, 0.10);
+  opacity: 1;
+  transform: none;
+  transform-origin: 50% 100%;
+  transition: opacity 0.9s ease, transform 0.9s ease;
+  animation: aien-bubble-in 0.52s ease-out;
+}
+.aien-bubble[data-state="fading"] { opacity: 0; transform: translateY(-10px); }
+@keyframes aien-bubble-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.6); }
+  to { opacity: 1; transform: none; }
+}
+/* A short thought trail falls from the bubble toward him. */
+.aien-bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 8px);
+  width: 7px;
+  height: 7px;
+  margin-left: -3.5px;
+  border-radius: 50%;
+  background: rgba(150, 170, 255, 0.55);
+  box-shadow: 0 0 8px rgba(150, 170, 255, 0.6), 2px 16px 0 -1px rgba(150, 170, 255, 0.45);
+}
+.aien-bubble-who {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--accent-green);
+  margin-bottom: 4px;
 }
-.allen-title { font-size: 26px; line-height: 1.15; margin: 2px 0 4px; }
-.allen-lede { font-size: 15px; color: var(--text-secondary); max-width: 80ch; }
+.aien-bubble-text {
+  font-size: clamp(16px, 0.6vw + 10px, 22px);
+  line-height: 1.48;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.aien-bubble[data-more="yes"] .aien-bubble-text::after { content: " \2026"; opacity: 0.6; }
+.aien-bubble-text:empty { display: none; }
+.aien-bubble-acts:empty { display: none; }
+.aien-bubble-acts { margin-top: 8px; }
+
+/* The menu: everything about the chat that is not the chat. */
+.aien-menu {
+  position: absolute;
+  z-index: 45;
+  top: 72px;
+  right: 16px;
+  max-width: min(420px, calc(100vw - 32px));
+}
+.aien-menu-tab {
+  list-style: none;
+  cursor: pointer;
+  margin-left: auto;
+  width: max-content;
+  font-size: 13px;
+  padding: 6px 14px;
+  color: rgb(223, 228, 255);
+  background: var(--aien-glass);
+  border: 1px solid var(--aien-edge);
+  border-radius: 999px;
+}
+.aien-menu-tab::-webkit-details-marker { display: none; }
+.aien-menu-body {
+  margin-top: 8px;
+  max-height: calc(var(--aien-oval-y) - 170px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  background: rgba(10, 12, 22, 0.92);
+  border: 1px solid var(--aien-edge);
+  border-radius: 18px;
+  font-size: 14px;
+}
+.aien-menu-row { display: flex; flex-wrap: wrap; gap: 6px; }
+
 .allen-where { margin-top: 4px; font-size: 13px; color: var(--text-muted); }
 .allen-where code {
   font-family: var(--font-mono);
@@ -29,16 +164,8 @@
   padding: 0 5px;
 }
 
-.allen-panel {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: 10px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
 
+/* The speed band, in the menu or in its pane. */
 /* Speed: one compact band of measured numbers. */
 .allen-speed {
   display: grid;
@@ -76,34 +203,6 @@
   border: 0;
 }
 .allen-stat:last-child dd { font-size: 12px; color: var(--text-secondary); }
-
-/* The log scrolls inside a bounded box. column-reverse keeps the newest line
-   in view while the reply streams, without script, and leaves the reader where
-   they are once they scroll up. */
-.allen-scroll {
-  display: flex;
-  flex-direction: column-reverse;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  /* Tall enough to read, short enough that the form stays on a 768 px screen. */
-  height: clamp(12rem, calc(100vh - 560px), 40rem);
-  height: clamp(12rem, calc(100dvh - 560px), 40rem);
-  background: var(--bg-base);
-  border: 1px solid var(--border-subtle);
-  border-radius: 8px;
-}
-.allen-log {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 12px;
-}
-.allen-log:empty::before {
-  content: "Say hello, or pick an example below.";
-  color: var(--text-muted);
-  font-size: 14px;
-}
 
 .allen-msg { max-width: 100%; min-width: 0; }
 .allen-msg-user {
@@ -392,43 +491,15 @@
   outline-offset: 2px;
 }
 
-.allen-examples { display: flex; flex-wrap: wrap; gap: 6px; }
-.allen-status { min-height: 1.4em; font-size: 14px; color: var(--text-secondary); }
 
-.allen-form {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
+.allen-drake {
+  position: absolute;
+  z-index: 30;
+  top: 76px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: calc(100vw - 32px);
 }
-.allen-form textarea {
-  width: 100%;
-  height: 4.75rem;
-  min-height: 3rem;
-  max-height: 40vh;
-  resize: vertical;
-  font: inherit;
-  font-size: 15px;
-  padding: 8px 10px;
-  color: var(--text-primary);
-  background: var(--bg-base);
-  border: 1px solid var(--border-subtle);
-  border-radius: 8px;
-}
-.allen-actions {
-  display: grid;
-  grid-template-columns: auto auto;
-  align-content: space-between;
-  gap: 6px;
-}
-.allen-actions .allen-send { background: var(--accent-blue); border-color: var(--accent-blue); font-weight: 600; }
-.allen-actions .allen-send:hover { background: var(--accent-blue); }
-.allen-actions .allen-new { grid-column: 1 / -1; }
-
-.allen-privacy { font-size: 13px; color: var(--text-muted); }
-.allen-foot { margin-top: 14px; font-size: 13px; color: var(--text-muted); }
-.allen-foot a,
-.allen-privacy a { color: var(--text-secondary); }
-
 .allen-sr {
   position: absolute;
   width: 1px;
@@ -438,17 +509,138 @@
   white-space: nowrap;
 }
 
-@media (max-width: 640px) {
-  .allen { padding: 12px 10px 20px; }
-  .allen-title { font-size: 24px; }
-  .allen-panel { padding: 8px; }
+/* Example chips float faintly above the oval until the first message. */
+.allen-examples {
+  position: absolute;
+  z-index: 20;
+  left: 50%;
+  top: calc(var(--aien-oval-y) - 78px);
+  transform: translateX(-50%);
+  width: min(640px, calc(100vw - 24px));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  transition: opacity 0.6s ease;
+}
+.allen-examples .allen-example {
+  color: rgb(207, 214, 255);
+  background: rgba(20, 24, 40, 0.55);
+  border-color: rgba(150, 170, 255, 0.16);
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+.allen:not([data-formed="yes"]) .allen-examples { opacity: 0; pointer-events: none; }
+.allen[data-spoke="yes"] .allen-examples { display: none; }
+
+/* The glass oval directly under him. */
+.aien-dock {
+  position: absolute;
+  z-index: 35;
+  left: 50%;
+  top: calc(var(--aien-oval-y) - 27px);
+  transform: translateX(-50%);
+  width: min(520px, 86vw);
+}
+.allen-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  min-height: 54px;
+  padding: 7px 8px 7px 22px;
+  background: var(--aien-glass);
+  border: 1px solid var(--aien-edge);
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 12px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.allen-form:focus-within {
+  border-color: rgba(150, 170, 255, 0.45);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 28px rgba(110, 130, 255, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.allen-form textarea {
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+  max-height: 132px;
+  resize: none;
+  padding: 9px 0 7px;
+  font: inherit;
+  font-size: 16px;
+  line-height: 22px;
+  color: rgb(242, 244, 255);
+  background: transparent;
+  border: 0;
+  outline: none;
+  caret-color: var(--accent-green);
+}
+.allen-form textarea::placeholder { color: rgba(200, 210, 255, 0.45); }
+.allen .allen-form textarea:focus-visible { outline: none; }
+.allen-send,
+.allen-stop {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(150, 170, 255, 0.3);
+  background: rgba(110, 130, 255, 0.22);
+  color: rgb(255, 255, 255);
+  font-size: 16px;
+  cursor: pointer;
+}
+.allen-send:hover,
+.allen-stop:hover { background: rgba(110, 130, 255, 0.36); }
+.allen[data-busy="true"] .allen-send { display: none; }
+.allen[data-busy="false"] .allen-stop { display: none; }
+.allen-status {
+  min-height: 1.3em;
+  margin-top: 6px;
+  text-align: center;
+  font-size: 13px;
+  color: rgba(200, 210, 255, 0.7);
+}
+.aien-tools {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+.aien-tools .allen-tool {
+  font-size: 12px;
+  color: rgba(210, 218, 255, 0.8);
+  background: transparent;
+  border: 1px solid rgba(150, 170, 255, 0.18);
+  border-radius: 999px;
+  padding: 3px 12px;
+}
+.aien-tools .allen-tool:hover { color: rgb(255, 255, 255); border-color: rgba(150, 170, 255, 0.4); }
+
+/* Pane bodies built by aien-universe.js. */
+.aien-mathform, .aien-speedpane { display: flex; flex-direction: column; gap: 10px; }
+.aien-mathform label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--text-secondary); }
+.aien-mathform input {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding: 8px 10px;
+  color: var(--text-primary);
+  background: var(--bg-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+}
+.aien-mathform button, .aien-speedpane > button { align-self: flex-start; }
+.aien-mathform output { font-family: var(--font-mono); font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.aien-mathform output:empty { display: none; }
+.aien-note { font-size: 12px; color: var(--text-muted); }
+.aien-speedpane .allen-speed { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+@media (max-width: 720px) {
+  .aien-bubble { max-width: calc(100vw - 28px); }
+  .aien-menu { top: 66px; right: 10px; }
   .allen-speed { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .allen-scroll { height: auto; min-height: 14rem; max-height: 62vh; }
-  .allen-form { grid-template-columns: minmax(0, 1fr); }
-  .allen-actions { display: flex; flex-wrap: wrap; }
-  .allen-actions .allen-new { margin-left: auto; }
+  .allen-examples { top: calc(var(--aien-oval-y) - 112px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .aien-bubble, .allen-examples, .allen-form { transition: none; animation: none; }
   .allen-msg[aria-busy="true"] .allen-who::after { animation: none; }
 }
