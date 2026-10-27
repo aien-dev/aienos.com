@@ -108,9 +108,9 @@
    ],
    "name": "Support my work",
    "title": "Support my work | About the engineer | AienOS",
-   "description": "Help me keep building free and open source software through X Money, with US-only eligibility and the exact steps.",
+   "description": "Help me keep building free and open source software through X Money or Bitcoin, with US-only X Money eligibility and the exact steps.",
    "kind": "page",
-   "body_html": "<section class=\"engineer-support\"><p class=\"eyebrow\">SUPPORT</p><h1>Help me keep building.</h1><p>Everything here is free and open source, and it will stay that way. I&#39;m one person building this, and I&#39;m running low on funds.</p><p>My current support page explains how to send support through X Money. X Money is currently US-only and requires an eligible X account. Nothing here is gated on a donation.</p><p><a class=\"button\" href=\"/support/\">Read how to support my work</a></p><p>The former Manifund campaign has ended and is no longer the current way to support this project.</p></section>"
+   "body_html": "<section class=\"engineer-support\"><p class=\"eyebrow\">SUPPORT</p><h1>Help me keep building.</h1><p>Everything here is free and open source, and it will stay that way. I&#39;m one person building this, and I&#39;m running low on funds.</p><p>My current support page explains how to send support through X Money or Bitcoin. X Money is currently US-only and requires an eligible X account. My Bitcoin address and its QR code are under <a href=\"/support/#bitcoin\">Send Bitcoin</a>. Nothing here is gated on a donation.</p><p><a class=\"button\" href=\"/support/\">Read how to support my work</a></p><p>The former Manifund campaign has ended and is no longer the current way to support this project.</p></section>"
   },
   {
    "path": "/engineer/glossary/",
