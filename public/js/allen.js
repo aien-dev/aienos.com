@@ -463,12 +463,17 @@
     files.push({ name: 'README.md', data: encoder.encode(readme(project)) });
     return files;
   }
-  /* For Omega the first button is <base>.html, shown once Compile and run
-     has succeeded: the one file a visitor can open and run. <base>.om.txt is
-     the source for any text editor; <base>.om stays the name the README, the
-     zip and a published project use. */
+  /* The first action is Save or publish on GitHub: the project's home in
+     the public aien-dev/omega-projects repo, where anyone can read it. The
+     local copies follow. For Omega the first download is <base>.html, shown
+     once Compile and run has succeeded: the one file a visitor can open and
+     run. <base>.om.txt is the source for any text editor; <base>.om stays the
+     name the README, the zip and a published project use. */
   function downloads(project, row, pub) {
-    row.append(el('span', 'allen-more-label', 'Download'));
+    const github = button('Save or publish on GitHub', () => publishForm(project, pub));
+    github.classList.add('allen-github');
+    github.title = 'Saves this project to your home in the public github.com/aien-dev/omega-projects repo; publishing asks Drake to review it';
+    row.append(github, el('span', 'allen-more-label', 'or download a copy'));
     if (project.type === 'omega') {
       project.htmlButton = button(`${project.base}.html`, () => {
         if (project.wasm) save(`${project.base}.html`, standalone(project), 'text/html;charset=utf-8');
@@ -491,7 +496,6 @@
     }
     row.append(button('README.md', () => save('README.md', readme(project), 'text/markdown')));
     row.append(button(`${project.base}.zip`, () => save(`${project.base}.zip`, zip(projectFiles(project)), 'application/zip')));
-    row.append(button('Save or publish', () => publishForm(project, pub)));
   }
   /* What a visitor keeps. The source download is <base>.om.txt, so any text
      editor opens it; its note lines are Omega comments, so omc still takes the

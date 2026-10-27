@@ -308,6 +308,7 @@
   border-top: 1px solid var(--border-subtle);
 }
 .allen-more-label { font-size: 12px; color: var(--text-muted); }
+.allen-more .allen-github { border-color: var(--accent-green); font-weight: 600; }
 .allen-pub:empty { display: none; }
 .allen-pub { padding: 8px; }
 .allen-meet { font-size: 13px; color: var(--text-muted); overflow-wrap: anywhere; }
