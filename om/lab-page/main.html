@@ -9,7 +9,7 @@
 <div class="lab-side lab-cuda"><p class="lab-side-h">CUDA C, before line one runs</p><ul><li>An NVIDIA GPU and driver</li><li>The CUDA toolkit: <span data-bytes="cuda_toolkit_bytes">see record.tsv</span> on my Spark</li><li>nvcc build of this kernel: <span data-us="nvcc_us">see record.tsv</span></li></ul></div>
 <div class="lab-side lab-omega"><p class="lab-side-h">Omega, on this page</p><ul><li>Any modern browser</li><li>The compiler and wasm back end: <span data-bytes="omega_tool_bytes">see record.tsv</span>, in the site repo</li><li>omc build of this kernel: <span data-us="omc_program_us">see record.tsv</span></li></ul></div>
 </div>
-<p class="lab-fact">Measured on my DGX Spark at 2026-10-27T00:25:28Z, load1 10.75. omc built the Omega kernel and its host loop into a Linux program in 3.661 ms. nvcc 13.0 built the CUDA C kernel and its host main in 1206.176 ms. Median of 7 each, same machine, same minute.
+<p class="lab-fact">Measured on my DGX Spark at 2026-10-27T00:42:59Z, load1 8.15, both compilers on the same 2 of 20 CPU cores. omc built the Omega kernel and its host loop into a Linux program in 1.881 ms. nvcc 13.0 built the CUDA C kernel and its host main in 593.800 ms. Median of 7 each, same minute.
  <a href="https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/captures/record.tsv">record.tsv</a> · <a href="https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/record.sh">record.sh</a></p>
 </header>
 <section class="lab-section" id="lab-play">
@@ -87,12 +87,12 @@ int main() {
 <details class="lab-be" open><summary><strong>WebAssembly</strong><span class="lab-tag lab-pass">runs in this tab</span></summary><p id="lab-wasm-meta" class="lab-small">Loading.</p><pre id="lab-wasm" class="lab-code"></pre><p class="lab-small"><a href="https://github.com/aien-dev/aienos.com/blob/main/public/lab/axpy.wasm">axpy.wasm on GitHub</a></p></details>
 <details class="lab-be"><summary><strong>AArch64</strong><span class="lab-tag lab-pass">ran on the Spark CPU</span></summary><pre class="lab-code">compiler   omc sha256 734f0a39319fbfa930bcc62cb30dbf06d47d78e126372b74f5baf478e6126b61 (the site pin)
 command    omc &lt; axpy.om &gt; axpy.bin
-compile    4.084 ms, median of 7, Linux aarch64, 20 CPU cores, DGX Spark (GB10), load1 10.02, 2026-10-27T00:25:28Z
+compile    1.455 ms, median of 7, Linux aarch64, 2 of 20 CPU cores allowed, DGX Spark (GB10), load1 7.90, 2026-10-27T00:42:59Z
 output     276 bytes of raw AArch64 code, sha256 7bdd7e87bb3c4c79897509c7b22f63b2e738195301e9afa665a40387172d2bb7
-program    axpy.om + harness.om into one Linux program: 3.661 ms, median of 7, load1 10.02
+program    axpy.om + harness.om into one Linux program: 1.881 ms, median of 7, load1 7.90
 run        a=3, n=1048576: checksum 2748777496576, awk reference 2748777496576, MATCH
 control    add changed to sub in the kernel: 549754241024, MISMATCH as it should be
-run time   14.853 ms per process (start, 1048576 elements, print, exit), median of 7, load1 10.02
+run time   4.345 ms per process (start, 1048576 elements, print, exit), median of 7, load1 7.90
 disasm     objdump -D -b binary -m aarch64 -M no-aliases (GNU objdump (GNU Binutils for Ubuntu) 2.42)
 
 0:	1400000d 	b	0x34
@@ -167,7 +167,7 @@ fc:	f94008f0 	ldr	x16, [x7, #16]
 </pre><p class="lab-small"><a href="https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/captures/aarch64.txt">aarch64.txt on GitHub</a></p></details>
 <details class="lab-be"><summary><strong>SPIR-V</strong><span class="lab-tag lab-pass">validated, ran on PoCL (CPU)</span><span class="lab-tag lab-not">GPU: NOT_RUN</span></summary><pre class="lab-code">compiler   omega-mv 369dbc96daa1684db2d7c2c7085bbf16b3fd77ee: omc sha256 2c82480596bbdc50cda9626866209ef662d5834f278f839ff4ce0250c495029f builds irspirv
 command    { printf 'ir\n'; cat axpy.om; } | omc &gt; axpy.ir &amp;&amp; irspirv &lt; axpy.ir &gt; axpy.spv
-translate  1.382 ms for irspirv, median of 7, Linux aarch64, 20 CPU cores, DGX Spark (GB10), load1 10.02
+translate  1.625 ms for irspirv, median of 7, Linux aarch64, 2 of 20 CPU cores allowed, DGX Spark (GB10), load1 7.90
 output     4140 bytes, sha256 adeb8af7af76a547329eb9d91d839032a66c1d70f0a9b3fd0f78000bd77d8f48
 validate   spirv-val --target-env opencl2.1: valid (SPIRV-Tools v2025.1 unknown hash, 2026-05-13T06:03:38+00:00)
 run        PoCL 7.2 on the CPU (cpu-cortex-a720-0xd87): run 3 0 1000 = 2498500, trap 0; reference 2498500, MATCH
@@ -448,8 +448,8 @@ not run    no GPU has executed this SPIR-V yet
 </pre><p class="lab-small"><a href="https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/captures/spirv.txt">spirv.txt on GitHub</a></p></details>
 <details class="lab-be"><summary><strong>NVIDIA SASS</strong><span class="lab-tag lab-not">this kernel: NOT_RUN</span></summary><p class="lab-small">omc does not lower this kernel to SASS yet. Below are two real listings for comparison: what nvcc emits for the CUDA C version (compiled here, not launched), then the vector add that did run on the GB10, written in asm2 and launched without any CUDA library.</p><pre class="lab-code">compiler   nvcc 13.0 (V13.0.88)
 command    nvcc -arch=sm_121 -o axpy axpy.cu   (host + device, a runnable program)
-compile    1206.176 ms, median of 7, Linux aarch64, 20 CPU cores, DGX Spark (GB10), load1 10.75
-device     nvcc -arch=sm_121 -cubin: 406.414 ms, median of 7
+compile    593.800 ms, median of 7, Linux aarch64, 2 of 20 CPU cores allowed, DGX Spark (GB10), load1 8.15
+device     nvcc -arch=sm_121 -cubin: 192.561 ms, median of 7
 not run    this CUDA program has not been launched; that needs a GPU window
 disasm     cuobjdump -sass axpy.cubin
 
@@ -552,15 +552,32 @@ disasm     nvdisasm, as committed in evidence/SEED-0/sm121/vecadd.sass.txt
 cd aienos.com
 sh om/lab-page/run.sh</pre><button id="lab-copy" type="button">Copy</button></div>
 <p class="lab-small">Linux on 64-bit Arm runs the whole thing: it checks the compiler pins, builds the kernel, runs it, compares with awk, runs the broken control and writes the same axpy.wasm this page runs. Other machines get a plain NOT_RUN and a pointer back here. <a href="https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/run.sh">Read run.sh first.</a></p>
-<details class="lab-be"><summary><strong>What it printed from a fresh clone</strong></summary><pre class="lab-code">pin     omc sha256 734f0a39319fbfa930bcc62cb30dbf06d47d78e126372b74f5baf478e6126b61
+<details class="lab-be"><summary><strong>What it printed from a fresh clone</strong></summary><pre class="lab-code">$ git clone --depth 1 https://github.com/aien-dev/aienos.com
+(recorded from branch feat/omega-lab before merge)
+$ cd aienos.com
+$ sh om/lab-page/run.sh
+pin     omc sha256 734f0a39319fbfa930bcc62cb30dbf06d47d78e126372b74f5baf478e6126b61
 pin     irwasm sha256 2d235a70c39ac1461a09c41e10e058d962b767ae83893cdcfc693ef6c47182e6
-build   omc: axpy.om + harness.om -&gt; out/axpy in 1782 us
-run     out/axpy a=3 n=1048576 -&gt; 2748777496576 in 4128 us (whole process)
+build   omc: axpy.om + harness.om -&gt; out/axpy in 1048 us
+run     out/axpy a=3 n=1048576 -&gt; 2748777496576 in 3779 us (whole process)
 check   awk reference 2748777496576
 control add -&gt; sub gives 549754241024: mismatch, so the check can fail
 wasm    out/axpy.wasm 519 bytes, sha256 7607811d1d4440195bd39c5bab57385dd3b81f87321dc6e83f3855b2a5fba76e
 PASS
+(recorded 2026-10-27T00:43:06Z in an empty directory, Linux aarch64, load1 8.21)
 </pre><p class="lab-small"><a href="https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/captures/home.txt">home.txt on GitHub</a></p></details>
+<h3>Start your own kernel repository.</h3>
+<p class="lab-small">One command makes a public repository from my template. Edit kernel.om and the Python reference beside it, push, and GitHub's ubuntu-24.04-arm runner builds your kernel for AArch64 and SPIR-V, runs both (SPIR-V on PoCL, a CPU), and checks every result against the reference. No GPU runs there.</p>
+<div class="lab-install"><pre>gh repo create my-kernel --template aien-dev/omega-kernel-template --public --clone</pre></div>
+<p class="lab-small"><a href="https://github.com/aien-dev/omega-kernel-template">omega-kernel-template</a> · <a href="https://github.com/aien-dev/omega-kernel-template/actions/runs/40426781699">passing check</a> · <a href="https://github.com/aien-dev/omega-kernel-template/actions/runs/40426783628">failing control: an overflowing kernel must fail</a></p>
+<h3>Do not trust my compiler? Rebuild it.</h3>
+<p class="lab-small">The seed challenge rebuilds the Omega seed chain from 408 bytes and must land on the same fixed output. It passes on GitHub's own ubuntu-24.04-arm runner, and its tampered-rung, wrong-value and forged-log controls fail as required. It is a fixed-output reproducibility match, not general self-hosting and not diverse double compiling. The chain is in omega-mv pull request 863, not merged yet, so the command fetches that pull request.</p>
+<div class="lab-install"><pre>git clone https://github.com/aien-dev/omega-mv
+cd omega-mv
+git fetch origin pull/863/head
+git checkout FETCH_HEAD
+sh seed/challenge/run.sh</pre></div>
+<p class="lab-small"><a href="https://github.com/aien-dev/omega-seed-challenge">omega-seed-challenge</a> · <a href="https://github.com/aien-dev/omega-seed-challenge/actions/runs/40426178383">passing run on GitHub</a> · <a href="https://github.com/aien-dev/omega-mv/pull/863">pull request 863</a> · <a href="https://github.com/aien-dev/omega-seed-challenge/issues/new?template=reproduced.yml">post your result</a></p>
 </section>
 <p class="lab-foot">Page structure and script generated by seeded Omega: <a href="https://github.com/aien-dev/aienos.com/tree/main/om/lab-page">om/lab-page</a>.</p>
 </article>

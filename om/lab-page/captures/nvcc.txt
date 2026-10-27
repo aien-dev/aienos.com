@@ -1,7 +1,7 @@
 compiler   nvcc 13.0 (V13.0.88)
 command    nvcc -arch=sm_121 -o axpy axpy.cu   (host + device, a runnable program)
-compile    1206.176 ms, median of 7, Linux aarch64, 20 CPU cores, DGX Spark (GB10), load1 10.75
-device     nvcc -arch=sm_121 -cubin: 406.414 ms, median of 7
+compile    593.800 ms, median of 7, Linux aarch64, 2 of 20 CPU cores allowed, DGX Spark (GB10), load1 8.15
+device     nvcc -arch=sm_121 -cubin: 192.561 ms, median of 7
 not run    this CUDA program has not been launched; that needs a GPU window
 disasm     cuobjdump -sass axpy.cubin
 

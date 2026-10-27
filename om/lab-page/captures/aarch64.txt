@@ -1,11 +1,11 @@
 compiler   omc sha256 734f0a39319fbfa930bcc62cb30dbf06d47d78e126372b74f5baf478e6126b61 (the site pin)
 command    omc < axpy.om > axpy.bin
-compile    4.084 ms, median of 7, Linux aarch64, 20 CPU cores, DGX Spark (GB10), load1 10.02, 2026-10-27T00:25:28Z
+compile    1.455 ms, median of 7, Linux aarch64, 2 of 20 CPU cores allowed, DGX Spark (GB10), load1 7.90, 2026-10-27T00:42:59Z
 output     276 bytes of raw AArch64 code, sha256 7bdd7e87bb3c4c79897509c7b22f63b2e738195301e9afa665a40387172d2bb7
-program    axpy.om + harness.om into one Linux program: 3.661 ms, median of 7, load1 10.02
+program    axpy.om + harness.om into one Linux program: 1.881 ms, median of 7, load1 7.90
 run        a=3, n=1048576: checksum 2748777496576, awk reference 2748777496576, MATCH
 control    add changed to sub in the kernel: 549754241024, MISMATCH as it should be
-run time   14.853 ms per process (start, 1048576 elements, print, exit), median of 7, load1 10.02
+run time   4.345 ms per process (start, 1048576 elements, print, exit), median of 7, load1 7.90
 disasm     objdump -D -b binary -m aarch64 -M no-aliases (GNU objdump (GNU Binutils for Ubuntu) 2.42)
 
 0:	1400000d 	b	0x34

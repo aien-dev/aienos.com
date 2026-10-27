@@ -1,6 +1,6 @@
 compiler   omega-mv 369dbc96daa1684db2d7c2c7085bbf16b3fd77ee: omc sha256 2c82480596bbdc50cda9626866209ef662d5834f278f839ff4ce0250c495029f builds irspirv
 command    { printf 'ir\n'; cat axpy.om; } | omc > axpy.ir && irspirv < axpy.ir > axpy.spv
-translate  1.382 ms for irspirv, median of 7, Linux aarch64, 20 CPU cores, DGX Spark (GB10), load1 10.02
+translate  1.625 ms for irspirv, median of 7, Linux aarch64, 2 of 20 CPU cores allowed, DGX Spark (GB10), load1 7.90
 output     4140 bytes, sha256 adeb8af7af76a547329eb9d91d839032a66c1d70f0a9b3fd0f78000bd77d8f48
 validate   spirv-val --target-env opencl2.1: valid (SPIRV-Tools v2025.1 unknown hash, 2026-05-13T06:03:38+00:00)
 run        PoCL 7.2 on the CPU (cpu-cortex-a720-0xd87): run 3 0 1000 = 2498500, trap 0; reference 2498500, MATCH
