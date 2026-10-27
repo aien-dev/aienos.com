@@ -65,6 +65,7 @@ import allen_spool  # noqa: E402
 import allen_projects  # noqa: E402  (build loop: homes, save, publish, gallery)
 import allen_speed  # noqa: E402
 import allen_infer  # noqa: E402  (speed test: infer, infer-verify; allen_infer.py)
+import allen_math  # noqa: E402  (math panes: POST math to the Omega engine; allen_math.py)
 import allen_transcribe  # noqa: E402  (POST transcribe: push-to-talk, off unless --whisper-cli)
 
 try:
@@ -851,6 +852,7 @@ class App:
         self.live = Live()
         allen_projects.init(self, Buckets)
         allen_infer.init(self)
+        allen_math.init(self, Buckets)
         self.tools = load_tools(args.tools) if args.tools else None
         self.tool_specs = list(self.tools.TOOLS) if self.tools else []
         self.tool_prompt = self.tools.SYSTEM_PROMPT.strip() if self.tools else ""
@@ -1342,6 +1344,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.project_summary()
         if r == "transcribe":
             return allen_transcribe.handle(self)
+        if r == "math":
+            return allen_math.post(self)
         if r == "infer":
             return allen_infer.run(self)
         if r == "infer-verify":
@@ -2631,6 +2635,7 @@ def main():
             app.live.sweep()
             app.lab.runs.sweep()
             app.lab.heavies.sweep()
+            app.math_rate.sweep()
             if app.console:
                 app.console.fails.sweep()
             now = time.monotonic()
