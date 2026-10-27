@@ -785,7 +785,8 @@ pub fn enrich(dist: &Path, ctx: &BuildCtx) -> Vec<Emitted> {
         out.push('\n');
         out.push_str(&block);
         out.push_str(&html[head_end..]);
-        let out = crate::components::allen_intro::enrich(crate::components::support::enrich(crate::components::contact::enrich(ensure_glossary_link(out), page.is_zh())));
+        let zh = page.is_zh();
+        let out = crate::components::allen_intro::enrich(crate::components::support::enrich(crate::components::contact::enrich(crate::components::navbar::fold_legacy(ensure_glossary_link(out), zh), zh)));
         write_markdown_mirror(dist, page, &facts, &out);
         fs::write(&page.file, out).unwrap_or_else(|e| panic!("write {}: {e}", page.file.display()));
     }
