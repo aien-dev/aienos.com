@@ -4,6 +4,7 @@ on:
     paths:
       - 'om/hive-page/**'
       - 'om/alpha-page/**'
+      - 'om/omega-reference/**'
       - 'public/js/alpha.js'
       - 'public/alpha/**'
       - 'public/js/hive.js'
@@ -14,6 +15,7 @@ on:
     branches: [main]
     paths:
       - 'om/hive-page/**'
+      - 'om/omega-reference/**'
       - 'om/alpha-page/**'
       - 'public/js/alpha.js'
       - 'public/alpha/**'
@@ -35,3 +37,7 @@ jobs:
         run: cargo test --manifest-path crates/site-builder/Cargo.toml components::hive::tests::served_scripts_match_their_omega_generated_sha256 -- --exact
       - name: Check generated Alpha page and source
         run: cargo test --manifest-path crates/site-builder/Cargo.toml components::alpha::tests -- --nocapture
+      - name: Check generated Omega reference and its vendored inputs
+        run: |
+          sh om/omega-reference/check.sh --hashes
+          cargo test --manifest-path crates/site-builder/Cargo.toml components::omega_reference::tests -- --nocapture

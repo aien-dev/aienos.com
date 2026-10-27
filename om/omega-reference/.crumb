@@ -1,0 +1,6 @@
+{
+  "schema_version": "1.0.0",
+  "name": "omega-reference",
+  "layer": "website",
+  "purpose": "Seeded Omega generator of /omega/reference/ from a pinned, hash-recorded omega-harness vendor tree; check.sh gates every example with the pinned omc"
+}

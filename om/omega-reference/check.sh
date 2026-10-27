@@ -38,7 +38,7 @@ gate=$(grep '^GATE PASS' "$work/gate.log")
 echo "$gate"
 # Negative control: one changed expected exit code must fail the gate.
 cp -R vendor "$work/mut"
-echo 9 > "$work/mut/examples/hello.exit"
+printf 'compile 0\nexit 9\n' > "$work/mut/examples/hello.expect"
 if bash "$work/mut/examples/gate.sh" "$omc" > "$work/mut.log" 2>&1; then
     echo 'Mutated example wrongly passed the gate' >&2; exit 5
 fi
