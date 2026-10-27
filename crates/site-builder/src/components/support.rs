@@ -43,6 +43,8 @@ mod tests {
             assert!(PAGE.contains(text), "missing {text}");
         }
         assert_eq!(PAGE.matches("<li>").count(), 3);
+        assert_eq!(PAGE.matches("class=\"support-button\"").count(), 1, "one primary action");
+        assert!(PAGE.find("support-button").unwrap() < PAGE.find("support-card").unwrap(), "action before the steps");
         assert!(!PAGE.contains("<script"));
         assert!(!PAGE.contains('—') && !PAGE.contains('–'));
     }
