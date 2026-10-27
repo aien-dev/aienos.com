@@ -1181,6 +1181,16 @@ def infer_tests(a):
         check("heavy rate: the 4th heavy run in 10 minutes is refused 429", outs[:3] == [200] * 3 and outs[3] == 429, str(outs))
         st, out = infer_run(g, {"mode": "concurrent", "preset": "short", "streams": 9}, "198.51.100.72")
         check("more than 4 streams refused 400", st == 400, "%s %s" % (st, out))
+        s.shutdown()
+        s.server_close()  # the model server goes away (a GPU window): refuse at once, do not queue
+        time.sleep(0.6)
+        c, r = g.get("/allen/api/infer-info")
+        info = json.loads(r.read())
+        t = time.monotonic()
+        st, out = infer_run(g, {"mode": "single", "preset": "short"}, "198.51.100.73")
+        check("model offline: infer-info says so and a run is refused 503 offline at once",
+              info["server_ok"] is False and st == 503 and out.get("error") == "offline" and time.monotonic() - t < 5,
+              "%s %s %s" % (info["server_ok"], st, out))
     finally:
         g.close()
         s.shutdown()
