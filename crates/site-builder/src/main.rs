@@ -683,7 +683,7 @@ fn verify_site(dist: &Path) {
     components::voice::verify_singular_voice(dist);
     // Project, product and vendor names spelled one way: AienOS, Aien, GitHub, NVIDIA.
     components::names::verify_canonical_names(dist);
-    // Every page shows Follow me on X in its header and the contact line in its footer.
+    // Every page shows the X contact button in its header and the contact line in its footer.
     components::contact::verify(dist);
 
     println!("------------------------------------------------------------");
