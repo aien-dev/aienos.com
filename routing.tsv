@@ -8,9 +8,9 @@ role	consult_codex	openai-codex/gpt-6-astra:xhigh
 role	default	anthropic/claude-opus-5-5:high
 role	image	openai-codex/gpt-image-2
 role	plan	openai-codex/gpt-6-astra:xhigh
-agent	task	anthropic/claude-opus-5-5:medium
-agent	reviewer	anthropic/claude-opus-5-5:medium
-agent	security-reviewer	anthropic/claude-opus-5-5:medium
+agent	task	anthropic/claude-opus-5-5:high
+agent	reviewer	anthropic/claude-opus-5-5:high
+agent	security-reviewer	anthropic/claude-opus-5-5:high
 agent	scout	anthropic/claude-opus-5-5:medium
 agent	sonic	anthropic/claude-opus-5-5:medium
 agent	seance	anthropic/claude-opus-5-5:medium
