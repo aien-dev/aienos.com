@@ -1,6 +1,20 @@
 {
-  "schema_version": "1.0.0",
-  "name": "omega-reference",
+  "extensions": {
+    "generated": {
+      "children": [],
+      "children_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compiled_at": "2026-10-27T16:26:30Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:679153341779296d8c4d44f67d95e31e66dcb182a966817e280a37eec60cc743",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 247,
+      "generated_at_commit": "21c485cd365d50d603db327133625b6067ac2718",
+      "source_tree": "sha256:73072d7596422e865d4a3bf116ba0cde319f266625fa234c5d46a1af57871e06"
+    }
+  },
   "layer": "website",
-  "purpose": "Seeded Omega generator of /omega/reference/ from a pinned, hash-recorded omega-harness vendor tree; check.sh gates every example with the pinned omc"
+  "name": "omega-reference",
+  "purpose": "Seeded Omega generator of /omega/reference/ from a pinned, hash-recorded omega-harness vendor tree; check.sh gates every example with the pinned omc",
+  "schema_version": "1.0.0"
 }

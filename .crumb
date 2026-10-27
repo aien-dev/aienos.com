@@ -17,20 +17,26 @@
     "generated": {
       "children": [
         {
-          "digest": "4f9a052700291113ffed83006c9f1b639b51a8d0a4841a221c0c873e233c244f",
-          "last_commit": "7fd18a6",
+          "digest": "fb93d1ca5cd13c56b992eae45885e181348b21ea8c072c11ab9dfec4798667ae",
+          "last_commit": "21c485c",
           "name": ".github",
           "purpose": "GitHub automation configuration"
         },
         {
-          "digest": "0f0f43c88db88ed58d2f8d49880ef05d13c216d25082e35bf334d11f08dab241",
-          "last_commit": "7fd18a6",
+          "digest": "d4373908e31059620f2df73a31ec4517a88b73dceee766ecedb07038e5fa6a97",
+          "last_commit": "356174c",
           "name": "crates",
           "purpose": "Native Rust website crates"
         },
         {
-          "digest": "e8dc3c7418b234d841efa6eae442f932c728e4e48cf3a564b24f85c3cb4ccf5c",
-          "last_commit": "96d38f3",
+          "digest": "b2255e3fb36241b5fe4a87f595ab384f559aaf4b6d04a62831ccfc3a7b9444da",
+          "last_commit": "22e46db",
+          "name": "om/allen-scene",
+          "purpose": "Native Allen scene reuse, Omega browser controller and independent frame oracle"
+        },
+        {
+          "digest": "d317f3bdf7ea83536724b7f4d26896a4ed2a169c309d856e2b015c62d5976646",
+          "last_commit": "22c0a3f",
           "name": "om/alpha-page",
           "purpose": "Seeded Omega alpha landing page and client, with pinned wizard source and real terminal capture"
         },
@@ -41,14 +47,20 @@
           "purpose": "Seeded Omega edge rendering of validated canonical Hive JSON with fail-closed escaping and deter"
         },
         {
-          "digest": "e79851d237209ec2b187ac8a93656add164229df9194ab1517cc52c66158b4b1",
-          "last_commit": "d266bc3",
+          "digest": "679153341779296d8c4d44f67d95e31e66dcb182a966817e280a37eec60cc743",
+          "last_commit": "21c485c",
+          "name": "om/omega-reference",
+          "purpose": "Seeded Omega generator of /omega/reference/ from a pinned, hash-recorded omega-harness vendor tr"
+        },
+        {
+          "digest": "c9937a6476422dcaa0f2939b9ccca6251ff240f9f6c3778c0cd0a525e0b2ca5c",
+          "last_commit": "a5b073f",
           "name": "om/support-page",
           "purpose": "Seeded Omega support page, shared invitation and CSS with deterministic artifact checks"
         },
         {
-          "digest": "b251e22f0e2a3a8a14ea7c3b03cfb37987accf105892c615fb4b7529f2490419",
-          "last_commit": "7fd18a6",
+          "digest": "5dff06bba7a7b26a14be198a7df408a1d0b4cbbcc01b812a1c889bb07da6bbef",
+          "last_commit": "356174c",
           "name": "public",
           "purpose": "Static public website assets"
         },
@@ -59,15 +71,15 @@
           "purpose": "Isolated compute-only Allen tools and versioned glass-pane protocol; temporary host transport ar"
         }
       ],
-      "children_root": "sha256:2fcfe7c911b4d946b051f48d75e3d385395900aa0fff2a77cab23585cc73d9e9",
-      "compiled_at": "2026-10-26T19:25:24Z",
+      "children_root": "sha256:22dde98e7dae02f8cbb5d73cf91d80187e99356dbae2a496c30d1727c46e967a",
+      "compiled_at": "2026-10-27T16:26:30Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:cbc2914a71accad530126e7cb7624fc9c04dc469716ca7920df84674535be9cc",
+      "digest": "sha256:b90418f3e9fc4379bc6f3ecaf401e9fbed2638fbc969ccff9db22da08205af99",
       "evidence_files": 6,
       "evidence_root": "sha256:7fde48972a09dd4b0f7206aca4e313cd02c8cd195ec602e3924e59246c016aa5",
-      "files": 361,
-      "generated_at_commit": "6840b7734249348fd0e467afc6a31de39d009764",
-      "source_tree": "sha256:dd45d4be3ccf8df0461f5b71f9b2736d5b46eb120cac1a0ad6f878e926316db6"
+      "files": 688,
+      "generated_at_commit": "21c485cd365d50d603db327133625b6067ac2718",
+      "source_tree": "sha256:e3613cc5389febcf5e26457480694e836961a4ea5382d692486536b7db3c3de5"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",
