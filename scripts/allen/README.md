@@ -157,9 +157,11 @@ python3 scripts/allen/allen_infer.py bench http://127.0.0.1:8000 --model <your-m
 ## Math panes (`math`; `allen_math.py`)
 
 `POST /aien/api/math` with `{"expression": "Integrate[x^2,{x,0,1}]", "title": "Area"}` sends the
-expression, as the `math_compute` tool, to the loopback `allen-science` service
-(`127.0.0.1:18113`, `scripts/allen/science`), which runs the pure-Omega aien-math engine in its
-sandbox. The reply is at most three v1 pane events plus a one-line result; the page renders them
+expression, as the `math_compute` tool, to the math-only `allen-science` instance
+(`127.0.0.1:18114`, `allen-science-math-fg`: the same service started with `--tools math_compute`,
+which answers 403 to every other tool), which runs the pure-Omega aien-math engine in its
+sandbox. allen-chat's egress filter admits 18114, not the full-service port 18113. The reply is
+at most three v1 pane events plus a one-line result; the page renders them
 with AllenPanes, which checks them again against the pane contract. No model call, nothing stored.
 Limits: expression 4096 characters, 12 a minute per visitor, hub zone `allen_omega`. A missing or
 malformed service answer is a 503. Tests: `python3 scripts/allen/test_math.py`.
