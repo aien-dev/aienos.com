@@ -5,7 +5,7 @@ role	advisor	openai-codex/gpt-6-astra:xhigh
 role	slow	anthropic/claude-opus-5-5:high
 role	consult_claude	anthropic/claude-fable-5-1:xhigh
 role	consult_codex	openai-codex/gpt-6-astra:xhigh
-role	default	anthropic/claude-fable-5-1:high
+role	default	anthropic/claude-opus-5-5:high
 role	image	openai-codex/gpt-image-2
 role	plan	openai-codex/gpt-6-astra:xhigh
 agent	task	anthropic/claude-opus-5-5:medium
