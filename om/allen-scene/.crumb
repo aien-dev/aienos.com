@@ -1,0 +1,6 @@
+{
+  "schema_version": "1.0.0",
+  "name": "allen-scene",
+  "layer": "website",
+  "purpose": "Native Allen scene reuse, Omega browser controller and independent frame oracle"
+}

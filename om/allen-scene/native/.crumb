@@ -1,0 +1,6 @@
+{
+  "schema_version": "1.0.0",
+  "name": "allen-scene-native",
+  "layer": "dependency",
+  "purpose": "Unmodified da55660 native rendering and catalogue dependency, bound by native.sha256"
+}
