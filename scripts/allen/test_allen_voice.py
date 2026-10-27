@@ -25,6 +25,7 @@ check("cached answer omega", sit(v.pick("what is omega?", answer_id="omega")) ==
 check("are you allen", sit(v.pick("wait, are you Allen?", turn=2)) == ["smalltalk.are_you_allen"])
 check("vibe coder", sit(v.pick("I can't code, I just vibe code, is this for me?", turn=1)) == ["encouragement.vibe_coder"])
 check("donation", sit(v.pick("how can I donate?", turn=4)) == ["donation.how"])
+check("sponsor", sit(v.pick("can I sponsor drake on github?", turn=4)) == ["donation.how"])
 check("thanks", sit(v.pick("thanks man", turn=5)) == ["smalltalk.thanks"])
 check("bye", sit(v.pick("bye!", turn=6)) == ["goodbye.general"])
 check("explicit situation", sit(v.pick(situation="error.busy")) == ["error.busy"])

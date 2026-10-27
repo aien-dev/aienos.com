@@ -31,7 +31,7 @@ INTENTS = [
     ("smalltalk.is_it_free", r"\b(is (it|this|aien) free|how much (does it )?cost|pricing|price)\b"),
     ("smalltalk.how_are_you", r"\bhow are you\b|\bhow'?s it going\b|\bwhat'?s up\b"),
     ("smalltalk.who_are_you", r"\bwho are you\b|\bwhat are you\b"),
-    ("donation.how", r"\b(donat\w*|tip|support drake|x money|send money|chip in)\b"),
+    ("donation.how", r"\b(donat\w*|tip|support drake|sponsor\w*|chip in)\b"),
     ("encouragement.vibe_coder", r"\bvibe ?cod\w*\b|\bcan'?t (really )?code\b|\bnot a (real )?(coder|programmer)\b"),
     ("encouragement.stuck", r"\b(i'?m stuck|stuck on|frustrat\w*|giving up|give up|nothing works)\b"),
     ("academy.explain", r"\b(agent academy|academy|train (my|your) agent)\b"),
