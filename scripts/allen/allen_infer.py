@@ -327,8 +327,19 @@ class Lab:
         return hmac.new(self.key, canon(result), hashlib.sha256).hexdigest()
 
 
+def _js(o):
+    """What a browser's JSON.parse/stringify would hand back: 48.0 becomes 48."""
+    if isinstance(o, dict):
+        return {k: _js(v) for k, v in o.items()}
+    if isinstance(o, list):
+        return [_js(v) for v in o]
+    if isinstance(o, float) and o.is_integer():
+        return int(o)
+    return o
+
+
 def canon(obj):
-    return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
+    return json.dumps(_js(obj), sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
 
 
 def init(app):

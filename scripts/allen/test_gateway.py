@@ -1084,7 +1084,14 @@ def infer_tests(a):
         bad = dict(res, streams_out=[dict(res["streams_out"][0], decode_tps=999.0)])
         c, r = g.post("/allen/api/infer-verify", {"result": bad, "sig": sig})
         ok2 = json.loads(r.read())["ok"]
-        check("signed result verifies; an edited one does not", ok1 is True and ok2 is False, "%s %s" % (ok1, ok2))
+        # A browser re-serialises 48.0 as 48; the signed bytes must not change across that round trip.
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import allen_infer
+        res2 = dict(res, load1=3.0, streams_out=[dict(res["streams_out"][0], decode_tps=48.0)])
+        js = json.loads(re.sub(r"(\d)\.0(?=[,}\]])", r"\1", json.dumps(res2)))
+        same = allen_infer.canon(res2) == allen_infer.canon(js) and js["load1"] == 3 and type(js["load1"]) is int
+        check("signed result verifies; an edited one does not; integral floats survive a JS round trip",
+              ok1 is True and ok2 is False and same, "%s %s %s" % (ok1, ok2, same))
 
         st, evs = infer_run(g, {"mode": "single", "prompt": "hi", "max_tokens": 99999}, "198.51.100.2")
         start = [d for e, d in evs if e == "start"][0]
