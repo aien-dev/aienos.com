@@ -428,6 +428,10 @@ def run(h):
         return h.refuse(413, "too_long", "That prompt is over the limit (48 KiB, about 32k tokens).")
     if problem:
         return h.refuse(400, "bad_request", problem)
+    if not lab.server(fresh=True)[0]:
+        app.stats.add("infer_offline")
+        return h.refuse(503, "offline", "My model server is offline right now (the GPU is in use for other tests). "
+                        "The speed test is back when it is.", 300)
     vkey = app.client_key(h)
     retry = lab.runs.take(vkey)
     if retry:
