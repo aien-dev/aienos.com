@@ -64,6 +64,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import allen_spool  # noqa: E402
 import allen_projects  # noqa: E402  (build loop: homes, save, publish, gallery)
 import allen_speed  # noqa: E402
+import allen_infer  # noqa: E402  (speed test: infer, infer-verify; allen_infer.py)
 import allen_transcribe  # noqa: E402  (POST transcribe: push-to-talk, off unless --whisper-cli)
 
 try:
@@ -849,6 +850,7 @@ class App:
         self.session_rate = Buckets(10, 30)
         self.live = Live()
         allen_projects.init(self, Buckets)
+        allen_infer.init(self)
         self.tools = load_tools(args.tools) if args.tools else None
         self.tool_specs = list(self.tools.TOOLS) if self.tools else []
         self.tool_prompt = self.tools.SYSTEM_PROMPT.strip() if self.tools else ""
@@ -1299,6 +1301,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.presence()
         if r == "session":
             return self.session()
+        if r == "infer-info":
+            return allen_infer.get(self)
         if allen_projects.get(self, r):
             return
         self.send_json(404, {"error": "not_found"})
@@ -1338,6 +1342,10 @@ class Handler(BaseHTTPRequestHandler):
             return self.project_summary()
         if r == "transcribe":
             return allen_transcribe.handle(self)
+        if r == "infer":
+            return allen_infer.run(self)
+        if r == "infer-verify":
+            return allen_infer.verify(self)
         if allen_projects.post(self, r):
             return
         self.send_json(404, {"error": "not_found"})
@@ -2621,6 +2629,8 @@ def main():
             app.relay_rate.sweep()
             app.handoff_rate.sweep()
             app.live.sweep()
+            app.lab.runs.sweep()
+            app.lab.heavies.sweep()
             if app.console:
                 app.console.fails.sweep()
             now = time.monotonic()
