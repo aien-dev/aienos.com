@@ -59,6 +59,7 @@ pub struct OmegaData {
 pub struct Performance {
     pub stand: String,
     pub how: String,
+    pub links: Vec<(String, String)>,
     #[serde(rename = "box")]
     pub box_: String,
     pub rule: String,
@@ -134,14 +135,18 @@ pub struct Bar {
 
 /// Expands a short link from the data file into a full address.
 /// `o:` a file in omega, `o/:` a folder in omega, `ob:` an omega branch,
-/// `p:` physics, `c:` aien-sovereign-core, `a:` aien-architecture, `b:` omega-bridge,
+/// `p:` physics, `c:` aien-sovereign-core, `c@:` an aien-sovereign-core file at a
+/// full commit, `c/:` an aien-sovereign-core folder at a full commit,
+/// `a:` aien-architecture, `b:` omega-bridge,
 /// `issue:` an omega issue. A link starting with `/` or `#` stays on this site.
 pub fn expand(link: &str) -> Result<String, String> {
-    const MAP: [(&str, &str); 8] = [
+    const MAP: [(&str, &str); 10] = [
         ("o/:", OMEGA_TREE),
         ("ob:", "https://github.com/aien-dev/omega/tree/"),
         ("o:", OMEGA_BLOB),
         ("p:", "https://github.com/aien-dev/physics-mv/blob/main/"),
+        ("c@:", "https://github.com/aien-dev/aien-sovereign-core-mv/blob/"),
+        ("c/:", "https://github.com/aien-dev/aien-sovereign-core-mv/tree/"),
         ("c:", "https://github.com/aien-dev/aien-sovereign-core-mv/blob/main/"),
         ("a:", "https://github.com/aien-dev/aien-architecture-mv/blob/main/"),
         ("b:", "https://github.com/aien-dev/omega-bridge/blob/main/"),
@@ -208,6 +213,7 @@ pub fn validate(d: &OmegaData) -> Result<(), String> {
         return Err(format!("the performance bar must be P0 to P4 in order, found {pids:?}"));
     }
     boxes.push(&d.performance.box_);
+    links.extend(d.performance.links.iter().map(|x| x.1.as_str()));
     for b in d.bar.iter().chain(d.performance.bar.iter()) {
         if !STATUSES[..3].contains(&b.status.as_str()) {
             return Err(format!("{}: unknown status {:?}", b.id, b.status));
@@ -502,11 +508,12 @@ pub fn render_omega_page() -> Markup {
 
             section id="performance" class="om-section" {
                 div class="container" {
-                    p class="om-kicker" { "5 \u{00B7} Performance: matching and then beating CUDA" }
+                    p class="om-kicker" { "5 \u{00B7} Performance: what has been measured" }
                     h2 class="om-h2" { (pmet) " of " (d.performance.bar.len()) " met" }
                     article class="om-gap om-perf" {
                         p { (d.performance.stand) }
                         p { (d.performance.how) }
+                        (inline_links(&d.performance.links))
                         (box_foot(&d.performance.box_))
                     }
                     p class="om-sub om-perf-rule" { (d.performance.rule) }
@@ -659,6 +666,8 @@ mod tests {
         assert_eq!(expand("o/:src/checker2").unwrap(), "https://github.com/aien-dev/omega/tree/main/src/checker2");
         assert_eq!(expand("ob:runtime/r2-hello").unwrap(), "https://github.com/aien-dev/omega/tree/runtime/r2-hello");
         assert_eq!(expand("/now/#L332").unwrap(), "/now/#L332");
+        assert_eq!(expand("c@:abc/docs/x.md").unwrap(), "https://github.com/aien-dev/aien-sovereign-core-mv/blob/abc/docs/x.md");
+        assert_eq!(expand("c/:abc/evidence/x").unwrap(), "https://github.com/aien-dev/aien-sovereign-core-mv/tree/abc/evidence/x");
     }
 
     #[test]
@@ -679,5 +688,22 @@ mod tests {
         for w in ["revolutionary", "blazing", "cutting-edge", "seamless", "world-class", "powerful", "aienix"] {
             assert!(!lower.contains(w), "{w}");
         }
+    }
+
+    #[test]
+    fn speed_is_measured_only_never_compared() {
+        // Until a same-Spark head-to-head is published (bar P0), the page
+        // states only what was measured, keeps chip-only apart from end to
+        // end, and never says Omega the language runs the model.
+        let s = render_omega_page().into_string();
+        let lower = s.to_ascii_lowercase();
+        for w in ["level with", "ahead of", "beating cuda", "matching and then", "runs on omega", "omega runs"] {
+            assert!(!lower.contains(w), "{w}");
+        }
+        let d = data();
+        assert!(d.performance.stand.contains("end to end") && d.performance.stand.contains("chip-only"));
+        assert!(d.performance.stand.contains("about 3B parameters active per token"));
+        assert!(d.true_today.contains("C GPU stack") && d.true_today.contains("bar C1"));
+        assert!(s.contains("https://github.com/aien-dev/aien-sovereign-core-mv/tree/9c62690a252ab1c0b75eb8933c550316b5c50d52/evidence/q36-batch-20261021"));
     }
 }

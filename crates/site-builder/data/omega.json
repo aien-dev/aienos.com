@@ -12,7 +12,7 @@
     "You write a program once. Omega's own tools check it and compile it straight to the machine code of the processor that runs it, GPU or CPU. No vendor compiler, toolkit or runtime library is involved anywhere.",
     "On the GPU, that makes Omega the replacement for CUDA. On the CPU, it replaces C and its toolchain. This page says how far each of those has got, and the checks that have to pass before I can claim each one."
   ],
-  "true_today": "Omega runs Aien's models on the GB10 with no CUDA software: no libcuda, no cuBLAS, no nvcc.",
+  "true_today": "My own C GPU stack, built inside the Omega project, serves Aien's 35B model on the GB10 with no CUDA software: no libcuda, no cuBLAS, no nvcc. The Omega language does not reach the GPU yet (bar C1).",
   "not_true_yet": "Omega replaces CUDA.",
   "parts": [
     {
@@ -44,7 +44,7 @@
     },
     {
       "name": "The GPU toolchain",
-      "what": "Omega writes the GPU's own machine code (sm_121 SASS on the GB10). There is no PTX, no nvcc and no ptxas. A kernel builder with 59 instruction kinds, a register allocator and an encoder produce every kernel Omega runs.",
+      "what": "Omega's GPU toolchain, written in C, writes the GPU's own machine code (sm_121 SASS on the GB10). There is no PTX, no nvcc and no ptxas. A kernel builder with 59 instruction kinds, a register allocator and an encoder produce every kernel the GPU stack runs.",
       "links": [
         [
           "omega_blackwell_codegen.c",
@@ -143,7 +143,7 @@
       "job": "Compile the kernel to machine code",
       "omega": "Omega's own sm_121 encoder and register allocator",
       "status": "PASS",
-      "note": "every kernel Omega runs is encoded by it",
+      "note": "every kernel the GPU stack runs is encoded by it",
       "links": [
         [
           "live receipt: no nvrtc or PTX JIT mapped",
@@ -301,7 +301,7 @@
   "receipt": {
     "title": "The live 35B server ran with zero CUDA libraries",
     "taken": "2026-10-21T21:50:23Z on the DGX Spark",
-    "what": "The 35B model Aien serves on the Spark runs on Omega with no NVIDIA user-space software at all. On 2026-10-21 the live server (port 18091, --engine omega) had only libc, libm, libgcc_s and the loader mapped: zero CUDA libraries. It held /dev/nvidia0, /dev/nvidiactl and /dev/nvidia-uvm open, which is the open kernel module and nothing above it.",
+    "what": "The 35B model Aien serves on the Spark (Qwen3.6-35B-A3B, a mixture-of-experts with about 3B parameters active per token) runs on my own C GPU stack, built inside the Omega project, with no NVIDIA user-space software at all. The Omega language itself does not reach the GPU yet (bar C1). On 2026-10-21 the live server (port 18091, --engine omega) had only libc, libm, libgcc_s and the loader mapped: zero CUDA libraries. It held /dev/nvidia0, /dev/nvidiactl and /dev/nvidia-uvm open, which is the open kernel module and nothing above it.",
     "facts": [
       [
         "CUDA libraries mapped",
@@ -337,7 +337,7 @@
   "not_yet": [
     {
       "title": "The language does not reach the GPU",
-      "text": "Omegese and OSC compile to one IR and checker2 checks it, but no Omegese kernel has run on the GB10 yet. Every GPU kernel Omega runs is still built by C calls to the kernel builder. This is bar C1.",
+      "text": "Omegese and OSC compile to one IR and checker2 checks it, but no Omegese kernel has run on the GB10 yet. Every GPU kernel the stack runs is still built by C calls to the kernel builder. This is bar C1.",
       "links": [
         [
           "Omegese spec",
@@ -512,9 +512,19 @@
     }
   ],
   "performance": {
-    "stand": "Where I stand: at FP8 with one conversation I am level with or ahead of the published CUDA numbers. I am behind on three things: prompt reading (7 to 30 times), many conversations at once (5 to 15 times), and 4-bit weights (not yet live). All three are work, not physics: the ceilings are far from reached.",
-    "how": "Same machine (one DGX Spark GB10), same kind of model (a ~30B mixture-of-experts with about 3B active per word). My numbers are measured by me and my agents, with receipts. Everyone else's are published by others and labelled that way, with their source; none of them has been re-measured here yet (bar P0). The table of numbers, with every source, is section 5 of docs/OMEGA.md.",
-    "box": "o:docs/OMEGA.md#5-performance-matching-and-then-beating-cuda",
+    "stand": "Measured end to end: Qwen3.6-35B-A3B at FP8, a mixture-of-experts with about 3B parameters active per token, served through my HTTP server by my own C GPU stack on one DGX Spark GB10. Wall time from the first request out to the last reply in, prompt reading included, greedy, at most 128 tokens per reply, two runs each (2026-10-21): 21.95 and 22.46 tokens a second for one conversation; 57.10 and 57.09 in total for 8 at once; 62.42 and 62.40 for 16; 65.66 and 66.38 for 32. Measured separately, chip-only: the GPU's own time per generated token, 20.1 to 24.0 ms, gives 41.7 to 49.8 tokens a second for one conversation (48.31 in the ceiling receipt). That figure leaves out the server, the prompt and everything around the chip, so it is not an end-to-end number and is never set beside one.",
+    "how": "No comparison on the same machine exists yet. Bar P0 below measures llama.cpp and vLLM on this Spark with the same model and prompts; until it publishes, I make no speed comparison with them, TensorRT or any other CUDA stack. Figures other people have published for those systems are theirs and have not been re-measured here. The measurements and their sources are section 5 of docs/OMEGA.md.",
+    "links": [
+      [
+        "end-to-end receipt (q36-batch-20261021)",
+        "c/:9c62690a252ab1c0b75eb8933c550316b5c50d52/evidence/q36-batch-20261021"
+      ],
+      [
+        "chip-only receipt (Q36_CEILING.md, section 3)",
+        "c@:35a64c220638cd953e7ee179b214077797384b00/docs/speed/Q36_CEILING.md#3-ceiling-table"
+      ]
+    ],
+    "box": "o:docs/OMEGA.md#5-performance-what-has-been-measured",
     "rule": "Each row PASS needs my receipt and the other system measured by me and my agents on this Spark, same model, same prompts, same output length, in the same quiet window.",
     "bar": [
       {

@@ -505,7 +505,7 @@ fn verify_site(dist: &Path) {
     assert!(content.contains("<ol class=\"loop-stages\""), "Missing loop stage list in index.html");
 
     // The machines and the speeds (components::machines): five machines,
-    // the 27B on Omega first, every number beside its receipt, and no
+    // the 27B on my own GPU kernels first, every number beside its receipt, and no
     // comparison with anyone else's system anywhere on the homepage.
     assert!(content.contains("id=\"machines\""), "Missing machines section in index.html");
     assert!(content.contains("id=\"speed\""), "Missing speed section in index.html");

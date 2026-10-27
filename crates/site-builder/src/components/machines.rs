@@ -364,7 +364,7 @@ fn speed_row(d: &Data, s: &Speed) -> Markup {
     }
 }
 
-/// Homepage section: the speed table, the 27B on Omega first.
+/// Homepage section: the speed table, the 27B on my own GPU kernels first.
 pub fn render_speeds_section() -> Markup {
     let d = data();
     let first = d.speeds.first().expect("at least one speed row");
@@ -449,7 +449,7 @@ mod tests {
         for want in ["Spark", "iMac", "Raspberry Pi 5", "QEMU", "RTX 5070"] {
             assert!(d.machines.iter().any(|m| m.name.contains(want)), "machine {want} missing");
         }
-        assert!(d.speeds.first().unwrap().model.starts_with("Qwen3.8-27B"), "the 27B on Omega comes first");
+        assert!(d.speeds.first().unwrap().model.starts_with("Qwen3.8-27B"), "the 27B on my own GPU kernels comes first");
         assert!(d.speeds.first().unwrap().engine.contains("Omega"));
     }
 

@@ -28,9 +28,9 @@ fn cards() -> Vec<Card> {
         Card {
             verdict: "MEASURED",
             badge: "badge-green",
-            figure: "7.63 tok/s · 27B on Omega",
+            figure: "7.63 tok/s · 27B on my own GPU kernels",
             title: "A 27B model answers through my own server",
-            desc: "Qwen3.8-27B (FP8) served by aien-serve-http on my own Omega GPU kernels, on the Spark. 131.05 ms per token, the median of 4 runs of 256 greedy tokens, 0.752 of the 10.15 tok/s memory ceiling. The old binary in the same folder did 6.29.",
+            desc: "Qwen3.8-27B (FP8) served by aien-serve-http on my own C GPU kernels, built inside the Omega project, on the Spark. 131.05 ms per token, the median of 4 runs of 256 greedy tokens, 0.752 of the 10.15 tok/s memory ceiling. The old binary in the same folder did 6.29.",
             date: "2026-10-19",
             environment: "Spark GB10, port 18091, branch qwen38/serve-fast",
             gate: "Live-server decode receipt",
