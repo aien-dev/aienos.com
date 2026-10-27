@@ -3,7 +3,7 @@
 use maud::{html, Markup, PreEscaped};
 
 pub const TITLE: &str = "Support my open source work | AienOS";
-pub const DESCRIPTION: &str = "Help Drake Stapleton keep building free and open source software through X Money. X Money is currently US-only and requires an eligible X account.";
+pub const DESCRIPTION: &str = "Help Drake Stapleton keep building free and open source software through GitHub Sponsors, monthly or one-time, for individuals and companies. The money funds the GPU stack.";
 pub const URL: &str = "https://www.aienos.com/support/";
 pub const PAGE: &str = include_str!("../../../../om/support-page/main.html");
 
@@ -37,10 +37,13 @@ mod tests {
         }
     }
     #[test]
-    fn support_is_plain_link_with_honest_eligibility() {
-        assert!(PAGE.contains("href=\"https://x.com/mdrakestapleton\""));
-        for text in ["X Money is currently US-only", "Send Money", "@mdrakestapleton", "not a payment checkout", "no public payment link", "running low on funds"] {
+    fn support_is_github_sponsors_with_no_x_money() {
+        assert!(PAGE.contains("href=\"https://github.com/sponsors/aien-dev\""));
+        for text in ["Sponsor on GitHub", "individuals and companies", "monthly", "one-time", "by invoice", "GPU stack", "llama.cpp and vLLM", "running low on funds"] {
             assert!(PAGE.contains(text), "missing {text}");
+        }
+        for gone in ["X Money", "Send Money", "x.com/mdrakestapleton", "money.x.com"] {
+            assert!(!PAGE.contains(gone), "retired payment rail {gone} is still rendered");
         }
         assert_eq!(PAGE.matches("<li>").count(), 3);
         assert_eq!(PAGE.matches("class=\"support-button\"").count(), 1, "one primary action");
