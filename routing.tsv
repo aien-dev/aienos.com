@@ -14,6 +14,6 @@ agent	security-reviewer	anthropic/claude-opus-5-5:medium
 agent	scout	anthropic/claude-opus-5-5:low
 agent	sonic	anthropic/claude-opus-5-5:low
 agent	seance	anthropic/claude-opus-5-5:low
-seat	Pulse	spark/qwen3.6-35b-a3b-fp8
+seat	Pulse	openai-codex/gpt-6-luna:low
 seat	Steward	anthropic/claude-opus-5-5:medium
 seat	Witness	openai-codex/gpt-6-astra:medium
