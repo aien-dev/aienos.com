@@ -1,0 +1,96 @@
+{
+    "$schema": "https://fundingjson.org/schema/v1.1.0.json",
+    "version": "v1.1.0",
+    "entity": {
+        "type": "individual",
+        "role": "owner",
+        "name": "Drake Stapleton",
+        "email": "drake@aienos.com",
+        "description": "I'm an engineer building Omega and CUDA++ in public, one person with AI agents doing much of the coding. Everything I publish is free and open source. Funding pays for the AI usage that builds it, an independent security review, and reproducible builds so anyone can rebuild the system and rerun my numbers.",
+        "webpageUrl": {
+            "url": "https://www.aienos.com"
+        }
+    },
+    "projects": [
+        {
+            "guid": "omega",
+            "name": "Omega",
+            "description": "A systems language whose compiler, omc, is written in Omega and rebuilt from a 408-byte seed on AArch64 Linux. Migration of the remaining C to Omega is unfinished; the project is research grade and not qualified.",
+            "webpageUrl": {
+                "url": "https://www.aienos.com/omega/"
+            },
+            "repositoryUrl": {
+                "url": "https://github.com/aien-dev/omega-mv",
+                "wellKnown": "https://github.com/aien-dev/omega-mv/blob/main/.well-known/funding-manifest-urls"
+            },
+            "licenses": ["spdx:Apache-2.0"],
+            "tags": ["programming-language", "compiler", "systems-programming", "bootstrapping"]
+        },
+        {
+            "guid": "cudaplusplus",
+            "name": "CUDA++",
+            "description": "My own GPU machine-code toolchain, runtime and driver client for the NVIDIA DGX Spark (GB10, sm_121), built without the CUDA toolkit. Other NVIDIA GPUs are not supported yet. Licensed Apache-2.0 with the LLVM exception.",
+            "webpageUrl": {
+                "url": "https://www.aienos.com/cudaplusplus/"
+            },
+            "repositoryUrl": {
+                "url": "https://github.com/aien-dev/CUDApp",
+                "wellKnown": "https://github.com/aien-dev/CUDApp/blob/main/.well-known/funding-manifest-urls"
+            },
+            "licenses": ["spdx:Apache-2.0"],
+            "tags": ["gpu", "compiler", "nvidia", "developer-tools"]
+        }
+    ],
+    "funding": {
+        "channels": [
+            {
+                "guid": "bitcoin",
+                "type": "other",
+                "address": "bc1qtfzkt7un99e3hrmc6uh3z7ccy6hny7axvxkgd2",
+                "description": "Bitcoin, on chain, native SegWit address. Send directly; there is no payment processor in between. The same address and its QR code are at https://www.aienos.com/support/#bitcoin"
+            }
+        ],
+        "plans": [
+            {
+                "guid": "phase-1-inspectable",
+                "status": "active",
+                "name": "Phase 1: make it inspectable",
+                "description": "About $2,500 for a focused independent security review of the boot chain and selected isolation mechanisms, and about $2,500 for reproducible builds and benchmarking infrastructure, so anyone can rebuild the system from source and rerun my numbers. The plan is written up at https://manifund.org/projects/aienos-personally-owned-ai--intelligence-as-property-not-rent",
+                "amount": 5000,
+                "currency": "USD",
+                "frequency": "one-time",
+                "channels": ["bitcoin"]
+            },
+            {
+                "guid": "phase-2-testable",
+                "status": "active",
+                "name": "Phase 2: make the claims testable",
+                "description": "Independent benchmarks against the leading inference runtimes under matched conditions, precision energy measurement hardware, a second hardware bench, and release engineering for signed installs a stranger can verify. Funded only after Phase 1 publishes its report. The plan is written up at https://manifund.org/projects/aienos-personally-owned-ai--intelligence-as-property-not-rent",
+                "amount": 50000,
+                "currency": "USD",
+                "frequency": "one-time",
+                "channels": ["bitcoin"]
+            },
+            {
+                "guid": "phase-3-ownable",
+                "status": "active",
+                "name": "Phase 3: make it something people can own",
+                "description": "Full time development, a full external security audit, and first pilot deployments on hardware the users own, with public reports on what worked and what broke. Funded only after Phase 2 publishes its report. The plan is written up at https://manifund.org/projects/aienos-personally-owned-ai--intelligence-as-property-not-rent",
+                "amount": 250000,
+                "currency": "USD",
+                "frequency": "one-time",
+                "channels": ["bitcoin"]
+            },
+            {
+                "guid": "any-amount",
+                "status": "active",
+                "name": "AI usage",
+                "description": "Any amount. It pays for the AI usage that builds the code.",
+                "amount": 0,
+                "currency": "USD",
+                "frequency": "one-time",
+                "channels": ["bitcoin"]
+            }
+        ]
+    }
+}
