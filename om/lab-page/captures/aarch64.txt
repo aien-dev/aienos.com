@@ -1,0 +1,79 @@
+compiler   omc sha256 734f0a39319fbfa930bcc62cb30dbf06d47d78e126372b74f5baf478e6126b61 (the site pin)
+command    omc < axpy.om > axpy.bin
+compile    4.084 ms, median of 7, Linux aarch64, 20 CPU cores, DGX Spark (GB10), load1 10.02, 2026-10-27T00:25:28Z
+output     276 bytes of raw AArch64 code, sha256 7bdd7e87bb3c4c79897509c7b22f63b2e738195301e9afa665a40387172d2bb7
+program    axpy.om + harness.om into one Linux program: 3.661 ms, median of 7, load1 10.02
+run        a=3, n=1048576: checksum 2748777496576, awk reference 2748777496576, MATCH
+control    add changed to sub in the kernel: 549754241024, MISMATCH as it should be
+run time   14.853 ms per process (start, 1048576 elements, print, exit), median of 7, load1 10.02
+disasm     objdump -D -b binary -m aarch64 -M no-aliases (GNU objdump (GNU Binutils for Ubuntu) 2.42)
+
+0:	1400000d 	b	0x34
+4:	9b417c04 	smulh	x4, x0, x1
+8:	9b017c03 	madd	x3, x0, x1, xzr
+c:	eb83fc9f 	subs	xzr, x4, x3, asr #63
+10:	540000e1 	b.ne	0x2c  // b.any
+14:	ab020060 	adds	x0, x3, x2
+18:	540000a6 	b.vs	0x2c
+1c:	d65f03c0 	ret
+20:	aa0703e0 	orr	x0, xzr, x7
+24:	f94008f0 	ldr	x16, [x7, #16]
+28:	d61f0200 	br	x16
+2c:	d2800021 	movz	x1, #0x1
+30:	17fffffc 	b	0x20
+34:	d2800003 	movz	x3, #0x0
+38:	aa0103e4 	orr	x4, xzr, x1
+3c:	d2800005 	movz	x5, #0x0
+40:	eb02009f 	subs	xzr, x4, x2
+44:	5400056a 	b.ge	0xf0  // b.tcont
+48:	d28847e6 	movz	x6, #0x423f
+4c:	f2a001e6 	movk	x6, #0xf, lsl #16
+50:	eb0600bf 	subs	xzr, x5, x6
+54:	540005c2 	b.cs	0x10c  // b.hs, b.nlast
+58:	910004a5 	add	x5, x5, #0x1
+5c:	d2800046 	movz	x6, #0x2
+60:	9b447cc9 	smulh	x9, x6, x4
+64:	9b047cc8 	madd	x8, x6, x4, xzr
+68:	eb88fd3f 	subs	xzr, x9, x8, asr #63
+6c:	540004c1 	b.ne	0x104  // b.any
+70:	b100050a 	adds	x10, x8, #0x1
+74:	54000486 	b.vs	0x104
+78:	d10183ff 	sub	sp, sp, #0x60
+7c:	f90003e0 	str	x0, [sp]
+80:	f90007e1 	str	x1, [sp, #8]
+84:	f9000be2 	str	x2, [sp, #16]
+88:	f9000fe3 	str	x3, [sp, #24]
+8c:	f90013e4 	str	x4, [sp, #32]
+90:	f90017e5 	str	x5, [sp, #40]
+94:	f9001be6 	str	x6, [sp, #48]
+98:	f9001fe8 	str	x8, [sp, #56]
+9c:	f90023e9 	str	x9, [sp, #64]
+a0:	f90027ea 	str	x10, [sp, #72]
+a4:	f9002bfe 	str	x30, [sp, #80]
+a8:	f94003e0 	ldr	x0, [sp]
+ac:	f94013e1 	ldr	x1, [sp, #32]
+b0:	f94027e2 	ldr	x2, [sp, #72]
+b4:	97ffffd4 	bl	0x4
+b8:	aa0003e6 	orr	x6, xzr, x0
+bc:	f94003e0 	ldr	x0, [sp]
+c0:	f94007e1 	ldr	x1, [sp, #8]
+c4:	f9400be2 	ldr	x2, [sp, #16]
+c8:	f9400fe3 	ldr	x3, [sp, #24]
+cc:	f94013e4 	ldr	x4, [sp, #32]
+d0:	f94017e5 	ldr	x5, [sp, #40]
+d4:	f9402bfe 	ldr	x30, [sp, #80]
+d8:	910183ff 	add	sp, sp, #0x60
+dc:	ab060063 	adds	x3, x3, x6
+e0:	54000126 	b.vs	0x104
+e4:	b1000484 	adds	x4, x4, #0x1
+e8:	540000e6 	b.vs	0x104
+ec:	17ffffd5 	b	0x40
+f0:	aa0303e0 	orr	x0, xzr, x3
+f4:	d65f03c0 	ret
+f8:	aa0703e0 	orr	x0, xzr, x7
+fc:	f94008f0 	ldr	x16, [x7, #16]
+100:	d61f0200 	br	x16
+104:	d2800021 	movz	x1, #0x1
+108:	17fffffc 	b	0xf8
+10c:	d2800081 	movz	x1, #0x4
+110:	17fffffa 	b	0xf8

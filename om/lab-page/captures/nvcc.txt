@@ -1,0 +1,47 @@
+compiler   nvcc 13.0 (V13.0.88)
+command    nvcc -arch=sm_121 -o axpy axpy.cu   (host + device, a runnable program)
+compile    1206.176 ms, median of 7, Linux aarch64, 20 CPU cores, DGX Spark (GB10), load1 10.75
+device     nvcc -arch=sm_121 -cubin: 406.414 ms, median of 7
+not run    this CUDA program has not been launched; that needs a GPU window
+disasm     cuobjdump -sass axpy.cubin
+
+/*0000*/ LDC R1, c[0x0][0x37c] ;
+/*0010*/ S2R R2, SR_TID.X ;
+/*0020*/ S2UR UR4, SR_CTAID.X ;
+/*0030*/ LDCU.64 UR6, c[0x0][0x398] ;
+/*0040*/ HFMA2 R3, -RZ, RZ, 0, 0 ;
+/*0050*/ LDC R5, c[0x0][0x360] ;
+/*0060*/ IMAD.WIDE.U32 R2, R5, UR4, R2 ;
+/*0070*/ ISETP.GE.S64.AND P0, PT, R2, UR6, PT ;
+/*0080*/ @P0 EXIT ;
+/*0090*/ LDCU.64 UR6, c[0x0][0x388] ;
+/*00a0*/ SHF.L.U64.HI R3, R2.reuse, 0x3, R3 ;
+/*00b0*/ IMAD.SHL.U32 R2, R2, 0x8, RZ ;
+/*00c0*/ LDCU.64 UR8, c[0x0][0x390] ;
+/*00d0*/ LDCU.64 UR4, c[0x0][0x358] ;
+/*00e0*/ IADD.64 R4, R2.reuse, UR6 ;
+/*00f0*/ LDCU.64 UR6, c[0x0][0x380] ;
+/*0100*/ IADD.64 R2, R2, UR8 ;
+/*0110*/ LDG.E.64 R4, desc[UR4][R4.64] ;
+/*0120*/ LDG.E.64 R6, desc[UR4][R2.64] ;
+/*0130*/ IMAD R9, R5, UR6, RZ ;
+/*0140*/ IMAD.WIDE.U32 R6, R4, UR6, R6 ;
+/*0150*/ IMAD R9, R4, UR7, R9 ;
+/*0160*/ IADD3 R7, PT, PT, R7, R9, RZ ;
+/*0170*/ STG.E.64 desc[UR4][R2.64], R6 ;
+/*0180*/ EXIT ;
+/*0190*/ BRA 0x190;
+/*01a0*/ NOP;
+/*01b0*/ NOP;
+/*01c0*/ NOP;
+/*01d0*/ NOP;
+/*01e0*/ NOP;
+/*01f0*/ NOP;
+/*0200*/ NOP;
+/*0210*/ NOP;
+/*0220*/ NOP;
+/*0230*/ NOP;
+/*0240*/ NOP;
+/*0250*/ NOP;
+/*0260*/ NOP;
+/*0270*/ NOP;

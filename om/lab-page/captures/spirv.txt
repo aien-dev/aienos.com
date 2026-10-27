@@ -1,0 +1,280 @@
+compiler   omega-mv 369dbc96daa1684db2d7c2c7085bbf16b3fd77ee: omc sha256 2c82480596bbdc50cda9626866209ef662d5834f278f839ff4ce0250c495029f builds irspirv
+command    { printf 'ir\n'; cat axpy.om; } | omc > axpy.ir && irspirv < axpy.ir > axpy.spv
+translate  1.382 ms for irspirv, median of 7, Linux aarch64, 20 CPU cores, DGX Spark (GB10), load1 10.02
+output     4140 bytes, sha256 adeb8af7af76a547329eb9d91d839032a66c1d70f0a9b3fd0f78000bd77d8f48
+validate   spirv-val --target-env opencl2.1: valid (SPIRV-Tools v2025.1 unknown hash, 2026-05-13T06:03:38+00:00)
+run        PoCL 7.2 on the CPU (cpu-cortex-a720-0xd87): run 3 0 1000 = 2498500, trap 0; reference 2498500, MATCH
+not run    no GPU has executed this SPIR-V yet
+
+; SPIR-V
+; Version: 1.0
+; Generator: Khronos; 0
+; Bound: 212
+; Schema: 0
+               OpCapability Addresses
+               OpCapability Kernel
+               OpCapability Int64
+               OpMemoryModel Physical64 OpenCL
+               OpEntryPoint Kernel %33 "axpy"
+               OpEntryPoint Kernel %35 "run"
+       %void = OpTypeVoid
+       %bool = OpTypeBool
+      %ulong = OpTypeInt 64 0
+%_ptr_Function_ulong = OpTypePointer Function %ulong
+%_ptr_CrossWorkgroup_ulong = OpTypePointer CrossWorkgroup %ulong
+          %6 = OpTypeFunction %void %_ptr_CrossWorkgroup_ulong %_ptr_CrossWorkgroup_ulong
+          %7 = OpTypeFunction %ulong %_ptr_Function_ulong
+          %8 = OpTypeFunction %ulong %_ptr_Function_ulong %ulong
+          %9 = OpTypeFunction %ulong %_ptr_Function_ulong %ulong %ulong
+         %10 = OpTypeFunction %ulong %_ptr_Function_ulong %ulong %ulong %ulong
+         %11 = OpTypeFunction %ulong %_ptr_Function_ulong %ulong %ulong %ulong %ulong
+         %12 = OpTypeFunction %ulong %_ptr_Function_ulong %ulong %ulong %ulong %ulong %ulong
+         %13 = OpTypeFunction %ulong %_ptr_Function_ulong %ulong %ulong %ulong %ulong %ulong %ulong
+    %ulong_0 = OpConstant %ulong 0
+%ulong_9223372036854775808 = OpConstant %ulong 9223372036854775808
+%ulong_9223372036854775807 = OpConstant %ulong 9223372036854775807
+    %ulong_1 = OpConstant %ulong 1
+  %ulong_101 = OpConstant %ulong 101
+    %ulong_2 = OpConstant %ulong 2
+%ulong_999999 = OpConstant %ulong 999999
+  %ulong_104 = OpConstant %ulong 104
+         %32 = OpFunction %ulong None %10
+         %36 = OpFunctionParameter %_ptr_Function_ulong
+         %37 = OpFunctionParameter %ulong
+         %38 = OpFunctionParameter %ulong
+         %39 = OpFunctionParameter %ulong
+         %40 = OpLabel
+         %41 = OpVariable %_ptr_Function_ulong Function
+         %42 = OpVariable %_ptr_Function_ulong Function
+         %43 = OpVariable %_ptr_Function_ulong Function
+         %44 = OpVariable %_ptr_Function_ulong Function
+         %45 = OpVariable %_ptr_Function_ulong Function
+               OpStore %41 %37
+               OpStore %42 %38
+               OpStore %43 %39
+               OpBranch %46
+         %46 = OpLabel
+         %47 = OpLoad %ulong %41
+         %48 = OpLoad %ulong %42
+         %50 = OpSLessThan %bool %47 %ulong_0
+         %51 = OpSLessThan %bool %48 %ulong_0
+         %52 = OpISub %ulong %ulong_0 %47
+         %53 = OpSelect %ulong %50 %52 %47
+         %54 = OpISub %ulong %ulong_0 %48
+         %55 = OpSelect %ulong %51 %54 %48
+         %56 = OpLogicalNotEqual %bool %50 %51
+         %59 = OpSelect %ulong %56 %ulong_9223372036854775808 %ulong_9223372036854775807
+         %60 = OpIEqual %bool %55 %ulong_0
+         %62 = OpSelect %ulong %60 %ulong_1 %55
+         %63 = OpUDiv %ulong %59 %62
+         %64 = OpUGreaterThan %bool %53 %63
+         %65 = OpINotEqual %bool %55 %ulong_0
+         %66 = OpLogicalAnd %bool %64 %65
+               OpBranchConditional %66 %67 %68
+         %67 = OpLabel
+               OpStore %36 %ulong_101
+               OpReturnValue %ulong_0
+         %68 = OpLabel
+         %70 = OpIMul %ulong %47 %48
+               OpStore %44 %70
+         %71 = OpLoad %ulong %44
+         %72 = OpLoad %ulong %43
+         %73 = OpIAdd %ulong %71 %72
+         %74 = OpBitwiseXor %ulong %71 %73
+         %75 = OpBitwiseXor %ulong %72 %73
+         %76 = OpBitwiseAnd %ulong %74 %75
+         %77 = OpSLessThan %bool %76 %ulong_0
+               OpBranchConditional %77 %78 %79
+         %78 = OpLabel
+               OpStore %36 %ulong_101
+               OpReturnValue %ulong_0
+         %79 = OpLabel
+               OpStore %45 %73
+         %80 = OpLoad %ulong %45
+               OpReturnValue %80
+               OpFunctionEnd
+         %33 = OpFunction %void None %6
+         %81 = OpFunctionParameter %_ptr_CrossWorkgroup_ulong
+         %82 = OpFunctionParameter %_ptr_CrossWorkgroup_ulong
+         %83 = OpLabel
+         %84 = OpVariable %_ptr_Function_ulong Function
+               OpStore %84 %ulong_0
+         %85 = OpPtrAccessChain %_ptr_CrossWorkgroup_ulong %81 %ulong_0
+         %86 = OpLoad %ulong %85
+         %87 = OpPtrAccessChain %_ptr_CrossWorkgroup_ulong %81 %ulong_1
+         %88 = OpLoad %ulong %87
+         %89 = OpPtrAccessChain %_ptr_CrossWorkgroup_ulong %81 %ulong_2
+         %91 = OpLoad %ulong %89
+         %92 = OpFunctionCall %ulong %32 %84 %86 %88 %91
+               OpStore %82 %92
+         %93 = OpPtrAccessChain %_ptr_CrossWorkgroup_ulong %82 %ulong_1
+         %94 = OpLoad %ulong %84
+               OpStore %93 %94
+               OpReturn
+               OpFunctionEnd
+         %34 = OpFunction %ulong None %10
+         %95 = OpFunctionParameter %_ptr_Function_ulong
+         %96 = OpFunctionParameter %ulong
+         %97 = OpFunctionParameter %ulong
+         %98 = OpFunctionParameter %ulong
+         %99 = OpLabel
+        %100 = OpVariable %_ptr_Function_ulong Function
+        %101 = OpVariable %_ptr_Function_ulong Function
+        %102 = OpVariable %_ptr_Function_ulong Function
+        %103 = OpVariable %_ptr_Function_ulong Function
+        %104 = OpVariable %_ptr_Function_ulong Function
+        %105 = OpVariable %_ptr_Function_ulong Function
+        %106 = OpVariable %_ptr_Function_ulong Function
+        %107 = OpVariable %_ptr_Function_ulong Function
+        %108 = OpVariable %_ptr_Function_ulong Function
+        %109 = OpVariable %_ptr_Function_ulong Function
+        %110 = OpVariable %_ptr_Function_ulong Function
+        %111 = OpVariable %_ptr_Function_ulong Function
+        %112 = OpVariable %_ptr_Function_ulong Function
+        %113 = OpVariable %_ptr_Function_ulong Function
+        %114 = OpVariable %_ptr_Function_ulong Function
+        %115 = OpVariable %_ptr_Function_ulong Function
+        %116 = OpVariable %_ptr_Function_ulong Function
+               OpStore %100 %96
+               OpStore %101 %97
+               OpStore %102 %98
+               OpBranch %117
+        %117 = OpLabel
+               OpStore %103 %ulong_0
+               OpStore %106 %ulong_0
+               OpStore %107 %ulong_1
+               OpStore %110 %ulong_999999
+               OpStore %112 %ulong_2
+               OpStore %114 %ulong_1
+        %124 = OpLoad %ulong %103
+               OpStore %104 %124
+        %125 = OpLoad %ulong %101
+               OpStore %105 %125
+        %126 = OpLoad %ulong %106
+               OpStore %108 %126
+               OpBranch %118
+        %118 = OpLabel
+        %127 = OpLoad %ulong %105
+        %128 = OpLoad %ulong %102
+        %129 = OpSLessThan %bool %127 %128
+        %130 = OpSelect %ulong %129 %ulong_1 %ulong_0
+               OpStore %109 %130
+        %131 = OpLoad %ulong %109
+        %132 = OpINotEqual %bool %131 %ulong_0
+               OpBranchConditional %132 %119 %122
+        %119 = OpLabel
+        %133 = OpLoad %ulong %108
+        %134 = OpLoad %ulong %110
+        %135 = OpUGreaterThanEqual %bool %133 %134
+        %136 = OpSelect %ulong %135 %ulong_1 %ulong_0
+               OpStore %111 %136
+        %137 = OpLoad %ulong %111
+        %138 = OpINotEqual %bool %137 %ulong_0
+               OpBranchConditional %138 %120 %121
+        %121 = OpLabel
+        %139 = OpLoad %ulong %108
+        %140 = OpLoad %ulong %107
+        %141 = OpIAdd %ulong %139 %140
+               OpStore %108 %141
+        %142 = OpLoad %ulong %112
+        %143 = OpLoad %ulong %105
+        %144 = OpSLessThan %bool %142 %ulong_0
+        %145 = OpSLessThan %bool %143 %ulong_0
+        %146 = OpISub %ulong %ulong_0 %142
+        %147 = OpSelect %ulong %144 %146 %142
+        %148 = OpISub %ulong %ulong_0 %143
+        %149 = OpSelect %ulong %145 %148 %143
+        %150 = OpLogicalNotEqual %bool %144 %145
+        %151 = OpSelect %ulong %150 %ulong_9223372036854775808 %ulong_9223372036854775807
+        %152 = OpIEqual %bool %149 %ulong_0
+        %153 = OpSelect %ulong %152 %ulong_1 %149
+        %154 = OpUDiv %ulong %151 %153
+        %155 = OpUGreaterThan %bool %147 %154
+        %156 = OpINotEqual %bool %149 %ulong_0
+        %157 = OpLogicalAnd %bool %155 %156
+               OpBranchConditional %157 %158 %159
+        %158 = OpLabel
+               OpStore %95 %ulong_101
+               OpReturnValue %ulong_0
+        %159 = OpLabel
+        %160 = OpIMul %ulong %142 %143
+               OpStore %113 %160
+        %161 = OpLoad %ulong %113
+        %162 = OpLoad %ulong %114
+        %163 = OpIAdd %ulong %161 %162
+        %164 = OpBitwiseXor %ulong %161 %163
+        %165 = OpBitwiseXor %ulong %162 %163
+        %166 = OpBitwiseAnd %ulong %164 %165
+        %167 = OpSLessThan %bool %166 %ulong_0
+               OpBranchConditional %167 %168 %169
+        %168 = OpLabel
+               OpStore %95 %ulong_101
+               OpReturnValue %ulong_0
+        %169 = OpLabel
+               OpStore %115 %163
+        %170 = OpLoad %ulong %100
+        %171 = OpLoad %ulong %105
+        %172 = OpLoad %ulong %115
+        %173 = OpFunctionCall %ulong %32 %95 %170 %171 %172
+        %174 = OpLoad %ulong %95
+        %177 = OpINotEqual %bool %174 %ulong_0
+               OpBranchConditional %177 %175 %176
+        %175 = OpLabel
+               OpReturnValue %ulong_0
+        %176 = OpLabel
+               OpStore %116 %173
+        %178 = OpLoad %ulong %104
+        %179 = OpLoad %ulong %116
+        %180 = OpIAdd %ulong %178 %179
+        %181 = OpBitwiseXor %ulong %178 %180
+        %182 = OpBitwiseXor %ulong %179 %180
+        %183 = OpBitwiseAnd %ulong %181 %182
+        %184 = OpSLessThan %bool %183 %ulong_0
+               OpBranchConditional %184 %185 %186
+        %185 = OpLabel
+               OpStore %95 %ulong_101
+               OpReturnValue %ulong_0
+        %186 = OpLabel
+               OpStore %104 %180
+        %187 = OpLoad %ulong %105
+        %188 = OpLoad %ulong %114
+        %189 = OpIAdd %ulong %187 %188
+        %190 = OpBitwiseXor %ulong %187 %189
+        %191 = OpBitwiseXor %ulong %188 %189
+        %192 = OpBitwiseAnd %ulong %190 %191
+        %193 = OpSLessThan %bool %192 %ulong_0
+               OpBranchConditional %193 %194 %195
+        %194 = OpLabel
+               OpStore %95 %ulong_101
+               OpReturnValue %ulong_0
+        %195 = OpLabel
+               OpStore %105 %189
+               OpBranch %118
+        %120 = OpLabel
+               OpStore %95 %ulong_104
+               OpReturnValue %ulong_0
+        %197 = OpLabel
+               OpBranch %122
+        %122 = OpLabel
+        %198 = OpLoad %ulong %104
+               OpReturnValue %198
+               OpFunctionEnd
+         %35 = OpFunction %void None %6
+        %199 = OpFunctionParameter %_ptr_CrossWorkgroup_ulong
+        %200 = OpFunctionParameter %_ptr_CrossWorkgroup_ulong
+        %201 = OpLabel
+        %202 = OpVariable %_ptr_Function_ulong Function
+               OpStore %202 %ulong_0
+        %203 = OpPtrAccessChain %_ptr_CrossWorkgroup_ulong %199 %ulong_0
+        %204 = OpLoad %ulong %203
+        %205 = OpPtrAccessChain %_ptr_CrossWorkgroup_ulong %199 %ulong_1
+        %206 = OpLoad %ulong %205
+        %207 = OpPtrAccessChain %_ptr_CrossWorkgroup_ulong %199 %ulong_2
+        %208 = OpLoad %ulong %207
+        %209 = OpFunctionCall %ulong %34 %202 %204 %206 %208
+               OpStore %200 %209
+        %210 = OpPtrAccessChain %_ptr_CrossWorkgroup_ulong %200 %ulong_1
+        %211 = OpLoad %ulong %202
+               OpStore %210 %211
+               OpReturn
+               OpFunctionEnd

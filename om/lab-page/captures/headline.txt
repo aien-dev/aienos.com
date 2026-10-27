@@ -1,0 +1,1 @@
+Measured on my DGX Spark at 2026-10-27T00:25:28Z, load1 10.75. omc built the Omega kernel and its host loop into a Linux program in 3.661 ms. nvcc 13.0 built the CUDA C kernel and its host main in 1206.176 ms. Median of 7 each, same machine, same minute.

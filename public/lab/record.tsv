@@ -1,0 +1,14 @@
+stamp	2026-10-27T00:25:28Z
+kernel_sha256	3e21fa8ddd276227578c54d93bd46237b46a0e45a29c4c185c58b7a24080622e
+omc_kernel_us	4084
+omc_program_us	3661
+native_run_us	14853
+ir_us	3211
+irwasm_us	5612
+irspirv_us	1382
+nvcc_us	1206176
+nvcc_cubin_us	406414
+wasm_sha256	7607811d1d4440195bd39c5bab57385dd3b81f87321dc6e83f3855b2a5fba76e
+wasm_bytes	519
+cuda_toolkit_bytes	4969991715
+omega_tool_bytes	261792
