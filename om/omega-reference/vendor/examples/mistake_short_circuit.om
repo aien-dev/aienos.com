@@ -1,0 +1,10 @@
+note mistake_short_circuit: and/or evaluate both sides, so this still loads a[4] and traps 3 (exit 103)
+note fix: test the bound in an outer if, then load inside it
+fn main to int
+a = new uchar 4 0
+i = ulong 4
+if and lt i len a eq get a i 0
+ret 1
+end
+ret 0
+end

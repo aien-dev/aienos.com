@@ -1,0 +1,6 @@
+note trap_code: trap N for N in 1..14 exits 100+N; use it for your own fatal codes
+text before "before\n"
+fn main to int
+k = write 1 before 0 len before
+trap 14
+end

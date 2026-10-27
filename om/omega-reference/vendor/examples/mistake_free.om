@@ -1,0 +1,5 @@
+note mistake_free: there is no heap and no free; arrays are new in the outermost block or global
+fn main to int
+free = int 1
+ret 0
+end

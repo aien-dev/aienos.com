@@ -366,6 +366,11 @@ pub fn render_omega_page() -> Markup {
                         a href="/cudaplusplus/" { "CUDA++" }
                         "."
                     }
+                    p class="om-source" {
+                        "Writing Omega yourself, or pointing an agent at it: the "
+                        a href="/omega/reference/" { "Omega language reference" }
+                        " has every compiler error, every trap and every gated worked example."
+                    }
                 }
             }
 

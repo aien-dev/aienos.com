@@ -1,0 +1,5 @@
+note err08_out_of_range: a literal that does not fit its type; int is -2147483648 .. 2147483647
+fn main to int
+x = int 2147483648
+ret 0
+end
