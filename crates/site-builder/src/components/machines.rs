@@ -213,10 +213,10 @@ pub fn fraction(tok_s: f64, ceiling: f64) -> String {
     format!("{:.3}", tok_s / ceiling)
 }
 
-/// "7.63 tok/s" as a big number and a small unit; a value with no space
-/// stays whole.
+/// "22.0 to 22.5 tok/s" as a big number and a small unit (the last word);
+/// a value with no space stays whole.
 fn big_value(value: &str) -> Markup {
-    let (n, unit) = value.split_once(' ').unwrap_or((value, ""));
+    let (n, unit) = value.rsplit_once(' ').unwrap_or((value, ""));
     html! {
         span class="mx-hero-value mono" { (n) @if !unit.is_empty() { " " span class="mx-unit" { (unit) } } }
     }
@@ -343,7 +343,7 @@ fn speed_row(d: &Data, s: &Speed) -> Markup {
                         a href=(c.link) target="_blank" rel="noopener noreferrer" { (format!("{:.2} tok/s", c.tok_s)) }
                     }
                 } @else {
-                    span class="mx-sub mx-none" { "none published" }
+                    span class="mx-sub mx-none" { "none shown" }
                 }
             }
             td class="mx-td-prev" data-label="My previous run" {
@@ -364,7 +364,7 @@ fn speed_row(d: &Data, s: &Speed) -> Markup {
     }
 }
 
-/// Homepage section: the speed table, the 27B on my own GPU kernels first.
+/// Homepage section: the speed table, the 35B end to end first.
 pub fn render_speeds_section() -> Markup {
     let d = data();
     let first = d.speeds.first().expect("at least one speed row");
@@ -374,9 +374,9 @@ pub fn render_speeds_section() -> Markup {
             div class="container" {
                 div class="mx-head" {
                     p class="kicker" { "Speed, with receipts" }
-                    h2 id="speed-title" class="mx-h2" { "A 27B model on my own engine, today" }
+                    h2 id="speed-title" class="mx-h2" { "The 35B through my own server, end to end" }
                     p class="mx-lead" {
-                        "Qwen3.8-27B answers through my own server on my own GPU kernels, on the Spark. The number below is the door a visitor uses. The full table holds the engine alone, the smaller Rig engine and the long-context cost, and every row links to the folder its number came from."
+                        "Qwen3.6-35B-A3B, a mixture-of-experts with about 3B parameters active per token, answers through my own server on my own C GPU stack, on the Spark. The number below is wall time as a client sees it, prompt reading included. The full table holds the 27B chip-time rows, the engine alone, the smaller Rig engine and the long-context cost, each labelled end to end or chip time, and every row links to the folder its number came from."
                     }
                 }
                 div class="mx-hero" {
@@ -449,8 +449,12 @@ mod tests {
         for want in ["Spark", "iMac", "Raspberry Pi 5", "QEMU", "RTX 5070"] {
             assert!(d.machines.iter().any(|m| m.name.contains(want)), "machine {want} missing");
         }
-        assert!(d.speeds.first().unwrap().model.starts_with("Qwen3.8-27B"), "the 27B on my own GPU kernels comes first");
+        assert!(d.speeds.first().unwrap().model.starts_with("Qwen3.6-35B-A3B"), "the 35B end to end comes first");
+        assert!(d.speeds.first().unwrap().what.starts_with("End to end"));
         assert!(d.speeds.first().unwrap().engine.contains("Omega"));
+        for s in d.speeds.iter().filter(|s| s.detail.contains("GPU time per token")) {
+            assert!(s.what.contains("chip time only"), "{}: chip-time row must say so", s.id);
+        }
     }
 
     #[test]
@@ -513,6 +517,8 @@ mod tests {
         assert!(speeds.contains("0.752"));
         assert!(speeds.contains("10.15 tok/s"));
         assert!(speeds.contains("id=\"speed-27b-live\""));
+        assert!(speeds.contains("id=\"speed-35b-e2e\""));
+        assert!(speeds.contains("22.0 to 22.5"));
         assert!(speeds.contains(&data().judging));
         let machines = render_machines_section().into_string();
         for id in ["machine-spark", "machine-imac", "machine-pi5", "machine-qemu", "machine-rig"] {
