@@ -1,0 +1,277 @@
+note SPDX-License-Identifier: Apache-2.0
+note om/community-verify/verify.om: WebAuthn assertion signature check for the aienos.com Community.
+note Composed as one OM-2 unit: om2, vendor/sha2.om, vendor/ec.om, vendor/rsa.om, this file
+note (see check.sh and vendor/SOURCE). Compiled with the vendored omc (omc.sha256).
+note
+note Usage: verify < input        input lines, in this order, one space after the keyword:
+note   alg -7 | alg -257          COSE ES256 (ECDSA P-256 SHA-256) or RS256 (RSASSA-PKCS1-v1_5 SHA-256)
+note   pub HEX                    ES256: 65-byte SEC1 04||X||Y; RS256: DER RSAPublicKey
+note   msg HEX                    the signed bytes (authenticatorData || SHA-256(clientDataJSON));
+note                              hashed here with SHA-256; may be empty
+note   sig HEX                    ES256: DER Ecdsa-Sig-Value; RS256: k bytes
+note   Each line ends with LF; the LF after the last line is optional; nothing else is accepted.
+note   HEX is upper or lower case, even length. Input over 16384 bytes is refused.
+note Usage: verify --key < input  lines alg and pub only; exit 0 when the key is acceptable:
+note   ES256 a valid P-256 point; RS256 a strict DER key with a 2048..4096-bit odd modulus and an
+note   odd public exponent in 3..2^32-1.
+note Exit: 0 valid; ES256 1..5 = ecdsa_verify codes (1 mismatch, 2 bad DER, 3 bad key, 4 r or s
+note   out of range, 5 unsupported); RS256 21..25 = 20 + rsa_verify_pkcs1 codes (21 mismatch,
+note   22 bad key DER, 23 key size or exponent, 24 signature length or s >= n, 25 hash); the RS256
+note   key policy above also applies when verifying (code 23); 9 malformed input, bad arguments or
+note   input over 16384 bytes. Nothing is written to stdout or stderr.
+note All inputs are public values, so variable time is acceptable (see the notes in vendor/ec.om
+note and vendor/rsa.om).
+
+text valg "alg "
+text vpubk "pub "
+text vmsgk "msg "
+text vsigk "sig "
+text v7 "-7"
+text v257 "-257"
+text vkeyarg "--key"
+
+note vin holds the 16384-byte maximum plus one byte: filling it means the input is over the cap.
+global vin uchar 16385
+global varg uchar 8
+note vst: 0 input length, 1 parse position
+global vst ulong 4
+
+fn vdie to void
+exit 9
+end
+
+fn vslurp to void
+t = ulong 0
+while true bound 999999
+room = sub len vin t
+if eq room 0
+vdie
+end
+r = read 0 vin t room
+if lt r 0
+vdie
+end
+if eq r 0
+break
+end
+t = add t ulong r
+end
+put vst 0 t
+end
+
+fn vlit s view uchar * to void
+p = get vst 1
+n = len s
+if gt add p n get vst 0
+vdie
+end
+for i ulong n
+if ne get vin add p i get s i
+vdie
+end
+end
+put vst 1 add p n
+end
+
+fn vis s view uchar * to ulong
+p = get vst 1
+n = len s
+tot = get vst 0
+if gt add p n tot
+ret 0
+end
+for i ulong n
+if ne get vin add p i get s i
+ret 0
+end
+end
+q = add p n
+if lt q tot
+if ne get vin q 10
+ret 0
+end
+end
+ret 1
+end
+
+fn vnib c ulong to ulong
+if and ge c 48 le c 57
+ret sub c 48
+end
+if and ge c 97 le c 102
+ret sub c 87
+end
+if and ge c 65 le c 70
+ret sub c 55
+end
+vdie
+ret 0
+end
+
+fn vhex a edit uchar * to ulong
+p = get vst 1
+tot = get vst 0
+e = p
+while lt e tot bound 999999
+if eq get vin e 10
+break
+end
+e = add e 1
+end
+h = sub e p
+if ne and h 1 0
+vdie
+end
+c = div h 2
+if gt c len a
+vdie
+end
+for i ulong c
+q = add p mul i 2
+hi = vnib ulong get vin q
+lo = vnib ulong get vin add q 1
+put a i uchar or shl hi 4 lo
+end
+put vst 1 e
+ret c
+end
+
+fn vlf to void
+p = get vst 1
+if lt p get vst 0
+put vst 1 add p 1
+end
+end
+
+fn vend to void
+if ne get vst 1 get vst 0
+vdie
+end
+end
+
+fn eckey pub view uchar * to ulong
+w = new ulong ECWN 0
+r = ec_setup w 256
+if ne r 0
+ret r
+end
+ret ec_pub w pub
+end
+
+fn rskey key view uchar * to ulong
+w = new ulong RSWN 0
+r = rsa_key w key
+if ne r 0
+ret r
+end
+mb = get w RSCB
+if or lt mb 2048 gt mb 4096
+ret 3
+end
+eb = rsa_bits key get w RSCEO get w RSCEL
+if gt eb 32
+ret 3
+end
+ret 0
+end
+
+fn vargs to ulong
+n = argcnt
+if lt n 2
+ret 0
+end
+if gt n 2
+vdie
+end
+l = argread 1 varg 0 8
+if ne ulong l len vkeyarg
+vdie
+end
+for i ulong len vkeyarg
+if ne get varg i get vkeyarg i
+vdie
+end
+end
+ret 1
+end
+
+fn vgetalg to ulong
+vlit valg
+a = ulong 0
+if eq vis v257 1
+a = 257
+put vst 1 add get vst 1 4
+else
+if eq vis v7 1
+a = 7
+put vst 1 add get vst 1 2
+else
+vdie
+end
+end
+vlf
+ret a
+end
+
+note a: 7 or 257; pk: public key; hs: SHA-256(msg) || signature
+fn vsig a ulong pk view uchar * hs view uchar * to ulong
+if eq a 7
+ret ecdsa_verify 256 pk hs 32
+end
+rk = rskey pk
+if ne rk 0
+ret add 20 rk
+end
+rc = rsa_verify_pkcs1 256 pk hs 32
+if eq rc 0
+ret 0
+end
+ret add 20 rc
+end
+
+fn vkey a ulong pk view uchar * to ulong
+if eq a 7
+ret eckey pk
+end
+rk = rskey pk
+if eq rk 0
+ret 0
+end
+ret add 20 rk
+end
+
+note omc 2c824805 refuses two part arguments in one call (error 12), so the hs view is cut here
+fn vsigb a ulong pk view uchar * hb view uchar * hl ulong to ulong
+ret vsig a pk part hb 0 hl
+end
+
+fn main to int
+km = vargs
+vslurp
+vpub = new uchar 8192 0
+vmsg = new uchar 8192 0
+vhs = new uchar 8224 0
+a = vgetalg
+vlit vpubk
+pl = vhex vpub
+vlf
+if eq km 1
+vend
+kc = vkey a part vpub 0 pl
+ret int kc
+end
+vlit vmsgk
+ml = vhex vmsg
+vlf
+vlit vsigk
+sl = vhex part vhs 32 8192
+vlf
+vend
+n = sha2_digest 256 part vmsg 0 ml vhs
+if ne n 32
+vdie
+end
+hl = add 32 sl
+rc = vsigb a part vpub 0 pl vhs hl
+ret int rc
+end

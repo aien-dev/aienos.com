@@ -1,0 +1,6 @@
+repo aien-dev/omega-mv commit e5b32567a7aff3ce594e3254a622a846a6cd190b
+file om/tls/sha2.om sha256 5cf0f98116def6917d3a373f2bd4c3932d46e3ff84d9567bbae9e720366fdb33
+file om/tls/ec.om sha256 909f37c797e187bd0663bde9f57c75d6ce41eb2c9726a6b50d6fc714e424c060
+file om/tls/rsa.om sha256 07414c1104f73f3f0d815ce8a7af9e736233c633f4a2ea080e20307ea1919c11
+file seed/out/omc (vendored as ../omc) sha256 2c82480596bbdc50cda9626866209ef662d5834f278f839ff4ce0250c495029f last changed 82a399b9f
+unit order om2, sha2, ec, rsa, verify.om (om/tls/build.sh order, units hkdf x25519 chacha aesgcm omitted: ec and rsa call only sha2)

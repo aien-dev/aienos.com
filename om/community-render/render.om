@@ -1,0 +1,735 @@
+note Community post renderer (aienos.com /community/). Seeded Omega, pinned omc 734f0a39.
+note Usage: render < post.txt > body.html 3> meta.txt
+note Build and test: sh om/community-render/check.sh (writes ./render and render.sha256).
+note Exit 0 ok, 2 input over 4000 bytes, 3 invalid UTF-8, 4 read or write failure.
+note Exit 2 and 3 write zero bytes to fd 1 and fd 3. All output is buffered until the end.
+note Grammar: /home/drakestapleton/handoffs/Community/DESIGN.md Render contract. Resolutions:
+note Lines split on LF; one trailing LF ends the last line and adds no empty line.
+note A line of only spaces and tabs is blank. Blank lines close a paragraph.
+note Paragraph lines join with <br>. No separator bytes between blocks; no final newline.
+note A fence opens on a line whose first three bytes are backticks while fewer than 8 opened.
+note It closes on a line that is exactly three backticks, else at end of input.
+note The fence closes an open paragraph. Code lines join with LF, escaped, no inline work.
+note Inline work runs per line, left to right: backtick span, link, tag, mention, text.
+note The previous byte for the start rules is the raw byte before it in the same line.
+note Escape: & < > " ' as entities; C0 bytes except TAB and LF, and DEL, as &#xFFFD;.
+note Link SHOWN is escaped with the same escaper; URLs are ASCII so the 48 byte cut is exact.
+note Metadata: t m l lines deduplicated by exact line; c lines one per code block, never merged.
+
+const CAP ulong 4000
+const MAXL ulong 16
+const MAXB ulong 8
+const SHOWN ulong 48
+const TAGMAX ulong 32
+const ATMAX ulong 39
+const LANGMAX ulong 16
+
+note Bounds: the densest output is "#a" LF per 3 input bytes, 53 output bytes each, 70702 total;
+note link bytes cost at most 5 in href plus the 49 byte label, so out (262144) cannot overflow.
+note meta holds at most 1334 t or m lines, 16 l lines of at most 4008 bytes and 8 c lines.
+global inp uchar 4096
+global out uchar 262144
+global meta uchar 262144
+global mo ulong 4096
+global ml ulong 4096
+note st: 0 out end, 1 meta end, 2 links, 3 code blocks, 4 input length, 5 meta lines, 6 line start
+global st ulong 8
+
+text tP "<p>"
+text tPC "</p>"
+text tBR "<br>"
+text tPRE "<pre class=\"cm-code\""
+text tDL " data-lang=\""
+text tPRE2 "><code>"
+text tCODE "<code>"
+text tCODEC "</code>"
+text tPREC "</code></pre>"
+text tA1 "<a href=\""
+text tA2 "\" rel=\"nofollow ugc noopener noreferrer\" target=\"_blank\">"
+text tAC "</a>"
+text tTAG "<a class=\"cm-tag\" href=\"/community/?tag="
+text tAT "<a class=\"cm-at\" href=\"/community/?u="
+text tQG "\">"
+text tAMP "&amp;"
+text tLT "&lt;"
+text tGT "&gt;"
+text tQUOT "&quot;"
+text tAPOS "&#39;"
+text tREP "&#xFFFD;"
+
+fn push c uchar to void
+p = get st 0
+put out p c
+put st 0 add p 1
+end
+
+fn mput c uchar to void
+p = get st 1
+put meta p c
+put st 1 add p 1
+end
+
+fn eP to void
+for i ulong len tP
+push get tP i
+end
+end
+fn ePC to void
+for i ulong len tPC
+push get tPC i
+end
+end
+fn eBR to void
+for i ulong len tBR
+push get tBR i
+end
+end
+fn ePRE to void
+for i ulong len tPRE
+push get tPRE i
+end
+end
+fn eDL to void
+for i ulong len tDL
+push get tDL i
+end
+end
+fn ePRE2 to void
+for i ulong len tPRE2
+push get tPRE2 i
+end
+end
+fn eCODE to void
+for i ulong len tCODE
+push get tCODE i
+end
+end
+fn eCODEC to void
+for i ulong len tCODEC
+push get tCODEC i
+end
+end
+fn ePREC to void
+for i ulong len tPREC
+push get tPREC i
+end
+end
+fn eA1 to void
+for i ulong len tA1
+push get tA1 i
+end
+end
+fn eA2 to void
+for i ulong len tA2
+push get tA2 i
+end
+end
+fn eAC to void
+for i ulong len tAC
+push get tAC i
+end
+end
+fn eTAG to void
+for i ulong len tTAG
+push get tTAG i
+end
+end
+fn eAT to void
+for i ulong len tAT
+push get tAT i
+end
+end
+fn eQG to void
+for i ulong len tQG
+push get tQG i
+end
+end
+fn eAMP to void
+for i ulong len tAMP
+push get tAMP i
+end
+end
+fn eLT to void
+for i ulong len tLT
+push get tLT i
+end
+end
+fn eGT to void
+for i ulong len tGT
+push get tGT i
+end
+end
+fn eQUOT to void
+for i ulong len tQUOT
+push get tQUOT i
+end
+end
+fn eAPOS to void
+for i ulong len tAPOS
+push get tAPOS i
+end
+end
+fn eREP to void
+for i ulong len tREP
+push get tREP i
+end
+end
+
+note The one escaper for text, code and attribute values.
+fn esc c uchar to void
+if eq c 38
+eAMP
+ret
+end
+if eq c 60
+eLT
+ret
+end
+if eq c 62
+eGT
+ret
+end
+if eq c 34
+eQUOT
+ret
+end
+if eq c 39
+eAPOS
+ret
+end
+if eq c 127
+eREP
+ret
+end
+if lt c 32
+if and ne c 9 ne c 10
+eREP
+ret
+end
+end
+push c
+end
+
+fn escr a ulong b ulong to void
+for k ulong sub b a
+esc get inp add a k
+end
+end
+
+fn isdig c uchar to bool
+ret and ge c 48 le c 57
+end
+fn isalph c uchar to bool
+ret or and ge c 65 le c 90 and ge c 97 le c 122
+end
+fn isan c uchar to bool
+ret or isdig c isalph c
+end
+fn isword c uchar to bool
+ret or isan c eq c 95
+end
+fn isment c uchar to bool
+ret or isword c eq c 45
+end
+fn islang c uchar to bool
+ret or or and ge c 97 le c 122 isdig c or or eq c 43 eq c 35 eq c 45
+end
+fn lc c uchar to uchar
+if and ge c 65 le c 90
+ret add c 32
+end
+ret c
+end
+
+note URL bytes: A-Za-z0-9 and - . _ ~ : / ? # [ ] @ ! $ & ' ( ) * + , ; = %
+fn isurl c uchar to bool
+if isan c
+ret true
+end
+if and ge c 35 le c 47
+ret true
+end
+if or or eq c 33 eq c 58 or eq c 59 eq c 61
+ret true
+end
+if or or eq c 63 eq c 64 or eq c 91 eq c 93
+ret true
+end
+ret or eq c 95 eq c 126
+end
+fn istrail c uchar to bool
+ret or or or eq c 46 eq c 44 or eq c 59 eq c 58 or or eq c 33 eq c 63 eq c 39
+end
+
+note Lowercased byte at k, or 0 at or past e.
+fn at k ulong e ulong to uchar
+if lt k e
+ret lc get inp k
+end
+ret 0
+end
+
+note Metadata line: kind byte, space, body; mend dedups unless it is a c line.
+fn mbeg k uchar to void
+put st 6 get st 1
+mput k
+mput 32
+end
+fn msame a ulong b ulong n ulong to bool
+for k ulong n
+if ne get meta add a k get meta add b k
+ret false
+end
+end
+ret true
+end
+fn mend dedup bool to void
+s = get st 6
+n = sub get st 1 s
+cnt = get st 5
+if dedup
+for j ulong cnt
+if eq get ml j n
+if msame get mo j s n
+put st 1 s
+ret
+end
+end
+end
+end
+put mo cnt s
+put ml cnt n
+put st 5 add cnt 1
+mput 10
+end
+
+note Scheme length 7 or 8 when a case-insensitive http:// or https:// starts at i, else 0.
+fn scheme i ulong e ulong to ulong
+ok = and and eq at i e 104 eq at add i 1 e 116 and eq at add i 2 e 116 eq at add i 3 e 112
+if not ok
+ret 0
+end
+s = ulong 4
+if eq at add i 4 e 115
+s = 5
+end
+if and and eq at add i s e 58 eq at add i add s 1 e 47 eq at add i add s 2 e 47
+ret add s 3
+end
+ret 0
+end
+
+note True when [a, b) holds more ) than (.
+fn unbal a ulong b ulong to bool
+o = ulong 0
+x = ulong 0
+for k ulong sub b a
+c = get inp add a k
+if eq c 40
+o = add o 1
+end
+if eq c 41
+x = add x 1
+end
+end
+ret gt x o
+end
+
+note Link length from i, 0 when no link starts here.
+fn tryurl i ulong e ulong to ulong
+s = scheme i e
+if eq s 0
+ret 0
+end
+h = add i s
+j = h
+while lt j e bound 4001
+if not isurl get inp j
+break
+end
+j = add j 1
+end
+while gt j h bound 4001
+c = get inp sub j 1
+if istrail c
+j = sub j 1
+continue
+end
+if eq c 41
+if unbal i j
+j = sub j 1
+continue
+end
+end
+break
+end
+if le j h
+ret 0
+end
+c = get inp h
+if or or eq c 47 eq c 63 eq c 35
+ret 0
+end
+ret sub j i
+end
+
+fn emlink i ulong n ulong to void
+put st 2 add get st 2 1
+s = scheme i add i n
+eA1
+escr i add i n
+eA2
+k = sub n s
+if gt k SHOWN
+escr add i s add add i s SHOWN
+push 226
+push 128
+push 166
+else
+escr add i s add i n
+end
+eAC
+mbeg 108
+for q ulong n
+mput get inp add i q
+end
+mend true
+end
+
+note Run of bytes from a while the class holds: 0 word, 1 mention.
+fn wrun a ulong e ulong kind uchar to ulong
+j = a
+while lt j e bound 4001
+c = get inp j
+if eq kind 0
+if not isword c
+break
+end
+else
+if not isment c
+break
+end
+end
+j = add j 1
+end
+ret sub j a
+end
+
+note Tag body at a with n bytes; kind 35 tag, 64 mention.
+fn tagout a ulong n ulong kind uchar to void
+if eq kind 35
+eTAG
+mbeg 116
+else
+eAT
+mbeg 109
+end
+for k ulong n
+c = lc get inp add a k
+push c
+mput c
+end
+mend true
+eQG
+push kind
+for k ulong n
+push get inp add a k
+end
+eAC
+end
+
+fn findbt a ulong e ulong to ulong
+j = a
+while lt j e bound 4001
+if eq get inp j 96
+ret j
+end
+j = add j 1
+end
+ret e
+end
+
+fn inline s ulong e ulong to void
+i = s
+while lt i e bound 4001
+c = get inp i
+pb = uchar 10
+if gt i s
+pb = get inp sub i 1
+end
+if eq c 96
+j = findbt add i 1 e
+if lt j e
+eCODE
+escr add i 1 j
+eCODEC
+i = add j 1
+continue
+end
+end
+if and or eq c 104 eq c 72 lt get st 2 MAXL
+if not isan pb
+n = tryurl i e
+if gt n 0
+emlink i n
+i = add i n
+continue
+end
+end
+end
+if eq c 35
+if not or or isword pb eq pb 38 eq pb 47
+n = wrun add i 1 e 0
+if and and ge n 1 le n TAGMAX isalph get inp add i 1
+tagout add i 1 n 35
+i = add add i 1 n
+continue
+end
+end
+end
+if eq c 64
+if not or isword pb eq pb 46
+n = wrun add i 1 e 1
+if and and ge n 1 le n ATMAX isan get inp add i 1
+tagout add i 1 n 64
+i = add add i 1 n
+continue
+end
+end
+end
+esc c
+i = add i 1
+end
+end
+
+fn lineend p ulong to ulong
+n = get st 4
+j = p
+while lt j n bound 4001
+if eq get inp j 10
+ret j
+end
+j = add j 1
+end
+ret n
+end
+
+fn blank s ulong e ulong to bool
+for k ulong sub e s
+c = get inp add s k
+if and ne c 32 ne c 9
+ret false
+end
+end
+ret true
+end
+
+fn ticks s ulong e ulong to bool
+if lt sub e s 3
+ret false
+end
+a = eq get inp s 96
+b = eq get inp add s 1 96
+ret and and a b eq get inp add s 2 96
+end
+
+fn langok a ulong e ulong to bool
+if gt sub e a LANGMAX
+ret false
+end
+for k ulong sub e a
+if not islang get inp add a k
+ret false
+end
+end
+ret true
+end
+
+fn fence s ulong e ulong to void
+put st 3 add get st 3 1
+a = add s 3
+ok = langok a e
+ePRE
+if and ok gt e a
+eDL
+for k ulong sub e a
+push get inp add a k
+end
+push 34
+end
+ePRE2
+mbeg 99
+if ok
+for k ulong sub e a
+mput get inp add a k
+end
+end
+mend false
+end
+
+fn render to void
+n = get st 4
+pos = ulong 0
+para = false
+fen = false
+fst = false
+while lt pos n bound 4001
+e = lineend pos
+if fen
+if and eq sub e pos 3 ticks pos e
+ePREC
+fen = false
+else
+if not fst
+push 10
+end
+fst = false
+escr pos e
+end
+else
+if and ticks pos e lt get st 3 MAXB
+if para
+ePC
+para = false
+end
+fence pos e
+fen = true
+fst = true
+else
+if blank pos e
+if para
+ePC
+para = false
+end
+else
+if para
+eBR
+else
+eP
+para = true
+end
+inline pos e
+end
+end
+end
+pos = add e 1
+end
+if fen
+ePREC
+end
+if para
+ePC
+end
+end
+
+note Strict UTF-8: no overlongs, no surrogates, nothing above U+10FFFF.
+fn cb i ulong lo uchar hi uchar to bool
+if ge i get st 4
+ret false
+end
+c = get inp i
+ret and ge c lo le c hi
+end
+fn utf8ok to bool
+n = get st 4
+i = ulong 0
+while lt i n bound 4001
+c = get inp i
+if lt c 128
+i = add i 1
+continue
+end
+if lt c 194
+ret false
+end
+if lt c 224
+if not cb add i 1 128 191
+ret false
+end
+i = add i 2
+continue
+end
+if lt c 240
+lo = uchar 128
+hi = uchar 191
+if eq c 224
+lo = 160
+end
+if eq c 237
+hi = 159
+end
+if not and cb add i 1 lo hi cb add i 2 128 191
+ret false
+end
+i = add i 3
+continue
+end
+if ge c 245
+ret false
+end
+lo = uchar 128
+hi = uchar 191
+if eq c 240
+lo = 144
+end
+if eq c 244
+hi = 143
+end
+if not and cb add i 1 lo hi and cb add i 2 128 191 cb add i 3 128 191
+ret false
+end
+i = add i 4
+end
+ret true
+end
+
+fn flush fd int which uchar to bool
+n = get st 0
+if eq which 1
+n = get st 1
+end
+p = ulong 0
+r = long 0
+while lt p n bound 262145
+if eq which 0
+r = write fd out p sub n p
+else
+r = write fd meta p sub n p
+end
+if le r 0
+ret false
+end
+p = add p ulong r
+end
+ret true
+end
+
+fn main to int
+n = ulong 0
+note Read at most CAP+1 bytes; each pass adds at least one byte, so 4097 passes suffice.
+while lt n add CAP 1 bound 4097
+r = read 0 inp n sub add CAP 1 n
+if lt r 0
+ret 4
+end
+if eq r 0
+break
+end
+n = add n ulong r
+end
+if gt n CAP
+ret 2
+end
+put st 4 n
+if not utf8ok
+ret 3
+end
+render
+if not flush 1 0
+ret 4
+end
+if not flush 3 1
+ret 4
+end
+ret 0
+end

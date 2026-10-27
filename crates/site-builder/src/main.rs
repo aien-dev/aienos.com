@@ -300,6 +300,28 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     );
     fs::create_dir_all(dist.join("lab")).expect("Create Lab directory");
     fs::write(dist.join("lab/index.html"), lab_page.into_string()).expect("Write Lab page");
+    let community_page = render_page_layout(
+        components::community::TITLE,
+        components::community::DESCRIPTION,
+        components::community::URL,
+        "website",
+        html! {
+            link rel="stylesheet" href="/assets/community.css";
+            script defer src="/js/community.js" {}
+        },
+        components::community::render_community_page(),
+    );
+    fs::create_dir_all(dist.join("community")).expect("Create Community directory");
+    fs::write(dist.join("community/index.html"), community_page.into_string()).expect("Write Community page");
+    for (dir, title, description, url, body) in [
+        ("community/policy", components::community::POLICY_TITLE, components::community::POLICY_DESCRIPTION, components::community::POLICY_URL, components::community::render_policy_page()),
+        ("community/terms", components::community::TERMS_TITLE, components::community::TERMS_DESCRIPTION, components::community::TERMS_URL, components::community::render_terms_page()),
+        ("community/privacy", components::community::PRIVACY_TITLE, components::community::PRIVACY_DESCRIPTION, components::community::PRIVACY_URL, components::community::render_privacy_page()),
+    ] {
+        let doc = render_page_layout(title, description, url, "website", html! { link rel="stylesheet" href="/assets/community.css"; }, body);
+        fs::create_dir_all(dist.join(dir)).expect("Create Community document directory");
+        fs::write(dist.join(dir).join("index.html"), doc.into_string()).expect("Write Community document");
+    }
     let learn_page = render_page_layout(
         components::learn::TITLE,
         components::learn::DESCRIPTION,
@@ -727,6 +749,10 @@ const GENERATED_PAGES: &[(&str, usize)] = &[
     ("aien/index.html", 0),
     ("alpha/index.html", 0),
     ("lab/index.html", 0),
+    ("community/index.html", 0),
+    ("community/policy/index.html", 0),
+    ("community/terms/index.html", 0),
+    ("community/privacy/index.html", 0),
     ("learn/index.html", 0),
     ("omega/index.html", 30),
     ("cudaplusplus/index.html", 12),

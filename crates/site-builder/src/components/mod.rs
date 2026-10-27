@@ -37,3 +37,4 @@ pub mod names;
 pub mod contact;
 pub mod engineer;
 pub mod support;
+pub mod community;

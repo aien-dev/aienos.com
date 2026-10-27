@@ -1,0 +1,137 @@
+<div class="cm" id="cm" data-api="/community/api">
+<div class="cm-sky" aria-hidden="true"><span></span><span></span><span></span></div>
+<nav class="cm-left" aria-label="Community">
+<p class="cm-brand"><a href="/community/">Community</a></p>
+<ul class="cm-menu">
+<li><a href="/community/" data-nav="everyone">Everyone</a></li>
+<li><a href="/community/?view=following" data-nav="following">Following</a></li>
+<li><a href="/community/?q=" data-nav="search">Search</a></li>
+<li><a href="/community/?n=1" data-nav="notifications">Notifications <span class="cm-badge" data-badge hidden>0</span></a></li>
+<li data-signed hidden><a href="/community/?u=" data-nav="profile" data-profile>Profile</a></li>
+<li data-signed hidden><a href="/community/?settings=1" data-nav="settings">Settings</a></li>
+<li data-mod hidden><a href="/community/?mod=1" data-nav="mod">Moderation queue</a></li>
+<li><a href="/community/?log=1" data-nav="log">Moderation log</a></li>
+</ul>
+<p class="cm-left-h">Topics</p>
+<ul class="cm-topics">
+<li><a href="/community/?tag=omega">#omega</a></li>
+<li><a href="/community/?tag=cuda">#cuda</a></li>
+<li><a href="/community/?tag=gb10">#gb10</a></li>
+<li><a href="/community/?tag=vibecoding">#vibecoding</a></li>
+<li><a href="/community/?tag=opencompute">#opencompute</a></li>
+</ul>
+<p class="cm-docs"><a href="/community/policy/">Rules</a> <a href="/community/terms/">Terms</a> <a href="/community/privacy/">Privacy</a> <a href="/community/feed/all.atom">Atom feed</a></p>
+<button type="button" class="cm-ghost cm-keys-open" data-keys>Keyboard shortcuts</button>
+</nav>
+<section class="cm-center" aria-labelledby="cm-title">
+<div class="cm-top">
+<h1 id="cm-title">Community</h1>
+<div id="cm-account" class="cm-account"></div>
+</div>
+<form id="cm-search" class="cm-search" role="search" action="/community/" method="get"><label class="cm-sr" for="cm-q">Search posts and people</label><input id="cm-q" name="q" type="search" placeholder="Search posts and people" maxlength="200" autocomplete="off"><button type="submit" class="cm-ghost">Search</button></form>
+<div id="cm-tabs" class="cm-tabs"><a href="/community/" data-tab="everyone">Everyone</a><a href="/community/?view=following" data-tab="following">Following</a></div>
+<div id="cm-intro" class="cm-intro"><p>I built this space for people building with Omega, CUDA++ and open compute. Every account here was vouched for by a person: you join with an invite from a member and sign in with a passkey, no password. The timeline is newest first, with no ranking, no ads and no trackers.</p><div id="cm-signin" class="cm-signin-row"></div></div>
+<form id="cm-compose" class="cm-compose" hidden>
+<p id="cm-mode" class="cm-mode" hidden><span id="cm-mode-text"></span> <button type="button" id="cm-mode-cancel" class="cm-ghost">Cancel</button></p>
+<label class="cm-sr" for="cm-text">Write a post</label>
+<textarea id="cm-text" name="text" rows="3" placeholder="What are you building?" aria-describedby="cm-count cm-hint"></textarea>
+<details id="cm-attach" class="cm-attach"><summary>Attach a project</summary><label for="cm-project">Path in <code>aien-dev/omega-projects</code></label><input id="cm-project" name="project" type="text" maxlength="200" placeholder="projects/your-handle/your-project" autocomplete="off" spellcheck="false"></details>
+<div class="cm-compose-row"><span id="cm-hint" class="cm-hint">Ctrl or Cmd and Enter posts.</span><span id="cm-count" class="cm-count">0 / 4000</span><button id="cm-post" type="submit" class="cm-primary">Post</button></div>
+</form>
+<p id="cm-status" class="cm-status" role="status" aria-live="polite"></p>
+<button type="button" id="cm-fresh" class="cm-fresh" hidden></button>
+<div id="cm-head" class="cm-head"></div>
+<ol id="cm-feed" class="cm-feed" aria-label="Posts"></ol>
+<noscript><p class="cm-note">The timeline needs JavaScript. The <a href="/community/feed/all.atom">Atom feed</a> works without it.</p></noscript>
+<button type="button" id="cm-older" class="cm-older" hidden>Load older</button>
+</section>
+<aside class="cm-right" aria-label="About this space">
+<section class="cm-panel">
+<h2>Why this exists</h2>
+<p>X is full of bots. I wanted one place where the people building open compute can talk shop and actually find each other.</p>
+<p>Every account here was vouched for by a person. Joining takes an invite from a member, and a member who invites a spammer can lose the right to invite. Real bots are welcome when a person registers them and they carry a label.</p>
+<p>AI-assisted coding is celebrated here, never shamed. Show what you and your agents built.</p>
+<p>The timeline is chronological. No ranking algorithm, no ads, no trackers.</p>
+</section>
+<section class="cm-panel">
+<h2>Featured tags</h2>
+<ul class="cm-featured">
+<li><a href="/community/?tag=omega">#omega</a> <span data-tag-count="omega"></span></li>
+<li><a href="/community/?tag=cuda">#cuda</a> <span data-tag-count="cuda"></span></li>
+<li><a href="/community/?tag=gb10">#gb10</a> <span data-tag-count="gb10"></span></li>
+<li><a href="/community/?tag=vibecoding">#vibecoding</a> <span data-tag-count="vibecoding"></span></li>
+<li><a href="/community/?tag=opencompute">#opencompute</a> <span data-tag-count="opencompute"></span></li>
+</ul>
+</section>
+<section class="cm-panel">
+<h2>The rules, short</h2>
+<ul class="cm-rules">
+<li>You are 13 or older.</li>
+<li>Nothing illegal, no harassment, no hate.</li>
+<li>No spam. Automation is registered and labelled.</li>
+<li>No doxxing. No impersonation.</li>
+<li>Coding with AI is welcome.</li>
+</ul>
+<p><a href="/community/policy/">Read the full policy</a> and the public <a href="/community/?log=1">moderation log</a>.</p>
+</section>
+</aside>
+<nav class="cm-tabbar" aria-label="Community sections">
+<a href="/community/" data-nav="everyone">Home</a>
+<a href="/community/?q=" data-nav="search">Search</a>
+<a href="/community/?n=1" data-nav="notifications">Alerts <span class="cm-badge" data-badge hidden>0</span></a>
+<a href="/community/?u=" data-nav="profile" data-profile>Profile</a>
+<a href="/community/?log=1" data-nav="log">Log</a>
+</nav>
+<dialog id="cm-report" class="cm-dialog" aria-labelledby="cm-report-h">
+<form id="cm-report-form" method="dialog">
+<h2 id="cm-report-h">Report</h2>
+<p id="cm-report-what" class="cm-note"></p>
+<fieldset><legend>What is wrong?</legend>
+<label><input type="radio" name="reason" value="spam" required> Spam or undisclosed automation</label>
+<label><input type="radio" name="reason" value="harassment"> Harassment or hate</label>
+<label><input type="radio" name="reason" value="illegal"> Illegal content</label>
+<label><input type="radio" name="reason" value="impersonation"> Impersonation</label>
+<label><input type="radio" name="reason" value="other"> Something else</label>
+</fieldset>
+<label for="cm-report-note">Anything a moderator should know (optional)</label>
+<textarea id="cm-report-note" name="note" rows="3" maxlength="500"></textarea>
+<p class="cm-note">A moderator reviews every report. The person you report never sees who sent it.</p>
+<div class="cm-dialog-row"><button type="submit" value="cancel" class="cm-ghost" formnovalidate>Cancel</button><button type="submit" value="send" class="cm-primary">Send report</button></div>
+</form>
+</dialog>
+<dialog id="cm-confirm" class="cm-dialog" aria-labelledby="cm-confirm-h">
+<form id="cm-confirm-form" method="dialog">
+<h2 id="cm-confirm-h">Are you sure?</h2>
+<p id="cm-confirm-text" class="cm-note"></p>
+<div id="cm-confirm-reason" hidden><label for="cm-confirm-input">Public reason, shown in the moderation log</label><input id="cm-confirm-input" type="text" maxlength="200" autocomplete="off"></div>
+<div class="cm-dialog-row"><button type="submit" value="cancel" class="cm-ghost">Cancel</button><button type="submit" value="ok" id="cm-confirm-ok" class="cm-danger">Confirm</button></div>
+</form>
+</dialog>
+<dialog id="cm-revoke" class="cm-dialog" aria-labelledby="cm-revoke-h">
+<form id="cm-revoke-form" method="dialog">
+<h2 id="cm-revoke-h">Revoke a vouch</h2>
+<p id="cm-revoke-text"></p>
+<label class="cm-check"><input type="checkbox" id="cm-revoke-cascade" name="cascade"> Also revoke everyone this account invited, and everyone they invited</label>
+<p id="cm-revoke-warn" class="cm-warn" aria-live="polite"></p>
+<label for="cm-revoke-reason">Public reason, shown in the moderation log</label>
+<input id="cm-revoke-reason" name="reason" type="text" maxlength="200" autocomplete="off" required>
+<div class="cm-dialog-row"><button type="submit" value="cancel" class="cm-ghost" formnovalidate>Cancel</button><button type="submit" value="ok" class="cm-danger">Revoke</button></div>
+</form>
+</dialog>
+<dialog id="cm-keys" class="cm-dialog" aria-labelledby="cm-keys-h">
+<form method="dialog">
+<h2 id="cm-keys-h">Keyboard shortcuts</h2>
+<dl class="cm-keylist">
+<dt><kbd>j</kbd> <kbd>k</kbd></dt><dd>Next or previous post</dd>
+<dt><kbd>r</kbd></dt><dd>Reply to the selected post</dd>
+<dt><kbd>l</kbd></dt><dd>Like the selected post</dd>
+<dt><kbd>Enter</kbd></dt><dd>Open the selected post</dd>
+<dt><kbd>n</kbd></dt><dd>New post</dd>
+<dt><kbd>/</kbd></dt><dd>Search</dd>
+<dt><kbd>?</kbd></dt><dd>This list</dd>
+<dt><kbd>Ctrl</kbd> <kbd>Enter</kbd></dt><dd>Send the post you are writing</dd>
+</dl>
+<div class="cm-dialog-row"><button type="submit" class="cm-primary">Close</button></div>
+</form>
+</dialog>
+</div>

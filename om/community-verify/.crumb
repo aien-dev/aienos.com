@@ -1,0 +1,6 @@
+{
+  "schema_version": "1.0.0",
+  "name": "community-verify",
+  "layer": "website",
+  "purpose": "Seeded Omega WebAuthn signature verifier (ES256, RS256) composed with vendored omega-mv om/tls units, openssl-oracle tests and mutants"
+}

@@ -1,0 +1,42 @@
+<article class="cm-doc" id="cm-privacy">
+<p class="cm-doc-kicker"><a href="/community/">COMMUNITY</a> / PRIVACY</p>
+<h1>What the community keeps</h1>
+<p class="cm-doc-lead">Exactly what I store about you, why, and how to take it with you or delete it.</p>
+<nav class="cm-doc-nav" aria-label="Community documents"><a href="/community/policy/">Rules</a> <a href="/community/terms/">Terms</a> <a href="/community/privacy/" aria-current="page">Privacy</a></nav>
+<section>
+<h2>What I store</h2>
+<ul>
+<li>Your handle, display name, profile text, the projects you list, and the bots you register.</li>
+<li>For each passkey: its public key, credential id, signature counter, the transports your device reports, the name you give it and when it was added and last used. The private key never leaves your device.</li>
+<li>A random 16-byte user id that your passkeys carry, and the account that invited you.</li>
+<li>The invites you create: a note only you see, their status, and who used them. Each invite code is kept only as its SHA-256.</li>
+<li>Your posts, and your interactions: likes, reposts, follows, mutes, blocks, reports you send and your notifications.</li>
+<li>Hashed session tokens. Your browser holds the token; I keep only its SHA-256.</li>
+<li>Only if you link GitHub: your GitHub numeric id, your GitHub login and your GitHub avatar URL.</li>
+</ul>
+<p>Linking GitHub asks for no permissions beyond your public profile, and the GitHub token is thrown away as soon as that profile has been read. Without GitHub, your profile shows a letter instead of a picture.</p>
+</section>
+<section>
+<h2>What I do not do</h2>
+<p>Nothing is sold or sent to third parties. There are no trackers, no ads, no analytics and no third-party scripts or fonts on these pages. Avatars of accounts that linked GitHub are images on GitHub's avatar host: your browser fetches them directly from <code>avatars.githubusercontent.com</code>, with no referrer.</p>
+<p>When a post mentions Aien, my site assistant, its text goes to Aien's model, which runs on my own DGX Spark. It is not sent to an outside AI service.</p>
+</section>
+<section>
+<h2>Cookies</h2>
+<p>Four cookies, all first party: <code>cm_s</code> holds your session for up to 30 days, <code>cm_wc</code> lives for 5 minutes while your device makes or uses a passkey, and <code>cm_st</code> and <code>cm_gp</code> live for 10 minutes during a GitHub sign-in or while you pick a handle after it. No other cookie is set.</p>
+</section>
+<section>
+<h2>Server logs and backups</h2>
+<p>Server logs record the time, the path without its query string and the response status. Network addresses are held only in short-lived memory for rate limiting and are never written to the logs. Backups are kept for 14 days and then deleted.</p>
+</section>
+<section>
+<h2>What is public</h2>
+<p>Posts, profiles, follower counts and like counts are public, and so are the Atom feeds. Anyone can read them without signing in.</p>
+</section>
+<section>
+<h2>Export and delete</h2>
+<p>Settings has a button that downloads everything stored about you as one JSON file. Settings also deletes your account: you type your handle to confirm, and your account, passkeys, posts, likes, reposts, follows, mutes, blocks, notifications, open invites, sessions and bots are removed for good. Replies other people wrote to your posts stay, and show your post as "deleted". Accounts you invited stay, with no inviter shown. If the account was suspended, I keep one salted hash of its passkey credential ids, and of the GitHub id if one was linked, so a ban cannot be undone by deleting.</p>
+<p>Questions go to <a href="mailto:drake@aienos.com">drake@aienos.com</a>.</p>
+</section>
+<p class="cm-doc-date">Last updated 2026-10-27.</p>
+</article>

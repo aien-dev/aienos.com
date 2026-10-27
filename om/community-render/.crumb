@@ -1,0 +1,6 @@
+{
+  "schema_version": "1.0.0",
+  "name": "community-render",
+  "layer": "website",
+  "purpose": "Seeded Omega renderer for community posts: text to escaped HTML fragment plus metadata, with oracle, fuzz and mutant checks"
+}

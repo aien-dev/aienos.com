@@ -14,7 +14,8 @@ pub const NAV_PRIMARY: [(&str, &str); 6] = [
 ];
 
 /// Secondary links: behind the "More" menu button at the end of the row.
-pub const NAV_SECONDARY: [(&str, &str); 10] = [
+pub const NAV_SECONDARY: [(&str, &str); 11] = [
+    ("Community", "/community/"),
     ("Sovereign Intelligence", "/alpha/"),
     ("Lab", "/lab/"),
     ("Start here", "/start/"),
