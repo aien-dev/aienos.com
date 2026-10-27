@@ -789,11 +789,18 @@
     }, 1500);
   }
   /* The policy becomes the first element of the program's head, as in the
-     chat client: after an existing head tag, else in a head of its own. */
+     chat client: after an existing head tag, else in a head of its own. The
+     prefix (doctype, comments, html tag) is skipped one sticky token at a
+     time and a comment body never holds its closing marker, so the scan is
+     linear in the source. */
   function sandboxed(source) {
     const meta = `<meta http-equiv="Content-Security-Policy" content="${CSP}">`;
-    const head = /^\s*(?:<!doctype[^>]*>\s*)?(?:<!--[\s\S]*?-->\s*)*(?:<html(?:\s[^>]*)?>\s*)?(?:<!--[\s\S]*?-->\s*)*<head(?:\s[^>]*)?>/i.exec(source);
-    if (head) return source.slice(0, head[0].length) + meta + source.slice(head[0].length);
+    const prefix = /\s*(?:<!doctype[^>]*>|<!--(?:[^-]|-(?!->))*-->|<html(?:\s[^>]*)?>)/iy;
+    let at = 0;
+    while (prefix.exec(source)) at = prefix.lastIndex;
+    const head = /\s*<head(?:\s[^>]*)?>/iy;
+    head.lastIndex = at;
+    if (head.exec(source)) return source.slice(0, head.lastIndex) + meta + source.slice(head.lastIndex);
     const lead = /^\s*(?:<!doctype[^>]*>\s*)?(?:<html(?:\s[^>]*)?>)?/i.exec(source)[0];
     return `${lead}<head>${meta}</head>${source.slice(lead.length)}`;
   }
