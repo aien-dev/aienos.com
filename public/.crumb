@@ -8,56 +8,56 @@
       "children": [
         {
           "digest": "b8917c6f36b89eefce0ad992d3e57c834b50d2035a3316f3bdea333c1ae579c1",
-          "last_commit": "da2a360",
+          "last_commit": "96d38f3",
           "name": "alpha",
           "purpose": "Pinned alpha wizard source and unmodified terminal capture assets"
         },
         {
-          "digest": "22d1c2cfb2a5fd5d9616f6a25b4194758e9e8334e11b5a64cfc63d9d9bdebc6d",
-          "last_commit": "dab78c1",
+          "digest": "0a3e1008128b727add2e075c3d624fdc6c714828516404fae67d278deab0b40c",
+          "last_commit": "ee3833c",
           "name": "assets",
           "purpose": "Website styles including the project dashboard"
         },
         {
-          "digest": "4ea92189357e234e4d0050ef344afea5d951fa5adc4786f38cf3752197b17ebe",
-          "last_commit": "688ad77",
+          "digest": "abf431a8972e4f462f35fa5a5fc9e8182c54bf36532c93de6492bab3458e3c1e",
+          "last_commit": "3b327f2",
           "name": "data",
           "purpose": "Published generated project measurements with pinned sources"
         },
         {
-          "digest": "25b7b3d362ca12298744b599bafc8fcc9ddba6fff3d60e49cfee02999002e889",
-          "last_commit": "3ef4004",
+          "digest": "c4f14b5009b8fe02225d5cb08e220db27d023c24499e76e88809ae93b8c6f354",
+          "last_commit": "ee3833c",
           "name": "js",
           "purpose": "Browser interactions using public data only"
         },
         {
-          "digest": "f24f0aa0fdf61a456db8919e8f9426907752d6852164d451ad8eef0c51f8f83c",
-          "last_commit": "983b3b4",
+          "digest": "6ee328cab957d221721e988204b9ac7f6b4fdd2a9bfe3e474625ed4ce8fa898e",
+          "last_commit": "8f55098",
           "name": "licensing",
           "purpose": "Public static research or licensing pages using the shared website navigation"
         },
         {
-          "digest": "0edbc4f3427136f05b7100d4e162b3c358a77d881c45f6c756fa03fc72f64d1c",
-          "last_commit": "983b3b4",
+          "digest": "936828b67284e18ab0ab934dfa6010a80e0adf4ea6cf29753f304b9b5edba1ec",
+          "last_commit": "8f55098",
           "name": "post-llm-case",
           "purpose": "Public static research or licensing pages using the shared website navigation"
         },
         {
-          "digest": "5c8c8b51440ae7d73f623ee761b856335628c4b4bc0e9dec7f18561708f3f2ba",
-          "last_commit": "99b3b4b",
+          "digest": "18f575c2a981a44b3eaa0130d02b3787d13c60833852d6f993d109be3126fd1c",
+          "last_commit": "8f55098",
           "name": "research",
           "purpose": "Public static research or licensing pages using the shared website navigation"
         }
       ],
-      "children_root": "sha256:bd441a6ced9881fbd83cb6f74b5931e3122361ba40a9dc02633e67010087d057",
-      "compiled_at": "2026-10-26T19:10:07Z",
+      "children_root": "sha256:210c6cef5631d3e7649a92c7c36fbe2cce25face2c39be53305e1cd3e014c161",
+      "compiled_at": "2026-10-27T12:12:01Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:b251e22f0e2a3a8a14ea7c3b03cfb37987accf105892c615fb4b7529f2490419",
+      "digest": "sha256:6d13e211f8e7a6eb867a65539c945dca21bb485ef8f34779a9a8d5e099c4322b",
       "evidence_files": 1,
       "evidence_root": "sha256:63bece7cb299b29d19622dcb0de4cbaa623357b117d8c7643a562de286c4b2fb",
-      "files": 138,
-      "generated_at_commit": "8fc8cc6bb076825abc24c2d7c7be23f0e3bc74f4",
-      "source_tree": "sha256:0b84b76f53d412285f002d22e9eb01b40452cf41160e188ff37efd9a757ad375"
+      "files": 150,
+      "generated_at_commit": "ee3833cf07c25087cd86efe04a5b88bc60c16e7e",
+      "source_tree": "sha256:c817595df5db8fefc2c600055b2a00d782095fd16529c9e5a86bbdae179abce8"
     }
   },
   "invariants": [
