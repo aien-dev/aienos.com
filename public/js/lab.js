@@ -41,6 +41,7 @@
     clearTimeout(state.timer);
     if (state.worker) state.worker.terminate();
     state.worker = null;
+    state.bytes = null;
   }
   function ask(message) {
     return new Promise((resolve) => {
@@ -54,17 +55,19 @@
       w.postMessage(message);
     });
   }
-  async function load(bytes, label) {
-    stop();
-    const reply = await ask({ type: 'load', bytes });
+  async function show(reply, label) {
     if (reply.type !== 'loaded') { status(reply.message, 'fail'); return false; }
-    state.bytes = bytes;
+    state.bytes = reply.bytes;
     state.label = label;
-    const hash = await sha256(bytes);
+    const hash = await sha256(reply.bytes);
     const same = hash && hash === state.recorded;
-    $('lab-wasm').textContent = hexdump(bytes);
-    $('lab-wasm-meta').textContent = `${label}: ${fmt(bytes.length)} bytes, ${reply.imports} imports, exports ${reply.exports.join(', ')}. sha256 ${hash || 'unavailable'}${same ? ', byte for byte the file record.sh built on the Spark' : ''}.`;
+    $('lab-wasm').textContent = hexdump(reply.bytes);
+    $('lab-wasm-meta').textContent = `${label}: ${fmt(reply.bytes.length)} bytes, ${reply.imports} imports, exports ${reply.exports.join(', ')}. sha256 ${hash || 'unavailable'}${same ? ', byte for byte the file record.sh built on the Spark' : ''}.`;
     return true;
+  }
+  async function prebuilt() {
+    stop();
+    return show(await ask({ type: 'prebuilt' }), 'prebuilt /lab/axpy.wasm');
   }
   function choice() {
     const a = Math.max(1, Math.min(1000, Math.round(Number($('lab-a').value) || 3)));
@@ -73,7 +76,7 @@
     return { a, n };
   }
   async function run() {
-    if (!state.bytes) { status('The kernel is still loading.', 'wait'); return; }
+    if (!state.bytes && !(await prebuilt())) return;
     const { a, n } = choice();
     status(`Running ${fmt(n)} elements three times in a worker...`, 'wait');
     $('lab-run').disabled = true;
@@ -100,17 +103,11 @@
     const source = src.value;
     status('Compiling on the gateway: omc check, IR, irwasm...', 'wait');
     $('lab-compile').disabled = true;
-    const t = performance.now();
-    let reply;
-    try {
-      const response = await fetch(API, { method: 'POST', credentials: 'omit', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ source }) });
-      reply = response.headers.get('content-type')?.includes('json') ? await response.json() : { ok: false, message: `HTTP ${response.status}` };
-    } catch (err) {
-      reply = { ok: false, message: `The compile service is unreachable (${err.message}). The prebuilt kernel still runs.` };
-    }
-    const trip = performance.now() - t;
+    stop();
+    const reply = await ask({ type: 'compile', source });
     $('lab-compile').disabled = false;
-    if (!reply.ok) {
+    if (reply.trip !== undefined) $('lab-c-trip').textContent = ms(reply.trip);
+    if (reply.type === 'refused') {
       const where = reply.line ? `line ${reply.line}: ` : '';
       status(`${reply.stage ? `${reply.stage} ` : ''}${reply.code ? `error ${reply.code} ` : ''}${where}${reply.message || 'compile failed'}${reply.hint ? `. ${reply.hint}` : ''}`, 'fail');
       if (reply.line) {
@@ -121,11 +118,11 @@
       }
       return false;
     }
-    const bytes = Uint8Array.from(atob(reply.wasm), (c) => c.charCodeAt(0));
-    $('lab-c-server').textContent = `${fmt(reply.compile_ms)} ms`;
-    $('lab-c-trip').textContent = ms(trip);
-    $('lab-c-pin').textContent = `omc ${String(reply.omc_sha256 || '').slice(0, 12)}, irwasm ${String(reply.irwasm_sha256 || '').slice(0, 12)}`;
-    const ok = await load(bytes, label || 'your compile');
+    if (reply.type === 'loaded') {
+      $('lab-c-server').textContent = `${fmt(reply.compileMs)} ms`;
+      $('lab-c-pin').textContent = `omc ${String(reply.omc || '').slice(0, 12)}, irwasm ${String(reply.irwasm || '').slice(0, 12)}`;
+    }
+    const ok = await show(reply, label || 'your compile');
     if (ok) await run();
     return ok;
   }
@@ -151,8 +148,7 @@
       for (const cell of document.querySelectorAll('[data-bytes]')) if (rec[cell.dataset.bytes]) cell.textContent = `${fmt(rec[cell.dataset.bytes])} bytes`;
     } catch { /* the cells keep their link to record.tsv */ }
     try {
-      const bytes = new Uint8Array(await (await fetch('/lab/axpy.wasm')).arrayBuffer());
-      if (await load(bytes, 'prebuilt /lab/axpy.wasm')) status('Ready. Run uses the prebuilt kernel; Compile builds your edit on the gateway.', 'pass');
+      if (await prebuilt()) status('Ready. Run uses the prebuilt kernel; Compile builds your edit on the gateway.', 'pass');
     } catch (err) {
       status(`Could not load the prebuilt kernel: ${err.message}`, 'fail');
     }
