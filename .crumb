@@ -24,7 +24,7 @@
         },
         {
           "digest": "b0e1dff009c86386e5c4993a9953be645b35734afed580e23eb5053092314b38",
-          "last_commit": "211f515",
+          "last_commit": "a30a957",
           "name": "crates",
           "purpose": "Native Rust website crates"
         },
@@ -65,8 +65,8 @@
           "purpose": "Seeded Omega support page, shared invitation and CSS with deterministic artifact checks"
         },
         {
-          "digest": "cfa783d357aefb7027fe28aa4b8de159a6b944e25b8c4e81e61cba2e1af28e69",
-          "last_commit": "211f515",
+          "digest": "0c0b489700618c0945a7853d9228f790eaadea709f4b9832255a32f0031dffb4",
+          "last_commit": "a30a957",
           "name": "public",
           "purpose": "Static public website assets"
         },
@@ -77,15 +77,15 @@
           "purpose": "Isolated compute-only Allen tools and versioned glass-pane protocol; temporary host transport ar"
         }
       ],
-      "children_root": "sha256:e4d2f9972f9514439eb7ab17ca6ab65f1be6f7c24fc95db105f3d9b913fc08d8",
-      "compiled_at": "2026-10-28T11:33:07Z",
+      "children_root": "sha256:a9bdac79947d5d86a75e52cd583c4e00b19567e193cd47065266e5b0bcd6ddcc",
+      "compiled_at": "2026-10-28T11:42:16Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:071204db1e12dab46303223ad997ec9c652acdda63532bbc8a8d3b5a9274c782",
+      "digest": "sha256:2e27cbfe2cda3be95944db4945a1393b9f5613af6de1d32dac98c55f90d9a476",
       "evidence_files": 6,
       "evidence_root": "sha256:7fde48972a09dd4b0f7206aca4e313cd02c8cd195ec602e3924e59246c016aa5",
-      "files": 770,
-      "generated_at_commit": "b0feba805abbfd33c56253fb70494bdcf8d4ea12",
-      "source_tree": "sha256:157018e58138f13ade8db915be4fa9a88845894d0f4a01aef09add97938f2ceb"
+      "files": 779,
+      "generated_at_commit": "a30a9578f8e0171238c4a194bab45a17c28b7b99",
+      "source_tree": "sha256:c0030219f33958bc0931f885a4163d7faff32aca453668c8171d7550ac765960"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",
