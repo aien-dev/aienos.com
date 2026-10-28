@@ -6,7 +6,6 @@ No live configuration, profile data or recovery material is read or changed.
 import http.server
 import os
 from pathlib import Path
-import signal
 import socket
 import subprocess
 import sys
@@ -34,28 +33,6 @@ def port():
     with socket.socket() as s:
         s.bind(('127.0.0.1', 0))
         return s.getsockname()[1]
-
-def workers(master):
-    """Observe actual Linux nginx workers, not signal-command completion."""
-    children = Path(f'/proc/{master}/task/{master}/children').read_text().split()
-    result = set()
-    for child in children:
-        try:
-            command = Path(f'/proc/{child}/cmdline').read_bytes()
-        except FileNotFoundError:
-            continue
-        if command.startswith(b'nginx: worker process'):
-            result.add(child)
-    return result
-
-def handover(master, previous, timeout=30):
-    deadline = time.monotonic() + timeout
-    while time.monotonic() < deadline:
-        current = workers(master)
-        if current and previous.isdisjoint(current):
-            return current
-        time.sleep(.01)
-    raise TimeoutError('nginx worker generation did not retire before deadline')
 
 with tempfile.TemporaryDirectory(prefix='agora-nginx-') as td:
     tmp = Path(td)
@@ -163,21 +140,6 @@ location / {{ return 200 'logging control'; }}
         for sentinel in ['public-privacy-sentinel', 'public-accepted-profile-sentinel', 'synthetic-recovery-sentinel']:
             assert sentinel not in debug, 'synthetic request body leaked to debug log'
         assert not list((tmp / 'body').glob('*')), 'retained temporary request body'
-        # A delivered HUP is not configuration readiness. A withheld HUP must
-        # fail the barrier; a real reload must retire every captured worker.
-        previous = workers(proc.pid)
-        assert previous, 'INVALID: no initial nginx workers observed'
-        try:
-            handover(proc.pid, previous, timeout=.1)
-        except TimeoutError:
-            pass
-        else:
-            raise AssertionError('worker barrier accepted a missing reload')
-        os.kill(proc.pid, signal.SIGHUP)
-        current = handover(proc.pid, previous)
-        assert current and previous.isdisjoint(current)
-        expect('/agora/api/challenge', 200, identity='198.51.100.10')
-        print('AGORA RELOAD PASS bounded worker-generation handover, missing-reload negative control, then GET challenge 200/no-store/exactly one upstream hit')
         print('AGORA DEPLOY PASS exact routes/methods, no upstream on refusal, non-PROXY refusal, spoof identity/quota, response privacy headers, API access-log exclusion. Synthetic request-body sentinels absent from observed debug log; debug active. Suppression causality not established (override-removal mutant survived). No retained body files; transient spill and secret-bearing response logs not qualified.')
     finally:
         proc.terminate()

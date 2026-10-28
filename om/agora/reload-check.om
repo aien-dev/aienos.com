@@ -1,0 +1,361 @@
+note Native Linux nginx reload oracle. Compose after the pinned http.om.
+note argv: nginx executable, existing empty scratch directory. Loopback only.
+note WolframLanguageEvaluator relayed by Main: UnitConvert[Quantity[{30,0.1,0.01},"Seconds"],"Nanoseconds"] -> {30000000000,1.*^8,1.*^7} nanoseconds.
+note nginx is an unchanged external verification oracle, not a production dependency added here.
+global rc_s ulong 8
+global rc_b uchar 16384
+global rc_p uchar 4096
+global rc_r uchar 4096
+global rc_x uchar 4096
+text rc_pre "/proc/"
+text rc_mid "/task/"
+text rc_ch "/children"
+text rc_cf "/nginx.conf"
+text rc_hit "/hits.log"
+text rc_flag "-c"
+text rc_g "-g"
+text rc_off "daemon off;"
+text rc_cfg "worker_processes 1;\nerror_log stderr error;\npid "
+text rc_pid "/pid;\nevents { worker_connections 64; }\nhttp { access_log off;\nclient_body_temp_path "
+text rc_tmp "/body;\nproxy_temp_path "
+text rc_tmp2 "/proxy;\nfastcgi_temp_path "
+text rc_fc "/fastcgi;\nuwsgi_temp_path "
+text rc_uw "/uwsgi;\nscgi_temp_path "
+text rc_sc "/scgi;\nserver { listen 127.0.0.1:"
+text rc_route "; location = /agora/api/challenge { add_header Cache-Control no-store always; proxy_pass http://127.0.0.1:"
+text rc_srv "; } }\nserver { listen 127.0.0.1:"
+text rc_log "; access_log "
+text rc_tail "; location / { return 200 'synthetic readiness'; } } }\n"
+text rc_req "GET /agora/api/challenge HTTP/1.0\nHost: localhost\n\n"
+text rc_ok "HTTP/1.1 200 OK"
+text rc_nost "Cache-Control: no-store"
+text rc_pass "AGORA RELOAD OMEGA PASS barrier; missing-reload and old-worker-alive refused; readiness 200/no-store/one upstream hit\n"
+
+fn rc_ck yes bool to void
+if not yes
+exit 80
+end
+end
+fn rc_emit t view uchar * to void
+for i ulong len t
+put rc_b get rc_s 0 get t i
+put rc_s 0 add get rc_s 0 1
+end
+end
+fn rc_dec v ulong to void
+d = new uchar 20 0
+n = ulong 20
+x = v
+for i ulong 20
+n = sub n 1
+put d n uchar add rem x 10 48
+x = div x 10
+if eq x 0
+break
+end
+end
+while lt n 20 bound 20
+put rc_b get rc_s 0 get d n
+put rc_s 0 add get rc_s 0 1
+n = add n 1
+end
+end
+fn rc_path t view uchar * to ulong
+put rc_s 0 0
+n = argread 2 rc_b 0 len rc_b
+rc_ck gt n 0
+put rc_s 0 ulong n
+rc_emit t
+for i ulong get rc_s 0
+put rc_p i get rc_b i
+end
+ret get rc_s 0
+end
+fn rc_file t view uchar * to long
+n = rc_path t
+ret fopen rc_p 0 n 0 0
+end
+fn rc_child master int to int
+put rc_s 0 0
+rc_emit rc_pre
+rc_dec ulong master
+rc_emit rc_mid
+rc_dec ulong master
+rc_emit rc_ch
+fd = int fopen rc_b 0 get rc_s 0 0 0
+if lt fd 0
+ret -1
+end
+n = read fd rc_r 0 len rc_r
+c = fclose fd
+if le n 0
+ret -1
+end
+pid = ulong 0
+count = ulong 0
+for i ulong ulong n
+v = get rc_r i
+if and ge v 48 le v 57
+pid = add mul pid 10 ulong sub v 48
+else
+if gt pid 0
+count = add count 1
+put rc_s 7 pid
+pid = 0
+end
+end
+end
+if eq count 0
+ret -1
+end
+ret int get rc_s 7
+end
+fn rc_wait master int old int limit long to bool
+start = monons
+if lt start 0
+ret false
+end
+while true bound 999999
+now = monons
+if or lt now 0 ge sub now start limit
+ret false
+end
+cur = rc_child master
+if and gt cur 0 ne cur old
+note MUTANT_OLD: a new worker alone is not readiness.
+if eq killpid old 0 -3
+ret true
+end
+end
+r = sleepns 10000000
+if lt r 0
+ret false
+end
+end
+ret false
+end
+fn rc_pack t view uchar * to void
+pos = get rc_s 1
+put rc_x pos uchar and len t 255
+put rc_x add pos 1 uchar shr len t 8
+pos = add pos 2
+for i ulong len t
+put rc_x add pos i get t i
+end
+put rc_s 1 add pos len t
+end
+fn rc_spawn to int
+aa = new uchar 4096 0
+put rc_x 0 5
+put rc_s 1 2
+n = argread 1 aa 0 len aa
+rc_ck gt n 0
+rc_pack view part aa 0 ulong n
+rc_pack rc_flag
+plen = rc_path rc_cf
+for i ulong plen
+put aa i get rc_p i
+end
+rc_pack view part aa 0 plen
+rc_pack rc_g
+rc_pack rc_off
+child = fork
+if eq child 0
+r = execprog rc_x 0 get rc_s 1
+exit 81
+end
+ret int child
+end
+fn rc_port to ulong
+a = new uchar 16 0
+r = haddr4 a 2130706433 0
+rc_ck eq r 0
+fd = int hlisten a 16
+rc_ck ge fd 0
+prt = hport a
+r = fclose fd
+rc_ck eq r 0
+ret prt
+end
+fn rc_config front ulong back ulong to void
+aa = new uchar 4096 0
+plen = rc_path rc_cf
+fd = int fopen rc_p 0 plen 578 384
+rc_ck ge fd 0
+put rc_s 0 0
+rc_emit rc_cfg
+n = argread 2 aa 0 len aa
+rc_emit view part aa 0 ulong n
+rc_emit rc_pid
+rc_emit view part aa 0 ulong n
+rc_emit rc_tmp
+rc_emit view part aa 0 ulong n
+rc_emit rc_tmp2
+rc_emit view part aa 0 ulong n
+rc_emit rc_fc
+rc_emit view part aa 0 ulong n
+rc_emit rc_uw
+rc_emit view part aa 0 ulong n
+rc_emit rc_sc
+rc_dec front
+rc_emit rc_route
+rc_dec back
+rc_emit rc_srv
+rc_dec back
+rc_emit rc_log
+rc_emit view part aa 0 ulong n
+rc_emit rc_hit
+rc_emit rc_tail
+n = write fd rc_b 0 get rc_s 0
+rc_ck eq n long get rc_s 0
+rc_ck eq fclose fd 0
+end
+fn rc_has needle view uchar * n ulong to bool
+if lt n len needle
+ret false
+end
+for i ulong add sub n len needle 1
+same = true
+for j ulong len needle
+if ne get rc_r add i j get needle j
+same = false
+end
+end
+if same
+ret true
+end
+end
+ret false
+end
+fn rc_request prt ulong to bool
+a = new uchar 16 0
+r = haddr4 a 2130706433 prt
+fd = int socknew 2 1 0
+if lt fd 0
+ret false
+end
+r = connect fd a 0 16
+if lt r 0
+r = fclose fd
+ret false
+end
+n = ulong 0
+for i ulong len rc_req
+if eq get rc_req i 10
+put rc_b n 13
+n = add n 1
+end
+put rc_b n get rc_req i
+n = add n 1
+end
+r = send fd rc_b 0 n 0
+if ne r long n
+r = fclose fd
+ret false
+end
+n = 0
+while lt n len rc_r bound 4096
+r = waitio fd 1 100000000
+if le r 0
+break
+end
+r = recv fd rc_r n sub len rc_r n 0
+if le r 0
+break
+end
+n = add n ulong r
+end
+r = fclose fd
+ret and rc_has rc_ok n rc_has rc_nost n
+end
+fn rc_test master int front ulong to int
+old = int -1
+for i ulong 100
+old = rc_child master
+if gt old 0
+break
+end
+r = sleepns 10000000
+end
+if le old 0
+ret 10
+end
+put rc_s 5 ulong old
+note MUTANT_NEW: absent reload must not pass even though the old worker is alive.
+if rc_wait master old 100000000
+ret 11
+end
+if ne killpid old 19 0
+ret 12
+end
+if ne killpid master 1 0
+ret 13
+end
+note The old worker is stopped before HUP, so cannot retire; a new child is not enough.
+if rc_wait master old 100000000
+ret 14
+end
+nextpid = rc_child master
+if or le nextpid 0 eq nextpid old
+ret 21
+end
+if ne killpid old 18 0
+ret 15
+end
+if not rc_wait master old 30000000000
+ret 16
+end
+if not rc_request front
+ret 17
+end
+fd = int rc_file rc_hit
+if lt fd 0
+ret 18
+end
+n = read fd rc_r 0 len rc_r
+r = fclose fd
+if le n 0
+ret 19
+end
+lines = ulong 0
+for i ulong ulong n
+if eq get rc_r i 10
+lines = add lines 1
+end
+end
+if ne lines 1
+ret 20
+end
+ret 0
+end
+fn main to int
+if ne argcnt 3
+ret 90
+end
+front = rc_port
+back = rc_port
+rc_config front back
+master = rc_spawn
+if le master 0
+ret 91
+end
+result = rc_test master front
+old = int get rc_s 5
+if gt old 0
+r = killpid old 18
+end
+r = killpid master 15
+status = new uchar 4 0
+r = waitpid master status 0 4 0
+if ne r long master
+ret 92
+end
+if ne result 0
+ret result
+end
+r = write 1 rc_pass 0 len rc_pass
+if ne r long len rc_pass
+ret 93
+end
+ret 0
+end

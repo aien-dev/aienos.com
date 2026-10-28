@@ -104,8 +104,16 @@ approved observation mechanism. A missing observation or unexpected response
 is FAIL. Only then begin the remaining identity, route, privacy and browser
 gates. Never retry a failed acceptance request as though it had passed.
 
-The local oracle includes a missing-reload negative control, actual old-worker
-retirement, and a post-barrier challenge with exact upstream count. When
+The native `om/agora/reload-check.om` oracle includes missing-reload and
+old-worker-alive failure controls, actual old-worker retirement, and a
+post-barrier challenge with exact upstream count. It launches only isolated
+loopback nginx workers through Omega's process facilities, observes Linux
+`/proc`, uses monotonic deadlines and performs its own HTTP request. Run
+`OMEGA_OMC=/path/to/pinned/omc NGINX_BIN=/path/to/nginx sh om/agora/check.sh`;
+the existing conductor compiles the Omega unit and requires both barrier-off
+and old-retirement-off source mutants to fail with their expected exits.
+Local oracle nginx version: 1.24.0; it is an unchanged verification oracle,
+not an implementation substituted for Omega. When
 diagnosing a host-specific failure, also replay the complete `nginx -T`
 configuration in isolation, including its SNI/PROXY topology and sibling
 locations; replace only host paths, ports, certificates and external upstreams
