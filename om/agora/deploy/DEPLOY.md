@@ -79,6 +79,39 @@ complete candidate configuration with `nginx -t` before reloading. Do not restar
 nginx or touch unrelated model routes. If any prerequisite fails, leave routing
 disabled rather than broadening the allow list or trusting arbitrary headers.
 
+### Reload adoption barrier
+
+`nginx -t`, `nginx -T`, and a successful reload command do not prove that the
+running master has adopted the candidate. Reload sends a signal asynchronously.
+A fresh TLS connection can still reach an old worker and fall through to Pages.
+Do not change the location hierarchy or add a fixed sleep to mask that race.
+
+Before reload, record the actual master PID, executable, command line and its
+worker PIDs. Confirm the service uses the same executable/configuration that
+passed `nginx -t`; an alternate `-c` or `-p` must be accounted for. After reload,
+use a bounded 30-second observation loop: require at least one new worker PID
+and require every captured old worker PID to have exited. Record both sets.
+Signal-command completion alone is not the barrier. A timeout is FAIL and
+requires rollback, not an extension of the deadline. Long-lived old connections
+can prevent this deliberately strict retirement condition from passing.
+
+Only after worker handover, send one non-mutating GET challenge through the
+actual public TLS/SNI path. Require HTTP 200, `Cache-Control: no-store`, and
+exactly one independently observed backend request. Configure that observation
+before the request without logging bodies, keys or visitor identities. No
+temporary firewall rules are authorized by this guide; use an explicitly
+approved observation mechanism. A missing observation or unexpected response
+is FAIL. Only then begin the remaining identity, route, privacy and browser
+gates. Never retry a failed acceptance request as though it had passed.
+
+The local oracle includes a missing-reload negative control, actual old-worker
+retirement, and a post-barrier challenge with exact upstream count. When
+diagnosing a host-specific failure, also replay the complete `nginx -T`
+configuration in isolation, including its SNI/PROXY topology and sibling
+locations; replace only host paths, ports, certificates and external upstreams
+with local fixtures. Do not publish private captured configuration.
+
+
 ## Required deployment checks
 
 Record observed outputs, not just the commands:
@@ -108,6 +141,16 @@ Record observed outputs, not just the commands:
   established: the override-removal mutant survived. Transient body spill,
   secret-bearing response logging, early header logging, live TLS/SNI identity
   and actual systemd BPF enforcement require separate live inspection/evidence.
+
+The 2026-10-28 activation was rolled back after an immediate post-reload public
+challenge returned the Pages 404. Replaying the complete captured hub
+configuration returned 200 through both the PROXY listener and the SNI router.
+Reloading from the preceding configuration reproduced an immediate old-worker
+Pages 404 followed by 200 after handover. This establishes the reload race
+mechanism, not a retrospective proof of the production cause: historical
+worker lifecycle and per-request upstream counts were not captured. No
+registration location change follows from that observation.
+
 
 Ownership and API consent remain self-attested. Browser consent does not become
 a cryptographic ownership proof. Browser-local recovery keys are accessible to
