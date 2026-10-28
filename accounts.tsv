@@ -1,7 +1,7 @@
-checked	2026-10-28T05:35Z
+checked	2026-10-28T06:05Z
 limit	Anthropic	1		5h	Claude 5 Hour	0		ok
-limit	Anthropic	1		week	Claude 7 Day	91	2026-11-02T03:59Z	ok
-limit	Anthropic	1		week	Claude 7 Day (Fable)	51	2026-11-02T03:59Z	ok
+limit	Anthropic	1		week	Claude 7 Day	91	2026-11-02T04:00Z	ok
+limit	Anthropic	1		week	Claude 7 Day (Fable)	51	2026-11-02T04:00Z	ok
 limit	Anthropic	2		5h	Claude 5 Hour	0		ok
 limit	Anthropic	2		week	Claude 7 Day	100	2026-10-31T16:00Z	exhausted
 limit	Anthropic	2		week	Claude 7 Day (Fable)	100	2026-10-31T16:00Z	exhausted
@@ -13,7 +13,7 @@ limit	Google Antigravity	1		5h	Gemini	0	2026-10-28T10:25Z	ok
 limit	Google Antigravity	1		week	Gemini	48	2026-10-29T06:54Z	ok
 limit	Google Antigravity	1		week	Gemini (Argon)	100	2026-10-29T06:53Z	exhausted
 limit	OpenAI Codex	1	pro	week	7 days	100	2026-11-02T12:33Z	exhausted
-limit	OpenAI Codex	2	plus	5h	5 hours	0	2026-10-28T10:30Z	ok
+limit	OpenAI Codex	2	plus	5h	5 hours	0	2026-10-28T11:05Z	ok
 limit	OpenAI Codex	2	plus	week	7 days	96	2026-11-02T12:21Z	ok
 limit	xAI Grok	1		week	API (Weekly)	100	2026-10-29T10:39Z	exhausted
 limit	xAI Grok	1		week	SuperGrok Weekly Credits	100	2026-10-29T10:39Z	exhausted
