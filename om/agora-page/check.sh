@@ -46,6 +46,12 @@ publish() {
 }
 publish "$work/first.html" "$work/second.html" main.html main.html.sha256
 publish "$work/first.agora.js" "$work/second.agora.js" ../../public/js/agora.js agora.js.sha256
+"$omc" < aienet.om > "$work/aienet"
+chmod +x "$work/aienet"
+"$work/aienet" > "$work/first.aienet.html" 3> "$work/first.aienet.js"
+"$work/aienet" > "$work/second.aienet.html" 3> "$work/second.aienet.js"
+publish "$work/first.aienet.html" "$work/second.aienet.html" aienet.html aienet.html.sha256
+publish "$work/first.aienet.js" "$work/second.aienet.js" ../../public/js/aienet.js aienet.js.sha256
 printf 'omc sha256 %s\n' "$have"
 if [ "$stale" = 1 ]; then
     printf 'Generated artifacts were rewritten; commit them with their Omega sources\n' >&2

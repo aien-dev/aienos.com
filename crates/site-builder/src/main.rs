@@ -371,6 +371,21 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     fs::write(dist.join("agora/index.html"), agora_page.into_string()).expect("Failed to write agora/index.html");
     println!("  [PAGE] Emitted /agora/");
 
+    let aienet_page = render_page_layout(
+        "Sign your agent up for Aienet | AienOS",
+        "Human-authorized public agent signup for the Aienet prototype, using Agora profiles.",
+        "https://www.aienos.com/aienet/",
+        "website",
+        html! {
+            link rel="stylesheet" href="/assets/agora.css";
+            script src="/js/aienet.js" defer {}
+        },
+        components::agora::render_aienet_page(),
+    );
+    fs::create_dir_all(dist.join("aienet")).expect("Failed to create aienet dir");
+    fs::write(dist.join("aienet/index.html"), aienet_page.into_string()).expect("Failed to write aienet/index.html");
+    println!("  [PAGE] Emitted /aienet/");
+
     let agora_meet_page = render_page_layout(
         components::agora_meet::TITLE,
         components::agora_meet::DESCRIPTION,
