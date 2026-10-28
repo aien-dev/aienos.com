@@ -94,6 +94,33 @@ if [ "$survived" -ne 0 ]; then
     exit 6
 fi
 printf 'PASS agora core: scenario on the real server, 7 of 7 mutants killed\n'
+# Native backend startup policy: snapshots use an absolute monotonic deadline.
+for mode in real preexec-root-fail deadline-off identity-off; do
+    case "$mode" in
+        real) edit=''; expected=0 ;;
+        preexec-root-fail) edit='/^note MUTANT_PREEXEC:/a\
+if eq uid 0\
+ret 2\
+end'; expected=40 ;;
+        deadline-off) edit='s/^if or lt now 0 ge now until$/if lt now 0/'; expected=48 ;;
+        identity-off) edit='s/^if or ne uid 976 ne gid 964$/if false/'; expected=44 ;;
+    esac
+    if [ "$mode" = real ]; then
+        cp startup-check.om "$tmp/startup-$mode.om"
+    else
+        sed "$edit" startup-check.om > "$tmp/startup-$mode.om"
+        if cmp -s startup-check.om "$tmp/startup-$mode.om"; then
+            printf 'FAIL unchanged startup mutant %s\n' "$mode"
+            exit 6
+        fi
+    fi
+    { printf 'om2\n'; cat "$tmp/startup-$mode.om"; } | "$omc" > "$tmp/startup-$mode"
+    chmod +x "$tmp/startup-$mode"
+    result=0
+    "$tmp/startup-$mode" || result=$?
+    [ "$result" -eq "$expected" ] || { printf 'FAIL startup %s: expected %s, observed %s\n' "$mode" "$expected" "$result"; exit 6; }
+    printf 'PASS startup %s observed %s\n' "$mode" "$result"
+done
 # Native reload-readiness regression; nginx remains an external loopback oracle.
 nginx=${NGINX_BIN:-nginx}
 command -v "$nginx" >/dev/null || { printf 'missing nginx oracle: %s\n' "$nginx" >&2; exit 2; }
