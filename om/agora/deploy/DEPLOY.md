@@ -20,8 +20,12 @@ Build and verify all binaries on the Spark host:
 
 ```bash
 cd om/agora
-./check.sh
+sh check.sh
+{ printf 'om2\n'; cat sha256.om http.om agora.om; } | "$OMC" > agora
 ```
+
+The unit order matters: `sha256.om` declares a layout, and omc refuses a layout after the first function (error 29).
+The server listens on `--listen 100.64.0.2 --port 18132` (tailnet, the address the hub nginx proxies to); `X-Real-IP` is trusted, so the port must not be reachable except through that proxy and loopback tools.
 
 All gates and mutants must pass before proceeding.
 
