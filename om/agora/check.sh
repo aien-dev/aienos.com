@@ -22,7 +22,7 @@ if [ "$have" != "$pin" ]; then
     printf 'Compiler sha256 mismatch: recorded %s, found %s\n' "$pin" "$have" >&2
     exit 3
 fi
-for t in curl sha256sum jq openssl socat; do
+for t in curl sha256sum jq openssl socat python3; do
     command -v "$t" > /dev/null || { printf 'missing tool: %s\n' "$t" >&2; exit 2; }
 done
 # Each vendored file matches its sidecar; a verbatim copy also matches its upstream source hash

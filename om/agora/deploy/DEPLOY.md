@@ -26,6 +26,12 @@ sh check.sh
 
 The unit order matters: `sha256.om` declares a layout, and omc refuses a layout after the first function (error 29).
 The server listens on `--listen 100.64.0.2 --port 18132` (tailnet, the address the hub nginx proxies to); `X-Real-IP` is trusted, so the port must not be reachable except through that proxy and loopback tools.
+The edge listener must also remain reachable only by nginx and authorized local tools. Loopback is
+not authentication against untrusted local processes. The current pinned interface cannot recover
+the accepted TCP peer address; forwarding `X-Real-IP` from that interface would permit quota spoofing.
+MCP/A2A therefore retain one shared `local` IP quota. Per-client edge quotas are NOT_IMPLEMENTED:
+deploying this source does not resolve audit AG-2. Do not enable new consumers that require independent
+client quotas until the compiler/interface and operator-approved gateway boundary are qualified.
 
 All gates and mutants must pass before proceeding.
 
