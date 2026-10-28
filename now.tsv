@@ -843,3 +843,4 @@ L846	2026-10-27T22:19Z	unassigned	open	Omega extension: 1- and 2-byte mapget/map
 L847	2026-10-28T05:00Z	coordinator	open	FREEZE physics: main unmoved 37h, 2 open PRs, no judge in 6h (desk-freeze-watch)	queue moves: a merge or a judge run on the repo		2026-10-28T05:00Z
 L848	2026-10-28T05:20Z	coordinator	open	FREEZE aienux: main unmoved 37h, 25 open PRs, no judge in 6h (desk-freeze-watch)	queue moves: a merge or a judge run on the repo		2026-10-28T05:20Z
 L849	2026-10-28T05:30Z	coordinator	open	FREEZE aien-sovereign-core: main unmoved 37h, 50 open PRs, no judge in 6h (desk-freeze-watch)	queue moves: a merge or a judge run on the repo		2026-10-28T05:30Z
+L850	2026-10-28T11:00Z	coordinator	open	FREEZE aien-architecture: main unmoved 37h, 17 open PRs, no judge in 6h (desk-freeze-watch)	queue moves: a merge or a judge run on the repo		2026-10-28T11:00Z
