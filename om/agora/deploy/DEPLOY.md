@@ -79,6 +79,36 @@ complete candidate configuration with `nginx -t` before reloading. Do not restar
 nginx or touch unrelated model routes. If any prerequisite fails, leave routing
 disabled rather than broadening the allow list or trusting arbitrary headers.
 
+### Verified configuration transfer
+
+Transfer each candidate, including the existing website server file, through a
+root-only regular temporary file on the destination host. Do not use
+`install /dev/stdin DEST`: the hub's uutils coreutils 0.8.0 installer refuses that
+source when `DEST` already exists, although installing a new destination works.
+Installing from a regular file works for both cases.
+
+For each already reviewed candidate, record its expected SHA256 before transfer.
+On the destination host, create a root-owned temporary file using
+`sudo mktemp /root/aien-agora-config.XXXXXX`; require mode 0600. Transfer the
+candidate bytes into that file with `sudo tee "$tmp" >/dev/null`, not `install`.
+Require `sudo sha256sum "$tmp"` to equal the expected digest before installation.
+After backing up the destination with root-only permissions (or recording that
+it was absent), run:
+
+```sh
+sudo install -o root -g root -m 0644 "$tmp" "$dest"
+actual=$(sudo sha256sum "$dest")
+actual=${actual%% *}
+test "$actual" = "$expected" || exit 1
+sudo rm -- "$tmp"
+```
+
+A transfer or installed-file digest mismatch is FAIL: stop and roll back, never
+reload an unverified candidate. Remove the root-only temporary file on failure
+as well. Check every installed file, not only the new snippet files. This
+procedure changes the transfer mechanism, not the approved configuration,
+network boundary, reload barrier or deployment acceptance gates.
+
 ### Reload adoption barrier
 
 `nginx -t`, `nginx -T`, and a successful reload command do not prove that the
