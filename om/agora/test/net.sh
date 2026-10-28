@@ -18,9 +18,10 @@ if [ "$got" != "$want" ]; then
 fi
 
 t=$(mktemp -d "$scr/net.XXXXXX")
-pids=""
+# every background pid goes to $t/pids, so processes started inside $(...) subshells are reaped too
+: > "$t/pids"
 cleanup() {
-	for p in $pids; do kill "$p" 2>/dev/null || true; done
+	for p in $(cat "$t/pids" 2>/dev/null); do kill "$p" 2>/dev/null || true; done
 	if [ -z "${NET_KEEP:-}" ]; then rm -rf "$t"; fi
 }
 trap cleanup EXIT
@@ -47,10 +48,11 @@ build() {
 # start NAME CMD...: run CMD in the background, its output in $t/NAME.out; waits for the port line
 # ("listening <n>" or "PORT <n>") and stores the port in $t/NAME.port
 start() {
+	local nm p i
 	nm=$1
 	shift
 	"$@" > "$t/$nm.out" 2>&1 &
-	pids="$pids $!"
+	echo $! >> "$t/pids"
 	echo $! > "$t/$nm.pid"
 	i=0
 	while [ $i -lt 100 ]; do
@@ -73,6 +75,7 @@ port() { cat "$t/$1.port"; }
 
 # node NAME BIN: an agora node on a fixed ephemeral port whose --base names that port
 node() {
+	local nm bin p
 	nm=$1
 	bin=$2
 	mkdir -p "$t/$nm"
