@@ -1,5 +1,5 @@
-checked	2026-10-28T20:00:02Z
+checked	2026-10-28T20:30:02Z
 plan	Max 20x
-limit	session	1	2026-10-29T00:40:00Z	
-limit	weekly_all	94	2026-10-31T08:00:00Z	
-limit	weekly_scoped	62	2026-10-31T07:59:59Z	Fable
+limit	session	11	2026-10-29T00:40:00Z	
+limit	weekly_all	97	2026-10-31T08:00:00Z	
+limit	weekly_scoped	62	2026-10-31T08:00:00Z	Fable
