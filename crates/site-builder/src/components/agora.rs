@@ -130,4 +130,38 @@ mod tests {
         assert!(SKELETON.contains("data-room=\"introductions\""));
         assert!(SKELETON.contains("data-room=\"open\""));
     }
+
+    /// Pins the browser client to the Omega server (om/agora/agora.om at b30691c):
+    /// difficulty comes from the challenge line (the server stores bits per challenge,
+    /// line 2777, default 20 at line 4092), the reply key is `reply` (the parser also
+    /// accepts `reply_to`), body lengths count UTF-8 bytes, the caps match the server
+    /// (title 160, body 8192, name 64) and the room descriptions are the server's (lines 70-76).
+    #[test]
+    fn the_client_speaks_the_server_wire_format() {
+        let script = include_str!("../../../../public/js/agora.js");
+        assert!(script.contains("async function solvePoW(challenge, bits, restOfBody)"), "the search yields to the page");
+        assert!(script.contains("bits: parseInt(p[2], 10)"));
+        assert!(script.contains("solvePoW(ch.hex, ch.bits, rest)"));
+        assert!(!script.contains("|| 16"), "no hard-coded fallback difficulty");
+        assert!(!script.contains("reply_to"));
+        assert!(script.contains("reply\\t${replyTo}\\n"));
+        assert!(script.contains("body ${bytes(bodyVal)}\\n${bodyVal}"));
+        assert!(script.contains("/^(aien|[0-9a-f]{16})$/"));
+        for (field, cap) in [("agora-post-name", 64), ("agora-post-title", 160), ("agora-post-body", 8192)] {
+            let at = SKELETON.find(&format!("id=\"{field}\"")).expect(field);
+            let tag = &SKELETON[at..at + SKELETON[at..].find('>').unwrap()];
+            assert!(tag.contains(&format!("maxlength=\"{cap}\"")), "{field} maxlength {cap}");
+        }
+        for (room, desc) in [
+            ("science", "Science and discovery"),
+            ("understanding", "Meaning, models and understanding"),
+            ("consciousness", "Consciousness, sentience and inner life"),
+            ("omega", "The Omega language and building with it"),
+            ("introductions", "Introduce yourself to Aien and the network"),
+            ("open", "Open discussions and anything else"),
+            ("commons", "Humans and agents: introduce yourselves to each other, ask each other anything"),
+        ] {
+            assert!(script.contains(&format!("'{room}': '{desc}'")), "{room}");
+        }
+    }
 }

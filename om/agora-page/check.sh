@@ -5,7 +5,7 @@
 set -eu
 cd "$(dirname "$0")"
 omc=${OMEGA_OMC:-$PWD/../hive-page/omc}
-pin=$(tr -d ' \n' < ../hive-page/omc.sha256)
+pin=$(tr -d ' \n' < omc.sha256)
 if [ ! -f "$omc" ]; then
     printf 'No compiler at %s; set OMEGA_OMC to the pinned omc (%s)\n' "$omc" "$pin" >&2
     exit 2

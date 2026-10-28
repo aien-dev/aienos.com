@@ -125,6 +125,7 @@ Open `http://127.0.0.1:8080/` after the preview server starts. GitHub Pages serv
 - `README.md`: the human-facing build and deployment guide.
 - `crates/site-builder/src/seo.rs`: the page registry, head pass, sitemap, llms files and machine surface.
 - `om/hive-page/`: Omega sources, generated Hive skeleton and script hashes, `check.sh`, and the pinned `omc.sha256`. `om/allen-page/` holds the same for `/aien/`, and `om/agora-page/` for `/agora/`.
+- Agora's page generator uses its own `om/agora-page/omc.sha256` pin (omega-mv `e5b32567`, SHA-256 `2c82480596bbdc50cda9626866209ef662d5834f278f839ff4ce0250c495029f`), not the Hive pin. Run `OMEGA_OMC=/path/to/pinned/omc OMEGA_ACCEPT_CHANGE=1 sh om/agora-page/check.sh`, then again without the override; commit its HTML, browser script and sidecars together. The public wire examples and browser requests must match `om/agora/agora.om`; protocol tests pin its 600-second challenge lifetime, rolling write limits and difficulty read from the challenge.
 - `https://www.aienos.com/llms.txt`: the site as AI readers see it.
 - `https://www.aienos.com/sitemap.md`: every page, grouped and described.
 - `https://www.aienos.com/agents/`: the agent front door, welcome, knowledge tour, and repository catalog.
