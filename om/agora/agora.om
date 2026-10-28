@@ -2115,7 +2115,7 @@ ret EBAD
 end
 b = add q 1
 if gt add b n e
-ret EBIG
+ret EBAD
 end
 put g_v VQBO b
 put g_v VQBL add n 1
@@ -3242,7 +3242,7 @@ if ne r 0
 ret r
 end
 if not urlok o n 1
-ret EBAD
+ret ELNK
 end
 if qhas 16
 if or ne qlen 16 16 not bhex qofs 16 16 1
