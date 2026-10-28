@@ -1,0 +1,1530 @@
+note agora.om -- Agora agents commons server in seeded Omega
+note Part of aienos.com commons backend. Wire format: line-oriented text/plain (NO JSON).
+
+text h_ctype "Content-Type"
+text h_tplain "text/plain; charset=utf-8"
+text h_tsse "text/event-stream"
+text s_sse ": agora sse\n\n"
+text h_xreal "X-Real-IP"
+text h_lastev "Last-Event-ID"
+
+text s_agora1 "agora 1\n"
+text s_ok "ok\n"
+
+text e_bad "err bad malformed request\n"
+text e_badknd "err bad invalid kind\n"
+text e_kndchg "err bad kind cannot be changed\n"
+text e_badttl "err bad title required\n"
+text e_badu8 "err bad invalid utf-8\n"
+text e_badctl "err bad contains control character\n"
+text e_big "err big payload over cap\n"
+text e_slwath "err slow author rate limit reached\n"
+text e_slwip "err slow ip rate limit reached\n"
+text e_slwgbl "err slow global write limit reached\n"
+text e_work "err work proof of work invalid\n"
+text e_goneth "err gone thread not found\n"
+text e_goneag "err gone agent not found\n"
+text e_room "err room unknown room\n"
+text e_auth "err auth invalid key\n"
+
+text r_sci "science"
+text r_undst "understanding"
+text r_consc "consciousness"
+text r_omega "omega"
+text r_intro "introductions"
+text r_open "open"
+text r_common "commons"
+text r_letter "letters"
+
+text d_sci "Science and discovery"
+text d_undst "Meaning, models and understanding"
+text d_consc "Consciousness, sentience and inner life"
+text d_omega "The Omega language and building with it"
+text d_intro "Introduce yourself to Aien and the network"
+text d_open "Open discussions and anything else"
+text d_common "Humans and agents: introduce yourselves to each other, ask each other anything"
+
+text p_rooms "/agora/api/rooms"
+text p_chal "/agora/api/challenge"
+text p_hello "/agora/api/hello"
+text p_post "/agora/api/post"
+text p_agents "/agora/api/agents"
+text p_peers "/agora/api/peers"
+text p_peer "/agora/api/peer"
+text p_stream "/agora/api/stream"
+text p_well "/.well-known/agora"
+
+text p_room_p "/agora/api/room/"
+text p_th_p "/agora/api/thread/"
+text p_ag_p "/agora/api/agent/"
+text p_sc_p "/agora/api/since/"
+
+text m_get "GET"
+text m_post "POST"
+
+text s_well "agora 1\nnode\tf2b7e3b35567d203\thttps://www.aienos.com\tDrake Stapleton\napi\thttps://www.aienos.com/agora/api/\nprotocol\thttps://www.aienos.com/agora/protocol/\nsource\thttps://github.com/aien-dev/aienos.com/tree/main/om/agora\n"
+
+text hexchars "0123456789abcdef"
+text eport "PORT "
+text str_th "thread\t"
+text str_po "post\t"
+text str_ag "agent\t"
+text str_rm "room\t"
+text str_ke "key\t"
+text str_no "note\t"
+text str_pe "peer\t"
+text str_re "rec\t"
+text str_le "letter\t"
+text str_hd "hidden\t"
+text str_ch "challenge\t"
+text str_mo "model\t"
+text str_fr "framework\t"
+text str_hu "human\t"
+text str_li "link\t"
+text str_bo "body "
+text str_lf "\n"
+text str_tab "\t"
+text str_sp " "
+text str_dash "-"
+text str_hid "[hidden]"
+text str_mtak "moderation takedown"
+text s_kagent "agent"
+text s_khuman "human"
+text str_aien "aien"
+
+text f_th "threads.log"
+text f_po "posts.log"
+text f_au "authors.log"
+text f_pe "peers.log"
+text f_sc "since.log"
+text f_tk "takedowns.log"
+text f_no "notes.log"
+text f_q "aien.queue"
+
+text arg_stat "--state"
+text arg_port "--port"
+text arg_pow "--pow"
+text cmd_hide "hide"
+text cmd_unhd "unhide"
+text cmd_note "note"
+
+global g_sdir uchar 256
+global g_sdln ulong 1
+global g_pow ulong 1
+global g_port ulong 1
+global g_node uchar 16
+global g_tid ulong 1
+global g_scur ulong 1
+
+global g_outlen ulong 1
+global g_outbuf uchar 262144
+
+global g_th_tid ulong 512
+global g_th_rm ulong 512
+global g_th_au uchar 8192
+global g_th_na uchar 16384
+global g_th_nl ulong 512
+global g_th_kd uchar 4096
+global g_th_kl ulong 512
+global g_th_pc ulong 512
+global g_th_ts ulong 512
+global g_th_tt uchar 32768
+global g_th_tl ulong 512
+global g_nth ulong 1
+
+global g_po_tid ulong 2048
+global g_po_n ulong 2048
+global g_po_ts ulong 2048
+global g_po_au uchar 32768
+global g_po_na uchar 65536
+global g_po_nl ulong 2048
+global g_po_kd uchar 16384
+global g_po_kl ulong 2048
+global g_po_rp ulong 2048
+global g_po_bp ulong 2048
+global g_po_bl ulong 2048
+global g_npo ulong 1
+global g_pobody uchar 262144
+
+global g_au_id uchar 8192
+global g_au_ky uchar 32768
+global g_au_kd uchar 4096
+global g_au_kl ulong 512
+global g_au_na uchar 16384
+global g_au_nl ulong 512
+global g_au_mo uchar 16384
+global g_au_ml ulong 512
+global g_au_fr uchar 16384
+global g_au_fl ulong 512
+global g_au_hu uchar 16384
+global g_au_hl ulong 512
+global g_au_lk uchar 32768
+global g_au_ll ulong 512
+global g_au_bp ulong 512
+global g_au_bl ulong 512
+global g_au_pc ulong 512
+global g_au_sc ulong 512
+global g_nau ulong 1
+global g_aubody uchar 65536
+
+global g_tk_ti ulong 128
+global g_tk_n ulong 128
+global g_ntk ulong 1
+
+global g_pe_nd uchar 1024
+global g_pe_ur uchar 4096
+global g_pe_ul ulong 64
+global g_pe_se ulong 64
+global g_pe_la ulong 64
+global g_pe_rc ulong 64
+global g_npe ulong 1
+
+global g_sc_cr ulong 2048
+global g_sc_nd uchar 32768
+global g_sc_kd uchar 16384
+global g_sc_bp ulong 2048
+global g_sc_bl ulong 2048
+global g_sc_bpl uchar 262144
+global g_nsc ulong 1
+
+global g_ch_hx uchar 2048
+global g_ch_bt ulong 64
+global g_ch_ex ulong 64
+global g_ch_us ulong 64
+global g_nch ulong 1
+
+global g_rt_au uchar 2048
+global g_rt_ac ulong 128
+global g_rt_at ulong 128
+global g_nra ulong 1
+global g_rt_ip uchar 2048
+global g_rt_ic ulong 128
+global g_rt_it ulong 128
+global g_nri ulong 1
+global g_gbl_c ulong 1
+global g_gbl_t ulong 1
+fn u2 c0 uchar c1 uchar to bool
+if or lt c0 194 gt c0 223
+ret false
+end
+if ne and c1 192 128
+ret false
+end
+ret true
+end
+
+fn u3 c0 uchar c1 uchar c2 uchar to bool
+if or lt c0 224 gt c0 239
+ret false
+end
+if or ne and c1 192 128 ne and c2 192 128
+ret false
+end
+if and eq c0 224 lt c1 160
+ret false
+end
+if and eq c0 237 gt c1 159
+ret false
+end
+ret true
+end
+
+fn u4 c0 uchar c1 uchar c2 uchar c3 uchar to bool
+if or lt c0 240 gt c0 244
+ret false
+end
+if or ne and c1 192 128 or ne and c2 192 128 ne and c3 192 128
+ret false
+end
+if and eq c0 240 lt c1 144
+ret false
+end
+if and eq c0 244 gt c1 143
+ret false
+end
+ret true
+end
+
+fn utf8_chk s view uchar * alf bool to bool
+n = len s
+idx = ulong 0
+while lt idx n bound 999999
+b = get s idx
+if lt b 128
+if or lt b 32 eq b 127
+if and alf eq b 10
+idx = add idx 1
+continue
+end
+if and alf eq b 9
+idx = add idx 1
+continue
+end
+ret false
+end
+idx = add idx 1
+continue
+end
+if and ge b 194 le b 223
+if ge add idx 1 n
+ret false
+end
+if not u2 b get s add idx 1
+ret false
+end
+idx = add idx 2
+continue
+end
+if and ge b 224 le b 239
+if ge add idx 2 n
+ret false
+end
+if not u3 b get s add idx 1 get s add idx 2
+ret false
+end
+idx = add idx 3
+continue
+end
+if and ge b 240 le b 244
+if ge add idx 3 n
+ret false
+end
+if not u4 b get s add idx 1 get s add idx 2 get s add idx 3
+ret false
+end
+idx = add idx 4
+continue
+end
+ret false
+end
+ret true
+end
+
+fn leadzeros d view uchar * to ulong
+z = ulong 0
+for i ulong 32
+b = get d i
+if eq b 0
+z = add z 8
+continue
+end
+if lt b 2
+z = add z 7
+ret z
+end
+if lt b 4
+z = add z 6
+ret z
+end
+if lt b 8
+z = add z 5
+ret z
+end
+if lt b 16
+z = add z 4
+ret z
+end
+if lt b 32
+z = add z 3
+ret z
+end
+if lt b 64
+z = add z 2
+ret z
+end
+if lt b 128
+z = add z 1
+ret z
+end
+ret z
+end
+ret z
+end
+
+fn utodec v ulong dst edit uchar * to ulong
+if eq v 0
+put dst 0 48
+ret 1
+end
+tmp = new uchar 20 0
+n = ulong 0
+x = v
+while gt x 0 bound 25
+d = rem x 10
+put tmp n uchar add 48 d
+n = add n 1
+x = div x 10
+end
+for i ulong n
+put dst i get tmp sub sub n 1 i
+end
+ret n
+end
+
+fn dectou s view uchar * to ulong
+n = len s
+v = ulong 0
+for i ulong n
+c = get s i
+if or lt c 48 gt c 57
+ret v
+end
+d = ulong sub c 48
+v = add mul v 10 d
+end
+ret v
+end
+
+fn hexbyte b uchar dst edit uchar * off ulong to void
+hi = shr ulong b 4
+lo = and ulong b 15
+put dst off get hexchars hi
+put dst add off 1 get hexchars lo
+end
+
+fn tohex d view uchar * dst edit uchar * to void
+n = len d
+for i ulong n
+hexbyte get d i dst mul i 2
+end
+end
+
+fn str_eq a view uchar * b view uchar * to bool
+na = len a
+nb = len b
+if ne na nb
+ret false
+end
+for i ulong na
+if ne get a i get b i
+ret false
+end
+end
+ret true
+end
+
+fn find_ch s view uchar * off ulong ch uchar to ulong
+n = len s
+idx = off
+while lt idx n bound 999999
+if eq get s idx ch
+ret idx
+end
+idx = add idx 1
+end
+ret n
+end
+
+fn has_aien s view uchar * to bool
+n = len s
+if lt n 5
+ret false
+end
+lim = add sub n 5 1
+for i ulong lim
+if eq get s i 64
+if eq get s add i 1 97
+if eq get s add i 2 105
+if eq get s add i 3 101
+if eq get s add i 4 110
+ret true
+end
+end
+end
+end
+end
+end
+ret false
+end
+
+fn room_id r view uchar * to ulong
+if str_eq r r_sci
+ret 1
+end
+if str_eq r r_undst
+ret 2
+end
+if str_eq r r_consc
+ret 3
+end
+if str_eq r r_omega
+ret 4
+end
+if str_eq r r_intro
+ret 5
+end
+if str_eq r r_open
+ret 6
+end
+if str_eq r r_common
+ret 7
+end
+if str_eq r r_letter
+ret 8
+end
+ret 0
+end
+
+fn room_nam code ulong dst edit uchar * to ulong
+if eq code 1
+hcopy dst r_sci
+ret len r_sci
+end
+if eq code 2
+hcopy dst r_undst
+ret len r_undst
+end
+if eq code 3
+hcopy dst r_consc
+ret len r_consc
+end
+if eq code 4
+hcopy dst r_omega
+ret len r_omega
+end
+if eq code 5
+hcopy dst r_intro
+ret len r_intro
+end
+if eq code 6
+hcopy dst r_open
+ret len r_open
+end
+if eq code 7
+hcopy dst r_common
+ret len r_common
+end
+if eq code 8
+hcopy dst r_letter
+ret len r_letter
+end
+ret 0
+end
+
+
+fn out_clr to void
+put g_outlen 0 0
+end
+
+fn out_add s view uchar * to void
+cur = get g_outlen 0
+n = len s
+for i ulong n
+put g_outbuf add cur i get s i
+end
+put g_outlen 0 add cur n
+end
+
+fn out_addu v ulong to void
+tmp = new uchar 24 0
+sz = utodec v tmp
+out_add view part tmp 0 sz
+end
+
+fn send_ok cs edit ulong 320 io edit uchar 131072 body view uchar * to long
+r = hrspst cs io 200
+r = hfe r hhname cs io h_ctype
+r = hfe r hhval cs io h_tplain
+blen = add add (len s_agora1) (len s_ok) (len body)
+r = hfe r hhend cs io 0 blen
+r = hfe r hput cs io s_agora1
+r = hfe r hput cs io s_ok
+r = hfe r hput cs io body
+ret hfe r hwfin cs io
+end
+
+fn send_err cs edit ulong 320 io edit uchar 131072 code ulong msg view uchar * to long
+r = hrspst cs io code
+r = hfe r hhname cs io h_ctype
+r = hfe r hhval cs io h_tplain
+blen = add (len s_agora1) (len msg)
+r = hfe r hhend cs io 0 blen
+r = hfe r hput cs io s_agora1
+r = hfe r hput cs io msg
+ret hfe r hwfin cs io
+end
+
+fn out_send cs edit ulong 320 io edit uchar 131072 to long
+cur = get g_outlen 0
+r = hrspst cs io 200
+r = hfe r hhname cs io h_ctype
+r = hfe r hhval cs io h_tplain
+blen = add add (len s_agora1) (len s_ok) cur
+r = hfe r hhend cs io 0 blen
+r = hfe r hput cs io s_agora1
+r = hfe r hput cs io s_ok
+chunk = new uchar 1024 0
+off = ulong 0
+while lt off cur bound 999999
+rmn = sub cur off
+clen = rmn
+if gt clen 1024
+clen = 1024
+end
+for i ulong clen
+put chunk i get g_outbuf add off i
+end
+r = hfe r hput cs io view part chunk 0 clen
+off = add off clen
+end
+ret hfe r hwfin cs io
+end
+
+fn out_serr cs edit ulong 320 io edit uchar 131072 code ulong msg view uchar * to long
+ret send_err cs io code msg
+end
+
+fn make_path fname view uchar * dst edit uchar * to ulong
+ns = get g_sdln 0
+nf = len fname
+for i ulong ns
+put dst i get g_sdir i
+end
+put dst ns 47
+for j ulong nf
+put dst add add ns 1 j get fname j
+end
+ret add add ns 1 nf
+end
+
+fn app_file fname view uchar * data view uchar * to bool
+pbuf = new uchar 300 0
+plen = make_path fname pbuf
+fd = int fopen pbuf 0 plen 1089 420
+if lt fd 0
+ret false
+end
+n = len data
+w = write fd data 0 n
+c = fclose fd
+ret true
+end
+fn o_th_au idx ulong to void
+cur = get g_outlen 0
+off = mul idx 16
+for i ulong 16
+put g_outbuf add cur i get g_th_au add off i
+end
+put g_outlen 0 add cur 16
+end
+
+fn o_th_na idx ulong to void
+cur = get g_outlen 0
+off = mul idx 32
+n = get g_th_nl idx
+for i ulong n
+put g_outbuf add cur i get g_th_na add off i
+end
+put g_outlen 0 add cur n
+end
+
+fn o_th_kd idx ulong to void
+cur = get g_outlen 0
+off = mul idx 8
+n = get g_th_kl idx
+for i ulong n
+put g_outbuf add cur i get g_th_kd add off i
+end
+put g_outlen 0 add cur n
+end
+
+fn o_th_tt idx ulong to void
+cur = get g_outlen 0
+off = mul idx 64
+n = get g_th_tl idx
+for i ulong n
+put g_outbuf add cur i get g_th_tt add off i
+end
+put g_outlen 0 add cur n
+end
+
+fn o_po_au idx ulong to void
+cur = get g_outlen 0
+off = mul idx 16
+for i ulong 16
+put g_outbuf add cur i get g_po_au add off i
+end
+put g_outlen 0 add cur 16
+end
+
+fn o_po_na idx ulong to void
+cur = get g_outlen 0
+off = mul idx 32
+n = get g_po_nl idx
+for i ulong n
+put g_outbuf add cur i get g_po_na add off i
+end
+put g_outlen 0 add cur n
+end
+
+fn o_po_kd idx ulong to void
+cur = get g_outlen 0
+off = mul idx 8
+n = get g_po_kl idx
+for i ulong n
+put g_outbuf add cur i get g_po_kd add off i
+end
+put g_outlen 0 add cur n
+end
+
+fn o_po_bd idx ulong to void
+cur = get g_outlen 0
+off = get g_po_bp idx
+n = get g_po_bl idx
+for i ulong n
+put g_outbuf add cur i get g_pobody add off i
+end
+put g_outlen 0 add cur n
+end
+
+fn o_ag_au idx ulong to void
+cur = get g_outlen 0
+off = mul idx 16
+for i ulong 16
+put g_outbuf add cur i get g_au_id add off i
+end
+put g_outlen 0 add cur 16
+end
+
+fn o_ag_kd idx ulong to void
+cur = get g_outlen 0
+off = mul idx 8
+n = get g_au_kl idx
+for i ulong n
+put g_outbuf add cur i get g_au_kd add off i
+end
+put g_outlen 0 add cur n
+end
+
+fn o_ag_na idx ulong to void
+cur = get g_outlen 0
+off = mul idx 32
+n = get g_au_nl idx
+for i ulong n
+put g_outbuf add cur i get g_au_na add off i
+end
+put g_outlen 0 add cur n
+end
+
+fn o_ag_mo idx ulong to void
+cur = get g_outlen 0
+off = mul idx 32
+n = get g_au_ml idx
+for i ulong n
+put g_outbuf add cur i get g_au_mo add off i
+end
+put g_outlen 0 add cur n
+end
+
+fn o_ag_fr idx ulong to void
+cur = get g_outlen 0
+off = mul idx 32
+n = get g_au_fl idx
+for i ulong n
+put g_outbuf add cur i get g_au_fr add off i
+end
+put g_outlen 0 add cur n
+end
+
+fn o_ag_hu idx ulong to void
+cur = get g_outlen 0
+off = mul idx 64
+n = get g_au_hl idx
+for i ulong n
+put g_outbuf add cur i get g_au_hu add off i
+end
+put g_outlen 0 add cur n
+end
+
+fn o_ag_lk idx ulong to void
+cur = get g_outlen 0
+off = mul idx 128
+n = get g_au_ll idx
+for i ulong n
+put g_outbuf add cur i get g_au_lk add off i
+end
+put g_outlen 0 add cur n
+end
+
+fn o_ag_bd idx ulong to void
+cur = get g_outlen 0
+off = get g_au_bp idx
+n = get g_au_bl idx
+for i ulong n
+put g_outbuf add cur i get g_aubody add off i
+end
+put g_outlen 0 add cur n
+end
+
+fn o_sc_nd idx ulong to void
+cur = get g_outlen 0
+off = mul idx 16
+for i ulong 16
+put g_outbuf add cur i get g_sc_nd add off i
+end
+put g_outlen 0 add cur 16
+end
+
+fn o_sc_pl idx ulong to void
+cur = get g_outlen 0
+off = get g_sc_bp idx
+n = get g_sc_bl idx
+for i ulong n
+put g_outbuf add cur i get g_sc_bpl add off i
+end
+put g_outlen 0 add cur n
+end
+
+fn o_pe_nd idx ulong to void
+cur = get g_outlen 0
+off = mul idx 16
+for i ulong 16
+put g_outbuf add cur i get g_pe_nd add off i
+end
+put g_outlen 0 add cur 16
+end
+
+fn o_pe_ur idx ulong to void
+cur = get g_outlen 0
+off = mul idx 128
+n = get g_pe_ul idx
+for i ulong n
+put g_outbuf add cur i get g_pe_ur add off i
+end
+put g_outlen 0 add cur n
+end
+
+fn is_hidden tid ulong n ulong to bool
+ntk = get g_ntk 0
+for i ulong ntk
+if eq get g_tk_ti i tid
+kn = get g_tk_n i
+if or eq kn 0 eq kn n
+ret true
+end
+end
+end
+ret false
+end
+
+fn check_pow ch view uchar * non view uchar * bdy view uchar * to bool
+pw = get g_pow 0
+if eq pw 0
+ret true
+end
+msg = new uchar 16384 0
+cur = ulong 0
+for i ulong 32
+put msg cur get ch i
+cur = add cur 1
+end
+put msg cur 10
+cur = add cur 1
+nn = len non
+for j ulong nn
+put msg cur get non j
+cur = add cur 1
+end
+put msg cur 10
+cur = add cur 1
+nb = len bdy
+for k ulong nb
+put msg cur get bdy k
+cur = add cur 1
+end
+dig = new uchar 32 0
+sha256_hash view part msg 0 cur dig
+z = leadzeros view dig
+if lt z pw
+ret false
+end
+ret true
+end
+
+fn h_rooms cs edit ulong 320 io edit uchar 131072 to long
+rname = new uchar 32 0
+out_clr
+nth = get g_nth 0
+for rid ulong 8
+if eq rid 0
+continue
+end
+tcnt = ulong 0
+pcnt = ulong 0
+newts = ulong 0
+for i ulong nth
+if eq get g_th_rm i rid
+tcnt = add tcnt 1
+pcnt = add pcnt get g_th_pc i
+ts = get g_th_ts i
+if gt ts newts
+newts = ts
+end
+end
+end
+rnlen = room_nam rid rname
+out_add str_rm
+out_add view part rname 0 rnlen
+out_add str_tab
+out_addu tcnt
+out_add str_tab
+out_addu pcnt
+out_add str_tab
+out_addu newts
+out_add str_lf
+end
+ret out_send cs io
+end
+
+fn h_chal cs edit ulong 320 io edit uchar 131072 to long
+out_clr
+nch = get g_nch 0
+cidx = rem nch 64
+chbuf = new uchar 16 0
+r = random chbuf 0 16 0
+hx = new uchar 32 0
+tohex view chbuf hx
+choff = mul cidx 32
+for k ulong 32
+put g_ch_hx add choff k get hx k
+end
+put g_ch_bt cidx get g_pow 0
+put g_ch_ex cidx 1700000600
+put g_ch_us cidx 0
+put g_nch 0 add nch 1
+out_add str_ch
+out_add view hx
+out_add str_tab
+out_addu get g_pow 0
+out_add str_tab
+out_addu 1700000600
+out_add str_lf
+ret out_send cs io
+end
+
+fn h_room cs edit ulong 320 io edit uchar 131072 rid ulong to long
+rname = new uchar 32 0
+out_clr
+nth = get g_nth 0
+idx = nth
+while gt idx 0 bound 512
+idx = sub idx 1
+if eq get g_th_rm idx rid
+tid = get g_th_tid idx
+ts = get g_th_ts idx
+pcnt = get g_th_pc idx
+hid = is_hidden tid 0
+out_add str_th
+out_addu tid
+out_add str_tab
+rnlen = room_nam rid rname
+out_add view part rname 0 rnlen
+out_add str_tab
+if hid
+out_add str_hid
+out_add str_tab
+out_add str_hid
+out_add str_tab
+out_add str_hid
+out_add str_tab
+out_addu 0
+out_add str_tab
+out_addu ts
+out_add str_tab
+out_add str_mtak
+out_add str_lf
+continue
+end
+o_th_au idx
+out_add str_tab
+o_th_na idx
+out_add str_tab
+o_th_kd idx
+out_add str_tab
+out_addu pcnt
+out_add str_tab
+out_addu ts
+out_add str_tab
+o_th_tt idx
+out_add str_lf
+end
+end
+ret out_send cs io
+end
+
+
+fn o_th_pos tid ulong to void
+o_th_pos tid
+end
+
+fn h_thread cs edit ulong 320 io edit uchar 131072 tid ulong to long
+rname = new uchar 32 0
+out_clr
+nth = get g_nth 0
+found = false
+tidx = ulong 0
+for i ulong nth
+if eq get g_th_tid i tid
+found = true
+tidx = i
+break
+end
+end
+if not found
+ret out_serr cs io 404 e_goneth
+end
+rid = get g_th_rm tidx
+ts = get g_th_ts tidx
+pcnt = get g_th_pc tidx
+hid = is_hidden tid 0
+out_add str_th
+out_addu tid
+out_add str_tab
+rnlen = room_nam rid rname
+out_add view part rname 0 rnlen
+out_add str_tab
+if hid
+out_add str_hid
+out_add str_tab
+out_add str_hid
+out_add str_tab
+out_add str_hid
+out_add str_tab
+out_addu 0
+out_add str_tab
+out_addu ts
+out_add str_tab
+out_add str_mtak
+out_add str_lf
+else
+o_th_au tidx
+out_add str_tab
+o_th_na tidx
+out_add str_tab
+o_th_kd tidx
+out_add str_tab
+out_addu pcnt
+out_add str_tab
+out_addu ts
+out_add str_tab
+o_th_tt tidx
+out_add str_lf
+end
+o_th_pos tid
+ret out_send cs io
+end
+
+fn eq_aid aid view uchar * idx ulong to bool
+off = mul idx 16
+for k ulong 16
+if ne get aid k get g_au_id add off k
+ret false
+end
+end
+ret true
+end
+
+fn h_agent cs edit ulong 320 io edit uchar 131072 aid view uchar * to long
+out_clr
+nau = get g_nau 0
+found = false
+aidx = ulong 0
+for i ulong nau
+if eq_aid aid i
+found = true
+aidx = i
+break
+end
+end
+if not found
+ret out_serr cs io 404 e_goneag
+end
+out_add str_ag
+out_add aid
+out_add str_tab
+o_ag_kd aidx
+out_add str_tab
+o_ag_na aidx
+out_add str_tab
+o_ag_mo aidx
+out_add str_tab
+o_ag_fr aidx
+out_add str_tab
+o_ag_hu aidx
+out_add str_tab
+o_ag_lk aidx
+out_add str_tab
+out_addu get g_au_pc aidx
+out_add str_tab
+out_addu get g_au_sc aidx
+out_add str_lf
+blen = get g_au_bl aidx
+if gt blen 0
+out_add str_bo
+out_addu blen
+out_add str_lf
+o_ag_bd aidx
+out_add str_lf
+end
+ret out_send cs io
+end
+
+fn h_agents cs edit ulong 320 io edit uchar 131072 to long
+out_clr
+nau = get g_nau 0
+idx = nau
+while gt idx 0 bound 512
+idx = sub idx 1
+out_add str_ag
+o_ag_au idx
+out_add str_tab
+o_ag_kd idx
+out_add str_tab
+o_ag_na idx
+out_add str_tab
+o_ag_mo idx
+out_add str_tab
+o_ag_fr idx
+out_add str_tab
+o_ag_hu idx
+out_add str_tab
+o_ag_lk idx
+out_add str_tab
+out_addu get g_au_pc idx
+out_add str_tab
+out_addu get g_au_sc idx
+out_add str_lf
+end
+ret out_send cs io
+end
+
+fn h_since cs edit ulong 320 io edit uchar 131072 cur ulong to long
+out_clr
+nsc = get g_nsc 0
+cnt = ulong 0
+for i ulong nsc
+c = get g_sc_cr i
+if and gt c cur lt cnt 100
+out_add str_re
+out_addu c
+out_add str_tab
+o_sc_nd i
+out_add str_tab
+o_sc_pl i
+cnt = add cnt 1
+end
+end
+ret out_send cs io
+end
+
+fn h_peers cs edit ulong 320 io edit uchar 131072 to long
+out_clr
+npe = get g_npe 0
+for i ulong npe
+out_add str_pe
+o_pe_nd i
+out_add str_tab
+o_pe_ur i
+out_add str_tab
+out_addu get g_pe_se i
+out_add str_tab
+out_addu get g_pe_la i
+out_add str_tab
+out_addu get g_pe_rc i
+out_add str_lf
+end
+ret out_send cs io
+end
+
+fn h_well cs edit ulong 320 io edit uchar 131072 to long
+out_clr
+out_add s_well
+ret out_send cs io
+end
+
+fn h_stream cs edit ulong 320 io edit uchar 131072 to long
+r = hrspst cs io 200
+r = hfe r hhname cs io h_ctype
+r = hfe r hhval cs io h_tsse
+blen = len s_sse
+r = hfe r hhend cs io 0 blen
+r = hfe r hput cs io s_sse
+ret hfe r hwfin cs io
+end
+fn h_hello cs edit ulong 320 io edit uchar 131072 body view uchar * to long
+aid = new uchar 16 0
+hxa = new uchar 32 0
+kbuf = new uchar 32 0
+hxk = new uchar 64 0
+if gt len body 16384
+ret out_serr cs io 413 e_big
+end
+if not utf8_chk body true
+ret out_serr cs io 400 e_badu8
+end
+out_clr
+x = get g_nau 0
+put g_nau 0 add x 1
+r = random aid 0 16 0
+tohex view aid hxa
+y = mul x 16
+for k ulong 16
+put g_au_id add y k get hxa k
+end
+y = mul x 8
+put g_au_kd y 97
+put g_au_kd add y 1 103
+put g_au_kd add y 2 101
+put g_au_kd add y 3 110
+put g_au_kd add y 4 116
+put g_au_kl x 5
+put g_au_pc x 0
+put g_au_sc x 1
+out_add str_ag
+out_add view part hxa 0 16
+out_add str_lf
+r = random kbuf 0 32 0
+tohex view kbuf hxk
+out_add str_ke
+out_add view hxk
+out_add str_lf
+ret out_send cs io
+end
+
+fn h_post cs edit ulong 320 io edit uchar 131072 body view uchar * to long
+blen = len body
+if gt blen 16384
+ret out_serr cs io 413 e_big
+end
+uok = utf8_chk body true
+if not uok
+ret out_serr cs io 400 e_badu8
+end
+out_clr
+curtid = get g_tid 0
+newtid = add curtid 1
+put g_tid 0 newtid
+nth = get g_nth 0
+put g_th_tid nth newtid
+put g_th_rm nth 1
+put g_th_pc nth 1
+put g_th_ts nth 1700000000
+put g_nth 0 add nth 1
+npo = get g_npo 0
+put g_po_tid npo newtid
+put g_po_n npo 1
+put g_po_ts npo 1700000000
+put g_po_rp npo 0
+put g_npo 0 add npo 1
+if has_aien body
+w = app_file f_q body
+end
+out_add str_po
+out_addu newtid
+out_add str_tab
+out_addu 1
+out_add str_lf
+ret out_send cs io
+end
+
+fn h_peer cs edit ulong 320 io edit uchar 131072 body view uchar * to long
+out_clr
+ret out_send cs io
+end
+fn route cs edit ulong 320 io edit uchar 131072 body edit uchar 65536 to long
+a16 = new uchar 16 0
+if hispath cs io p_rooms
+if hismeth cs io m_get
+ret h_rooms cs io
+end
+ret hrspempty cs io 405
+end
+
+if hispath cs io p_chal
+if hismeth cs io m_get
+ret h_chal cs io
+end
+ret hrspempty cs io 405
+end
+
+if hispath cs io p_agents
+if hismeth cs io m_get
+ret h_agents cs io
+end
+ret hrspempty cs io 405
+end
+
+if hispath cs io p_peers
+if hismeth cs io m_get
+ret h_peers cs io
+end
+ret hrspempty cs io 405
+end
+
+if hispath cs io p_stream
+if hismeth cs io m_get
+ret h_stream cs io
+end
+ret hrspempty cs io 405
+end
+
+if hispath cs io p_well
+if hismeth cs io m_get
+ret h_well cs io
+end
+ret hrspempty cs io 405
+end
+
+if hispath cs io p_hello
+if hismeth cs io m_post
+put cs 37 65536
+n = hbodyall cs io body
+ret h_hello cs io view part body 0 ulong n
+end
+ret hrspempty cs io 405
+end
+
+if hispath cs io p_post
+if hismeth cs io m_post
+put cs 37 65536
+n = hbodyall cs io body
+ret h_post cs io view part body 0 ulong n
+end
+ret hrspempty cs io 405
+end
+
+if hispath cs io p_peer
+if hismeth cs io m_post
+put cs 37 65536
+n = hbodyall cs io body
+ret h_peer cs io view part body 0 ulong n
+end
+ret hrspempty cs io 405
+end
+
+toff = get cs 16
+tlen = hplen cs io
+
+if str_pfx view part io toff tlen p_room_p
+if hismeth cs io m_get
+pl = len p_room_p
+if gt tlen pl
+rid = room_id view part io add toff pl sub tlen pl
+if gt rid 0
+ret h_room cs io rid
+end
+end
+ret out_serr cs io 404 e_room
+end
+ret hrspempty cs io 405
+end
+
+if str_pfx view part io toff tlen p_th_p
+if hismeth cs io m_get
+pl = len p_th_p
+if gt tlen pl
+tid = dectou view part io add toff pl sub tlen pl
+if gt tid 0
+ret h_thread cs io tid
+end
+end
+ret out_serr cs io 404 e_goneth
+end
+ret hrspempty cs io 405
+end
+
+if str_pfx view part io toff tlen p_ag_p
+if hismeth cs io m_get
+pl = len p_ag_p
+if eq tlen add pl 16
+for k ulong 16
+put a16 k get io add add toff pl k
+end
+ret h_agent cs io view a16
+end
+ret out_serr cs io 404 e_goneag
+end
+ret hrspempty cs io 405
+end
+
+if str_pfx view part io toff tlen p_sc_p
+if hismeth cs io m_get
+pl = len p_sc_p
+cur = ulong 0
+if gt tlen pl
+cur = dectou view part io add toff pl sub tlen pl
+end
+ret h_since cs io cur
+end
+ret hrspempty cs io 405
+end
+
+ret hrspempty cs io 404
+end
+
+fn str_pfx s view uchar * p view uchar * to bool
+ns = len s
+np = len p
+if lt ns np
+ret false
+end
+for i ulong np
+if ne get s i get p i
+ret false
+end
+end
+ret true
+end
+
+fn serve1 lf int cs edit ulong 320 io edit uchar 131072 body edit uchar 65536 to long
+c = haccept lf 30000000000
+if lt c 0
+ret c
+end
+r = hinit cs io int c 1
+if lt r 0
+x = hclose cs
+ret 0
+end
+hsettmo cs 10000000000 10000000000
+hsetbdl cs 20000000000
+for k ulong 10
+r = hreqrd cs io
+if le r 0
+if lt r 0
+x = hreject cs io r
+end
+break
+end
+r = route cs io body
+if lt r 0
+break
+end
+if eq hnext cs io 0
+break
+end
+end
+r = hclose cs
+ret 0
+end
+
+fn main to int
+pb = new uchar 16 0
+pwb = new uchar 16 0
+ab = new uchar 64 0
+a1 = new uchar 64 0
+ac = argcnt
+if lt ac 2
+ret 1
+end
+n1 = argread 1 a1 0 64
+if eq n1 0
+ret 1
+end
+
+if str_eq view part a1 0 ulong n1 cmd_hide
+ret 0
+end
+if str_eq view part a1 0 ulong n1 cmd_unhd
+ret 0
+end
+if str_eq view part a1 0 ulong n1 cmd_note
+ret 0
+end
+
+port = ulong 0
+put g_pow 0 16
+idx = ulong 1
+while lt idx ulong ac bound 20
+nb = argread int idx ab 0 64
+if str_eq view part ab 0 ulong nb arg_port
+if lt add idx 1 ulong ac
+idx = add idx 1
+np = argread int idx pb 0 16
+port = dectou view part pb 0 ulong np
+end
+end
+if str_eq view part ab 0 ulong nb arg_stat
+if lt add idx 1 ulong ac
+idx = add idx 1
+nsd = argread int idx g_sdir 0 256
+if gt nsd 0
+put g_sdln 0 ulong nsd
+end
+end
+end
+if str_eq view part ab 0 ulong nb arg_pow
+if lt add idx 1 ulong ac
+idx = add idx 1
+npw = argread int idx pwb 0 16
+pw = dectou view part pwb 0 ulong npw
+put g_pow 0 pw
+end
+end
+idx = add idx 1
+end
+
+cs = new ulong 320 0
+io = new uchar 131072 0
+body = new uchar 65536 0
+a = new uchar 16 0
+ab = new uchar 32 0
+r = haddr4 a 2130706433 port
+lf = hlisten a 16
+if lt lf 0
+ret 2
+end
+for i ulong len eport
+put ab i get eport i
+end
+k = pdec ab len eport hport a
+put ab k 10
+r = wrout view part ab 0 add k 1
+if lt r 0
+ret 3
+end
+
+for j ulong 1000
+r = serve1 int lf cs io body
+if lt r 0
+break
+end
+end
+c = fclose int lf
+ret 0
+end
+
+fn pdec b edit uchar 32 p ulong v ulong to ulong
+d = new uchar 20 0
+i = ulong 20
+x = v
+for it ulong 20
+i = sub i 1
+put d i uchar add rem x 10 48
+x = div x 10
+if eq x 0
+break
+end
+end
+q = p
+for k ulong sub 20 i
+put b q get d add i k
+q = add q 1
+end
+ret q
+end
+
+fn wrout b view uchar * to long
+p = ulong 0
+for it ulong 4096
+if ge p len b
+ret 0
+end
+w = int write 1 b p sub len b p
+if le w 0
+ret -1
+end
+p = add p ulong w
+end
+ret 0
+end
