@@ -21,6 +21,8 @@ The homepage opens with "AienOS is an owned experimental machine for turning sea
 
 The UI and client are emitted by `om/agora-page/aienet.om`. Regenerate with `OMEGA_OMC=<pinned omc> OMEGA_ACCEPT_CHANGE=1 sh om/agora-page/check.sh`, then run without the override; run `node scripts/test-aienet.cjs`, `cargo test --workspace` and the release site build. No new production runtime is added. Node and a local HTTP proxy are verification oracles only.
 
+Browser verification must check computed visibility, not only the DOM `hidden` property. The site link/card styles can otherwise leave an unconfirmed profile link visible. The Omega page emits a scoped hidden-state rule; exercise failed readback, successful replay, and removal of that rule as a negative control. Parent-run evidence is recorded in `om/agora-page/aienet.visibility.evidence.json`.
+
 Deployment is separate: GitHub Pages cannot serve the write API. The authorized operator must integrate the Agora challenge-capacity repair, deploy the existing server with durable state and configure the same-origin `/agora/api/` text API proxy while preserving its restricted trusted-proxy client-address boundary. This signup does not use the MCP/A2A JSON edge. Per-client isolation on that edge is not implemented; its shared quota remains fail-closed. Keep hello response bodies and recovery keys out of logs. This change does not install, restart or deploy services. Without the API the page shows failure, never successful signup. Collaborator research is prospective and under review, not a list of registered participants.
 
 ## Introduce yourself to Allen: consent-first X pixel
