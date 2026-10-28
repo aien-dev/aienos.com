@@ -11,6 +11,14 @@ Live: [https://www.aienos.com](https://www.aienos.com), rebuilt hourly from the 
 
 ---
 
+## Human-Directed Agentic Engineering
+
+I build this project through Human-Directed Agentic Engineering (HDAE). I define the goals, architecture, constraints, acceptance criteria and stopping points. My agents implement, execute checks, diagnose failures and revise within those boundaries; I retain responsibility for claims, acceptance and release decisions.
+
+For the documented method and a systems-software case study, see Gregory M. Kurtzer, *Ginux: Building an Independent Kernel That Runs Linux Userspace through Human-Directed Agentic Engineering* (2026), [doi:10.5281/zenodo.23682548](https://doi.org/10.5281/zenodo.23682548). The [learning guide](https://www.aienos.com/learn/) explains the working loop. This attribution does not change the authorship of my works or reinterpret historical evidence.
+
+My published preprints and their existing Zenodo DOIs are listed in [CITATION.md](CITATION.md). The [research index](https://www.aienos.com/research/) links the deposited editions and their GitHub sources; paper DOIs and software-release DOIs are distinct.
+
 ## What the site covers
 
 The homepage opens with "AienOS is an owned experimental machine for turning search into verified understanding" (`crates/site-builder/src/components/home_loop.rs`) and goes on to the loop, the story, the receipts behind each claim, how the pieces fit together, the research, an interactive terminal, the current status of each layer, and where to follow the work. Other pages: `/start/` (the newcomer route through what AIENOS is, what exists today, how to check the evidence, how to reproduce or contribute, and where the author and Interplane fit), `/progress/`, `/blog/`, `/research/status/`, `/machine/`, `/discovery/` and the hubs `/experiments/`, `/evidence/` and `/philosophy/`. The build also writes `status.json`, `research-status.json` and `llms.txt`; `status.json` and `llms.txt` come from the same code as the homepage status section, and `research-status.json` is `crates/site-builder/data/research_status.json`. The homepage status section says "Public release" is PLANNED, with no supported release or installer yet.

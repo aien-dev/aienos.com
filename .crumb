@@ -23,7 +23,7 @@
           "purpose": "GitHub automation configuration"
         },
         {
-          "digest": "bd4707663ced2ce5424d12b3ff8681d97b270d5605469126d0b3052b0c9e1f3d",
+          "digest": "3e1f62771ac03f046d6380157b262e7b5ba8a09b580e9480a80948ea733be360",
           "last_commit": "6e76cd8",
           "name": "crates",
           "purpose": "Native Rust website crates"
@@ -65,7 +65,7 @@
           "purpose": "Seeded Omega support page, shared invitation and CSS with deterministic artifact checks"
         },
         {
-          "digest": "0c0b489700618c0945a7853d9228f790eaadea709f4b9832255a32f0031dffb4",
+          "digest": "4d988d7707c164cf017d724121ffae0975a3c000f11937934075639eba80cd5d",
           "last_commit": "6e76cd8",
           "name": "public",
           "purpose": "Static public website assets"
@@ -77,15 +77,15 @@
           "purpose": "Isolated compute-only Allen tools and versioned glass-pane protocol; temporary host transport ar"
         }
       ],
-      "children_root": "sha256:dda6036f5cc4a440fe7d501f49197693d86ac0baaed26856465ae6b8cfeb59ac",
-      "compiled_at": "2026-10-28T17:21:26Z",
+      "children_root": "sha256:430b9a640f10839851a93a9eb1fd2546e119fe70a3623f49dcb5cc7fd96f849d",
+      "compiled_at": "2026-10-28T21:37:46Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:b5960196ebb92f37c8ead4c650abf437c0a1e9ec5441cbb0cf77003c85310bca",
+      "digest": "sha256:0916983b4b31b64c11d62a791be70882b89a8ecea57bff06e20eabab7f7e46be",
       "evidence_files": 6,
       "evidence_root": "sha256:7fde48972a09dd4b0f7206aca4e313cd02c8cd195ec602e3924e59246c016aa5",
       "files": 795,
-      "generated_at_commit": "9c6cdf148faf99f04a2ad944d3c32d85926f4272",
-      "source_tree": "sha256:d4819645f7270b9ea563fe9c07b2736f3d616b47cf73f0740b815939b119c3fb"
+      "generated_at_commit": "07736aa17fd16e862725cf440bcae71527945285",
+      "source_tree": "sha256:e6b3572b25d8fb33a0e9c622fcb3d21dce994432282e458914de27291e72ce3a"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",
