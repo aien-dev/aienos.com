@@ -116,14 +116,25 @@ running master has adopted the candidate. Reload sends a signal asynchronously.
 A fresh TLS connection can still reach an old worker and fall through to Pages.
 Do not change the location hierarchy or add a fixed sleep to mask that race.
 
-Before reload, record the actual master PID, executable, command line and its
-worker PIDs. Confirm the service uses the same executable/configuration that
-passed `nginx -t`; an alternate `-c` or `-p` must be accounted for. After reload,
-use a bounded 30-second observation loop: require at least one new worker PID
-and require every captured old worker PID to have exited. Record both sets.
-Signal-command completion alone is not the barrier. A timeout is FAIL and
-requires rollback, not an extension of the deadline. Long-lived old connections
-can prevent this deliberately strict retirement condition from passing.
+Before reload, record the actual master PID, executable, command line and every
+worker PID **with its process title**, using the equivalent of
+`ps -C nginx -o pid=,ppid=,args=`. Separate active workers from workers already
+reported as `worker process is shutting down`. Record the latter and verify
+their lack of listening sockets with root `ss -ltnp`; an existing draining
+process need not exit. Confirm the service uses the executable/configuration
+that passed `nginx -t`; account for any alternate `-c` or `-p`.
+
+After reload, use a bounded 30-second observation loop. Require at least one
+new active worker PID. Every worker that was **active at capture** must have
+either exited, or entered the shutting down state **and** no longer own any
+listening socket. Observe process titles and root `ss -ltnp` together; a new
+worker alone is insufficient, and a draining title alone is insufficient.
+Record initial active/draining sets, new workers and listener ownership.
+Pre-existing draining workers without listeners cannot accept a fresh request
+and do not block adoption, even when an earlier connection keeps them alive.
+Do not kill or signal a production worker to satisfy this barrier. Signal
+command completion alone is not readiness. A timeout is FAIL and requires
+rollback, not a longer deadline.
 
 Only after worker handover, send one non-mutating GET challenge through the
 actual public TLS/SNI path. Require HTTP 200, `Cache-Control: no-store`, and
@@ -134,14 +145,25 @@ approved observation mechanism. A missing observation or unexpected response
 is FAIL. Only then begin the remaining identity, route, privacy and browser
 gates. Never retry a failed acceptance request as though it had passed.
 
-The native `om/agora/reload-check.om` oracle includes missing-reload and
-old-worker-alive failure controls, actual old-worker retirement, and a
-post-barrier challenge with exact upstream count. It launches only isolated
-loopback nginx workers through Omega's process facilities, observes Linux
-`/proc`, uses monotonic deadlines and performs its own HTTP request. Run
-`OMEGA_OMC=/path/to/pinned/omc NGINX_BIN=/path/to/nginx sh om/agora/check.sh`;
-the existing conductor compiles the Omega unit and requires both barrier-off
-and old-retirement-off source mutants to fail with their expected exits.
+The native `om/agora/reload-check.om` oracle holds a real response open across
+an initial reload, proving that a pre-existing draining worker can stay alive
+without a listener. It checks missing reload, an old active worker still owning
+a listener, and a post-barrier challenge with exact upstream count. A bounded
+predicate fixture supplies a draining classification for the proven owned
+listener and must still refuse it, independently exercising the listener guard.
+It launches only isolated loopback nginx workers through Omega's process
+facilities, observes Linux `/proc`, uses monotonic deadlines and performs its
+own HTTP request. Its socket inode checks stream both kernel TCP tables through
+EOF in a small buffer, retaining split token/row state and failing closed on
+read errors, incomplete final rows or exhaustion of the bounded read loop.
+Its one-worker and explicit 128-descriptor fixture limits are not production
+worker enumeration limits. Production uses the full root `ss -ltnp` observation.
+Run `OMEGA_OMC=/path/to/pinned/omc NGINX_BIN=/path/to/nginx sh om/agora/check.sh`;
+the existing conductor compiles the Omega unit and requires barrier-off,
+active-listener-off, draining-worker-refused and listener-check-off mutants
+to fail with exits 11, 14, 23 and 30 respectively. Current source/binary pins
+and observations are in `reload-draining.evidence.json`; the earlier
+`reload.evidence.json` remains the historical stricter-barrier receipt.
 Local oracle nginx version: 1.24.0; it is an unchanged verification oracle,
 not an implementation substituted for Omega. When
 diagnosing a host-specific failure, also replay the complete `nginx -T`

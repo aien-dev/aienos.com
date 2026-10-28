@@ -100,10 +100,12 @@ command -v "$nginx" >/dev/null || { printf 'missing nginx oracle: %s\n' "$nginx"
 build reload-check.om "$tmp/reload"
 mkdir "$tmp/reload.d"
 "$tmp/reload" "$nginx" "$tmp/reload.d"
-for mode in barrier-off old-retirement-off; do
+for mode in barrier-off active-listener-off draining-worker-refused listener-check-off; do
     case "$mode" in
-        barrier-off) edit='s/^if and gt cur 0 ne cur old$/if gt cur 0/; s/^if eq killpid old 0 -3$/if true/'; expected=11 ;;
-        old-retirement-off) edit='s/^if eq killpid old 0 -3$/if true/'; expected=14 ;;
+        barrier-off) edit='s/^if and gt cur 0 ne cur old$/if gt cur 0/; s/^if rc_clear old$/if true/'; expected=11 ;;
+        active-listener-off) edit='s/^if rc_clear old$/if true/'; expected=14 ;;
+        draining-worker-refused) edit='s/^ret eq rc_list pid 0$/ret false/'; expected=23 ;;
+        listener-check-off) edit='s/^ret eq rc_list pid 0$/ret true/'; expected=30 ;;
     esac
     sed "$edit" reload-check.om > "$tmp/$mode.om"
     build "$tmp/$mode.om" "$tmp/$mode"

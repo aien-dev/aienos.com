@@ -7,6 +7,16 @@ global rc_b uchar 16384
 global rc_p uchar 4096
 global rc_r uchar 4096
 global rc_x uchar 4096
+global rc_inos ulong 128
+global rc_meta uchar 128
+global rc_net uchar 256
+global rc_ts ulong 6
+text rc_cmd "/cmdline"
+text rc_fds "/fd/"
+text rc_tcp "/proc/net/tcp"
+text rc_tcp6 "/proc/net/tcp6"
+text rc_down "nginx: worker process is shutting down"
+text rc_hold "GET /hold HTTP/1.0\nHost: localhost\n\n"
 text rc_pre "/proc/"
 text rc_mid "/task/"
 text rc_ch "/children"
@@ -15,21 +25,21 @@ text rc_hit "/hits.log"
 text rc_flag "-c"
 text rc_g "-g"
 text rc_off "daemon off;"
-text rc_cfg "worker_processes 1;\nerror_log stderr error;\npid "
+text rc_cfg "worker_processes 1;\nworker_rlimit_nofile 128;\nerror_log stderr error;\npid "
 text rc_pid "/pid;\nevents { worker_connections 64; }\nhttp { access_log off;\nclient_body_temp_path "
 text rc_tmp "/body;\nproxy_temp_path "
 text rc_tmp2 "/proxy;\nfastcgi_temp_path "
 text rc_fc "/fastcgi;\nuwsgi_temp_path "
 text rc_uw "/uwsgi;\nscgi_temp_path "
 text rc_sc "/scgi;\nserver { listen 127.0.0.1:"
-text rc_route "; location = /agora/api/challenge { add_header Cache-Control no-store always; proxy_pass http://127.0.0.1:"
+text rc_route "; location = /hold { limit_rate 1; return 200 'synthetic draining-worker verification connection held open without touching any production worker'; } location = /agora/api/challenge { add_header Cache-Control no-store always; proxy_pass http://127.0.0.1:"
 text rc_srv "; } }\nserver { listen 127.0.0.1:"
 text rc_log "; access_log "
 text rc_tail "; location / { return 200 'synthetic readiness'; } } }\n"
 text rc_req "GET /agora/api/challenge HTTP/1.0\nHost: localhost\n\n"
 text rc_ok "HTTP/1.1 200 OK"
 text rc_nost "Cache-Control: no-store"
-text rc_pass "AGORA RELOAD OMEGA PASS barrier; missing-reload and old-worker-alive refused; readiness 200/no-store/one upstream hit\n"
+text rc_pass "AGORA RELOAD OMEGA PASS pre-existing drainer/no-listener accepted; missing-reload and old-active-listener refused; readiness 200/no-store/one upstream hit\n"
 
 fn rc_ck yes bool to void
 if not yes
@@ -75,6 +85,23 @@ fn rc_file t view uchar * to long
 n = rc_path t
 ret fopen rc_p 0 n 0 0
 end
+fn rc_has needle view uchar * n ulong to bool
+if lt n len needle
+ret false
+end
+for i ulong add sub n len needle 1
+same = true
+for j ulong len needle
+if ne get rc_r add i j get needle j
+same = false
+end
+end
+if same
+ret true
+end
+end
+ret false
+end
 fn rc_child master int to int
 put rc_s 0 0
 rc_emit rc_pre
@@ -110,6 +137,187 @@ ret -1
 end
 ret int get rc_s 7
 end
+fn rc_proc pid int suffix view uchar * to ulong
+put rc_s 0 0
+rc_emit rc_pre
+rc_dec ulong pid
+rc_emit suffix
+ret get rc_s 0
+end
+fn rc_drain pid int to bool
+n = rc_proc pid rc_cmd
+fd = int fopen rc_b 0 n 0 0
+if lt fd 0
+ret false
+end
+got = read fd rc_r 0 len rc_r
+r = fclose fd
+if le got 0
+ret false
+end
+ret rc_has rc_down ulong got
+end
+fn rc_u64 off ulong to ulong
+v = ulong 0
+for i ulong 8
+v = or v shl ulong get rc_meta add off i mul i 8
+end
+ret v
+end
+fn rc_owned ino ulong to bool
+if eq ino 0
+ret false
+end
+for i ulong 128
+if eq get rc_inos i ino
+ret true
+end
+end
+ret false
+end
+note Linux ARM64 stat inode offset8 follows asm-generic/stat.h; worker fd limit128 is explicit above.
+fn rc_fstat pid int to bool
+for i ulong 128
+put rc_inos i 0
+n = rc_proc pid rc_fds
+rc_dec i
+r = stat rc_b 0 get rc_s 0 rc_meta 0 len rc_meta
+if eq r 0
+if eq ulong shr get rc_meta 17 4 get rc_s 3
+put rc_inos i rc_u64 8
+end
+else
+if ne r -2
+ret false
+end
+end
+end
+ret true
+end
+note TCP streaming state: column, token length, inode, LISTEN flag, header flag, token flag.
+note The small buffer exercises rows and tokens split across reads; no whole-table allocation.
+fn rc_char c uchar to long
+if or eq c 32 eq c 10
+if eq get rc_ts 5 1
+if eq get rc_ts 0 3
+if ne get rc_ts 1 2
+put rc_ts 3 0
+end
+end
+put rc_ts 0 add get rc_ts 0 1
+put rc_ts 5 0
+end
+if eq c 10
+if eq get rc_ts 4 0
+if lt get rc_ts 0 10
+ret -1
+end
+if eq get rc_ts 3 1
+if rc_owned get rc_ts 2
+ret 1
+end
+end
+end
+put rc_ts 4 0
+put rc_ts 0 0
+put rc_ts 2 0
+put rc_ts 3 1
+end
+else
+if eq get rc_ts 5 0
+put rc_ts 1 0
+put rc_ts 5 1
+end
+if eq get rc_ts 4 0
+if eq get rc_ts 0 3
+if eq get rc_ts 1 0
+if ne c 48
+put rc_ts 3 0
+end
+else
+if or ne get rc_ts 1 1 ne c 65
+put rc_ts 3 0
+end
+end
+end
+if eq get rc_ts 0 9
+if or lt c 48 gt c 57
+ret -1
+end
+if ge get rc_ts 1 20
+ret -1
+end
+put rc_ts 2 add mul get rc_ts 2 10 ulong sub c 48
+end
+end
+put rc_ts 1 add get rc_ts 1 1
+end
+ret 0
+end
+fn rc_end fd int value long to long
+r = fclose fd
+if ne r 0
+ret -1
+end
+ret value
+end
+note proc seq files may short-read; absence is proven only at EOF after complete rows.
+fn rc_table path view uchar * to long
+fd = int fopen path 0 len path 0 0
+if lt fd 0
+ret -1
+end
+for i ulong len rc_ts
+put rc_ts i 0
+end
+put rc_ts 3 1
+put rc_ts 4 1
+for j ulong 65536
+n = read fd rc_net 0 len rc_net
+if lt n 0
+ret rc_end fd -1
+end
+if eq n 0
+if eq get rc_ts 4 1
+ret rc_end fd -1
+end
+if or ne get rc_ts 5 0 ne get rc_ts 0 0
+ret rc_end fd -1
+end
+ret rc_end fd 0
+end
+for i ulong ulong n
+r = rc_char get rc_net i
+if ne r 0
+ret rc_end fd r
+end
+end
+end
+ret rc_end fd -1
+end
+fn rc_list pid int to long
+if not rc_fstat pid
+ret -1
+end
+r = rc_table rc_tcp
+if ne r 0
+ret r
+end
+ret rc_table rc_tcp6
+end
+fn rc_safe pid int draining bool to bool
+if not draining
+ret false
+end
+note MUTANT_DRAIN: a pre-existing draining worker with no listener is safe.
+ret eq rc_list pid 0
+end
+fn rc_clear pid int to bool
+if eq killpid pid 0 -3
+ret true
+end
+ret rc_safe pid rc_drain pid
+end
 fn rc_wait master int old int limit long to bool
 start = monons
 if lt start 0
@@ -122,9 +330,10 @@ ret false
 end
 cur = rc_child master
 if and gt cur 0 ne cur old
-note MUTANT_OLD: a new worker alone is not readiness.
-if eq killpid old 0 -3
-ret true
+note MUTANT_OLD: a new worker alone cannot excuse an old active listener.
+if rc_clear old
+now = monons
+ret and ge now start lt sub now start limit
 end
 end
 r = sleepns 10000000
@@ -173,6 +382,8 @@ rc_ck eq r 0
 fd = int hlisten a 16
 rc_ck ge fd 0
 prt = hport a
+rc_ck eq fstat fd rc_meta 0 len rc_meta 0
+put rc_s 3 ulong shr get rc_meta 17 4
 r = fclose fd
 rc_ck eq r 0
 ret prt
@@ -210,50 +421,73 @@ n = write fd rc_b 0 get rc_s 0
 rc_ck eq n long get rc_s 0
 rc_ck eq fclose fd 0
 end
-fn rc_has needle view uchar * n ulong to bool
-if lt n len needle
-ret false
-end
-for i ulong add sub n len needle 1
-same = true
-for j ulong len needle
-if ne get rc_r add i j get needle j
-same = false
-end
-end
-if same
-ret true
-end
-end
-ret false
-end
-fn rc_request prt ulong to bool
+fn rc_send prt ulong req view uchar * to int
 a = new uchar 16 0
 r = haddr4 a 2130706433 prt
 fd = int socknew 2 1 0
 if lt fd 0
-ret false
+ret -1
 end
 r = connect fd a 0 16
 if lt r 0
 r = fclose fd
-ret false
+ret -1
 end
 n = ulong 0
-for i ulong len rc_req
-if eq get rc_req i 10
+for i ulong len req
+if eq get req i 10
 put rc_b n 13
 n = add n 1
 end
-put rc_b n get rc_req i
+put rc_b n get req i
 n = add n 1
 end
 r = send fd rc_b 0 n 0
 if ne r long n
 r = fclose fd
+ret -1
+end
+ret fd
+end
+fn rc_hopen prt ulong to int
+fd = rc_send prt rc_hold
+if lt fd 0
+ret -1
+end
+r = waitio fd 1 100000000
+if gt r 0
+r = recv fd rc_r 0 1 0
+end
+if ne r 1
+r = fclose fd
+ret -1
+end
+ret fd
+end
+fn rc_dwait pid int to bool
+start = monons
+while true bound 999999
+now = monons
+if or lt now 0 ge sub now start 30000000000
 ret false
 end
-n = 0
+if and rc_drain pid eq rc_list pid 0
+now = monons
+ret and ge now start lt sub now start 30000000000
+end
+if ne killpid pid 0 0
+ret false
+end
+r = sleepns 10000000
+end
+ret false
+end
+fn rc_request prt ulong to bool
+fd = rc_send prt rc_req
+if lt fd 0
+ret false
+end
+n = ulong 0
 while lt n len rc_r bound 4096
 r = waitio fd 1 100000000
 if le r 0
@@ -281,6 +515,39 @@ if le old 0
 ret 10
 end
 put rc_s 5 ulong old
+held = rc_hopen front
+if lt held 0
+ret 24
+end
+put rc_s 4 ulong held
+put rc_s 6 ulong old
+if ne killpid master 1 0
+ret 13
+end
+if not rc_dwait old
+if eq killpid old 0 -3
+ret 26
+end
+if not rc_drain old
+ret 31
+end
+if ne rc_list old 0
+ret 32
+end
+ret 25
+end
+note Pre-existing draining worker still exists, holds a response, but owns no listening socket.
+if ne killpid old 0 0
+ret 26
+end
+if not rc_wait master old 30000000000
+ret 23
+end
+old = rc_child master
+if or le old 0 eq old int get rc_s 6
+ret 27
+end
+put rc_s 5 ulong old
 note MUTANT_NEW: absent reload must not pass even though the old worker is alive.
 if rc_wait master old 100000000
 ret 11
@@ -292,6 +559,20 @@ if ne killpid master 1 0
 ret 13
 end
 note The old worker is stopped before HUP, so cannot retire; a new child is not enough.
+if rc_drain old
+ret 22
+end
+found = rc_list old
+if lt found 0
+ret 28
+end
+if ne found 1
+ret 29
+end
+note Bounded predicate seam: even a draining classification must refuse this proven owned listener.
+if rc_safe old true
+ret 30
+end
 if rc_wait master old 100000000
 ret 14
 end
@@ -340,6 +621,10 @@ if le master 0
 ret 91
 end
 result = rc_test master front
+held = int get rc_s 4
+if gt held 0
+r = fclose held
+end
 old = int get rc_s 5
 if gt old 0
 r = killpid old 18
