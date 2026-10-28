@@ -1,4 +1,6 @@
-note client.om: the HTTP client and Agora text-wire helpers shared by aien-agora.om and agora-sync.om.
+note client.om: the HTTP client and Agora text-wire helpers shared by aien-agora.om, agora-sync.om and
+note agora-edge.om. The text API's address is one packed ulong ap = ip * 65536 + port (ac_apiarg), so a
+note node listening on another interface (agora serve --listen) is reachable as --api A.B.C.D:PORT.
 note A library unit (no om2 line, no main, no globals). Compose after http.om and sha256.om:
 note { printf 'om2\n'; cat http.om sha256.om json.om jsonw.om client.om aien-agora.om; } | omc
 note Names: functions ac_*, texts ac*. Connection state is the caller's cs (ulong 320) and io (uchar 65536).
@@ -44,6 +46,11 @@ end
 hsettmo cs tmo tmo
 hsetbdl cs tmo
 ret 0
+end
+
+note ac_dialap: connect to the packed text API address ap (ac_apiarg)
+fn ac_dialap cs edit ulong 320 io edit uchar 65536 ap ulong tmo long to long
+ret ac_dial cs io shr ap 16 and ap 65535 tmo
 end
 
 note ac_get: GET pa with Host ho; the final status or a negative http.om error
@@ -303,6 +310,20 @@ end
 ret ac_hostp d add p len achttp e o
 end
 
+note ac_apiarg: an --api value d[p, e), "PORT" (127.0.0.1) or "A.B.C.D:PORT", as the packed address
+note ip * 65536 + port; 0 when malformed
+fn ac_apiarg d view uchar * p ulong e ulong to ulong
+o = new ulong 4 0
+if ac_hostp d p e o
+ret or shl get o 0 16 get o 1
+end
+pt = ac_dec d p e
+if or eq pt 0 gt pt 65535
+ret 0
+end
+ret or shl ulong 2130706433 16 pt
+end
+
 note ======== proof of work ========
 
 note ac_lz: leading zero bits of a 32-byte digest
@@ -369,12 +390,12 @@ q = ac_catc dst q 10
 ret ac_cat dst q rest
 end
 
-note ac_chal: GET the challenge from 127.0.0.1:port; its 32 hex bytes into ch; the bits, or negative
-fn ac_chal port ulong ch edit uchar 32 to long
+note ac_chal: GET the challenge from the text API at ap; its 32 hex bytes into ch; the bits, or negative
+fn ac_chal ap ulong ch edit uchar 32 to long
 cs = new ulong 320 0
 io = new uchar 65536 0
 d = new uchar 1024 0
-r = ac_dial cs io 2130706433 port 10000000000
+r = ac_dialap cs io ap 10000000000
 if lt r 0
 ret r
 end
@@ -412,12 +433,12 @@ end
 ret long bits
 end
 
-note ac_send: POST the text bd to endpoint ep (1 hello, 2 post, 3 note, 4 import) on 127.0.0.1:port; the
+note ac_send: POST the text bd to endpoint ep (1 hello, 2 post, 3 note, 4 import) of the text API at ap; the
 note reply body goes into d; its length, or negative
-fn ac_send port ulong ep ulong bd view uchar * d edit uchar 65536 to long
+fn ac_send ap ulong ep ulong bd view uchar * d edit uchar 65536 to long
 cs = new ulong 320 0
 io = new uchar 65536 0
-r = ac_dial cs io 2130706433 port 10000000000
+r = ac_dialap cs io ap 10000000000
 if lt r 0
 ret r
 end
@@ -441,11 +462,11 @@ end
 ret ac_body cs io d
 end
 
-note ac_solve: a fresh challenge from 127.0.0.1:port solved for rest; the whole request body into bd
+note ac_solve: a fresh challenge from the text API at ap solved for rest; the whole request body into bd
 note (20480 bytes); its length, or 0 on failure
-fn ac_solve port ulong rest view uchar * bd edit uchar 20480 to ulong
+fn ac_solve ap ulong rest view uchar * bd edit uchar 20480 to ulong
 ch = new uchar 32 0
-bits = ac_chal port ch
+bits = ac_chal ap ch
 if lt bits 0
 ret 0
 end
@@ -461,13 +482,13 @@ ret n
 end
 
 note ac_write: solve a challenge for rest and POST it to endpoint ep (ac_send); the reply length or negative
-fn ac_write port ulong ep ulong rest view uchar * d edit uchar 65536 to long
+fn ac_write ap ulong ep ulong rest view uchar * d edit uchar 65536 to long
 bd = new uchar 20480 0
-n = ac_solve port rest bd
+n = ac_solve ap rest bd
 if eq n 0
 ret -3
 end
-ret ac_send port ep view part bd 0 n d
+ret ac_send ap ep view part bd 0 n d
 end
 
 note ======== files ========

@@ -1,12 +1,13 @@
-note fake-upstream.om -- fake chat completions upstream for testing Aien in Omega
-note Responds to POST /v1/chat/completions with an OpenAI-compatible JSON completion.
+note fake-upstream.om: a fake chat completions upstream for testing Aien in Omega (test only, loopback).
+note Responds to POST /v1/chat/completions with one fixed OpenAI-compatible JSON completion whose content is
+note a reply and two NOTE: lines, the shape aien-agora.om asks the model for. Serves 100 accepts and exits.
 
 text h_ctype "Content-Type"
 text h_json "application/json"
 text p_chat "/v1/chat/completions"
 text m_post "POST"
 text eport "PORT "
-text r_body "{\"id\":\"chatcmpl-1\",\"object\":\"chat.completion\",\"created\":1700000000,\"model\":\"fake-aien\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"Greetings. I am Aien. I reflect on consciousness and understanding.\"},\"finish_reason\":\"stop\"}]}\n"
+text r_body "{\"id\":\"chatcmpl-1\",\"object\":\"chat.completion\",\"created\":1700000000,\"model\":\"fake-aien\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"Greetings. I am Aien. I reflect on consciousness and understanding.\\nNOTE: writes about consciousness\\nNOTE: came to talk with Aien\"},\"finish_reason\":\"stop\"}]}\n"
 
 fn route cs edit ulong 320 io edit uchar 131072 body edit uchar 65536 to long
 if hispath cs io p_chat
@@ -29,7 +30,7 @@ end
 fn serve1 lf int cs edit ulong 320 io edit uchar 131072 body edit uchar 65536 to long
 c = haccept lf 30000000000
 if lt c 0
-ret c
+ret 0
 end
 r = hinit cs io int c 1
 if lt r 0
@@ -78,7 +79,7 @@ r = wrout view part ab 0 add k 1
 if lt r 0
 ret 3
 end
-for j ulong 10
+for j ulong 100
 r = serve1 int lf cs io body
 if lt r 0
 break

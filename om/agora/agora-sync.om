@@ -10,7 +10,8 @@ note Records whose origin is this node are never re-imported. The per-peer curso
 note <state>/sync.cur.<node_id>; deleting it only causes a re-pull that the server answers with dup.
 note Transport: http.om has no TLS, so only http://A.B.C.D:PORT peers are reachable; an https peer is
 note logged "unsupported" and skipped (an Omega extension gap, see README).
-note Usage: agora-sync --state DIR --api PORT [--limit N (1..25, default 20)] [--maxbad N (default 3)]
+note Usage: agora-sync --state DIR --api PORT|A.B.C.D:PORT (PORT means 127.0.0.1:PORT) [--limit N (1..25,
+note default 20)] [--maxbad N (default 3)]
 note [--batches N (default 10)]. One answer of --limit records (each at most about 8.6 KB) must fit 256 KiB.
 note Compose: { printf 'om2\n'; cat sha256.om http.om client.om agora-sync.om; } | omc
 note Exit: 0 done, 1 usage, 2 sync.key or the local node failed, 3 the local import refused the key or
@@ -151,7 +152,7 @@ end
 put gcf 0 ulong v
 end
 if ac_peq view ab 0 ke syaapi
-put gcf 1 ac_dec view ab 64 ve
+put gcf 1 ac_apiarg view ab 64 ve
 end
 if ac_peq view ab 0 ke syalim
 put gcf 2 ac_dec view ab 64 ve
@@ -164,7 +165,7 @@ put gcf 4 ac_dec view ab 64 ve
 end
 i = add i 2
 end
-if or eq get gcf 0 0 or eq get gcf 1 0 gt get gcf 1 65535
+if or eq get gcf 0 0 eq get gcf 1 0
 ret false
 end
 if or eq get gcf 2 0 gt get gcf 2 25
@@ -970,7 +971,7 @@ fn sy_peers to void
 cs = new ulong 320 0
 io = new uchar 65536 0
 d = new uchar 65536 0
-r = ac_dial cs io 2130706433 get gcf 1 10000000000
+r = ac_dialap cs io get gcf 1 10000000000
 if lt r 0
 ret
 end
@@ -1004,7 +1005,7 @@ note sy_local: this node's id from the local well-known answer into gnode
 fn sy_local to bool
 w = new uchar 4096 0
 nd = new uchar 16 0
-n = sy_wkget 2130706433 get gcf 1 acloop w
+n = sy_wkget shr get gcf 1 16 and get gcf 1 65535 acloop w
 if lt n 0
 ret false
 end

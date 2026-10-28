@@ -4,8 +4,9 @@ note at most 3 short notes about the author, posts the reply as aien through the
 note work, adds the notes, and only then advances the byte cursor in <state>/aien.done. A crash anywhere
 note before that leaves the item queued; a rerun first reads the thread and skips an item Aien already
 note answered, so a reply is never posted twice.
-note Usage: aien-agora --state DIR --api PORT [--upstream A.B.C.D:PORT] [--model NAME] [--max N]
-note The upstream defaults to 127.0.0.1:18091 (the deploy default); tests always pass a fake upstream.
+note Usage: aien-agora --state DIR --api PORT|A.B.C.D:PORT [--upstream A.B.C.D:PORT] [--model NAME] [--max N]
+note --api PORT means 127.0.0.1:PORT. The upstream defaults to 127.0.0.1:18091 (the deploy default); tests
+note always pass a fake upstream.
 note Compose: { printf 'om2\n'; cat sha256.om http.om json.om jsonw.om client.om aien-agora.om; } | omc
 note Exit: 0 drained or nothing to do, 1 usage, 2 identity failed, 3 an item failed and stays queued,
 note 4 another drainer holds <state>/aien.lock.
@@ -123,7 +124,7 @@ end
 put gcf 0 ulong v
 end
 if ac_peq view ab 0 ke aqaapi
-put gcf 1 ac_dec view ab 64 ve
+put gcf 1 ac_apiarg view ab 64 ve
 end
 if ac_peq view ab 0 ke aqaup
 if not ac_hostp view ab 64 ve hp
@@ -146,7 +147,7 @@ put gcf 4 ac_dec view ab 64 ve
 end
 i = add i 2
 end
-if or eq get gcf 0 0 or eq get gcf 1 0 gt get gcf 1 65535
+if or eq get gcf 0 0 eq get gcf 1 0
 ret false
 end
 ret le get gcf 4 100000
@@ -308,7 +309,7 @@ if gt a 0
 a = sub a 1
 end
 q = ac_catu pa q a
-r = ac_dial cs io 2130706433 get gcf 1 10000000000
+r = ac_dialap cs io get gcf 1 10000000000
 if lt r 0
 ret r
 end
@@ -438,7 +439,7 @@ io = new uchar 65536 0
 d = new uchar 65536 0
 k = ac_cat pa 0 aqpagt
 k = ac_cat pa k au
-r = ac_dial cs io 2130706433 get gcf 1 10000000000
+r = ac_dialap cs io get gcf 1 10000000000
 if lt r 0
 ret q
 end
