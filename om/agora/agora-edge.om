@@ -475,6 +475,8 @@ w = ac_cat wb w view part rb 0 get st 0
 if gt w 20480
 ret -1
 end
+note Forwarded headers are not authenticated by this pinned TCP interface. Keep the shared local
+note quota rather than trusting a caller-selected address; see README for the AG-2 prerequisite.
 r = ac_send get gcf 0 ep view part wb 0 w tx
 if lt r 0
 ret -2

@@ -787,4 +787,21 @@ ok "edge A2A message/send: agent message answer, work solved, reply landed as th
 stop edge
 stop ed
 
+# Capacity/lifetime and fail-closed identity regressions use an independent HTTP oracle.
+python3 "$here/test/limits.py" "$t/agora" "$t/edge"
+mut capevict agora.om 'if or ne get c_u i 0 lt get c_ex i get g_v VNOW' 'if true'
+build core-capevict "$t/m/capevict" sha256.om http.om agora.om
+if python3 "$here/test/limits.py" "$t/core-capevict" "$t/edge" --only capacity > "$t/capevict.log" 2>&1; then
+	fail "challenge live-slot eviction mutant survived"
+fi
+python3 -c 'import pathlib,sys; assert "AssertionError: (\x27capacity refusal\x27," in pathlib.Path(sys.argv[1]).read_text()' "$t/capevict.log"
+ok "challenge live-slot eviction mutant caught"
+mut iprate agora.om 'if ge ci 20' 'if false'
+build core-iprate "$t/m/iprate" sha256.om http.om agora.om
+if python3 "$here/test/limits.py" "$t/core-iprate" "$t/edge" --only quota > "$t/iprate.log" 2>&1; then
+	fail "IP quota bypass mutant survived"
+fi
+python3 -c 'import pathlib,sys; assert "AssertionError: (\x27IP quota refusal\x27," in pathlib.Path(sys.argv[1]).read_text()' "$t/iprate.log"
+ok "IP quota bypass mutant caught"
+
 echo "net: PASS"

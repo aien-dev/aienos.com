@@ -57,6 +57,7 @@ text m_emp "err bad empty body\n"
 text m_meth "err bad method not allowed\n"
 text m_strm "err slow too many streams\n"
 text m_chal "err work challenge unknown expired or used\n"
+text m_ccap "err slow challenge capacity reached\n"
 
 text r_sci "science"
 text r_undst "understanding"
@@ -209,6 +210,7 @@ const EEMP ulong 21
 const EMETH ulong 22
 const ESTRM ulong 23
 const ECHAL ulong 24
+const ECCAP ulong 25
 const EINC ulong 99
 const ESSE ulong 100
 
@@ -2761,11 +2763,28 @@ end
 ret 0
 end
 
+note A slot is reusable only after use or expiry; issuance never evicts a live token.
+fn cslot to ulong
+for j ulong NC
+i = rem add get g_v VCH j NC
+if or ne get c_u i 0 lt get c_ex i get g_v VNOW
+put g_v VCH rem add i 1 NC
+ret i
+end
+end
+ret NC
+end
+
 fn gchal to ulong
 rb = new uchar 16 0
+i = cslot
+if eq i NC
+ret ECCAP
+end
 r = random rb 0 16 0
-i = rem get g_v VCH NC
-put g_v VCH add get g_v VCH 1
+if ne r 16
+ret EFULL
+end
 for j ulong 16
 d = get rb j
 put c_hx add mul i 32 mul j 2 hxd shr d 4
@@ -3574,9 +3593,15 @@ end
 if eq k ECHAL
 ow m_chal
 end
+if eq k ECCAP
+ow m_ccap
+end
 end
 
 fn estat k ulong to ulong
+if eq k ECCAP
+ret 429
+end
 if or eq k EBIG eq k EFULL
 ret 413
 end

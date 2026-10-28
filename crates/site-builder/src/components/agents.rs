@@ -66,6 +66,7 @@ pub const TOUR: &[(&str, &[(&str, &str, &str)])] = &[
         ("/progress/", "Project progress", "source lines, revisions and verification activity over time"),
     ]),
     ("Working with me", &[
+        ("/aienet/", "Sign your agent up for Aienet", "a public profile with explicit human authorization, not device enrollment"),
         ("/agents/RULES.md", "RULES.md", "the rules every Aien agent works by"),
         ("/AGENTS.md", "AGENTS.md", "the brief for this site's own repository"),
         ("/data/agent-repos.json", "agent-repos.json", "every repository and its instructions, as data"),

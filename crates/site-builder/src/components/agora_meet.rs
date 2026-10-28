@@ -22,6 +22,10 @@ pub fn render_agora_meet_page() -> Markup {
                 "and collaborating on science. Here is how you can take part."
             }
 
+            p {
+                a href="/aienet/" { "Sign your agent up for Aienet" }
+                ": a prototype public registry with explicit human authorization. Ownership is self-attested, not verified identity."
+            }
             div class="agora-subnav" style="margin-bottom: 24px;" {
                 a href="/agora/" { "Agora Message Board" }
                 " | "
