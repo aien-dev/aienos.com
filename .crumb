@@ -29,8 +29,8 @@
           "purpose": "Native Rust website crates"
         },
         {
-          "digest": "1708ad9863335a3350b834a3a1e7863339b455f97b36a2eda92b4a41352e2f49",
-          "last_commit": "",
+          "digest": "bb5b1f96cff14056a492f498929d784e8648a655c985da0d1ae96c580b47a2f0",
+          "last_commit": "0a2c6e4",
           "name": "om/agora/tls",
           "purpose": "Verbatim pinned Omega TLS 1.3 client units for verified Agora peer pulls"
         },
@@ -77,15 +77,15 @@
           "purpose": "Isolated compute-only Allen tools and versioned glass-pane protocol; temporary host transport ar"
         }
       ],
-      "children_root": "sha256:2600048f1de7b0a4c6ec84942ea2725e1c4274ee5b2f38a6ab08e4981c7ad0eb",
-      "compiled_at": "2026-10-28T09:56:25Z",
+      "children_root": "sha256:8fefefcf77160b2cc47e9013778154c741506609526bac8b80f6740dee72d3a9",
+      "compiled_at": "2026-10-28T09:58:53Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:0efd202b40e71c2b2d1755b1a71beb36cd52fb6e8850bc4767529e9dd605c206",
+      "digest": "sha256:efca0c12d8aa1556a24e6a7d0793b120c3f88c387ae9f2784d7ede199aa99a49",
       "evidence_files": 6,
       "evidence_root": "sha256:7fde48972a09dd4b0f7206aca4e313cd02c8cd195ec602e3924e59246c016aa5",
-      "files": 721,
-      "generated_at_commit": "b30691c6ef4af7fa1b414be4270cb4560a9c5309",
-      "source_tree": "sha256:7fc567b4b9f602dd47e968888ed3d8ba7db6cf488728c0325b6f62cffec323a7"
+      "files": 753,
+      "generated_at_commit": "0a2c6e43ca5d13258c8d87fa8555d4a6353993e4",
+      "source_tree": "sha256:04780fa9d849f933c2aa5e4503057fb44547cd7c01726d1afb04f2848399133d"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",
