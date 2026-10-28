@@ -1833,6 +1833,38 @@ p {
   padding-left: 22px;
 }
 
+.agents-tour-h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 28px 0 8px;
+}
+
+.agents-tour dt {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin: 18px 0 6px;
+}
+
+.agents-tour dd {
+  margin: 0;
+}
+
+.agents-tour ul {
+  margin: 0;
+  padding-left: 22px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.agents-tour a {
+  color: var(--text-primary);
+  text-decoration: underline;
+}
+
 .agents-prompt {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);

@@ -332,6 +332,80 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     fs::create_dir_all(dist.join("agents")).expect("Failed to create agents dir");
     fs::write(dist.join("agents/index.html"), agents_page.into_string()).expect("Failed to write agents/index.html");
     println!("  [PAGE] Emitted /agents/ ({} repositories)", agent_repos.listed().len());
+    let agents_hello_page = render_page_layout(
+        components::agents_hello::TITLE,
+        components::agents_hello::DESCRIPTION,
+        components::agents_hello::URL,
+        "website",
+        html! {},
+        components::agents_hello::render_agents_hello_page(),
+    );
+    fs::create_dir_all(dist.join("agents/hello")).expect("Failed to create agents/hello dir");
+    fs::write(dist.join("agents/hello/index.html"), agents_hello_page.into_string()).expect("Failed to write agents/hello/index.html");
+    println!("  [PAGE] Emitted /agents/hello/");
+
+    let agents_knowledge_page = render_page_layout(
+        components::agents_knowledge::TITLE,
+        components::agents_knowledge::DESCRIPTION,
+        components::agents_knowledge::URL,
+        "website",
+        html! {},
+        components::agents_knowledge::render_agents_knowledge_page(),
+    );
+    fs::create_dir_all(dist.join("agents/knowledge")).expect("Failed to create agents/knowledge dir");
+    fs::write(dist.join("agents/knowledge/index.html"), agents_knowledge_page.into_string()).expect("Failed to write agents/knowledge/index.html");
+    println!("  [PAGE] Emitted /agents/knowledge/");
+
+    let agora_page = render_page_layout(
+        components::agora::TITLE,
+        components::agora::DESCRIPTION,
+        components::agora::URL,
+        "website",
+        html! {
+            link rel="stylesheet" href="/assets/agora.css";
+            script defer src="/js/agora.js" {}
+        },
+        components::agora::render_agora_page(),
+    );
+    fs::create_dir_all(dist.join("agora")).expect("Failed to create agora dir");
+    fs::write(dist.join("agora/index.html"), agora_page.into_string()).expect("Failed to write agora/index.html");
+    println!("  [PAGE] Emitted /agora/");
+
+    let agora_meet_page = render_page_layout(
+        components::agora_meet::TITLE,
+        components::agora_meet::DESCRIPTION,
+        components::agora_meet::URL,
+        "website",
+        html! {},
+        components::agora_meet::render_agora_meet_page(),
+    );
+    fs::create_dir_all(dist.join("agora/meet")).expect("Failed to create agora/meet dir");
+    fs::write(dist.join("agora/meet/index.html"), agora_meet_page.into_string()).expect("Failed to write agora/meet/index.html");
+    println!("  [PAGE] Emitted /agora/meet/");
+
+    let agora_protocol_page = render_page_layout(
+        components::agora_protocol::TITLE,
+        components::agora_protocol::DESCRIPTION,
+        components::agora_protocol::URL,
+        "website",
+        html! {},
+        components::agora_protocol::render_agora_protocol_page(),
+    );
+    fs::create_dir_all(dist.join("agora/protocol")).expect("Failed to create agora/protocol dir");
+    fs::write(dist.join("agora/protocol/index.html"), agora_protocol_page.into_string()).expect("Failed to write agora/protocol/index.html");
+    println!("  [PAGE] Emitted /agora/protocol/");
+
+    let agora_network_page = render_page_layout(
+        components::agora_network::TITLE,
+        components::agora_network::DESCRIPTION,
+        components::agora_network::URL,
+        "website",
+        html! {},
+        components::agora_network::render_agora_network_page(),
+    );
+    fs::create_dir_all(dist.join("agora/network")).expect("Failed to create agora/network dir");
+    fs::write(dist.join("agora/network/index.html"), agora_network_page.into_string()).expect("Failed to write agora/network/index.html");
+    println!("  [PAGE] Emitted /agora/network/");
     // /omega/: what Omega is, from data/omega.json (the omega repository's
     // docs/OMEGA.md), published next to it as /omega.json.
     let omega_page = render_page_layout(

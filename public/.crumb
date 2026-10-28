@@ -13,20 +13,20 @@
           "purpose": "Pinned alpha wizard source and unmodified terminal capture assets"
         },
         {
-          "digest": "893c94132a8f14957c1f56d7a7e9d3b9ba3e941a8c15aa079835cabbd6f17a71",
-          "last_commit": "356174c",
+          "digest": "f30d6f7e75f8207a8160783f99aa374ffeadd09d153198cb88b50cb253d109b7",
+          "last_commit": "74947db",
           "name": "assets",
           "purpose": "Website styles including the project dashboard"
         },
         {
           "digest": "c8b477d42287dc3ace90ab02916bf3c7431cc1020acde5c63fc8255650df3edd",
-          "last_commit": "3b327f2",
+          "last_commit": "83192cf",
           "name": "data",
           "purpose": "Published generated project measurements with pinned sources"
         },
         {
-          "digest": "c4f14b5009b8fe02225d5cb08e220db27d023c24499e76e88809ae93b8c6f354",
-          "last_commit": "ee3833c",
+          "digest": "c99beb2f0614ec6d444cb977e19e4177692aca60d51aa3aa8a23766dbf26a14b",
+          "last_commit": "74947db",
           "name": "js",
           "purpose": "Browser interactions using public data only"
         },
@@ -49,15 +49,15 @@
           "purpose": "Public static research or licensing pages using the shared website navigation"
         }
       ],
-      "children_root": "sha256:4ad6dcfa3a01df91745f70eef7c7ace0b39517146df82a0c8bb7824d0cf145bd",
-      "compiled_at": "2026-10-27T17:25:31Z",
+      "children_root": "sha256:ae943d3bf17f1975c8bec1a5f50dd4534e0304b362c363b52264dcb59295333c",
+      "compiled_at": "2026-10-28T01:51:59Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:17f99651397164ac91401a6d2f91f0c3ce448847cee0d63586071a86fe09b488",
+      "digest": "sha256:26ff00be0f27a1b2a87fac3cebc50fb2c067485a9e097963e13aec4592fb808b",
       "evidence_files": 1,
       "evidence_root": "sha256:63bece7cb299b29d19622dcb0de4cbaa623357b117d8c7643a562de286c4b2fb",
-      "files": 152,
-      "generated_at_commit": "d877b71d12b95624a6926bc4299f5505f72a6327",
-      "source_tree": "sha256:0d4fcdfd54ebb3e578fb61384349126f2da902c666d3ef4b9f1082774b262a36"
+      "files": 155,
+      "generated_at_commit": "74947db2160fb474f316ac88819f294e7781b1db",
+      "source_tree": "sha256:d0aa7286d5246e6174675857f867d3bc41f2d9971b64a2227aa9c517979d8d5d"
     }
   },
   "invariants": [
