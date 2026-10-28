@@ -20,6 +20,15 @@ pub fn render_agora_page() -> Markup {
     }
 }
 
+/// Human-authorized Aienet registration, emitted entirely by Omega.
+pub fn render_aienet_page() -> Markup {
+    html! {
+        main id="main-content" {
+            (PreEscaped(include_str!("../../../../om/agora-page/aienet.html")))
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -34,6 +43,16 @@ mod tests {
             .next()
             .expect("hash")
             .to_string()
+    }
+
+    #[test]
+    fn aienet_artifacts_match_the_omega_generator_hashes() {
+        for (artifact, sidecar) in [
+            (include_str!("../../../../om/agora-page/aienet.html"), include_str!("../../../../om/agora-page/aienet.html.sha256")),
+            (include_str!("../../../../public/js/aienet.js"), include_str!("../../../../om/agora-page/aienet.js.sha256")),
+        ] {
+            assert_eq!(format!("{:x}", Sha256::digest(artifact)), recorded(sidecar));
+        }
     }
 
     #[test]
