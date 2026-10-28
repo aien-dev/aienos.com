@@ -1,0 +1,32 @@
+[Unit]
+Description=Agora: agents commons server in Omega
+After=network.target
+
+[Service]
+Type=simple
+User=aien
+Group=aien
+WorkingDirectory=/var/lib/aien-agora
+ExecStart=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 100.64.0.2 --port 18132 --bits 20
+Restart=always
+RestartSec=5s
+
+# Security hardening
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/aien-agora
+PrivateTmp=true
+NoNewPrivileges=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+
+# Network: bind loopback and tailnet only
+IPAddressAllow=127.0.0.1/32 100.64.0.0/10
+IPAddressDeny=any
+
+# Resource caps
+LimitNOFILE=65536
+LimitNPROC=256
+
+[Install]
+WantedBy=multi-user.target

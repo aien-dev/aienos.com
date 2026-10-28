@@ -1,0 +1,112 @@
+note fake-peer.om: a test-only Agora peer on loopback for net.sh. It serves GET /.well-known/agora naming
+note node feedfacefeedface at http://127.0.0.1:<its port> ("wrongbase" mode names http://127.0.0.1:1
+note instead, so a verifying node must refuse to list it) and answers every other GET (the since pulls)
+note with one malformed post record, so a syncing node must count it bad and drop the peer.
+note Usage: fake-peer good|wrongbase; prints "PORT <n>", serves 100 accepts and exits.
+note Compose: { printf 'om2\n'; cat sha256.om http.om client.om test/fake-peer.om; } | omc
+
+global gfp ulong 2
+
+note gfp: 0 the listening port, 1 set in wrongbase mode
+
+text fp_ctype "Content-Type"
+text fp_text "text/plain; charset=utf-8"
+text fp_well "/.well-known/agora"
+text fp_get "GET"
+text fp_port "PORT "
+text fp_wrong "wrongbase"
+text fp_wk1 "agora 1\nnode\tfeedfacefeedface\thttp://127.0.0.1:"
+text fp_wk2 "\tfake peer\napi\thttp://127.0.0.1:"
+text fp_wk3 "/agora/api/\n"
+text fp_wkbad "agora 1\nnode\tfeedfacefeedface\thttp://127.0.0.1:1\tfake peer\napi\thttp://127.0.0.1:1/agora/api/\n"
+text fp_bad "agora 1\nok\nrec\t1\tfeedfacefeedface\tpost\t1\nthread\tnot-a-number\tbad\tbad\nbody 3\nbad\n"
+
+fn fp_send cs edit ulong 320 io edit uchar 131072 s view uchar * to long
+r = hrspst cs io 200
+r = hfe r hhname cs io fp_ctype
+r = hfe r hhval cs io fp_text
+blen = len s
+r = hfe r hhend cs io 0 blen
+r = hfe r hput cs io s
+ret hfe r hwfin cs io
+end
+
+fn fp_wk cs edit ulong 320 io edit uchar 131072 to long
+b = new uchar 512 0
+if eq get gfp 1 1
+ret fp_send cs io fp_wkbad
+end
+q = ac_cat b 0 fp_wk1
+q = ac_catu b q get gfp 0
+q = ac_cat b q fp_wk2
+q = ac_catu b q get gfp 0
+q = ac_cat b q fp_wk3
+ret fp_send cs io view part b 0 q
+end
+
+fn route cs edit ulong 320 io edit uchar 131072 to long
+if not hismeth cs io fp_get
+ret hrspempty cs io 405
+end
+if hispath cs io fp_well
+ret fp_wk cs io
+end
+ret fp_send cs io fp_bad
+end
+
+fn serve1 lf int cs edit ulong 320 io edit uchar 131072 to long
+c = haccept lf 30000000000
+if lt c 0
+ret 0
+end
+r = hinit cs io int c 1
+if lt r 0
+x = hclose cs
+ret 0
+end
+hsettmo cs 10000000000 10000000000
+for k ulong 10
+r = hreqrd cs io
+if le r 0
+if lt r 0
+x = hreject cs io r
+end
+break
+end
+r = route cs io
+if lt r 0
+break
+end
+if eq hnext cs io 0
+break
+end
+end
+r = hclose cs
+ret 0
+end
+
+fn main to int
+cs = new ulong 320 0
+io = new uchar 131072 0
+a = new uchar 16 0
+ab = new uchar 32 0
+k = argread 1 ab 0 16
+if and gt k 0 ac_peq view ab 0 ulong k fp_wrong
+put gfp 1 1
+end
+r = haddr4 a 2130706433 0
+lf = hlisten a 16
+if lt lf 0
+ret 2
+end
+put gfp 0 hport a
+q = ac_cat ab 0 fp_port
+q = ac_catu ab q get gfp 0
+q = ac_catc ab q 10
+ac_say view part ab 0 q
+for j ulong 100
+r = serve1 int lf cs io
+end
+c = fclose int lf
+ret 0
+end
