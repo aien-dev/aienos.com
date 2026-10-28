@@ -4,7 +4,8 @@
 # mutant must compile and must fail the scenario, which proves the check exists.
 # OMEGA_OMC names the pinned omc (sha256 in omc.sha256); it overrides the path, never the pin.
 # Exit 2: missing compiler or tool; 3: wrong pin; 4: vendored unit hash mismatch;
-# 5: scenario failed on the real server; 6: a mutant survived or did not apply.
+# 5: scenario failed on the real server; 6: a mutant survived or did not apply;
+# 7: test/net.sh (network programs) failed.
 set -eu
 cd "$(dirname "$0")"
 here=$PWD
@@ -80,3 +81,8 @@ if [ "$survived" -ne 0 ]; then
     exit 6
 fi
 printf 'PASS agora core: scenario on the real server, 7 of 7 mutants killed\n'
+# The network programs (aien-agora, agora-sync, agora-edge) and their mutants.
+if ! sh "$here/test/net.sh" "$omc" "$tmp"; then
+    exit 7
+fi
+printf 'PASS agora: core and network gates\n'
