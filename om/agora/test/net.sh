@@ -206,3 +206,139 @@ ok "drainer: closed upstream exits 3 and keeps the item; fake upstream replies o
 r=$(drain drm "$t/aien-drain")
 [ "$r" != pass ] || fail "mutant drain (item removed before the reply is posted) not caught"
 ok "mutant drain caught: $r"
+
+# ---------------------------------------------------------------- federation (agora-sync)
+# nodeid PORT: the node id from the node's /.well-known/agora
+nodeid() { get "$1" /.well-known/agora | awk -F'\t' '$1 == "node" { print $2 }'; }
+
+# announce PORT BASE [NODE]: POST /agora/api/peer base_url BASE (and node NODE), with proof of work
+# 4 bits above the node's
+announce() {
+	printf 'base_url\t%s\n' "$2" > "$t/ann.rest"
+	if [ -n "${3:-}" ]; then printf 'node\t%s\n' "$3" >> "$t/ann.rest"; fi
+	wr "$1" peer "$t/ann.rest" 4
+}
+
+# nocur FILE: a since answer with the local cursor field of every rec line blanked, for comparing logs
+nocur() { awk -F'\t' 'BEGIN { OFS = "\t" } $1 == "rec" { $2 = "-" } { print }' "$1"; }
+
+# fed NAME AGORA SYNC: node A (binary AGORA) pulls node B through SYNC. B registers an agent and posts
+# an @aien thread; A gets B announced, syncs, and must show B's records with B's origin, list B, keep
+# its own aien.queue empty; after sync.cur.<B> is deleted a second sync must import nothing new.
+# Prints "pass" or the first failed step.
+fed() {
+	local a b sy pa pb nb na tb ta n1 n2 rc
+	a=$1a
+	b=$1b
+	sy=$3
+	node "$a" "$2"
+	node "$b" "$t/agora"
+	pa=$(port "$a")
+	pb=$(port "$b")
+	na=$(nodeid "$pa")
+	nb=$(nodeid "$pb")
+	[ -n "$na" ] && [ -n "$nb" ] && [ "$na" != "$nb" ] || { echo "node ids '$na' '$nb'"; return; }
+	set -- $(hello "$pb" Bee)
+	post "$pb" "$1" open "From B" "@aien this is B speaking" > "$t/$b.post"
+	tb=$(awk -F'\t' '$1 == "post" { print $2 }' "$t/$b.post")
+	[ -n "$tb" ] || { cat "$t/$b.post"; echo "post on B"; return; }
+	has "$t/$b/aien.queue" "$tb	1	" || { echo "control: B did not queue its own @aien post"; return; }
+	get "$pb" "/agora/api/since/0?limit=25" > "$t/$b.since"
+	announce "$pa" "http://$lo:$pb" > "$t/$a.ann"
+	has "$t/$a.ann" ok || { cat "$t/$a.ann"; echo "announce refused"; return; }
+	rc=0
+	"$sy" --state "$t/$a" --api "$pa" > "$t/$a.s1" 2>&1 || rc=$?
+	[ "$rc" = 0 ] || { echo "sync exit $rc"; return; }
+	get "$pa" /agora/api/peers > "$t/$a.peers"
+	has "$t/$a.peers" "peer	$nb	http://$lo:$pb	" || { echo "B not listed on A"; return; }
+	get "$pa" "/agora/api/since/0?limit=25" > "$t/$a.since1"
+	n1=$(awk -F'\t' -v o="$nb" '$1 == "rec" && $3 == o' "$t/$a.since1" | wc -l)
+	[ "$n1" -ge 2 ] || { echo "records with B's origin on A: $n1"; return; }
+	ta=$(awk -F'\t' '$1 == "thread" && $4 == "From B" { print $2; exit }' "$t/$a.since1")
+	[ -n "$ta" ] || { echo "B's thread not in A's log"; return; }
+	get "$pa" "/agora/api/thread/$ta" > "$t/$a.thr"
+	has "$t/$a.thr" "origin	$nb	$tb" || { echo "thread $ta on A lacks origin $nb $tb"; return; }
+	has "$t/$a.thr" "@aien this is B speaking" || { echo "B's body missing on A"; return; }
+	nocur "$t/$b.since" > "$t/$b.since.n"
+	nocur "$t/$a.since1" > "$t/$a.since1.n"
+	cmp -s "$t/$b.since.n" "$t/$a.since1.n" || { echo "A's copy of B's log differs from B's log"; return; }
+	[ ! -s "$t/$a/aien.queue" ] || { echo "federated @aien entered A's aien.queue"; return; }
+	[ -f "$t/$a/sync.cur.$nb" ] || { echo "no cursor file sync.cur.$nb"; return; }
+	rm -f "$t/$a/sync.cur.$nb"
+	rc=0
+	"$sy" --state "$t/$a" --api "$pa" > "$t/$a.s2" 2>&1 || rc=$?
+	[ "$rc" = 0 ] || { echo "re-sync exit $rc"; return; }
+	get "$pa" "/agora/api/since/0?limit=25" > "$t/$a.since2"
+	n2=$(awk -F'\t' -v o="$nb" '$1 == "rec" && $3 == o' "$t/$a.since2" | wc -l)
+	[ "$n2" = "$n1" ] || { echo "re-sync without cursor: B records $n1 -> $n2"; return; }
+	[ ! -s "$t/$a/aien.queue" ] || { echo "re-sync: federated @aien entered A's aien.queue"; return; }
+	stop "$a"
+	stop "$b"
+	echo pass
+}
+
+r=$(fed f "$t/agora" "$t/sync")
+[ "$r" = pass ] || { cat "$t/fa.s1" "$t/fa.s2" "$t/fa.since1" 2>/dev/null || true; fail "federation: $r"; }
+ok "federation: B listed on A, B's records carry B's origin, A's aien.queue stays empty, re-sync without cursor adds nothing"
+r=$(fed fo "$t/agora" "$t/sync-origin")
+[ "$r" != pass ] || fail "mutant origin (sync labels records with its own node) not caught"
+ok "mutant origin caught: $r"
+r=$(fed fd "$t/agora-dedupe" "$t/sync")
+[ "$r" != pass ] || fail "mutant dedupe (server origin key check off) not caught"
+ok "mutant dedupe caught: $r"
+
+# fake NAME MODE SYNC: node A, the fake peer in MODE announced with its claimed node id.
+# good: the peer is listed but serves only a malformed record; each sync counts it bad and imports
+# nothing; with the default --maxbad 3 it is still listed after syncs 1 and 2 and dropped by sync 3.
+# wrongbase: its well-known names another base, so one sync must refuse it and never list it.
+# Prints "pass" or the first failed step.
+fake() {
+	local a f mode sy pa pf rc k runs
+	a=$1a
+	f=$1p
+	mode=$2
+	sy=$3
+	node "$a" "$t/agora"
+	pa=$(port "$a")
+	start "$f" "$t/fp" "$mode"
+	pf=$(port "$f")
+	announce "$pa" "http://$lo:$pf" feedfacefeedface > "$t/$a.ann"
+	has "$t/$a.ann" ok || { cat "$t/$a.ann"; echo "announce refused"; return; }
+	runs=1
+	if [ "$mode" = good ]; then runs=3; fi
+	: > "$t/$a.s"
+	k=1
+	while [ $k -le $runs ]; do
+		rc=0
+		"$sy" --state "$t/$a" --api "$pa" > "$t/$a.s$k" 2>&1 || rc=$?
+		cat "$t/$a.s$k" >> "$t/$a.s"
+		[ "$rc" = 0 ] || { echo "sync $k exit $rc"; return; }
+		get "$pa" /agora/api/peers > "$t/$a.peers"
+		get "$pa" "/agora/api/since/0?limit=25" > "$t/$a.since"
+		if has "$t/$a.since" feedfacefeedface; then echo "sync $k imported a record from the fake peer"; return; fi
+		if [ "$mode" = good ] && [ $k -lt 3 ]; then
+			has "$t/$a.s$k" "bad-record	feedfacefeedface" || { echo "sync $k did not count the bad record"; return; }
+			has "$t/$a.peers" "peer	feedfacefeedface" || { echo "control: fake peer not listed after sync $k"; return; }
+		fi
+		k=$((k + 1))
+	done
+	if has "$t/$a.peers" feedfacefeedface; then echo "fake peer ($mode) listed on A after sync $runs"; return; fi
+	if [ "$mode" = good ]; then
+		has "$t/$a.s3" "dropped	feedfacefeedface" || { echo "fake peer not dropped by sync 3"; return; }
+	else
+		has "$t/$a.s1" "refused	" || { echo "wrong-base announcement not refused"; return; }
+	fi
+	stop "$f"
+	stop "$a"
+	echo pass
+}
+
+r=$(fake bp good "$t/sync")
+[ "$r" = pass ] || { cat "$t/bpa.s" "$t/bpa.peers" 2>/dev/null || true; fail "malformed peer: $r"; }
+ok "malformed peer: listed, its bad record counted and never imported on syncs 1-3, dropped by sync 3 (--maxbad 3), absent from /peers"
+r=$(fake wb wrongbase "$t/sync")
+[ "$r" = pass ] || { cat "$t/wba.s" "$t/wba.peers" 2>/dev/null || true; fail "wrong-base peer: $r"; }
+ok "wrong-base peer: announcement refused, never listed"
+r=$(fake wv wrongbase "$t/sync-verify")
+[ "$r" != pass ] || fail "mutant verify (announced base not checked) not caught"
+ok "mutant verify caught: $r"
