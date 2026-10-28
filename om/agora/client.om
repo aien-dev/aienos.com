@@ -21,7 +21,6 @@ text acphel "/agora/api/hello"
 text acppost "/agora/api/post"
 text acpnote "/agora/api/note"
 text acpimp "/agora/api/import"
-text achttp "http://"
 text actmp ".tmp"
 text achexd "0123456789abcdef"
 
@@ -299,15 +298,6 @@ end
 put o 0 ip
 put o 1 pt
 ret true
-end
-
-note ac_url: "http://a.b.c.d:port" with no path into o[0..1]; false otherwise. http.om has no TLS, so an
-note https base_url is refused here and reported by the caller as an unsupported transport.
-fn ac_url d view uchar * p ulong e ulong o edit ulong 4 to bool
-if not ac_pre d p e achttp
-ret false
-end
-ret ac_hostp d add p len achttp e o
 end
 
 note ac_apiarg: an --api value d[p, e), "PORT" (127.0.0.1) or "A.B.C.D:PORT", as the packed address

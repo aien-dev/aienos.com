@@ -1724,14 +1724,83 @@ ret 0
 end
 
 note ======== apply: peers  peer\t<node>\t<base_url>\t<utc>  and  drop\t<node>
+note pchc: the host name class of byte v as om/tls tls_hch (and so agora-sync) classes it:
+note 1 letter, 2 digit, '-' or '.', 0 anything else
+fn pchc v ulong to ulong
+if or and ge v 97 le v 122 and ge v 65 le v 90
+ret 1
+end
+if or and ge v 48 le v 57 or eq v 45 eq v 46
+ret 2
+end
+ret 0
+end
+
+note pport: the port in source m at [o, o + n): 1..5 digits, no leading zero, 1..65535; 0 when malformed
+fn pport o ulong n ulong m ulong to ulong
+if or eq n 0 gt n 5
+ret 0
+end
+if eq ulong bat m o 48
+ret 0
+end
+v = ulong 0
+for i ulong n
+c = ulong bat m add o i
+if or lt c 48 gt c 57
+ret 0
+end
+v = add mul v 10 sub c 48
+end
+if gt v 65535
+ret 0
+end
+ret v
+end
+
+note urlok: the peer base grammar, the same one agora-sync sy_burl fetches: "https://HOST[:PORT]" with HOST
+note 1..253 letters, digits, '-' and '.' holding at least one letter (a name the TLS client can check, never
+note an IPv4 literal) and PORT 1..65535 without a leading zero, or the loopback test base
+note "http://127.0.0.1:PORT" (agora-sync fetches it only with --insecure-http). No path, query, userinfo
+note or trailing slash.
 fn urlok o ulong n ulong m ulong to bool
-if bpre o n m s_https
-ret gt n len s_https
-end
 if bpre o n m s_lhttp
-ret gt n len s_lhttp
+k = len s_lhttp
+ret gt pport add o k sub n k m 0
 end
+if not bpre o n m s_https
 ret false
+end
+h = add o len s_https
+e = add o n
+c = e
+for i ulong sub e h
+if eq ulong bat m add h i 58
+c = add h i
+break
+end
+end
+hl = sub c h
+if or eq hl 0 gt hl 253
+ret false
+end
+al = false
+for i ulong hl
+k = pchc ulong bat m add h i
+if eq k 0
+ret false
+end
+if eq k 1
+al = true
+end
+end
+if not al
+ret false
+end
+if eq c e
+ret true
+end
+ret gt pport add c 1 sub e add c 1 m 0
 end
 
 fn apeer to ulong

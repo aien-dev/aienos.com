@@ -8,23 +8,30 @@ note    origin label. The server dedupes by (origin_node, origin_cursor), so a r
 note    A peer that serves a malformed record is dropped once it has served --maxbad of them.
 note Records whose origin is this node are never re-imported. The per-peer cursor lives in
 note <state>/sync.cur.<node_id>; deleting it only causes a re-pull that the server answers with dup.
-note Transport: http.om has no TLS, so only http://A.B.C.D:PORT peers are reachable; an https peer is
-note logged "unsupported" and skipped (an Omega extension gap, see README).
+note Transport: a peer base is "https://HOST[:PORT]" (the grammar agora.om urlok enforces, see sy_burl).
+note Every peer request runs over TLS 1.3 (vendored om/tls): the certificate chain, validity dates and
+note HOST are checked against the PEM trust store --ca (default /etc/ssl/certs/ca-certificates.crt) and
+note a failed handshake is logged "tls\t<base>\t<TLS error>[\t<X509 error>]" and the peer is not used.
+note The loopback form "http://127.0.0.1:PORT" is plain HTTP and is refused ("insecure-http") unless the
+note test flag --insecure-http is given. The local node (--api) is always reached over loopback HTTP.
 note Usage: agora-sync --state DIR --api PORT|A.B.C.D:PORT (PORT means 127.0.0.1:PORT) [--limit N (1..25,
-note default 20)] [--maxbad N (default 3)]
-note [--batches N (default 10)]. One answer of --limit records (each at most about 8.6 KB) must fit 256 KiB.
-note Compose: { printf 'om2\n'; cat sha256.om http.om client.om agora-sync.om; } | omc
+note default 20)] [--maxbad N (default 3)] [--batches N (default 10)] [--ca FILE] [--insecure-http].
+note One answer of --limit records (each at most about 8.6 KB) must fit 256 KiB.
+note Compose: { printf 'om2\n'; cat tls/sha2.om tls/hkdf.om tls/x25519.om tls/chacha.om tls/aesgcm.om \
+note   tls/ec.om tls/rsa.om tls/x509.om tls/tls.om sha2h.om http.om client.om agora-sync.om; } | omc
 note Exit: 0 done, 1 usage, 2 sync.key or the local node failed, 3 the local import refused the key or
-note could not be reached, 4 another sync holds <state>/sync.lock.
+note could not be reached, 4 another sync holds <state>/sync.lock, 5 the --ca trust store has no anchor.
 
 global gsd uchar 256
 global gcf ulong 8
 global gnode uchar 16
 global gkey uchar 64
 global gst ulong 8
+global gca uchar 256
 
 note gcf: 0 state dir length, 1 api port, 2 records per request, 3 bad records before a drop,
-note 4 requests per peer per run, 5 set once an import was fatal
+note 4 requests per peer per run, 5 set once an import was fatal, 6 --insecure-http given,
+note 7 length of the --ca path in gca
 note gst: 0 imported, 1 duplicate, 2 bad, 3 own origin skipped, 4 peers pulled, 5 announcements listed,
 note 6 announcements refused, 7 peers dropped
 
@@ -33,6 +40,16 @@ text syaapi "--api"
 text syalim "--limit"
 text syamaxb "--maxbad"
 text syabat "--batches"
+text syaca "--ca"
+text syains "--insecure-http"
+text syca "/etc/ssl/certs/ca-certificates.crt"
+text syhttps "https://"
+text sylhttp "http://127.0.0.1:"
+text syrq1 "GET "
+text syrq2 " HTTP/1.1"
+text syrqh "Host: "
+text syrqc "Connection: close"
+text syrqa "User-Agent: agora-sync/1"
 text syfkey "sync.key"
 text syflk "sync.lock"
 text syfreq "peer.req"
@@ -71,6 +88,9 @@ text sylog "sync\t"
 text sylpeer "listed\t"
 text sylref "refused\t"
 text sylunsup "unsupported\t"
+text sylins "insecure-http\t"
+text syltls "tls\t"
+text syltbig "response over 327680 bytes"
 text sylunv "unverified\t"
 text syldrop "dropped\t"
 text sylbad "bad-record\t"
@@ -130,6 +150,7 @@ q = ac_catc d q 10
 ret ac_put view part pb 0 n view part d 0 q 384
 end
 
+note sy_args: "--key value" pairs and the bare flag --insecure-http; false on a usage error
 fn sy_args to bool
 ab = new uchar 256 0
 put gcf 2 20
@@ -137,13 +158,24 @@ put gcf 3 3
 put gcf 4 10
 n = ulong argcnt
 i = ulong 1
-while lt add i 1 n bound 64
+while lt i n bound 64
 k = argread i ab 0 256
-v = argread add i 1 ab 64 192
-if or lt k 0 lt v 0
+if lt k 0
 ret false
 end
 ke = ulong k
+if ac_peq view ab 0 ke syains
+put gcf 6 1
+i = add i 1
+continue
+end
+if ge add i 1 n
+ret false
+end
+v = argread add i 1 ab 64 192
+if lt v 0
+ret false
+end
 ve = add 64 ulong v
 if ac_peq view ab 0 ke syastat
 for j ulong ulong v
@@ -163,7 +195,22 @@ end
 if ac_peq view ab 0 ke syabat
 put gcf 4 ac_dec view ab 64 ve
 end
+if ac_peq view ab 0 ke syaca
+if eq v 0
+ret false
+end
+for j ulong ulong v
+put gca j get ab add 64 j
+end
+put gcf 7 ulong v
+end
 i = add i 2
+end
+if eq get gcf 7 0
+for j ulong len syca
+put gca j get syca j
+end
+put gcf 7 len syca
 end
 if or eq get gcf 0 0 eq get gcf 1 0
 ret false
@@ -172,6 +219,22 @@ if or eq get gcf 2 0 gt get gcf 2 25
 ret false
 end
 ret and le get gcf 3 1000 le get gcf 4 1000
+end
+
+note sy_store: the --ca PEM bundle into st (TLSTSZ bytes); 0 or a TLS error code
+fn sy_store st edit uchar * to ulong
+p = new uchar 256 0
+n = get gcf 7
+for j ulong n
+put p j get gca j
+end
+ret tls_storef st view part p 0 n
+end
+
+note sy_stok: whether the --ca bundle yields at least one trust anchor (checked once at start)
+fn sy_stok to bool
+st = new uchar TLSTSZ 0
+ret eq sy_store st 0
 end
 
 note sy_hexv: whether d[p, p + n) is n lowercase hex digits
@@ -270,7 +333,7 @@ end
 
 note ======== talking to nodes ========
 
-note sy_wkget: GET /.well-known/agora from ip:port with Host ho into w; the length or negative
+note sy_wkget: GET /.well-known/agora from the local node ip:port with Host ho into w; the length or negative
 fn sy_wkget ip ulong port ulong ho view uchar * w edit uchar 4096 to long
 cs = new ulong 320 0
 io = new uchar 65536 0
@@ -288,6 +351,282 @@ if ne st 200
 ret -5
 end
 ret n
+end
+
+note ======== peer bases and the HTTPS transport ========
+
+note sy_host: whether b[p, e) is a TLS host name as tls_init takes it: 1..253 bytes of letters, digits,
+note '-' and '.', with at least one letter (so never an IPv4 literal)
+fn sy_host b view uchar * p ulong e ulong to bool
+hl = sub e p
+if or eq hl 0 gt hl 253
+ret false
+end
+al = false
+for i ulong hl
+k = tls_hch ulong get b add p i
+if eq k 0
+ret false
+end
+if eq k 1
+al = true
+end
+end
+ret al
+end
+
+note sy_port: the port b[p, e) (1..5 digits, no leading zero, 1..65535); 0 when malformed
+fn sy_port b view uchar * p ulong e ulong to ulong
+k = sub e p
+if or eq k 0 gt k 5
+ret 0
+end
+if eq get b p 48
+ret 0
+end
+v = ac_dec b p e
+if gt v 65535
+ret 0
+end
+ret v
+end
+
+note sy_burl: the peer base grammar, the same as agora.om urlok: "https://HOST[:PORT]" gives 1 (port 443
+note when absent), the loopback test form "http://127.0.0.1:PORT" gives 2, anything else (a path, a query,
+note userinfo, an IPv4 https host, a trailing slash) gives 0. o[0], o[1] bound the Host header value's
+note host part in b (o[0] to the end of b is the Host header), o[2] is the port.
+fn sy_burl b view uchar * o edit ulong 8 to ulong
+n = len b
+if ac_pre b 0 n syhttps
+c = n
+for i ulong sub n 8
+if eq get b add 8 i 58
+c = add 8 i
+break
+end
+end
+if not sy_host b 8 c
+ret 0
+end
+put o 0 8
+put o 1 c
+put o 2 443
+if lt c n
+p = sy_port b add c 1 n
+if eq p 0
+ret 0
+end
+put o 2 p
+end
+ret 1
+end
+if ac_pre b 0 n sylhttp
+p = sy_port b len sylhttp n
+if eq p 0
+ret 0
+end
+put o 0 7
+put o 1 sub len sylhttp 1
+put o 2 p
+ret 2
+end
+ret 0
+end
+
+note sy_tlog: "tls\t<base>\t<TLS error>[\t<X509 error>]" for the TLS failure e on connection c
+fn sy_tlog e ulong c view uchar * b view uchar * to void
+m = new uchar 640 0
+t = new uchar 64 0
+q = ac_cat m 0 b
+q = ac_catc m q 9
+if eq e 0
+q = ac_cat m q syltbig
+else
+k = tls_errname e t
+q = ac_cat m q view part t 0 k
+end
+if or eq e TLECERT eq e TLECV
+q = ac_catc m q 9
+k = x509_errname tls_detail c t
+q = ac_cat m q view part t 0 k
+end
+if le q 640
+sy_log syltls view part m 0 q
+end
+end
+
+note sy_crlf: CR LF appended to d at q
+fn sy_crlf d edit uchar * q ulong to ulong
+r = ac_catc d q 13
+ret ac_catc d r 10
+end
+
+note sy_rq: the request "GET <pa[0, o[4])> HTTP/1.1" with Host (b from o[0]) and Connection: close into rq
+fn sy_rq rq edit uchar 1024 o view ulong 8 b view uchar * pa view uchar 128 to ulong
+q = ac_cat rq 0 syrq1
+q = ac_cat rq q view part pa 0 get o 4
+q = ac_cat rq q syrq2
+q = sy_crlf rq q
+q = ac_cat rq q syrqh
+q = ac_cat rq q view part b get o 0 sub len b get o 0
+q = sy_crlf rq q
+q = ac_cat rq q syrqc
+q = sy_crlf rq q
+q = ac_cat rq q syrqa
+q = sy_crlf rq q
+ret sy_crlf rq q
+end
+
+note sy_tdrain: decrypted response bytes into raw until the peer's close_notify (o[5] = 1) or a TCP end
+note without one (o[5] = 0); the count, or negative (logged for base b) on a TLS error or when raw is full
+fn sy_tdrain c edit uchar * raw edit uchar 327680 o edit ulong 8 b view uchar * to long
+got = ulong 0
+put o 5 0
+for it ulong 327681
+if eq got 327680
+break
+end
+r = tls_read c part raw got sub 327680 got
+if eq r 0
+put o 5 1
+ret long got
+end
+if eq r neg long TLEEOF
+ret long got
+end
+if lt r 0
+sy_tlog ulong neg r c b
+ret -30
+end
+got = add got ulong r
+end
+sy_tlog 0 c b
+ret -31
+end
+
+note sy_tread: TLS 1.3 to HOST:port (o) checked against the --ca store, send the GET, read the response
+note into raw. The byte count, or negative (every handshake failure is logged by sy_tlog).
+fn sy_tread o edit ulong 8 b view uchar * pa view uchar 128 raw edit uchar 327680 to long
+c = new uchar TLCSZ 0
+st = new uchar TLSTSZ 0
+rq = new uchar 1024 0
+e = sy_store st
+if ne e 0
+sy_tlog e c b
+ret -20
+end
+e = tls_init c view part b get o 0 sub get o 1 get o 0 1
+if ne e 0
+sy_tlog e c b
+ret -21
+end
+fd = tls_dial view part b get o 0 sub get o 1 get o 0 get o 2
+if lt fd 0
+sy_tlog ulong neg fd c b
+ret -22
+end
+tls_deadline c long add ulong monons 30000000000
+e = tls_connect c st int fd
+if ne e 0
+sy_tlog e c b
+x = fclose int fd
+ret -23
+end
+q = sy_rq rq o b pa
+n = long -24
+if le q 1024
+n = tls_write c view part rq 0 q
+end
+if ge n 0
+n = sy_tdrain c raw o b
+end
+tls_close c
+x = fclose int fd
+ret n
+end
+
+note sy_hparse: the HTTP/1.1 response raw (complete in memory) through http.om's client parser in memory
+note mode; the body into d. A body delimited by the connection end needs the peer's close_notify (cl 1),
+note so a truncated close-delimited answer is refused. The body length, -5 for a status other than 200,
+note or negative.
+fn sy_hparse raw view uchar * cl ulong d edit uchar * to long
+cs = new ulong 320 0
+io = new uchar 393216 0
+r = hinit cs io int -1 0
+if lt r 0
+ret r
+end
+r = hmemld cs io raw
+if lt r 0
+ret r
+end
+st = hrsprd cs io
+if lt st 0
+ret st
+end
+if and eq get cs HBMODE 3 eq cl 0
+ret -6
+end
+n = hbodyall cs io d
+if ne st 200
+ret -5
+end
+ret n
+end
+
+note sy_tget: GET pa[0, o[4]) over TLS from the https base b into d; the body length or negative
+fn sy_tget o edit ulong 8 b view uchar * pa view uchar 128 d edit uchar * to long
+raw = new uchar 327680 0
+n = sy_tread o b pa raw
+if lt n 0
+ret n
+end
+ret sy_hparse view part raw 0 ulong n get o 5 d
+end
+
+note sy_pget: GET pa[0, o[4]) over plain HTTP from the loopback test base b into d (--insecure-http)
+fn sy_pget o view ulong 8 b view uchar * pa view uchar 128 d edit uchar * to long
+cs = new ulong 320 0
+io = new uchar 65536 0
+r = ac_dial cs io 2130706433 get o 2 30000000000
+if lt r 0
+ret r
+end
+st = sy_pgo cs io o b pa
+if lt st 0
+c = hclose cs
+ret st
+end
+n = ac_body cs io d
+if ne st 200
+ret -5
+end
+ret n
+end
+
+note sy_pgo: the GET of sy_pget on the open connection; the final status or negative
+fn sy_pgo cs edit ulong 320 io edit uchar 65536 o view ulong 8 b view uchar * pa view uchar 128 to long
+ret ac_get cs io view part pa 0 get o 4 view part b get o 0 sub len b get o 0
+end
+
+note sy_hget: GET pa[0, pl) from the peer base b into d; the body length or negative. A base outside
+note the grammar is logged "unsupported", a plain-HTTP base without --insecure-http "insecure-http".
+fn sy_hget b view uchar * pa view uchar 128 pl ulong d edit uchar * to long
+o = new ulong 8 0
+k = sy_burl b o
+if eq k 0
+sy_log sylunsup b
+ret -7
+end
+put o 4 pl
+if eq k 2
+if eq get gcf 6 0
+sy_log sylins b
+ret -8
+end
+ret sy_pget o b pa d
+end
+ret sy_tget o b pa d
 end
 
 note sy_wkchk: whether w[0, n) is a well-known answer ("agora 1", then "node\t<16 hex>\t<base>\t...");
@@ -323,13 +662,11 @@ end
 note sy_verify: fetch <base>/.well-known/agora and check it names base; nid holds the expected node id
 note (all zero bytes when none was announced) and receives the verified one
 fn sy_verify base view uchar * nid edit uchar 16 to bool
-o = new ulong 4 0
+pa = new uchar 128 0
 w = new uchar 4096 0
 nd = new uchar 16 0
-if not ac_url base 0 len base o
-ret false
-end
-n = sy_wkget get o 0 get o 1 view part base len achttp sub len base len achttp w
+q = ac_cat pa 0 sypwk
+n = sy_hget base pa q w
 if lt n 0
 ret false
 end
@@ -875,37 +1212,22 @@ end
 ret long k
 end
 
-note sy_fetch: GET /agora/api/since/<o[2]>?limit=<limit> from o[0]:o[1] (Host ho) into d; length or negative
-fn sy_fetch o view ulong 4 ho view uchar * d edit uchar 262144 to long
+note sy_fetch: GET /agora/api/since/<cur>?limit=<limit> from the peer base b into d; length or negative
+fn sy_fetch b view uchar * cur ulong d edit uchar 262144 to long
 pa = new uchar 128 0
-cs = new ulong 320 0
-io = new uchar 65536 0
 q = ac_cat pa 0 sypsnc
-q = ac_catu pa q get o 2
+q = ac_catu pa q cur
 q = ac_cat pa q syplim
 q = ac_catu pa q get gcf 2
-r = ac_dial cs io get o 0 get o 1 30000000000
-if lt r 0
-ret r
-end
-st = ac_get cs io view part pa 0 q ho
-if lt st 0
-c = hclose cs
-ret st
-end
-n = ac_body cs io d
-if ne st 200
-ret -5
-end
-ret n
+ret sy_hget b pa q d
 end
 
-note sy_batch: one since request to peer nid (address in o[0..1], Host ho); o[3] is the length of the
-note cursor file name cn, where the advanced cursor is stored. Records handled, or negative to stop.
-fn sy_batch nid view uchar 16 o edit ulong 4 cn view uchar 64 ho view uchar * to long
+note sy_batch: one since request to peer nid at base b; o[3] is the length of the cursor file name cn,
+note where the advanced cursor o[2] is stored. Records handled, or negative to stop.
+fn sy_batch nid view uchar 16 o edit ulong 4 cn view uchar 64 b view uchar * to long
 d = new uchar 262144 0
 put o 2 sy_getn view part cn 0 get o 3
-n = sy_fetch o ho d
+n = sy_fetch b get o 2 d
 if lt n 0
 sy_log sylfail view nid
 ret -1
@@ -917,18 +1239,14 @@ end
 ret c
 end
 
-note sy_pull: pull peer nid at base (http://A.B.C.D:PORT) for up to --batches requests
+note sy_pull: pull peer nid at base for up to --batches requests
 fn sy_pull nid view uchar 16 base view uchar * to void
 o = new ulong 4 0
 cn = new uchar 64 0
-if not ac_url base 0 len base o
-ret
-end
 put o 3 sy_name syfcur nid cn
 put gst 4 add get gst 4 1
-hl = sub len base len achttp
 for it ulong get gcf 4
-c = sy_batch nid o cn view part base len achttp hl
+c = sy_batch nid o cn base
 if lt c long get gcf 2
 ret
 end
@@ -953,10 +1271,6 @@ end
 be = ac_fend l b e
 for i ulong 16
 put nid i get l add f i
-end
-if not ac_pre l b be achttp
-sy_log sylunsup view part l b sub be b
-ret
 end
 if not sy_verify view part l b sub be b nid
 sy_log sylunv view nid
@@ -1046,6 +1360,9 @@ fn main to int
 pb = new uchar 512 0
 if not sy_args
 ret 1
+end
+if not sy_stok
+ret 5
 end
 n = sy_path syflk pb
 lk = int fopen pb 0 n 66 384

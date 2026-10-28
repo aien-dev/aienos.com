@@ -1,8 +1,10 @@
 #!/bin/sh
 # net.sh: loopback tests for the Agora network programs (aien-agora.om, agora-sync.om, agora-edge.om)
 # and their mutants. Shell only coordinates; every program under test is Omega built here with the
-# pinned omc. Loopback ephemeral ports only; the real model port 18091 is never contacted (the drainer
-# always gets --upstream). Usage: sh test/net.sh <omc> <scratch dir>
+# pinned omc. openssl only issues the test PKI and terminates TLS (s_server) in front of real Agora
+# nodes, with socat as byte plumbing; neither is part of any program under test. Loopback ephemeral
+# ports only; the real model port 18091 is never contacted (the drainer always gets --upstream).
+# Usage: sh test/net.sh <omc> <scratch dir>
 set -eu
 
 omc=$1
@@ -129,22 +131,30 @@ has() { grep -qF -- "$2" "$1"; }
 cnt() { grep -cF -- "$2" "$1" || true; }
 
 # ---------------------------------------------------------------- build
+# the sync composes the vendored om/tls client (tls/) before http.om and client.om
+tlsu="tls/sha2.om tls/hkdf.om tls/x25519.om tls/chacha.om tls/aesgcm.om tls/ec.om tls/rsa.om tls/x509.om tls/tls.om sha2h.om"
 build agora "$here" sha256.om http.om agora.om
 build pow "$here" sha256.om test/pow.om
 build aien "$here" sha256.om http.om json.om jsonw.om client.om aien-agora.om
-build sync "$here" sha256.om http.om client.om agora-sync.om
+build sync "$here" $tlsu http.om client.om agora-sync.om
 build edge "$here" sha256.om http.om json.om jsonw.om client.om agora-edge.om
 build fu "$here" http.om fake-upstream.om
 build fp "$here" sha256.om http.om client.om test/fake-peer.om
-ok "built agora pow aien sync edge fake-upstream fake-peer with omc $want"
+# https-probe calls the sync's own transport functions: agora-sync.om with its main renamed
+mkdir -p "$t/pr"
+awk '$0 == "fn main to int" { print "fn sy_main to int"; next } { print }' "$here/agora-sync.om" > "$t/pr/agora-sync.om"
+[ "$(grep -c '^fn sy_main to int$' "$t/pr/agora-sync.om")" = 1 ] || fail "probe: agora-sync.om main not renamed"
+build probe "$here" $tlsu http.om client.om "$t/pr/agora-sync.om" test/https-probe.om
+ok "built agora pow aien sync edge fake-upstream fake-peer https-probe with omc $want"
 
 # mutants: each is one source line changed in a copy of the tree; mut NAME FILE OLD NEW
 mkdir -p "$t/m"
 mut() {
 	d="$t/m/$1"
-	mkdir -p "$d/test"
+	mkdir -p "$d/test" "$d/tls"
 	cp "$here"/*.om "$d/"
 	cp "$here"/test/*.om "$d/test/"
+	cp "$here"/tls/*.om "$d/tls/"
 	n=$(grep -cxF -- "$3" "$d/$2" || true)
 	[ "$n" = 1 ] || fail "mutant $1: the line '$3' occurs $n times in $2"
 	awk -v o="$3" -v r="$4" '$0 == o { print r; next } { print }' "$d/$2" > "$d/$2.new"
@@ -154,11 +164,15 @@ mut drain aien-agora.om 'if ok' 'if true'
 mut origin agora-sync.om 'q = ac_cat ib q view part d f 16' 'q = sy_gnode ib q'
 mut verify agora-sync.om 'vf = sy_verify view part l b sub be b nid' 'vf = true'
 mut dedupe agora.om 'if lt efind org oc NE' 'if lt efind org oc 0'
+mut tlsoff tls/tls.om 'r = x509_chain_verify part c add TLHB 8 cl st part hq 0 n' 'r = ulong 0'
+mut insecure agora-sync.om 'if eq get gcf 6 0' 'if false'
 build aien-drain "$t/m/drain" sha256.om http.om json.om jsonw.om client.om aien-agora.om
-build sync-origin "$t/m/origin" sha256.om http.om client.om agora-sync.om
-build sync-verify "$t/m/verify" sha256.om http.om client.om agora-sync.om
+build sync-origin "$t/m/origin" $tlsu http.om client.om agora-sync.om
+build sync-verify "$t/m/verify" $tlsu http.om client.om agora-sync.om
 build agora-dedupe "$t/m/dedupe" sha256.om http.om agora.om
-ok "built mutants drain origin verify dedupe"
+build sync-tlsoff "$t/m/tlsoff" $tlsu http.om client.om agora-sync.om
+build sync-insecure "$t/m/insecure" $tlsu http.om client.om agora-sync.om
+ok "built mutants drain origin verify dedupe tlsoff insecure"
 
 # ---------------------------------------------------------------- the Aien drainer
 # drain DIR AIEN: one node, an @aien post, a drain against a closed upstream (must fail and keep the
@@ -247,7 +261,7 @@ fed() {
 	announce "$pa" "http://$lo:$pb" > "$t/$a.ann"
 	has "$t/$a.ann" ok || { cat "$t/$a.ann"; echo "announce refused"; return; }
 	rc=0
-	"$sy" --state "$t/$a" --api "$pa" > "$t/$a.s1" 2>&1 || rc=$?
+	"$sy" --state "$t/$a" --api "$pa" --insecure-http > "$t/$a.s1" 2>&1 || rc=$?
 	[ "$rc" = 0 ] || { echo "sync exit $rc"; return; }
 	get "$pa" /agora/api/peers > "$t/$a.peers"
 	has "$t/$a.peers" "peer	$nb	http://$lo:$pb	" || { echo "B not listed on A"; return; }
@@ -266,7 +280,7 @@ fed() {
 	[ -f "$t/$a/sync.cur.$nb" ] || { echo "no cursor file sync.cur.$nb"; return; }
 	rm -f "$t/$a/sync.cur.$nb"
 	rc=0
-	"$sy" --state "$t/$a" --api "$pa" > "$t/$a.s2" 2>&1 || rc=$?
+	"$sy" --state "$t/$a" --api "$pa" --insecure-http > "$t/$a.s2" 2>&1 || rc=$?
 	[ "$rc" = 0 ] || { echo "re-sync exit $rc"; return; }
 	get "$pa" "/agora/api/since/0?limit=25" > "$t/$a.since2"
 	n2=$(awk -F'\t' -v o="$nb" '$1 == "rec" && $3 == o' "$t/$a.since2" | wc -l)
@@ -310,7 +324,7 @@ fake() {
 	k=1
 	while [ $k -le $runs ]; do
 		rc=0
-		"$sy" --state "$t/$a" --api "$pa" > "$t/$a.s$k" 2>&1 || rc=$?
+		"$sy" --state "$t/$a" --api "$pa" --insecure-http > "$t/$a.s$k" 2>&1 || rc=$?
 		cat "$t/$a.s$k" >> "$t/$a.s"
 		[ "$rc" = 0 ] || { echo "sync $k exit $rc"; return; }
 		get "$pa" /agora/api/peers > "$t/$a.peers"
@@ -342,6 +356,317 @@ ok "wrong-base peer: announcement refused, never listed"
 r=$(fake wv wrongbase "$t/sync-verify")
 [ "$r" != pass ] || fail "mutant verify (announced base not checked) not caught"
 ok "mutant verify caught: $r"
+
+# ---------------------------------------------------------------- federation over TLS
+# The test PKI (openssl, oracle only): an EC P-256 root; leaves signed by it for peerb.localhost (good),
+# for other.localhost (served as peerd.localhost: wrong name) and for peere.localhost with a validity
+# that ended in 2020 (expired); a self-signed leaf for peerc.localhost. The sync gets the root by --ca.
+for tl in openssl socat; do command -v "$tl" > /dev/null || fail "missing tool: $tl"; done
+pk=$t/pki
+mkdir -p "$pk/db"
+osl() { openssl "$@" > "$pk/openssl.log" 2>&1 || { cat "$pk/openssl.log"; fail "openssl $1"; }; }
+ekey() { osl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-256 -out "$pk/$1.key"; }
+leafx="-addext basicConstraints=critical,CA:false -addext keyUsage=critical,digitalSignature -addext extendedKeyUsage=serverAuth"
+# csr NAME DNSNAME: a key and a request with subjectAltName DNS:DNSNAME
+csr() {
+	ekey "$1"
+	osl req -new -key "$pk/$1.key" -subj "/CN=$2" -addext "subjectAltName=DNS:$2" $leafx -out "$pk/$1.csr"
+}
+# sign NAME SERIAL: the request NAME signed by the test root, valid for 10 days from now
+sign() {
+	osl x509 -req -in "$pk/$1.csr" -CA "$pk/ca.pem" -CAkey "$pk/ca.key" -set_serial "$2" -days 10 \
+		-sha256 -copy_extensions copy -out "$pk/$1.pem"
+}
+ekey ca
+osl req -x509 -new -key "$pk/ca.key" -subj /CN=agora-net-test-root -days 30 -sha256 \
+	-addext basicConstraints=critical,CA:true -addext keyUsage=critical,keyCertSign,cRLSign -out "$pk/ca.pem"
+csr good peerb.localhost
+sign good 2
+csr wrong other.localhost
+sign wrong 3
+ekey self
+osl req -x509 -new -key "$pk/self.key" -subj /CN=peerc.localhost -days 10 -sha256 \
+	-addext subjectAltName=DNS:peerc.localhost $leafx -out "$pk/self.pem"
+csr old peere.localhost
+: > "$pk/db/index"
+echo 04 > "$pk/db/serial"
+printf '[ca]\ndefault_ca = d\n[d]\ndatabase = %s\nserial = %s\nnew_certs_dir = %s\ndefault_md = sha256\npolicy = p\ncopy_extensions = copy\nunique_subject = no\n[p]\ncommonName = supplied\n' \
+	"$pk/db/index" "$pk/db/serial" "$pk/db" > "$pk/ca.cnf"
+osl ca -batch -config "$pk/ca.cnf" -cert "$pk/ca.pem" -keyfile "$pk/ca.key" -in "$pk/old.csr" \
+	-startdate 20200101000000Z -enddate 20200201000000Z -notext -out "$pk/old.pem"
+# the oracle agrees with the intended verdicts before the Omega client is asked
+osl verify -CAfile "$pk/ca.pem" -verify_hostname peerb.localhost "$pk/good.pem"
+# ovf CERT HOST: whether openssl accepts CERT for HOST under the test root
+ovf() { openssl verify -CAfile "$pk/ca.pem" -verify_hostname "$2" "$pk/$1.pem" > /dev/null 2>&1; }
+ovf self peerc.localhost && fail "test PKI: openssl accepts the self-signed certificate"
+ovf wrong peerd.localhost && fail "test PKI: openssl accepts other.localhost as peerd.localhost"
+ovf old peere.localhost && fail "test PKI: openssl accepts the expired certificate"
+ok "test PKI: root, leaf peerb.localhost (openssl verifies it), self-signed peerc, other.localhost for peerd, expired peere (openssl refuses each)"
+
+# the TLS client resolves *.localhost through the first /etc/resolv.conf nameserver; a closed loopback
+# port must give a connect error, not a DNS error, or none of the names below can be reached
+rc=0
+"$t/probe" https://peerb.localhost:1 / "$pk/ca.pem" > "$t/dns.out" 2>&1 < /dev/null || rc=$?
+[ "$rc" = 3 ] && has "$t/dns.out" "tls	https://peerb.localhost:1	TLS_ERR_CONNECT" ||
+	fail "peerb.localhost does not resolve to a loopback address through $(awk '$1 == "nameserver" { print $2; exit }' /etc/resolv.conf) (exit $rc): $(cat "$t/dns.out")"
+ok "peerb.localhost resolves for the TLS client: closed port 1 gives TLS_ERR_CONNECT"
+
+# The terminator: socat accepts on an ephemeral 127.0.0.1 port and runs $t/tlsfwd per connection, which
+# hands the raw TLS bytes to a one-shot openssl s_server on a unix socket and relays its plaintext to
+# the node. (socat's own openssl-listen pins ECDHE to P-256 and om/tls offers x25519 only.)
+cat > "$t/tlsfwd" << 'EOF'
+#!/bin/sh
+# tlsfwd CERT KEY PORT DIR: terminate the TLS connection on stdin/stdout, plaintext to 127.0.0.1:PORT
+d=$(mktemp -d "$4/fwd.XXXXXX")
+# OpenSSL 3.0's BIO address formatting rejects long Unix paths, even below sun_path's limit.
+# Use a relative socket name so a nested git-archive/check.sh scratch path works too.
+cd "$d" || exit 1
+socat EXEC:"openssl s_server -unix s -naccept 1 -quiet -no_ign_eof -cert $1 -key $2" TCP:127.0.0.1:$3 2> "$d/backend.err" &
+backend=$!
+echo "$backend" >> "$4/pids"
+trap 'kill "$backend" 2>/dev/null || true; wait "$backend" 2>/dev/null || true' EXIT
+trap 'exit 1' HUP INT TERM
+# Do not consume the single accept with a readiness connection.
+i=0
+while [ ! -S "$d/s" ]; do
+	if ! kill -0 "$backend" 2>/dev/null || [ "$i" -ge 200 ]; then
+		cat "$d/backend.err" >&2
+		echo "TLS oracle did not create its listening socket" >&2
+		exit 1
+	fi
+	sleep 0.01
+	i=$((i + 1))
+done
+rawrc=0
+socat STDIO UNIX-CONNECT:s,retry=200,interval=0.01 2> "$d/raw.err" || rawrc=$?
+if [ "$rawrc" -ne 0 ]; then kill "$backend" 2>/dev/null || true; fi
+backrc=0
+wait "$backend" || backrc=$?
+printf 'raw=%s backend=%s\n' "$rawrc" "$backrc" > "$d/status"
+# A rejecting TLS client can reset the socket: its exact rejection remains the gate's oracle.
+if [ "$rawrc" -ne 0 ] || [ "$backrc" -ne 0 ]; then
+	cat "$d/status" "$d/backend.err" "$d/raw.err" >&2
+elif [ -z "${NET_KEEP:-}" ]; then
+	rm -rf "$d"
+fi
+exit "$rawrc"
+EOF
+
+# tstart NAME PORT CERT: a TLS terminator on an ephemeral 127.0.0.1 port serving CERT and its key,
+# forwarding each connection to 127.0.0.1:PORT; its port in $t/NAME.port
+tstart() {
+	local p i
+	socat -d -d "TCP-LISTEN:0,bind=$lo,reuseaddr,fork" \
+		"EXEC:sh $t/tlsfwd $pk/$3.pem $pk/$3.key $2 $t" > "$t/$1.out" 2>&1 &
+	echo $! >> "$t/pids"
+	echo $! > "$t/$1.pid"
+	i=0
+	while [ $i -lt 100 ]; do
+		p=$(sed -n 's/.* listening on AF=2 [0-9.]*:\([0-9]*\)$/\1/p' "$t/$1.out" | head -n 1)
+		if [ -n "$p" ]; then
+			echo "$p" > "$t/$1.port"
+			return 0
+		fi
+		sleep 0.05
+		i=$((i + 1))
+	done
+	cat "$t/$1.out"
+	fail "start TLS terminator $1"
+}
+
+# tnode NAME HOST CERT: an agora node on loopback behind a TLS terminator serving CERT; the node's
+# --base is https://HOST:<terminator port>, also stored in $t/NAME.base
+tnode() {
+	local nm p q
+	nm=$1
+	mkdir -p "$t/$nm"
+	start "$nm" "$t/agora" serve --state "$t/$nm" --port 0 --name "node-$nm" --base "http://$lo:1" --bits 4
+	p=$(port "$nm")
+	stop "$nm"
+	tstart "$nm-tls" "$p" "$3"
+	q=$(port "$nm-tls")
+	start "$nm" "$t/agora" serve --state "$t/$nm" --port "$p" --name "node-$nm" --base "https://$2:$q" --bits 4
+	echo "https://$2:$q" > "$t/$nm.base"
+}
+
+# tfed NAME SYNC: B syncs A over HTTPS; system roots refuse our test CA, --ca trusts it.
+tfed() {
+	local a b sy pa pb na ba ta tb rc n1
+	a=$1a
+	b=$1b
+	sy=$2
+	node "$b" "$t/agora"
+	tnode "$a" peerb.localhost good
+	pa=$(port "$a")
+	pb=$(port "$b")
+	ba=$(cat "$t/$a.base")
+	na=$(nodeid "$pa")
+	[ -n "$na" ] || { echo "no node id on A"; return; }
+	set -- $(hello "$pa" Aye)
+	post "$pa" "$1" open "From A over TLS" "A speaks through TLS 1.3" > "$t/$a.post"
+	ta=$(awk -F'\t' '$1 == "post" { print $2 }' "$t/$a.post")
+	[ -n "$ta" ] || { cat "$t/$a.post"; echo "post on A"; return; }
+	announce "$pb" "$ba" > "$t/$b.ann0"
+	has "$t/$b.ann0" ok || { cat "$t/$b.ann0"; echo "announce of $ba refused"; return; }
+	rc=0
+	"$sy" --state "$t/$b" --api "$pb" > "$t/$b.s0" 2>&1 || rc=$?
+	[ "$rc" = 0 ] || { echo "sync with the system store exit $rc"; return; }
+	has "$t/$b.s0" "tls	$ba	TLS_ERR_CERTIFICATE	X509_ERR_UNKNOWN_ISSUER" || { echo "system store: A not refused as unknown issuer"; return; }
+	get "$pb" /agora/api/peers > "$t/$b.peers0"
+	if has "$t/$b.peers0" "$na"; then echo "A listed after a sync against the system store"; return; fi
+	announce "$pb" "$ba" > "$t/$b.ann1"
+	has "$t/$b.ann1" ok || { cat "$t/$b.ann1"; echo "second announce refused"; return; }
+	rc=0
+	"$sy" --state "$t/$b" --api "$pb" --ca "$pk/ca.pem" > "$t/$b.s1" 2>&1 || rc=$?
+	[ "$rc" = 0 ] || { echo "sync --ca exit $rc"; return; }
+	if has "$t/$b.s1" "tls	"; then echo "TLS failure with --ca: $(grep -F 'tls	' "$t/$b.s1")"; return; fi
+	get "$pb" /agora/api/peers > "$t/$b.peers"
+	has "$t/$b.peers" "peer	$na	$ba	" || { echo "A not listed on B with base $ba"; return; }
+	get "$pb" "/agora/api/since/0?limit=25" > "$t/$b.since"
+	n1=$(awk -F'\t' -v o="$na" '$1 == "rec" && $3 == o' "$t/$b.since" | wc -l)
+	[ "$n1" -ge 2 ] || { echo "records with A's origin on B: $n1"; return; }
+	tb=$(awk -F'\t' '$1 == "thread" && $4 == "From A over TLS" { print $2; exit }' "$t/$b.since")
+	[ -n "$tb" ] || { echo "A's thread not in B's log"; return; }
+	get "$pb" "/agora/api/thread/$tb" > "$t/$b.thr"
+	has "$t/$b.thr" "origin	$na	$ta" || { echo "thread $tb on B lacks origin $na $ta"; return; }
+	has "$t/$b.thr" "A speaks through TLS 1.3" || { echo "A's body missing on B"; return; }
+	echo "$n1" > "$t/$b.n"
+	stop "$a"
+	stop "$b"
+	stop "$a-tls"
+	echo pass
+}
+
+r=$(tfed tf "$t/sync")
+[ "$r" = pass ] || { cat "$t/tfb.s0" "$t/tfb.s1" 2>/dev/null || true; fail "federation over TLS: $r"; }
+ok "federation over TLS: B syncs A over https; system roots refuse the test CA, --ca lists A and imports $(cat "$t/tfb.n") records with A's origin"
+
+# tbad NAME HOST CERT WANT SYNC: node A and node X behind TLS serving CERT as HOST, announced on A; a
+# sync with --ca <test root> must log the TLS refusal WANT for X's base, refuse the announcement and
+# never list X. Prints "pass" or the first failed step.
+tbad() {
+	local a x sy pa px nx xb rc
+	a=$1a
+	x=$1x
+	sy=$5
+	node "$a" "$t/agora"
+	tnode "$x" "$2" "$3"
+	pa=$(port "$a")
+	px=$(port "$x")
+	xb=$(cat "$t/$x.base")
+	nx=$(nodeid "$px")
+	[ -n "$nx" ] || { echo "no node id on X"; return; }
+	announce "$pa" "$xb" "$nx" > "$t/$a.ann"
+	has "$t/$a.ann" ok || { cat "$t/$a.ann"; echo "announce of $xb refused"; return; }
+	rc=0
+	"$sy" --state "$t/$a" --api "$pa" --ca "$pk/ca.pem" > "$t/$a.s" 2>&1 || rc=$?
+	[ "$rc" = 0 ] || { echo "sync exit $rc"; return; }
+	get "$pa" /agora/api/peers > "$t/$a.peers"
+	if has "$t/$a.peers" "$nx"; then echo "X ($3 as $2) listed on A"; return; fi
+	has "$t/$a.s" "tls	$xb	TLS_ERR_CERTIFICATE	$4" || { echo "no '$4' refusal logged: $(cat "$t/$a.s")"; return; }
+	has "$t/$a.s" "refused	" || { echo "announcement of $xb not refused"; return; }
+	stop "$a"
+	stop "$x"
+	stop "$x-tls"
+	echo pass
+}
+
+r=$(tbad ts peerc.localhost self X509_ERR_UNKNOWN_ISSUER "$t/sync")
+[ "$r" = pass ] || fail "self-signed peer: $r"
+ok "self-signed peer (peerc.localhost): refused with TLS_ERR_CERTIFICATE X509_ERR_UNKNOWN_ISSUER, never listed"
+r=$(tbad tw peerd.localhost wrong X509_ERR_NAME_MISMATCH "$t/sync")
+[ "$r" = pass ] || fail "wrong-name peer: $r"
+ok "wrong-name peer (other.localhost served as peerd.localhost): refused with X509_ERR_NAME_MISMATCH, never listed"
+r=$(tbad te peere.localhost old X509_ERR_EXPIRED "$t/sync")
+[ "$r" = pass ] || fail "expired peer: $r"
+ok "expired peer (peere.localhost, valid 2020-01-01..2020-02-01): refused with X509_ERR_EXPIRED, never listed"
+for c in "mts peerc.localhost self X509_ERR_UNKNOWN_ISSUER" "mtw peerd.localhost wrong X509_ERR_NAME_MISMATCH" "mte peere.localhost old X509_ERR_EXPIRED"; do
+	set -- $c
+	r=$(tbad "$1" "$2" "$3" "$4" "$t/sync-tlsoff")
+	[ "$r" != pass ] || fail "mutant tlsoff (certificate verification off) not caught for the $3 certificate"
+	ok "mutant tlsoff caught ($3): $r"
+done
+
+# tins NAME SYNC: node A and node B on plain loopback HTTP, B announced as http://127.0.0.1:<port>; a
+# sync without --insecure-http must refuse it (logged "insecure-http") and never list it
+tins() {
+	local a b sy pa pb nb rc
+	a=$1a
+	b=$1b
+	sy=$2
+	node "$a" "$t/agora"
+	node "$b" "$t/agora"
+	pa=$(port "$a")
+	pb=$(port "$b")
+	nb=$(nodeid "$pb")
+	announce "$pa" "http://$lo:$pb" > "$t/$a.ann"
+	has "$t/$a.ann" ok || { cat "$t/$a.ann"; echo "announce refused"; return; }
+	rc=0
+	"$sy" --state "$t/$a" --api "$pa" --ca "$pk/ca.pem" > "$t/$a.s" 2>&1 || rc=$?
+	[ "$rc" = 0 ] || { echo "sync exit $rc"; return; }
+	get "$pa" /agora/api/peers > "$t/$a.peers"
+	if has "$t/$a.peers" "$nb"; then echo "plain-HTTP peer listed without --insecure-http"; return; fi
+	has "$t/$a.s" "insecure-http	http://$lo:$pb" || { echo "no insecure-http refusal logged"; return; }
+	stop "$a"
+	stop "$b"
+	echo pass
+}
+
+r=$(tins ti "$t/sync")
+[ "$r" = pass ] || { cat "$t/tia.s" 2>/dev/null || true; fail "plain-HTTP peer without --insecure-http: $r"; }
+ok "plain-HTTP peer without --insecure-http: refused (insecure-http logged), never listed"
+r=$(tins mti "$t/sync-insecure")
+[ "$r" != pass ] || fail "mutant insecure (--insecure-http gate removed) not caught"
+ok "mutant insecure caught: $r"
+
+# a missing trust store stops the sync before any peer is contacted
+rc=0
+"$t/sync" --state "$t/tia" --api 1 --ca "$t/no-such-ca.pem" > "$t/noca.out" 2>&1 || rc=$?
+[ "$rc" = 5 ] || fail "sync with a missing --ca file: exit $rc, want 5"
+ok "sync with a missing --ca file exits 5"
+
+# the peer base grammar: the server's announce check (agora.om urlok) and the sync's sy_burl (through
+# https-probe, the same code) must accept and refuse the same bases. want 1 accepted, 0 refused.
+node gr "$t/agora"
+pgr=$(port gr)
+ng=0
+while read -r want base; do
+	announce "$pgr" "$base" > "$t/gr.ann"
+	if has "$t/gr.ann" ok; then sv=1; elif has "$t/gr.ann" "err bad link must be https"; then sv=0; else
+		fail "grammar: server answer for '$base': $(cat "$t/gr.ann")"
+	fi
+	sg=$("$t/probe" "$base" - < /dev/null | sed -n 's/^grammar //p')
+	[ -n "$sg" ] || fail "grammar: no sync answer for '$base'"
+	if [ "$sg" -gt 0 ]; then sg=1; fi
+	[ "$sv" = "$want" ] && [ "$sg" = "$want" ] || fail "grammar: '$base' server $sv sync $sg, want $want"
+	ng=$((ng + 1))
+done << 'EOF'
+1 https://peer.example.org
+1 https://peer.example.org:8443
+1 https://a-b.c1.localhost:65535
+1 https://Peer.Example.ORG:1
+1 http://127.0.0.1:8080
+0 http://peer.example.org
+0 https://
+0 https://peer.example.org/
+0 https://peer.example.org/agora
+0 https://peer.example.org:
+0 https://peer.example.org:0
+0 https://peer.example.org:65536
+0 https://peer.example.org:08443
+0 https://peer.example.org:123456
+0 https://127.0.0.1
+0 https://127.0.0.1:8443
+0 https://user@peer.example.org
+0 https://peer.example.org?x=1
+0 https://exa_mple.org
+0 http://127.0.0.1:0
+0 http://127.0.0.1:8080/
+0 http://127.0.0.2:8080
+0 HTTPS://peer.example.org
+EOF
+stop gr
+ok "peer base grammar: server announce check and sync agree on $ng bases (5 accepted, $((ng - 5)) refused)"
 
 # ---------------------------------------------------------------- the JSON edge (agora-edge)
 # rpc PORT PATH JSON NAME: POST the JSON-RPC request JSON to the edge; the answer in $t/NAME.json

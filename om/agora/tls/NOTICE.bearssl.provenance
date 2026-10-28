@@ -1,0 +1,5 @@
+repository https://github.com/aien-dev/omega-mv
+source_commit dfda5ea77e2c04db7b760866b8f867c5b534bb23
+source_path om/tls/NOTICE.bearssl
+source_sha256 24a7ea077fa7e8992f7003fd75441fcfe95db4fc18e881132d732735a24a19af
+note Licence notice for the BearSSL-derived constant-time AES-GCM code in aesgcm.om.

@@ -1,0 +1,82 @@
+note https-probe: one GET through agora-sync's peer transport (sy_burl, sy_tread, sy_hparse: TLS 1.3,
+note chain, dates and host name checked against a PEM trust store). Read only.
+note Usage: https-probe BASE PATH [CA] (CA defaults to /etc/ssl/certs/ca-certificates.crt). BASE takes
+note the peer base grammar ("https://HOST[:PORT]").
+note Prints "status <status line>" and "body <n>". Exit 0 on status 200, 1 usage, 2 a base outside the
+note https grammar, 3 the transport failed (the TLS error is logged as agora-sync logs it), 4 another status.
+note With PATH "-" it only classifies BASE with sy_burl and prints "grammar <0|1|2>" (0 refused, 1 https,
+note 2 loopback http), exit 0; test/net.sh compares that with the server's announce check.
+note Built by test/net.sh from agora-sync.om with its main renamed, so the code under test is the sync's.
+
+text prst "status "
+text prbd "body "
+text prgr "grammar "
+text prdash "-"
+
+note pr_num: "<label><v>" and a newline on stdout
+fn pr_num l view uchar * v ulong to void
+m = new uchar 64 0
+q = ac_cat m 0 l
+q = ac_catu m q v
+ac_say view part m 0 q
+ac_say sylnl
+end
+
+note pr_get: GET pa from the https base b (o from sy_burl) and print the status line and body length
+fn pr_get o edit ulong 8 b view uchar * pa view uchar 128 to int
+raw = new uchar 327680 0
+d = new uchar 262144 0
+n = sy_tread o b pa raw
+if lt n 0
+ret 3
+end
+e = ac_lend view part raw 0 ulong n 0 ulong n
+f = e
+if and gt e 0 eq get raw sub e 1 13
+f = sub e 1
+end
+ac_say prst
+ac_say view part raw 0 f
+ac_say sylnl
+r = sy_hparse view part raw 0 ulong n get o 5 d
+if lt r 0
+ret 4
+end
+pr_num prbd ulong r
+ret 0
+end
+
+fn main to int
+ab = new uchar 512 0
+pa = new uchar 128 0
+o = new ulong 8 0
+if lt ulong argcnt 3
+ret 1
+end
+k = argread 1 ab 0 256
+p = argread 2 pa 0 128
+if or lt k 1 lt p 1
+ret 1
+end
+put gcf 7 len syca
+for j ulong len syca
+put gca j get syca j
+end
+if gt ulong argcnt 3
+c = argread 3 gca 0 256
+if lt c 1
+ret 1
+end
+put gcf 7 ulong c
+end
+g = sy_burl view part ab 0 ulong k o
+if ac_peq view pa 0 ulong p prdash
+pr_num prgr g
+ret 0
+end
+if ne g 1
+ret 2
+end
+put o 4 ulong p
+ret pr_get o view part ab 0 ulong k pa
+end

@@ -3,8 +3,9 @@
 # (test/run.sh) on the real server, then mutants that remove one check each; every
 # mutant must compile and must fail the scenario, which proves the check exists.
 # OMEGA_OMC names the pinned omc (sha256 in omc.sha256); it overrides the path, never the pin.
-# Exit 2: missing compiler or tool (curl, sha256sum; jq is the net.sh JSON oracle); 3: wrong pin;
-# 4: vendored unit hash mismatch;
+# Exit 2: missing compiler or tool (curl, sha256sum; jq is the net.sh JSON oracle; openssl issues the
+# net.sh test PKI and socat terminates TLS in front of its nodes); 3: wrong pin;
+# 4: vendored unit hash mismatch (http sha256 json jsonw, the om/tls units under tls/ and its notice);
 # 5: scenario failed on the real server; 6: a mutant survived or did not apply;
 # 7: test/net.sh (network programs) failed.
 set -eu
@@ -21,25 +22,35 @@ if [ "$have" != "$pin" ]; then
     printf 'Compiler sha256 mismatch: recorded %s, found %s\n' "$pin" "$have" >&2
     exit 3
 fi
-for t in curl sha256sum jq; do
+for t in curl sha256sum jq openssl socat; do
     command -v "$t" > /dev/null || { printf 'missing tool: %s\n' "$t" >&2; exit 2; }
 done
-# Each vendored unit matches its sidecar; a verbatim copy also matches its upstream source hash
+# Each vendored file matches its sidecar; a verbatim copy also matches its upstream source hash
 # (sha256.om is a recorded mechanical derivation, so its provenance hash names the upstream file).
-for u in http sha256 json jsonw; do
-    want=$(tr -d ' \n' < "$u.om.sha256")
-    got=$(sha256sum "$u.om" | cut -d' ' -f1)
-    src=$(sed -n 's/^source_sha256 //p' "$u.om.provenance")
-    if grep -q '^note Derived mechanically' "$u.om.provenance"; then src=$got; fi
-    if [ "$got" != "$want" ] || [ "$got" != "$src" ]; then
-        printf '%s.om: sha256 %s, sidecar %s, provenance %s\n' "$u" "$got" "$want" "$src" >&2
+tlsv="tls/sha2.om tls/hkdf.om tls/x25519.om tls/chacha.om tls/aesgcm.om tls/ec.om tls/rsa.om tls/x509.om tls/tls.om tls/NOTICE.bearssl"
+tlscommit=dfda5ea77e2c04db7b760866b8f867c5b534bb23
+for f in $tlsv; do
+    if ! grep -Fxq 'repository https://github.com/aien-dev/omega-mv' "$f.provenance" ||
+       ! grep -Fxq "source_commit $tlscommit" "$f.provenance" ||
+       ! grep -Fxq "source_path om/$f" "$f.provenance"; then
+        printf '%s: TLS provenance repository, source commit or source path mismatch\n' "$f" >&2
         exit 4
     fi
 done
-printf 'pin ok: omc %s; vendored http sha256 json jsonw match their sidecars\n' "$pin"
+for f in http.om sha256.om json.om jsonw.om $tlsv; do
+    want=$(tr -d ' \n' < "$f.sha256")
+    got=$(sha256sum "$f" | cut -d' ' -f1)
+    src=$(sed -n 's/^source_sha256 //p' "$f.provenance")
+    if grep -q '^note Derived mechanically' "$f.provenance"; then src=$got; fi
+    if [ "$got" != "$want" ] || [ "$got" != "$src" ]; then
+        printf '%s: sha256 %s, sidecar %s, provenance %s\n' "$f" "$got" "$want" "$src" >&2
+        exit 4
+    fi
+done
+printf 'pin ok: omc %s; vendored http sha256 json jsonw and om/tls (tls/) match their sidecars\n' "$pin"
 
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/agora-check.XXXXXX")
-trap 'rm -rf "$tmp"' EXIT HUP INT TERM
+trap 'if [ -z "${NET_KEEP:-}" ]; then rm -rf "$tmp"; else printf "kept gate artifacts: %s\n" "$tmp"; fi' EXIT HUP INT TERM
 build() {
     { printf 'om2\n'; cat sha256.om http.om "$1"; } | "$omc" > "$2"
     chmod +x "$2"
