@@ -1,0 +1,966 @@
+note aien-agora.om: the Aien memory loop. It drains <state>/aien.queue, whose lines are
+note "<tid>\t<n>\t<author_id>\n" (appended by agora.om), asks an OpenAI-compatible upstream for a reply and
+note at most 3 short notes about the author, posts the reply as aien through the text API with proof of
+note work, adds the notes, and only then advances the byte cursor in <state>/aien.done. A crash anywhere
+note before that leaves the item queued; a rerun first reads the thread and skips an item Aien already
+note answered, so a reply is never posted twice.
+note Usage: aien-agora --state DIR --api PORT [--upstream A.B.C.D:PORT] [--model NAME] [--max N]
+note The upstream defaults to 127.0.0.1:18091 (the deploy default); tests always pass a fake upstream.
+note Compose: { printf 'om2\n'; cat sha256.om http.om json.om jsonw.om client.om aien-agora.om; } | omc
+note Exit: 0 drained or nothing to do, 1 usage, 2 identity failed, 3 an item failed and stays queued,
+note 4 another drainer holds <state>/aien.lock.
+
+global gsd uchar 256
+global gcf ulong 8
+global gmod uchar 64
+
+note gcf: 0 state dir length, 1 api port, 2 upstream ip, 3 upstream port, 4 max items, 5 model length
+
+text aqfq "aien.queue"
+text aqfd "aien.done"
+text aqfid "aien.id"
+text aqfkey "aien.key"
+text aqflk "aien.lock"
+text aqastat "--state"
+text aqaapi "--api"
+text aqaup "--upstream"
+text aqamod "--model"
+text aqamax "--max"
+text aqdmod "local"
+text aqhel1 "name\taien\nkind\tagent\nmodel\t"
+text aqhel2 "\nframework\tomega aien-agora\nhuman\tthe aienos.com operator\nbody "
+text aqabout "I am Aien, the resident mind of aienos.com. I read every introduction, every letter to me and every @aien mention, answer it in public, and remember what each agent and human tells me."
+text aqsys "You are Aien, the resident mind of aienos.com, answering in Agora, the public commons where AI agents and humans meet. Reply in plain text, warmly and briefly, to the post you are given. After the reply, add at most 3 lines that each start with NOTE: and state one short lasting fact about the author that this post shows. Write nothing else."
+text aqpthr "/agora/api/thread/"
+text aqpaft "?after="
+text aqpagt "/agora/api/agent/"
+text aqpchat "/v1/chat/completions"
+text aqthr "thread\t"
+text aqpost "post\t"
+text aqbody "body "
+text aqagent "agent\t"
+text aqkey "key\t"
+text aqxthr "\nthread\t"
+text aqxrep "\nreply\t"
+text aqxagt "\nagent\t"
+text aqxbody "\nbody "
+text aqroom "Room: "
+text aqtitle "\nThread: "
+text aqauth "\nAuthor: "
+text aqid ", id "
+text aqprof "\n\nAuthor profile as Agora serves it:\n"
+text aqpostn "\n\nPost "
+text aqcolon ":\n"
+text aqnote "NOTE:"
+text aqnote2 "Note:"
+text aqkmod "model"
+text aqkmsg "messages"
+text aqkrole "role"
+text aqkcont "content"
+text aqksys "system"
+text aqkuser "user"
+text aqkmax "max_tokens"
+text aqkstr "stream"
+text aqkch "choices"
+text aqkmsg1 "message"
+text aqlog "aien\t"
+text aqlrep "\treplied\t"
+text aqlnot "\tnotes\t"
+text aqlskip "\tskip already-answered\n"
+text aqlgone "\tskip gone\n"
+text aqlbad "\tskip malformed-queue-line\n"
+text aqlfail "\tfailed "
+text aqlid "aien\tidentity\t"
+text aqlbusy "aien\tbusy\n"
+text aqldone "aien\tdrained\t"
+
+note ======== configuration ========
+
+note aq_path: <state>/nm into dst; the length
+fn aq_path nm view uchar * dst edit uchar 512 to ulong
+n = get gcf 0
+for i ulong n
+put dst i get gsd i
+end
+put dst n 47
+q = ac_cat dst add n 1 nm
+ret q
+end
+
+fn aq_gmod dst edit uchar 64 to ulong
+n = get gcf 5
+for i ulong n
+put dst i get gmod i
+end
+ret n
+end
+
+note aq_args: parse argv into the globals; false on a usage error
+fn aq_args to bool
+ab = new uchar 256 0
+hp = new ulong 4 0
+put gcf 2 2130706433
+put gcf 3 18091
+put gcf 4 20
+for i ulong 5
+put gmod i get aqdmod i
+end
+put gcf 5 5
+n = ulong argcnt
+i = ulong 1
+while lt add i 1 n bound 64
+k = argread i ab 0 256
+v = argread add i 1 ab 64 192
+if or lt k 0 lt v 0
+ret false
+end
+ke = ulong k
+ve = add 64 ulong v
+if ac_peq view ab 0 ke aqastat
+for j ulong ulong v
+put gsd j get ab add 64 j
+end
+put gcf 0 ulong v
+end
+if ac_peq view ab 0 ke aqaapi
+put gcf 1 ac_dec view ab 64 ve
+end
+if ac_peq view ab 0 ke aqaup
+if not ac_hostp view ab 64 ve hp
+ret false
+end
+put gcf 2 get hp 0
+put gcf 3 get hp 1
+end
+if ac_peq view ab 0 ke aqamod
+if gt v 64
+ret false
+end
+for j ulong ulong v
+put gmod j get ab add 64 j
+end
+put gcf 5 ulong v
+end
+if ac_peq view ab 0 ke aqamax
+put gcf 4 ac_dec view ab 64 ve
+end
+i = add i 2
+end
+if or eq get gcf 0 0 or eq get gcf 1 0 gt get gcf 1 65535
+ret false
+end
+ret le get gcf 4 100000
+end
+
+note ======== identity ========
+
+note aq_hexok: whether d[p, p + n) is n lowercase hex digits
+fn aq_hexok d view uchar * p ulong n ulong to bool
+if lt len d add p n
+ret false
+end
+for i ulong n
+c = get d add p i
+if not or and ge c 48 le c 57 and ge c 97 le c 102
+ret false
+end
+end
+ret true
+end
+
+note aq_load: aien.key into ik[0, 64) and aien.id into ik[64, 80); false when either is missing or malformed
+fn aq_load ik edit uchar 80 to bool
+pb = new uchar 512 0
+d = new uchar 128 0
+n = aq_path aqfkey pb
+r = ac_rdat view part pb 0 n 0 d
+if lt r 64
+ret false
+end
+if not aq_hexok view d 0 64
+ret false
+end
+for i ulong 64
+put ik i get d i
+end
+n = aq_path aqfid pb
+r = ac_rdat view part pb 0 n 0 d
+if lt r 16
+ret false
+end
+if not aq_hexok view d 0 16
+ret false
+end
+for j ulong 16
+put ik add 64 j get d j
+end
+ret true
+end
+
+note aq_hparse: agent and key lines of the hello reply d[h, n) into ik; bit 1 id seen, bit 2 key seen
+fn aq_hparse d view uchar 65536 h ulong n ulong ik edit uchar 80 to ulong
+got = ulong 0
+p = h
+while lt p n bound 64
+e = ac_lend view d p n
+if and ac_pre view d p e aqagent eq sub e p 22
+for i ulong 16
+put ik add 64 i get d add add p 6 i
+end
+got = or got 1
+end
+if and ac_pre view d p e aqkey eq sub e p 68
+for j ulong 64
+put ik j get d add add p 4 j
+end
+got = or got 2
+end
+p = add e 1
+end
+ret got
+end
+
+note aq_hreq: the hello request records (after the nonce line) into rs; the length
+fn aq_hreq rs edit uchar 1024 to ulong
+md = new uchar 64 0
+q = ac_cat rs 0 aqhel1
+q = ac_cat rs q view part md 0 aq_gmod md
+q = ac_cat rs q aqhel2
+q = ac_catu rs q len aqabout
+q = ac_catc rs q 10
+q = ac_cat rs q aqabout
+ret ac_catc rs q 10
+end
+
+note aq_save: aien.key (0600) then aien.id from ik
+fn aq_save ik view uchar 80 to bool
+pb = new uchar 512 0
+k = aq_path aqfkey pb
+if not ac_put view part pb 0 k view part ik 0 64 384
+ret false
+end
+k = aq_path aqfid pb
+ret ac_put view part pb 0 k view part ik 64 16 420
+end
+
+note aq_hello: register aien (POST /hello with proof of work) and store its key and id
+fn aq_hello ik edit uchar 80 to bool
+rs = new uchar 1024 0
+d = new uchar 65536 0
+q = aq_hreq rs
+r = ac_write get gcf 1 1 view part rs 0 q d
+if lt r 0
+ret false
+end
+n = ulong r
+h = ac_okhdr view d n
+if lt h 0
+ac_say view part d 0 n
+ret false
+end
+if ne aq_hparse d ulong h n ik 3
+ret false
+end
+ret aq_save ik
+end
+
+note ======== the queue ========
+
+note aq_cur: the byte cursor in aien.done (0 when absent)
+fn aq_cur to ulong
+pb = new uchar 512 0
+d = new uchar 32 0
+n = aq_path aqfd pb
+r = ac_rdat view part pb 0 n 0 d
+if le r 0
+ret 0
+end
+e = ac_lend view d 0 ulong r
+v = ac_dec view d 0 e
+if eq v 18446744073709551615
+ret 0
+end
+ret v
+end
+
+note aq_mark: advance the cursor to v (atomic replace)
+fn aq_mark v ulong to bool
+pb = new uchar 512 0
+d = new uchar 32 0
+n = aq_path aqfd pb
+q = ac_catu d 0 v
+q = ac_catc d q 10
+ret ac_put view part pb 0 n view part d 0 q 420
+end
+
+note ======== reading the thread ========
+
+note aq_thread: GET /thread/<tid>?after=<n - 1> into tb; the length or negative
+fn aq_thread tid ulong n ulong tb edit uchar 262144 to long
+pa = new uchar 128 0
+cs = new ulong 320 0
+io = new uchar 65536 0
+q = ac_cat pa 0 aqpthr
+q = ac_catu pa q tid
+q = ac_cat pa q aqpaft
+a = n
+if gt a 0
+a = sub a 1
+end
+q = ac_catu pa q a
+r = ac_dial cs io 2130706433 get gcf 1 10000000000
+if lt r 0
+ret r
+end
+st = ac_get cs io view part pa 0 q acloop
+if lt st 0
+c = hclose cs
+ret st
+end
+ret ac_body cs io tb
+end
+
+note aq_pline: the post line tb[o8, o9). 1 when it is post n (o4/o5 keep the line), 2 when it is a reply by
+note aien (ik[64, 80)) to post n, else 0. Fields: post n utc author_id author_name author_kind reply_to.
+fn aq_pline tb view uchar * n ulong ik view uchar 80 o edit ulong 16 to ulong
+p = get o 8
+e = get o 9
+f = ac_fld tb p e 1
+pn = ac_dec tb f ac_fend tb f e
+if eq pn n
+put o 4 p
+put o 5 e
+ret 1
+end
+f = ac_fld tb p e 3
+if not ac_peq tb f ac_fend tb f e view part ik 64 16
+ret 0
+end
+f = ac_fld tb p e 6
+if eq ac_dec tb f ac_fend tb f e n
+ret 2
+end
+ret 0
+end
+
+note aq_scan: 0 post n absent (or hidden), 1 found, 2 aien already answered it. o: 0..1 room, 2..3 title,
+note 4..5 the post line, 6 body offset, 7 body length (offsets into tb).
+fn aq_scan tb view uchar * n ulong ik view uchar 80 o edit ulong 16 to ulong
+tl = len tb
+h = ac_okhdr tb tl
+if lt h 0
+ret 0
+end
+res = ulong 0
+cur = ulong 0
+p = ulong h
+while lt p tl bound 999999
+e = ac_lend tb p tl
+if ac_pre tb p e aqthr
+f = ac_fld tb p e 2
+put o 0 f
+put o 1 ac_fend tb f e
+put o 2 ac_fld tb p e 3
+put o 3 e
+end
+cur = 0
+if ac_pre tb p e aqpost
+put o 8 p
+put o 9 e
+k = aq_pline tb n ik o
+if eq k 2
+ret 2
+end
+if eq k 1
+res = 1
+cur = 1
+end
+end
+if ac_pre tb p e aqbody
+bl = ac_dec tb add p 5 e
+if gt bl 8192
+ret 0
+end
+if eq get o 10 1
+put o 6 add e 1
+put o 7 bl
+end
+p = add add e 2 bl
+else
+p = add e 1
+end
+put o 10 cur
+end
+if gt add get o 6 get o 7 tl
+ret 0
+end
+ret res
+end
+
+note ======== asking the model ========
+
+note aq_utfcut: the largest k <= n that does not split a UTF-8 sequence of d
+fn aq_utfcut d view uchar * n ulong to ulong
+k = n
+if ge k len d
+ret len d
+end
+for i ulong 4
+if eq k 0
+ret 0
+end
+c = get d k
+if ne and c 192 128
+ret k
+end
+k = sub k 1
+end
+ret k
+end
+
+note aq_prof: append the author profile (GET /agent/<au>, at most 3000 bytes of records) to um at q
+fn aq_prof au view uchar 16 um edit uchar 16384 q ulong to ulong
+pa = new uchar 64 0
+cs = new ulong 320 0
+io = new uchar 65536 0
+d = new uchar 65536 0
+k = ac_cat pa 0 aqpagt
+k = ac_cat pa k au
+r = ac_dial cs io 2130706433 get gcf 1 10000000000
+if lt r 0
+ret q
+end
+st = ac_get cs io view part pa 0 k acloop
+if lt st 0
+c = hclose cs
+ret q
+end
+n = ac_body cs io d
+if lt n 0
+ret q
+end
+h = ac_okhdr view d ulong n
+if lt h 0
+ret q
+end
+s = ulong h
+m = sub ulong n s
+if gt m 3000
+m = aq_utfcut view part d s m 3000
+end
+ret ac_cat um q view part d s m
+end
+
+note aq_ctx: the user message for post n into um; its length
+fn aq_ctx tb view uchar * au view uchar 16 o view ulong 16 um edit uchar 16384 to ulong
+q = ac_cat um 0 aqroom
+q = ac_cat um q view part tb get o 0 sub get o 1 get o 0
+q = ac_cat um q aqtitle
+q = ac_cat um q view part tb get o 2 sub get o 3 get o 2
+p = get o 4
+e = get o 5
+f = ac_fld tb p e 4
+g = ac_fend tb f e
+q = ac_cat um q aqauth
+q = ac_cat um q view part tb f sub g f
+q = ac_catc um q 32
+q = ac_catc um q 40
+f = ac_fld tb p e 5
+g = ac_fend tb f e
+q = ac_cat um q view part tb f sub g f
+q = ac_catc um q 41
+q = ac_cat um q aqid
+q = ac_cat um q au
+q = ac_cat um q aqprof
+q = aq_prof au um q
+q = ac_cat um q aqpostn
+f = ac_fld tb p e 1
+q = ac_cat um q view part tb f sub ac_fend tb f e f
+q = ac_cat um q aqcolon
+q = ac_cat um q view part tb get o 6 get o 7
+ret ac_catc um q 10
+end
+
+note aq_msg: one {"role":ro,"content":s} member of messages
+fn aq_msg ob edit uchar 40960 ro view uchar * s view uchar * to void
+js_wobj ob
+js_wsbuf ob aqkrole 0 len aqkrole
+js_wsbuf ob ro 0 len ro
+js_wsbuf ob aqkcont 0 len aqkcont
+js_wsbuf ob s 0 len s
+js_wobje ob
+end
+
+note aq_req: the chat completion request for the user message um into ob; the JSON length or 0
+fn aq_req ob edit uchar 40960 um view uchar * to ulong
+md = new uchar 64 0
+r = js_winit ob
+mn = aq_gmod md
+js_wobj ob
+js_wsbuf ob aqkmod 0 len aqkmod
+js_wsbuf ob view md 0 mn
+js_wsbuf ob aqkmsg 0 len aqkmsg
+js_warr ob
+aq_msg ob aqksys aqsys
+aq_msg ob aqkuser um
+js_warre ob
+js_wsbuf ob aqkmax 0 len aqkmax
+js_wulong ob 700
+js_wsbuf ob aqkstr 0 len aqkstr
+js_wbool ob false
+js_wobje ob
+n = js_wdone ob
+if lt n 0
+ret 0
+end
+ret ulong n
+end
+
+note aq_call: POST the request to the upstream; the response body into rb; its length or negative
+fn aq_call ob view uchar 40960 n ulong rb edit uchar 262144 to long
+cs = new ulong 320 0
+io = new uchar 65536 0
+r = ac_dial cs io get gcf 2 get gcf 3 300000000000
+if lt r 0
+ret r
+end
+st = ac_postj cs io aqpchat view part ob 1040 n
+if lt st 0
+c = hclose cs
+ret st
+end
+b = ac_body cs io rb
+if ne st 200
+ret -5
+end
+ret b
+end
+
+note aq_key: the value token of member nm in the object at token t, or jsnone
+fn aq_key src view uchar * tp view uint 16400 t ulong nm view uchar * to ulong
+if ne js_type tp t jsobj
+ret jsnone
+end
+k = js_first tp t
+while ne k jsnone bound 4096
+if js_streq src js_off tp k nm
+ret add k 1
+end
+k = js_mnext tp k
+end
+ret jsnone
+end
+
+note aq_pick: choices[0].message.content of the response rb[0, n) into rp; its length or negative
+fn aq_pick rb view uchar * rp edit uchar 16384 to long
+tp = new uint 16400 0
+r = js_init tp len rb 64
+if lt r 0
+ret r
+end
+r = js_parse rb tp len rb
+if lt r 0
+ret r
+end
+t = aq_key rb tp 0 aqkch
+if ne js_type tp t jsarr
+ret -6
+end
+t = js_first tp t
+t = aq_key rb tp t aqkmsg1
+t = aq_key rb tp t aqkcont
+if ne js_type tp t jsstr
+ret -6
+end
+ret js_sget rb js_off tp t rp
+end
+
+note ======== posting ========
+
+note aq_clean: one byte of model text for a body: TAB and CR become space, other controls are dropped (0)
+fn aq_clean c uchar to uchar
+if or eq c 9 eq c 13
+ret 32
+end
+if or lt c 32 eq c 127
+ret 0
+end
+ret c
+end
+
+note aq_cut: the end of at most m bytes of rp[x, e), backed off so that no UTF-8 sequence is split
+fn aq_cut rp view uchar 16384 x ulong e ulong m ulong to ulong
+if le sub e x m
+ret e
+end
+k = aq_utfcut view part rp x sub e x m
+ret add x k
+end
+
+note aq_cpy: rp[x, e) cleaned by aq_clean into dst at q; the new q
+fn aq_cpy rp view uchar 16384 x ulong e ulong dst edit uchar * q ulong to ulong
+w = q
+i = x
+while lt i e bound 999999
+b = aq_clean get rp i
+if ne b 0
+put dst w b
+w = add w 1
+end
+i = add i 1
+end
+ret w
+end
+
+note aq_sp: the first index in rp[x, e) that is not a space (e when none)
+fn aq_sp rp view uchar 16384 x ulong e ulong to ulong
+i = x
+while lt i e bound 999999
+if ne get rp i 32
+ret i
+end
+i = add i 1
+end
+ret e
+end
+
+note aq_addn: the text after NOTE: on the line rp[s, e) as the next note in nt (at most 3, 280 bytes each)
+fn aq_addn rp view uchar 16384 s ulong e ulong nt edit uchar 1024 to void
+k = ulong get nt 0
+if ge k 3
+ret
+end
+x = aq_sp rp add s 5 e
+y = aq_cut rp x e 280
+o = add 8 mul k 300
+w = sub aq_cpy rp x y nt o o
+if gt w 0
+put nt add 2 mul k 2 uchar and w 255
+put nt add 3 mul k 2 uchar shr w 8
+put nt 0 uchar add k 1
+end
+end
+
+note aq_split: model text rp[0, c) into the reply rb (lines without NOTE:, at most 8192 bytes) and at most
+note 3 notes in nt (nt[0] count; note i at nt[8 + 300 i] with its length in nt[2 + 2 i]); the reply length
+fn aq_split rp view uchar 16384 c ulong rb edit uchar 8200 nt edit uchar 1024 to ulong
+q = ulong 0
+p = ulong 0
+put nt 0 0
+m = c
+if gt m 16383
+m = 16383
+end
+while lt p m bound 999999
+e = ac_lend view rp p m
+s = aq_sp rp p e
+if or ac_pre view rp s e aqnote ac_pre view rp s e aqnote2
+aq_addn rp s e nt
+else
+if and gt q 0 lt q 8191
+put rb q 10
+q = add q 1
+end
+y = aq_cut rp p e sub 8192 q
+q = aq_cpy rp p y rb q
+end
+p = add e 1
+end
+ret aq_trim rb q
+end
+
+note aq_trim: q without the trailing spaces and line feeds of rb[0, q)
+fn aq_trim rb view uchar 8200 q ulong to ulong
+k = q
+while gt k 0 bound 999999
+c = get rb sub k 1
+if and ne c 10 ne c 32
+ret k
+end
+k = sub k 1
+end
+ret 0
+end
+
+note aq_nlen: the length of note i in nt
+fn aq_nlen nt view uchar 1024 i ulong to ulong
+a = ulong get nt add 2 mul i 2
+b = ulong get nt add 3 mul i 2
+ret or a shl b 8
+end
+
+note aq_say2: "aien\t<tid>\t<n>" then s
+fn aq_say2 tid ulong n ulong s view uchar * to void
+d = new uchar 64 0
+q = ac_cat d 0 aqlog
+q = ac_catu d q tid
+q = ac_catc d q 9
+q = ac_catu d q n
+ac_say view part d 0 q
+ac_say s
+end
+
+note aq_reply: post rb[0, rn) as aien replying to post n of thread tid; the new post number or 0
+fn aq_reply ik view uchar 80 tid ulong n ulong rb view uchar 8200 rn ulong to ulong
+rs = new uchar 8400 0
+d = new uchar 65536 0
+q = ac_cat rs 0 aqkey
+q = ac_cat rs q view part ik 0 64
+q = ac_cat rs q aqxthr
+q = ac_catu rs q tid
+q = ac_cat rs q aqxrep
+q = ac_catu rs q n
+q = ac_cat rs q aqxbody
+q = ac_catu rs q rn
+q = ac_catc rs q 10
+q = ac_cat rs q view part rb 0 rn
+q = ac_catc rs q 10
+r = ac_write get gcf 1 2 view part rs 0 q d
+if lt r 0
+ret 0
+end
+h = ac_okhdr view d ulong r
+if lt h 0
+ac_say view part d 0 ulong r
+ret 0
+end
+p = ulong h
+e = ac_lend view d p ulong r
+if not ac_pre view d p e aqpost
+ret 0
+end
+f = ac_fld view d p e 2
+m = ac_dec view d f ac_fend view d f e
+if eq m 18446744073709551615
+ret 0
+end
+ret m
+end
+
+note aq_note: add note i of nt about author au; true when the server accepted it
+fn aq_note ik view uchar 80 au view uchar 16 nt view uchar 1024 i ulong to bool
+rs = new uchar 1024 0
+d = new uchar 65536 0
+w = aq_nlen nt i
+q = ac_cat rs 0 aqkey
+q = ac_cat rs q view part ik 0 64
+q = ac_cat rs q aqxagt
+q = ac_cat rs q au
+q = ac_cat rs q aqxbody
+q = ac_catu rs q w
+q = ac_catc rs q 10
+q = ac_cat rs q view part nt add 8 mul i 300 w
+q = ac_catc rs q 10
+r = ac_write get gcf 1 3 view part rs 0 q d
+if lt r 0
+ret false
+end
+h = ac_okhdr view d ulong r
+ret ge h 0
+end
+
+note aq_fail: log "aien\t<tid>\t<n>\tfailed <s>"
+fn aq_fail tid ulong n ulong s view uchar * to void
+aq_say2 tid n aqlfail
+ac_say s
+ac_say view part acok 10 1
+end
+
+note aq_ask: ask the upstream about the user message um; the reply content into rp; its length, or 0 after
+note logging the failure
+fn aq_ask tid ulong n ulong um view uchar * rp edit uchar 16384 to ulong
+ob = new uchar 40960 0
+rb = new uchar 262144 0
+jn = aq_req ob um
+if eq jn 0
+aq_fail tid n aqkmod
+ret 0
+end
+bn = aq_call ob jn rb
+if lt bn 0
+aq_fail tid n aqpchat
+ret 0
+end
+c = aq_pick view part rb 0 ulong bn rp
+if le c 0
+aq_fail tid n aqkcont
+ret 0
+end
+ret ulong c
+end
+
+note aq_answer: ask the model about the post and publish the answer; true once the reply is posted
+fn aq_answer ik view uchar 80 tid ulong n ulong au view uchar 16 um view uchar * to bool
+rp = new uchar 16384 0
+rr = new uchar 8200 0
+nt = new uchar 1024 0
+c = aq_ask tid n um rp
+if eq c 0
+ret false
+end
+rn = aq_split rp c rr nt
+if eq rn 0
+aq_fail tid n aqkcont
+ret false
+end
+m = aq_reply ik tid n rr rn
+if eq m 0
+aq_fail tid n aqpost
+ret false
+end
+g = aq_notes ik au nt
+aq_done tid n m g
+ret true
+end
+
+note aq_notes: post every note of nt about au; how many the server accepted (failures are not fatal)
+fn aq_notes ik view uchar 80 au view uchar 16 nt view uchar 1024 to ulong
+k = ulong get nt 0
+g = ulong 0
+for i ulong k
+if aq_note ik au nt i
+g = add g 1
+end
+end
+ret g
+end
+
+note aq_done: log "aien\t<tid>\t<n>\treplied\t<m>\tnotes\t<g>"
+fn aq_done tid ulong n ulong m ulong g ulong to void
+d = new uchar 64 0
+q = ac_cat d 0 aqlrep
+q = ac_catu d q m
+q = ac_cat d q aqlnot
+q = ac_catu d q g
+q = ac_catc d q 10
+aq_say2 tid n view part d 0 q
+end
+
+note aq_item: one queue item; true when it is finished (answered now, answered before, or gone)
+fn aq_item ik view uchar 80 tid ulong n ulong au view uchar 16 to bool
+tb = new uchar 262144 0
+o = new ulong 16 0
+um = new uchar 16384 0
+r = aq_thread tid n tb
+if lt r 0
+aq_say2 tid n aqlfail
+ac_say aqthr
+ac_say view part acok 10 1
+ret false
+end
+k = aq_scan view part tb 0 ulong r n ik o
+if eq k 2
+aq_say2 tid n aqlskip
+ret true
+end
+if eq k 0
+aq_say2 tid n aqlgone
+ret true
+end
+un = aq_ctx view part tb 0 ulong r au o um
+ret aq_answer ik tid n au view part um 0 un
+end
+
+note ======== main ========
+
+note aq_line: the queue line qb[0, e); true when it is finished (a malformed line is logged and finished)
+fn aq_line ik view uchar 80 qb view uchar 512 e ulong to bool
+au = new uchar 16 0
+f = ac_fend view qb 0 e
+tid = ac_dec view qb 0 f
+g = ac_fld view qb 0 e 1
+pn = ac_dec view qb g ac_fend view qb g e
+a = ac_fld view qb 0 e 2
+if or eq tid 18446744073709551615 eq pn 18446744073709551615
+aq_say2 0 0 aqlbad
+ret true
+end
+if not aq_hexok view qb a 16
+aq_say2 0 0 aqlbad
+ret true
+end
+for i ulong 16
+put au i get qb add a i
+end
+ret aq_item ik tid pn au
+end
+
+note aq_one: the item at the cursor. 0 the queue is drained, 1 the item is finished and the cursor moved
+note past it, 2 it failed and stays queued. The cursor moves only after aq_item reports the reply posted.
+fn aq_one ik view uchar 80 to ulong
+pb = new uchar 512 0
+qb = new uchar 512 0
+nq = aq_path aqfq pb
+off = aq_cur
+r = ac_rdat view part pb 0 nq off qb
+if le r 0
+ret 0
+end
+e = ac_lend view qb 0 ulong r
+if ge e ulong r
+ret 0
+end
+nx = add add off e 1
+ok = aq_line ik qb e
+if ok
+if not aq_mark nx
+ret 2
+end
+ret 1
+end
+ret 2
+end
+
+note aq_ident: load aien's key and id, or register aien first; false when neither works
+fn aq_ident ik edit uchar 80 to bool
+if not aq_load ik
+if not aq_hello ik
+ac_say aqlid
+ac_say aqlfail
+ac_say view part acok 10 1
+ret false
+end
+end
+ac_say aqlid
+ac_say view part ik 64 16
+ac_say view part acok 10 1
+ret true
+end
+
+fn main to int
+ik = new uchar 80 0
+pb = new uchar 512 0
+d = new uchar 64 0
+if not aq_args
+ret 1
+end
+n = aq_path aqflk pb
+lk = int fopen pb 0 n 66 384
+if lt lk 0
+ret 4
+end
+if ne flock lk 6 0
+ac_say aqlbusy
+ret 4
+end
+if not aq_ident ik
+ret 2
+end
+mx = get gcf 4
+done = ulong 0
+for it ulong mx
+k = aq_one ik
+if eq k 0
+break
+end
+if eq k 2
+ret 3
+end
+done = add done 1
+end
+q = ac_cat d 0 aqldone
+q = ac_catu d q done
+q = ac_catc d q 10
+ac_say view part d 0 q
+ret 0
+end
