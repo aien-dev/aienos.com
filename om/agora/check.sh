@@ -121,6 +121,143 @@ end'; expected=40 ;;
     [ "$result" -eq "$expected" ] || { printf 'FAIL startup %s: expected %s, observed %s\n' "$mode" "$expected" "$result"; exit 6; }
     printf 'PASS startup %s observed %s\n' "$mode" "$result"
 done
+# Native effective-IP policy compares exact prefix sets, never display order.
+{ printf 'om2\n'; cat policy.om policy-check.om; } | "$omc" > "$tmp/policy"
+chmod +x "$tmp/policy"
+"$tmp/policy"
+for mode in order missing-deny extra-allow; do
+    case "$mode" in
+        order) expected=41 ;;
+        missing-deny) expected=44 ;;
+        extra-allow) expected=46 ;;
+    esac
+    result=0
+    "$tmp/policy" "--mutant-$mode" || result=$?
+    [ "$result" -eq "$expected" ] || { printf 'FAIL policy control %s: expected %s, observed %s\n' "$mode" "$expected" "$result"; exit 6; }
+    case "$mode" in
+        order) edit='s/^ret eq po_set deny proxy local true 3$/ret and eq po_set deny proxy local true 3 eq get po_buf deny 48/' ;;
+        missing-deny) edit='s/^ret eq po_set deny proxy local true 3$/ret ne and po_set deny proxy local true 3 0/' ;;
+        extra-allow) edit='s/^if ne po_set allow proxy local false want$/if ne and po_set allow proxy local false want want/' ;;
+    esac
+    sed "$edit" policy.om > "$tmp/policy-$mode.om"
+    if cmp -s policy.om "$tmp/policy-$mode.om"; then
+        printf 'FAIL unchanged policy mutant %s\n' "$mode"
+        exit 6
+    fi
+    { printf 'om2\n'; cat "$tmp/policy-$mode.om" policy-check.om; } | "$omc" > "$tmp/policy-$mode"
+    chmod +x "$tmp/policy-$mode"
+    result=0
+    "$tmp/policy-$mode" || result=$?
+    [ "$result" -eq "$expected" ] || { printf 'FAIL policy source mutant %s: expected %s, observed %s\n' "$mode" "$expected" "$result"; exit 6; }
+    printf 'PASS policy %s: counterfactual and source mutant rejected with %s\n' "$mode" "$result"
+done
+# Native raw-output observer: CI uses public synthetic identities/addresses.
+# The operator separately replays retained production captures before activation.
+{ printf 'om2\n'; cat json.om policy.om observer-check.om; } | "$omc" > "$tmp/observer"
+chmod +x "$tmp/observer"
+observer_unit='MainPID=42
+User=aien-agora
+Group=aien-agora
+FragmentPath=/etc/systemd/system/aien-agora.service
+DropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf
+IPAddressAllow=127.0.0.1/32 192.0.2.10/32
+IPAddressDeny=::/0 0.0.0.0/0
+'
+"$tmp/observer" unit "$observer_unit" 42 aien-agora aien-agora \
+    192.0.2.10/32 127.0.0.1/32 \
+    /etc/systemd/system/aien-agora.service \
+    /etc/systemd/system/aien-agora.service.d/proxy.conf
+result=0
+"$tmp/observer" unit "$observer_unit" 43 aien-agora aien-agora \
+    192.0.2.10/32 127.0.0.1/32 \
+    /etc/systemd/system/aien-agora.service \
+    /etc/systemd/system/aien-agora.service.d/proxy.conf || result=$?
+[ "$result" -eq 1 ] || { printf 'FAIL observer changed MainPID control: %s\n' "$result"; exit 6; }
+printf 'PASS observer public raw-property fixture and changed MainPID control\n'
+observer_expect() {
+    wanted=$1
+    label=$2
+    shift 2
+    observed=0
+    "$tmp/observer" "$@" || observed=$?
+    [ "$observed" -eq "$wanted" ] || { printf 'FAIL observer %s: expected %s, observed %s\n' "$label" "$wanted" "$observed"; exit 6; }
+}
+observer_unit_check() {
+    observer_expect "$1" "$2" unit "$3" 42 aien-agora aien-agora \
+        192.0.2.10/32 127.0.0.1/32 \
+        /etc/systemd/system/aien-agora.service \
+        /etc/systemd/system/aien-agora.service.d/proxy.conf
+}
+for field in MainPID User Group FragmentPath DropInPaths IPAddressAllow IPAddressDeny; do
+    raw=$(printf '%s' "$observer_unit" | sed "s|^$field=.*|$field=unexpected|")
+    observer_unit_check 1 "unit-$field-changed" "$raw"
+    raw=$(printf '%s' "$observer_unit" | sed "/^$field=/d")
+    observer_unit_check 1 "unit-$field-removed" "$raw"
+done
+raw=$(printf '%s' "$observer_unit" | sed 's/^IPAddressDeny=.*/IPAddressDeny=0.0.0.0\/0 ::\/0/;s/^IPAddressAllow=.*/IPAddressAllow=192.0.2.10\/32 127.0.0.1\/32/')
+observer_unit_check 0 policy-order "$raw"
+observer_state='ActiveState=active
+SubState=running
+IPAccounting=yes
+ControlGroup=/system.slice/aien-agora.service
+'
+observer_expect 0 state state "$observer_state" /system.slice/aien-agora.service
+for field in ActiveState SubState IPAccounting ControlGroup; do
+    raw=$(printf '%s' "$observer_state" | sed "s|^$field=.*|$field=unexpected|")
+    observer_expect 1 "state-$field-changed" state "$raw" /system.slice/aien-agora.service
+    raw=$(printf '%s' "$observer_state" | sed "/^$field=/d")
+    observer_expect 1 "state-$field-removed" state "$raw" /system.slice/aien-agora.service
+done
+observer_argv='/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20'
+observer_exec='ExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; start_time=[irrelevant timezone] ; pid=42 ; status=0/0 }
+'
+observer_expect 0 exec exec "$observer_exec" /opt/aien/bin/agora "$observer_argv" 42
+for field in 'path=' 'argv\[\]=' 'pid='; do
+    raw=$(printf '%s' "$observer_exec" | sed "s|$field[^;]*;||")
+    observer_expect 1 "exec-$field-removed" exec "$raw" /opt/aien/bin/agora "$observer_argv" 42
+done
+observer_ss='LISTEN 0 128 192.0.2.20:18132 0.0.0.0:* users:(("agora",pid=42,fd=4))'
+observer_snapshot() {
+    observer_expect "$1" "$2" snapshot 42 "$8" "$3" "$4" "$5" "$6" "$7" "$9" \
+        /opt/aien/bin/agora 976 964 192.0.2.20:18132 "${10}" 10000000000
+}
+observer_snapshot 0 stable /opt/aien/bin/agora '976 964' "$observer_ss" /opt/aien/bin/agora '976 964' 42 42 1
+observer_snapshot 2 preexec /usr/lib/systemd/systemd-executor '0 0' "$observer_ss" /opt/aien/bin/agora '976 964' 42 42 1
+observer_snapshot 1 root-past-deadline /usr/lib/systemd/systemd-executor '0 0' "$observer_ss" /usr/lib/systemd/systemd-executor '0 0' 42 42 10000000000
+observer_snapshot 1 stable-root /opt/aien/bin/agora '0 0' "$observer_ss" /opt/aien/bin/agora '0 0' 42 42 1
+observer_snapshot 1 changed-main /opt/aien/bin/agora '976 964' "$observer_ss" /opt/aien/bin/agora '976 964' 1 42 1
+observer_snapshot 2 no-listener /opt/aien/bin/agora '976 964' '' /opt/aien/bin/agora '976 964' 42 42 1
+bad_ss=$(printf '%s' "$observer_ss" | sed 's/pid=42,/pid=142,/')
+observer_snapshot 1 owner-prefix /opt/aien/bin/agora '976 964' "$bad_ss" /opt/aien/bin/agora '976 964' 42 42 1
+observer_expect 2 legacy-preexec ps '42 root     root     (agora)' 42 aien-agora aien-agora \
+    '/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20'
+observer_journal='{"_PID":"42","_UID":"976","_GID":"964","_EXE":"/opt/aien/bin/agora","_SYSTEMD_UNIT":"aien-agora.service","MESSAGE":"listening 18132","_CMDLINE":"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20","__REALTIME_TIMESTAMP":"1"}'
+observer_journal_check() {
+    observer_expect "$1" "$2" journal "$3" 42 976 964 /opt/aien/bin/agora \
+        aien-agora.service 'listening 18132' \
+        '/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20' 1 1
+}
+observer_journal_check 0 journal "$observer_journal"
+for field in _PID _UID _GID _EXE _SYSTEMD_UNIT MESSAGE _CMDLINE __REALTIME_TIMESTAMP; do
+    raw=$(printf '%s' "$observer_journal" | sed "s|\"$field\":\"[^\"]*\"|\"$field\":\"unexpected\"|")
+    observer_journal_check 1 "journal-$field-changed" "$raw"
+    raw=$(printf '%s' "$observer_journal" | sed "s|\"$field\":\"[^\"]*\",||;s|,\"$field\":\"[^\"]*\"||")
+    observer_journal_check 1 "journal-$field-removed" "$raw"
+done
+observer_ancestors='IPAddressAllow=
+IPAddressDeny=
+
+IPAddressDeny=
+IPAddressAllow=
+'
+observer_expect 0 ancestors ancestors "$observer_ancestors" 2
+for field in IPAddressAllow IPAddressDeny; do
+    raw=$(printf '%s' "$observer_ancestors" | sed "s|^$field=.*|$field=192.0.2.99/32|")
+    observer_expect 1 "ancestors-$field-changed" ancestors "$raw" 2
+    raw=$(printf '%s' "$observer_ancestors" | sed "/^$field=/d")
+    observer_expect 1 "ancestors-$field-removed" ancestors "$raw" 2
+done
+printf 'PASS native observer public raw-property, exec, credential, listener, journal and ancestor controls\n'
 # Native reload-readiness regression; nginx remains an external loopback oracle.
 nginx=${NGINX_BIN:-nginx}
 command -v "$nginx" >/dev/null || { printf 'missing nginx oracle: %s\n' "$nginx" >&2; exit 2; }

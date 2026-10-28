@@ -49,6 +49,52 @@ wildcard, IPv6 or socket-activated listener. Enable startup only after these
 checks pass. This boundary trusts the proxy host and permitted local tools;
 it is not authentication of individual processes on those hosts.
 
+### Exact effective policy observations
+
+Read machine properties by name, not their display order. `IPAddressAllow` and
+`IPAddressDeny` are sets of prefixes: require exact equality with the approved
+allow set and with `{::/0, 0.0.0.0/0}` respectively. Reordered prefixes and
+whitespace do not change a policy; a missing deny prefix or an extra allowance
+does. Never use a substring or a contains-only comparison.
+
+The native `policy.om` comparator takes the observed allow and deny values plus
+the expected proxy and loopback prefixes as runtime inputs. Keep actual host
+addresses in the root-owned local configuration, not public fixture source.
+The standalone `policy-check.om` CLI accepts `ALLOW DENY EXPECTED_PROXY
+EXPECTED_LOCAL` and exits 0 for exact sets, 1 for refusal, or 90 for malformed
+invocation. Its no-argument fixtures cover both display orders and negative
+controls for missing deny prefixes and extra allowances.
+
+Before a live retry, replay the retained real observer output offline and
+record an explicit pass/fail table. Exercise each guarded field unchanged,
+changed and removed. A pre-exec observation is pending, not proof that a
+listening backend runs with those credentials; late journal metadata is not
+an atomic substitute for the bracketed executable, credentials and listener
+observation. An observer failure still stops activation and requires rollback.
+
+Compose `om2`, `json.om`, `policy.om` and `observer-check.om` for the native
+raw-output oracle. Its modes are `unit`, `state`, `exec`, `snapshot`, `ps`,
+`journal` and `ancestors`. Pass the original captured output and the explicit
+expected identities as separate arguments; fields must be shorter than 4095
+bytes. The oracle exits 0 for its predicate passing, 1 for refusal, 2 for a
+pending observation, or 90 for an invalid or oversized invocation. These are
+not the startup policy CLI's exit codes. A journal predicate proves only that
+historical message's provenance, never current socket readiness.
+
+Keep ExecStart's displayed `${AGORA_LISTEN}` separate from the resolved
+process command line. Do not compare displayed timestamps, queue sizes,
+descriptor numbers, process-column padding or decimal leading zeroes as
+identity facts. Continue to require the exact executable, credentials,
+endpoint, PID, property names and prefix sets.
+
+Collect ancestor properties with options before the end-of-options marker:
+`systemctl show -p IPAddressAllow -p IPAddressDeny -- -.slice`, then the same
+command for `system.slice`. Require both properties to be present and empty
+in each selected unit's output. `observer ancestors RAW EXPECTED_RECORDS`
+accepts one record or two blank-delimited records; it rejects missing,
+duplicated, unknown or nonempty properties. A noisy query that accidentally
+selects `-p.service` is not policy evidence.
+
 ## Nginx scopes and exact routes
 
 Install `nginx-agora-http.conf` at HTTP scope, for example under

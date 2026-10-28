@@ -78,14 +78,14 @@
         }
       ],
       "children_root": "sha256:dda6036f5cc4a440fe7d501f49197693d86ac0baaed26856465ae6b8cfeb59ac",
-      "compiled_at": "2026-10-28T16:24:08Z",
+      "compiled_at": "2026-10-28T17:21:26Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:842be802c288124badd195d095c8eab583b5f16c360ecf886540da77401a44a7",
+      "digest": "sha256:b5960196ebb92f37c8ead4c650abf437c0a1e9ec5441cbb0cf77003c85310bca",
       "evidence_files": 6,
       "evidence_root": "sha256:7fde48972a09dd4b0f7206aca4e313cd02c8cd195ec602e3924e59246c016aa5",
-      "files": 791,
-      "generated_at_commit": "8d9ec3a79f93270900e2a9f3b8787385ce29f904",
-      "source_tree": "sha256:1a37341ff319dbdc386ad786c766c80584f8ae83db2679415192514d7a493056"
+      "files": 795,
+      "generated_at_commit": "9c6cdf148faf99f04a2ad944d3c32d85926f4272",
+      "source_tree": "sha256:d4819645f7270b9ea563fe9c07b2736f3d616b47cf73f0740b815939b119c3fb"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",
