@@ -3,7 +3,8 @@
 # (test/run.sh) on the real server, then mutants that remove one check each; every
 # mutant must compile and must fail the scenario, which proves the check exists.
 # OMEGA_OMC names the pinned omc (sha256 in omc.sha256); it overrides the path, never the pin.
-# Exit 2: missing compiler or tool; 3: wrong pin; 4: vendored unit hash mismatch;
+# Exit 2: missing compiler or tool (curl, sha256sum; jq is the net.sh JSON oracle); 3: wrong pin;
+# 4: vendored unit hash mismatch;
 # 5: scenario failed on the real server; 6: a mutant survived or did not apply;
 # 7: test/net.sh (network programs) failed.
 set -eu
@@ -20,7 +21,7 @@ if [ "$have" != "$pin" ]; then
     printf 'Compiler sha256 mismatch: recorded %s, found %s\n' "$pin" "$have" >&2
     exit 3
 fi
-for t in curl sha256sum; do
+for t in curl sha256sum jq; do
     command -v "$t" > /dev/null || { printf 'missing tool: %s\n' "$t" >&2; exit 2; }
 done
 # Each vendored unit matches its sidecar; a verbatim copy also matches its upstream source hash
