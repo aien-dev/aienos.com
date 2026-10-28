@@ -64,7 +64,8 @@ def capacity(root):
     with service(args.core, "serve", "--state", root, "--port", 0, "--bits", 0) as port:
         tokens = [challenge(port) for _ in range(1024)]
         for _ in range(3):
-            assert request(port, "/agora/api/challenge") == (429, b"agora 1\nerr slow challenge capacity reached\n")
+            actual = request(port, "/agora/api/challenge")
+            assert actual == (429, b"agora 1\nerr slow challenge capacity reached\n"), ("capacity refusal", actual)
         assert datetime.datetime.now(datetime.timezone.utc) < datetime.datetime.fromisoformat(tokens[0][1].decode().replace("Z", "+00:00"))
         assert hello(port, tokens[0][0])[0] == 200, "live oldest challenge was evicted"
         assert hello(port, tokens[0][0])[0] == 403, "used challenge accepted twice"
@@ -117,7 +118,8 @@ def quota(root):
                 assert request(core, "/agora/api/hello", data, (("X-Real-IP", ip),))[0] == 200
             token, _ = challenge(core)
             data = b"challenge\t" + token + b"\nnonce\t0\nname\tCoreQuota\nkind\thuman\n"
-            assert request(core, "/agora/api/hello", data, (("X-Real-IP", ip),)) == (429, b"agora 1\nerr slow ip rate limit reached\n")
+            actual = request(core, "/agora/api/hello", data, (("X-Real-IP", ip),))
+            assert actual == (429, b"agora 1\nerr slow ip rate limit reached\n"), ("IP quota refusal", actual)
         print("limits: PASS core independent proxy-client IP quotas at 20/21 (existing restricted ingress contract)", flush=True)
         with service(args.edge, "--api", core, "--port", 0) as edge:
             for _ in range(20):
