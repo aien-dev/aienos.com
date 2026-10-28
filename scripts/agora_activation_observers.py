@@ -187,7 +187,8 @@ class Observers:
         self.observations.append({'gate': 'effective', 'unit': raw, 'state': state,
                                   'exec': execution, 'bpf': bpf})
         journal = self.text(self.sudo + ['journalctl', '--unit', config['unit'],
-                           '--since', config['journal_since'], '--no-pager', '-o', 'cat'])
+                           '--since', config['journal_since'], '--no-pager', '-o', 'cat'],
+                            private=True)
         if re.search(r'(?i)(not supported|unsupported|failed to attach|failed to apply).*(BPF|IP firewall)|'
                      r'(BPF|IP firewall).*(not supported|unsupported|failed to attach|failed to apply)', journal):
             raise Refused('Current invocation reports unsupported or failed IP filtering')
@@ -347,6 +348,19 @@ class Observers:
         config['access_logs'] = sorted(access)
         self.observations.append({'effective_log_sinks': sorted(sinks),
                                   'effective_temp_dirs': sorted(temps)})
+
+    def journal_privacy(self, config, markers):
+        units = [config['unit'], *config.get('routing_units', [])]
+        argv = self.sudo + ['journalctl']
+        for unit in units:
+            argv += ['--unit', unit]
+        result = self.run(argv + ['--since', config['journal_since'],
+            '--no-pager', '-o', 'cat'], private=True)
+        if any(marker in result.stdout for marker in markers):
+            raise Refused('Privacy marker found in fixture service journal')
+        self.observations.append({'journal_privacy': 'PASS', 'units': units,
+                                  'since': config['journal_since'],
+                                  'markers': len(markers)})
 
     def privacy(self, logs, temp_dirs, markers):
         paths = list(logs)

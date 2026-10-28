@@ -10,6 +10,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import signal
 import socket
 import sys
 
@@ -170,7 +171,21 @@ class Rehearsal:
         # Browser gates run before quota exhaustion; these requests preserve the
         # real client bucket rather than relying on arbitrary forged headers.
         self.observer.privacy(self.config['logs'], self.config['temp_dirs'], self.markers)
+        self.observer.journal_privacy(self.config, self.markers)
         self.gate('effective actual fixture access/error/temp sinks have no synthetic body/key markers')
+        # Challenge the real sink scanner, not a canned privacy verdict.
+        control = Path(self.config['temp_dirs'][0]) / ('privacy-control-' + self.fixture.ident)
+        try:
+            with control.open('xb') as stream:
+                stream.write(self.markers[0])
+            try:
+                self.observer.privacy(self.config['logs'], self.config['temp_dirs'], self.markers)
+            except Refused:
+                self.gate('privacy scanner rejects an actual marker in an effective temporary-body sink')
+            else:
+                raise Refused('Privacy scanner accepted its marker control')
+        finally:
+            control.unlink(missing_ok=True)
         self.pre_browser_passed = True
         return {'gates': self.gates, 'config': self.config}
 
@@ -222,6 +237,7 @@ class Rehearsal:
         markers = self.markers + [path.read_bytes() for path in self.keys]
         self.observer.privacy(self.config['logs'], self.config['temp_dirs'], markers)
         self.observer.privacy(self.config['access_logs'], [], [b'/agora/api'])
+        self.observer.journal_privacy(self.config, markers)
         self.gate('actual response recovery keys absent from every effective log/temp-body sink')
         self.fixture.enable_backend()
         enabled = self.run(['systemctl', 'is-enabled', self.config['unit']])
@@ -282,6 +298,8 @@ def control(path, action):
             if not part:
                 break
             answer += part
+    if not answer:
+        raise Refused('Fixture control closed without an acceptance verdict')
     response = json.loads(answer)
     if not response['ok']:
         raise Refused(response['error'])
@@ -291,6 +309,11 @@ def control(path, action):
 def serve(args):
     fixture = None
     listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    def interrupted(number, _frame):
+        raise Refused('Fixture interrupted by ' + signal.Signals(number).name)
+
+    previous = {number: signal.signal(number, interrupted)
+                for number in (signal.SIGHUP, signal.SIGINT, signal.SIGTERM)}
     try:
         fixture = Rehearsal(args)
         fixture.setup()
@@ -345,9 +368,13 @@ def serve(args):
                 fixture.receipt('FAIL')
         raise
     finally:
-        listener.close()
-        if fixture is not None:
-            fixture.fixture.cleanup()
+        try:
+            listener.close()
+            if fixture is not None:
+                fixture.fixture.cleanup()
+        finally:
+            for number, handler in previous.items():
+                signal.signal(number, handler)
 
 
 def main():

@@ -302,6 +302,24 @@ site healthy, unit stopped and disabled, profiles unchanged. Private recovery
 files and a root-only retained-state copy remain beneath the scratch root.
 The receipt is explicitly `ISOLATED_NAMESPACE_ONLY_NOT_DEPLOYED`.
 
+The conductor treats SIGHUP, SIGINT and SIGTERM as failed acceptance: it records
+FAIL, rolls back and cleans up its own units and namespace while retaining
+private state. A killed process cannot execute cleanup. If recovering an older
+interrupted run, first prove the namespace, runtime units and paths belong to
+that fixture, preserve their files privately, and stop only those resources.
+Never label an interrupted run PASS or loosen directory permissions to read it;
+use the operator's existing permitted root read path.
+
+Privacy includes a negative control: place a public sentinel in an effective
+fixture temporary-body sink, require the actual scanner to refuse it, and
+remove only that control file. This demonstrates scanner sensitivity, not the
+absence of transient production body spills or historical logging causality.
+The privacy pass also scans current-invocation journals for the backend and
+every fixture routing unit. Raw journal bodies are private, including the
+startup warning observation; receipts retain only the scanner verdict and
+non-secret unit names. Empty control responses fail without an acceptance
+verdict rather than being treated as success.
+
 Run `python3 -m py_compile` and `pyflakes` on all three Python observer files,
 and `node --check scripts/agora_activation_browser.mjs`. Record the complete
 rehearsal receipt and static-check output on the source PR before any live
