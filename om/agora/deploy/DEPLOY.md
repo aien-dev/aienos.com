@@ -325,6 +325,13 @@ and `node --check scripts/agora_activation_browser.mjs`. Record the complete
 rehearsal receipt and static-check output on the source PR before any live
 retry. A fixture failure is not permission to continue live.
 
+`activation-rehearsal.evidence.json` records the completed 2026-10-28 isolated
+sequence at source `9caa5598159a8589f8dfd0c4c36b5b568b84786e`: all 17
+conductor gates and seven real-browser gates passed, including durable readback,
+lost-acknowledgement refusal and injected rollback. The earlier interrupted
+rehearsals remain failed or incomplete. This receipt is not a production retry,
+deployment authorization, or evidence that production routing is enabled.
+
 ## Required deployment checks
 
 Record observed outputs, not just the commands:

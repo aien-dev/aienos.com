@@ -1,0 +1,417 @@
+{
+  "status": "PASS",
+  "scope": "ISOLATED_NAMESPACE_ONLY_NOT_DEPLOYED",
+  "observed_utc": "2026-10-28T18:49:48.539810+00:00",
+  "exercised_source_commit": "9caa5598159a8589f8dfd0c4c36b5b568b84786e",
+  "published_source_commit": "07736aa17fd16e862725cf440bcae71527945285",
+  "source_sha256": {
+    "scripts/test-agora-activation.py": "969bf45664b624de00e7234e8a38204725a9ab4ac03fd4c407fb376d2326ac76",
+    "scripts/agora_activation_observers.py": "544b0f49d9b418e00a4e8b22c13a556da364f20500491f1247d5e2eda33a8740",
+    "scripts/agora_activation_namespace.py": "4f4f1e2b1bde3de53ba80a7c1e4b35ee60ba6fa55d9e0e5103a597db2e26be3c",
+    "scripts/agora_activation_browser.mjs": "a3c8f6f9dc7365c59ce295a604c524bed105cbe3c0d40f8f65b937b1334e5c1d",
+    "om/agora/observer-check.om": "443f33d9c000c3169f2607dc0c24c2c8f959a7007e7f8ca66f2299a7be097e7f"
+  },
+  "compiler_sha256": "2c82480596bbdc50cda9626866209ef662d5834f278f839ff4ce0250c495029f",
+  "native_source_binary_bindings": [
+    {
+      "source_files": [
+        "json.om",
+        "policy.om",
+        "observer-check.om"
+      ],
+      "source_sha256": "d4057f778d9f2a3f898ee8b411ba5e4e1629c6cdf8f4d4b1af76e321ce1b6cfc",
+      "binary_sha256": "cb2f5d6c7c1a5c23b02dfe669f100901fa5865aa33178fd0fbe87dbff3a82478",
+      "compile_exit": 0,
+      "existing_fixture_binary_identical": true
+    },
+    {
+      "source_files": [
+        "startup-check.om"
+      ],
+      "source_sha256": "26e87cac1dc5ab8ea1b1012d59f96949ed3610d9d5fea5c047bf3a72ff68bb99",
+      "binary_sha256": "66ed83f561ebc498cba51e021446965e2ffe4b70a46ab84a99d4dde03bad503e",
+      "compile_exit": 0,
+      "existing_fixture_binary_identical": true
+    },
+    {
+      "source_files": [
+        "sha256.om",
+        "http.om",
+        "agora.om"
+      ],
+      "source_sha256": "4f8f868a6d3cef1febf7c4cfd5be94b178aff24184c3145f7fce513a7be1d45c",
+      "binary_sha256": "cadb8de5d68420b563d633156e661aff5aab4f8293f1d77455f4b36768666239",
+      "compile_exit": 0,
+      "existing_fixture_binary_identical": true
+    }
+  ],
+  "published_artifacts": [
+    {
+      "url": "https://www.aienos.com/aienet/",
+      "sha256": "5b9b5cee5f36aba159e25552169852430eb65947579e20eae7d73fe57d108330",
+      "approved_sha256": "5b9b5cee5f36aba159e25552169852430eb65947579e20eae7d73fe57d108330",
+      "matches": true
+    },
+    {
+      "url": "https://www.aienos.com/js/aienet.js",
+      "sha256": "4e9b46afd7db51b86c438bf6d340bb29e29fd26dc7f02a5a157585713a08ace4",
+      "approved_sha256": "4e9b46afd7db51b86c438bf6d340bb29e29fd26dc7f02a5a157585713a08ace4",
+      "matches": true
+    }
+  ],
+  "gates": [
+    {
+      "gate": "copied backend/page/client exact source bytes, root ownership and regular-file modes",
+      "status": "PASS",
+      "observation": null
+    },
+    {
+      "gate": "bounded startup/effective native guards/current namespace/cgroup BPF",
+      "status": "PASS",
+      "observation": null
+    },
+    {
+      "gate": "independent same-endpoint second-source reachability control",
+      "status": "PASS",
+      "observation": {
+        "source": "127.0.0.3",
+        "syn": 1,
+        "synack": 1,
+        "accept": true
+      }
+    },
+    {
+      "gate": "actual source-bound packet allow/deny",
+      "status": "PASS",
+      "observation": {
+        "source": "127.0.0.2",
+        "syn": 1,
+        "synack": 1,
+        "accept": true
+      }
+    },
+    {
+      "gate": "actual source-bound packet allow/deny",
+      "status": "PASS",
+      "observation": {
+        "source": "127.0.0.3",
+        "syn": 5,
+        "synack": 0,
+        "accept": false
+      }
+    },
+    {
+      "gate": "independent real BPF denial with no firewall mutation",
+      "status": "PASS",
+      "observation": null
+    },
+    {
+      "gate": "exact service policy restored and allowed source recovers",
+      "status": "PASS",
+      "observation": null
+    },
+    {
+      "gate": "nginx active-worker adoption plus independently counted TLS GET",
+      "status": "PASS",
+      "observation": null
+    },
+    {
+      "gate": "actual TLS method/id/trailing/disabled/oversize and non-PROXY refusals, zero upstream payload",
+      "status": "PASS",
+      "observation": null
+    },
+    {
+      "gate": "synthetic body/key real backend failure path",
+      "status": "PASS",
+      "observation": null
+    },
+    {
+      "gate": "effective actual fixture access/error/temp sinks have no synthetic body/key markers",
+      "status": "PASS",
+      "observation": null
+    },
+    {
+      "gate": "privacy scanner rejects an actual marker in an effective temporary-body sink",
+      "status": "PASS",
+      "observation": null
+    },
+    {
+      "gate": "real browser consent/ack/readback/uncertainty/durability",
+      "status": "PASS",
+      "observation": {
+        "status": "PASS",
+        "gates": [
+          {
+            "name": "browser_setup",
+            "status": "PASS"
+          },
+          {
+            "name": "missing_consent_no_write",
+            "status": "PASS"
+          },
+          {
+            "name": "acknowledged_exact_profile",
+            "status": "PASS"
+          },
+          {
+            "name": "restart_durable_readback",
+            "status": "PASS"
+          },
+          {
+            "name": "actual_write_response_lost",
+            "status": "PASS"
+          },
+          {
+            "name": "uncertain_write_no_auto_repeat",
+            "status": "PASS"
+          },
+          {
+            "name": "same_origin_saved_signup_restored",
+            "status": "PASS"
+          }
+        ],
+        "requests": [
+          {
+            "phase": "acknowledged_exact_profile",
+            "method": "GET",
+            "path": "/agora/api/challenge",
+            "count": 1
+          },
+          {
+            "phase": "acknowledged_exact_profile",
+            "method": "POST",
+            "path": "/agora/api/hello",
+            "count": 1
+          },
+          {
+            "phase": "acknowledged_exact_profile",
+            "method": "GET",
+            "path": "/agora/api/agent/:id",
+            "count": 1
+          },
+          {
+            "phase": "restart_durable_readback",
+            "method": "GET",
+            "path": "/agora/api/agent/:id",
+            "count": 1
+          },
+          {
+            "phase": "actual_write_response_lost",
+            "method": "GET",
+            "path": "/agora/api/challenge",
+            "count": 1
+          },
+          {
+            "phase": "actual_write_response_lost",
+            "method": "POST",
+            "path": "/agora/api/hello",
+            "count": 1
+          },
+          {
+            "phase": "same_origin_saved_signup_restored",
+            "method": "GET",
+            "path": "/agora/api/agent/:id",
+            "count": 1
+          }
+        ],
+        "noRepeatObservationMs": 1500
+      }
+    },
+    {
+      "gate": "actual TLS forged identity headers share quota; refusals produce zero upstream requests",
+      "status": "PASS",
+      "observation": {
+        "accepted": 13,
+        "limited": 19
+      }
+    },
+    {
+      "gate": "actual response recovery keys absent from every effective log/temp-body sink",
+      "status": "PASS",
+      "observation": null
+    },
+    {
+      "gate": "enable only after every acceptance gate passes, isolated runtime target only",
+      "status": "PASS",
+      "observation": null
+    },
+    {
+      "gate": "injected first-failure rollback closes API/stops backend/preserves profiles/site200",
+      "status": "PASS",
+      "observation": null
+    }
+  ],
+  "browser": {
+    "status": "PASS",
+    "gates": [
+      {
+        "name": "browser_setup",
+        "status": "PASS"
+      },
+      {
+        "name": "missing_consent_no_write",
+        "status": "PASS"
+      },
+      {
+        "name": "acknowledged_exact_profile",
+        "status": "PASS"
+      },
+      {
+        "name": "restart_durable_readback",
+        "status": "PASS"
+      },
+      {
+        "name": "actual_write_response_lost",
+        "status": "PASS"
+      },
+      {
+        "name": "uncertain_write_no_auto_repeat",
+        "status": "PASS"
+      },
+      {
+        "name": "same_origin_saved_signup_restored",
+        "status": "PASS"
+      }
+    ],
+    "requests": [
+      {
+        "phase": "acknowledged_exact_profile",
+        "method": "GET",
+        "path": "/agora/api/challenge",
+        "count": 1
+      },
+      {
+        "phase": "acknowledged_exact_profile",
+        "method": "POST",
+        "path": "/agora/api/hello",
+        "count": 1
+      },
+      {
+        "phase": "acknowledged_exact_profile",
+        "method": "GET",
+        "path": "/agora/api/agent/:id",
+        "count": 1
+      },
+      {
+        "phase": "restart_durable_readback",
+        "method": "GET",
+        "path": "/agora/api/agent/:id",
+        "count": 1
+      },
+      {
+        "phase": "actual_write_response_lost",
+        "method": "GET",
+        "path": "/agora/api/challenge",
+        "count": 1
+      },
+      {
+        "phase": "actual_write_response_lost",
+        "method": "POST",
+        "path": "/agora/api/hello",
+        "count": 1
+      },
+      {
+        "phase": "same_origin_saved_signup_restored",
+        "method": "GET",
+        "path": "/agora/api/agent/:id",
+        "count": 1
+      }
+    ],
+    "noRepeatObservationMs": 1500
+  },
+  "static_checks": [
+    {
+      "command": [
+        "python3",
+        "-m",
+        "py_compile",
+        "scripts/agora_activation_observers.py",
+        "scripts/agora_activation_namespace.py",
+        "scripts/test-agora-activation.py"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/tmp/aienet-activation-lint/bin/pyflakes",
+        "scripts/agora_activation_observers.py",
+        "scripts/agora_activation_namespace.py",
+        "scripts/test-agora-activation.py"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "scripts/agora_activation_browser.mjs"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "/tmp/aienet-activation-lint/shellcheck-oracle/usr/bin/shellcheck",
+        "om/agora/check.sh"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "native_replay": {
+    "cases": 271,
+    "mismatches": 0
+  },
+  "core_gate": {
+    "command": "OMEGA_OMC=<pinned-omc> NGINX_BIN=<oracle-nginx> sh om/agora/check.sh",
+    "exit": 0,
+    "verdict": "PASS agora: core and network gates",
+    "limitation": "Owned host fixtures only; network-suite edge/federation controls do not enable those services."
+  },
+  "negative_controls": {
+    "sighup": {
+      "status": "PASS",
+      "observed_receipt_status": "FAIL",
+      "expected_error": "Refused: Fixture interrupted by SIGHUP",
+      "owned_units_namespace_runtime_removed": true,
+      "private_state_retained": true
+    },
+    "actual_service_journal": {
+      "status": "PASS",
+      "actual_journal_marker_refused": true,
+      "clean_control_passed": true,
+      "raw_journal_never_recorded": true
+    },
+    "empty_control": {
+      "status": "PASS",
+      "empty_control_fails_closed": true
+    }
+  },
+  "private_raw_receipt_sha256": "a8acdca116146627de19178b3b0255bb6d81974ce006173cdcbe2c6841cf2cb6",
+  "cleanup": {
+    "all_owned_units_stopped": true,
+    "namespace_unit_runtime_state_paths_absent": true,
+    "state_retained_privately": true,
+    "recovery_files": 2,
+    "root_receipt_key_modes": "0600",
+    "root_retained_state_mode": "0700"
+  },
+  "interrupted_runs": {
+    "g": "INTERRUPTED_NOT_PASS; owned resources stopped and all old files retained privately",
+    "h": "Stopped with SIGTERM before browser to close journal privacy inspection gap; FAIL expected, not acceptance"
+  },
+  "limits": [
+    "No production Retry I was executed.",
+    "No production configuration, ingress, boot or model changes; no GPU access.",
+    "Registration only: no JSON edge, MCP/A2A or federation activation.",
+    "Namespace/systemd/browser results do not qualify remote production routing or hardware.",
+    "Privacy proves observed sinks and negative-control sensitivity; transient body spills and historical suppression causality remain unqualified.",
+    "Draft PR169 remains unmerged and unauthorized for deployment."
+  ]
+}
