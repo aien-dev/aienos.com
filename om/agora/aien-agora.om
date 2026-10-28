@@ -336,14 +336,26 @@ f = ac_fld tb p e 3
 if not ac_peq tb f ac_fend tb f e view part ik 64 16
 ret 0
 end
-f = ac_fld tb p e 6
+f = aq_last tb p e
 if eq ac_dec tb f ac_fend tb f e n
 ret 2
 end
 ret 0
 end
 
-note aq_scan: 0 post n absent (or hidden), 1 found, 2 aien already answered it. o: 0..1 room, 2..3 title,
+note aq_last: the start of the last tab-separated field of the line d[p, e)
+fn aq_last d view uchar * p ulong e ulong to ulong
+k = e
+while gt k p bound 999999
+if eq get d sub k 1 9
+ret k
+end
+k = sub k 1
+end
+ret p
+end
+
+note aq_scan: 0 post n absent or hidden (no body line), 1 found, 2 aien already answered it. o: 0..1 room, 2..3 title,
 note 4..5 the post line, 6 body offset, 7 body length (offsets into tb).
 fn aq_scan tb view uchar * n ulong ik view uchar 80 o edit ulong 16 to ulong
 tl = len tb
@@ -372,7 +384,6 @@ if eq k 2
 ret 2
 end
 if eq k 1
-res = 1
 cur = 1
 end
 end
@@ -384,6 +395,7 @@ end
 if eq get o 10 1
 put o 6 add e 1
 put o 7 bl
+res = 1
 end
 p = add add e 2 bl
 else
@@ -463,12 +475,13 @@ f = ac_fld tb p e 4
 g = ac_fend tb f e
 q = ac_cat um q aqauth
 q = ac_cat um q view part tb f sub g f
+if le ac_fld tb p e 6 e
 q = ac_catc um q 32
 q = ac_catc um q 40
 f = ac_fld tb p e 5
-g = ac_fend tb f e
-q = ac_cat um q view part tb f sub g f
+q = ac_cat um q view part tb f sub ac_fend tb f e f
 q = ac_catc um q 41
+end
 q = ac_cat um q aqid
 q = ac_cat um q au
 q = ac_cat um q aqprof
