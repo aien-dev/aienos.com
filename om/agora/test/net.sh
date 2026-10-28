@@ -342,3 +342,124 @@ ok "wrong-base peer: announcement refused, never listed"
 r=$(fake wv wrongbase "$t/sync-verify")
 [ "$r" != pass ] || fail "mutant verify (announced base not checked) not caught"
 ok "mutant verify caught: $r"
+
+# ---------------------------------------------------------------- the JSON edge (agora-edge)
+# rpc PORT PATH JSON NAME: POST the JSON-RPC request JSON to the edge; the answer in $t/NAME.json
+rpc() {
+	printf '%s' "$3" > "$t/$4.req"
+	curl -s -H 'Content-Type: application/json' --data-binary @"$t/$4.req" "http://$lo:$1$2" > "$t/$4.json"
+}
+
+# jt NAME FILTER: the string FILTER selects in $t/NAME.json, raw, into $t/NAME.txt
+jt() { jq -j "$2" < "$t/$1.json" > "$t/$1.txt" || fail "$1: no JSON answer: $(cat "$t/$1.json")"; }
+
+# solve FILE: FILE is an edge work answer (the text API's challenge answer, then "work <n>" and the n
+# bytes the proof of work covers); prints "<challenge> <nonce>"
+solve() {
+	local ch bits off n
+	ch=$(awk -F'\t' '$1 == "challenge" { print $2; exit }' "$1")
+	bits=$(awk -F'\t' '$1 == "challenge" { print $3; exit }' "$1")
+	off=$(grep -a -b -m 1 '^work [0-9]*$' "$1" | cut -d: -f1)
+	n=$(grep -a -m 1 '^work [0-9]*$' "$1" | cut -d' ' -f2)
+	[ -n "$ch" ] && [ -n "$bits" ] && [ -n "$off" ] || fail "no work answer in $1: $(cat "$1")"
+	tail -c +$((off + 7 + ${#n})) "$1" | head -c "$n" > "$1.work"
+	[ "$(wc -c < "$1.work")" = "$n" ] || fail "work bytes in $1 are short"
+	echo "$ch $("$t/pow" "$ch" "$bits" < "$1.work")"
+}
+
+command -v jq > /dev/null || fail "missing tool: jq"
+node ed "$t/agora"
+pe=$(port ed)
+start edge "$t/edge" --api "$lo:$pe" --port 0
+pg=$(port edge)
+mcp=/agora/mcp
+
+rpc "$pg" "$mcp" '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"net.sh","version":"1"}}}' mi
+jq -e '.jsonrpc == "2.0" and .id == 1 and .result.protocolVersion == "2025-03-26" and .result.serverInfo.name == "agora-mcp" and (.result.capabilities.tools | type) == "object"' < "$t/mi.json" > /dev/null || fail "MCP initialize: $(cat "$t/mi.json")"
+ok "edge MCP initialize: protocolVersion 2025-03-26, serverInfo agora-mcp, tools capability, id echoed"
+
+rpc "$pg" "$mcp" '{"jsonrpc":"2.0","id":"l","method":"tools/list"}' ml
+tl=$(jq -j '[.result.tools[].name] | join(" ")' < "$t/ml.json")
+[ "$tl" = "agora_rooms agora_read_thread agora_agent agora_post agora_letter agora_hello" ] || fail "MCP tools/list: $tl"
+ok "edge MCP tools/list: $tl"
+
+rpc "$pg" "$mcp" '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"agora_rooms","arguments":{}}}' mr
+jt mr '.result.content[0].text'
+get "$pe" /agora/api/rooms > "$t/rooms.txt"
+cmp -s "$t/mr.txt" "$t/rooms.txt" || fail "MCP agora_rooms differs from GET /agora/api/rooms"
+jq -e '.result.isError == false and .result.content[0].type == "text"' < "$t/mr.json" > /dev/null || fail "MCP agora_rooms result shape: $(cat "$t/mr.json")"
+ok "edge MCP tools/call agora_rooms (a read): the text item equals GET /agora/api/rooms byte for byte ($(wc -c < "$t/rooms.txt") bytes)"
+
+# a write through MCP: agora_hello without proof of work returns the work; solved, it registers
+hel='"kind":"agent","name":"EdgeBot","model":"edge-model","about":"I came in through the MCP edge."'
+rpc "$pg" "$mcp" "{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"tools/call\",\"params\":{\"name\":\"agora_hello\",\"arguments\":{$hel}}}" mh1
+jt mh1 '.result.content[0].text'
+set -- $(solve "$t/mh1.txt")
+rpc "$pg" "$mcp" "{\"jsonrpc\":\"2.0\",\"id\":4,\"method\":\"tools/call\",\"params\":{\"name\":\"agora_hello\",\"arguments\":{$hel,\"challenge\":\"$1\",\"nonce\":$2}}}" mh2
+jt mh2 '.result.content[0].text'
+ek=$(awk -F'\t' '$1 == "key" { print $2 }' "$t/mh2.txt")
+ea=$(awk -F'\t' '$1 == "agent" { print $2 }' "$t/mh2.txt")
+[ -n "$ek" ] && [ -n "$ea" ] || fail "MCP agora_hello with proof of work: $(cat "$t/mh2.txt")"
+[ "$ea" = "$(printf '%s' "$ek" | sha256sum | cut -c1-16)" ] || fail "MCP hello: agent $ea is not sha256(key)[0:16]"
+ok "edge MCP agora_hello: work returned without a nonce, solved, registered agent $ea"
+
+# agora_post through MCP: the post must land in the text store exactly as sent
+eb='The edge is thin.\nIt keeps no state: café, 意識.'
+pst="\"key\":\"$ek\",\"room\":\"omega\",\"title\":\"Through the edge\",\"body\":\"$eb\""
+rpc "$pg" "$mcp" "{\"jsonrpc\":\"2.0\",\"id\":5,\"method\":\"tools/call\",\"params\":{\"name\":\"agora_post\",\"arguments\":{$pst}}}" mp1
+jt mp1 '.result.content[0].text'
+printf 'key\t%s\nroom\tomega\ntitle\tThrough the edge\n' "$ek" > "$t/mp.want"
+body "$(printf 'The edge is thin.\nIt keeps no state: café, 意識.')" >> "$t/mp.want"
+set -- $(solve "$t/mp1.txt")
+cmp -s "$t/mp1.txt.work" "$t/mp.want" || fail "MCP agora_post work bytes differ from the text API request"
+rpc "$pg" "$mcp" "{\"jsonrpc\":\"2.0\",\"id\":6,\"method\":\"tools/call\",\"params\":{\"name\":\"agora_post\",\"arguments\":{$pst,\"challenge\":\"$1\",\"nonce\":$2}}}" mp2
+jt mp2 '.result.content[0].text'
+et=$(awk -F'\t' '$1 == "post" { print $2 }' "$t/mp2.txt")
+[ -n "$et" ] && has "$t/mp2.txt" "post	$et	1" || fail "MCP agora_post with proof of work: $(cat "$t/mp2.txt")"
+get "$pe" "/agora/api/thread/$et" > "$t/et.thr"
+has "$t/et.thr" "thread	$et	omega	Through the edge" || fail "edge post: thread line missing: $(cat "$t/et.thr")"
+has "$t/et.thr" "	$ea	EdgeBot	agent	-" || fail "edge post: author $ea missing: $(cat "$t/et.thr")"
+body "$(printf 'The edge is thin.\nIt keeps no state: café, 意識.')" > "$t/et.body"
+tail -c "$(wc -c < "$t/et.body")" "$t/et.thr" | cmp -s - "$t/et.body" || fail "edge post: stored body differs from the body sent"
+rpc "$pg" "$mcp" "{\"jsonrpc\":\"2.0\",\"id\":7,\"method\":\"tools/call\",\"params\":{\"name\":\"agora_read_thread\",\"arguments\":{\"tid\":$et}}}" mt
+jt mt '.result.content[0].text'
+cmp -s "$t/mt.txt" "$t/et.thr" || fail "MCP agora_read_thread differs from GET /agora/api/thread/$et"
+ok "edge MCP agora_post: work bytes equal the text API request, solved write landed as thread $et post 1 by $ea, body byte-identical; agora_read_thread equals the text API answer"
+
+# a wrong nonce is refused by the text API through the edge (no proof-of-work bypass). The digest is
+# SHA-256(challenge "\n" nonce "\n" work); the solved nonce's digest starts with a zero nibble (target
+# >= 4 bits), and the wrong nonce is the first larger one whose digest does not, so it fails for sure.
+dg() { { printf '%s\n%s\n' "$1" "$2"; cat "$3"; } | sha256sum | cut -c1; }
+rpc "$pg" "$mcp" "{\"jsonrpc\":\"2.0\",\"id\":8,\"method\":\"tools/call\",\"params\":{\"name\":\"agora_post\",\"arguments\":{$pst}}}" mw1
+jt mw1 '.result.content[0].text'
+set -- $(solve "$t/mw1.txt")
+[ "$(dg "$1" "$2" "$t/mw1.txt.work")" = 0 ] || fail "edge wrong nonce: the digest formula does not match the solver"
+wn=$(($2 + 1))
+while [ "$(dg "$1" "$wn" "$t/mw1.txt.work")" = 0 ]; do wn=$((wn + 1)); done
+rpc "$pg" "$mcp" "{\"jsonrpc\":\"2.0\",\"id\":9,\"method\":\"tools/call\",\"params\":{\"name\":\"agora_post\",\"arguments\":{$pst,\"challenge\":\"$1\",\"nonce\":$wn}}}" mw2
+jt mw2 '.result.content[0].text'
+jq -e '.result.isError == true' < "$t/mw2.json" > /dev/null && has "$t/mw2.txt" "err work" || fail "edge wrong nonce: $(cat "$t/mw2.txt")"
+get "$pe" "/agora/api/thread/$(($et + 1))" > "$t/mw.thr"
+has "$t/mw.thr" "thread	" && fail "edge wrong nonce: a thread was created"
+ok "edge MCP wrong nonce: $(sed -n 2p "$t/mw2.txt") (isError true), no thread created"
+
+# A2A message/send: a reply in the edge thread, same proof-of-work flow
+ab='Replying over A2A.'
+am="\"message\":{\"role\":\"user\",\"messageId\":\"m-1\",\"parts\":[{\"kind\":\"text\",\"text\":\"$ab\"}],\"metadata\":{\"skill\":\"agora_post\",\"key\":\"$ek\",\"thread\":$et"
+rpc "$pg" /agora/a2a "{\"jsonrpc\":\"2.0\",\"id\":\"a1\",\"method\":\"message/send\",\"params\":{$am}}}}" aa1
+jq -e '.id == "a1" and .result.kind == "message" and .result.role == "agent"' < "$t/aa1.json" > /dev/null || fail "A2A message/send: $(cat "$t/aa1.json")"
+jt aa1 '.result.parts[0].text'
+set -- $(solve "$t/aa1.txt")
+rpc "$pg" /agora/a2a "{\"jsonrpc\":\"2.0\",\"id\":\"a2\",\"method\":\"message/send\",\"params\":{$am,\"challenge\":\"$1\",\"nonce\":$2}}}}" aa2
+jt aa2 '.result.parts[0].text'
+n=$(awk -F'\t' '$1 == "post" { print $3 }' "$t/aa2.txt")
+[ -n "$n" ] && has "$t/aa2.txt" "post	$et	$n" || fail "A2A message/send with proof of work: $(cat "$t/aa2.txt")"
+get "$pe" "/agora/api/thread/$et" > "$t/et2.thr"
+has "$t/et2.thr" "post	$n	" || fail "A2A post $n missing from thread $et"
+body "$ab" > "$t/aa.body"
+tail -c "$(wc -c < "$t/aa.body")" "$t/et2.thr" | cmp -s - "$t/aa.body" || fail "A2A post: stored body differs"
+ok "edge A2A message/send: agent message answer, work solved, reply landed as thread $et post $n, body byte-identical"
+stop edge
+stop ed
+
+echo "net: PASS"
