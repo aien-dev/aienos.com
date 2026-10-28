@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "status": "EXERCISED",
+  "scope": "Native startup policy and synthetic snapshot fixture on an actual monotonic deadline; no privileged fixture process launched. Production process and listener facts must be independently observed.",
+  "compiler": {
+    "repository": "aien-dev/omega-mv",
+    "revision": "e5b32567a7aff3ce594e3254a622a846a6cd190b",
+    "sha256": "2c82480596bbdc50cda9626866209ef662d5834f278f839ff4ce0250c495029f"
+  },
+  "unit": {
+    "path": "om/agora/startup-check.om",
+    "sha256": "214d642d9d6b708bf209b1f84ac22655904e57a1389ae2dd0a64281726846f3e",
+    "composition": "om2 newline, then startup-check.om",
+    "binary_sha256": "66ed83f561ebc498cba51e021446965e2ffe4b70a46ab84a99d4dde03bad503e",
+    "selftest_expected_exit": 0,
+    "selftest_observed_exit": 0
+  },
+  "deadline": {
+    "seconds": 10,
+    "nanoseconds": 10000000000,
+    "query": "UnitConvert[Quantity[10,\"Seconds\"],\"Nanoseconds\"]",
+    "raw_mounted_wolfram_output": "Out[1]= Quantity[10000000000, \"Nanoseconds\"]"
+  },
+  "mutants": [
+    {
+      "name": "preexec-root-fail",
+      "expected_exit": 40,
+      "observed_exit": 40
+    },
+    {
+      "name": "deadline-off",
+      "expected_exit": 48,
+      "observed_exit": 48
+    },
+    {
+      "name": "identity-off",
+      "expected_exit": 44,
+      "observed_exit": 44
+    }
+  ],
+  "cli_controls": [
+    {
+      "case": "preexec-root-pending",
+      "exit": 0,
+      "expected": 0,
+      "scope": "MODELED snapshot CLI, not actual process ownership"
+    },
+    {
+      "case": "ready",
+      "exit": 1,
+      "expected": 1,
+      "scope": "MODELED snapshot CLI, not actual process ownership"
+    },
+    {
+      "case": "wrong-postexec-credentials",
+      "exit": 2,
+      "expected": 2,
+      "scope": "MODELED snapshot CLI, not actual process ownership"
+    },
+    {
+      "case": "missing-same-pid-listener",
+      "exit": 0,
+      "expected": 0,
+      "scope": "MODELED snapshot CLI, not actual process ownership"
+    },
+    {
+      "case": "root-after-expired-deadline",
+      "exit": 2,
+      "expected": 2,
+      "scope": "MODELED snapshot CLI"
+    }
+  ],
+  "command": "NET_KEEP=1 OMEGA_OMC=/path/to/pinned/omc NGINX_BIN=/path/to/nginx sh om/agora/check.sh",
+  "observed": "PASS: core scenario/seven mutants; native startup original/three mutants; native reload original/four mutants; existing network gates.",
+  "review": {
+    "agent": "StartupGateReview",
+    "decision": "No concrete source-level correctness or safety blocker",
+    "decisive_point": "Real-clock root persistence repeatedly supplies modeled root snapshots while reading monons and sleeping; premature refusal or readiness fails.",
+    "limit": "The native policy consumes supplied facts, not proc/listener/MainPID observations. Observer correctness must be established separately."
+  },
+  "not_claimed": [
+    "actual production process ownership",
+    "production BPF attachment or source filtering",
+    "production logging privacy",
+    "deployment or boot enablement"
+  ],
+  "historical_receipts": "Existing reload evidence files remain unchanged."
+}

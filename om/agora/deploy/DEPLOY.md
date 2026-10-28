@@ -109,6 +109,44 @@ as well. Check every installed file, not only the new snippet files. This
 procedure changes the transfer mechanism, not the approved configuration,
 network boundary, reload barrier or deployment acceptance gates.
 
+### Backend startup identity barrier
+
+`Type=simple` reports a successful start before the child has necessarily
+changed credentials or completed `exec`. An immediate root-owned pre-exec
+snapshot is not evidence that the listening backend runs as root.
+
+After start, capture a nonzero `MainPID`. Poll for at most 10 seconds against
+one absolute monotonic deadline. For the approved Spark account, require
+`/proc/PID/exe` to resolve to `/opt/aien/bin/agora`, effective UID/GID 976/964,
+and root `ss -ltnp` to show that **that same PID** owns the 18132 listener at
+the approved bind address. Record the actual observations. Require the unit's
+`MainPID` to remain the captured PID. Never accept command completion,
+a matching process name, a journal line or a listener owned by another PID.
+
+Capture executable/credentials before and after the listener observation;
+a changing snapshot is pending, not readiness. Root pre-exec snapshots
+without a listener are pending within the deadline, as are the expected
+post-exec credentials before bind. A completed executable with wrong
+credentials, an unexpected stable identity, process/read failure or timeout
+is FAIL and triggers rollback. Do not extend the deadline, rerun start,
+change the service identity or activate routing to make this check pass.
+
+The native `om/agora/startup-check.om` unit is the startup policy authority.
+Its CLI takes `deadline_ns executable_match effective_uid effective_gid
+same_pid_listener` and exits 0 for pending, 1 for ready, 2 for refusal, or 90
+for malformed syntax. Checked-integer overflow also fails closed. The observer
+must interpret those policy statuses, not treat exit 0 as readiness. It must
+retain the same deadline throughout polling and reject any late result.
+
+With no arguments, the native unit replays synthetic credential snapshots
+against the real monotonic clock: pre-exec root stays pending, the expected
+executable/credentials/listener become ready, and a root snapshot that
+persists through the full deadline is refused. This is a policy trace
+fixture, not a claim that a privileged fixture process was launched.
+The conductor requires preexec-root-fail, deadline-off and identity-off
+mutants to fail with exits 40, 48 and 44 respectively. Actual production
+`/proc` and listener ownership remain mandatory independent observations.
+
 ### Reload adoption barrier
 
 `nginx -t`, `nginx -T`, and a successful reload command do not prove that the
