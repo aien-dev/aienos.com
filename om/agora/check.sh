@@ -3,7 +3,8 @@
 # (test/run.sh) on the real server, then mutants that remove one check each; every
 # mutant must compile and must fail the scenario, which proves the check exists.
 # OMEGA_OMC names the pinned omc (sha256 in omc.sha256); it overrides the path, never the pin.
-# Exit 2: missing compiler or tool (curl, sha256sum; jq is the net.sh JSON oracle; openssl issues the
+# NGINX_BIN selects the unchanged nginx verification oracle (default nginx).
+# Exit 2: missing compiler or tool (nginx, curl, sha256sum; jq is the net.sh JSON oracle; openssl issues the
 # net.sh test PKI and socat terminates TLS in front of its nodes); 3: wrong pin;
 # 4: vendored unit hash mismatch (http sha256 json jsonw, the om/tls units under tls/ and its notice);
 # 5: scenario failed on the real server; 6: a mutant survived or did not apply;
@@ -93,6 +94,25 @@ if [ "$survived" -ne 0 ]; then
     exit 6
 fi
 printf 'PASS agora core: scenario on the real server, 7 of 7 mutants killed\n'
+# Native reload-readiness regression; nginx remains an external loopback oracle.
+nginx=${NGINX_BIN:-nginx}
+command -v "$nginx" >/dev/null || { printf 'missing nginx oracle: %s\n' "$nginx" >&2; exit 2; }
+build reload-check.om "$tmp/reload"
+mkdir "$tmp/reload.d"
+"$tmp/reload" "$nginx" "$tmp/reload.d"
+for mode in barrier-off old-retirement-off; do
+    case "$mode" in
+        barrier-off) edit='s/^if and gt cur 0 ne cur old$/if gt cur 0/; s/^if eq killpid old 0 -3$/if true/'; expected=11 ;;
+        old-retirement-off) edit='s/^if eq killpid old 0 -3$/if true/'; expected=14 ;;
+    esac
+    sed "$edit" reload-check.om > "$tmp/$mode.om"
+    build "$tmp/$mode.om" "$tmp/$mode"
+    mkdir "$tmp/$mode.d"
+    result=0
+    "$tmp/$mode" "$nginx" "$tmp/$mode.d" || result=$?
+    [ "$result" -eq "$expected" ] || { printf 'FAIL reload mutant %s: expected %s, observed %s\n' "$mode" "$expected" "$result"; exit 6; }
+    printf 'PASS reload mutant %s rejected with %s\n' "$mode" "$result"
+done
 # The network programs (aien-agora, agora-sync, agora-edge) and their mutants.
 if ! sh "$here/test/net.sh" "$omc" "$tmp"; then
     exit 7

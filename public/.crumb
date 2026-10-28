@@ -26,7 +26,7 @@
         },
         {
           "digest": "f7663e11702c9495ea6de2f05d8ec832561970a0892403abbec155cf018405c5",
-          "last_commit": "a30a957",
+          "last_commit": "6e76cd8",
           "name": "js",
           "purpose": "Browser interactions using public data only"
         },
@@ -50,13 +50,13 @@
         }
       ],
       "children_root": "sha256:017a106a507f91f5bf2d7add0a634e0837104caef1a81b55883bef695e541d04",
-      "compiled_at": "2026-10-28T11:42:16Z",
+      "compiled_at": "2026-10-28T14:01:14Z",
       "compiler": "crumb-compile/1",
       "digest": "sha256:0c0b489700618c0945a7853d9228f790eaadea709f4b9832255a32f0031dffb4",
       "evidence_files": 1,
       "evidence_root": "sha256:63bece7cb299b29d19622dcb0de4cbaa623357b117d8c7643a562de286c4b2fb",
       "files": 156,
-      "generated_at_commit": "a30a9578f8e0171238c4a194bab45a17c28b7b99",
+      "generated_at_commit": "6e76cd86d75dbcb603064575b530bcd2def5fdac",
       "source_tree": "sha256:2d8b3b1092db12efd2b4cec706e77788294643f25a7e0600721e6cf68b8bc7e3"
     }
   },
