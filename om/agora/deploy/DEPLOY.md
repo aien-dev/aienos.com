@@ -177,6 +177,14 @@ credentials, an unexpected stable identity, process/read failure or timeout
 is FAIL and triggers rollback. Do not extend the deadline, rerun start,
 change the service identity or activate routing to make this check pass.
 
+A recognized `/usr/lib/systemd/systemd-executor` to exact expected executable
+transition may coincide with a single valid ownerless LISTEN row. With stable
+MainPID, permitted pre-exec credentials, exact final credentials and time
+remaining, that narrow case is PENDING only. Reacquire the entire bracket.
+A stable ownerless listener, an explicit different owner, wrong endpoint,
+malformed or multiple rows, changed MainPID or deadline expiry still refuses.
+Only a fresh stable bracket with explicit same-PID ownership can become READY.
+
 The native `om/agora/startup-check.om` unit is the startup policy authority.
 Its CLI takes `deadline_ns executable_match effective_uid effective_gid
 same_pid_listener` and exits 0 for pending, 1 for ready, 2 for refusal, or 90
@@ -255,6 +263,49 @@ configuration in isolation, including its SNI/PROXY topology and sibling
 locations; replace only host paths, ports, certificates and external upstreams
 with local fixtures. Do not publish private captured configuration.
 
+
+## Full isolated activation rehearsal
+
+Before another live retry, execute the file-backed activation observers end to
+end with `scripts/test-agora-activation.py` as root. Supply a new private
+`--root`, the approved `--backend`, oracle `--nginx`, compiled native
+`--native` observer and `--startup` policy, and the exact published `--page`
+and `--client`. Do not substitute a mock API or replace the browser client.
+The host needs `ip`, `tcpdump`, `bpftool`, systemd and the existing dedicated
+account. The verification tools are not production dependencies.
+
+The conductor creates a uniquely named network namespace, isolated systemd
+backend and stub nginx. Its executables live in its own `/opt/aien-agora-oracle-*`
+directory because Spark mounts `/run` noexec. Units and temporary boot links
+are runtime-only; no production firewall rule, unit, hub file or state changes.
+Fixed loopback tunnels carry raw TLS through the fixture SNI router and its
+PROXY listener. The backend socket is created inside its network namespace.
+The exact two-prefix policy is tested after a separately labelled third-source
+reachability control. Passive SYN and SYN-ACK observations prove allowed and
+denied paths without adding firewall rules.
+
+Use the root-only `control.sock` with `--control PATH --action pre-browser`.
+Then run `runBrowser` from `scripts/agora_activation_browser.mjs` against the
+returned `browser_url` in a new, CPU-only browser profile. Resolve only
+`www.aienos.com` to the returned loopback address, refuse other domains and
+permit the fixture certificate only in that owned browser. Recovery callbacks
+must pass secrets through stdin to the root-only `save-key` control; never put
+them in arguments, screenshots, HAR, console output or receipts. The
+`restart-backend` and `read-profile` controls operate only on the fixture.
+
+Pass the browser verdict to `after-browser`, which rejects any missing or
+failed prerequisite. It exercises real TLS quota exhaustion with forged
+identity headers, checks effective access/error/temp sinks directly and
+enables only the isolated runtime unit after all gates pass. Finally `finish`
+injects an acceptance failure and verifies rollback: API closed, ordinary
+site healthy, unit stopped and disabled, profiles unchanged. Private recovery
+files and a root-only retained-state copy remain beneath the scratch root.
+The receipt is explicitly `ISOLATED_NAMESPACE_ONLY_NOT_DEPLOYED`.
+
+Run `python3 -m py_compile` and `pyflakes` on all three Python observer files,
+and `node --check scripts/agora_activation_browser.mjs`. Record the complete
+rehearsal receipt and static-check output on the source PR before any live
+retry. A fixture failure is not permission to continue live.
 
 ## Required deployment checks
 

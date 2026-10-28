@@ -32,6 +32,8 @@ text ob_epid "pid="
 text ob_list "LISTEN"
 text ob_owner "pid="
 text ob_pre "(agora)"
+text ob_sexec "/usr/lib/systemd/systemd-executor"
+text ob_peer "0.0.0.0:*"
 text ob_root "root"
 text ob_jpid "_PID"
 text ob_juid "_UID"
@@ -364,6 +366,38 @@ ret eq ob_num ob_tok a 1 ob_num ob_tok b 1
 end
 note snapshot PID MAIN_BEFORE EXE_BEFORE PS_BEFORE SS EXE_AFTER PS_AFTER MAIN_AFTER EXE UID GID ENDPOINT ELAPSED LIMIT.
 note Captured elapsed/limit are compared as data, never against the replay machine's current clock.
+note A single ownerless socket row during a recognized exec transition is pending only.
+fn ob_anon raw ulong endpoint ulong to bool
+if ne ob_count raw 5
+ret false
+end
+if not ob_text ob_tok raw 0 ob_list
+ret false
+end
+if lt ob_num ob_tok raw 1 0
+ret false
+end
+if lt ob_num ob_tok raw 2 0
+ret false
+end
+if not ob_eq ob_tok raw 3 endpoint
+ret false
+end
+if not ob_text ob_tok raw 4 ob_peer
+ret false
+end
+p = ob_trim raw
+while ne get ob_buf p 0 bound 4096
+if eq get ob_buf p 10
+if ne get ob_buf ob_trim add p 1 0
+ret false
+end
+end
+p = add p 1
+end
+ret true
+end
+
 fn ob_snapshot to int
 if ne argcnt 16
 ret 90
@@ -400,6 +434,15 @@ ret 1
 end
 owned = ob_socket ob_at 6 ob_at 2 ob_at 13
 if eq owned 1
+if ob_text ob_at 4 ob_sexec
+if ob_eq ob_at 7 ob_at 10
+if ob_creds ob_at 8 ob_at 11 ob_at 12
+if ob_anon ob_at 6 ob_at 13
+ret 2
+end
+end
+end
+end
 ret 1
 end
 if not ob_eq ob_at 4 ob_at 7
