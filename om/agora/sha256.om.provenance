@@ -1,0 +1,7 @@
+repository https://github.com/aien-dev/omega-mv
+source_commit e5b32567a7aff3ce594e3254a622a846a6cd190b
+source_path om/sha256/sha256-om2.om
+source_sha256 dbf002dd6aa36585632b9d01d98ac3f0bd2fa0f0475082940de53638847994bb
+note Derived mechanically: export fn became fn (program mode with fn main refuses export,
+note OMEGESE 9.13 error 9), om2 line removed for library unit composition, and internal
+note helpers prefixed with sha_ to prevent name collisions with http.om and application units.

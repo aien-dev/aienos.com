@@ -1,0 +1,215 @@
+note Compose: printf 'om2\n'; cat policy.om policy-check.om; pipe the result to the pinned omc.
+note No args runs modeled fixtures. CLI: ALLOW DENY EXPECTED_PROXY EXPECTED_LOCAL.
+note Exit 0 accepted, 1 refused, 90 malformed invocation/expected token or over-capacity argument.
+note Optional first arg selects an intentionally broken oracle, never used by po_check.
+note --mutant-order requires literal canonical deny order; --mutant-missing-deny accepts either deny alone.
+note --mutant-extra-allow ignores extra allow tokens. Each flag alone runs the same fixtures and must fail.
+text pc_proxy "192.0.2.10/32"
+text pc_local "127.0.0.1/32"
+text pc_a "192.0.2.10/32 127.0.0.1/32"
+text pc_ar "127.0.0.1/32 192.0.2.10/32"
+text pc_d "0.0.0.0/0 ::/0"
+text pc_dr "::/0 0.0.0.0/0"
+text pc_d4 "0.0.0.0/0"
+text pc_d6 "::/0"
+text pc_ax "192.0.2.10/32 127.0.0.1/32 198.51.100.7/32"
+text pc_dx "0.0.0.0/0 ::/0 203.0.113.0/24"
+text pc_ad "192.0.2.10/32 127.0.0.1/32 192.0.2.10/32"
+text pc_dd "::/0 0.0.0.0/0 ::/0"
+text pc_ws " \t192.0.2.10/32\n127.0.0.1/32\t "
+text pc_emp ""
+text pc_bad "0.0.0.0/0,::/0"
+text pc_am "192.0.2.10/32,127.0.0.1/32"
+text pc_wsp " \t\n "
+text pc_m1 "--mutant-order"
+text pc_m2 "--mutant-missing-deny"
+text pc_m3 "--mutant-extra-allow"
+text pc_pass "AGORA POLICY OMEGA PASS modeled exact sets, deny/allow permutations, omissions, extras, empty/malformed, whitespace, duplicates, and bounds\n"
+fn pc_eval mode ulong to bool
+if eq mode 0
+ret po_check 0 4096 8192 12288
+end
+if eq mode 1
+if not po_check 0 4096 8192 12288
+ret false
+end
+ret po_text 4096 po_len 4096 pc_d
+end
+if eq mode 2
+if ne po_set 0 8192 12288 false 3
+ret false
+end
+d = po_set 4096 8192 12288 true
+ret or eq d 1 or eq d 2 eq d 3
+end
+if eq mode 3
+if ne po_set 4096 8192 12288 true 3
+ret false
+end
+a = po_set 0 8192 12288 false
+ret or eq a 3 eq a 7
+end
+ret false
+end
+fn pc_case a view uchar * d view uchar * want bool mode ulong to bool
+if not po_load 0 a
+ret false
+end
+if not po_load 4096 d
+ret false
+end
+ret eq pc_eval mode want
+end
+fn pc_test mode ulong to int
+if not po_load 8192 pc_proxy
+ret 39
+end
+if not po_load 12288 pc_local
+ret 39
+end
+if not pc_case pc_a pc_d true mode
+ret 40
+end
+if not pc_case pc_a pc_dr true mode
+ret 41
+end
+if not pc_case pc_ar pc_d true mode
+ret 42
+end
+if not pc_case pc_ar pc_dr true mode
+ret 43
+end
+if not pc_case pc_a pc_d4 false mode
+ret 44
+end
+if not pc_case pc_a pc_d6 false mode
+ret 45
+end
+if not pc_case pc_ax pc_d false mode
+ret 46
+end
+if not pc_case pc_a pc_dx false mode
+ret 47
+end
+if not pc_case pc_emp pc_d false mode
+ret 48
+end
+if not pc_case pc_a pc_emp false mode
+ret 49
+end
+if not pc_case pc_a pc_bad false mode
+ret 50
+end
+if not pc_case pc_am pc_d false mode
+ret 51
+end
+if not pc_case pc_ad pc_dd true mode
+ret 52
+end
+if not pc_case pc_ws pc_dr true mode
+ret 53
+end
+if not pc_case pc_wsp pc_d false mode
+ret 54
+end
+if not pc_case pc_a pc_wsp false mode
+ret 55
+end
+note Missing NUL: fill exactly one complete slot, then restore it through pc_case.
+for i ulong 4096
+put po_buf i 65
+end
+if po_check 0 4096 8192 12288
+ret 56
+end
+if not pc_case pc_a pc_d true mode
+ret 57
+end
+if po_check 16384 4096 8192 12288
+ret 58
+end
+if po_check 0 4096 16384 12288
+ret 59
+end
+if not po_load 8192 pc_emp
+ret 60
+end
+if po_check 0 4096 8192 12288
+ret 61
+end
+if not po_load 8192 pc_am
+ret 62
+end
+if po_check 0 4096 8192 12288
+ret 63
+end
+r = write 1 pc_pass 0 len pc_pass
+if ne r long len pc_pass
+ret 64
+end
+ret 0
+end
+fn pc_arg idx ulong off ulong to bool
+n = argread idx po_buf off 4095
+if or lt n 0 gt n 4095
+ret false
+end
+put po_buf add off ulong n 0
+ret true
+end
+fn pc_mode to ulong
+if not pc_arg 1 0
+ret 90
+end
+n = po_len 0
+if po_text 0 n pc_m1
+ret 1
+end
+if po_text 0 n pc_m2
+ret 2
+end
+if po_text 0 n pc_m3
+ret 3
+end
+ret 90
+end
+fn main to int
+if eq argcnt 1
+ret pc_test 0
+end
+mode = ulong 0
+base = ulong 1
+if or eq argcnt 2 eq argcnt 6
+mode = pc_mode
+if eq mode 90
+ret 90
+end
+if eq argcnt 2
+ret pc_test mode
+end
+base = 2
+else
+if ne argcnt 5
+ret 90
+end
+end
+if not pc_arg base 0
+ret 90
+end
+if not pc_arg add base 1 4096
+ret 90
+end
+if not pc_arg add base 2 8192
+ret 90
+end
+if not pc_arg add base 3 12288
+ret 90
+end
+if or not po_atom 8192 not po_atom 12288
+ret 90
+end
+if pc_eval mode
+ret 0
+end
+ret 1
+end

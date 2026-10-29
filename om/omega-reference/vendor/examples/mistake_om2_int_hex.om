@@ -1,0 +1,6 @@
+note mistake_om2_int_hex: a hex literal must fit its type as a value; 0xffffffff is not an int. Fix: int -1
+om2
+fn main to int
+x = int 0xffffffff
+ret 0
+end

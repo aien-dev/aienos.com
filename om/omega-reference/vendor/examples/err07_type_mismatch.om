@@ -1,0 +1,6 @@
+note err07_type_mismatch: no implicit conversions; both values of an op have one type. Fix: add int 1 int u
+fn main to int
+u = uint 2
+x = add int 1 u
+ret x
+end

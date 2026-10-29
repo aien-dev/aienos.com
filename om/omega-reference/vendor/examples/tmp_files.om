@@ -1,0 +1,81 @@
+note tmp_files: make a directory and a file relative to the current directory, read it back, clean up
+note run it in an empty scratch directory. Linux AArch64 values: O_WRONLY|O_CREAT|O_EXCL = 193,
+note mode 0600 = 384, 0700 = 448, st_size at byte 48 of the 128-byte stat structure
+note ---- output helpers: a function works on a global by naming it (a global is never an argument)
+global ob uchar 32
+note outb: write ob[off .. off+n) to stdout; a short write continues, 0 or an error exits 90
+note bound: every pass writes at least one byte and n <= 32, so at most 32 passes
+fn outb off ulong n ulong to void
+e = add off n
+p = off
+while lt p e bound 32
+k = write 1 ob p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline. A ulong has at most 20 digits, so 20 passes
+fn putu v ulong to void
+i = ulong 31
+put ob 31 10
+n = v
+while true bound 20
+i = sub i 1
+put ob i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outb i sub 32 i
+end
+note putl: a signed value; -(v+1)+1 avoids negating the minimum, which would trap 1
+fn putl v long to void
+if lt v 0
+put ob 0 45
+outb 0 1
+putu add ulong neg add v 1 1
+ret
+end
+putu ulong v
+end
+text dname "scratch"
+text fname "scratch/f.txt"
+text body "omega\n"
+global rb uchar 16
+global sb uchar 128
+fn main to int
+r = makedir dname 0 len dname 448
+putl r
+fd = fopen fname 0 len fname 193 384
+if lt fd 0
+exit 93
+end
+w = write int fd body 0 len body
+putl w
+c = fclose int fd
+putl c
+fd2 = fopen fname 0 len fname 0 0
+if lt fd2 0
+exit 94
+end
+k = read int fd2 rb 0 16
+putl k
+c2 = fclose int fd2
+s = stat fname 0 len fname sb 0 128
+putl s
+sz = or uint get sb 48 shl uint get sb 49 8
+putu ulong sz
+if gt k 0
+x = write 1 rb 0 ulong k
+end
+u = unlink fname 0 len fname
+putl u
+d = rmdir dname 0 len dname
+putl d
+gone = fopen fname 0 len fname 0 0
+putl gone
+ret 0
+end

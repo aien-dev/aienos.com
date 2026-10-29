@@ -1,0 +1,3 @@
+input dir
+compile 1
+stderr omc: line 0: error 1
