@@ -1,0 +1,10 @@
+note mistake_else_if: there is no else if on one line; nest an if inside the else block
+fn main to int
+x = int 1
+if eq x 0
+ret 1
+else if eq x 1
+ret 2
+end
+ret 0
+end

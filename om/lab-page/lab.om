@@ -1,0 +1,175 @@
+note /lab/ page structure authored in seeded Omega. Run with the pinned hive-page omc; check.sh feeds the
+note captured sources on fds 3 to 9 and every captured byte is escaped by emit before it reaches the page.
+text t0 "<article class=\"lab\" id=\"lab\">\n<header class=\"lab-hero\">\n<div class=\"lab-sky\" aria-hidden=\"true\"><span></span><span></span><span></span></div>\n<p class=\"lab-kicker\">OMEGA LAB · NOTHING TO INSTALL</p>\n<h1>Write a kernel.<br><span>Run it in one click.</span></h1>\n<p class=\"lab-lead\">On the left is a data-parallel kernel in Omega, the language I build for programs written with AI. On the right is the same kernel in CUDA C. Press Run and it executes in this tab as WebAssembly, checked element by element against JavaScript. Edit it and press Compile: my compiler builds it on my DGX Spark and sends the WebAssembly back. No toolkit, no driver, no account.</p>\n<div class=\"lab-cta\"><a class=\"lab-go\" href=\"#lab-play\">Run it now</a><a class=\"lab-alt\" href=\"#lab-home\">Take it home with git clone</a></div>\n<div class=\"lab-versus\">\n<div class=\"lab-side lab-cuda\"><p class=\"lab-side-h\">CUDA C, before line one runs</p><ul><li>An NVIDIA GPU and driver</li><li>The CUDA toolkit: <span data-bytes=\"cuda_toolkit_bytes\">see record.tsv</span> on my Spark</li><li>nvcc build of this kernel: <span data-us=\"nvcc_us\">see record.tsv</span></li></ul></div>\n<div class=\"lab-side lab-omega\"><p class=\"lab-side-h\">Omega, on this page</p><ul><li>Any modern browser</li><li>The compiler and wasm back end: <span data-bytes=\"omega_tool_bytes\">see record.tsv</span>, in the site repo</li><li>omc build of this kernel: <span data-us=\"omc_program_us\">see record.tsv</span></li></ul></div>\n</div>\n<p class=\"lab-fact\">"
+text t1 " <a href=\"https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/captures/record.tsv\">record.tsv</a> · <a href=\"https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/record.sh\">record.sh</a></p>\n</header>\n<section class=\"lab-section\" id=\"lab-play\">\n<p class=\"lab-kicker\">01 / RUN IT</p>\n<h2>Same kernel. Two languages.</h2>\n<div class=\"lab-pair\">\n<div class=\"lab-pane\"><div class=\"lab-pane-h\"><strong>Omega</strong><span>axpy.om · editable</span><a href=\"https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/axpy.om\">GitHub</a></div><textarea id=\"lab-src\" spellcheck=\"false\" autocomplete=\"off\" autocapitalize=\"off\" rows=\"20\" aria-label=\"Omega kernel source\">"
+text t2 "</textarea></div>\n<div class=\"lab-pane\"><div class=\"lab-pane-h\"><strong>CUDA C</strong><span>axpy.cu · for comparison</span><a href=\"https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/axpy.cu\">GitHub</a></div><pre class=\"lab-code\">"
+text t3 "</pre></div>\n</div>\n<div class=\"lab-controls\">\n<label>a <input id=\"lab-a\" type=\"number\" min=\"1\" max=\"1000\" value=\"3\" inputmode=\"numeric\"></label>\n<label>elements <select id=\"lab-n\"><option value=\"1024\">1,024</option><option value=\"65536\">65,536</option><option value=\"1048576\" selected>1,048,576</option><option value=\"4194304\">4,194,304</option></select></label>\n<button id=\"lab-run\" class=\"lab-primary\" type=\"button\">Run in my browser</button>\n<button id=\"lab-compile\" type=\"button\">Compile my edit</button>\n<button id=\"lab-break\" type=\"button\">Break it on purpose</button>\n<button id=\"lab-reset\" type=\"button\">Reset</button>\n</div>\n<p id=\"lab-status\" class=\"lab-status\" role=\"status\" aria-live=\"polite\">Loading the prebuilt kernel.</p>\n<p id=\"lab-verdict\" class=\"lab-verdict\" aria-live=\"polite\"></p>\n<dl class=\"lab-results\">\n<div><dt>Omega kernel, WebAssembly, this tab</dt><dd id=\"lab-r-wasm\">not run yet</dd></div>\n<div><dt>Same math in plain JavaScript</dt><dd id=\"lab-r-js\">not run yet</dd></div>\n<div><dt>Kernel checksum</dt><dd id=\"lab-r-sum\">not run yet</dd></div>\n<div><dt>JavaScript checksum</dt><dd id=\"lab-r-ref\">not run yet</dd></div>\n<div><dt>Kernel throughput</dt><dd id=\"lab-r-rate\">not run yet</dd></div>\n<div><dt>Compile on my Spark</dt><dd id=\"lab-c-server\">press Compile</dd></div>\n<div><dt>Round trip from this tab</dt><dd id=\"lab-c-trip\">press Compile</dd></div>\n<div><dt>Compiler pins</dt><dd id=\"lab-c-pin\">press Compile</dd></div>\n</dl>\n<p class=\"lab-small\">How the check works: for every element the kernel computes y[i] = a·x[i] + y[i] with x[i] = i and y[i] = 2i + 1, and returns the sum of all results. JavaScript computes the same sum on its own. The page calls run in blocks of at most 999,999 elements, the way a CUDA grid splits work into blocks. Times are the median of three runs in a worker on your device. Integers only for now: the pinned WebAssembly path does not take f32 yet. Omega traps on integer overflow where CUDA C wraps silently. Break it on purpose changes add to sub so you can watch the check catch it.</p>\n</section>\n<section class=\"lab-section\" id=\"lab-backends\">\n<p class=\"lab-kicker\">02 / ONE SOURCE, EVERY BACK END</p>\n<h2>What my compiler actually emitted.</h2>\n<p class=\"lab-intro\">Recorded on my DGX Spark by record.sh, except the WebAssembly, which is whatever this tab is running right now.</p>\n<details class=\"lab-be\" open><summary><strong>WebAssembly</strong><span class=\"lab-tag lab-pass\">runs in this tab</span></summary><p id=\"lab-wasm-meta\" class=\"lab-small\">Loading.</p><pre id=\"lab-wasm\" class=\"lab-code\"></pre><p class=\"lab-small\"><a href=\"https://github.com/aien-dev/aienos.com/blob/main/public/lab/axpy.wasm\">axpy.wasm on GitHub</a></p></details>\n<details class=\"lab-be\"><summary><strong>AArch64</strong><span class=\"lab-tag lab-pass\">ran on the Spark CPU</span></summary><pre class=\"lab-code\">"
+text t4 "</pre><p class=\"lab-small\"><a href=\"https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/captures/aarch64.txt\">aarch64.txt on GitHub</a></p></details>\n<details class=\"lab-be\"><summary><strong>SPIR-V</strong><span class=\"lab-tag lab-pass\">validated, ran on PoCL (CPU)</span><span class=\"lab-tag lab-not\">GPU: NOT_RUN</span></summary><pre class=\"lab-code\">"
+text t5 "</pre><p class=\"lab-small\"><a href=\"https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/captures/spirv.txt\">spirv.txt on GitHub</a></p></details>\n<details class=\"lab-be\"><summary><strong>NVIDIA SASS</strong><span class=\"lab-tag lab-not\">this kernel: NOT_RUN</span></summary><p class=\"lab-small\">omc does not lower this kernel to SASS yet. Below are two real listings for comparison: what nvcc emits for the CUDA C version (compiled here, not launched), then the vector add that did run on the GB10, written in asm2 and launched without any CUDA library.</p><pre class=\"lab-code\">"
+text t6 "</pre><p class=\"lab-small\"><a href=\"https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/captures/nvcc.txt\">nvcc.txt</a> · <a href=\"https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/captures/gb10.txt\">gb10.txt</a></p></details>\n</section>\n<section class=\"lab-section\" id=\"lab-race\">\n<p class=\"lab-kicker\">03 / THE HONEST RACE</p>\n<h2>Where it has run, and where it has not.</h2>\n<div class=\"lab-scroll\"><table class=\"lab-table\">\n<thead><tr><th>Where</th><th>What ran</th><th>Elements</th><th>Time</th><th>Check</th><th>Evidence</th></tr></thead>\n<tbody>\n<tr class=\"lab-you\"><td>Your device, this tab</td><td>this kernel, Omega to WebAssembly</td><td data-live=\"n\">press Run</td><td data-live=\"time\">press Run</td><td data-live=\"check\">press Run</td><td><a href=\"https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/axpy.om\">kernel</a></td></tr>\n<tr><td>DGX Spark, Arm CPU</td><td>this kernel, Omega to AArch64, whole process</td><td>1,048,576</td><td data-us=\"native_run_us\">see record.tsv</td><td>MATCH; sub control fails</td><td><a href=\"https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/captures/aarch64.txt\">aarch64.txt</a></td></tr>\n<tr><td>DGX Spark, Arm CPU</td><td>this kernel, Omega to SPIR-V on PoCL</td><td>1,000</td><td>not timed</td><td>MATCH</td><td><a href=\"https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/captures/spirv.txt\">spirv.txt</a></td></tr>\n<tr><td>GB10 GPU</td><td>vector add in asm2, no CUDA library (not this kernel)</td><td>1,048,576</td><td>214,257 ns launch to done</td><td>0 wrong</td><td><a href=\"https://github.com/aien-dev/omega-mv/commit/3e3da942ad630035ff773982b1aba89b36ba76d6\">omega-mv SEED-0</a></td></tr>\n<tr><td>GB10 GPU</td><td>hello_gpu float add, kernel from my own builder (not this kernel)</td><td>1,048,576</td><td>947.5 µs GPU</td><td>0 wrong</td><td><a href=\"https://github.com/aien-dev/CUDApp/blob/2b4b2b14f1c67473b80878d2eff73b32b3522d54/evidence/l424/hello-chip.log\">CUDApp log</a></td></tr>\n<tr class=\"lab-nr\"><td>GB10 GPU</td><td>this kernel from omc</td><td colspan=\"3\">NOT_RUN: omc has no SASS lowering for it yet</td><td><a href=\"https://github.com/aien-dev/omega-mv\">omega-mv</a></td></tr>\n<tr class=\"lab-nr\"><td>GB10 GPU</td><td>this kernel from nvcc</td><td colspan=\"3\">NOT_RUN: built, not launched; needs a GPU window</td><td><a href=\"https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/captures/nvcc.txt\">nvcc.txt</a></td></tr>\n</tbody></table></div>\n<p class=\"lab-small\">Different kernels, sizes and machine load, so this is a ledger, not a ranking. The GB10 runs use NVIDIA's driver-loaded signed firmware on DGX OS; what they skip is the CUDA library. The asm2 run shared the machine at load1 61; the hello_gpu run had a quiet window.</p>\n</section>\n<section class=\"lab-section lab-model\" id=\"lab-model\">\n<p class=\"lab-kicker\">04 / ASK FOR A KERNEL</p>\n<h2>Let Aien write the next one.</h2>\n<p>Aien is my assistant. It runs on my GB10 and writes Omega in the chat, with the same compile and run buttons you just used.</p>\n<p><a class=\"lab-go\" href=\"/aien/\">Talk to Aien</a> <a class=\"lab-alt\" href=\"https://github.com/aien-dev/aienos.com/tree/main/om/allen-page\">source</a></p>\n</section>\n<section class=\"lab-section\" id=\"lab-home\">\n<p class=\"lab-kicker\">05 / TAKE IT HOME</p>\n<h2>Three lines, straight from GitHub.</h2>\n<div class=\"lab-install\"><pre id=\"lab-home-cmd\">git clone --depth 1 https://github.com/aien-dev/aienos.com\ncd aienos.com\nsh om/lab-page/run.sh</pre><button id=\"lab-copy\" type=\"button\">Copy</button></div>\n<p class=\"lab-small\">Linux on 64-bit Arm runs the whole thing: it checks the compiler pins, builds the kernel, runs it, compares with awk, runs the broken control and writes the same axpy.wasm this page runs. Other machines get a plain NOT_RUN and a pointer back here. <a href=\"https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/run.sh\">Read run.sh first.</a></p>\n<details class=\"lab-be\"><summary><strong>What it printed from a fresh clone</strong></summary><pre class=\"lab-code\">"
+text t7 "</pre><p class=\"lab-small\"><a href=\"https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/captures/home.txt\">home.txt on GitHub</a></p></details>\n<h3>Start your own kernel repository.</h3>\n<p class=\"lab-small\">One command makes a public repository from my template. Edit kernel.om and the Python reference beside it, push, and GitHub's ubuntu-24.04-arm runner builds your kernel for AArch64 and SPIR-V, runs both (SPIR-V on PoCL, a CPU), and checks every result against the reference. No GPU runs there.</p>\n<div class=\"lab-install\"><pre>gh repo create my-kernel --template aien-dev/omega-kernel-template --public --clone</pre></div>\n<p class=\"lab-small\"><a href=\"https://github.com/aien-dev/omega-kernel-template\">omega-kernel-template</a> · <a href=\"https://github.com/aien-dev/omega-kernel-template/actions/runs/40426781699\">passing check</a> · <a href=\"https://github.com/aien-dev/omega-kernel-template/actions/runs/40426783628\">failing control: an overflowing kernel must fail</a></p>\n<h3>Do not trust my compiler? Rebuild it.</h3>\n<p class=\"lab-small\">The seed challenge rebuilds the Omega seed chain from 408 bytes and must land on the same fixed output. It passes on GitHub's own ubuntu-24.04-arm runner, and its tampered-rung, wrong-value and forged-log controls fail as required. From a fresh full clone of omega-mv main (52eba88) on my Spark it printed CHALLENGE PASS in 1.06 s wall. It is a fixed-output reproducibility match, not general self-hosting and not diverse double compiling. It needs the full history, so no --depth.</p>\n<div class=\"lab-install\"><pre>git clone https://github.com/aien-dev/omega-mv\ncd omega-mv\nsh seed/challenge/run.sh</pre></div>\n<p class=\"lab-small\"><a href=\"https://github.com/aien-dev/omega-mv/blob/main/seed/challenge/CHALLENGE.md\">CHALLENGE.md</a> · <a href=\"https://github.com/aien-dev/omega-seed-challenge/actions/runs/40426178383\">passing run on GitHub</a> · <a href=\"https://github.com/aien-dev/omega-seed-challenge/issues/new?template=reproduced.yml\">post your result</a></p>\n<h3>The NVIDIA GPU bench kit: kernels withdrawn.</h3>\n<p class=\"lab-small\">The bench kit shipped GPU binaries my encoder wrote (sm_80, sm_86, sm_89) and loaded them through NVIDIA's own libcuda as an oracle. On 2026-10-27 I withdrew those binaries and the encoder that built them until a clean-room rewrite lands, so the kit now ships no kernel and ./run prints NOT_RUN on every GPU. The board keeps the three earlier rows from rented machines (RTX 4090, A100, RTX 3090), not timed. The kit's own run on real hardware: NOT_RUN.</p>\n<p class=\"lab-small\"><a href=\"https://github.com/aien-dev/omega-gpu-bench\">omega-gpu-bench</a> · <a href=\"https://aien-dev.github.io/omega-gpu-bench/\">the board</a> · <a href=\"https://aien-dev.github.io/omega-gpu-bench/receipts.json\">receipts.json</a></p>\n</section>\n<p class=\"lab-foot\">Page structure and script generated by seeded Omega: <a href=\"https://github.com/aien-dev/aienos.com/tree/main/om/lab-page\">om/lab-page</a>.</p>\n</article>\n"
+text amp "&amp;"
+text less "&lt;"
+text more "&gt;"
+fn emit s view uchar 65536 n ulong to int
+pos = ulong 0
+start = ulong 0
+while lt pos n bound 65536
+b = get s pos
+if or eq b 38 or eq b 60 eq b 62
+if gt pos start
+k = write 1 s start sub pos start
+if ne k long sub pos start
+ret 1
+end
+end
+if eq b 38
+k = write 1 amp 0 len amp
+if ne k long len amp
+ret 1
+end
+else
+if eq b 60
+k = write 1 less 0 len less
+if ne k long len less
+ret 1
+end
+else
+k = write 1 more 0 len more
+if ne k long len more
+ret 1
+end
+end
+end
+start = add pos 1
+end
+pos = add pos 1
+end
+if gt n start
+k = write 1 s start sub n start
+if ne k long sub n start
+ret 1
+end
+end
+ret 0
+end
+fn include fd int to int
+buf = new uchar 65536 0
+total = ulong 0
+while true bound 65536
+n = read fd buf 0 len buf
+if lt n 0
+ret 2
+end
+if eq n 0
+if eq total 0
+ret 3
+end
+ret 0
+end
+total = add total ulong n
+if gt total 1048576
+ret 4
+end
+r = emit buf ulong n
+if ne r 0
+ret r
+end
+end
+ret 5
+end
+fn main to int
+pos = ulong 0
+while lt pos len t0 bound 65536
+n = write 1 t0 pos sub len t0 pos
+if le n 0
+ret 1
+end
+pos = add pos ulong n
+end
+r = include 5
+if ne r 0
+ret r
+end
+pos = ulong 0
+while lt pos len t1 bound 65536
+n = write 1 t1 pos sub len t1 pos
+if le n 0
+ret 1
+end
+pos = add pos ulong n
+end
+r = include 3
+if ne r 0
+ret r
+end
+pos = ulong 0
+while lt pos len t2 bound 65536
+n = write 1 t2 pos sub len t2 pos
+if le n 0
+ret 1
+end
+pos = add pos ulong n
+end
+r = include 4
+if ne r 0
+ret r
+end
+pos = ulong 0
+while lt pos len t3 bound 65536
+n = write 1 t3 pos sub len t3 pos
+if le n 0
+ret 1
+end
+pos = add pos ulong n
+end
+r = include 6
+if ne r 0
+ret r
+end
+pos = ulong 0
+while lt pos len t4 bound 65536
+n = write 1 t4 pos sub len t4 pos
+if le n 0
+ret 1
+end
+pos = add pos ulong n
+end
+r = include 7
+if ne r 0
+ret r
+end
+pos = ulong 0
+while lt pos len t5 bound 65536
+n = write 1 t5 pos sub len t5 pos
+if le n 0
+ret 1
+end
+pos = add pos ulong n
+end
+r = include 8
+if ne r 0
+ret r
+end
+pos = ulong 0
+while lt pos len t6 bound 65536
+n = write 1 t6 pos sub len t6 pos
+if le n 0
+ret 1
+end
+pos = add pos ulong n
+end
+r = include 9
+if ne r 0
+ret r
+end
+pos = ulong 0
+while lt pos len t7 bound 65536
+n = write 1 t7 pos sub len t7 pos
+if le n 0
+ret 1
+end
+pos = add pos ulong n
+end
+ret 0
+end

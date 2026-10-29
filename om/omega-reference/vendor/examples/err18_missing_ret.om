@@ -1,0 +1,9 @@
+note err18_missing_ret: a function with a result type whose end is reachable
+fn f x int to int
+if gt x 0
+ret 1
+end
+end
+fn main to int
+ret f 1
+end

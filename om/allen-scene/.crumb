@@ -1,0 +1,27 @@
+{
+  "extensions": {
+    "generated": {
+      "children": [
+        {
+          "digest": "f04fd410a0e101a884a0e2c0c859749edb7370005aa1278b48f0af9e4f0d2af0",
+          "last_commit": "22e46db",
+          "name": "native",
+          "purpose": "Unmodified da55660 native rendering and catalogue dependency, bound by native.sha256"
+        }
+      ],
+      "children_root": "sha256:8881cf5c3bd25a92bfcf6cae81680bacff4add0fb78698cf3770159e4c296527",
+      "compiled_at": "2026-10-27T12:12:01Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:b2255e3fb36241b5fe4a87f595ab384f559aaf4b6d04a62831ccfc3a7b9444da",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 28,
+      "generated_at_commit": "ee3833cf07c25087cd86efe04a5b88bc60c16e7e",
+      "source_tree": "sha256:4ed6093af1e488417d7294fa6cccd312ff478c1a223c9ebf939f3a81f577ac75"
+    }
+  },
+  "layer": "website",
+  "name": "allen-scene",
+  "purpose": "Native Allen scene reuse, Omega browser controller and independent frame oracle",
+  "schema_version": "1.0.0"
+}

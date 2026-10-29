@@ -1,0 +1,4 @@
+note err03_unknown_name: a name that was never assigned, or an unknown field. Fix: assign it first, check spelling
+fn main to int
+ret q
+end

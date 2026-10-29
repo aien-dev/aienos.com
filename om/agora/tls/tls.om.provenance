@@ -1,0 +1,5 @@
+repository https://github.com/aien-dev/omega-mv
+source_commit dfda5ea77e2c04db7b760866b8f867c5b534bb23
+source_path om/tls/tls.om
+source_sha256 72ca585b4e55413a8a67c7743f8e8c00fb50da334231739ec590864a12e68545
+note Pinned om/tls library unit (TLS 1.3 client, omega-mv om/tls/build.sh order), compiled by omc.

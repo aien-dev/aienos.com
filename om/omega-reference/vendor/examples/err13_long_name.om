@@ -1,0 +1,5 @@
+note err13_long_name: a variable, parameter, global, text, const, struct or field name has at most 8 characters
+fn main to int
+counter1x = int 1
+ret 0
+end

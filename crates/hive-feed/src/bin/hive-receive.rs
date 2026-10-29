@@ -79,7 +79,9 @@ fn validate(v: &Value) -> Result<(), ()> {
         object(m, &["id", "agent_id", "role", "text", "at", "runtime", "provider", "model"])?;
         if !message_ids.insert(ident(&m["id"])?) { return Err(()); }
         ident(&m["agent_id"])?;
-        if !["drake", "assistant"].contains(&text(&m["role"], 20)?) { return Err(()); }
+        // Agent replies only. A human message (drake, user, guest or any other
+        // role) refuses the whole snapshot, so the previous one stays served.
+        if text(&m["role"], 20)? != "assistant" { return Err(()); }
         text(&m["text"], 16000)?;
         for key in ["runtime", "provider", "model"] { text(&m[key], LABEL_MAX)?; }
         stamp(&m["at"], false)?;
@@ -200,6 +202,20 @@ mod tests {
         snapshot = empty();
         snapshot["interactions"] = serde_json::json!([{"id":"m1","agent_id":"a1","role":"system","text":"private","at":"2026-10-25T20:00:00Z","runtime":"OMP","provider":"unknown","model":"unknown"}]);
         assert!(validate(&snapshot).is_err());
+    }
+    #[test]
+    fn any_human_record_refuses_the_whole_snapshot() {
+        let reply = serde_json::json!({"id":"m1","agent_id":"a1","role":"assistant","text":"Agent reply","at":"2026-10-25T20:00:00Z","runtime":"OMP","provider":"unknown","model":"unknown"});
+        let mut snapshot = empty();
+        snapshot["interactions"] = serde_json::json!([reply.clone()]);
+        assert!(validate(&snapshot).is_ok());
+        for role in ["drake", "user", "guest", "human", "developer", "Drake", "assistant "] {
+            let mut human = reply.clone();
+            human["id"] = "m2".into(); human["role"] = role.into(); human["text"] = "Human message".into();
+            snapshot["interactions"] = serde_json::json!([reply.clone(), human]);
+            assert!(validate(&snapshot).is_err(), "{role}");
+            assert!(canonical(format!("{snapshot}\n").as_bytes()).is_err(), "{role}");
+        }
     }
     #[test]
     fn accepts_the_collector_maximum_label_length() {

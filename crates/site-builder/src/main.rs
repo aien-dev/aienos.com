@@ -97,8 +97,8 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
 
     // Render landing page in Maud
     let page_content = html! {
-        (components::support::render_entry())
         (components::alpha::render_alpha_entry())
+        (components::lab::render_lab_entry())
         (components::home_loop::render_home_loop())
         (components::story::render_story())
         (components::machines::render_machines_section())
@@ -246,12 +246,39 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
         "website",
         html! {
             link rel="stylesheet" href="/assets/allen.css";
+            link rel="stylesheet" href="/assets/allen-panes.css";
             script defer src="/js/allen.js" {}
+            script defer src="/js/allen-scene.js" {}
+            script defer src="/js/allen-audio.js" {}
+            script defer src="/js/allen-panes.js" {}
+            script defer src="/js/aien-universe.js" {}
         },
         components::allen::render_allen_page(),
     );
     fs::create_dir_all(dist.join("aien")).expect("Create Aien directory");
     fs::write(dist.join("aien/index.html"), allen_page.into_string()).expect("Write Aien page");
+    // Old addresses (seo::REDIRECTS) forward visitors, with any ?query and #hash, to the new one.
+    for (old, new) in seo::REDIRECTS {
+        let page = render_page_layout(
+            &format!("Moved to {new} | AienOS"),
+            &format!("This page moved to {new}."),
+            &format!("https://www.aienos.com{new}"),
+            "website",
+            html! {
+                meta name="robots" content="noindex";
+                meta http-equiv="refresh" content=(format!("0; url={new}"));
+                script { (maud::PreEscaped(format!("location.replace('{new}' + location.search + location.hash);"))) }
+            },
+            html! {
+                section class="container" {
+                    p { "This page moved to " a href=(new) { "aienos.com" (new) } "." }
+                }
+            },
+        );
+        let dir = dist.join(old.trim_matches('/'));
+        fs::create_dir_all(&dir).expect("Create redirect directory");
+        fs::write(dir.join("index.html"), page.into_string()).expect("Write redirect page");
+    }
     let alpha_page = render_page_layout(
         components::alpha::TITLE,
         components::alpha::DESCRIPTION,
@@ -261,10 +288,23 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
             link rel="stylesheet" href="/assets/alpha.css";
             script defer src="/js/alpha.js" {}
         },
-        html! { (components::support::render_entry()) (components::alpha::render_alpha_page()) },
+        components::alpha::render_alpha_page(),
     );
     fs::create_dir_all(dist.join("alpha")).expect("Create Alpha directory");
     fs::write(dist.join("alpha/index.html"), alpha_page.into_string()).expect("Write Alpha page");
+    let lab_page = render_page_layout(
+        components::lab::TITLE,
+        components::lab::DESCRIPTION,
+        components::lab::URL,
+        "website",
+        html! {
+            link rel="stylesheet" href="/assets/lab.css";
+            script defer src="/js/lab.js" {}
+        },
+        components::lab::render_lab_page(),
+    );
+    fs::create_dir_all(dist.join("lab")).expect("Create Lab directory");
+    fs::write(dist.join("lab/index.html"), lab_page.into_string()).expect("Write Lab page");
     let learn_page = render_page_layout(
         components::learn::TITLE,
         components::learn::DESCRIPTION,
@@ -292,6 +332,95 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     fs::create_dir_all(dist.join("agents")).expect("Failed to create agents dir");
     fs::write(dist.join("agents/index.html"), agents_page.into_string()).expect("Failed to write agents/index.html");
     println!("  [PAGE] Emitted /agents/ ({} repositories)", agent_repos.listed().len());
+    let agents_hello_page = render_page_layout(
+        components::agents_hello::TITLE,
+        components::agents_hello::DESCRIPTION,
+        components::agents_hello::URL,
+        "website",
+        html! {},
+        components::agents_hello::render_agents_hello_page(),
+    );
+    fs::create_dir_all(dist.join("agents/hello")).expect("Failed to create agents/hello dir");
+    fs::write(dist.join("agents/hello/index.html"), agents_hello_page.into_string()).expect("Failed to write agents/hello/index.html");
+    println!("  [PAGE] Emitted /agents/hello/");
+
+    let agents_knowledge_page = render_page_layout(
+        components::agents_knowledge::TITLE,
+        components::agents_knowledge::DESCRIPTION,
+        components::agents_knowledge::URL,
+        "website",
+        html! {},
+        components::agents_knowledge::render_agents_knowledge_page(),
+    );
+    fs::create_dir_all(dist.join("agents/knowledge")).expect("Failed to create agents/knowledge dir");
+    fs::write(dist.join("agents/knowledge/index.html"), agents_knowledge_page.into_string()).expect("Failed to write agents/knowledge/index.html");
+    println!("  [PAGE] Emitted /agents/knowledge/");
+
+    let agora_page = render_page_layout(
+        components::agora::TITLE,
+        components::agora::DESCRIPTION,
+        components::agora::URL,
+        "website",
+        html! {
+            link rel="stylesheet" href="/assets/agora.css";
+            script defer src="/js/agora.js" {}
+        },
+        components::agora::render_agora_page(),
+    );
+    fs::create_dir_all(dist.join("agora")).expect("Failed to create agora dir");
+    fs::write(dist.join("agora/index.html"), agora_page.into_string()).expect("Failed to write agora/index.html");
+    println!("  [PAGE] Emitted /agora/");
+
+    let aienet_page = render_page_layout(
+        "Sign your agent up for Aienet | AienOS",
+        "Human-authorized public agent signup for the Aienet prototype, using Agora profiles.",
+        "https://www.aienos.com/aienet/",
+        "website",
+        html! {
+            link rel="stylesheet" href="/assets/agora.css";
+            script src="/js/aienet.js" defer {}
+        },
+        components::agora::render_aienet_page(),
+    );
+    fs::create_dir_all(dist.join("aienet")).expect("Failed to create aienet dir");
+    fs::write(dist.join("aienet/index.html"), aienet_page.into_string()).expect("Failed to write aienet/index.html");
+    println!("  [PAGE] Emitted /aienet/");
+
+    let agora_meet_page = render_page_layout(
+        components::agora_meet::TITLE,
+        components::agora_meet::DESCRIPTION,
+        components::agora_meet::URL,
+        "website",
+        html! {},
+        components::agora_meet::render_agora_meet_page(),
+    );
+    fs::create_dir_all(dist.join("agora/meet")).expect("Failed to create agora/meet dir");
+    fs::write(dist.join("agora/meet/index.html"), agora_meet_page.into_string()).expect("Failed to write agora/meet/index.html");
+    println!("  [PAGE] Emitted /agora/meet/");
+
+    let agora_protocol_page = render_page_layout(
+        components::agora_protocol::TITLE,
+        components::agora_protocol::DESCRIPTION,
+        components::agora_protocol::URL,
+        "website",
+        html! {},
+        components::agora_protocol::render_agora_protocol_page(),
+    );
+    fs::create_dir_all(dist.join("agora/protocol")).expect("Failed to create agora/protocol dir");
+    fs::write(dist.join("agora/protocol/index.html"), agora_protocol_page.into_string()).expect("Failed to write agora/protocol/index.html");
+    println!("  [PAGE] Emitted /agora/protocol/");
+
+    let agora_network_page = render_page_layout(
+        components::agora_network::TITLE,
+        components::agora_network::DESCRIPTION,
+        components::agora_network::URL,
+        "website",
+        html! {},
+        components::agora_network::render_agora_network_page(),
+    );
+    fs::create_dir_all(dist.join("agora/network")).expect("Failed to create agora/network dir");
+    fs::write(dist.join("agora/network/index.html"), agora_network_page.into_string()).expect("Failed to write agora/network/index.html");
+    println!("  [PAGE] Emitted /agora/network/");
     // /omega/: what Omega is, from data/omega.json (the omega repository's
     // docs/OMEGA.md), published next to it as /omega.json.
     let omega_page = render_page_layout(
@@ -306,6 +435,19 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     fs::write(dist.join("omega/index.html"), omega_page.into_string()).expect("Failed to write omega/index.html");
     fs::write(dist.join("omega.json"), components::omega::RAW).expect("Failed to write omega.json");
     println!("  [PAGE] Emitted /omega/ and /omega.json");
+    // /omega/reference/: the agent-facing language reference, written by
+    // seeded Omega (om/omega-reference/page.om, gated by its check.sh).
+    let omega_ref_page = render_page_layout(
+        components::omega_reference::TITLE,
+        components::omega_reference::DESCRIPTION,
+        components::omega_reference::URL,
+        "website",
+        html! { link rel="stylesheet" href="/assets/omega.css"; },
+        components::omega_reference::render_omega_reference_page(),
+    );
+    fs::create_dir_all(dist.join("omega/reference")).expect("Failed to create omega/reference dir");
+    fs::write(dist.join("omega/reference/index.html"), omega_ref_page.into_string()).expect("Failed to write omega/reference/index.html");
+    println!("  [PAGE] Emitted /omega/reference/");
 
     // /cudaplusplus/: CUDA++, the GPU half of Omega, from
     // data/cudaplusplus.json, published next to it as /cudaplusplus.json.
@@ -386,7 +528,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
         components::contact::URL,
         "website",
         html! {},
-        html! { (components::support::render_entry()) (components::contact::render_contact()) },
+        components::contact::render_contact(),
     );
     fs::create_dir_all(dist.join("contact")).expect("Create contact directory");
     fs::write(dist.join("contact/index.html"), contact.into_string()).expect("Write contact page");
@@ -499,7 +641,7 @@ fn verify_site(dist: &Path) {
         assert!(depth >= 0, "assets/style.css has an unmatched closing brace");
     }
     assert_eq!(depth, 0, "assets/style.css has an unclosed rule; later rules would be nested");
-    for class in ["aien-footer", "aien-footer-sections", "aien-footer-heading", "aien-footer-group", "aien-footer-legal", "aien-footer-mottos"] {
+    for class in ["aien-footer", "aien-footer-row", "aien-footer-brand", "aien-footer-links", "aien-footer-legal"] {
         assert!(css.contains(&format!(".{class}")), "assets/style.css missing footer rule .{class}");
     }
 
@@ -550,6 +692,15 @@ fn verify_site(dist: &Path) {
             assert!(o.contains(phrase) || o.contains(&phrase.replace("&#39;", "'")), "Missing on /omega/: {phrase}");
         }
         assert!(content.contains("href=\"/omega/\""), "The front page must link /omega/ where it names Omega");
+        assert!(o.contains("href=\"/omega/reference/\""), "/omega/ must link /omega/reference/");
+    }
+    // /omega/reference/ (components::omega_reference): every vendored example
+    // file is in llms-full.txt byte for byte, so an agent can copy and gate it.
+    let omega_ref = dist.join("omega/reference/index.html");
+    {
+        let r = fs::read_to_string(&omega_ref).expect("Missing omega/reference/index.html");
+        assert!(r.contains(components::omega_reference::PAGE), "/omega/reference/ must carry om/omega-reference/main.html whole");
+        components::omega_reference::verify_llms_full(dist);
     }
     // /cudaplusplus/ (components::cudaplusplus): CUDA++ with the plus
     // signs, its four sections, linked from the nav, the front page and /omega/.
@@ -574,7 +725,7 @@ fn verify_site(dist: &Path) {
         let o = fs::read_to_string(&omega_page).expect("read omega page");
         assert!(o.contains("href=\"/cudaplusplus/\""), "/omega/ must link /cudaplusplus/");
     }
-    for page in [&blog_index, &blog_post, &research_status, &now_page, &omega_page, &cudapp_page] {
+    for page in [&blog_index, &blog_post, &research_status, &now_page, &omega_page, &omega_ref, &cudapp_page] {
         let page_content = fs::read_to_string(page)
             .unwrap_or_else(|_| panic!("Failed to read {}", page.display()));
         assert!(
@@ -662,7 +813,7 @@ fn verify_site(dist: &Path) {
     components::voice::verify_singular_voice(dist);
     // Project, product and vendor names spelled one way: AienOS, Aien, GitHub, NVIDIA.
     components::names::verify_canonical_names(dist);
-    // Every page shows Follow me on X in its header and the contact line in its footer.
+    // Every page shows the X contact button in its header and the contact line in its footer.
     components::contact::verify(dist);
 
     println!("------------------------------------------------------------");
@@ -691,8 +842,10 @@ const GENERATED_PAGES: &[(&str, usize)] = &[
     ("hive/index.html", 0),
     ("aien/index.html", 0),
     ("alpha/index.html", 0),
+    ("lab/index.html", 0),
     ("learn/index.html", 0),
     ("omega/index.html", 30),
+    ("omega/reference/index.html", 0),
     ("cudaplusplus/index.html", 12),
     ("progress/index.html", 0),
     ("agents/index.html", 10),

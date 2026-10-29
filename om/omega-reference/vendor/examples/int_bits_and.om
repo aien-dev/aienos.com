@@ -1,0 +1,10 @@
+note int_bits_and: and, or, xor on integers are bitwise. 12 is 1100, 10 is 1010, so and gives 1000 = 8
+fn main to int
+x = ulong 12
+y = and x ulong 10
+z = and int 12 int 10
+if ne int y z
+ret 1
+end
+ret z
+end

@@ -1,0 +1,5 @@
+note err06_bad_number: a malformed number; outside OM-2 there are no hex literals
+fn main to int
+x = uint 0x10
+ret int x
+end

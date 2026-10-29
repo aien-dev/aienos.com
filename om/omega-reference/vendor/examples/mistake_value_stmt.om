@@ -1,0 +1,8 @@
+note mistake_value_stmt: a function with a result cannot be a statement; bind its result. Fix: v = f
+fn f to int
+ret 1
+end
+fn main to int
+f
+ret 0
+end

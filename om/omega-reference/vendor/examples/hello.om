@@ -1,0 +1,9 @@
+note hello: the smallest complete program. A text is a read-only uchar array
+text msg "hello, world\n"
+fn main to int
+k = write 1 msg 0 len msg
+if ne k long len msg
+ret 1
+end
+ret 0
+end

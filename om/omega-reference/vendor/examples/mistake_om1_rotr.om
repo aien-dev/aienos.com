@@ -1,0 +1,5 @@
+note mistake_om1_rotr: rotr and hex need the om2 line; without it rotr is an unknown name
+fn main to int
+x = uint 1
+ret int rotr x 1
+end
