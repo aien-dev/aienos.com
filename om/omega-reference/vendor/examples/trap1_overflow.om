@@ -1,0 +1,8 @@
+note trap1_overflow: signed add past the maximum traps 1, exit 101; stdout written before stays
+text before "before\n"
+fn main to int
+k = write 1 before 0 len before
+x = long 9223372036854775807
+y = add x 1
+ret 0
+end

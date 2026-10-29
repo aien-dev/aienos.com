@@ -1,0 +1,7 @@
+note mistake_seven_params: at most 6 parameters; pass a struct or an array for more
+fn f a int b int c int d int e int g int h int to int
+ret a
+end
+fn main to int
+ret 0
+end

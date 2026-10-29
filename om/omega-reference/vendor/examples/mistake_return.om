@@ -1,0 +1,5 @@
+note mistake_return: the word is ret. The = of an assignment is optional, so return x silently assigns x to a new name return; here the function then has no ret, error 18
+fn main to int
+x = int 1
+return x
+end

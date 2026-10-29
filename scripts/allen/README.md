@@ -124,6 +124,46 @@ moves past it (link the PR here when it exists). When the pin changes, also
 recheck the system prompt's "names at most 8 characters" line: omega-mv main
 has different name-length rules.
 
+## Speed test (`infer`, `infer-info`, `infer-verify`; `allen_infer.py`)
+
+On `/aien/` the speed test opens as a glass pane (Speed control, or a `#r=` link). A run is a plain
+chat completion: no Aien persona, temperature 0, and a first system line `Speed test run <8 hex>.`
+so the engine can never continue a cached row (its log shows `reuse 0 tok (cold)` for every test
+request): prefill is always measured from scratch. Modes: single (preset or own prompt, up to
+4096 output tokens), parallel (2 to 4 streams, aggregate tokens/s) and a context sweep (separate
+requests at 512, 1k, 2k, ... up to 4k/8k/16k/32k prompt tokens, 8 output tokens each). The
+gateway times every chunk as it arrives (TTFT, prefill tok/s = prompt tokens / TTFT, decode
+tok/s = (tokens - 1) / first-to-last chunk) and stamps each result with host load1 and the
+server's in_flight. Results carry an HMAC (key derived from `ALLEN_VISITOR_SECRET`), so a
+shared `#r=` link can be checked with `infer-verify` without storing anything.
+
+Protection, because a prefill on this engine slows every generating row 6-9x
+(handoffs/AienPage/LATENCY.md): tests together hold at most 4 of the 8 rows and start only while
+`/health` in_flight + rows <= 6; heavy tests (parallel, any sweep, prompts over ~4k tokens) run one
+at a time, start only while no chat turn runs or waits here, and yield the moment one arrives
+(parallel: streams closed; sweep: stops before the next step; the page shows "yielded to a live
+chat" with the partial result). Per visitor: one run at a time, 6 runs a minute, 3 heavy runs in
+10 minutes. FIFO line of 8 with visible position, 180 s maximum wait; prompts up to 48 KiB
+(about 32k tokens); hub zone `allen_infer` 12 r/m. Tests: `ALLEN_TEST_ONLY=infer` in
+`test_gateway.py`.
+
+The same benchmark on any OpenAI-compatible server (same presets, same `measure()`):
+
+```
+git clone https://github.com/aien-dev/aienos.com && cd aienos.com
+python3 scripts/allen/allen_infer.py bench http://127.0.0.1:8000 --model <your-model> [--streams 4] [--sweep 8192]
+```
+
+## Math panes (`math`; `allen_math.py`)
+
+`POST /aien/api/math` with `{"expression": "Integrate[x^2,{x,0,1}]", "title": "Area"}` sends the
+expression, as the `math_compute` tool, to the loopback `allen-science` service
+(`127.0.0.1:18113`, `scripts/allen/science`), which runs the pure-Omega aien-math engine in its
+sandbox. The reply is at most three v1 pane events plus a one-line result; the page renders them
+with AllenPanes, which checks them again against the pane contract. No model call, nothing stored.
+Limits: expression 4096 characters, 12 a minute per visitor, hub zone `allen_omega`. A missing or
+malformed service answer is a 503. Tests: `python3 scripts/allen/test_math.py`.
+
 ## Speed: one warm prefix, cards per turn, answers from a cache
 
 What reaches the model, in order (`allen_speed.py`): the system text (system

@@ -1,0 +1,5 @@
+note err05_extra_words: words left over after a complete statement; prefix words have fixed arity
+fn main to int
+x = int 5
+ret x 1
+end

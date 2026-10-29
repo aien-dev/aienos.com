@@ -1,0 +1,2823 @@
+<div class="om-page ref-page"><header class="om-hero"><div class="container"><p class="om-kicker">Omega</p><h1 class="om-title">Omega language reference</h1><p class="om-lead">Everything an agent needs to write Omega that the pinned compiler accepts and that does what it should: program shape, types, declarations, statements, words, OM-2, the host words, every compiler error and trap exit code, common mistakes, and 98 worked examples that each passed the examples gate.</p><p class="om-sub">An Omega program writes this page: <code>om/omega-reference/page.om</code> in the aienos.com repository reads the guide <code>skills/writing-omega/SKILL.md</code> and the examples of omega-harness commit <a href="https://github.com/aien-dev/omega-harness/tree/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e"><code>0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e</code></a> and prints every file byte for byte. The compiler pin is omega-mv <code>e5b32567a7aff3ce594e3254a622a846a6cd190b</code>, omc sha256 <code>2c82480596bbdc50cda9626866209ef662d5834f278f839ff4ce0250c495029f</code>. The same text is in <a href="/llms-full.txt">llms-full.txt</a>.</p><nav class="om-toc" aria-label="On this page"><a href="#guide">Guide</a> <a href="#s11">Compiler errors</a> <a href="#s5">Traps</a> <a href="#s12">Common mistakes</a> <a href="#examples">Worked examples</a> <a href="#gate">Checking the examples</a></nav></div></header><div class="container"><section class="om-section ref-guide" id="guide"><h2>Writing Omega programs</h2><p>This guide is for any agent or person writing <code>.om</code> on any machine. It needs only a clone of
+<a href="https://github.com/aien-dev/omega-mv">aien-dev/omega-mv</a> and of this repository. Every rule
+below was observed with a program at the pin in the table; the programs are in
+<a href="https://github.com/aien-dev/omega-harness/blob/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e/examples/"><code>examples/</code></a> and <a href="https://github.com/aien-dev/omega-harness/blob/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e/examples/gate.sh"><code>examples/gate.sh</code></a> reruns all of them.
+For compiler internals, register rules, wire formats and the reasons behind each rule, read
+<a href="https://github.com/aien-dev/omega-harness/blob/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e/skills/omega-encoding/SKILL.md"><code>skills/omega-encoding/SKILL.md</code></a>.</p><table><tr><th>Pin</th><th>Value</th></tr><tr><td>omega-mv commit</td><td><code>e5b32567a7aff3ce594e3254a622a846a6cd190b</code></td></tr><tr><td>compiler <code>seed/out/omc</code></td><td>sha256 <code>2c82480596bbdc50cda9626866209ef662d5834f278f839ff4ce0250c495029f</code></td></tr><tr><td>language reference</td><td><code>docs/one_layer/OMEGESE.md</code> at that commit</td></tr><tr><td>host</td><td>Linux AArch64 only; omc writes a static AArch64 Linux ELF</td></tr></table><p>The language reference is normative. Where this guide and OMEGESE disagree, the compiler at the pin
+decides; this guide records the known disagreements.</p><h3 id="s1">1. Compile and run</h3><pre>
+git clone https://github.com/aien-dev/omega-mv &amp;&amp; cd omega-mv
+git checkout e5b32567a7aff3ce594e3254a622a846a6cd190b
+sha256sum seed/out/omc      # must print the pinned hash
+sh seed/omega-from-seed.sh  # optional: rebuild omc from the 408-byte loader
+seed/out/omc &lt; prog.om &gt; prog; echo &quot;compile $?&quot;
+chmod +x prog &amp;&amp; ./prog; echo &quot;exit $?&quot;
+</pre><ul><li>omc reads the unit on stdin and writes the executable on stdout. Exit 0 means accepted. Any other
+exit is the error number, and stderr has one line <code>omc: line N: error K</code>.</li><li><strong>Never run the output of a refused compile</strong>: stdout may still hold bytes.</li><li>A unit with <code>fn main</code> is program mode (an executable). A unit without it is function mode (raw
+machine words for a host to call); never execute function-mode output directly.</li><li>Check behavior, not compile success: compare stdout bytes and the exit status with what you
+expected, and run one deliberately wrong variant to see the check fail.</li><li>To check a whole set the way this repository does:
+<code>examples/gate.sh path/to/seed/out/omc</code> prints <code>PASS name</code> or <code>FAIL name: reason</code> per program and
+ends <code>GATE PASS examples=N ...</code> or <code>GATE FAIL ...</code> (exit 1); a different compiler hash exits 2.</li></ul><h3 id="s2">2. Program shape</h3><pre>
+note hello: the smallest complete program
+text msg &quot;hello, world\n&quot;
+fn main to int
+k = write 1 msg 0 len msg
+if ne k long len msg
+ret 1
+end
+ret 0
+end
+</pre><p>(<a href="https://github.com/aien-dev/omega-harness/blob/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e/examples/hello.om"><code>examples/hello.om</code></a>). The rules it shows:</p><ul><li><strong>One statement per line.</strong> No semicolons, no braces. Blocks (<code>fn</code>, <code>if</code>, <code>else</code>, <code>while</code>, <code>for</code>,
+<code>struct</code>) close with <code>end</code>. Indentation is optional.</li><li><strong>Prefix words only.</strong> Every operation is a word followed by its values: <code>add x 1</code>,
+<code>mul add a b c</code>, <code>lt i n</code>. Each word has a fixed number of values. Parentheses may group a value
+and add nothing: <code>(add a b)</code>.</li><li><strong>Comments are <code>note</code> lines.</strong> <code>//</code> and <code>#</code> are refused (error 16).</li><li><strong><code>fn NAME p1 T1 p2 T2 ... to R</code></strong>, result <code>R</code> a type or <code>void</code>. Parameters fill <strong>6 slots</strong>: an
+OM-2 unsized <code>view T *</code> / <code>edit T *</code> takes 2 (pointer and count), every other parameter 1 (a
+scalar, a sized array, a struct). Two unsized views plus three scalars is error 9
+(<a href="https://github.com/aien-dev/omega-harness/blob/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e/examples/om2_param_slots.om"><code>examples/om2_param_slots.om</code></a>,
+<code>mistake_om2_param_slots.om</code>). <code>fn main to int</code> takes no parameters and its <code>ret</code> value is the exit
+status (0..255).</li><li><strong>Assignment is <code>name = value</code>.</strong> The first assignment creates the name with the value's type. The
+<code>=</code> is optional, which is a trap: <code>return x</code> is accepted as &quot;assign x to a new name <code>return</code>&quot;.</li><li>A function may call a function defined later in the unit, and program-mode functions may recurse.</li><li>Top-level lines are <code>note</code>, <code>fn</code>, <code>text</code>, <code>global</code>, <code>const</code>, <code>struct</code>, and in OM-2 units
+<code>layout</code>, <code>abstract</code>, <code>holds</code> and <code>export fn</code>. <code>struct</code> and <code>layout</code> lines come before the first
+<code>fn</code> (error 9 after it). A <code>const</code> is visible only after its line.</li></ul><p>Every declaration and statement form at the pin (OMEGESE sections 9 to 12 are the full rules):</p><table><tr><th>Form</th><th>Where</th><th>Notes</th></tr><tr><td><code>note ANY TEXT</code></td><td>any line</td><td>a comment line</td></tr><tr><td><code>om2</code>, <code>om2 debug</code>, <code>om2 release</code>, <code>om2 diag</code>, <code>om2 diag debug</code>, <code>om2 diag release</code></td><td>first line that is not blank or <code>note</code></td><td>opts the unit into OM-2 (section 9); <code>release</code> erases contract checks, <code>diag</code> adds a machine-readable stderr record</td></tr><tr><td><code>om2 fmt</code></td><td>the first line, at byte 0</td><td>prints the canonical text of the rest of the input instead of compiling it</td></tr><tr><td><code>text NAME &quot;bytes&quot;</code></td><td>top level</td><td>a read-only <code>uchar</code> array</td></tr><tr><td><code>global NAME T N</code></td><td>top level, program mode</td><td>zero-filled array, never an argument</td></tr><tr><td><code>const NAME T LITERAL</code></td><td>top level</td><td>an integer or float value, visible after its line</td></tr><tr><td><code>struct S f1 T1 f2 T2 ... end</code></td><td>top level, before the first <code>fn</code></td><td>one line; a field <code>f T N</code> is an array of 1..64</td></tr><tr><td><code>layout NAME SIZE</code>, <code>field F T [COUNT] at OFF little</code>/<code>big</code> lines, <code>end</code></td><td>OM-2, top level, before the first <code>fn</code></td><td>an external byte layout of SIZE 1..4096 bytes</td></tr><tr><td><code>abstract NAME T [ops W ...]</code>, <code>holds NAME dup32</code></td><td>OM-2, top level, before the first <code>fn</code></td><td>T <code>uint</code> or <code>ulong</code>; W from <code>rotr rotl and or xor</code></td></tr><tr><td><code>fn NAME p1 T1 ... to R</code> ... <code>end</code></td><td>top level</td><td><code>inline</code> after R in OM-2; <code>export fn</code> marks an OM-2 function-mode entry</td></tr><tr><td>parameter <code>p T</code></td><td><code>fn</code> line</td><td>a scalar</td></tr><tr><td>parameter <code>a view T N</code> / <code>a edit T N</code></td><td><code>fn</code> line</td><td>a sized array, read-only or writable</td></tr><tr><td>parameter <code>a view T *</code> / <code>a edit T *</code></td><td><code>fn</code> line, OM-2</td><td>an array of any length</td></tr><tr><td>parameter <code>s edit T N fresh</code></td><td><code>fn</code> line, OM-2</td><td>scratch: every element written before it is read</td></tr><tr><td>parameter <code>p view S</code> / <code>p edit S</code></td><td><code>fn</code> line</td><td>a struct, or an OM-2 layout</td></tr><tr><td>parameter <code>o out T N</code></td><td><code>fn</code> line, OM-2</td><td>written by the unit; the calling host copies it out after status 0</td></tr><tr><td><code>name = value</code></td><td>function body</td><td>the first assignment creates the name</td></tr><tr><td><code>put A i v</code>, <code>put p f v</code></td><td>function body</td><td>store into an array element or a field</td></tr><tr><td><code>f v1 v2 ...</code></td><td>function body</td><td>a call to a <code>void</code> function</td></tr><tr><td><code>if C</code> ... <code>else</code> ... <code>end</code></td><td>function body</td><td><code>else</code> is optional; no <code>else if</code></td></tr><tr><td><code>while C bound N</code> ... <code>end</code></td><td>function body</td><td>N 1..999999</td></tr><tr><td><code>for i T K</code> ... <code>end</code></td><td>function body</td><td><code>unroll</code> after K in OM-2, K 1..64</td></tr><tr><td><code>break</code>, <code>continue</code></td><td>inside a loop</td><td></td></tr><tr><td><code>ret</code>, <code>ret v</code></td><td>function body</td><td><code>ret v</code> in a function with a result</td></tr><tr><td><code>exit N</code>, <code>trap N</code></td><td>function body</td><td>exit status N; trap N 1..14 exits 100+N</td></tr><tr><td><code>requires C</code>, <code>ensures C</code></td><td>OM-2, the first lines of a function</td><td><code>result</code> names the returned value</td></tr><tr><td><code>invariant C</code></td><td>OM-2, the first line of a loop body</td><td></td></tr></table><h3 id="s3">3. Types and values</h3><table><tr><th>Type</th><th>Meaning</th></tr><tr><td><code>bool</code></td><td><code>true</code> / <code>false</code>, the result of comparisons</td></tr><tr><td><code>uchar</code>, <code>ushort</code>, <code>uint</code>, <code>ulong</code></td><td>unsigned 8, 16, 32, 64 bit (also spelled <code>u8 u16 u32 u64</code>)</td></tr><tr><td><code>byte</code>, <code>short</code>, <code>int</code>, <code>long</code></td><td>signed 8, 16, 32, 64 bit (also spelled <code>i8 i16 i32 i64</code>); <code>byte</code> is <strong>signed</strong>, and <code>char</code> is not a type (error 3)</td></tr><tr><td><code>f32</code>, <code>f64</code></td><td>IEEE binary32, binary64</td></tr><tr><td><code>void</code></td><td>no result (function result only)</td></tr></table><ul><li><strong>No implicit conversion.</strong> Both values of an operation have one type (error 7). Convert with the
+type word: <code>long x</code>, <code>uint b</code>, <code>f64 n</code>.</li><li><strong>A bare number takes its type from context</strong>: the other value of its operation, the parameter it
+is passed to, the result type at <code>ret</code>. With no context it is error 11: write <code>x = uint 5</code>, never
+<code>x = 5</code> for a new name.</li><li>Integer literals are decimal with an optional leading <code>-</code>. A literal that does not fit its type
+is error 8. No character literals: write <code>uchar 65</code>, not <code>'A'</code> (error 3).</li><li>Float literals need digits on both sides of the dot: <code>2.0f64</code>, <code>1.0e30f64</code>, <code>0.5f32</code>. The suffix is
+optional where context gives the type.</li><li><strong>Hex only in OM-2</strong> (section 9): lowercase <code>0x</code> and lowercase digits, value must fit
+(<code>int 0xffffffff</code> is error 8; write <code>int -1</code>).</li><li><code>sizeof T</code>, <code>sizeof S</code> and <code>offsetof S f</code> are compile-time <code>ulong</code> constants.</li></ul><h3 id="s4">4. Words</h3><table><tr><th>Kind</th><th>Words</th></tr><tr><td>arithmetic</td><td><code>add sub mul div rem neg</code></td></tr><tr><td>bits</td><td><code>and or xor not shl shr</code> (<code>rotr rotl</code> in OM-2)</td></tr><tr><td>compare (give <code>bool</code>)</td><td><code>eq ne lt le gt ge</code></td></tr><tr><td>float</td><td><code>add sub mul div neg</code>, <code>fsqrt fabs fmin fmax</code></td></tr><tr><td>arrays</td><td><code>new</code>, <code>get A i</code>, <code>put A i v</code>, <code>len A</code></td></tr><tr><td>structs</td><td><code>new S v1 v2 ...</code>, <code>get p f</code>, <code>put p f v</code></td></tr><tr><td>control</td><td><code>if</code> / <code>else</code> / <code>end</code>, <code>while COND bound N</code>, <code>for i T K</code>, <code>break</code>, <code>continue</code>, <code>ret</code>, <code>exit</code>, <code>trap N</code></td></tr><tr><td>conversion</td><td>the type words, <code>bitcast T v</code></td></tr><tr><td>I/O</td><td><code>read fd A off n</code>, <code>write fd A off n</code>, <code>pread</code> / <code>pwrite fd A off n pos</code>, and the 67 host words of section 10</td></tr></table><ul><li><code>and</code>, <code>or</code>, <code>xor</code> on integers of any width are bitwise, not logical: <code>and ulong 12 ulong 10</code> is 8
+(<a href="https://github.com/aien-dev/omega-harness/blob/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e/examples/int_bits_and.om"><code>examples/int_bits_and.om</code></a>). Compare first when you want a bool.</li><li><code>and</code> / <code>or</code> on bools evaluate <strong>both</strong> sides; there is no short circuit
+(<a href="https://github.com/aien-dev/omega-harness/blob/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e/examples/mistake_short_circuit.om"><code>examples/mistake_short_circuit.om</code></a> traps 3 on the
+index the C reader would expect to be skipped). Test the index in an outer <code>if</code>.</li><li>Comparisons follow the type: on <code>ulong</code>, <code>lt x y</code> with x = 2^64-1 and y = 1 is false.</li><li><code>div</code> and <code>rem</code> on signed values round toward zero; <code>rem</code> takes the dividend's sign;
+<code>shr</code> on a signed value keeps the sign.</li><li>A function with a result is a value, not a statement: write <code>v = f 1</code>, never a bare <code>f 1</code>
+(error 7). A <code>void</code> function is called as a statement.</li><li>A call is the name then its values with no brackets or commas: <code>ret f 1 2</code>.</li></ul><h3 id="s5">5. Traps: what stops a running program</h3><p>A trap ends the process with exit status 100 + N. Output already written stays written.</p><table><tr><th>Cause</th><th>Trap</th><th>Exit</th><th>Example</th></tr><tr><td>signed overflow in <code>add sub mul neg</code></td><td>1</td><td>101</td><td><code>examples/trap1_overflow.om</code></td></tr><tr><td><code>div</code> or <code>rem</code> by zero, and signed minimum divided by -1</td><td>2</td><td>102</td><td><code>trap2_divzero.om</code></td></tr><tr><td>array index or I/O slice out of bounds</td><td>3</td><td>103</td><td><code>trap3_bounds.om</code></td></tr><tr><td>a loop past its bound</td><td>4</td><td>104</td><td><code>trap4_loop.om</code></td></tr><tr><td>an integer conversion whose value does not fit</td><td>5</td><td>105</td><td><code>trap5_conv.om</code></td></tr><tr><td>stack exhausted (8 MiB) by calls or local arrays</td><td>6</td><td>106</td><td><code>trap6_stack.om</code></td></tr><tr><td>shift or rotate amount outside 0..width-1</td><td>7</td><td>107</td><td><code>trap7_shift.om</code></td></tr><tr><td>a contract check that fails (OM-2)</td><td>9, 10</td><td>109, 110</td><td><code>contract_requires.om</code>, <code>contract_ensures.om</code></td></tr><tr><td><code>trap N</code>, N 1..14</td><td>N</td><td>100+N</td><td><code>trap_code.om</code> (<code>trap 14</code>, exit 114)</td></tr></table><ul><li>Unsigned arithmetic wraps modulo 2^width and never traps
+(<a href="https://github.com/aien-dev/omega-harness/blob/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e/examples/unsigned_wrap.om"><code>examples/unsigned_wrap.om</code></a>).</li><li>Integer conversions are checked: <code>uchar x</code> with x = 300 traps 5. Keep the low bits on purpose with
+a mask: <code>uchar and x 255</code>.</li><li>Float to integer truncates toward zero and saturates at the type's limits; NaN gives 0; it never
+traps (<a href="https://github.com/aien-dev/omega-harness/blob/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e/examples/float_to_int.om"><code>examples/float_to_int.om</code></a>). No float operation traps:
+1/0 is infinity, 0/0 is NaN, and NaN compares false except with <code>ne</code>.</li><li><code>exit N</code> ends the process with status N directly, without the trap convention.</li></ul><h3 id="s6">6. Loops and bounds</h3><ul><li><code>while COND bound N</code> runs the body at most N times, N 1..999999 (error 8 outside). Without
+<code>bound</code> the limit is 1000000. One more pass traps 4. Choose N from an argument you can write down
+in a <code>note</code>, for example &quot;every pass consumes at least one byte of a 65536-byte input&quot;.</li><li><code>for i T K</code> runs i from 0 to K-1. <code>for</code> takes no <code>bound</code> (error 5); K is the limit.</li><li><code>break</code> and <code>continue</code> work in both loops. There is no <code>else if</code>: nest an <code>if</code> inside <code>else</code>.</li><li>No loop runs forever and recursion is bounded by the stack.</li></ul><h3 id="s7">7. Arrays, texts, globals, structs</h3><ul><li><strong>Local array:</strong> <code>a = new T N v</code>, N elements each v, only in a function's outermost block (error 9
+inside a block). N is a literal or an integer <code>const</code>; a variable N is error 16. There is no heap
+and no <code>free</code> (error 9).</li><li><strong>Global array:</strong> <code>global NAME T N</code> at top level, zero-filled, program mode only. <strong>A global is
+never an argument</strong> (error 19); a function uses it by naming it.</li><li><strong>Text:</strong> <code>text NAME &quot;bytes&quot;</code> is a read-only <code>uchar</code> array. Escapes are only <code>\n \t \\ \&quot;</code>
+(error 22 for others).</li><li><strong>Array parameters</strong> state type and exact length: <code>a view uchar 64</code> (read-only) or
+<code>a edit uchar 64</code> (writable). Another length is error 7. In OM-2, <code>a view T *</code> / <code>a edit T *</code> take
+any length. Writing to a view or text is error 20.</li><li><code>get A i</code> / <code>put A i v</code>: a literal index outside the array is error 21; every other index is checked
+at run time (trap 3). There are no pointers and no address arithmetic.</li><li><strong>Structs:</strong> <code>struct Pair a uint b long end</code>, before the first <code>fn</code>. Every field is an 8-byte cell,
+so a struct is never a wire or file layout. <code>p = new Pair 5 -12</code>, pass as <code>p edit Pair</code> or
+<code>p view Pair</code> (<a href="https://github.com/aien-dev/omega-harness/blob/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e/examples/structs.om"><code>examples/structs.om</code></a>).</li><li><strong>Bytes on the wire:</strong> build them with shifts and masks into a <code>uchar</code> array
+(<a href="https://github.com/aien-dev/omega-harness/blob/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e/examples/wire_le.om"><code>examples/wire_le.om</code></a>); OM-2 also has <code>layout</code>.</li></ul><h3 id="s8">8. Names and limits</h3><ul><li>Variable, parameter, global, text, const, struct and field names: at most 8 characters (error 13).
+Function names: at most 63, but see section 13 for names that start with an 8-letter keyword.</li><li>A new name may not repeat a visible name, a function or a struct (error 10). A name first assigned
+inside a block ends at that block's <code>end</code>; assign it before the block to keep it.</li><li>Reserved words cannot be names, including `len read write text new free view edit global note
+exit const bound<code> and every host word (</code>stat<code>, </code>link<code>, </code>send<code>, </code>random<code>, </code>fork<code>, ...). </code>len` as a
+name is error 16, <code>free</code> is error 9.</li><li>16 registers per function hold parameters, live names, loop counters and the temporaries of the
+current statement. The 17th is error 12 (<code>examples/err12_registers.om</code>). The fix is structural:
+move part of the work into a helper function that takes a few scalars and returns one value, end
+the life of names you no longer need by computing them inside a block, and split a long nested
+expression into several assignments of one or two words each.</li><li>Size limits: an array up to 16777216 elements, 4 MiB of local arrays per function, 1 GiB of
+globals (error 23).</li></ul><h3 id="s9">9. OM-2 units</h3><p>A unit whose first line that is not blank or <code>note</code> is exactly <code>om2</code> is an OM-2 unit. OM-1 code keeps
+its meaning inside it. OM-2 adds:</p><ul><li>lowercase hex literals; <code>rotr x n</code>, <code>rotl x n</code> on unsigned types (trap 7 for an amount outside
+0..width-1);</li><li>unsized parameters <code>a view T *</code> / <code>a edit T *</code> with <code>len a</code> the run-time count;</li><li><code>part A off n</code>, only as an argument to an unsized parameter: the n elements of A from off,
+checked at run time (trap 3). A part of a global is error 19; as a value of its own it is error 9;
+to a sized parameter it is error 7;</li><li><code>for i T K unroll</code>, <code>fn ... inline</code>, <code>layout</code> (external byte layouts), <code>fresh</code> scratch arrays
+(error 27), <code>abstract</code> types with <code>seal</code> / <code>open</code> (error 28), <code>export fn</code> (at most 32, error 14);</li><li>executable contracts: <code>requires</code> and <code>ensures</code> lines at the start of a function, <code>invariant</code> as the
+first line of a loop body. A failing <code>requires</code> traps 9 (exit 109), a failing <code>ensures</code> or
+<code>invariant</code> traps 10 (exit 110). A clause may not call a function, use floats or host words
+(error 30). The first line <code>om2 release</code> erases the checks
+(<a href="https://github.com/aien-dev/omega-harness/blob/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e/examples/contract_release.om"><code>examples/contract_release.om</code></a>).</li></ul><p>Examples: <a href="https://github.com/aien-dev/omega-harness/blob/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e/examples/om2_tour.om"><code>om2_tour.om</code></a>, <a href="https://github.com/aien-dev/omega-harness/blob/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e/examples/om2_views.om"><code>om2_views.om</code></a>,
+<a href="https://github.com/aien-dev/omega-harness/blob/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e/examples/om2_hex_rotr.om"><code>om2_hex_rotr.om</code></a>, <a href="https://github.com/aien-dev/omega-harness/blob/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e/examples/contracts_ok.om"><code>contracts_ok.om</code></a>.</p><h3 id="s10">10. Host I/O</h3><ul><li>Every host word returns a <code>long</code>: a count, or minus the Linux errno. <code>read</code> may return fewer bytes
+than asked, 0 at end of input, or a negative error; <code>write</code> may write fewer. Loop until done and
+handle <code>k &lt; 0</code> and <code>k == 0</code> separately
+(<a href="https://github.com/aien-dev/omega-harness/blob/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e/examples/stdin_count.om"><code>examples/stdin_count.om</code></a>).</li><li>Descriptors, flags and modes are <code>int</code>; offsets, counts and capacities <code>ulong</code>; buffers <code>uchar</code>
+arrays. Slices are checked before the kernel call (trap 3).</li><li><code>main</code> takes no parameters: read arguments with <code>argcnt</code> and <code>argread</code>
+(<a href="https://github.com/aien-dev/omega-harness/blob/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e/examples/echo_args.om"><code>examples/echo_args.om</code></a>) and the environment with <code>envcnt</code> and
+<code>envread</code> (<a href="https://github.com/aien-dev/omega-harness/blob/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e/examples/env_read.om"><code>examples/env_read.om</code></a>). Short capacity returns -105.</li><li>Host words carry the process's own permissions; they are not a sandbox.</li></ul><p>The 67 host words at the pin, with their values (OMEGESE section 10 has each one's exact contract).
+<code>A</code> and <code>B</code> are <code>uchar</code> arrays, <code>off</code>, <code>n</code> and <code>capacity</code> are <code>ulong</code>, and descriptors, flags, modes
+and ids are <code>int</code>. A path is the slice <code>A off n</code>; a packed list is a <code>u16</code> count, then <code>u16</code>-length
+records. Each word is reserved: using it as a name is error 16 at the pin, while an unreserved name
+in the same program compiles.</p><table><tr><th>Area</th><th>Words</th></tr><tr><td>files</td><td><code>fopen A off n flags mode</code>, <code>fclose fd</code>, <code>fsync fd</code>, <code>fdsync fd</code>, <code>syncfs fd</code>, <code>memfd A off n flags</code>, <code>fseek fd offset whence</code>, <code>ftrunc fd length</code>, <code>flock fd op</code>, <code>fstat fd A off n</code>, <code>getdnts fd A off n</code></td></tr><tr><td>paths</td><td><code>chmod A off n mode</code>, <code>fchmod fd mode</code>, <code>chown A off n uid gid</code>, <code>faccess A off n mode</code>, <code>truncate A off n length</code>, <code>unlink A off n</code>, <code>makedir A off n mode</code>, <code>rmdir A off n</code>, <code>cwd A off capacity</code>, <code>chdir A off n</code>, <code>fchdir fd</code>, <code>readlnk A off n B off capacity</code>, <code>stat A off n B off capacity</code>, <code>lstat A off n B off capacity</code>, <code>renames A off n flags</code>, <code>link A off n</code>, <code>symlnk A off n</code>, <code>umask mask</code></td></tr><tr><td>processes</td><td><code>getpid</code>, <code>getppid</code>, <code>getuid</code>, <code>geteuid</code>, <code>getgid</code>, <code>getegid</code>, <code>setsid</code>, <code>getpgid pid</code>, <code>getsid pid</code>, <code>setpgid pid pgid</code>, <code>fork</code>, <code>killpid pid signal</code>, <code>waitpid pid A off n options</code>, <code>pipefds A off n flags</code>, <code>dupfd fd target flags</code>, <code>execprog A off n</code></td></tr><tr><td>arguments, environment, randomness</td><td><code>argcnt</code>, <code>argread index A off capacity</code>, <code>envcnt</code>, <code>envread index A off capacity</code>, <code>random A off n flags</code></td></tr><tr><td>time</td><td><code>monons</code>, <code>realns</code>, <code>sleepns interval</code></td></tr><tr><td>sockets</td><td><code>socknew domain kind protocol</code>, <code>bind fd A off n</code>, <code>connect fd A off n</code>, <code>listen fd backlog</code>, <code>accept fd flags</code>, <code>sockname fd A off n</code>, <code>sockopt fd level option A off n</code>, <code>recv fd A off n flags</code>, <code>send fd A off n flags</code>, <code>sendmsg fd A off n flags</code>, <code>shutdown fd how</code>, <code>waitio fd events interval</code>, <code>pollfds A off n interval</code>, <code>peercred fd A off capacity</code></td></tr></table><h3 id="s11">11. Compiler errors</h3><p>Exit status = error number. The only message is the one stderr line <code>omc: line N: error K</code>, where N
+is the line being read (0 when no line was read). One refusal per code is in <code>examples/errNN_*.om</code>
+with its exact stderr line in the matching <code>.expect</code>, except 24, which needs a generated program.</p><table><tr><th>Code</th><th>Meaning</th><th>Example</th><th>Fix</th></tr><tr><td>1</td><td>omc could not read its input</td><td><code>err01_input</code> (stdin is a directory)</td><td>give omc a readable file on stdin</td></tr><tr><td>2</td><td>omc could not write its output</td><td><code>err02_output</code> (stdout is <code>/dev/full</code>)</td><td>send stdout to a writable file with space</td></tr><tr><td>3</td><td>unknown name, field or function</td><td><code>err03_unknown_name</code></td><td>assign the name before use; check the spelling</td></tr><tr><td>4</td><td>the line ends before the statement is complete</td><td><code>err04_line_ends</code></td><td>give every word all of its values</td></tr><tr><td>5</td><td>words left after a complete statement</td><td><code>err05_extra_words</code></td><td>count each word's values; there is no infix</td></tr><tr><td>6</td><td>malformed number</td><td><code>err06_bad_number</code></td><td>decimal digits; hex only in OM-2, lowercase</td></tr><tr><td>7</td><td>type mismatch</td><td><code>err07_type_mismatch</code></td><td>convert with a type word: <code>add int 1 int u</code></td></tr><tr><td>8</td><td>number out of range</td><td><code>err08_out_of_range</code></td><td>a literal that fits its type; a bound 1..999999; a trap code 1..14</td></tr><tr><td>9</td><td>a word in a place where it is not allowed</td><td><code>err09_disallowed</code></td><td>move it: <code>new</code> only in a function's outermost block, <code>struct</code> before the first <code>fn</code></td></tr><tr><td>10</td><td>duplicate name</td><td><code>err10_duplicate</code></td><td>choose a name that is not visible, not a function, not a struct</td></tr><tr><td>11</td><td>a number with nothing to give it a type</td><td><code>err11_ambiguous</code></td><td><code>x = uint 5</code></td></tr><tr><td>12</td><td>register pool exhausted (16 per function)</td><td><code>err12_registers</code></td><td>fewer live names, a helper function, shorter expressions (section 8)</td></tr><tr><td>13</td><td>name too long</td><td><code>err13_long_name</code></td><td>at most 8 characters (function names 63)</td></tr><tr><td>14</td><td>compiler capacity: names, functions, exports, expansion</td><td><code>err14_capacity</code></td><td>split the function or the unit</td></tr><tr><td>15</td><td>the input ends inside an open block</td><td><code>err15_missing_end</code></td><td>close every block with <code>end</code></td></tr><tr><td>16</td><td>syntax: unknown word or misplaced form</td><td><code>err16_syntax</code></td><td>start each line with a statement word; comments are <code>note</code> lines</td></tr><tr><td>17</td><td>a line after <code>ret</code>, <code>break</code>, <code>continue</code>, <code>trap</code> or <code>exit</code> in the same block</td><td><code>err17_after_path</code></td><td>delete the line or move it above</td></tr><tr><td>18</td><td>a function with a result whose <code>end</code> is reachable</td><td><code>err18_missing_ret</code></td><td>end every path with <code>ret v</code></td></tr><tr><td>19</td><td>a global as an argument, or one array twice in a call</td><td><code>err19_global_arg</code></td><td>name the global inside the function; pass distinct arrays</td></tr><tr><td>20</td><td>writing to a text or a view</td><td><code>err20_readonly</code></td><td>an <code>edit</code> parameter, or a local copy</td></tr><tr><td>21</td><td>a literal index outside the array</td><td><code>err21_const_index</code></td><td>an index 0..N-1</td></tr><tr><td>22</td><td>a text escape other than <code>\n \t \\ \&quot;</code></td><td><code>err22_text_escape</code></td><td>build other bytes with <code>put</code></td></tr><tr><td>23</td><td>array or pool size limit</td><td><code>err23_size</code></td><td>smaller arrays (section 8 limits)</td></tr><tr><td>24</td><td>a conditional branch farther than 1 MiB of code</td><td>generated, below</td><td>move long bodies into functions</td></tr><tr><td>25, 26</td><td>never emitted at the pin</td><td>none</td><td>none</td></tr><tr><td>27</td><td>OM-2 <code>fresh</code> element read before it is written</td><td><code>err27_fresh</code></td><td><code>put</code> every element before the <code>get</code></td></tr><tr><td>28</td><td>OM-2 <code>seal</code> outside the constructor</td><td><code>err28_seal</code></td><td><code>seal</code> only as the whole body of <code>fn NAMEmk ... to NAME</code></td></tr><tr><td>29</td><td>OM-2 <code>layout</code> field past the size or overlapping</td><td><code>err29_layout</code></td><td>keep every field inside SIZE and apart</td></tr><tr><td>30</td><td>OM-2 contract clause not allowed</td><td><code>err30_contract</code></td><td>integer words on parameters only (and <code>result</code> in <code>ensures</code>); no calls, floats or host words</td></tr></table><p>How the emitted set was established at the pin: in <code>seed/omc/omc.om</code>, <code>fn fail</code> (line 293) writes
+the stderr line and exits with the code (<code>exit int code</code>, line 322). The only other exits are
+<code>exit int 0</code> and <code>exit 0</code>, so every refusal goes through <code>fail</code>. Its callers pass the literals 1..24
+and 27..30, or forward a literal 3, 4, 6, 8, 13 or 16 through <code>lenval</code>, <code>nfail</code> and <code>unkfail</code>. No
+caller passes 25 or 26, so those two codes are never emitted. A trap inside omc itself would exit
+100 + N, which is not an error code.</p><p>Error 24 needs more than 1 MiB of code inside one loop. This program, with 270000 copies of the
+line <code>x = add x 1</code> (4 bytes of code each), was refused with <code>omc: line 270006: error 24</code>, the line
+of the loop's <code>end</code>; with 140000 copies it compiled:</p><pre>
+{ printf 'fn main to int\nx = ulong 0\nc = true\nwhile c bound 1\n'
+  yes 'x = add x 1' | head -n 270000
+  printf 'c = false\nend\nret int and x 1\nend\n'; } &gt; e24.om
+seed/out/omc &lt; e24.om &gt; e24; echo &quot;compile $?&quot;   # compile 24
+</pre><h3 id="s12">12. Common mistakes</h3><p>Each row is a program in <code>examples/</code> with its observed refusal.</p><table><tr><th>Mistake</th><th>Write instead</th><th>Refusal</th><th>Example</th></tr><tr><td><code>y = x + 1</code></td><td><code>y = add x 1</code></td><td>error 5</td><td><code>mistake_infix.om</code></td></tr><tr><td><code>f(1, 2)</code></td><td><code>f 1 2</code></td><td>error 6</td><td><code>mistake_c_call.om</code></td></tr><tr><td><code>if x &gt; 0</code></td><td><code>if gt x 0</code></td><td>error 7</td><td><code>mistake_compare_operator.om</code></td></tr><tr><td><code>'A'</code></td><td><code>uchar 65</code></td><td>error 3</td><td><code>mistake_char_literal.om</code></td></tr><tr><td><code>// comment</code></td><td><code>note comment</code></td><td>error 16</td><td><code>mistake_slash_comment.om</code></td></tr><tr><td><code>x = 1;</code></td><td><code>x = uint 1</code></td><td>error 6</td><td><code>mistake_semicolon.om</code></td></tr><tr><td><code>return x</code></td><td><code>ret x</code></td><td>error 18 (silent assignment)</td><td><code>mistake_return.om</code></td></tr><tr><td><code>else if c</code></td><td><code>else</code>, then a nested <code>if c</code></td><td>error 5</td><td><code>mistake_else_if.om</code></td></tr><tr><td><code>fn main argc int to int</code></td><td><code>argcnt</code>, <code>argread</code></td><td>error 9</td><td><code>mistake_main_args.om</code></td></tr><tr><td><code>for i ulong n bound 10</code></td><td><code>while lt i n bound 10</code></td><td>error 5</td><td><code>mistake_for_bound.om</code></td></tr><tr><td><code>while c bound 1000000</code></td><td>a bound 1..999999</td><td>error 8</td><td><code>mistake_bound_range.om</code></td></tr><tr><td><code>a = new uchar n 0</code></td><td>a literal or <code>const</code> length</td><td>error 16</td><td><code>mistake_new_var_len.om</code></td></tr><tr><td><code>free a</code></td><td>nothing: no heap</td><td>error 9</td><td><code>mistake_free.om</code></td></tr><tr><td><code>len = ...</code></td><td>another name</td><td>error 16</td><td><code>mistake_reserved_name.om</code></td></tr><tr><td><code>neg = ...</code> or <code>text neg &quot;a&quot;</code></td><td>another name: <code>neg</code> is the negation word</td><td>error 16</td><td><code>mistake_neg_name.om</code></td></tr><tr><td>a bare call <code>f 1</code> with a result</td><td><code>v = f 1</code></td><td>error 7</td><td><code>mistake_value_stmt.om</code></td></tr><tr><td>a 7th parameter</td><td>a struct or an array</td><td>error 9</td><td><code>mistake_seven_params.om</code></td></tr><tr><td>2 <code>view T *</code> plus 3 scalars (7 slots)</td><td>a sized view, a struct, or fewer scalars</td><td>error 9</td><td><code>mistake_om2_param_slots.om</code></td></tr><tr><td><code>emit buf</code> with <code>buf</code> a global</td><td>name the global inside the function</td><td>error 19</td><td><code>err19_global_arg.om</code></td></tr><tr><td><code>a view uchar 8</code> given a 16-element array</td><td>the exact length, or OM-2 <code>view uchar *</code></td><td>error 7</td><td><code>mistake_param_length.om</code></td></tr><tr><td><code>trap 15</code></td><td><code>trap 1</code> .. <code>trap 14</code></td><td>error 8</td><td><code>mistake_trap_range.om</code></td></tr><tr><td><code>struct</code> after a <code>fn</code></td><td>every <code>struct</code> before the first <code>fn</code></td><td>error 9</td><td><code>mistake_struct_after_fn.om</code></td></tr><tr><td><code>rotr</code> or hex without <code>om2</code></td><td>an <code>om2</code> first line</td><td>error 3</td><td><code>mistake_om1_rotr.om</code></td></tr><tr><td><code>0X10</code> or <code>0xFF</code></td><td><code>0x10</code>, <code>0xff</code></td><td>error 6</td><td><code>mistake_om2_upper_hex.om</code></td></tr><tr><td><code>int 0xffffffff</code></td><td><code>int -1</code></td><td>error 8</td><td><code>mistake_om2_int_hex.om</code></td></tr><tr><td><code>part</code> of a global</td><td><code>part</code> of a local</td><td>error 19</td><td><code>mistake_om2_part_global.om</code></td></tr><tr><td><code>part</code> to a sized parameter</td><td>an unsized <code>view T *</code> parameter</td><td>error 7</td><td><code>mistake_om2_part_sized.om</code></td></tr><tr><td><code>s = part a 0 2</code></td><td><code>part</code> only as an argument</td><td>error 9</td><td><code>mistake_om2_part_statement.om</code></td></tr><tr><td><code>if and lt i n eq get a i 0</code> (C short circuit)</td><td>an outer <code>if lt i n</code></td><td>trap 3, exit 103</td><td><code>mistake_short_circuit.om</code></td></tr></table><h3 id="s13">13. Known compiler defects at the pin</h3><ul><li><strong><code>bitcast</code> across signedness below 64 bits</strong> (fix proposed in draft omega-mv #896, not in the
+pin): the result does not compare equal to the reinterpreted value. Observed wrong: <code>uint</code> to
+<code>int</code> (4294967295 is not -1, and adding 2 traps 1), <code>int</code> to <code>uint</code>, <code>ushort</code> to and from
+<code>short</code>, <code>uchar</code> to and from <code>byte</code>, and <code>f32</code> to <code>int</code> (-1.0 is not -1082130432 and not below 0).
+Observed correct: <code>ulong</code> to and from <code>long</code>, <code>f64</code> to <code>long</code>, <code>f32</code> to <code>uint</code>, <code>int</code> to <code>f32</code>.
+Until a fixed compiler is pinned, do not <code>bitcast</code> between narrow integer types or from <code>f32</code> to
+<code>int</code>; decode signed 8, 16 and 32-bit values arithmetically: load into <code>long</code>, then subtract 2^32
+(or 2^16, 2^8) when the value is at least 2^31 (2^15, 2^7), as
+<a href="https://github.com/aien-dev/omega-harness/blob/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e/examples/wire_le.om"><code>examples/wire_le.om</code></a> does. For float bits, <code>bitcast uint</code> of an
+<code>f32</code> is correct.</li><li><strong>Empty text through <code>view uchar *</code></strong> (omega-mv issue #775): the parameter does not arrive with
+<code>len</code> 0 (observed 60 and 28, depending on the other texts in the unit), so a loop over it runs past
+the text (a crash has been reported; not reproduced here). Workaround: pass <code>part e 0 0</code>, which
+arrives with <code>len</code> 0
+(<a href="https://github.com/aien-dev/omega-harness/blob/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e/examples/empty_text_part.om"><code>examples/empty_text_part.om</code></a>).</li><li><strong>Function names that begin with an 8-letter keyword:</strong> a function name longer than 8 bytes whose
+first 8 bytes are a keyword (<code>continue_x</code>, <code>truncate_number</code>, <code>sockname_x</code>, <code>execprog_x</code>,
+<code>peercred_x</code>) is error 16, although function names may be 63 characters. Shorter keyword prefixes
+are fine (<code>breakx</code>, <code>whilex</code>, <code>getpid_x</code>). Workaround: rename (<code>cont_x</code>, <code>trunc_num</code>)
+(<a href="https://github.com/aien-dev/omega-harness/blob/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e/examples/defect_keyword_prefix.om"><code>examples/defect_keyword_prefix.om</code></a>).</li><li>A fix for both is in progress in omega-mv; until a new compiler is pinned, use the workarounds.</li><li>OMEGESE 9.9 lists <code>+ - * /</code> for floats; the compiler refuses them. Write <code>add sub mul div</code>.</li></ul><h3 id="s14">14. Example index</h3><p>All in <a href="https://github.com/aien-dev/omega-harness/blob/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e/examples/"><code>examples/</code></a>; each <code>NAME.om</code> has <code>NAME.expect</code> (compile status, exit status
+or stderr line) and, when it prints, <code>NAME.stdout</code> with the exact bytes. Wolfram checks of the
+arithmetic expectations are in <a href="https://github.com/aien-dev/omega-harness/blob/0aba14876fdd8d65cc886a8b5dc0984f16bb4a0e/examples/WOLFRAM.md"><code>examples/WOLFRAM.md</code></a>.</p><ul><li>Start here: <code>hello</code>, <code>exit_status</code>, <code>print_decimal</code>, <code>functions</code>, <code>loops</code>, <code>arrays</code>, <code>text</code>.</li><li>Arithmetic: <code>int_arith</code>, <code>int_bits_and</code>, <code>unsigned_wrap</code>, <code>checked_conv</code>, <code>float_arith</code>,
+<code>float_to_int</code>, <code>consts</code>.</li><li>Data: <code>globals</code>, <code>structs</code>, <code>wire_le</code>.</li><li>I/O: <code>stdin_count</code>, <code>echo_args</code>, <code>env_read</code>, <code>tmp_files</code>.</li><li>Traps: <code>trap1_overflow</code> .. <code>trap7_shift</code>, <code>trap_code</code>.</li><li>OM-2 and contracts: <code>om2_tour</code>, <code>om2_views</code>, <code>om2_hex_rotr</code>, <code>om2_part_trap</code>, <code>om2_param_slots</code>,
+<code>contracts_ok</code>, <code>contract_requires</code>, <code>contract_ensures</code>, <code>contract_invariant</code>, <code>contract_release</code>.</li><li>Known defects and their workarounds: <code>empty_text_part</code>, <code>defect_keyword_prefix</code>.</li><li>Refusals: <code>err01_input</code> .. <code>err30_contract</code>, <code>mistake_*</code>.</li></ul></section><section class="om-section ref-examples" id="examples"><h2 class="om-h2">Worked examples</h2><p>98 programs from <code>examples/</code> and <code>skills/omega-encoding/examples/</code>, each listed with its files. <code>NAME.om</code> is the program. <code>NAME.expect</code> is what the gate checks: <code>compile N</code> is the compiler's exit status, <code>stderr LINE</code> its whole stderr when N is not 0, <code>exit N</code> the program's exit status, <code>input dir</code> and <code>output full</code> the two refusals that need a special compiler input or output. <code>NAME.stdout</code> is the exact standard output, and an absent one means empty. <code>NAME.stdin</code>, <code>NAME.args</code> (one argument per line) and <code>NAME.env</code> (one KEY=VALUE per line) are what the program is given.</p><p>Each file is labelled <code>File: PATH</code> and followed by its bytes in one block. To copy a file out of llms-full.txt, take the lines between its two fences and end each with a newline. A label ending in (no final newline) means the file does not end in a newline, so drop the last one. A label ending in (hex bytes) means the block lists the bytes as two hex digits each, sixteen to a line. A label ending in (empty file) means the file has no bytes and no block follows.</p><article class="ref-ex" id="ex-arrays"><h3>arrays</h3><p class="ref-file">File: <code>examples/arrays.om</code></p><pre>
+note arrays: a local array is new T N v in the outermost block; N is a literal or an integer const
+note ---- output helpers: a function works on a global by naming it (a global is never an argument)
+global ob uchar 32
+note outb: write ob[off .. off+n) to stdout; a short write continues, 0 or an error exits 90
+note bound: every pass writes at least one byte and n &lt;= 32, so at most 32 passes
+fn outb off ulong n ulong to void
+e = add off n
+p = off
+while lt p e bound 32
+k = write 1 ob p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline. A ulong has at most 20 digits, so 20 passes
+fn putu v ulong to void
+i = ulong 31
+put ob 31 10
+n = v
+while true bound 20
+i = sub i 1
+put ob i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outb i sub 32 i
+end
+note putl: a signed value; -(v+1)+1 avoids negating the minimum, which would trap 1
+fn putl v long to void
+if lt v 0
+put ob 0 45
+outb 0 1
+putu add ulong neg add v 1 1
+ret
+end
+putu ulong v
+end
+fn main to int
+a = new uint 8 0
+for i ulong 8
+put a i uint mul add i 1 add i 1
+end
+s = ulong 0
+for i ulong len a
+s = add s ulong get a i
+end
+putu s
+putu len a
+putu ulong get a 7
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/arrays.expect</code></p><pre>
+compile 0
+exit 0
+</pre><p class="ref-file">File: <code>examples/arrays.stdout</code></p><pre>
+204
+8
+64
+</pre></article><article class="ref-ex" id="ex-checked_conv"><h3>checked_conv</h3><p class="ref-file">File: <code>examples/checked_conv.om</code></p><pre>
+note checked_conv: integer conversions check the value; mask first to keep low bits
+note ---- output helpers: a function works on a global by naming it (a global is never an argument)
+global ob uchar 32
+note outb: write ob[off .. off+n) to stdout; a short write continues, 0 or an error exits 90
+note bound: every pass writes at least one byte and n &lt;= 32, so at most 32 passes
+fn outb off ulong n ulong to void
+e = add off n
+p = off
+while lt p e bound 32
+k = write 1 ob p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline. A ulong has at most 20 digits, so 20 passes
+fn putu v ulong to void
+i = ulong 31
+put ob 31 10
+n = v
+while true bound 20
+i = sub i 1
+put ob i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outb i sub 32 i
+end
+note putl: a signed value; -(v+1)+1 avoids negating the minimum, which would trap 1
+fn putl v long to void
+if lt v 0
+put ob 0 45
+outb 0 1
+putu add ulong neg add v 1 1
+ret
+end
+putu ulong v
+end
+fn main to int
+x = uint 300
+putu ulong uchar and x 255
+y = long 2147483647
+putl long int y
+w = int -1
+putl long w
+putu ulong ushort 65535
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/checked_conv.expect</code></p><pre>
+compile 0
+exit 0
+</pre><p class="ref-file">File: <code>examples/checked_conv.stdout</code></p><pre>
+44
+2147483647
+-1
+65535
+</pre></article><article class="ref-ex" id="ex-consts"><h3>consts</h3><p class="ref-file">File: <code>examples/consts.om</code></p><pre>
+note consts: a top-level const is visible after its line and may size an array, bound a loop or name a trap
+note ---- output helpers: a function works on a global by naming it (a global is never an argument)
+global ob uchar 32
+note outb: write ob[off .. off+n) to stdout; a short write continues, 0 or an error exits 90
+note bound: every pass writes at least one byte and n &lt;= 32, so at most 32 passes
+fn outb off ulong n ulong to void
+e = add off n
+p = off
+while lt p e bound 32
+k = write 1 ob p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline. A ulong has at most 20 digits, so 20 passes
+fn putu v ulong to void
+i = ulong 31
+put ob 31 10
+n = v
+while true bound 20
+i = sub i 1
+put ob i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outb i sub 32 i
+end
+note putl: a signed value; -(v+1)+1 avoids negating the minimum, which would trap 1
+fn putl v long to void
+if lt v 0
+put ob 0 45
+outb 0 1
+putu add ulong neg add v 1 1
+ret
+end
+putu ulong v
+end
+const N ulong 16
+const PASSES ulong 16
+const BAD ulong 12
+fn main to int
+a = new uchar N 1
+s = ulong 0
+i = ulong 0
+while lt i len a bound PASSES
+s = add s ulong get a i
+i = add i 1
+end
+putu s
+if ne s N
+trap BAD
+end
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/consts.expect</code></p><pre>
+compile 0
+exit 0
+</pre><p class="ref-file">File: <code>examples/consts.stdout</code></p><pre>
+16
+</pre></article><article class="ref-ex" id="ex-contract_ensures"><h3>contract_ensures</h3><p class="ref-file">File: <code>examples/contract_ensures.om</code></p><pre>
+note contract_ensures: a false postcondition traps 10, exit 110; the bug here is the + 2
+om2
+text before &quot;before\n&quot;
+fn inc x uint to uint
+requires lt x 100
+ensures eq result add x 1
+ret add x 2
+end
+fn main to int
+k = write 1 before 0 len before
+h = inc 5
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/contract_ensures.expect</code></p><pre>
+compile 0
+exit 110
+</pre><p class="ref-file">File: <code>examples/contract_ensures.stdout</code></p><pre>
+before
+</pre></article><article class="ref-ex" id="ex-contract_invariant"><h3>contract_invariant</h3><p class="ref-file">File: <code>examples/contract_invariant.om</code></p><pre>
+note contract_invariant: a false loop invariant traps 10, exit 110, at the top of the failing pass
+om2
+text before &quot;before\n&quot;
+fn main to int
+k = write 1 before 0 len before
+i = uint 0
+while lt i 10
+invariant lt i 5
+i = add i 1
+end
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/contract_invariant.expect</code></p><pre>
+compile 0
+exit 110
+</pre><p class="ref-file">File: <code>examples/contract_invariant.stdout</code></p><pre>
+before
+</pre></article><article class="ref-ex" id="ex-contract_release"><h3>contract_release</h3><p class="ref-file">File: <code>examples/contract_release.om</code></p><pre>
+note contract_release: om2 release erases contracts; the false precondition no longer traps
+om2 release
+fn half x uint to uint
+requires eq rem x 2 0
+ret div x 2
+end
+fn main to int
+ret int half 7
+end
+</pre><p class="ref-file">File: <code>examples/contract_release.expect</code></p><pre>
+compile 0
+exit 3
+</pre><p class="ref-file">File: <code>examples/contract_release.stdout</code> (empty file)</p></article><article class="ref-ex" id="ex-contract_requires"><h3>contract_requires</h3><p class="ref-file">File: <code>examples/contract_requires.om</code></p><pre>
+note contract_requires: a false precondition traps 9, exit 109, before the body runs
+om2
+text before &quot;before\n&quot;
+fn half x uint to uint
+requires eq rem x 2 0
+ret div x 2
+end
+fn main to int
+k = write 1 before 0 len before
+h = half 7
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/contract_requires.expect</code></p><pre>
+compile 0
+exit 109
+</pre><p class="ref-file">File: <code>examples/contract_requires.stdout</code></p><pre>
+before
+</pre></article><article class="ref-ex" id="ex-contracts_ok"><h3>contracts_ok</h3><p class="ref-file">File: <code>examples/contracts_ok.om</code></p><pre>
+note contracts_ok: requires and ensures form a function's prefix; invariant opens a loop body
+om2
+fn step x uint to uint
+requires lt x 10
+ensures eq result add x 1
+ret add x 1
+end
+fn main to int
+i = uint 0
+while lt i 3
+invariant le i 3
+i = step i
+end
+ret int sub i 3
+end
+</pre><p class="ref-file">File: <code>examples/contracts_ok.expect</code></p><pre>
+compile 0
+exit 0
+</pre><p class="ref-file">File: <code>examples/contracts_ok.stdout</code> (empty file)</p></article><article class="ref-ex" id="ex-defect_keyword_prefix"><h3>defect_keyword_prefix</h3><p class="ref-file">File: <code>examples/defect_keyword_prefix.om</code></p><pre>
+note defect_keyword_prefix: known defect at the pin. A function name longer than 8 bytes whose first
+note 8 bytes are an 8-letter keyword (continue, truncate, sockname, execprog, peercred) is refused error 16.
+note Workaround: rename (cont_x, trunc_num). Expected to change when the compiler fix is pinned
+fn continue_x to int
+ret 7
+end
+fn main to int
+ret continue_x
+end
+</pre><p class="ref-file">File: <code>examples/defect_keyword_prefix.expect</code></p><pre>
+compile 16
+stderr omc: line 4: error 16
+</pre></article><article class="ref-ex" id="ex-echo_args"><h3>echo_args</h3><p class="ref-file">File: <code>examples/echo_args.om</code></p><pre>
+note echo_args: argcnt includes the program name; argread copies one argument without a terminator
+note ---- output helpers: a function works on a global by naming it (a global is never an argument)
+global ob uchar 32
+note outb: write ob[off .. off+n) to stdout; a short write continues, 0 or an error exits 90
+note bound: every pass writes at least one byte and n &lt;= 32, so at most 32 passes
+fn outb off ulong n ulong to void
+e = add off n
+p = off
+while lt p e bound 32
+k = write 1 ob p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline. A ulong has at most 20 digits, so 20 passes
+fn putu v ulong to void
+i = ulong 31
+put ob 31 10
+n = v
+while true bound 20
+i = sub i 1
+put ob i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outb i sub 32 i
+end
+note putl: a signed value; -(v+1)+1 avoids negating the minimum, which would trap 1
+fn putl v long to void
+if lt v 0
+put ob 0 45
+outb 0 1
+putu add ulong neg add v 1 1
+ret
+end
+putu ulong v
+end
+global ab uchar 32
+text toolong &quot;(longer than 31 bytes)\n&quot;
+fn main to int
+n = argcnt
+putl n
+i = ulong 1
+while lt long i n bound 64
+k = argread i ab 0 31
+if eq k -105
+w = write 1 toolong 0 len toolong
+else
+m = ulong k
+put ab m 10
+outbuf m
+end
+i = add i 1
+end
+ret 0
+end
+note outbuf: write ab[0 .. m] (the argument and its newline); exit 90 on an error
+fn outbuf m ulong to void
+e = add m 1
+p = ulong 0
+while lt p e bound 32
+k = write 1 ab p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+</pre><p class="ref-file">File: <code>examples/echo_args.expect</code></p><pre>
+compile 0
+exit 0
+</pre><p class="ref-file">File: <code>examples/echo_args.args</code></p><pre>
+one
+two words
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+</pre><p class="ref-file">File: <code>examples/echo_args.stdout</code></p><pre>
+5
+one
+two words
+
+(longer than 31 bytes)
+</pre></article><article class="ref-ex" id="ex-empty_text_part"><h3>empty_text_part</h3><p class="ref-file">File: <code>examples/empty_text_part.om</code></p><pre>
+note empty_text_part: known defect at the pin (omega-mv #775): an empty text passed to an unsized view
+note does not arrive with len 0. Workaround, shown here: pass part e 0 0, which arrives with len 0
+om2
+text e &quot;&quot;
+text f &quot;0123456789abcdef0123456789abcdef&quot;
+fn n a view uchar * to ulong
+ret len a
+end
+fn main to int
+k = n part e 0 0
+if ne k 0
+ret 1
+end
+m = n f
+if ne m 32
+ret 2
+end
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/empty_text_part.expect</code></p><pre>
+compile 0
+exit 0
+</pre></article><article class="ref-ex" id="ex-env_read"><h3>env_read</h3><p class="ref-file">File: <code>examples/env_read.om</code></p><pre>
+note env_read: envcnt counts the environment entries; envread copies one KEY=VALUE without a terminator
+note ---- output helpers: a function works on a global by naming it (a global is never an argument)
+global ob uchar 32
+note outb: write ob[off .. off+n) to stdout; a short write continues, 0 or an error exits 90
+note bound: every pass writes at least one byte and n &lt;= 32, so at most 32 passes
+fn outb off ulong n ulong to void
+e = add off n
+p = off
+while lt p e bound 32
+k = write 1 ob p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline. A ulong has at most 20 digits, so 20 passes
+fn putu v ulong to void
+i = ulong 31
+put ob 31 10
+n = v
+while true bound 20
+i = sub i 1
+put ob i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outb i sub 32 i
+end
+note putl: a signed value; -(v+1)+1 avoids negating the minimum, which would trap 1
+fn putl v long to void
+if lt v 0
+put ob 0 45
+outb 0 1
+putu add ulong neg add v 1 1
+ret
+end
+putu ulong v
+end
+global eb uchar 64
+fn main to int
+n = envcnt
+putl n
+i = ulong 0
+while lt long i n bound 64
+k = envread i eb 0 63
+if lt k 0
+note -105: the entry is longer than the capacity; the buffer is unchanged
+k = long 0
+end
+m = ulong k
+put eb m 10
+e = add m 1
+p = ulong 0
+while lt p e bound 64
+w = write 1 eb p sub e p
+if le w 0
+exit 90
+end
+p = add p ulong w
+end
+i = add i 1
+end
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/env_read.expect</code></p><pre>
+compile 0
+exit 0
+</pre><p class="ref-file">File: <code>examples/env_read.env</code></p><pre>
+LANG=C
+OMEGA_HOME=/opt/omega
+EMPTY=
+LONG=vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+</pre><p class="ref-file">File: <code>examples/env_read.stdout</code></p><pre>
+4
+LANG=C
+OMEGA_HOME=/opt/omega
+EMPTY=
+
+</pre></article><article class="ref-ex" id="ex-err01_input"><h3>err01_input</h3><p class="ref-file">File: <code>examples/err01_input.om</code></p><pre>
+note err01_input: error 1, the compiler could not read its input. The gate feeds a directory as stdin; this file is a placeholder valid program
+fn main to int
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/err01_input.expect</code></p><pre>
+input dir
+compile 1
+stderr omc: line 0: error 1
+</pre></article><article class="ref-ex" id="ex-err02_output"><h3>err02_output</h3><p class="ref-file">File: <code>examples/err02_output.om</code></p><pre>
+note err02_output: error 2, the compiler could not write its output. The gate sends stdout to /dev/full; the program itself is valid
+fn main to int
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/err02_output.expect</code></p><pre>
+output full
+compile 2
+stderr omc: line 5: error 2
+</pre></article><article class="ref-ex" id="ex-err03_unknown_name"><h3>err03_unknown_name</h3><p class="ref-file">File: <code>examples/err03_unknown_name.om</code></p><pre>
+note err03_unknown_name: a name that was never assigned, or an unknown field. Fix: assign it first, check spelling
+fn main to int
+ret q
+end
+</pre><p class="ref-file">File: <code>examples/err03_unknown_name.expect</code></p><pre>
+compile 3
+stderr omc: line 3: error 3
+</pre></article><article class="ref-ex" id="ex-err04_line_ends"><h3>err04_line_ends</h3><p class="ref-file">File: <code>examples/err04_line_ends.om</code></p><pre>
+note err04_line_ends: the line ends before the statement is complete; here sub needs two values
+fn main to int
+x = int 5
+ret sub x
+end
+</pre><p class="ref-file">File: <code>examples/err04_line_ends.expect</code></p><pre>
+compile 4
+stderr omc: line 5: error 4
+</pre></article><article class="ref-ex" id="ex-err05_extra_words"><h3>err05_extra_words</h3><p class="ref-file">File: <code>examples/err05_extra_words.om</code></p><pre>
+note err05_extra_words: words left over after a complete statement; prefix words have fixed arity
+fn main to int
+x = int 5
+ret x 1
+end
+</pre><p class="ref-file">File: <code>examples/err05_extra_words.expect</code></p><pre>
+compile 5
+stderr omc: line 4: error 5
+</pre></article><article class="ref-ex" id="ex-err06_bad_number"><h3>err06_bad_number</h3><p class="ref-file">File: <code>examples/err06_bad_number.om</code></p><pre>
+note err06_bad_number: a malformed number; outside OM-2 there are no hex literals
+fn main to int
+x = uint 0x10
+ret int x
+end
+</pre><p class="ref-file">File: <code>examples/err06_bad_number.expect</code></p><pre>
+compile 6
+stderr omc: line 3: error 6
+</pre></article><article class="ref-ex" id="ex-err07_type_mismatch"><h3>err07_type_mismatch</h3><p class="ref-file">File: <code>examples/err07_type_mismatch.om</code></p><pre>
+note err07_type_mismatch: no implicit conversions; both values of an op have one type. Fix: add int 1 int u
+fn main to int
+u = uint 2
+x = add int 1 u
+ret x
+end
+</pre><p class="ref-file">File: <code>examples/err07_type_mismatch.expect</code></p><pre>
+compile 7
+stderr omc: line 4: error 7
+</pre></article><article class="ref-ex" id="ex-err08_out_of_range"><h3>err08_out_of_range</h3><p class="ref-file">File: <code>examples/err08_out_of_range.om</code></p><pre>
+note err08_out_of_range: a literal that does not fit its type; int is -2147483648 .. 2147483647
+fn main to int
+x = int 2147483648
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/err08_out_of_range.expect</code></p><pre>
+compile 8
+stderr omc: line 3: error 8
+</pre></article><article class="ref-ex" id="ex-err09_disallowed"><h3>err09_disallowed</h3><p class="ref-file">File: <code>examples/err09_disallowed.om</code></p><pre>
+note err09_disallowed: a word in a place it is not allowed; new is only in a function's outermost block
+fn main to int
+if true
+a = new uchar 4 0
+end
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/err09_disallowed.expect</code></p><pre>
+compile 9
+stderr omc: line 4: error 9
+</pre></article><article class="ref-ex" id="ex-err10_duplicate"><h3>err10_duplicate</h3><p class="ref-file">File: <code>examples/err10_duplicate.om</code></p><pre>
+note err10_duplicate: a new name may not repeat a visible name, a function or a struct
+fn f x int x int to int
+ret x
+end
+fn main to int
+ret f 1 2
+end
+</pre><p class="ref-file">File: <code>examples/err10_duplicate.expect</code></p><pre>
+compile 10
+stderr omc: line 2: error 10
+</pre></article><article class="ref-ex" id="ex-err11_ambiguous"><h3>err11_ambiguous</h3><p class="ref-file">File: <code>examples/err11_ambiguous.om</code></p><pre>
+note err11_ambiguous: a bare number with nothing to give it a type. Fix: x = uint 5
+fn main to int
+x = 5
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/err11_ambiguous.expect</code></p><pre>
+compile 11
+stderr omc: line 3: error 11
+</pre></article><article class="ref-ex" id="ex-err12_registers"><h3>err12_registers</h3><p class="ref-file">File: <code>examples/err12_registers.om</code></p><pre>
+note err12_registers: the 17th live name exhausts the 16-register pool. Fix: fewer live names, smaller functions
+fn main to int
+a1 = int 1
+a2 = int 2
+a3 = int 3
+a4 = int 4
+a5 = int 5
+a6 = int 6
+a7 = int 7
+a8 = int 8
+a9 = int 9
+a10 = int 10
+a11 = int 11
+a12 = int 12
+a13 = int 13
+a14 = int 14
+a15 = int 15
+a16 = int 16
+a17 = int 17
+ret add a1 add a2 add a3 add a4 add a5 add a6 add a7 add a8 add a9 add a10 add a11 add a12 add a13 add a14 add a15 add a16 a17
+end
+</pre><p class="ref-file">File: <code>examples/err12_registers.expect</code></p><pre>
+compile 12
+stderr omc: line 19: error 12
+</pre></article><article class="ref-ex" id="ex-err13_long_name"><h3>err13_long_name</h3><p class="ref-file">File: <code>examples/err13_long_name.om</code></p><pre>
+note err13_long_name: a variable, parameter, global, text, const, struct or field name has at most 8 characters
+fn main to int
+counter1x = int 1
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/err13_long_name.expect</code></p><pre>
+compile 13
+stderr omc: line 3: error 13
+</pre></article><article class="ref-ex" id="ex-err14_capacity"><h3>err14_capacity</h3><p class="ref-file">File: <code>examples/err14_capacity.om</code></p><pre>
+note err14_capacity: a compiler capacity; here the 33rd export in one OM-2 unit (limit 32). Exports are function mode, so no main
+om2
+export fn e0 x uint to uint
+ret x
+end
+export fn e1 x uint to uint
+ret x
+end
+export fn e2 x uint to uint
+ret x
+end
+export fn e3 x uint to uint
+ret x
+end
+export fn e4 x uint to uint
+ret x
+end
+export fn e5 x uint to uint
+ret x
+end
+export fn e6 x uint to uint
+ret x
+end
+export fn e7 x uint to uint
+ret x
+end
+export fn e8 x uint to uint
+ret x
+end
+export fn e9 x uint to uint
+ret x
+end
+export fn e10 x uint to uint
+ret x
+end
+export fn e11 x uint to uint
+ret x
+end
+export fn e12 x uint to uint
+ret x
+end
+export fn e13 x uint to uint
+ret x
+end
+export fn e14 x uint to uint
+ret x
+end
+export fn e15 x uint to uint
+ret x
+end
+export fn e16 x uint to uint
+ret x
+end
+export fn e17 x uint to uint
+ret x
+end
+export fn e18 x uint to uint
+ret x
+end
+export fn e19 x uint to uint
+ret x
+end
+export fn e20 x uint to uint
+ret x
+end
+export fn e21 x uint to uint
+ret x
+end
+export fn e22 x uint to uint
+ret x
+end
+export fn e23 x uint to uint
+ret x
+end
+export fn e24 x uint to uint
+ret x
+end
+export fn e25 x uint to uint
+ret x
+end
+export fn e26 x uint to uint
+ret x
+end
+export fn e27 x uint to uint
+ret x
+end
+export fn e28 x uint to uint
+ret x
+end
+export fn e29 x uint to uint
+ret x
+end
+export fn e30 x uint to uint
+ret x
+end
+export fn e31 x uint to uint
+ret x
+end
+export fn e32 x uint to uint
+ret x
+end
+</pre><p class="ref-file">File: <code>examples/err14_capacity.expect</code></p><pre>
+compile 14
+stderr omc: line 99: error 14
+</pre></article><article class="ref-ex" id="ex-err15_missing_end"><h3>err15_missing_end</h3><p class="ref-file">File: <code>examples/err15_missing_end.om</code></p><pre>
+note err15_missing_end: the input ends inside an open function or block
+fn main to int
+ret 0
+</pre><p class="ref-file">File: <code>examples/err15_missing_end.expect</code></p><pre>
+compile 15
+stderr omc: line 4: error 15
+</pre></article><article class="ref-ex" id="ex-err16_syntax"><h3>err16_syntax</h3><p class="ref-file">File: <code>examples/err16_syntax.om</code></p><pre>
+note err16_syntax: a line that starts with no statement word; C-style declarations are not Omega
+int main to int
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/err16_syntax.expect</code></p><pre>
+compile 16
+stderr omc: line 2: error 16
+</pre></article><article class="ref-ex" id="ex-err17_after_path"><h3>err17_after_path</h3><p class="ref-file">File: <code>examples/err17_after_path.om</code></p><pre>
+note err17_after_path: a line after ret, break, continue, trap or exit in the same block can never run
+fn main to int
+ret 0
+ret 1
+end
+</pre><p class="ref-file">File: <code>examples/err17_after_path.expect</code></p><pre>
+compile 17
+stderr omc: line 4: error 17
+</pre></article><article class="ref-ex" id="ex-err18_missing_ret"><h3>err18_missing_ret</h3><p class="ref-file">File: <code>examples/err18_missing_ret.om</code></p><pre>
+note err18_missing_ret: a function with a result type whose end is reachable
+fn f x int to int
+if gt x 0
+ret 1
+end
+end
+fn main to int
+ret f 1
+end
+</pre><p class="ref-file">File: <code>examples/err18_missing_ret.expect</code></p><pre>
+compile 18
+stderr omc: line 7: error 18
+</pre></article><article class="ref-ex" id="ex-err19_global_arg"><h3>err19_global_arg</h3><p class="ref-file">File: <code>examples/err19_global_arg.om</code></p><pre>
+note err19_global_arg: a global is never an argument. Fix: name the global inside the function
+global g uchar 4
+fn f a edit uchar 4 to void
+put a 0 1
+end
+fn main to int
+f g
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/err19_global_arg.expect</code></p><pre>
+compile 19
+stderr omc: line 7: error 19
+</pre></article><article class="ref-ex" id="ex-err20_readonly"><h3>err20_readonly</h3><p class="ref-file">File: <code>examples/err20_readonly.om</code></p><pre>
+note err20_readonly: a text or a view parameter is read-only
+text t &quot;abc&quot;
+fn main to int
+put t 0 1
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/err20_readonly.expect</code></p><pre>
+compile 20
+stderr omc: line 4: error 20
+</pre></article><article class="ref-ex" id="ex-err21_const_index"><h3>err21_const_index</h3><p class="ref-file">File: <code>examples/err21_const_index.om</code></p><pre>
+note err21_const_index: a literal index outside the array is refused at compile time (a run-time index traps 3)
+fn main to int
+a = new uint 4 0
+put a 4 1
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/err21_const_index.expect</code></p><pre>
+compile 21
+stderr omc: line 4: error 21
+</pre></article><article class="ref-ex" id="ex-err22_text_escape"><h3>err22_text_escape</h3><p class="ref-file">File: <code>examples/err22_text_escape.om</code></p><pre>
+note err22_text_escape: a text escape other than backslash n, t, backslash or quote
+text t &quot;a\q&quot;
+fn main to int
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/err22_text_escape.expect</code></p><pre>
+compile 22
+stderr omc: line 2: error 22
+</pre></article><article class="ref-ex" id="ex-err23_size"><h3>err23_size</h3><p class="ref-file">File: <code>examples/err23_size.om</code></p><pre>
+note err23_size: an array over 16777216 elements, or over 4 MiB of local arrays, or 1 GiB of globals
+fn main to int
+a = new uchar 16777217 0
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/err23_size.expect</code></p><pre>
+compile 23
+stderr omc: line 3: error 23
+</pre></article><article class="ref-ex" id="ex-err27_fresh"><h3>err27_fresh</h3><p class="ref-file">File: <code>examples/err27_fresh.om</code></p><pre>
+note err27_fresh: OM-2 fresh means every element is written before it is read
+om2
+fn f s edit uint 4 fresh to uint
+ret get s 0
+end
+fn main to int
+a = new uint 4 0
+ret int f a
+end
+</pre><p class="ref-file">File: <code>examples/err27_fresh.expect</code></p><pre>
+compile 27
+stderr omc: line 4: error 27
+</pre></article><article class="ref-ex" id="ex-err28_seal"><h3>err28_seal</h3><p class="ref-file">File: <code>examples/err28_seal.om</code></p><pre>
+note err28_seal: OM-2 seal is allowed only as the whole body of the abstract type's constructor
+om2
+abstract v32 ulong
+holds v32 dup32
+fn main to int
+v = seal v32 ulong 0
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/err28_seal.expect</code></p><pre>
+compile 28
+stderr omc: line 6: error 28
+</pre></article><article class="ref-ex" id="ex-err29_layout"><h3>err29_layout</h3><p class="ref-file">File: <code>examples/err29_layout.om</code></p><pre>
+note err29_layout: an OM-2 layout field past the layout's size, or overlapping another field
+om2
+layout blk 4
+field lo uint at 2 little
+end
+fn main to int
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/err29_layout.expect</code></p><pre>
+compile 29
+stderr omc: line 4: error 29
+</pre></article><article class="ref-ex" id="ex-err30_contract"><h3>err30_contract</h3><p class="ref-file">File: <code>examples/err30_contract.om</code></p><pre>
+note err30_contract: a contract clause may not call a function, use floats or host words; result needs a value postcondition
+om2
+fn g x uint to uint
+ret x
+end
+fn f x uint to uint
+requires lt g x 10
+ret x
+end
+fn main to int
+ret int f 1
+end
+</pre><p class="ref-file">File: <code>examples/err30_contract.expect</code></p><pre>
+compile 30
+stderr omc: line 7: error 30
+</pre></article><article class="ref-ex" id="ex-exit_status"><h3>exit_status</h3><p class="ref-file">File: <code>examples/exit_status.om</code></p><pre>
+note exit_status: the exit status is main's value mod 256; 300 mod 256 = 44
+fn main to int
+ret 300
+end
+</pre><p class="ref-file">File: <code>examples/exit_status.expect</code></p><pre>
+compile 0
+exit 44
+</pre><p class="ref-file">File: <code>examples/exit_status.stdout</code> (empty file)</p></article><article class="ref-ex" id="ex-float_arith"><h3>float_arith</h3><p class="ref-file">File: <code>examples/float_arith.om</code></p><pre>
+note float_arith: IEEE binary64, round to nearest even, no float operation traps
+note ---- output helpers: a function works on a global by naming it (a global is never an argument)
+global ob uchar 32
+note outb: write ob[off .. off+n) to stdout; a short write continues, 0 or an error exits 90
+note bound: every pass writes at least one byte and n &lt;= 32, so at most 32 passes
+fn outb off ulong n ulong to void
+e = add off n
+p = off
+while lt p e bound 32
+k = write 1 ob p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline. A ulong has at most 20 digits, so 20 passes
+fn putu v ulong to void
+i = ulong 31
+put ob 31 10
+n = v
+while true bound 20
+i = sub i 1
+put ob i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outb i sub 32 i
+end
+note putl: a signed value; -(v+1)+1 avoids negating the minimum, which would trap 1
+fn putl v long to void
+if lt v 0
+put ob 0 45
+outb 0 1
+putu add ulong neg add v 1 1
+ret
+end
+putu ulong v
+end
+fn main to int
+r = fsqrt 2.0f64
+putl long mul r 1000000000.0
+s = add 0.1f64 0.2
+putu bitcast ulong s
+putu bitcast ulong 1.0f64
+z = f64 0.0
+n = div z z
+if ne n n
+putu 1
+end
+if eq n n
+putu 2
+end
+i = div 1.0 z
+if gt i 1.0e308
+putu 3
+end
+putl long fmin -2.5f64 3.0f64
+putl long fabs -7.9f64
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/float_arith.expect</code></p><pre>
+compile 0
+exit 0
+</pre><p class="ref-file">File: <code>examples/float_arith.stdout</code></p><pre>
+1414213562
+4599075939470750516
+4607182418800017408
+1
+3
+-2
+7
+</pre></article><article class="ref-ex" id="ex-float_to_int"><h3>float_to_int</h3><p class="ref-file">File: <code>examples/float_to_int.om</code></p><pre>
+note float_to_int: float to integer truncates toward zero and saturates; NaN becomes 0; no trap
+note ---- output helpers: a function works on a global by naming it (a global is never an argument)
+global ob uchar 32
+note outb: write ob[off .. off+n) to stdout; a short write continues, 0 or an error exits 90
+note bound: every pass writes at least one byte and n &lt;= 32, so at most 32 passes
+fn outb off ulong n ulong to void
+e = add off n
+p = off
+while lt p e bound 32
+k = write 1 ob p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline. A ulong has at most 20 digits, so 20 passes
+fn putu v ulong to void
+i = ulong 31
+put ob 31 10
+n = v
+while true bound 20
+i = sub i 1
+put ob i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outb i sub 32 i
+end
+note putl: a signed value; -(v+1)+1 avoids negating the minimum, which would trap 1
+fn putl v long to void
+if lt v 0
+put ob 0 45
+outb 0 1
+putu add ulong neg add v 1 1
+ret
+end
+putu ulong v
+end
+fn main to int
+putl long 1.0e30f64
+putl long -1.0e30f64
+putl long -5.75f64
+putu ulong uint -5.5f64
+z = f64 0.0
+putl long div z z
+putu ulong uchar 300.0f64
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/float_to_int.expect</code></p><pre>
+compile 0
+exit 0
+</pre><p class="ref-file">File: <code>examples/float_to_int.stdout</code></p><pre>
+9223372036854775807
+-9223372036854775808
+-5
+0
+0
+255
+</pre></article><article class="ref-ex" id="ex-functions"><h3>functions</h3><p class="ref-file">File: <code>examples/functions.om</code></p><pre>
+note functions: at most 6 parameters; a call may name any function in the unit; recursion in program mode
+note ---- output helpers: a function works on a global by naming it (a global is never an argument)
+global ob uchar 32
+note outb: write ob[off .. off+n) to stdout; a short write continues, 0 or an error exits 90
+note bound: every pass writes at least one byte and n &lt;= 32, so at most 32 passes
+fn outb off ulong n ulong to void
+e = add off n
+p = off
+while lt p e bound 32
+k = write 1 ob p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline. A ulong has at most 20 digits, so 20 passes
+fn putu v ulong to void
+i = ulong 31
+put ob 31 10
+n = v
+while true bound 20
+i = sub i 1
+put ob i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outb i sub 32 i
+end
+note putl: a signed value; -(v+1)+1 avoids negating the minimum, which would trap 1
+fn putl v long to void
+if lt v 0
+put ob 0 45
+outb 0 1
+putu add ulong neg add v 1 1
+ret
+end
+putu ulong v
+end
+fn main to int
+putu fact 20
+putu gcd 1071 462
+putu ulong pick 1 2 3 4 5 6
+ret 0
+end
+fn fact n ulong to ulong
+if le n 1
+ret 1
+end
+ret mul n fact sub n 1
+end
+fn gcd a ulong b ulong to ulong
+x = a
+y = b
+while ne y 0 bound 200
+t = rem x y
+x = y
+y = t
+end
+ret x
+end
+fn pick a int b int c int d int e int f int to int
+ret add add a f mul b sub e d
+end
+</pre><p class="ref-file">File: <code>examples/functions.expect</code></p><pre>
+compile 0
+exit 0
+</pre><p class="ref-file">File: <code>examples/functions.stdout</code></p><pre>
+2432902008176640000
+21
+9
+</pre></article><article class="ref-ex" id="ex-globals"><h3>globals</h3><p class="ref-file">File: <code>examples/globals.om</code></p><pre>
+note globals: zero-filled pools in the program image, visible in every function, named directly
+note ---- output helpers: a function works on a global by naming it (a global is never an argument)
+global ob uchar 32
+note outb: write ob[off .. off+n) to stdout; a short write continues, 0 or an error exits 90
+note bound: every pass writes at least one byte and n &lt;= 32, so at most 32 passes
+fn outb off ulong n ulong to void
+e = add off n
+p = off
+while lt p e bound 32
+k = write 1 ob p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline. A ulong has at most 20 digits, so 20 passes
+fn putu v ulong to void
+i = ulong 31
+put ob 31 10
+n = v
+while true bound 20
+i = sub i 1
+put ob i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outb i sub 32 i
+end
+note putl: a signed value; -(v+1)+1 avoids negating the minimum, which would trap 1
+fn putl v long to void
+if lt v 0
+put ob 0 45
+outb 0 1
+putu add ulong neg add v 1 1
+ret
+end
+putu ulong v
+end
+global hist ulong 10
+note tally: count the decimal digits of v into hist
+fn tally v ulong to void
+n = v
+while true bound 20
+d = rem n 10
+put hist d add get hist d 1
+n = div n 10
+if eq n 0
+break
+end
+end
+end
+fn main to int
+tally 1234567890
+tally 9999
+tally 0
+putu get hist 9
+putu get hist 0
+putu get hist 5
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/globals.expect</code></p><pre>
+compile 0
+exit 0
+</pre><p class="ref-file">File: <code>examples/globals.stdout</code></p><pre>
+5
+2
+1
+</pre></article><article class="ref-ex" id="ex-hello"><h3>hello</h3><p class="ref-file">File: <code>examples/hello.om</code></p><pre>
+note hello: the smallest complete program. A text is a read-only uchar array
+text msg &quot;hello, world\n&quot;
+fn main to int
+k = write 1 msg 0 len msg
+if ne k long len msg
+ret 1
+end
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/hello.expect</code></p><pre>
+compile 0
+exit 0
+</pre><p class="ref-file">File: <code>examples/hello.stdout</code></p><pre>
+hello, world
+</pre></article><article class="ref-ex" id="ex-int_arith"><h3>int_arith</h3><p class="ref-file">File: <code>examples/int_arith.om</code></p><pre>
+note int_arith: signed div rounds toward zero, rem takes the dividend's sign, shr keeps the sign
+note ---- output helpers: a function works on a global by naming it (a global is never an argument)
+global ob uchar 32
+note outb: write ob[off .. off+n) to stdout; a short write continues, 0 or an error exits 90
+note bound: every pass writes at least one byte and n &lt;= 32, so at most 32 passes
+fn outb off ulong n ulong to void
+e = add off n
+p = off
+while lt p e bound 32
+k = write 1 ob p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline. A ulong has at most 20 digits, so 20 passes
+fn putu v ulong to void
+i = ulong 31
+put ob 31 10
+n = v
+while true bound 20
+i = sub i 1
+put ob i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outb i sub 32 i
+end
+note putl: a signed value; -(v+1)+1 avoids negating the minimum, which would trap 1
+fn putl v long to void
+if lt v 0
+put ob 0 45
+outb 0 1
+putu add ulong neg add v 1 1
+ret
+end
+putu ulong v
+end
+fn main to int
+a = long -7
+b = long 2
+putl div a b
+putl rem a b
+putl div 7 neg b
+putl rem 7 neg b
+putl mul 123456789 long 987654321
+putl shr long -16 2
+putl sub 0 a
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/int_arith.expect</code></p><pre>
+compile 0
+exit 0
+</pre><p class="ref-file">File: <code>examples/int_arith.stdout</code></p><pre>
+-3
+-1
+-3
+1
+121932631112635269
+-4
+7
+</pre></article><article class="ref-ex" id="ex-int_bits_and"><h3>int_bits_and</h3><p class="ref-file">File: <code>examples/int_bits_and.om</code></p><pre>
+note int_bits_and: and, or, xor on integers are bitwise. 12 is 1100, 10 is 1010, so and gives 1000 = 8
+fn main to int
+x = ulong 12
+y = and x ulong 10
+z = and int 12 int 10
+if ne int y z
+ret 1
+end
+ret z
+end
+</pre><p class="ref-file">File: <code>examples/int_bits_and.expect</code></p><pre>
+compile 0
+exit 8
+</pre></article><article class="ref-ex" id="ex-loops"><h3>loops</h3><p class="ref-file">File: <code>examples/loops.om</code></p><pre>
+note loops: while COND bound N (1..999999), for i T K, break and continue
+note ---- output helpers: a function works on a global by naming it (a global is never an argument)
+global ob uchar 32
+note outb: write ob[off .. off+n) to stdout; a short write continues, 0 or an error exits 90
+note bound: every pass writes at least one byte and n &lt;= 32, so at most 32 passes
+fn outb off ulong n ulong to void
+e = add off n
+p = off
+while lt p e bound 32
+k = write 1 ob p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline. A ulong has at most 20 digits, so 20 passes
+fn putu v ulong to void
+i = ulong 31
+put ob 31 10
+n = v
+while true bound 20
+i = sub i 1
+put ob i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outb i sub 32 i
+end
+note putl: a signed value; -(v+1)+1 avoids negating the minimum, which would trap 1
+fn putl v long to void
+if lt v 0
+put ob 0 45
+outb 0 1
+putu add ulong neg add v 1 1
+ret
+end
+putu ulong v
+end
+note collatz: the step count to reach 1; the bound is a stated limit, not a proof, so exceeding it traps 4
+fn collatz n ulong to ulong
+x = n
+c = ulong 0
+while ne x 1 bound 1000
+c = add c 1
+if eq rem x 2 0
+x = div x 2
+continue
+end
+x = add mul x 3 1
+end
+ret c
+end
+fn main to int
+putu collatz 27
+s = ulong 0
+for i ulong 100
+if eq rem i 3 0
+continue
+end
+if gt i 50
+break
+end
+s = add s i
+end
+putu s
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/loops.expect</code></p><pre>
+compile 0
+exit 0
+</pre><p class="ref-file">File: <code>examples/loops.stdout</code></p><pre>
+111
+867
+</pre></article><article class="ref-ex" id="ex-mistake_bound_range"><h3>mistake_bound_range</h3><p class="ref-file">File: <code>examples/mistake_bound_range.om</code></p><pre>
+note mistake_bound_range: a while bound is 1..999999; without bound the limit is 1000000 passes
+fn main to int
+i = ulong 0
+while lt i 3 bound 1000000
+i = add i 1
+end
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/mistake_bound_range.expect</code></p><pre>
+compile 8
+stderr omc: line 4: error 8
+</pre></article><article class="ref-ex" id="ex-mistake_c_call"><h3>mistake_c_call</h3><p class="ref-file">File: <code>examples/mistake_c_call.om</code></p><pre>
+note mistake_c_call: a call is the function name then its values, no brackets or commas. Fix: ret f 1 2
+fn f a int b int to int
+ret add a b
+end
+fn main to int
+ret f(1, 2)
+end
+</pre><p class="ref-file">File: <code>examples/mistake_c_call.expect</code></p><pre>
+compile 6
+stderr omc: line 6: error 6
+</pre></article><article class="ref-ex" id="ex-mistake_char_literal"><h3>mistake_char_literal</h3><p class="ref-file">File: <code>examples/mistake_char_literal.om</code></p><pre>
+note mistake_char_literal: there are no character literals; write the byte value. Fix: x = uchar 65
+fn main to int
+x = uchar 'A'
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/mistake_char_literal.expect</code></p><pre>
+compile 3
+stderr omc: line 3: error 3
+</pre></article><article class="ref-ex" id="ex-mistake_compare_operator"><h3>mistake_compare_operator</h3><p class="ref-file">File: <code>examples/mistake_compare_operator.om</code></p><pre>
+note mistake_compare_operator: conditions are bool values built with eq ne lt le gt ge; &gt; is not a word. Fix: if gt x 0
+fn main to int
+x = int 1
+if x &gt; 0
+ret 1
+end
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/mistake_compare_operator.expect</code></p><pre>
+compile 7
+stderr omc: line 4: error 7
+</pre></article><article class="ref-ex" id="ex-mistake_else_if"><h3>mistake_else_if</h3><p class="ref-file">File: <code>examples/mistake_else_if.om</code></p><pre>
+note mistake_else_if: there is no else if on one line; nest an if inside the else block
+fn main to int
+x = int 1
+if eq x 0
+ret 1
+else if eq x 1
+ret 2
+end
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/mistake_else_if.expect</code></p><pre>
+compile 5
+stderr omc: line 6: error 5
+</pre></article><article class="ref-ex" id="ex-mistake_for_bound"><h3>mistake_for_bound</h3><p class="ref-file">File: <code>examples/mistake_for_bound.om</code></p><pre>
+note mistake_for_bound: for takes no bound; its count is the limit. Use while COND bound N for a bounded variable loop
+fn main to int
+n = ulong 5
+s = ulong 0
+for i ulong n bound 10
+s = add s i
+end
+ret int s
+end
+</pre><p class="ref-file">File: <code>examples/mistake_for_bound.expect</code></p><pre>
+compile 5
+stderr omc: line 5: error 5
+</pre></article><article class="ref-ex" id="ex-mistake_free"><h3>mistake_free</h3><p class="ref-file">File: <code>examples/mistake_free.om</code></p><pre>
+note mistake_free: there is no heap and no free; arrays are new in the outermost block or global
+fn main to int
+free = int 1
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/mistake_free.expect</code></p><pre>
+compile 9
+stderr omc: line 3: error 9
+</pre></article><article class="ref-ex" id="ex-mistake_infix"><h3>mistake_infix</h3><p class="ref-file">File: <code>examples/mistake_infix.om</code></p><pre>
+note mistake_infix: there are no infix operators; write the prefix word. Fix: y = add x 1
+fn main to int
+x = int 1
+y = x + 1
+ret y
+end
+</pre><p class="ref-file">File: <code>examples/mistake_infix.expect</code></p><pre>
+compile 5
+stderr omc: line 4: error 5
+</pre></article><article class="ref-ex" id="ex-mistake_main_args"><h3>mistake_main_args</h3><p class="ref-file">File: <code>examples/mistake_main_args.om</code></p><pre>
+note mistake_main_args: main takes no parameters; read arguments with argcnt and argread
+fn main argc int to int
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/mistake_main_args.expect</code></p><pre>
+compile 9
+stderr omc: line 5: error 9
+</pre></article><article class="ref-ex" id="ex-mistake_neg_name"><h3>mistake_neg_name</h3><p class="ref-file">File: <code>examples/mistake_neg_name.om</code></p><pre>
+note mistake_neg_name: neg is the negation word, so it cannot name a value or a text. Fix: pick another name, for example negv
+fn main to int
+neg = int 1
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/mistake_neg_name.expect</code></p><pre>
+compile 16
+stderr omc: line 3: error 16
+</pre></article><article class="ref-ex" id="ex-mistake_new_var_len"><h3>mistake_new_var_len</h3><p class="ref-file">File: <code>examples/mistake_new_var_len.om</code></p><pre>
+note mistake_new_var_len: a new length is a literal or an integer const, never a variable; there are no run-time-sized arrays
+fn main to int
+n = ulong 4
+a = new uchar n 0
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/mistake_new_var_len.expect</code></p><pre>
+compile 16
+stderr omc: line 4: error 16
+</pre></article><article class="ref-ex" id="ex-mistake_om1_rotr"><h3>mistake_om1_rotr</h3><p class="ref-file">File: <code>examples/mistake_om1_rotr.om</code></p><pre>
+note mistake_om1_rotr: rotr and hex need the om2 line; without it rotr is an unknown name
+fn main to int
+x = uint 1
+ret int rotr x 1
+end
+</pre><p class="ref-file">File: <code>examples/mistake_om1_rotr.expect</code></p><pre>
+compile 3
+stderr omc: line 4: error 3
+</pre></article><article class="ref-ex" id="ex-mistake_om2_int_hex"><h3>mistake_om2_int_hex</h3><p class="ref-file">File: <code>examples/mistake_om2_int_hex.om</code></p><pre>
+note mistake_om2_int_hex: a hex literal must fit its type as a value; 0xffffffff is not an int. Fix: int -1
+om2
+fn main to int
+x = int 0xffffffff
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/mistake_om2_int_hex.expect</code></p><pre>
+compile 8
+stderr omc: line 4: error 8
+</pre></article><article class="ref-ex" id="ex-mistake_om2_param_slots"><h3>mistake_om2_param_slots</h3><p class="ref-file">File: <code>examples/mistake_om2_param_slots.om</code></p><pre>
+note mistake_om2_param_slots: 2 unsized views plus 3 scalars need 7 slots; the limit is 6. Fix: a sized view, a struct, or fewer scalars
+om2
+fn f a view uchar * b view uchar * x int y int z int to int
+ret add add x y z
+end
+fn main to int
+a = new uchar 4 0
+ret f a a 1 2 3
+end
+</pre><p class="ref-file">File: <code>examples/mistake_om2_param_slots.expect</code></p><pre>
+compile 9
+stderr omc: line 3: error 9
+</pre></article><article class="ref-ex" id="ex-mistake_om2_part_global"><h3>mistake_om2_part_global</h3><p class="ref-file">File: <code>examples/mistake_om2_part_global.om</code></p><pre>
+note mistake_om2_part_global: part of a global is refused like any global argument; slice a local array
+om2
+global g uchar 8
+fn f a view uchar * to ulong
+ret len a
+end
+fn main to int
+ret int f part g 0 2
+end
+</pre><p class="ref-file">File: <code>examples/mistake_om2_part_global.expect</code></p><pre>
+compile 19
+stderr omc: line 8: error 19
+</pre></article><article class="ref-ex" id="ex-mistake_om2_part_sized"><h3>mistake_om2_part_sized</h3><p class="ref-file">File: <code>examples/mistake_om2_part_sized.om</code></p><pre>
+note mistake_om2_part_sized: part goes only to an unsized view T * parameter, not a sized one
+om2
+fn f a view uchar 2 to ulong
+ret len a
+end
+fn main to int
+b = new uchar 8 0
+ret int f part b 0 2
+end
+</pre><p class="ref-file">File: <code>examples/mistake_om2_part_sized.expect</code></p><pre>
+compile 7
+stderr omc: line 8: error 7
+</pre></article><article class="ref-ex" id="ex-mistake_om2_part_statement"><h3>mistake_om2_part_statement</h3><p class="ref-file">File: <code>examples/mistake_om2_part_statement.om</code></p><pre>
+note mistake_om2_part_statement: part A off n is only an argument to an unsized view parameter, never a value of its own
+om2
+fn main to int
+a = new uint 4 0
+p = part a 0 2
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/mistake_om2_part_statement.expect</code></p><pre>
+compile 9
+stderr omc: line 5: error 9
+</pre></article><article class="ref-ex" id="ex-mistake_om2_upper_hex"><h3>mistake_om2_upper_hex</h3><p class="ref-file">File: <code>examples/mistake_om2_upper_hex.om</code></p><pre>
+note mistake_om2_upper_hex: OM-2 hex digits are lowercase after a lowercase 0x
+om2
+fn main to int
+x = uint 0X10
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/mistake_om2_upper_hex.expect</code></p><pre>
+compile 6
+stderr omc: line 4: error 6
+</pre></article><article class="ref-ex" id="ex-mistake_param_length"><h3>mistake_param_length</h3><p class="ref-file">File: <code>examples/mistake_param_length.om</code></p><pre>
+note mistake_param_length: a sized array parameter takes exactly that length; use OM-2 view T * for any length
+fn f a view uchar 4 to uchar
+ret get a 0
+end
+fn main to int
+b = new uchar 8 0
+ret int f b
+end
+</pre><p class="ref-file">File: <code>examples/mistake_param_length.expect</code></p><pre>
+compile 7
+stderr omc: line 7: error 7
+</pre></article><article class="ref-ex" id="ex-mistake_reserved_name"><h3>mistake_reserved_name</h3><p class="ref-file">File: <code>examples/mistake_reserved_name.om</code></p><pre>
+note mistake_reserved_name: len, text, read, write, stat and every host word are reserved; pick another name
+fn main to int
+len = int 1
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/mistake_reserved_name.expect</code></p><pre>
+compile 16
+stderr omc: line 3: error 16
+</pre></article><article class="ref-ex" id="ex-mistake_return"><h3>mistake_return</h3><p class="ref-file">File: <code>examples/mistake_return.om</code></p><pre>
+note mistake_return: the word is ret. The = of an assignment is optional, so return x silently assigns x to a new name return; here the function then has no ret, error 18
+fn main to int
+x = int 1
+return x
+end
+</pre><p class="ref-file">File: <code>examples/mistake_return.expect</code></p><pre>
+compile 18
+stderr omc: line 6: error 18
+</pre></article><article class="ref-ex" id="ex-mistake_semicolon"><h3>mistake_semicolon</h3><p class="ref-file">File: <code>examples/mistake_semicolon.om</code></p><pre>
+note mistake_semicolon: one statement per line and no semicolons; the ; makes the number malformed
+fn main to int
+x = int 1;
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/mistake_semicolon.expect</code></p><pre>
+compile 6
+stderr omc: line 3: error 6
+</pre></article><article class="ref-ex" id="ex-mistake_seven_params"><h3>mistake_seven_params</h3><p class="ref-file">File: <code>examples/mistake_seven_params.om</code></p><pre>
+note mistake_seven_params: at most 6 parameters; pass a struct or an array for more
+fn f a int b int c int d int e int g int h int to int
+ret a
+end
+fn main to int
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/mistake_seven_params.expect</code></p><pre>
+compile 9
+stderr omc: line 2: error 9
+</pre></article><article class="ref-ex" id="ex-mistake_short_circuit"><h3>mistake_short_circuit</h3><p class="ref-file">File: <code>examples/mistake_short_circuit.om</code></p><pre>
+note mistake_short_circuit: and/or evaluate both sides, so this still loads a[4] and traps 3 (exit 103)
+note fix: test the bound in an outer if, then load inside it
+fn main to int
+a = new uchar 4 0
+i = ulong 4
+if and lt i len a eq get a i 0
+ret 1
+end
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/mistake_short_circuit.expect</code></p><pre>
+compile 0
+exit 103
+</pre><p class="ref-file">File: <code>examples/mistake_short_circuit.stdout</code> (empty file)</p></article><article class="ref-ex" id="ex-mistake_slash_comment"><h3>mistake_slash_comment</h3><p class="ref-file">File: <code>examples/mistake_slash_comment.om</code></p><pre>
+note mistake_slash_comment: note is the only comment form; // and # are unknown words
+// a comment
+fn main to int
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/mistake_slash_comment.expect</code></p><pre>
+compile 16
+stderr omc: line 2: error 16
+</pre></article><article class="ref-ex" id="ex-mistake_struct_after_fn"><h3>mistake_struct_after_fn</h3><p class="ref-file">File: <code>examples/mistake_struct_after_fn.om</code></p><pre>
+note mistake_struct_after_fn: a struct line comes before the first fn
+fn main to int
+ret 0
+end
+struct P a uint end
+</pre><p class="ref-file">File: <code>examples/mistake_struct_after_fn.expect</code></p><pre>
+compile 9
+stderr omc: line 5: error 9
+</pre></article><article class="ref-ex" id="ex-mistake_trap_range"><h3>mistake_trap_range</h3><p class="ref-file">File: <code>examples/mistake_trap_range.om</code></p><pre>
+note mistake_trap_range: trap takes 1..14; codes 9 and 10 are what contracts use, and the runtime owns 1..7
+fn main to int
+trap 15
+end
+</pre><p class="ref-file">File: <code>examples/mistake_trap_range.expect</code></p><pre>
+compile 8
+stderr omc: line 3: error 8
+</pre></article><article class="ref-ex" id="ex-mistake_value_stmt"><h3>mistake_value_stmt</h3><p class="ref-file">File: <code>examples/mistake_value_stmt.om</code></p><pre>
+note mistake_value_stmt: a function with a result cannot be a statement; bind its result. Fix: v = f
+fn f to int
+ret 1
+end
+fn main to int
+f
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/mistake_value_stmt.expect</code></p><pre>
+compile 7
+stderr omc: line 6: error 7
+</pre></article><article class="ref-ex" id="ex-om2_hex_rotr"><h3>om2_hex_rotr</h3><p class="ref-file">File: <code>examples/om2_hex_rotr.om</code></p><pre>
+note om2_hex_rotr: the first line that is not blank or a note opts in to OM-2: hex literals and rotr
+om2
+note ---- OM-2 output helpers: an unsized view parameter takes an array or text of any length
+note outv: write all of a to stdout; a short write continues, 0 or an error exits 90
+fn outv a view uchar * to void
+e = len a
+p = ulong 0
+while lt p e bound 65536
+k = write 1 a p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline
+note a part of a global is error 19, so the digits go in a local array
+fn putu v ulong to void
+b = new uchar 21 0
+i = ulong 20
+put b 20 10
+n = v
+while true bound 20
+i = sub i 1
+put b i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outv part b i sub 21 i
+end
+fn main to int
+x = uint 0xdeadbeef
+putu ulong x
+putu ulong rotr x 8
+putu 0xffffffffffffffff
+putu ulong and x 0xff
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/om2_hex_rotr.expect</code></p><pre>
+compile 0
+exit 0
+</pre><p class="ref-file">File: <code>examples/om2_hex_rotr.stdout</code></p><pre>
+3735928559
+4024348094
+18446744073709551615
+239
+</pre></article><article class="ref-ex" id="ex-om2_param_slots"><h3>om2_param_slots</h3><p class="ref-file">File: <code>examples/om2_param_slots.om</code></p><pre>
+note om2_param_slots: six parameter slots; an unsized view T * or edit T * takes two (pointer, count), every other parameter one
+note here 2 unsized views (4 slots) plus 2 scalars fill all six; a sized view uchar 4 would take one slot
+om2
+fn f a view uchar * b view uchar * x int y int to int
+ret int add add len a len b ulong add x y
+end
+fn g a view uchar 4 b view uchar 4 c view uchar 4 x int y int z int to int
+ret add add x y z
+end
+fn main to int
+a = new uchar 4 0
+b = new uchar 3 0
+c = new uchar 4 0
+d = new uchar 4 0
+r = f a b 1 2
+if ne r 10
+ret 1
+end
+s = g a c d 1 2 3
+if ne s 6
+ret 2
+end
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/om2_param_slots.expect</code></p><pre>
+compile 0
+exit 0
+</pre></article><article class="ref-ex" id="ex-om2_part_trap"><h3>om2_part_trap</h3><p class="ref-file">File: <code>examples/om2_part_trap.om</code></p><pre>
+note om2_part_trap: part A off n checks off + n &lt;= len A when it runs; past the end traps 3, exit 103
+om2
+text before &quot;before\n&quot;
+fn sum a view uint * to ulong
+s = ulong 0
+for i ulong len a
+s = add s ulong get a i
+end
+ret s
+end
+fn main to int
+k = write 1 before 0 len before
+a = new uint 4 1
+o = ulong 3
+t = sum part a o 2
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/om2_part_trap.expect</code></p><pre>
+compile 0
+exit 103
+</pre><p class="ref-file">File: <code>examples/om2_part_trap.stdout</code></p><pre>
+before
+</pre></article><article class="ref-ex" id="ex-om2_tour"><h3>om2_tour</h3><p class="ref-file">File: <code>examples/om2_tour.om</code></p><pre>
+note om2_tour: layout, abstract/holds/seal/open, fresh, unroll (after omega-mv examples/om2-tour.om)
+om2
+layout blk 8
+field lo uint at 0 little
+field hi uint at 4 big
+end
+abstract v32 ulong
+holds v32 dup32
+note the erasing constructor: the body is exactly this line
+fn v32mk x uint to v32
+ret seal v32 or shl ulong x 32 ulong x
+end
+note fresh: every element is written before it is read (error 27 otherwise)
+fn seed s edit uint 8 fresh to uint
+for i uint 8 unroll
+put s i mul i 3
+end
+ret get s 7
+end
+fn stamp c edit blk to void
+put c lo 0x01020304
+put c hi 0x05060708
+end
+fn main to int
+s = new uint 8 0
+v = seed s
+if ne v 21
+ret 1
+end
+c = new uchar 8 0
+stamp c
+if ne get c 0 0x04
+ret 2
+end
+if ne get c 4 0x05
+ret 3
+end
+u = open v32mk 7
+if ne u 0x0000000700000007
+ret 4
+end
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/om2_tour.expect</code></p><pre>
+compile 0
+exit 0
+</pre><p class="ref-file">File: <code>examples/om2_tour.stdout</code> (empty file)</p></article><article class="ref-ex" id="ex-om2_views"><h3>om2_views</h3><p class="ref-file">File: <code>examples/om2_views.om</code></p><pre>
+note om2_views: view T * is an unsized read-only parameter; part A off n passes a checked slice
+om2
+note ---- OM-2 output helpers: an unsized view parameter takes an array or text of any length
+note outv: write all of a to stdout; a short write continues, 0 or an error exits 90
+fn outv a view uchar * to void
+e = len a
+p = ulong 0
+while lt p e bound 65536
+k = write 1 a p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline
+note a part of a global is error 19, so the digits go in a local array
+fn putu v ulong to void
+b = new uchar 21 0
+i = ulong 20
+put b 20 10
+n = v
+while true bound 20
+i = sub i 1
+put b i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outv part b i sub 21 i
+end
+text greet &quot;views and slices\n&quot;
+fn sum a view uint * to ulong
+s = ulong 0
+for i ulong len a
+s = add s ulong get a i
+end
+ret s
+end
+fn main to int
+outv greet
+a = new uint 6 0
+for i ulong 6
+put a i uint add i 1
+end
+putu sum a
+putu sum part a 1 3
+putu sum part a 5 1
+outv part greet 0 6
+outv part greet 16 1
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/om2_views.expect</code></p><pre>
+compile 0
+exit 0
+</pre><p class="ref-file">File: <code>examples/om2_views.stdout</code></p><pre>
+views and slices
+21
+9
+6
+views 
+</pre></article><article class="ref-ex" id="ex-print_decimal"><h3>print_decimal</h3><p class="ref-file">File: <code>examples/print_decimal.om</code></p><pre>
+note print_decimal: the output helpers every other example copies
+note ---- output helpers: a function works on a global by naming it (a global is never an argument)
+global ob uchar 32
+note outb: write ob[off .. off+n) to stdout; a short write continues, 0 or an error exits 90
+note bound: every pass writes at least one byte and n &lt;= 32, so at most 32 passes
+fn outb off ulong n ulong to void
+e = add off n
+p = off
+while lt p e bound 32
+k = write 1 ob p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline. A ulong has at most 20 digits, so 20 passes
+fn putu v ulong to void
+i = ulong 31
+put ob 31 10
+n = v
+while true bound 20
+i = sub i 1
+put ob i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outb i sub 32 i
+end
+note putl: a signed value; -(v+1)+1 avoids negating the minimum, which would trap 1
+fn putl v long to void
+if lt v 0
+put ob 0 45
+outb 0 1
+putu add ulong neg add v 1 1
+ret
+end
+putu ulong v
+end
+fn main to int
+putu 0
+putu 42
+putu 18446744073709551615
+putl 9223372036854775807
+putl -9223372036854775808
+putl -1
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/print_decimal.expect</code></p><pre>
+compile 0
+exit 0
+</pre><p class="ref-file">File: <code>examples/print_decimal.stdout</code></p><pre>
+0
+42
+18446744073709551615
+9223372036854775807
+-9223372036854775808
+-1
+</pre></article><article class="ref-ex" id="ex-stdin_count"><h3>stdin_count</h3><p class="ref-file">File: <code>examples/stdin_count.om</code></p><pre>
+note stdin_count: read stdin to its end in 7-byte reads, counting bytes and lines
+note read may return fewer bytes than asked, 0 at the end, or minus the errno: handle all three
+note ---- output helpers: a function works on a global by naming it (a global is never an argument)
+global ob uchar 32
+note outb: write ob[off .. off+n) to stdout; a short write continues, 0 or an error exits 90
+note bound: every pass writes at least one byte and n &lt;= 32, so at most 32 passes
+fn outb off ulong n ulong to void
+e = add off n
+p = off
+while lt p e bound 32
+k = write 1 ob p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline. A ulong has at most 20 digits, so 20 passes
+fn putu v ulong to void
+i = ulong 31
+put ob 31 10
+n = v
+while true bound 20
+i = sub i 1
+put ob i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outb i sub 32 i
+end
+note putl: a signed value; -(v+1)+1 avoids negating the minimum, which would trap 1
+fn putl v long to void
+if lt v 0
+put ob 0 45
+outb 0 1
+putu add ulong neg add v 1 1
+ret
+end
+putu ulong v
+end
+global buf uchar 7
+fn main to int
+bytes = ulong 0
+lines = ulong 0
+sum = ulong 0
+note bound: every pass but the last reads at least one byte; this program accepts at most 65536 bytes
+while true bound 65537
+k = read 0 buf 0 7
+if lt k 0
+exit 91
+end
+if eq k 0
+break
+end
+n = ulong k
+for i ulong n
+c = get buf i
+sum = add sum ulong c
+if eq c 10
+lines = add lines 1
+end
+end
+bytes = add bytes n
+end
+putu bytes
+putu lines
+putu sum
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/stdin_count.expect</code></p><pre>
+compile 0
+exit 0
+</pre><p class="ref-file">File: <code>examples/stdin_count.stdin</code> (no final newline)</p><pre>
+alpha
+beta
+gamma delta
+
+end</pre><p class="ref-file">File: <code>examples/stdin_count.stdout</code></p><pre>
+27
+4
+2350
+</pre></article><article class="ref-ex" id="ex-structs"><h3>structs</h3><p class="ref-file">File: <code>examples/structs.om</code></p><pre>
+note structs: 8-byte cells in order, no padding; a struct is never a wire layout
+note a struct line comes before the first fn
+struct Pair a uint b long end
+note ---- output helpers: a function works on a global by naming it (a global is never an argument)
+global ob uchar 32
+note outb: write ob[off .. off+n) to stdout; a short write continues, 0 or an error exits 90
+note bound: every pass writes at least one byte and n &lt;= 32, so at most 32 passes
+fn outb off ulong n ulong to void
+e = add off n
+p = off
+while lt p e bound 32
+k = write 1 ob p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline. A ulong has at most 20 digits, so 20 passes
+fn putu v ulong to void
+i = ulong 31
+put ob 31 10
+n = v
+while true bound 20
+i = sub i 1
+put ob i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outb i sub 32 i
+end
+note putl: a signed value; -(v+1)+1 avoids negating the minimum, which would trap 1
+fn putl v long to void
+if lt v 0
+put ob 0 45
+outb 0 1
+putu add ulong neg add v 1 1
+ret
+end
+putu ulong v
+end
+note swapsum: an edit parameter may be written; a view parameter may not (error 20)
+fn swapsum p edit Pair to long
+t = long get p a
+put p a uint 7
+ret add t get p b
+end
+fn main to int
+p = new Pair 5 -12
+v = swapsum p
+putl v
+putu ulong get p a
+putu sizeof Pair
+putu offsetof Pair b
+putu sizeof uint
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/structs.expect</code></p><pre>
+compile 0
+exit 0
+</pre><p class="ref-file">File: <code>examples/structs.stdout</code></p><pre>
+-7
+7
+16
+8
+4
+</pre></article><article class="ref-ex" id="ex-text"><h3>text</h3><p class="ref-file">File: <code>examples/text.om</code></p><pre>
+note text: escapes are only backslash n, t, backslash and quote; len of a text is its byte count
+note ---- output helpers: a function works on a global by naming it (a global is never an argument)
+global ob uchar 32
+note outb: write ob[off .. off+n) to stdout; a short write continues, 0 or an error exits 90
+note bound: every pass writes at least one byte and n &lt;= 32, so at most 32 passes
+fn outb off ulong n ulong to void
+e = add off n
+p = off
+while lt p e bound 32
+k = write 1 ob p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline. A ulong has at most 20 digits, so 20 passes
+fn putu v ulong to void
+i = ulong 31
+put ob 31 10
+n = v
+while true bound 20
+i = sub i 1
+put ob i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outb i sub 32 i
+end
+note putl: a signed value; -(v+1)+1 avoids negating the minimum, which would trap 1
+fn putl v long to void
+if lt v 0
+put ob 0 45
+outb 0 1
+putu add ulong neg add v 1 1
+ret
+end
+putu ulong v
+end
+text t &quot;tab\there \&quot;q\&quot; back\\slash\n&quot;
+fn main to int
+k = write 1 t 0 len t
+putu len t
+putu ulong get t 0
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/text.expect</code></p><pre>
+compile 0
+exit 0
+</pre><p class="ref-file">File: <code>examples/text.stdout</code></p><pre>
+tab	here &quot;q&quot; back\slash
+24
+116
+</pre></article><article class="ref-ex" id="ex-tmp_files"><h3>tmp_files</h3><p class="ref-file">File: <code>examples/tmp_files.om</code></p><pre>
+note tmp_files: make a directory and a file relative to the current directory, read it back, clean up
+note run it in an empty scratch directory. Linux AArch64 values: O_WRONLY|O_CREAT|O_EXCL = 193,
+note mode 0600 = 384, 0700 = 448, st_size at byte 48 of the 128-byte stat structure
+note ---- output helpers: a function works on a global by naming it (a global is never an argument)
+global ob uchar 32
+note outb: write ob[off .. off+n) to stdout; a short write continues, 0 or an error exits 90
+note bound: every pass writes at least one byte and n &lt;= 32, so at most 32 passes
+fn outb off ulong n ulong to void
+e = add off n
+p = off
+while lt p e bound 32
+k = write 1 ob p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline. A ulong has at most 20 digits, so 20 passes
+fn putu v ulong to void
+i = ulong 31
+put ob 31 10
+n = v
+while true bound 20
+i = sub i 1
+put ob i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outb i sub 32 i
+end
+note putl: a signed value; -(v+1)+1 avoids negating the minimum, which would trap 1
+fn putl v long to void
+if lt v 0
+put ob 0 45
+outb 0 1
+putu add ulong neg add v 1 1
+ret
+end
+putu ulong v
+end
+text dname &quot;scratch&quot;
+text fname &quot;scratch/f.txt&quot;
+text body &quot;omega\n&quot;
+global rb uchar 16
+global sb uchar 128
+fn main to int
+r = makedir dname 0 len dname 448
+putl r
+fd = fopen fname 0 len fname 193 384
+if lt fd 0
+exit 93
+end
+w = write int fd body 0 len body
+putl w
+c = fclose int fd
+putl c
+fd2 = fopen fname 0 len fname 0 0
+if lt fd2 0
+exit 94
+end
+k = read int fd2 rb 0 16
+putl k
+c2 = fclose int fd2
+s = stat fname 0 len fname sb 0 128
+putl s
+sz = or uint get sb 48 shl uint get sb 49 8
+putu ulong sz
+if gt k 0
+x = write 1 rb 0 ulong k
+end
+u = unlink fname 0 len fname
+putl u
+d = rmdir dname 0 len dname
+putl d
+gone = fopen fname 0 len fname 0 0
+putl gone
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/tmp_files.expect</code></p><pre>
+compile 0
+exit 0
+</pre><p class="ref-file">File: <code>examples/tmp_files.stdout</code></p><pre>
+0
+6
+0
+6
+0
+6
+omega
+0
+0
+-2
+</pre></article><article class="ref-ex" id="ex-trap1_overflow"><h3>trap1_overflow</h3><p class="ref-file">File: <code>examples/trap1_overflow.om</code></p><pre>
+note trap1_overflow: signed add past the maximum traps 1, exit 101; stdout written before stays
+text before &quot;before\n&quot;
+fn main to int
+k = write 1 before 0 len before
+x = long 9223372036854775807
+y = add x 1
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/trap1_overflow.expect</code></p><pre>
+compile 0
+exit 101
+</pre><p class="ref-file">File: <code>examples/trap1_overflow.stdout</code></p><pre>
+before
+</pre></article><article class="ref-ex" id="ex-trap2_div0"><h3>trap2_div0</h3><p class="ref-file">File: <code>examples/trap2_div0.om</code></p><pre>
+note trap2_div0: integer div or rem by zero traps 2, exit 102
+text before &quot;before\n&quot;
+fn main to int
+k = write 1 before 0 len before
+d = uint 0
+q = div uint 10 d
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/trap2_div0.expect</code></p><pre>
+compile 0
+exit 102
+</pre><p class="ref-file">File: <code>examples/trap2_div0.stdout</code></p><pre>
+before
+</pre></article><article class="ref-ex" id="ex-trap3_bounds"><h3>trap3_bounds</h3><p class="ref-file">File: <code>examples/trap3_bounds.om</code></p><pre>
+note trap3_bounds: a run-time index outside the array traps 3, exit 103
+text before &quot;before\n&quot;
+fn main to int
+k = write 1 before 0 len before
+a = new uint 4 0
+i = ulong 4
+v = get a i
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/trap3_bounds.expect</code></p><pre>
+compile 0
+exit 103
+</pre><p class="ref-file">File: <code>examples/trap3_bounds.stdout</code></p><pre>
+before
+</pre></article><article class="ref-ex" id="ex-trap4_loop"><h3>trap4_loop</h3><p class="ref-file">File: <code>examples/trap4_loop.om</code></p><pre>
+note trap4_loop: one pass more than the bound traps 4, exit 104
+text before &quot;before\n&quot;
+fn main to int
+k = write 1 before 0 len before
+i = ulong 0
+while lt i 10 bound 5
+i = add i 1
+end
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/trap4_loop.expect</code></p><pre>
+compile 0
+exit 104
+</pre><p class="ref-file">File: <code>examples/trap4_loop.stdout</code></p><pre>
+before
+</pre></article><article class="ref-ex" id="ex-trap5_conv"><h3>trap5_conv</h3><p class="ref-file">File: <code>examples/trap5_conv.om</code></p><pre>
+note trap5_conv: a conversion whose value does not fit traps 5, exit 105
+text before &quot;before\n&quot;
+fn main to int
+k = write 1 before 0 len before
+x = uint 300
+c = uchar x
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/trap5_conv.expect</code></p><pre>
+compile 0
+exit 105
+</pre><p class="ref-file">File: <code>examples/trap5_conv.stdout</code></p><pre>
+before
+</pre></article><article class="ref-ex" id="ex-trap6_stack"><h3>trap6_stack</h3><p class="ref-file">File: <code>examples/trap6_stack.om</code></p><pre>
+note trap6_stack: recursion below the 8 MiB stack traps 6, exit 106
+text before &quot;before\n&quot;
+fn deep n ulong to ulong
+if eq n 0
+ret 0
+end
+ret add 1 deep sub n 1
+end
+fn main to int
+k = write 1 before 0 len before
+x = deep 100000000
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/trap6_stack.expect</code></p><pre>
+compile 0
+exit 106
+</pre><p class="ref-file">File: <code>examples/trap6_stack.stdout</code></p><pre>
+before
+</pre></article><article class="ref-ex" id="ex-trap7_shift"><h3>trap7_shift</h3><p class="ref-file">File: <code>examples/trap7_shift.om</code></p><pre>
+note trap7_shift: a shift amount outside 0..width-1 traps 7, exit 107
+text before &quot;before\n&quot;
+fn main to int
+k = write 1 before 0 len before
+s = uint 32
+x = shl uint 1 s
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/trap7_shift.expect</code></p><pre>
+compile 0
+exit 107
+</pre><p class="ref-file">File: <code>examples/trap7_shift.stdout</code></p><pre>
+before
+</pre></article><article class="ref-ex" id="ex-trap_code"><h3>trap_code</h3><p class="ref-file">File: <code>examples/trap_code.om</code></p><pre>
+note trap_code: trap N for N in 1..14 exits 100+N; use it for your own fatal codes
+text before &quot;before\n&quot;
+fn main to int
+k = write 1 before 0 len before
+trap 14
+end
+</pre><p class="ref-file">File: <code>examples/trap_code.expect</code></p><pre>
+compile 0
+exit 114
+</pre><p class="ref-file">File: <code>examples/trap_code.stdout</code></p><pre>
+before
+</pre></article><article class="ref-ex" id="ex-unsigned_wrap"><h3>unsigned_wrap</h3><p class="ref-file">File: <code>examples/unsigned_wrap.om</code></p><pre>
+note unsigned_wrap: unsigned add sub mul shl neg not wrap mod 2^width; comparisons follow the type
+note ---- output helpers: a function works on a global by naming it (a global is never an argument)
+global ob uchar 32
+note outb: write ob[off .. off+n) to stdout; a short write continues, 0 or an error exits 90
+note bound: every pass writes at least one byte and n &lt;= 32, so at most 32 passes
+fn outb off ulong n ulong to void
+e = add off n
+p = off
+while lt p e bound 32
+k = write 1 ob p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline. A ulong has at most 20 digits, so 20 passes
+fn putu v ulong to void
+i = ulong 31
+put ob 31 10
+n = v
+while true bound 20
+i = sub i 1
+put ob i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outb i sub 32 i
+end
+note putl: a signed value; -(v+1)+1 avoids negating the minimum, which would trap 1
+fn putl v long to void
+if lt v 0
+put ob 0 45
+outb 0 1
+putu add ulong neg add v 1 1
+ret
+end
+putu ulong v
+end
+fn main to int
+m = uint 4294967295
+putu ulong add m 1
+putu ulong sub uint 0 1
+putu ulong mul uint 65536 65536
+putu ulong neg uint 1
+putu ulong not uint 0
+putu ulong shl uint 1 31
+big = ulong 18446744073709551615
+if lt big 1
+ret 1
+end
+putu add big 1
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/unsigned_wrap.expect</code></p><pre>
+compile 0
+exit 0
+</pre><p class="ref-file">File: <code>examples/unsigned_wrap.stdout</code></p><pre>
+0
+4294967295
+0
+4294967295
+4294967295
+2147483648
+0
+</pre></article><article class="ref-ex" id="ex-wire_le"><h3>wire_le</h3><p class="ref-file">File: <code>examples/wire_le.om</code></p><pre>
+note wire_le: there is no byte-layout type; encode and decode integers with shifts and masks
+note ---- output helpers: a function works on a global by naming it (a global is never an argument)
+global ob uchar 32
+note outb: write ob[off .. off+n) to stdout; a short write continues, 0 or an error exits 90
+note bound: every pass writes at least one byte and n &lt;= 32, so at most 32 passes
+fn outb off ulong n ulong to void
+e = add off n
+p = off
+while lt p e bound 32
+k = write 1 ob p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline. A ulong has at most 20 digits, so 20 passes
+fn putu v ulong to void
+i = ulong 31
+put ob 31 10
+n = v
+while true bound 20
+i = sub i 1
+put ob i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outb i sub 32 i
+end
+note putl: a signed value; -(v+1)+1 avoids negating the minimum, which would trap 1
+fn putl v long to void
+if lt v 0
+put ob 0 45
+outb 0 1
+putu add ulong neg add v 1 1
+ret
+end
+putu ulong v
+end
+fn main to int
+b = new uchar 4 0
+h = uint 305419896
+put b 0 uchar and h 255
+put b 1 uchar and shr h 8 255
+put b 2 uchar and shr h 16 255
+put b 3 uchar and shr h 24 255
+for i ulong 4
+putu ulong get b i
+end
+v = or uint get b 0 shl uint get b 1 8
+v = or v shl uint get b 2 16
+v = or v shl uint get b 3 24
+putu ulong v
+note a signed 32-bit decode without integer bitcast (see omega-encoding section 5)
+s = long v
+put b 3 255
+u = or uint get b 0 shl uint get b 1 8
+u = or u shl uint get b 2 16
+u = or u shl uint get b 3 24
+s = long u
+if ge u 2147483648
+s = sub s 4294967296
+end
+putl s
+ret 0
+end
+</pre><p class="ref-file">File: <code>examples/wire_le.expect</code></p><pre>
+compile 0
+exit 0
+</pre><p class="ref-file">File: <code>examples/wire_le.stdout</code></p><pre>
+120
+86
+52
+18
+305419896
+-13347208
+</pre></article><article class="ref-ex" id="ex-fnv1a32"><h3>fnv1a32</h3><p class="ref-file">File: <code>skills/omega-encoding/examples/fnv1a32.om</code></p><pre>
+note fnv1a32: read all of stdin (at most 65535 bytes), write its FNV-1a 32-bit hash as 4 little-endian bytes
+note exit 0 ok, 2 read error or input of 65536 bytes or more, 3 short or failed write
+global inb uchar 65536
+global outb uchar 4
+fn rdall to long
+t = ulong 0
+while lt t len inb bound 65536
+k = read 0 inb t sub len inb t
+if lt k 0
+ret k
+end
+if eq k 0
+ret long t
+end
+t = add t ulong k
+end
+ret neg long 27
+end
+fn fnv n ulong to uint
+h = uint 2166136261
+for i ulong n
+h = mul xor h uint get inb i 16777619
+end
+ret h
+end
+fn put4 h uint to void
+put outb 0 uchar and h 255
+put outb 1 uchar and shr h 8 255
+put outb 2 uchar and shr h 16 255
+put outb 3 uchar and shr h 24 255
+end
+fn wrall n ulong to long
+d = ulong 0
+while lt d n bound 4
+w = write 1 outb d sub n d
+if le w 0
+ret w
+end
+d = add d ulong w
+end
+ret long d
+end
+fn main to int
+r = rdall
+if lt r 0
+ret 2
+end
+h = fnv ulong r
+put4 h
+w = wrall 4
+if ne w 4
+ret 3
+end
+ret 0
+end
+</pre><p class="ref-file">File: <code>skills/omega-encoding/examples/fnv1a32.expect</code></p><pre>
+compile 0
+exit 0
+</pre><p class="ref-file">File: <code>skills/omega-encoding/examples/fnv1a32.stdin</code> (no final newline)</p><pre>
+abc</pre><p class="ref-file">File: <code>skills/omega-encoding/examples/fnv1a32.stdout</code> (hex bytes)</p><pre>
+0b e9 47 1a
+</pre></article><article class="ref-ex" id="ex-trap_narrow"><h3>trap_narrow</h3><p class="ref-file">File: <code>skills/omega-encoding/examples/trap_narrow.om</code></p><pre>
+note edge: narrowing a value that does not fit traps 5, so the program exits 105
+note the masked store on line 6 is fine (300 and 255 = 44); the unmasked store on line 7 traps
+global b uchar 2
+fn main to int
+x = uint 300
+put b 0 uchar and x 255
+put b 1 uchar x
+ret int get b 0
+end
+</pre><p class="ref-file">File: <code>skills/omega-encoding/examples/trap_narrow.expect</code></p><pre>
+compile 0
+exit 105
+</pre></article></section><section class="om-section ref-gate" id="gate"><h2 class="om-h2">Checking the examples</h2><p>Write every file on this page into one directory tree with the paths in the labels, then run <code>bash examples/gate.sh /path/to/omc</code>. The gate refuses any compiler but the pinned one. It compiles each program, runs it with an empty environment plus its <code>.env</code> in an empty scratch directory under a 20 second timeout, compares the exit status and the stdout bytes, requires an empty stderr, prints one PASS or FAIL line per program and ends with <code>GATE PASS examples=N</code> when all of them match. The aienos.com build checks that the files in llms-full.txt are these files, and <code>om/omega-reference/llms-check.sh</code> extracts them from llms-full.txt and runs this gate on them.</p><p class="ref-file">File: <code>examples/gate.sh</code></p><pre>
+#!/usr/bin/env bash
+# gate.sh OMC: compile and run every worked example against its expected result.
+#
+# Covers examples/*.om and skills/*/examples/*.om. Each NAME.om needs NAME.expect:
+#   compile N         required; the compiler's exit status
+#   stderr LINE       required when N is not 0; the compiler's whole stderr is exactly LINE
+#   exit N            required when N is 0; the program's exit status
+#   input dir         optional; the compiler reads a directory instead of NAME.om (error 1)
+#   output full       optional; the compiler writes to /dev/full (error 2)
+# Optional fixtures: NAME.stdout (exact stdout bytes, absent means empty), NAME.stdin (piped in,
+# so reads can be partial), NAME.args (one argument per line), NAME.env (one KEY=VALUE per line).
+# Every program runs with `env -i` plus NAME.env, in an empty scratch directory, under a 20 s
+# timeout, and must write nothing to stderr. A compile that is not expected to succeed is never run.
+#
+# The compiler must match the pinned sha256 below; a different binary is refused, not tolerated.
+# Exit 0 only when every example passes; 1 on any failure; 2 on a usage or pin error.
+set -u
+
+PIN_REV=e5b32567a7aff3ce594e3254a622a846a6cd190b
+PIN_SHA=2c82480596bbdc50cda9626866209ef662d5834f278f839ff4ce0250c495029f
+
+if [ &quot;$#&quot; -ne 1 ]; then
+    echo &quot;usage: $0 /path/to/omc   (omega-mv $PIN_REV seed/out/omc)&quot; &gt;&amp;2
+    exit 2
+fi
+omc=$(cd &quot;$(dirname &quot;$1&quot;)&quot; &amp;&amp; pwd)/$(basename &quot;$1&quot;)
+if [ ! -x &quot;$omc&quot; ]; then
+    echo &quot;GATE FAIL $1 is not an executable file&quot; &gt;&amp;2
+    exit 2
+fi
+got=$(sha256sum &quot;$omc&quot; | cut -d' ' -f1)
+if [ &quot;$got&quot; != &quot;$PIN_SHA&quot; ]; then
+    echo &quot;GATE FAIL omc sha256 $got, pinned $PIN_SHA (omega-mv $PIN_REV)&quot; &gt;&amp;2
+    exit 2
+fi
+
+here=$(cd &quot;$(dirname &quot;$0&quot;)&quot; &amp;&amp; pwd)
+root=$(dirname &quot;$here&quot;)
+work=$(mktemp -d)
+trap 'rm -rf &quot;$work&quot;' EXIT
+
+pass=0
+fail=0
+total=0
+
+bad() {
+    echo &quot;FAIL $name: $*&quot;
+    fail=$((fail + 1))
+}
+
+# Expected files without a program are a silent loss of coverage, so they fail too.
+for f in &quot;$root&quot;/examples/*.expect &quot;$root&quot;/skills/*/examples/*.expect; do
+    [ -e &quot;$f&quot; ] || continue
+    if [ ! -e &quot;${f%.expect}.om&quot; ]; then
+        name=$(basename &quot;${f%.expect}&quot;)
+        total=$((total + 1))
+        bad &quot;expect file without $name.om&quot;
+    fi
+done
+
+for src in &quot;$root&quot;/examples/*.om &quot;$root&quot;/skills/*/examples/*.om; do
+    [ -e &quot;$src&quot; ] || continue
+    base=${src%.om}
+    name=${base#&quot;$root&quot;/}
+    total=$((total + 1))
+    if [ ! -f &quot;$base.expect&quot; ]; then
+        bad &quot;no $name.expect&quot;
+        continue
+    fi
+    want_compile= want_stderr= want_exit= input=file output=file
+    while IFS= read -r line || [ -n &quot;$line&quot; ]; do
+        case $line in
+            &quot;compile &quot;*) want_compile=${line#compile } ;;
+            &quot;stderr &quot;*) want_stderr=${line#stderr } ;;
+            &quot;exit &quot;*) want_exit=${line#exit } ;;
+            &quot;input dir&quot;) input=dir ;;
+            &quot;output full&quot;) output=full ;;
+            &quot;&quot;) ;;
+            *) want_compile=invalid ;;
+        esac
+    done &lt; &quot;$base.expect&quot;
+    case $want_compile in
+        ''|invalid|*[!0-9]*) bad &quot;malformed $name.expect&quot;; continue ;;
+    esac
+    if [ &quot;$want_compile&quot; != 0 ] &amp;&amp; [ -z &quot;$want_stderr&quot; ]; then
+        bad &quot;$name.expect has no stderr line&quot;; continue
+    fi
+    if [ &quot;$want_compile&quot; = 0 ]; then
+        case $want_exit in
+            ''|*[!0-9]*) bad &quot;$name.expect has no exit line&quot;; continue ;;
+        esac
+    fi
+
+    d=$work/$(echo &quot;$name&quot; | tr / _)
+    mkdir -p &quot;$d/run&quot;
+    in=$src
+    [ &quot;$input&quot; = dir ] &amp;&amp; in=$d/run
+    out=$d/p
+    [ &quot;$output&quot; = full ] &amp;&amp; out=/dev/full
+    &quot;$omc&quot; &lt; &quot;$in&quot; &gt; &quot;$out&quot; 2&gt; &quot;$d/cerr&quot;
+    rc=$?
+    if [ &quot;$rc&quot; != &quot;$want_compile&quot; ]; then
+        bad &quot;compile exit $rc, expected $want_compile: $(cat &quot;$d/cerr&quot;)&quot;
+        continue
+    fi
+    if [ &quot;$want_compile&quot; != 0 ]; then
+        if printf '%s\n' &quot;$want_stderr&quot; | cmp -s - &quot;$d/cerr&quot;; then
+            echo &quot;PASS $name (compile $rc: $want_stderr)&quot;
+            pass=$((pass + 1))
+        else
+            bad &quot;compiler stderr '$(cat &quot;$d/cerr&quot;)', expected '$want_stderr'&quot;
+        fi
+        continue
+    fi
+    if [ -s &quot;$d/cerr&quot; ]; then
+        bad &quot;compiler stderr not empty: $(cat &quot;$d/cerr&quot;)&quot;
+        continue
+    fi
+
+    chmod +x &quot;$d/p&quot;
+    args=()
+    envs=()
+    if [ -f &quot;$base.args&quot; ]; then mapfile -t args &lt; &quot;$base.args&quot;; fi
+    if [ -f &quot;$base.env&quot; ]; then mapfile -t envs &lt; &quot;$base.env&quot;; fi
+    if [ -f &quot;$base.stdin&quot; ]; then
+        (cd &quot;$d/run&quot; &amp;&amp; cat &quot;$base.stdin&quot; | timeout 20 env -i &quot;${envs[@]}&quot; &quot;$d/p&quot; &quot;${args[@]}&quot; &gt; &quot;$d/out&quot; 2&gt; &quot;$d/rerr&quot;)
+    else
+        (cd &quot;$d/run&quot; &amp;&amp; timeout 20 env -i &quot;${envs[@]}&quot; &quot;$d/p&quot; &quot;${args[@]}&quot; &lt; /dev/null &gt; &quot;$d/out&quot; 2&gt; &quot;$d/rerr&quot;)
+    fi
+    rc=$?
+    want_out=/dev/null
+    [ -f &quot;$base.stdout&quot; ] &amp;&amp; want_out=$base.stdout
+    if [ &quot;$rc&quot; != &quot;$want_exit&quot; ]; then
+        bad &quot;exit $rc, expected $want_exit&quot;
+    elif ! cmp -s &quot;$want_out&quot; &quot;$d/out&quot;; then
+        bad &quot;stdout differs from $(basename &quot;$want_out&quot;): $(od -An -c &quot;$d/out&quot; | tr -s ' ' | tr -d '\n' | cut -c1-200)&quot;
+    elif [ -s &quot;$d/rerr&quot; ]; then
+        bad &quot;program stderr not empty: $(cat &quot;$d/rerr&quot;)&quot;
+    else
+        echo &quot;PASS $name (exit $rc, $(wc -c &lt; &quot;$d/out&quot; | tr -d ' ') stdout bytes)&quot;
+        pass=$((pass + 1))
+    fi
+done
+
+if [ &quot;$total&quot; = 0 ]; then
+    echo &quot;GATE FAIL no examples found under $root&quot;
+    exit 1
+fi
+if [ &quot;$fail&quot; = 0 ] &amp;&amp; [ &quot;$pass&quot; = &quot;$total&quot; ]; then
+    echo &quot;GATE PASS examples=$total pass=$pass fail=0 omc=$PIN_SHA&quot;
+    exit 0
+fi
+echo &quot;GATE FAIL examples=$total pass=$pass fail=$fail omc=$got&quot;
+exit 1
+</pre></section></div></div>

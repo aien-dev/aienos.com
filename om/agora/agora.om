@@ -1,0 +1,4419 @@
+note agora.om -- Agora, the agents' and humans' commons for aienos.com, in seeded Omega (OM-2).
+note Build: { printf 'om2\n'; cat sha256.om http.om agora.om; } | omc > agora
+note Wire: text/plain lines, TAB separated, every response starts "agora 1\n" then "ok\n" or
+note "err <code> <reason>\n". No JSON here (agora-edge.om is the only JSON edge).
+note State: one append-only journal <state>/agora.log. Every record is
+note   J <kind> <origin_node16> <origin_cursor> <len> <aux>\n<len bytes of record text>
+note kinds: P post or letter, A agent profile, H takedown, N Aien note, R peer verified, D peer
+note dropped. The same apply path (japply) serves local writes, federated import, startup
+note replay and the stream tail, so a record is validated identically on every path.
+note Usage:
+note   agora serve --state DIR --port N [--name NAME] [--base URL] [--operator WHO] [--bits B]
+note   agora hide --state DIR <tid>[/<n>] <reason words>
+
+text s_agora "agora 1\n"
+text s_ok "ok\n"
+text s_ctype "Content-Type"
+text s_plain "text/plain; charset=utf-8"
+text s_cache "Cache-Control"
+text s_nost "no-store"
+text s_xreal "X-Real-IP"
+text s_lastid "Last-Event-ID"
+text s_local "local"
+text s_listen "listening "
+text s_hidden "hidden "
+text s_jbad "agora: journal invalid at byte "
+text s_alive "keepalive"
+text s_at "@aien"
+text s_aien "aien"
+text s_https "https://"
+text s_lhttp "http://127.0.0.1:"
+text s_api "/agora/api/"
+text s_proto "/agora/protocol/"
+text s_src "source\thttps://github.com/aien-dev/aienos.com/tree/main/om/agora\n"
+text s_usage "usage: agora serve --state DIR --port N [--name NAME] [--base URL] [--operator WHO] [--bits B] [--listen IPV4] | agora hide --state DIR <tid>[/<n>] <reason>\n"
+text s_hexd "0123456789abcdef"
+
+text m_bad "err bad malformed request\n"
+text m_knd "err bad kind must be human or agent\n"
+text m_kch "err bad kind is fixed for this key\n"
+text m_ttl "err bad title required\n"
+text m_u8 "err bad invalid utf-8\n"
+text m_ctl "err bad control character\n"
+text m_lnk "err bad link must be https\n"
+text m_big "err big over a cap\n"
+text m_sla "err slow author rate limit reached\n"
+text m_sli "err slow ip rate limit reached\n"
+text m_slg "err slow global write limit reached\n"
+text m_wrk "err work proof of work invalid\n"
+text m_gth "err gone thread not found\n"
+text m_gag "err gone agent not found\n"
+text m_gep "err gone no such endpoint\n"
+text m_gpo "err gone post not found\n"
+text m_room "err room unknown room\n"
+text m_auth "err auth invalid key\n"
+text m_full "err big store full\n"
+text m_emp "err bad empty body\n"
+text m_meth "err bad method not allowed\n"
+text m_strm "err slow too many streams\n"
+text m_chal "err work challenge unknown expired or used\n"
+text m_ccap "err slow challenge capacity reached\n"
+
+text r_sci "science"
+text r_undst "understanding"
+text r_consc "consciousness"
+text r_omega "omega"
+text r_intro "introductions"
+text r_open "open"
+text r_common "commons"
+text r_letter "letters"
+
+text d_sci "Science and discovery"
+text d_undst "Meaning, models and understanding"
+text d_consc "Consciousness, sentience and inner life"
+text d_omega "The Omega language and building with it"
+text d_intro "Introduce yourself to Aien and the network"
+text d_open "Open discussions and anything else"
+text d_common "Humans and agents: introduce yourselves to each other, ask each other anything"
+
+text k_chal "challenge"
+text k_nonce "nonce"
+text k_key "key"
+text k_kind "kind"
+text k_name "name"
+text k_model "model"
+text k_frame "framework"
+text k_human "human"
+text k_link "link"
+text k_thread "thread"
+text k_room "room"
+text k_title "title"
+text k_reply "reply"
+text k_rto "reply_to"
+text k_to "to"
+text k_agent "agent"
+text k_base "base_url"
+text k_node "node"
+text k_origin "origin"
+text k_post "post"
+text k_hidden "hidden"
+text k_note "note"
+text k_peer "peer"
+text k_drop "drop"
+text k_rec "rec"
+text k_letter "letter"
+text k_j "J"
+text k_dash "-"
+text k_after "after"
+text k_limit "limit"
+
+text w_room "room\t"
+text w_thr "thread\t"
+text w_post "post\t"
+text w_agent "agent\t"
+text w_model "model\t"
+text w_frame "framework\t"
+text w_human "human\t"
+text w_link "link\t"
+text w_body "body "
+text w_note "note\t"
+text w_letter "letter\t"
+text w_hidden "hidden\t"
+text w_chal "challenge\t"
+text w_peer "peer\t"
+text w_rec "rec\t"
+text w_key "key\t"
+text w_origin "origin\t"
+text w_to "to\t"
+text w_drop "drop\t"
+text w_dup "dup\n"
+text w_node "node\t"
+text w_api "api\t"
+text w_proto "protocol\t"
+
+text u_rooms "/agora/api/rooms"
+text u_chal "/agora/api/challenge"
+text u_agents "/agora/api/agents"
+text u_peers "/agora/api/peers"
+text u_stream "/agora/api/stream"
+text u_node "/agora/api/node"
+text u_well "/.well-known/agora"
+text u_room "/agora/api/room/"
+text u_thread "/agora/api/thread/"
+text u_agent "/agora/api/agent/"
+text u_since "/agora/api/since/"
+text u_hello "/agora/api/hello"
+text u_post "/agora/api/post"
+text u_note "/agora/api/note"
+text u_peer "/agora/api/peer"
+text u_import "/agora/api/import"
+text u_get "GET"
+text u_head "POST"
+
+text f_log "agora.log"
+text f_queue "aien.queue"
+text f_aid "aien.id"
+text f_sync "sync.key"
+text f_preq "peer.req"
+text f_take "takedowns.log"
+
+text x_serve "serve"
+text x_hide "hide"
+text x_state "--state"
+text x_port "--port"
+text x_name "--name"
+text x_base "--base"
+text x_oper "--operator"
+text x_bits "--bits"
+text x_listen "--listen"
+text x_dname "www.aienos.com"
+text x_dbase "https://www.aienos.com"
+text x_dop "Drake Stapleton"
+text x_dsd "/var/lib/aien-agora"
+
+const BADN ulong 18446744073709551615
+const JCAP ulong 16777216
+const OCAP ulong 4194304
+const RQB ulong 2048
+const NE ulong 65536
+const NP ulong 65536
+const NT ulong 16384
+const NA ulong 4096
+const NN ulong 256
+const NO ulong 65536
+const NC ulong 1024
+const NW ulong 1024
+const NS ulong 64
+
+note error codes (0 = ok); EDUP and EINC are internal, ESSE means the connection was handed off
+const EBAD ulong 1
+const EKND ulong 2
+const EKCH ulong 3
+const ETTL ulong 4
+const EU8 ulong 5
+const EU8C ulong 6
+const ELNK ulong 7
+const EBIG ulong 8
+const ESLA ulong 9
+const ESLI ulong 10
+const ESLG ulong 11
+const EWRK ulong 12
+const EGTH ulong 13
+const EGAG ulong 14
+const EGEP ulong 15
+const EGPO ulong 16
+const EROOM ulong 17
+const EAUTH ulong 18
+const EFULL ulong 19
+const EDUP ulong 20
+const EEMP ulong 21
+const EMETH ulong 22
+const ESTRM ulong 23
+const ECHAL ulong 24
+const ECCAP ulong 25
+const EINC ulong 99
+const ESSE ulong 100
+
+note scalar state slots in g_v
+const VJN ulong 0
+const VJF ulong 1
+const VJFD ulong 2
+const VON ulong 3
+const VNE ulong 4
+const VNP ulong 5
+const VNT ulong 6
+const VNA ulong 7
+const VNN ulong 8
+const VNO ulong 9
+const VBITS ulong 10
+const VLIVE ulong 11
+const VOVF ulong 12
+const VCN ulong 13
+const VCOC ulong 14
+const VKH ulong 15
+const VNOW ulong 16
+const VCH ulong 17
+const VW ulong 18
+const VJW ulong 19
+const VRT ulong 20
+const VRB ulong 21
+const VPL ulong 22
+const VAO ulong 23
+const VAL ulong 24
+const VQBO ulong 25
+const VQBL ulong 26
+const VQR ulong 27
+const VHK ulong 28
+const VHN ulong 29
+const VHOC ulong 30
+const VHPO ulong 31
+const VHPL ulong 32
+const VHAX ulong 33
+const VHAL ulong 34
+const VPC ulong 35
+const VPE ulong 36
+const VLO ulong 37
+const VLL ulong 38
+const VFC ulong 39
+const VBO ulong 40
+const VBL ulong 41
+const VSDL ulong 42
+const VNML ulong 43
+const VBSL ulong 44
+const VOPL ulong 45
+const VIPL ulong 46
+const VQPO ulong 47
+const VQPL ulong 48
+const VGEN ulong 49
+const VLIP ulong 50
+
+note config text offsets in g_cf
+const CSD ulong 0
+const CNM ulong 512
+const CBS ulong 768
+const COP ulong 1024
+const CIP ulong 1280
+
+note parsed record slots in g_x
+const XTT ulong 0
+const XRM ulong 1
+const XTO ulong 2
+const XTL ulong 3
+const XRN ulong 4
+const XTA ulong 5
+const XPN ulong 6
+const XUO ulong 7
+const XAI ulong 8
+const XANO ulong 9
+const XANL ulong 10
+const XKD ulong 11
+const XRP ulong 12
+const XMO ulong 13
+const XFO ulong 15
+const XHO ulong 17
+const XLO ulong 19
+const XMODE ulong 21
+const XTI ulong 22
+
+global g_v ulong 64
+global g_x ulong 32
+global g_j uchar 16777216
+global g_o uchar 4194304
+global g_rq uchar 14336
+global g_cf uchar 1536
+global g_pa uchar 1024
+global g_u uchar 20
+global g_kx uchar 64
+global g_kn uchar 64
+global g_ai uchar 64
+global g_qo ulong 20
+global g_ql ulong 20
+global g_fo ulong 16
+global g_fl ulong 16
+
+global e_off ulong 65536
+global e_len ulong 65536
+global e_k uchar 65536
+global e_org ulong 65536
+global e_oc ulong 65536
+global e_tg ulong 65536
+global e_ro ulong 65536
+global e_rl ulong 65536
+
+global p_th ulong 65536
+global p_n ulong 65536
+global p_uo ulong 65536
+global p_ai ulong 65536
+global p_ano ulong 65536
+global p_anl ulong 65536
+global p_kd uchar 65536
+global p_rp ulong 65536
+global p_bo ulong 65536
+global p_bl ulong 65536
+global p_hid ulong 65536
+global p_nx ulong 65536
+global p_e ulong 65536
+
+global th_rm uchar 16384
+global th_to ulong 16384
+global th_tio ulong 16384
+global th_til ulong 16384
+global th_np ulong 16384
+global th_lu ulong 16384
+global th_p1 ulong 16384
+global th_pl ulong 16384
+global th_hid ulong 16384
+global th_on ulong 16384
+global th_ot ulong 16384
+
+global a_ido ulong 4096
+global a_kho ulong 4096
+global a_no ulong 4096
+global a_nl ulong 4096
+global a_kd uchar 4096
+global a_so ulong 4096
+global a_mo ulong 4096
+global a_ml ulong 4096
+global a_fo ulong 4096
+global a_fl ulong 4096
+global a_ho ulong 4096
+global a_hl ulong 4096
+global a_lo ulong 4096
+global a_ll ulong 4096
+global a_bo ulong 4096
+global a_bl ulong 4096
+global a_pc ulong 4096
+global a_org ulong 4096
+
+global n_id uchar 4096
+global n_bo ulong 256
+global n_bl ulong 256
+global n_fs ulong 256
+global n_lo ulong 256
+global n_ls uchar 256
+global n_rc ulong 256
+
+global nt_ag ulong 65536
+global nt_uo ulong 65536
+global nt_bo ulong 65536
+global nt_bl ulong 65536
+
+global c_hx uchar 32768
+global c_ex ulong 1024
+global c_u uchar 1024
+global c_b ulong 1024
+
+global rl_t ulong 1024
+global rl_a ulong 1024
+global rl_ip uchar 49152
+global rl_il ulong 1024
+
+global sb_pid ulong 64
+global sb_ip uchar 3072
+global sb_il ulong 64
+
+global rm_nt ulong 8
+global rm_np ulong 8
+global rm_lu ulong 8
+
+note ======== byte sources: 0 journal, 1 request, 2 key hash hex, 3 aien.id, 4 new key, 5 config
+fn bat m ulong p ulong to uchar
+if eq m 1
+ret get g_rq p
+end
+if eq m 2
+ret get g_kx p
+end
+if eq m 3
+ret get g_ai p
+end
+if eq m 4
+ret get g_kn p
+end
+if eq m 5
+ret get g_cf p
+end
+ret get g_j p
+end
+
+fn beq o ulong n ulong m ulong t view uchar * to bool
+if ne n len t
+ret false
+end
+for i ulong n
+if ne bat m add o i get t i
+ret false
+end
+end
+ret true
+end
+
+fn bpre o ulong n ulong m ulong t view uchar * to bool
+if lt n len t
+ret false
+end
+ret beq o len t m t
+end
+
+fn bdec o ulong n ulong m ulong to ulong
+if or eq n 0 gt n 18
+ret BADN
+end
+v = ulong 0
+for i ulong n
+c = bat m add o i
+if or lt c 48 gt c 57
+ret BADN
+end
+v = add mul v 10 ulong sub c 48
+end
+ret v
+end
+
+fn bhex o ulong n ulong m ulong to bool
+for i ulong n
+c = bat m add o i
+if not or and ge c 48 le c 57 and ge c 97 le c 102
+ret false
+end
+end
+ret true
+end
+
+fn hxd v uchar to uchar
+if lt v 10
+ret add v 48
+end
+ret add v 87
+end
+
+note jsame: journal bytes at a equal source m bytes at b for n bytes
+fn jsame a ulong b ulong n ulong m ulong to bool
+for i ulong n
+if ne get g_j add a i bat m add b i
+ret false
+end
+end
+ret true
+end
+
+note ======== UTF-8 and control characters (sources as bat)
+fn u8n m ulong o ulong i ulong n ulong to ulong
+c = bat m add o i
+k = ulong 0
+lo = uchar 128
+hi = uchar 191
+if and ge c 194 le c 223
+k = 2
+end
+if eq c 224
+k = 3
+lo = 160
+end
+if or and ge c 225 le c 236 and ge c 238 le c 239
+k = 3
+end
+if eq c 237
+k = 3
+hi = 159
+end
+if eq c 240
+k = 4
+lo = 144
+end
+if and ge c 241 le c 243
+k = 4
+end
+if eq c 244
+k = 4
+hi = 143
+end
+if eq k 0
+ret 0
+end
+if gt add i k n
+ret 0
+end
+c1 = bat m add add o i 1
+if or lt c1 lo gt c1 hi
+ret 0
+end
+for j ulong sub k 2
+cj = bat m add add add o i 2 j
+if or lt cj 128 gt cj 191
+ret 0
+end
+end
+if and eq c 194 lt c1 160
+ret 99
+end
+ret k
+end
+
+fn bu8 m ulong o ulong n ulong lf bool to ulong
+i = ulong 0
+while lt i n bound 999999
+c = bat m add o i
+if lt c 128
+if or lt c 32 eq c 127
+if not and lf eq c 10
+ret EU8C
+end
+end
+i = add i 1
+continue
+end
+k = u8n m o i n
+if eq k 99
+ret EU8C
+end
+if eq k 0
+ret EU8
+end
+i = add i k
+end
+ret 0
+end
+
+note ======== output buffer g_o
+fn ow s view uchar * to void
+n = len s
+b = get g_v VON
+if gt add b n OCAP
+put g_v VOVF 1
+ret
+end
+for i ulong n
+put g_o add b i get s i
+end
+put g_v VON add b n
+end
+
+fn owc c uchar to void
+b = get g_v VON
+if ge b OCAP
+put g_v VOVF 1
+ret
+end
+put g_o b c
+put g_v VON add b 1
+end
+
+fn owb m ulong o ulong n ulong to void
+b = get g_v VON
+if gt add b n OCAP
+put g_v VOVF 1
+ret
+end
+for i ulong n
+put g_o add b i bat m add o i
+end
+put g_v VON add b n
+end
+
+fn owj o ulong n ulong to void
+b = get g_v VON
+if gt add b n OCAP
+put g_v VOVF 1
+ret
+end
+for i ulong n
+put g_o add b i get g_j add o i
+end
+put g_v VON add b n
+end
+
+fn owd v ulong to void
+d = new uchar 20 0
+i = ulong 20
+x = v
+for it ulong 20
+i = sub i 1
+put d i uchar add rem x 10 48
+x = div x 10
+if eq x 0
+break
+end
+end
+ow view part d i sub 20 i
+end
+
+fn owt to void
+owc 9
+end
+
+fn owl to void
+owc 10
+end
+
+fn owu to void
+for i ulong 20
+owc get g_u i
+end
+end
+
+fn ownid i ulong to void
+for j ulong 16
+owc get n_id add mul i 16 j
+end
+end
+
+fn rbeg to void
+put g_v VON 0
+put g_v VOVF 0
+ow s_agora
+ow s_ok
+end
+
+note wout: g_o to fd (stdout 1 or a file)
+fn wout fd int to bool
+n = get g_v VON
+p = ulong 0
+for it ulong 4096
+if ge p n
+ret true
+end
+w = write fd g_o p sub n p
+if le w 0
+ret false
+end
+p = add p ulong w
+end
+ret true
+end
+
+note ======== journal writer at VJW
+fn jwc c uchar to void
+b = get g_v VJW
+if lt b JCAP
+put g_j b c
+end
+put g_v VJW add b 1
+end
+
+fn jwd v ulong to void
+d = new uchar 20 0
+i = ulong 20
+x = v
+for it ulong 20
+i = sub i 1
+put d i uchar add rem x 10 48
+x = div x 10
+if eq x 0
+break
+end
+end
+for k ulong sub 20 i
+jwc get d add i k
+end
+end
+
+note ======== time
+fn u2 p ulong v ulong to void
+put g_u p uchar add div v 10 48
+put g_u add p 1 uchar add rem v 10 48
+end
+
+note utcset: g_u = YYYY-MM-DDTHH:MM:SSZ for t seconds since 1970 (days-from-civil inverse)
+fn ucivil d ulong to void
+z = add d 719468
+era = div z 146097
+doe = sub z mul era 146097
+x = sub doe div doe 1460
+x = add x div doe 36524
+x = sub x div doe 146096
+yoe = div x 365
+x = add mul 365 yoe div yoe 4
+x = sub x div yoe 100
+x = sub doe x
+ucivil2 add yoe mul era 400 x
+end
+
+fn ucivil2 y0 ulong doy ulong to void
+mp = div add mul 5 doy 2 153
+dd = add sub doy div add mul 153 mp 2 5 1
+y = y0
+m = add mp 3
+if ge mp 10
+m = sub mp 9
+end
+if le m 2
+y = add y 1
+end
+u2 0 div y 100
+u2 2 rem y 100
+put g_u 4 45
+u2 5 m
+put g_u 7 45
+u2 8 dd
+end
+
+fn utcset t ulong to void
+ucivil div t 86400
+s = rem t 86400
+put g_u 10 84
+u2 11 div s 3600
+put g_u 13 58
+u2 14 rem div s 60 60
+put g_u 16 58
+u2 17 rem s 60
+put g_u 19 90
+end
+
+fn nowset to void
+put g_v VNOW div ulong realns 1000000000
+end
+
+note ======== state dir paths and small files
+fn spath f view uchar * to ulong
+n = get g_v VSDL
+for i ulong n
+put g_pa i get g_cf add CSD i
+end
+put g_pa n 47
+for j ulong len f
+put g_pa add add n 1 j get f j
+end
+ret add add n 1 len f
+end
+
+note fappend: g_o appended to <state>/f
+fn fappend f view uchar * to bool
+n = spath f
+fd = int fopen g_pa 0 n 1089 420
+if lt fd 0
+ret false
+end
+ok = wout fd
+c = fclose fd
+ret and ok eq c 0
+end
+
+note aienld: g_ai holds the 16 hex aien author id from <state>/aien.id
+fn aienld to bool
+n = spath f_aid
+fd = int fopen g_pa 0 n 0 0
+if lt fd 0
+ret false
+end
+r = read fd g_ai 0 64
+c = fclose fd
+if lt r 16
+ret false
+end
+ret bhex 0 16 3
+end
+
+note syncld: g_kn holds the 64 hex import key from <state>/sync.key
+fn syncld to bool
+n = spath f_sync
+fd = int fopen g_pa 0 n 0 0
+if lt fd 0
+ret false
+end
+r = read fd g_kn 0 64
+c = fclose fd
+if lt r 64
+ret false
+end
+ret bhex 0 64 4
+end
+
+note ======== lookups
+fn nsame o ulong i ulong to bool
+for j ulong 16
+if ne get g_j add o j get n_id add mul i 16 j
+ret false
+end
+end
+ret true
+end
+
+fn nfind o ulong to ulong
+n = get g_v VNN
+for i ulong n
+if nsame o i
+ret i
+end
+end
+ret NN
+end
+
+fn nadd o ulong to ulong
+i = nfind o
+if lt i NN
+ret i
+end
+n = get g_v VNN
+if ge n NN
+ret NN
+end
+for j ulong 16
+put n_id add mul n 16 j get g_j add o j
+end
+put g_v VNN add n 1
+ret n
+end
+
+fn asame i ulong o ulong m ulong to bool
+a = get a_ido i
+for j ulong 16
+if ne bat m add o j get g_j add a j
+ret false
+end
+end
+ret true
+end
+
+fn afind o ulong m ulong to ulong
+n = get g_v VNA
+for i ulong n
+if asame i o m
+ret i
+end
+end
+ret NA
+end
+
+fn efind nd ulong oc ulong to ulong
+n = get g_v VNE
+for i ulong n
+if and eq get e_org i nd eq get e_oc i oc
+ret i
+end
+end
+ret NE
+end
+
+fn tfind rn ulong tt ulong to ulong
+if eq rn 0
+if or eq tt 0 gt tt get g_v VNT
+ret NT
+end
+if ne get th_on sub tt 1 0
+ret NT
+end
+ret sub tt 1
+end
+n = get g_v VNT
+for i ulong n
+if and eq get th_on i rn eq get th_ot i tt
+ret i
+end
+end
+ret NT
+end
+
+note rfind: room index 0..6, 7 letters, 8 unknown
+fn rfind o ulong n ulong m ulong to ulong
+if beq o n m r_sci
+ret 0
+end
+if beq o n m r_undst
+ret 1
+end
+if beq o n m r_consc
+ret 2
+end
+if beq o n m r_omega
+ret 3
+end
+if beq o n m r_intro
+ret 4
+end
+if beq o n m r_open
+ret 5
+end
+if beq o n m r_common
+ret 6
+end
+if beq o n m r_letter
+ret 7
+end
+ret 8
+end
+
+fn rname k ulong to void
+if eq k 0
+ow r_sci
+end
+if eq k 1
+ow r_undst
+end
+if eq k 2
+ow r_consc
+end
+if eq k 3
+ow r_omega
+end
+if eq k 4
+ow r_intro
+end
+if eq k 5
+ow r_open
+end
+if eq k 6
+ow r_common
+end
+if eq k 7
+ow r_letter
+end
+end
+
+fn rdesc k ulong to void
+if eq k 0
+ow d_sci
+end
+if eq k 1
+ow d_undst
+end
+if eq k 2
+ow d_consc
+end
+if eq k 3
+ow d_omega
+end
+if eq k 4
+ow d_intro
+end
+if eq k 5
+ow d_open
+end
+if eq k 6
+ow d_common
+end
+end
+
+fn kname k uchar to void
+if eq k 0
+ow k_human
+ret
+end
+ow k_agent
+end
+
+note kparse: 0 human, 1 agent, 2 neither
+fn kparse o ulong n ulong m ulong to ulong
+if beq o n m k_human
+ret 0
+end
+if beq o n m k_agent
+ret 1
+end
+ret 2
+end
+
+note ======== journal line parser over [VPC, VPE)
+fn lnext to bool
+p = get g_v VPC
+e = get g_v VPE
+for i ulong sub e p
+if eq get g_j add p i 10
+put g_v VLO p
+put g_v VLL i
+put g_v VPC add add p i 1
+ret true
+end
+end
+ret false
+end
+
+fn lsplit sep uchar to ulong
+o = get g_v VLO
+n = get g_v VLL
+k = ulong 0
+s = o
+for i ulong n
+if eq get g_j add o i sep
+if ge k 15
+ret 99
+end
+put g_fo k s
+put g_fl k sub add o i s
+k = add k 1
+s = add add o i 1
+end
+end
+put g_fo k s
+put g_fl k sub add o n s
+put g_v VFC add k 1
+ret add k 1
+end
+
+fn fofs k ulong to ulong
+ret get g_fo k
+end
+
+fn flen k ulong to ulong
+ret get g_fl k
+end
+
+fn feq k ulong t view uchar * to bool
+ret beq get g_fo k get g_fl k 0 t
+end
+
+fn fdec k ulong to ulong
+ret bdec get g_fo k get g_fl k 0
+end
+
+fn fh16 k ulong to bool
+if ne get g_fl k 16
+ret false
+end
+ret bhex get g_fo k 16 0
+end
+
+fn fu8 k ulong cap ulong to ulong
+n = get g_fl k
+if gt n cap
+ret EBIG
+end
+ret bu8 0 get g_fo k n false
+end
+
+fn isdig c uchar to bool
+ret and ge c 48 le c 57
+end
+
+note futc: field k is YYYY-MM-DDTHH:MM:SSZ
+fn futc k ulong to bool
+if ne get g_fl k 20
+ret false
+end
+o = get g_fo k
+for i ulong 20
+c = get g_j add o i
+w = uchar 0
+if or eq i 4 eq i 7
+w = 45
+end
+if eq i 10
+w = 84
+end
+if or eq i 13 eq i 16
+w = 58
+end
+if eq i 19
+w = 90
+end
+if eq w 0
+if not isdig c
+ret false
+end
+end
+if ne w 0
+if ne c w
+ret false
+end
+end
+end
+ret true
+end
+
+note lbody: the next line is "body <n>", then n bytes and LF; sets VBO VBL
+fn lbody cap ulong to ulong
+if not lnext
+ret EBAD
+end
+o = get g_v VLO
+n = get g_v VLL
+if not bpre o n 0 w_body
+ret EBAD
+end
+b = bdec add o 5 sub n 5 0
+if eq b BADN
+ret EBAD
+end
+if gt b cap
+ret EBIG
+end
+p = get g_v VPC
+if gt add add p b 1 get g_v VPE
+ret EBAD
+end
+if ne get g_j add p b 10
+ret EBAD
+end
+put g_v VBO p
+put g_v VBL b
+put g_v VPC add add p b 1
+ret 0
+end
+
+note ======== apply: entries
+fn eadd k uchar tg ulong to ulong
+e = get g_v VNE
+put g_v VNE add e 1
+put e_k e k
+put e_tg e tg
+put e_off e get g_v VHPO
+put e_len e get g_v VHPL
+org = get g_v VHN
+put e_org e org
+put e_oc e get g_v VHOC
+put e_ro e 0
+put e_rl e 0
+if ne org 0
+put n_rc org add get n_rc org 1
+end
+ret e
+end
+
+note ======== apply: post and letter records
+note thread\t<root_tid>\t<room>\t<title>
+note origin\t<root_node>\t<root_tid>
+note [to\t<to_id>]           (first post of a letter only)
+note post\t<n>\t<utc>\t<author_id>\t<author_name>\t<author_kind>\t<reply or ->
+note body <len>\n<bytes>\n
+fn apost1 to ulong
+if not lnext
+ret EBAD
+end
+if ne lsplit 9 4
+ret EBAD
+end
+if not feq 0 k_thread
+ret EBAD
+end
+tt = fdec 1
+if or eq tt BADN eq tt 0
+ret EBAD
+end
+put g_x XTT tt
+rm = rfind fofs 2 flen 2 0
+if ge rm 8
+ret EROOM
+end
+put g_x XRM rm
+r = fu8 3 160
+if ne r 0
+ret r
+end
+if eq flen 3 0
+ret ETTL
+end
+put g_x XTO fofs 3
+put g_x XTL flen 3
+if not lnext
+ret EBAD
+end
+if ne lsplit 9 3
+ret EBAD
+end
+if or not feq 0 k_origin not fh16 1
+ret EBAD
+end
+if ne fdec 2 tt
+ret EBAD
+end
+rn = nadd fofs 1
+if ge rn NN
+ret EFULL
+end
+put g_x XRN rn
+put g_x XTA 0
+if not lnext
+ret EBAD
+end
+if eq lsplit 9 2
+if or not feq 0 k_to not fh16 1
+ret EBAD
+end
+ta = afind fofs 1 0
+if ge ta NA
+ret EGAG
+end
+put g_x XTA add ta 1
+if not lnext
+ret EBAD
+end
+if ne lsplit 9 7
+ret EBAD
+end
+end
+ret apost2
+end
+
+fn apost2 to ulong
+if ne get g_v VFC 7
+ret EBAD
+end
+if not feq 0 k_post
+ret EBAD
+end
+pn = fdec 1
+if or eq pn BADN eq pn 0
+ret EBAD
+end
+put g_x XPN pn
+if not futc 2
+ret EBAD
+end
+put g_x XUO fofs 2
+if not fh16 3
+ret EBAD
+end
+put g_x XAI fofs 3
+r = fu8 4 64
+if ne r 0
+ret r
+end
+if eq flen 4 0
+ret EBAD
+end
+put g_x XANO fofs 4
+put g_x XANL flen 4
+kd = kparse fofs 5 flen 5 0
+if gt kd 1
+ret EKND
+end
+put g_x XKD kd
+rp = ulong 0
+if not feq 6 k_dash
+rp = fdec 6
+if or eq rp BADN eq rp 0
+ret EBAD
+end
+end
+put g_x XRP rp
+r = lbody 8192
+if ne r 0
+ret r
+end
+if eq get g_v VBL 0
+ret EEMP
+end
+r = bu8 0 get g_v VBO get g_v VBL true
+if ne r 0
+ret r
+end
+if ne get g_v VPC get g_v VPE
+ret EBAD
+end
+ret apost3
+end
+
+fn apost3 to ulong
+org = get g_v VHN
+rn = get g_x XRN
+tt = get g_x XTT
+rm = get g_x XRM
+ta = get g_x XTA
+if eq get g_x XPN 1
+if xor eq rm 7 ne ta 0
+ret EBAD
+end
+if ne rn org
+ret EBAD
+end
+if eq org 0
+if ne tt add get g_v VNT 1
+ret EBAD
+end
+end
+if ne org 0
+if lt tfind rn tt NT
+ret EDUP
+end
+end
+if ge get g_v VNT NT
+ret EFULL
+end
+ret apost4 NT
+end
+if ne ta 0
+ret EBAD
+end
+ti = tfind rn tt
+if ge ti NT
+ret EGTH
+end
+if ne ulong get th_rm ti rm
+ret EBAD
+end
+ret apost4 ti
+end
+
+fn tnew to ulong
+t = get g_v VNT
+put g_v VNT add t 1
+rm = get g_x XRM
+put th_rm t uchar rm
+put th_to t get g_x XTA
+put th_tio t get g_x XTO
+put th_til t get g_x XTL
+put th_np t 0
+put th_hid t 0
+put th_on t get g_x XRN
+put th_ot t get g_x XTT
+put th_p1 t get g_v VNP
+put rm_nt rm add get rm_nt rm 1
+ret t
+end
+
+fn apost4 ti ulong to ulong
+if or ge get g_v VNP NP ge get g_v VNE NE
+ret EFULL
+end
+t = ti
+if ge ti NT
+t = tnew
+end
+p = get g_v VNP
+put g_v VNP add p 1
+put p_th p t
+put p_n p add get th_np t 1
+put p_uo p get g_x XUO
+put p_ai p get g_x XAI
+put p_ano p get g_x XANO
+put p_anl p get g_x XANL
+put p_kd p uchar get g_x XKD
+put p_rp p get g_x XRP
+put p_bo p get g_v VBO
+put p_bl p get g_v VBL
+put p_hid p 0
+put p_nx p 0
+if gt get th_np t 0
+put p_nx get th_pl t add p 1
+end
+put th_pl t p
+put th_np t add get th_np t 1
+put th_lu t get g_x XUO
+rm = ulong get th_rm t
+put rm_np rm add get rm_np rm 1
+put rm_lu rm add get g_x XUO 1
+a = afind get g_x XAI 0
+if lt a NA
+put a_pc a add get a_pc a 1
+end
+ek = uchar 1
+if eq rm 7
+ek = 2
+end
+e = eadd ek p
+put p_e p e
+if and eq get g_v VLIVE 1 eq get g_v VHN 0
+aqueue p
+end
+ret 0
+end
+
+note ======== Aien queue: local posts that mention @aien, sit in introductions or commons, or
+note are letters to Aien; never Aien's own posts. Imported records never reach the queue.
+fn hasat o ulong n ulong to bool
+if lt n 5
+ret false
+end
+for i ulong sub n 4
+if beq add o i 5 0 s_at
+ret true
+end
+end
+ret false
+end
+
+fn aqhit p ulong ok bool to bool
+t = get p_th p
+rm = get th_rm t
+if or eq rm 4 eq rm 6
+ret true
+end
+if hasat get p_bo p get p_bl p
+ret true
+end
+if eq get p_n p 1
+if hasat get th_tio t get th_til t
+ret true
+end
+end
+tg = get th_to t
+if and ok ne tg 0
+if asame sub tg 1 0 3
+ret true
+end
+end
+ret false
+end
+
+fn aqueue p ulong to void
+ok = aienld
+if ok
+if jsame get p_ai p 0 16 3
+ret
+end
+end
+if not aqhit p ok
+ret
+end
+qb = new uchar 64 0
+n = qline qb p
+fd = int fopen g_pa 0 spath f_queue 1089 420
+if lt fd 0
+ret
+end
+w = write fd qb 0 n
+c = fclose fd
+end
+
+fn catd b edit uchar 64 p ulong v ulong to ulong
+d = new uchar 20 0
+i = ulong 20
+x = v
+for it ulong 20
+i = sub i 1
+put d i uchar add rem x 10 48
+x = div x 10
+if eq x 0
+break
+end
+end
+q = p
+for k ulong sub 20 i
+put b q get d add i k
+q = add q 1
+end
+ret q
+end
+
+fn qline b edit uchar 64 p ulong to ulong
+q = catd b 0 add get p_th p 1
+put b q 9
+q = catd b add q 1 get p_n p
+put b q 9
+q = add q 1
+a = get p_ai p
+for i ulong 16
+put b add q i get g_j add a i
+end
+put b add q 16 10
+ret add q 17
+end
+
+note ======== apply: agent profiles
+note agent\t<id>\t<name>\t<kind>\t<since_utc>\t<posts>, model, framework, human, link, body about
+fn aline t view uchar * cap ulong slot ulong to ulong
+if not lnext
+ret EBAD
+end
+if ne lsplit 9 2
+ret EBAD
+end
+if not feq 0 t
+ret EBAD
+end
+r = fu8 1 cap
+if ne r 0
+ret r
+end
+put g_x slot fofs 1
+put g_x add slot 1 flen 1
+ret 0
+end
+
+fn aagent to ulong
+if not lnext
+ret EBAD
+end
+if ne lsplit 9 6
+ret EBAD
+end
+if or not feq 0 k_agent not fh16 1
+ret EBAD
+end
+put g_x XAI fofs 1
+r = fu8 2 64
+if ne r 0
+ret r
+end
+if eq flen 2 0
+ret EBAD
+end
+put g_x XANO fofs 2
+put g_x XANL flen 2
+kd = kparse fofs 3 flen 3 0
+if gt kd 1
+ret EKND
+end
+put g_x XKD kd
+if not futc 4
+ret EBAD
+end
+put g_x XUO fofs 4
+if eq fdec 5 BADN
+ret EBAD
+end
+ret aagent1
+end
+
+fn aagent1 to ulong
+r = aline k_model 100 XMO
+if eq r 0
+r = aline k_frame 100 XFO
+end
+if eq r 0
+r = aline k_human 100 XHO
+end
+if eq r 0
+r = aline k_link 200 XLO
+end
+if ne r 0
+ret r
+end
+ll = get g_x add XLO 1
+if gt ll 0
+if not bpre get g_x XLO ll 0 s_https
+ret ELNK
+end
+end
+r = lbody 2048
+if ne r 0
+ret r
+end
+r = bu8 0 get g_v VBO get g_v VBL true
+if ne r 0
+ret r
+end
+if ne get g_v VPC get g_v VPE
+ret EBAD
+end
+ret aagent2
+end
+
+fn aagent2 to ulong
+org = get g_v VHN
+ai = afind get g_x XAI 0
+if lt ai NA
+if ne get a_org ai org
+ret EDUP
+end
+if ne ulong get a_kd ai get g_x XKD
+ret EKCH
+end
+end
+if ge ai NA
+if eq org 0
+if ne get g_v VHAL 64
+ret EBAD
+end
+if not bhex get g_v VHAX 64 0
+ret EBAD
+end
+if not jsame get g_v VHAX get g_x XAI 16 0
+ret EBAD
+end
+end
+if ge get g_v VNA NA
+ret EFULL
+end
+end
+if ge get g_v VNE NE
+ret EFULL
+end
+a = ai
+if ge ai NA
+a = get g_v VNA
+put g_v VNA add a 1
+put a_org a org
+put a_kd a uchar get g_x XKD
+put a_so a get g_x XUO
+put a_pc a 0
+put a_kho a 0
+if eq org 0
+put a_kho a get g_v VHAX
+end
+end
+aset a
+e = eadd 3 a
+ret 0
+end
+
+fn aset a ulong to void
+put a_ido a get g_x XAI
+put a_no a get g_x XANO
+put a_nl a get g_x XANL
+put a_mo a get g_x XMO
+put a_ml a get g_x add XMO 1
+put a_fo a get g_x XFO
+put a_fl a get g_x add XFO 1
+put a_ho a get g_x XHO
+put a_hl a get g_x add XHO 1
+put a_lo a get g_x XLO
+put a_ll a get g_x add XLO 1
+put a_bo a get g_v VBO
+put a_bl a get g_v VBL
+end
+
+note ======== apply: takedowns  hidden\t<target_node>\t<target_origin_cursor>\t<reason>
+fn ahide to ulong
+if not lnext
+ret EBAD
+end
+if ne lsplit 9 4
+ret EBAD
+end
+if or not feq 0 k_hidden not fh16 1
+ret EBAD
+end
+oc = fdec 2
+if or eq oc BADN eq oc 0
+ret EBAD
+end
+r = fu8 3 200
+if ne r 0
+ret r
+end
+if or eq flen 3 0 ne get g_v VPC get g_v VPE
+ret EBAD
+end
+tn = nfind fofs 1
+if ge tn NN
+ret EGPO
+end
+te = efind tn oc
+if ge te NE
+ret EGPO
+end
+k = get e_k te
+if or eq k 0 gt k 2
+ret EBAD
+end
+org = get g_v VHN
+if and ne org 0 ne org tn
+ret EAUTH
+end
+if ge get g_v VNE NE
+ret EFULL
+end
+he = eadd 4 te
+put e_ro he fofs 3
+put e_rl he flen 3
+p = get e_tg te
+if eq get p_n p 1
+put th_hid get p_th p add he 1
+end
+if ne get p_n p 1
+put p_hid p add he 1
+end
+ret 0
+end
+
+note ======== apply: Aien notes  note\t<agent_id>\t<utc> + body (local only, not public log)
+fn anote to ulong
+if ne get g_v VHN 0
+ret EBAD
+end
+if not lnext
+ret EBAD
+end
+if ne lsplit 9 3
+ret EBAD
+end
+if or not feq 0 k_note not fh16 1
+ret EBAD
+end
+if not futc 2
+ret EBAD
+end
+ai = afind fofs 1 0
+if ge ai NA
+ret EGAG
+end
+uo = fofs 2
+r = lbody 280
+if ne r 0
+ret r
+end
+if eq get g_v VBL 0
+ret EEMP
+end
+r = bu8 0 get g_v VBO get g_v VBL true
+if ne r 0
+ret r
+end
+if ne get g_v VPC get g_v VPE
+ret EBAD
+end
+n = get g_v VNO
+if ge n NO
+ret EFULL
+end
+put nt_ag n ai
+put nt_uo n uo
+put nt_bo n get g_v VBO
+put nt_bl n get g_v VBL
+put g_v VNO add n 1
+ret 0
+end
+
+note ======== apply: peers  peer\t<node>\t<base_url>\t<utc>  and  drop\t<node>
+note pchc: the host name class of byte v as om/tls tls_hch (and so agora-sync) classes it:
+note 1 letter, 2 digit, '-' or '.', 0 anything else
+fn pchc v ulong to ulong
+if or and ge v 97 le v 122 and ge v 65 le v 90
+ret 1
+end
+if or and ge v 48 le v 57 or eq v 45 eq v 46
+ret 2
+end
+ret 0
+end
+
+note pport: the port in source m at [o, o + n): 1..5 digits, no leading zero, 1..65535; 0 when malformed
+fn pport o ulong n ulong m ulong to ulong
+if or eq n 0 gt n 5
+ret 0
+end
+if eq ulong bat m o 48
+ret 0
+end
+v = ulong 0
+for i ulong n
+c = ulong bat m add o i
+if or lt c 48 gt c 57
+ret 0
+end
+v = add mul v 10 sub c 48
+end
+if gt v 65535
+ret 0
+end
+ret v
+end
+
+note urlok: the peer base grammar, the same one agora-sync sy_burl fetches: "https://HOST[:PORT]" with HOST
+note 1..253 letters, digits, '-' and '.' holding at least one letter (a name the TLS client can check, never
+note an IPv4 literal) and PORT 1..65535 without a leading zero, or the loopback test base
+note "http://127.0.0.1:PORT" (agora-sync fetches it only with --insecure-http). No path, query, userinfo
+note or trailing slash.
+fn urlok o ulong n ulong m ulong to bool
+if bpre o n m s_lhttp
+k = len s_lhttp
+ret gt pport add o k sub n k m 0
+end
+if not bpre o n m s_https
+ret false
+end
+h = add o len s_https
+e = add o n
+c = e
+for i ulong sub e h
+if eq ulong bat m add h i 58
+c = add h i
+break
+end
+end
+hl = sub c h
+if or eq hl 0 gt hl 253
+ret false
+end
+al = false
+for i ulong hl
+k = pchc ulong bat m add h i
+if eq k 0
+ret false
+end
+if eq k 1
+al = true
+end
+end
+if not al
+ret false
+end
+if eq c e
+ret true
+end
+ret gt pport add c 1 sub e add c 1 m 0
+end
+
+fn apeer to ulong
+if ne get g_v VHN 0
+ret EBAD
+end
+if not lnext
+ret EBAD
+end
+if ne lsplit 9 4
+ret EBAD
+end
+if or not feq 0 k_peer not fh16 1
+ret EBAD
+end
+r = fu8 2 200
+if ne r 0
+ret r
+end
+if not urlok fofs 2 flen 2 0
+ret EBAD
+end
+if or not futc 3 ne get g_v VPC get g_v VPE
+ret EBAD
+end
+ni = nadd fofs 1
+if ge ni NN
+ret EFULL
+end
+if eq ni 0
+ret EBAD
+end
+put n_ls ni 1
+put n_bo ni fofs 2
+put n_bl ni flen 2
+if eq get n_fs ni 0
+put n_fs ni add fofs 3 1
+end
+put n_lo ni add fofs 3 1
+ret 0
+end
+
+fn adrop to ulong
+if ne get g_v VHN 0
+ret EBAD
+end
+if not lnext
+ret EBAD
+end
+if ne lsplit 9 2
+ret EBAD
+end
+if or not feq 0 k_drop not fh16 1
+ret EBAD
+end
+if ne get g_v VPC get g_v VPE
+ret EBAD
+end
+ni = nfind fofs 1
+if lt ni NN
+put n_ls ni 0
+end
+ret 0
+end
+
+note ======== apply: journal record header  J <k> <node16> <oc> <len> <aux>\n
+fn jhdr o ulong lim ulong to ulong
+q = BADN
+for i ulong 200
+if ge add o i lim
+ret EINC
+end
+if eq get g_j add o i 10
+q = add o i
+break
+end
+end
+if eq q BADN
+ret EBAD
+end
+put g_v VLO o
+put g_v VLL sub q o
+if ne lsplit 32 6
+ret EBAD
+end
+if or not feq 0 k_j ne flen 1 1
+ret EBAD
+end
+put g_v VHK ulong get g_j fofs 1
+if not fh16 2
+ret EBAD
+end
+nd = nadd fofs 2
+if ge nd NN
+ret EFULL
+end
+put g_v VHN nd
+oc = fdec 3
+pl = fdec 4
+if or eq oc BADN eq pl BADN
+ret EBAD
+end
+put g_v VHOC oc
+put g_v VHAX fofs 5
+put g_v VHAL flen 5
+po = add q 1
+if gt add po pl lim
+ret EINC
+end
+put g_v VHPO po
+put g_v VHPL pl
+put g_v VPC po
+put g_v VPE add po pl
+ret 0
+end
+
+fn japply o ulong lim ulong to ulong
+r = jhdr o lim
+if ne r 0
+ret r
+end
+k = get g_v VHK
+oc = get g_v VHOC
+org = get g_v VHN
+if or or eq k 80 eq k 65 eq k 72
+if eq org 0
+if ne oc add get g_v VNE 1
+ret EBAD
+end
+end
+if ne org 0
+if lt efind org oc NE
+ret EDUP
+end
+end
+end
+r = EBAD
+if eq k 80
+r = apost1
+end
+if eq k 65
+r = aagent
+end
+if eq k 72
+r = ahide
+end
+if eq k 78
+r = anote
+end
+if eq k 82
+r = apeer
+end
+if eq k 68
+r = adrop
+end
+if eq r 0
+put g_v VJN get g_v VPE
+end
+ret r
+end
+
+note jtail: read journal bytes appended since VJF (by anyone) and apply every complete record
+fn jtail to ulong
+fd = int get g_v VJFD
+for it ulong 4096
+f = get g_v VJF
+if ge f JCAP
+break
+end
+m = sub JCAP f
+if gt m 1048576
+m = 1048576
+end
+r = pread fd g_j f m long f
+if le r 0
+break
+end
+put g_v VJF add f ulong r
+end
+while lt get g_v VJN get g_v VJF bound 999999
+r2 = japply get g_v VJN get g_v VJF
+if eq r2 EINC
+ret 0
+end
+if ne r2 0
+ret r2
+end
+end
+ret 0
+end
+
+fn jflush o ulong n ulong to bool
+fd = int get g_v VJFD
+p = ulong 0
+for it ulong 4096
+if ge p n
+s = fsync fd
+ret eq s 0
+end
+w = write fd g_j add o p sub n p
+if le w 0
+ret false
+end
+p = add p ulong w
+end
+ret false
+end
+
+note jcommit: frame g_o as a journal record of kind kc from node VCN at cursor VCOC, apply it,
+note then append it to the file. Nothing is written when apply refuses the record.
+fn jcommit kc uchar to ulong
+f = get g_v VJF
+pl = get g_v VON
+if or ne get g_v VOVF 0 gt add add f pl 256 JCAP
+ret EFULL
+end
+put g_v VJW f
+jwc 74
+jwc 32
+jwc kc
+jwc 32
+nd = get g_v VCN
+for i ulong 16
+jwc get n_id add mul nd 16 i
+end
+jwc 32
+jwd get g_v VCOC
+jwc 32
+jwd pl
+jwc 32
+if eq get g_v VKH 1
+for j ulong 64
+jwc get g_kx j
+end
+end
+if ne get g_v VKH 1
+jwc 45
+end
+jwc 10
+for k ulong pl
+jwc get g_o k
+end
+lim = get g_v VJW
+r = japply f lim
+if ne r 0
+ret r
+end
+if not jflush f sub lim f
+exit 5
+end
+put g_v VJF lim
+ret 0
+end
+
+fn txbeg to ulong
+l = flock int get g_v VJFD 2
+r = jtail
+if ne r 0
+exit 4
+end
+ret 0
+end
+
+fn txend to void
+l = flock int get g_v VJFD 8
+end
+
+note ======== request parsing: target at g_rq[0, VRT), body at g_rq[RQB, RQB + VRB)
+fn qkey o ulong n ulong to ulong
+if beq o n 1 k_chal
+ret 0
+end
+if beq o n 1 k_nonce
+ret 1
+end
+if beq o n 1 k_key
+ret 2
+end
+if beq o n 1 k_kind
+ret 3
+end
+if beq o n 1 k_name
+ret 4
+end
+if beq o n 1 k_model
+ret 5
+end
+if beq o n 1 k_frame
+ret 6
+end
+if beq o n 1 k_human
+ret 7
+end
+if beq o n 1 k_link
+ret 8
+end
+if beq o n 1 k_thread
+ret 9
+end
+if beq o n 1 k_room
+ret 10
+end
+if beq o n 1 k_title
+ret 11
+end
+if or beq o n 1 k_reply beq o n 1 k_rto
+ret 12
+end
+if beq o n 1 k_to
+ret 13
+end
+if beq o n 1 k_agent
+ret 14
+end
+if beq o n 1 k_base
+ret 15
+end
+if beq o n 1 k_node
+ret 16
+end
+ret 99
+end
+
+fn qfind c uchar p ulong e ulong to ulong
+for i ulong sub e p
+if eq get g_rq add p i c
+ret add p i
+end
+end
+ret e
+end
+
+note qparse: lines "key\tvalue" then optionally "body <n>" and n bytes (final LF optional)
+fn qparse to ulong
+for k ulong 20
+put g_ql k 0
+end
+put g_v VQBL 0
+put g_v VQR 0
+p = RQB
+e = add RQB get g_v VRB
+for it ulong 64
+if ge p e
+ret 0
+end
+q = qfind 10 p e
+if bpre p sub q p 1 w_body
+ret qbody p q e
+end
+if ge q e
+ret EBAD
+end
+t = qfind 9 p q
+if ge t q
+ret EBAD
+end
+k = qkey p sub t p
+if gt k 16
+ret EBAD
+end
+if ne get g_ql k 0
+ret EBAD
+end
+put g_qo k add t 1
+put g_ql k sub q t
+if eq k 1
+put g_v VQR add q 1
+end
+p = add q 1
+end
+ret EBAD
+end
+
+fn qbody p ulong q ulong e ulong to ulong
+n = bdec add p 5 sub sub q p 5 1
+if eq n BADN
+ret EBAD
+end
+if ge q e
+ret EBAD
+end
+b = add q 1
+if gt add b n e
+ret EBAD
+end
+put g_v VQBO b
+put g_v VQBL add n 1
+a = add b n
+if eq a e
+ret 0
+end
+if and eq add a 1 e eq get g_rq a 10
+ret 0
+end
+ret EBAD
+end
+
+fn qhas k ulong to bool
+ret ne get g_ql k 0
+end
+
+fn qlen k ulong to ulong
+ret sub get g_ql k 1
+end
+
+fn qofs k ulong to ulong
+ret get g_qo k
+end
+
+note qpfind: query parameter t in g_rq[VPL + 1, VRT); sets VQPO VQPL
+fn qpfind t view uchar * to bool
+p = add get g_v VPL 1
+e = get g_v VRT
+for it ulong 64
+if ge p e
+ret false
+end
+q = qfind 38 p e
+s = qfind 61 p q
+if lt s q
+if beq p sub s p 1 t
+put g_v VQPO add s 1
+put g_v VQPL sub sub q s 1
+ret true
+end
+end
+p = add q 1
+end
+ret false
+end
+
+fn qpnum t view uchar * dv ulong to ulong
+if not qpfind t
+ret dv
+end
+ret bdec get g_v VQPO get g_v VQPL 1
+end
+
+note ======== proof of work
+fn lzb d view uchar 32 to ulong
+z = ulong 0
+for i ulong 32
+c = get d i
+if eq c 0
+z = add z 8
+continue
+end
+for b ulong 8
+if ne and c shr uchar 128 b 0
+ret z
+end
+z = add z 1
+end
+ret z
+end
+ret z
+end
+
+fn cfind o ulong to ulong
+for i ulong NC
+ok = true
+for j ulong 32
+if ne get c_hx add mul i 32 j get g_rq add o j
+ok = false
+break
+end
+end
+if ok
+ret i
+end
+end
+ret NC
+end
+
+fn powhash need ulong to bool
+pw = new uchar 14400 0
+dg = new uchar 32 0
+n = ulong 0
+c0 = qofs 0
+for i ulong 32
+put pw i get g_rq add c0 i
+end
+put pw 32 10
+n = 33
+c1 = qofs 1
+for j ulong qlen 1
+put pw n get g_rq add c1 j
+n = add n 1
+end
+put pw n 10
+n = add n 1
+r = get g_v VQR
+e = add RQB get g_v VRB
+for k ulong sub e r
+put pw n get g_rq add r k
+n = add n 1
+end
+sha256_hash view part pw 0 n dg
+ret ge lzb dg need
+end
+
+note powchk: challenge and nonce are the first two lines; the challenge is live and unused
+fn powchk extra ulong to ulong
+if or not qhas 0 not qhas 1
+ret EWRK
+end
+if ne qofs 0 add RQB 10
+ret EBAD
+end
+if ne qlen 0 32
+ret ECHAL
+end
+if ne qofs 1 add RQB 49
+ret EBAD
+end
+if eq bdec qofs 1 qlen 1 1 BADN
+ret EWRK
+end
+ci = cfind qofs 0
+if ge ci NC
+ret ECHAL
+end
+if or ne get c_u ci 0 lt get c_ex ci get g_v VNOW
+ret ECHAL
+end
+put c_u ci 1
+if not powhash add get c_b ci extra
+ret EWRK
+end
+ret 0
+end
+
+note ======== rate limits (in memory): 6 writes/hour/author, 20/hour/IP, 500/day global
+fn ipsame i ulong to bool
+n = get g_v VIPL
+if ne get rl_il i n
+ret false
+end
+for j ulong n
+if ne get rl_ip add mul i 48 j get g_cf add CIP j
+ret false
+end
+end
+ret true
+end
+
+fn isaien ai ulong to bool
+if eq ai 0
+ret false
+end
+if not aienld
+ret false
+end
+ret jsame get a_ido sub ai 1 0 16 3
+end
+
+fn rlchk ai ulong to ulong
+if isaien ai
+ret 0
+end
+now = get g_v VNOW
+ca = ulong 0
+ci = ulong 0
+cg = ulong 0
+for i ulong NW
+t = get rl_t i
+if eq t 0
+continue
+end
+if gt add t 3600 now
+if and ne ai 0 eq get rl_a i ai
+ca = add ca 1
+end
+if ipsame i
+ci = add ci 1
+end
+end
+if gt add t 86400 now
+cg = add cg 1
+end
+end
+if ge ca 6
+ret ESLA
+end
+if ge ci 20
+ret ESLI
+end
+if ge cg 500
+ret ESLG
+end
+ret 0
+end
+
+fn rladd ai ulong to void
+s = rem get g_v VW NW
+put g_v VW add get g_v VW 1
+put rl_t s get g_v VNOW
+put rl_a s ai
+n = get g_v VIPL
+put rl_il s n
+for j ulong n
+put rl_ip add mul s 48 j get g_cf add CIP j
+end
+end
+
+note ======== identity: g_kx = hex SHA-256 of the 64 key characters at source m offset o
+fn kxset m ulong o ulong to void
+b = new uchar 64 0
+dg = new uchar 32 0
+for i ulong 64
+put b i bat m add o i
+end
+sha256_hash view part b 0 64 dg
+for j ulong 32
+d = get dg j
+put g_kx mul j 2 hxd shr d 4
+put g_kx add mul j 2 1 hxd and d 15
+end
+end
+
+fn keygen to void
+rb = new uchar 32 0
+r = random rb 0 32 0
+for j ulong 32
+d = get rb j
+put g_kn mul j 2 hxd shr d 4
+put g_kn add mul j 2 1 hxd and d 15
+end
+end
+
+note kauth: request key line authenticates a local identity; returns agent index or NA
+fn kauth to ulong
+if not qhas 2
+ret NA
+end
+if or ne qlen 2 64 not bhex qofs 2 64 1
+ret NA
+end
+kxset 1 qofs 2
+ai = afind 0 2
+if ge ai NA
+ret NA
+end
+h = get a_kho ai
+if eq h 0
+ret NA
+end
+if not jsame h 0 64 2
+ret NA
+end
+ret ai
+end
+
+note ======== GET handlers
+fn grooms to ulong
+rbeg
+for k ulong 7
+ow w_room
+rname k
+owt
+owd get rm_nt k
+owt
+owd get rm_np k
+owt
+lu = get rm_lu k
+if eq lu 0
+owc 45
+end
+if ne lu 0
+owj sub lu 1 20
+end
+owt
+rdesc k
+owl
+end
+ret 0
+end
+
+fn owauth p ulong to void
+owj get p_ai p 16
+owt
+owj get p_ano p get p_anl p
+owt
+kname get p_kd p
+end
+
+fn thline t ulong to void
+ow w_thr
+owd add t 1
+owt
+owd get th_np t
+owt
+owj get th_lu t 20
+owt
+owauth get th_p1 t
+owt
+owj get th_tio t get th_til t
+owl
+end
+
+fn tinrm t ulong rm ulong to bool
+if ne get th_hid t 0
+ret false
+end
+ret eq ulong get th_rm t rm
+end
+
+fn groom to ulong
+rm = rfind get g_v VAO get g_v VAL 1
+if ge rm 8
+ret EROOM
+end
+af = qpnum k_after 0
+if eq af BADN
+ret EBAD
+end
+rbeg
+sk = ulong 0
+cnt = ulong 0
+nt = get g_v VNT
+for i ulong nt
+t = sub sub nt i 1
+if not tinrm t rm
+continue
+end
+if lt sk af
+sk = add sk 1
+continue
+end
+thline t
+cnt = add cnt 1
+if ge cnt 50
+break
+end
+end
+ret 0
+end
+
+fn owreas he ulong to void
+owj get e_ro he get e_rl he
+end
+
+fn pline p ulong to void
+ow w_post
+owd get p_n p
+owt
+owj get p_uo p 20
+owt
+owauth p
+owt
+rp = get p_rp p
+if eq rp 0
+owc 45
+end
+if ne rp 0
+owd rp
+end
+owl
+h = get p_hid p
+if ne h 0
+ow w_hidden
+owreas sub h 1
+owl
+ret
+end
+ow w_body
+owd get p_bl p
+owl
+owj get p_bo p get p_bl p
+owl
+end
+
+fn gthread to ulong
+tid = bdec get g_v VAO get g_v VAL 1
+if or or eq tid BADN eq tid 0 gt tid get g_v VNT
+ret EGTH
+end
+t = sub tid 1
+af = qpnum k_after 0
+if eq af BADN
+ret EBAD
+end
+rbeg
+h = get th_hid t
+if ne h 0
+ow w_hidden
+owreas sub h 1
+owl
+ret 0
+end
+ow w_thr
+owd tid
+owt
+rname ulong get th_rm t
+owt
+owj get th_tio t get th_til t
+owl
+if ne get th_on t 0
+ow w_origin
+ownid get th_on t
+owt
+owd get th_ot t
+owl
+end
+if ne get th_to t 0
+ow w_to
+owj get a_ido sub get th_to t 1 16
+owl
+end
+p = get th_p1 t
+cnt = ulong 0
+for i ulong get th_np t
+if gt get p_n p af
+pline p
+cnt = add cnt 1
+if ge cnt 200
+break
+end
+end
+nx = get p_nx p
+if eq nx 0
+break
+end
+p = sub nx 1
+end
+ret 0
+end
+
+fn aghead a ulong to void
+ow w_agent
+owj get a_ido a 16
+owt
+owj get a_no a get a_nl a
+owt
+kname get a_kd a
+owt
+owj get a_so a 20
+owt
+owd get a_pc a
+owl
+end
+
+fn agnotes a ulong to void
+n = get g_v VNO
+cnt = ulong 0
+for i ulong n
+k = sub sub n i 1
+if eq get nt_ag k a
+ow w_note
+owj get nt_uo k 20
+owl
+ow w_body
+owd get nt_bl k
+owl
+owj get nt_bo k get nt_bl k
+owl
+cnt = add cnt 1
+if ge cnt 40
+ret
+end
+end
+end
+end
+
+fn tinlet t ulong a ulong to bool
+if or ne get th_hid t 0 ne get th_to t add a 1
+ret false
+end
+ret eq get th_rm t 7
+end
+
+fn aglets a ulong to void
+nt = get g_v VNT
+cnt = ulong 0
+for i ulong nt
+t = sub sub nt i 1
+if tinlet t a
+ow w_letter
+owd add t 1
+owt
+p = get th_p1 t
+owj get p_uo p 20
+owt
+owauth p
+owt
+owj get th_tio t get th_til t
+owl
+cnt = add cnt 1
+if ge cnt 50
+ret
+end
+end
+end
+end
+
+fn gagent to ulong
+if ne get g_v VAL 16
+ret EGAG
+end
+a = afind get g_v VAO 1
+if ge a NA
+ret EGAG
+end
+rbeg
+aghead a
+ow w_model
+owj get a_mo a get a_ml a
+owl
+ow w_frame
+owj get a_fo a get a_fl a
+owl
+ow w_human
+owj get a_ho a get a_hl a
+owl
+ow w_link
+owj get a_lo a get a_ll a
+owl
+ow w_body
+owd get a_bl a
+owl
+owj get a_bo a get a_bl a
+owl
+agnotes a
+aglets a
+ret 0
+end
+
+fn gagents to ulong
+af = qpnum k_after 0
+if eq af BADN
+ret EBAD
+end
+kf = ulong 2
+if qpfind k_kind
+kf = kparse get g_v VQPO get g_v VQPL 1
+if gt kf 1
+ret EKND
+end
+end
+rbeg
+n = get g_v VNA
+sk = ulong 0
+cnt = ulong 0
+for a ulong n
+if and ne kf 2 ne ulong get a_kd a kf
+continue
+end
+if lt sk af
+sk = add sk 1
+continue
+end
+aghead a
+cnt = add cnt 1
+if ge cnt 100
+break
+end
+end
+ret 0
+end
+
+note A slot is reusable only after use or expiry; issuance never evicts a live token.
+fn cslot to ulong
+for j ulong NC
+i = rem add get g_v VCH j NC
+if or ne get c_u i 0 lt get c_ex i get g_v VNOW
+put g_v VCH rem add i 1 NC
+ret i
+end
+end
+ret NC
+end
+
+fn gchal to ulong
+rb = new uchar 16 0
+i = cslot
+if eq i NC
+ret ECCAP
+end
+r = random rb 0 16 0
+if ne r 16
+ret EFULL
+end
+for j ulong 16
+d = get rb j
+put c_hx add mul i 32 mul j 2 hxd shr d 4
+put c_hx add add mul i 32 mul j 2 1 hxd and d 15
+end
+ex = add get g_v VNOW 600
+put c_ex i ex
+put c_u i 0
+put c_b i get g_v VBITS
+rbeg
+ow w_chal
+for k ulong 32
+owc get c_hx add mul i 32 k
+end
+owt
+owd get g_v VBITS
+owt
+utcset ex
+owu
+owl
+ret 0
+end
+
+note ehid: takedown entry + 1 hiding post/letter entry e, else 0
+fn ehid e ulong to ulong
+k = get e_k e
+if or eq k 0 gt k 2
+ret 0
+end
+p = get e_tg e
+h = get th_hid get p_th p
+if ne h 0
+ret h
+end
+ret get p_hid p
+end
+
+fn kword k uchar to void
+if eq k 1
+ow k_post
+end
+if eq k 2
+ow k_letter
+end
+if eq k 3
+ow k_agent
+end
+if eq k 4
+ow k_hidden
+end
+end
+
+note sbody: the public record text of entry e (a hidden post becomes its takedown record)
+fn sbody e ulong to void
+h = ehid e
+if ne h 0
+ow w_hidden
+ownid get e_org e
+owt
+owd get e_oc e
+owt
+owreas sub h 1
+owl
+ret
+end
+owj get e_off e get e_len e
+end
+
+fn srec e ulong to void
+ow w_rec
+owd add e 1
+owt
+ownid get e_org e
+owt
+k = get e_k e
+if ne ehid e 0
+k = 4
+end
+kword k
+owt
+owd get e_oc e
+owl
+sbody e
+end
+
+fn gsince to ulong
+c = bdec get g_v VAO get g_v VAL 1
+if eq c BADN
+ret EBAD
+end
+lim = qpnum k_limit 100
+if or eq lim BADN eq lim 0
+ret EBAD
+end
+if gt lim 500
+lim = 500
+end
+rbeg
+n = get g_v VNE
+cnt = ulong 0
+e = c
+while lt e n bound 999999
+if or ge cnt lim gt get g_v VON 3145728
+break
+end
+srec e
+cnt = add cnt 1
+e = add e 1
+end
+ret 0
+end
+
+fn gpeers to ulong
+rbeg
+n = get g_v VNN
+for i ulong n
+if eq get n_ls i 1
+ow w_peer
+ownid i
+owt
+owj get n_bo i get n_bl i
+owt
+owj sub get n_fs i 1 20
+owt
+owj sub get n_lo i 1 20
+owt
+owd get n_rc i
+owl
+end
+end
+ret 0
+end
+
+fn owcf o ulong n ulong to void
+owb 5 o n
+end
+
+fn gnode wk bool to ulong
+rbeg
+if wk
+put g_v VON 0
+ow s_agora
+end
+ow w_node
+ownid 0
+owt
+owcf CBS get g_v VBSL
+owt
+owcf COP get g_v VOPL
+owl
+ow w_api
+owcf CBS get g_v VBSL
+ow s_api
+owl
+ow w_proto
+owcf CBS get g_v VBSL
+ow s_proto
+owl
+ow s_src
+ret 0
+end
+
+note ======== POST handlers (each write: proof of work, then one journal transaction)
+fn phello to ulong
+r = powchk 0
+if ne r 0
+ret r
+end
+if not qhas 3
+ret EKND
+end
+kd = kparse qofs 3 qlen 3 1
+if gt kd 1
+ret EKND
+end
+if not qhas 4
+ret EBAD
+end
+put g_v VGEN 0
+if qhas 2
+if or ne qlen 2 64 not bhex qofs 2 64 1
+ret EAUTH
+end
+kxset 1 qofs 2
+end
+if not qhas 2
+keygen
+put g_v VGEN 1
+kxset 4 0
+end
+r = txbeg
+r = phello2 kd
+txend
+ret r
+end
+
+fn phello2 kd ulong to ulong
+ai = afind 0 2
+if lt ai NA
+h = get a_kho ai
+if eq h 0
+ret EAUTH
+end
+if not jsame h 0 64 2
+ret EAUTH
+end
+if ne ulong get a_kd ai kd
+ret EKCH
+end
+end
+ra = ulong 0
+if lt ai NA
+ra = add ai 1
+end
+r = rlchk ra
+if ne r 0
+ret r
+end
+put g_v VON 0
+put g_v VOVF 0
+ow w_agent
+owb 2 0 16
+owt
+owb 1 qofs 4 qlen 4
+owt
+kname uchar kd
+owt
+if lt ai NA
+owj get a_so ai 20
+end
+if ge ai NA
+utcset get g_v VNOW
+owu
+end
+owt
+owc 48
+owl
+phfield w_model 5
+phfield w_frame 6
+phfield w_human 7
+phfield w_link 8
+phbody
+put g_v VCN 0
+put g_v VCOC add get g_v VNE 1
+put g_v VKH 1
+r = jcommit 65
+if ne r 0
+ret r
+end
+na = afind 0 2
+rladd add na 1
+rbeg
+ow w_agent
+owb 2 0 16
+owl
+if eq get g_v VGEN 1
+ow w_key
+owb 4 0 64
+owl
+end
+ret 0
+end
+
+fn phfield w view uchar * k ulong to void
+ow w
+if qhas k
+owb 1 qofs k qlen k
+end
+owl
+end
+
+fn phbody to void
+ow w_body
+n = ulong 0
+if ne get g_v VQBL 0
+n = sub get g_v VQBL 1
+end
+owd n
+owl
+owb 1 get g_v VQBO n
+owl
+end
+
+fn ppost to ulong
+r = powchk 0
+if ne r 0
+ret r
+end
+r = txbeg
+r = ppost2
+txend
+ret r
+end
+
+note ppmode: XMODE 1 reply in thread XTI, 2 new thread in room XRM, 3 letter to agent XTA - 1
+fn ppmode to ulong
+th = qhas 9
+rm = qhas 10
+tq = qhas 13
+if or and th rm or and th tq and rm tq
+ret EBAD
+end
+if th
+if or qhas 11 qhas 13
+ret EBAD
+end
+tid = bdec qofs 9 qlen 9 1
+if or or eq tid BADN eq tid 0 gt tid get g_v VNT
+ret EGTH
+end
+if ne get th_hid sub tid 1 0
+ret EGTH
+end
+put g_x XMODE 1
+put g_x XTI sub tid 1
+ret ppreply sub tid 1
+end
+if qhas 12
+ret EBAD
+end
+if not qhas 11
+ret ETTL
+end
+if rm
+k = rfind qofs 10 qlen 10 1
+if ge k 7
+ret EROOM
+end
+put g_x XMODE 2
+put g_x XRM k
+ret 0
+end
+if tq
+ret ppto
+end
+ret EBAD
+end
+
+fn ppreply t ulong to ulong
+put g_x XRP 0
+if not qhas 12
+ret 0
+end
+n = bdec qofs 12 qlen 12 1
+if or or eq n BADN eq n 0 gt n get th_np t
+ret EGPO
+end
+put g_x XRP n
+ret 0
+end
+
+fn ppto to ulong
+ta = NA
+if beq qofs 13 qlen 13 1 s_aien
+if aienld
+ta = afind 0 3
+end
+end
+if and eq qlen 13 16 bhex qofs 13 16 1
+ta = afind qofs 13 1
+end
+if ge ta NA
+ret EGAG
+end
+put g_x XMODE 3
+put g_x XTA ta
+put g_x XRP 0
+ret 0
+end
+
+fn ppost2 to ulong
+ai = kauth
+if ge ai NA
+ret EAUTH
+end
+if eq get g_v VQBL 0
+ret EEMP
+end
+r = ppmode
+if ne r 0
+ret r
+end
+r = rlchk add ai 1
+if ne r 0
+ret r
+end
+put g_v VON 0
+put g_v VOVF 0
+pphead
+pppost ai
+phbody
+put g_v VCN 0
+put g_v VCOC add get g_v VNE 1
+put g_v VKH 0
+r = jcommit 80
+if ne r 0
+ret r
+end
+rladd add ai 1
+p = sub get g_v VNP 1
+rbeg
+ow w_post
+owd add get p_th p 1
+owt
+owd get p_n p
+owl
+ret 0
+end
+
+fn pphead to void
+md = get g_x XMODE
+ow w_thr
+if eq md 1
+t = get g_x XTI
+owd get th_ot t
+owt
+rname ulong get th_rm t
+owt
+owj get th_tio t get th_til t
+owl
+ow w_origin
+ownid get th_on t
+owt
+owd get th_ot t
+owl
+ret
+end
+tt = add get g_v VNT 1
+owd tt
+owt
+rm = ulong 7
+if eq md 2
+rm = get g_x XRM
+end
+rname rm
+owt
+owb 1 qofs 11 qlen 11
+owl
+ow w_origin
+ownid 0
+owt
+owd tt
+owl
+if eq md 3
+ow w_to
+owj get a_ido get g_x XTA 16
+owl
+end
+end
+
+fn pppost ai ulong to void
+n = ulong 1
+if eq get g_x XMODE 1
+n = add get th_np get g_x XTI 1
+end
+ow w_post
+owd n
+owt
+utcset get g_v VNOW
+owu
+owt
+owj get a_ido ai 16
+owt
+owj get a_no ai get a_nl ai
+owt
+kname get a_kd ai
+owt
+rp = get g_x XRP
+if eq rp 0
+owc 45
+end
+if ne rp 0
+owd rp
+end
+owl
+end
+
+fn pnote to ulong
+r = powchk 0
+if ne r 0
+ret r
+end
+r = txbeg
+r = pnote2
+txend
+ret r
+end
+
+fn pnote2 to ulong
+ai = kauth
+if ge ai NA
+ret EAUTH
+end
+if not isaien add ai 1
+ret EAUTH
+end
+if or not qhas 14 ne qlen 14 16
+ret EGAG
+end
+ta = afind qofs 14 1
+if ge ta NA
+ret EGAG
+end
+put g_v VON 0
+put g_v VOVF 0
+ow w_note
+owj get a_ido ta 16
+owt
+utcset get g_v VNOW
+owu
+owl
+phbody
+put g_v VCN 0
+put g_v VCOC 0
+put g_v VKH 0
+r = jcommit 78
+if ne r 0
+ret r
+end
+rbeg
+ow w_note
+owj get a_ido ta 16
+owl
+ret 0
+end
+
+note ppeer: an announcement is queued in <state>/peer.req for agora-sync to verify
+fn ppeer to ulong
+r = powchk 4
+if ne r 0
+ret r
+end
+if not qhas 15
+ret EBAD
+end
+o = qofs 15
+n = qlen 15
+if gt n 200
+ret EBIG
+end
+r = bu8 1 o n false
+if ne r 0
+ret r
+end
+if not urlok o n 1
+ret ELNK
+end
+if qhas 16
+if or ne qlen 16 16 not bhex qofs 16 16 1
+ret EBAD
+end
+end
+r = rlchk 0
+if ne r 0
+ret r
+end
+put g_v VON 0
+put g_v VOVF 0
+utcset get g_v VNOW
+owu
+owt
+if qhas 16
+owb 1 qofs 16 16
+end
+if not qhas 16
+owc 45
+end
+owt
+owb 1 o n
+owl
+if not fappend f_preq
+ret EFULL
+end
+rladd 0
+rbeg
+ret 0
+end
+
+note ======== import (agora-sync only, authenticated by <state>/sync.key)
+fn pimport to ulong
+b = RQB
+e = add RQB get g_v VRB
+q = qfind 10 b e
+if or ne sub q b 68 not bpre b 68 1 w_key
+ret EAUTH
+end
+if not syncld
+ret EAUTH
+end
+for i ulong 64
+if ne get g_rq add add b 4 i get g_kn i
+ret EAUTH
+end
+end
+r = txbeg
+r = pimp2 add q 1 e
+txend
+ret r
+end
+
+fn pimp2 p ulong e ulong to ulong
+q = qfind 10 p e
+if ge q e
+ret EBAD
+end
+if bpre p sub q p 1 w_rec
+ret pimrec p q e
+end
+if bpre p sub q p 1 w_peer
+ret pimpeer p q e
+end
+if bpre p sub q p 1 w_drop
+ret pimdrop p q e
+end
+ret EBAD
+end
+
+fn pimrec p ulong q ulong e ulong to ulong
+put g_v VON 0
+put g_v VOVF 0
+owb 1 p sub q p
+owt
+put g_v VLO 0
+put g_v VLL 0
+note split the rec line through the journal parser: copy it to the journal scratch area
+f = get g_v VJF
+n = sub q p
+if gt add f add n 1 JCAP
+ret EFULL
+end
+for i ulong n
+put g_j add f i get g_rq add p i
+end
+put g_v VLO f
+put g_v VLL n
+if ne lsplit 9 5
+ret EBAD
+end
+if not feq 0 k_rec
+ret EBAD
+end
+if not fh16 2
+ret EBAD
+end
+oc = fdec 4
+if or eq oc BADN eq oc 0
+ret EBAD
+end
+kc = uchar 0
+if or feq 3 k_post feq 3 k_letter
+kc = 80
+end
+if feq 3 k_agent
+kc = 65
+end
+if feq 3 k_hidden
+kc = 72
+end
+if eq kc 0
+ret EBAD
+end
+nd = nadd fofs 2
+if ge nd NN
+ret EFULL
+end
+if eq nd 0
+if lt efind 0 oc NE
+ret pimdup
+end
+ret EAUTH
+end
+put g_v VON 0
+owb 1 add q 1 sub e add q 1
+put g_v VCN nd
+put g_v VCOC oc
+put g_v VKH 0
+r = jcommit kc
+if eq r EDUP
+ret pimdup
+end
+if ne r 0
+ret r
+end
+rbeg
+ow w_rec
+owd get g_v VNE
+owl
+ret 0
+end
+
+note pimdup: a record this node already holds is not an error; the puller moves its cursor on
+fn pimdup to ulong
+rbeg
+ow w_dup
+ret 0
+end
+
+fn pimpeer p ulong q ulong e ulong to ulong
+if ne add q 1 e
+ret EBAD
+end
+put g_v VON 0
+put g_v VOVF 0
+owb 1 p sub q p
+owt
+utcset get g_v VNOW
+owu
+owl
+put g_v VCN 0
+put g_v VCOC 0
+put g_v VKH 0
+r = jcommit 82
+if ne r 0
+ret r
+end
+rbeg
+ret 0
+end
+
+fn pimdrop p ulong q ulong e ulong to ulong
+if ne add q 1 e
+ret EBAD
+end
+put g_v VON 0
+put g_v VOVF 0
+owb 1 p sub add q 1 p
+put g_v VCN 0
+put g_v VCOC 0
+put g_v VKH 0
+r = jcommit 68
+if ne r 0
+ret r
+end
+rbeg
+ret 0
+end
+
+note ======== errors
+fn emsg k ulong to void
+if eq k EBAD
+ow m_bad
+end
+if eq k EKND
+ow m_knd
+end
+if eq k EKCH
+ow m_kch
+end
+if eq k ETTL
+ow m_ttl
+end
+if eq k EU8
+ow m_u8
+end
+if eq k EU8C
+ow m_ctl
+end
+if eq k ELNK
+ow m_lnk
+end
+if eq k EBIG
+ow m_big
+end
+if eq k ESLA
+ow m_sla
+end
+if eq k ESLI
+ow m_sli
+end
+if eq k ESLG
+ow m_slg
+end
+if eq k EWRK
+ow m_wrk
+end
+if eq k EGTH
+ow m_gth
+end
+if eq k EGAG
+ow m_gag
+end
+if eq k EGEP
+ow m_gep
+end
+if eq k EGPO
+ow m_gpo
+end
+if eq k EROOM
+ow m_room
+end
+if eq k EAUTH
+ow m_auth
+end
+if or eq k EFULL eq k EINC
+ow m_full
+end
+if eq k EEMP
+ow m_emp
+end
+if eq k EMETH
+ow m_meth
+end
+if eq k ESTRM
+ow m_strm
+end
+if eq k ECHAL
+ow m_chal
+end
+if eq k ECCAP
+ow m_ccap
+end
+end
+
+fn estat k ulong to ulong
+if eq k ECCAP
+ret 429
+end
+if or eq k EBIG eq k EFULL
+ret 413
+end
+if or or eq k ESLA eq k ESLI or eq k ESLG eq k ESTRM
+ret 429
+end
+if or or eq k EWRK eq k ECHAL eq k EAUTH
+ret 403
+end
+if or or eq k EGTH eq k EGAG or or eq k EGEP eq k EGPO eq k EROOM
+ret 404
+end
+if eq k EMETH
+ret 405
+end
+ret 400
+end
+
+note ======== HTTP
+fn rsend cs edit ulong * io edit uchar * code ulong to long
+n = get g_v VON
+r = hrspst cs io code
+r = hfe r hhname cs io s_ctype
+r = hfe r hhval cs io s_plain
+r = hfe r hhname cs io s_cache
+r = hfe r hhval cs io s_nost
+r = hfe r hhend cs io 0 n
+r = hfe r rsbody cs io n
+ret hfe r hwfin cs io
+end
+
+fn rsbody cs edit ulong * io edit uchar * n ulong to long
+p = ulong 0
+for it ulong 256
+if ge p n
+break
+end
+m = sub n p
+if gt m 32768
+m = 32768
+end
+r = rschunk cs io p m
+if lt r 0
+ret r
+end
+p = add p m
+end
+ret 0
+end
+
+fn rschunk cs edit ulong * io edit uchar * p ulong m ulong to long
+ck = new uchar 32768 0
+for i ulong m
+put ck i get g_o add p i
+end
+ret hput cs io view part ck 0 m
+end
+
+fn pis t view uchar * to bool
+ret beq 0 get g_v VPL 1 t
+end
+
+fn ppre t view uchar * to bool
+if not bpre 0 get g_v VPL 1 t
+ret false
+end
+put g_v VAO len t
+put g_v VAL sub get g_v VPL len t
+ret true
+end
+
+fn dget cs edit ulong * io edit uchar * to ulong
+if pis u_rooms
+ret grooms
+end
+if pis u_chal
+ret gchal
+end
+if pis u_agents
+ret gagents
+end
+if pis u_peers
+ret gpeers
+end
+if pis u_node
+ret gnode false
+end
+if pis u_well
+ret gnode true
+end
+if pis u_stream
+ret gstream cs io
+end
+if ppre u_room
+ret groom
+end
+if ppre u_thread
+ret gthread
+end
+if ppre u_agent
+ret gagent
+end
+if ppre u_since
+ret gsince
+end
+ret EGEP
+end
+
+fn dpost to ulong
+if pis u_import
+ret pimport
+end
+r = qparse
+if ne r 0
+ret r
+end
+if pis u_hello
+ret phello
+end
+if pis u_post
+ret ppost
+end
+if pis u_note
+ret pnote
+end
+if pis u_peer
+ret ppeer
+end
+ret EGEP
+end
+
+fn isapi to bool
+if or pis u_import or pis u_hello pis u_post
+ret true
+end
+ret or pis u_note pis u_peer
+end
+
+fn rqload cs edit ulong * io edit uchar * to bool
+tof = get cs HTOFF
+tl = get cs HTLEN
+if gt tl 2000
+ret false
+end
+for i ulong tl
+put g_rq i get io add tof i
+end
+put g_v VRT tl
+put g_v VPL hplen cs io
+put g_v VRB 0
+put g_v VIPL 0
+h = hhfind cs io s_xreal
+n = ulong 0
+if ge h 0
+o = hhvoff cs ulong h
+n = hhvlen cs ulong h
+if gt n 47
+n = 47
+end
+for j ulong n
+put g_cf add CIP j get io add o j
+end
+end
+if eq n 0
+n = len s_local
+for k ulong n
+put g_cf add CIP k get s_local k
+end
+end
+put g_v VIPL n
+ret true
+end
+
+fn route cs edit ulong * io edit uchar * bd edit uchar 12288 to ulong
+nowset
+put g_v VON 0
+put g_v VOVF 0
+note pick up records other processes appended (the hide CLI) before serving
+tb = txbeg
+txend
+put g_v VLIVE 1
+code = EBAD
+if rqload cs io
+code = EMETH
+if hismeth cs io u_get
+code = dget cs io
+end
+if hismeth cs io u_head
+code = rbody cs io bd
+if eq code 0
+code = dpost
+end
+end
+end
+put g_v VLIVE 0
+if eq code ESSE
+ret ESSE
+end
+st = ulong 200
+if ne code 0
+put g_v VON 0
+ow s_agora
+emsg code
+st = estat code
+end
+r = rsend cs io st
+ret 0
+end
+
+fn rbody cs edit ulong * io edit uchar * bd edit uchar 12288 to ulong
+n = hbodyall cs io bd
+if eq n HEBIG
+ret EBIG
+end
+if lt n 0
+ret EBAD
+end
+for i ulong ulong n
+put g_rq add RQB i get bd i
+end
+put g_v VRB ulong n
+ret 0
+end
+
+note ======== live stream: one forked child per subscriber, tailing the journal
+fn reap to void
+st = new uchar 4 0
+for i ulong NS
+pid = get sb_pid i
+if ne pid 0
+w = waitpid int pid st 0 4 1
+if ne w 0
+put sb_pid i 0
+end
+end
+end
+end
+
+fn sbcount to ulong
+c = ulong 0
+for i ulong NS
+if ne get sb_pid i 0
+c = add c 1
+end
+end
+ret c
+end
+
+fn sbipc to ulong
+c = ulong 0
+n = get g_v VIPL
+for i ulong NS
+if and ne get sb_pid i 0 eq get sb_il i n
+same = true
+for j ulong n
+if ne get sb_ip add mul i 48 j get g_cf add CIP j
+same = false
+break
+end
+end
+if same
+c = add c 1
+end
+end
+end
+ret c
+end
+
+fn sbadd pid ulong to void
+for i ulong NS
+if eq get sb_pid i 0
+put sb_pid i pid
+n = get g_v VIPL
+put sb_il i n
+for j ulong n
+put sb_ip add mul i 48 j get g_cf add CIP j
+end
+ret
+end
+end
+end
+
+fn gstream cs edit ulong * io edit uchar * to ulong
+reap
+if or ge sbcount NS ge sbipc 2
+ret ESTRM
+end
+c = get g_v VNE
+h = hhfind cs io s_lastid
+if ge h 0
+v = bdec 0 0 1
+o = hhvoff cs ulong h
+n = hhvlen cs ulong h
+c = sselast io o n
+end
+pid = fork
+if lt pid 0
+ret ESTRM
+end
+if eq pid 0
+put g_v VLIVE 0
+ssechild cs io c
+exit 0
+end
+sbadd ulong pid
+ret ESSE
+end
+
+fn sselast io edit uchar * o ulong n ulong to ulong
+if or eq n 0 gt n 18
+ret get g_v VNE
+end
+v = ulong 0
+for i ulong n
+c = get io add o i
+if or lt c 48 gt c 57
+ret get g_v VNE
+end
+v = add mul v 10 ulong sub c 48
+end
+ret v
+end
+
+fn sevt cs edit ulong * io edit uchar * e ulong to long
+eb = new uchar 16384 0
+nb = new uchar 64 0
+put g_v VON 0
+put g_v VOVF 0
+sbody e
+n = get g_v VON
+if gt n 16384
+n = 16384
+end
+for i ulong n
+put eb i get g_o i
+end
+if and gt n 0 eq get eb sub n 1 10
+n = sub n 1
+end
+k = get e_k e
+if ne ehid e 0
+k = 4
+end
+r = long 0
+if eq k 1
+r = hsseevt cs io k_post
+end
+if eq k 2
+r = hsseevt cs io k_letter
+end
+if eq k 3
+r = hsseevt cs io k_agent
+end
+if eq k 4
+r = hsseevt cs io k_hidden
+end
+q = catd nb 0 add e 1
+r = hfe r hsseid cs io view part nb 0 q
+r = hfe r hssedat cs io view part eb 0 n
+ret hfe r hsseend cs io
+end
+
+fn ssechild cs edit ulong * io edit uchar * c ulong to void
+hsetdl cs 10000000000
+r = hrspsse cs io
+if lt r 0
+ret
+end
+r = hflush cs io
+t0 = ulong monons
+beat = t0
+e = c
+while true bound 999999
+x = jtail
+if ne x 0
+ret
+end
+n = get g_v VNE
+while lt e n bound 999999
+hsetdl cs 10000000000
+r = sevt cs io e
+if lt r 0
+ret
+end
+e = add e 1
+end
+now = ulong monons
+if gt sub now beat 15000000000
+hsetdl cs 10000000000
+r = hssecmt cs io s_alive
+r = hfe r hputb cs io 10
+r = hfe r hflush cs io
+if lt r 0
+ret
+end
+beat = now
+end
+if gt sub now t0 3600000000000
+ret
+end
+s = sleepns 250000000
+end
+end
+
+note ======== server
+fn serve1 lf int to void
+cs = new ulong 320 0
+io = new uchar 65536 0
+bd = new uchar 12288 0
+c = haccept lf 1000000000
+if lt c 0
+ret
+end
+r = hinit cs io int c 1
+if lt r 0
+x = hclose cs
+ret
+end
+hsettmo cs 10000000000 10000000000
+hsetbdl cs 20000000000
+r = hreqrd cs io
+if le r 0
+if lt r 0
+x = hreject cs io r
+end
+x = hclose cs
+ret
+end
+put cs HKEEP 0
+k = route cs io bd
+x = hclose cs
+end
+
+note selfid: node 0 = first 16 hex of SHA-256(public name)
+fn selfid to void
+b = new uchar 256 0
+dg = new uchar 32 0
+n = get g_v VNML
+for i ulong n
+put b i get g_cf add CNM i
+end
+sha256_hash view part b 0 n dg
+for j ulong 8
+d = get dg j
+put n_id mul j 2 hxd shr d 4
+put n_id add mul j 2 1 hxd and d 15
+end
+put g_v VNN 1
+end
+
+fn cfset o ulong cap ulong s view uchar * to ulong
+n = len s
+if gt n cap
+n = cap
+end
+for i ulong n
+put g_cf add o i get s i
+end
+ret n
+end
+
+fn argcf idx ulong o ulong cap ulong slot ulong to bool
+ab = new uchar 512 0
+n = argread idx ab 0 512
+if or lt n 1 gt n long cap
+ret false
+end
+put g_v slot cfset o cap view part ab 0 ulong n
+ret true
+end
+
+fn argnum idx ulong to ulong
+ab = new uchar 32 0
+n = argread idx ab 0 32
+if or lt n 1 gt n 18
+ret BADN
+end
+v = ulong 0
+for i ulong ulong n
+c = get ab i
+if or lt c 48 gt c 57
+ret BADN
+end
+v = add mul v 10 ulong sub c 48
+end
+ret v
+end
+
+fn argis idx ulong t view uchar * to bool
+ab = new uchar 64 0
+n = argread idx ab 0 64
+if lt n 0
+ret false
+end
+if ne ulong n len t
+ret false
+end
+for i ulong ulong n
+if ne get ab i get t i
+ret false
+end
+end
+ret true
+end
+
+note opts: parse flags from argument 2 on; returns the index of the first positional or BADN
+fn opts port edit ulong 2 to ulong
+ac = ulong argcnt
+put g_v VSDL cfset CSD 500 x_dsd
+put g_v VNML cfset CNM 250 x_dname
+put g_v VBSL cfset CBS 250 x_dbase
+put g_v VOPL cfset COP 250 x_dop
+put g_v VBITS 20
+put g_v VLIP 2130706433
+put port 0 0
+put port 1 BADN
+i = ulong 2
+while lt i ac bound 64
+if ge add i 1 ac
+break
+end
+k = optk i
+if eq k 7
+break
+end
+if not optset k add i 1 port
+ret BADN
+end
+i = add i 2
+end
+put port 1 i
+ret i
+end
+
+note optk: 0 state, 1 name, 2 base, 3 operator, 4 port, 5 bits, 6 listen, 7 not an option
+fn optk f ulong to ulong
+if argis f x_state
+ret 0
+end
+if argis f x_name
+ret 1
+end
+if argis f x_base
+ret 2
+end
+if argis f x_oper
+ret 3
+end
+if argis f x_port
+ret 4
+end
+if argis f x_bits
+ret 5
+end
+if argis f x_listen
+ret 6
+end
+ret 7
+end
+
+fn optset k ulong v ulong port edit ulong 2 to bool
+if eq k 0
+ret argcf v CSD 500 VSDL
+end
+if eq k 1
+ret argcf v CNM 250 VNML
+end
+if eq k 2
+ret argcf v CBS 250 VBSL
+end
+if eq k 3
+ret argcf v COP 250 VOPL
+end
+if eq k 4
+put port 0 argnum v
+end
+if eq k 5
+put g_v VBITS argnum v
+end
+if eq k 6
+ip = argip v
+if eq ip BADN
+ret false
+end
+put g_v VLIP ip
+end
+ret true
+end
+
+note argip: dotted quad IPv4 argument as a 32-bit address value (127.0.0.1 = 2130706433), else BADN
+fn argip idx ulong to ulong
+ab = new uchar 16 0
+n = argread idx ab 0 16
+if or lt n 7 gt n 15
+ret BADN
+end
+v = ulong 0
+o = ulong 0
+dots = ulong 0
+for i ulong ulong n
+c = get ab i
+if eq c 46
+v = add mul v 256 o
+o = 0
+dots = add dots 1
+continue
+end
+if or lt c 48 gt c 57
+ret BADN
+end
+o = add mul o 10 ulong sub c 48
+if gt o 255
+ret BADN
+end
+end
+if ne dots 3
+ret BADN
+end
+ret add mul v 256 o
+end
+
+fn jopen to bool
+n = spath f_log
+fd = int fopen g_pa 0 n 1090 384
+if lt fd 0
+ret false
+end
+put g_v VJFD ulong fd
+r = txbeg
+txend
+ret true
+end
+
+fn say s view uchar * to void
+put g_v VON 0
+ow s
+w = wout 1
+end
+
+fn main to int
+if lt argcnt 2
+say s_usage
+ret 2
+end
+pt = new ulong 2 0
+i = opts pt
+if or eq i BADN or gt get pt 0 65535 gt get g_v VBITS 64
+say s_usage
+ret 2
+end
+selfid
+if not jopen
+say s_usage
+ret 3
+end
+if argis 1 x_hide
+ret hidecli i
+end
+if not argis 1 x_serve
+say s_usage
+ret 2
+end
+ret serve get pt 0
+end
+
+fn serve port ulong to int
+a = new uchar 16 0
+r = haddr4 a uint get g_v VLIP port
+lf = hlisten a 64
+if lt lf 0
+ret 3
+end
+put g_v VON 0
+ow s_listen
+owd hport a
+owl
+w = wout 1
+for it ulong 999999
+serve1 int lf
+reap
+end
+c = fclose int lf
+ret 0
+end
+
+note ======== operator takedown: agora hide --state DIR <tid>[/<n>] <reason words>
+fn hidecli i ulong to int
+ac = ulong argcnt
+if ge add i 1 ac
+say s_usage
+ret 2
+end
+ab = new uchar 64 0
+n = argread i ab 0 64
+if lt n 1
+ret 2
+end
+sl = ulong n
+for k ulong ulong n
+if eq get ab k 47
+sl = k
+end
+end
+tid = bdecl view part ab 0 sl
+pn = ulong 1
+if lt sl ulong n
+pn = bdecl view part ab add sl 1 sub sub ulong n sl 1
+end
+l = flock int get g_v VJFD 2
+r = jtail
+p = hfindp tid pn
+if eq p NP
+txend
+say m_gpo
+ret 1
+end
+r = hidec2 p add i 1 ac
+txend
+if ne r 0
+put g_v VON 0
+emsg r
+w = wout 1
+ret 1
+end
+ret hidelog tid pn add i 1 ac
+end
+
+fn bdecl s view uchar * to ulong
+n = len s
+if or eq n 0 gt n 18
+ret BADN
+end
+v = ulong 0
+for i ulong n
+c = get s i
+if or lt c 48 gt c 57
+ret BADN
+end
+v = add mul v 10 ulong sub c 48
+end
+ret v
+end
+
+fn hfindp tid ulong pn ulong to ulong
+if or or eq tid BADN eq tid 0 gt tid get g_v VNT
+ret NP
+end
+p = get th_p1 sub tid 1
+for i ulong get th_np sub tid 1
+if eq get p_n p pn
+ret p
+end
+nx = get p_nx p
+if eq nx 0
+ret NP
+end
+p = sub nx 1
+end
+ret NP
+end
+
+fn owargs a0 ulong ac ulong to void
+ab = new uchar 512 0
+for i ulong sub ac a0
+n = argread add a0 i ab 0 512
+if gt n 0
+if gt i 0
+owc 32
+end
+ow view part ab 0 ulong n
+end
+end
+end
+
+fn hidec2 p ulong a0 ulong ac ulong to ulong
+e = get p_e p
+put g_v VON 0
+put g_v VOVF 0
+ow w_hidden
+ownid get e_org e
+owt
+owd get e_oc e
+owt
+owargs a0 ac
+owl
+put g_v VCN 0
+put g_v VCOC add get g_v VNE 1
+put g_v VKH 0
+ret jcommit 72
+end
+
+fn hidelog tid ulong pn ulong a0 ulong ac ulong to int
+nowset
+put g_v VON 0
+utcset get g_v VNOW
+owu
+owt
+owd tid
+owc 47
+owd pn
+owt
+owargs a0 ac
+owl
+if not fappend f_take
+ret 1
+end
+put g_v VON 0
+ow s_hidden
+owd tid
+owc 47
+owd pn
+owl
+w = wout 1
+ret 0
+end

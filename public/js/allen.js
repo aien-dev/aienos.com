@@ -341,12 +341,12 @@
     if (type === 'html') {
       const named = /<title[^>]*>([^<]{1,80})<\/title>/i.exec(source);
       const title = named && named[1].trim() ? named[1].trim() : 'Aien app';
-      return { type, title, base: slugify(title) || 'allen-app', main: 'index.html', source, wasm: null, functions: [], wasmButton: null };
+      return { type, title, base: slugify(title) || 'allen-app', main: 'index.html', source, wasm: null, functions: [], wasmButton: null, htmlButton: null, pin: '' };
     }
     const first = /^\s*fn\s+([A-Za-z0-9_]+)/m.exec(source);
     const title = first ? first[1] : 'program';
     const base = slugify(title) || 'program';
-    return { type, title, base, main: `${base}.om`, source, wasm: null, functions: [], wasmButton: null };
+    return { type, title, base, main: `${base}.om`, source, wasm: null, functions: [], wasmButton: null, htmlButton: null, pin: '' };
   }
   function signature(fn) {
     const params = Array.isArray(fn.params) ? fn.params : [];
@@ -362,6 +362,7 @@
         lines.push('', `${project.base}.wasm has no imports. It exports:`, '');
         for (const fn of project.functions) lines.push(`- ${signature(fn)}`);
       }
+      if (project.wasm) lines.push('', `${project.base}.html runs it in any browser with no install and no network: open it and call a function.`);
     }
     lines.push('', 'Learn about Omega: https://www.aienos.com/omega/', '');
     return lines.join('\n');
@@ -455,14 +456,37 @@
   function projectFiles(project) {
     const encoder = new TextEncoder();
     const files = [{ name: project.main, data: encoder.encode(project.source) }];
-    if (project.wasm) files.push({ name: `${project.base}.wasm`, data: project.wasm });
+    if (project.wasm) {
+      files.push({ name: `${project.base}.wasm`, data: project.wasm });
+      files.push({ name: `${project.base}.html`, data: encoder.encode(standalone(project)) });
+    }
     files.push({ name: 'README.md', data: encoder.encode(readme(project)) });
     return files;
   }
+  /* The first action is Save or publish on GitHub: the project's home in
+     the public aien-dev/omega-projects repo, where anyone can read it. The
+     local copies follow. For Omega the first download is <base>.html, shown
+     once Compile and run has succeeded: the one file a visitor can open and
+     run. <base>.om.txt is the source for any text editor; <base>.om stays the
+     name the README, the zip and a published project use. */
   function downloads(project, row, pub) {
-    row.append(el('span', 'allen-more-label', 'Download'));
+    const github = button('Save or publish on GitHub', () => publishForm(project, pub));
+    github.classList.add('allen-github');
+    github.title = 'Saves this project to your home in the public github.com/aien-dev/omega-projects repo; publishing asks Drake to review it';
+    row.append(github, el('span', 'allen-more-label', 'or download a copy'));
+    if (project.type === 'omega') {
+      project.htmlButton = button(`${project.base}.html`, () => {
+        if (project.wasm) save(`${project.base}.html`, standalone(project), 'text/html;charset=utf-8');
+      });
+      project.htmlButton.hidden = true;
+      project.htmlButton.title = 'One file that runs this program in any browser, with no install';
+      row.append(project.htmlButton);
+    }
     row.append(button(project.main, () => save(project.main, project.source, project.type === 'html' ? 'text/html' : 'text/plain')));
     if (project.type === 'omega') {
+      const text = button(`${project.base}.om.txt`, () => save(`${project.base}.om.txt`, sourceText(project), 'text/plain;charset=utf-8'));
+      text.title = 'The Omega source as plain text, for any text editor';
+      row.append(text);
       project.wasmButton = button(`${project.base}.wasm`, () => {
         if (project.wasm) save(`${project.base}.wasm`, project.wasm, 'application/wasm');
       });
@@ -472,7 +496,220 @@
     }
     row.append(button('README.md', () => save('README.md', readme(project), 'text/markdown')));
     row.append(button(`${project.base}.zip`, () => save(`${project.base}.zip`, zip(projectFiles(project)), 'application/zip')));
-    row.append(button('Save or publish', () => publishForm(project, pub)));
+  }
+  /* What a visitor keeps. The source download is <base>.om.txt, so any text
+     editor opens it; its note lines are Omega comments, so omc still takes the
+     file as it is. The runnable download is <base>.html: one file holding the
+     source as text, the compiled wasm as base64 and this page's own runner
+     (argument, shown, workerMain), under a policy that allows no network. */
+  function sourceText(project) {
+    const name = project.base;
+    const head = [
+      `note ${name}.om.txt: Omega source code as plain text. Aien wrote it at https://www.aienos.com/aien/`,
+      "note Omega is Drake Stapleton's programming language for programs written by AI: https://www.aienos.com/omega/",
+      `note To run it with no tools, download ${name}.html from the same page after Compile and run, then open it in any browser.`,
+      `note To build it yourself, save this file as ${name}.om and use the seeded compiler omc and the IR to WebAssembly`,
+      'note translator irwasm, both from https://github.com/aien-dev/omega-mv/tree/main/seed :',
+      `note   { printf 'ir\\n'; cat ${name}.om; } | omc > ${name}.ir`,
+      `note   irwasm < ${name}.ir > ${name}.wasm`,
+      'note Lines that start with note are comments. The language guide:',
+      'note https://github.com/aien-dev/omega-mv/blob/main/docs/one_layer/OMEGESE.md',
+      '',
+    ];
+    return head.join('\n') + project.source + (project.source.endsWith('\n') ? '' : '\n');
+  }
+  function escapeHtml(text) {
+    return String(text).replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
+  }
+  function base64(bytes) {
+    let text = '';
+    for (let i = 0; i < bytes.length; i += 8192) text += String.fromCharCode(...bytes.subarray(i, i + 8192));
+    return btoa(text);
+  }
+  function standalone(project) {
+    const types = Object.entries(TYPES).map(([type, range]) => `${type}: { wide: ${range.wide}, min: ${range.min}n, max: ${range.max}n }`).join(', ');
+    const list = project.functions.map(fn => ({ name: fn.name, params: (Array.isArray(fn.params) ? fn.params : []).map(p => ({ name: String(p && p.name), type: String(p && p.type) })), ret: typeof fn.ret === 'string' ? fn.ret : 'void' }));
+    const policy = "default-src 'none'; script-src 'unsafe-inline' 'wasm-unsafe-eval'; worker-src blob:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'";
+    const script = `(() => {
+'use strict';
+const CALL_MS = ${CALL_MS};
+const TYPES = { ${types} };
+const FUNCTIONS = ${JSON.stringify(list).replace(/</g, '\\u003c')};
+const WASM = '${base64(project.wasm)}';
+const known = ${known};
+${argument}
+${shown}
+${signature}
+${workerMain}
+const engine = document.getElementById('engine');
+const box = document.getElementById('fns');
+let module = null;
+let worker = null;
+let local = null;
+let next = 0;
+const pending = new Map();
+function stop() {
+  if (worker) worker.terminate();
+  worker = null;
+  for (const job of pending.values()) {
+    clearTimeout(job.timer);
+    job.done({ ok: false, message: 'the runner was reset' });
+  }
+  pending.clear();
+}
+function start() {
+  try {
+    const url = URL.createObjectURL(new Blob([\`(\${workerMain.toString()})();\`], { type: 'text/javascript' }));
+    worker = new Worker(url);
+    URL.revokeObjectURL(url);
+  } catch (_) {
+    worker = null;
+    return false;
+  }
+  worker.onmessage = event => {
+    const job = pending.get(event.data.id);
+    if (!job) return;
+    pending.delete(event.data.id);
+    clearTimeout(job.timer);
+    job.done(event.data);
+  };
+  worker.onerror = event => {
+    event.preventDefault();
+    stop();
+  };
+  worker.postMessage({ module });
+  return true;
+}
+async function run(name, args) {
+  if (!local && !worker && !start()) {
+    local = await WebAssembly.instantiate(module, {});
+    engine.textContent = 'Running on this page: this browser refused a worker for a local file, so a call cannot be stopped early.';
+  }
+  if (local) {
+    try {
+      return { ok: true, value: local.exports[name](...args) };
+    } catch (error) {
+      return { ok: false, trap: error instanceof WebAssembly.RuntimeError, message: String((error && error.message) || error) };
+    }
+  }
+  return new Promise(done => {
+    const id = next;
+    next += 1;
+    const timer = setTimeout(() => {
+      pending.delete(id);
+      stop();
+      done({ ok: false, timeout: true });
+    }, CALL_MS);
+    pending.set(id, { timer, done });
+    worker.postMessage({ id, name, args });
+  });
+}
+function form(fn, exported) {
+  const node = document.createElement('form');
+  node.className = 'fn';
+  node.dataset.name = fn.name;
+  node.noValidate = true;
+  const head = document.createElement('code');
+  head.textContent = signature(fn);
+  node.append(head);
+  const fields = fn.params.map(param => {
+    const label = document.createElement('label');
+    const caption = document.createElement('span');
+    caption.textContent = \`\${param.name}: \${param.type}\`;
+    const field = document.createElement('input');
+    field.type = 'text';
+    field.inputMode = 'numeric';
+    field.autocomplete = 'off';
+    if (known(param.type)) field.placeholder = \`\${TYPES[param.type].min} to \${TYPES[param.type].max}\`;
+    label.append(caption, field);
+    node.append(label);
+    return field;
+  });
+  const call = document.createElement('button');
+  call.type = 'submit';
+  call.textContent = 'Call';
+  const result = document.createElement('output');
+  node.append(call, result);
+  if (!exported.has(fn.name) || !fn.params.every(p => known(p.type)) || !(fn.ret === 'void' || known(fn.ret))) {
+    call.disabled = true;
+    result.textContent = 'This function uses a type this file cannot call.';
+  }
+  node.addEventListener('submit', async event => {
+    event.preventDefault();
+    const args = [];
+    for (let i = 0; i < fn.params.length; i += 1) {
+      try {
+        args.push(argument(fn.params[i].type, fields[i].value));
+      } catch (error) {
+        result.textContent = \`\${fn.params[i].name} \${error.message}\`;
+        fields[i].focus();
+        return;
+      }
+    }
+    call.disabled = true;
+    result.textContent = 'running';
+    const answer = await run(fn.name, args);
+    call.disabled = false;
+    if (answer.ok) result.textContent = \`= \${shown(fn.ret, answer.value)}\`;
+    else if (answer.timeout) result.textContent = \`stopped: no answer within \${CALL_MS / 1000} s, so the runner was reset\`;
+    else if (answer.trap) result.textContent = \`trapped: \${answer.message}\`;
+    else result.textContent = \`error: \${answer.message}\`;
+  });
+  return node;
+}
+(async () => {
+  try {
+    module = await WebAssembly.compile(Uint8Array.from(atob(WASM), c => c.charCodeAt(0)));
+  } catch (error) {
+    engine.textContent = \`This browser could not load the WebAssembly: \${error.message}\`;
+    return;
+  }
+  const exported = new Set(WebAssembly.Module.exports(module).filter(item => item.kind === 'function').map(item => item.name));
+  for (const fn of FUNCTIONS) box.append(form(fn, exported));
+  if (!FUNCTIONS.length) engine.textContent = 'This program exports no functions.';
+  else engine.textContent = 'Ready. Type whole numbers and press Call. Each call runs in a worker and stops after ' + CALL_MS / 1000 + ' s.';
+})();
+})();`.replace(/<\/(script)/gi, '<\\/$1');
+    const pin = project.pin ? ` (omc ${escapeHtml(project.pin)})` : '';
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="${policy}">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${escapeHtml(project.title)}: an Omega program</title>
+<style>
+body { font: 16px/1.5 system-ui, sans-serif; margin: 0; background: #0d1117; color: #e6edf3; }
+main { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+a { color: #79c0ff; }
+pre { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 12px; overflow-x: auto; }
+form.fn { border: 1px solid #30363d; border-radius: 6px; padding: 12px; margin: 12px 0; display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: end; }
+form.fn code { flex-basis: 100%; }
+label { display: flex; flex-direction: column; font-size: 14px; }
+input { font: inherit; padding: 4px 6px; width: 12em; }
+button { font: inherit; padding: 4px 14px; }
+output { font-family: ui-monospace, monospace; }
+.small { color: #8b949e; font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+<h1>${escapeHtml(project.title)}</h1>
+<p>A program written in Omega by Aien, Drake Stapleton's AI. It runs right here: this one file holds the compiled WebAssembly, so it needs no install and makes no network requests.</p>
+<p>Omega is Drake Stapleton's programming language for programs written by AI. <a href="https://www.aienos.com/omega/">Learn about Omega</a>.</p>
+<p id="engine">Loading the program.</p>
+<noscript><p>Turn on JavaScript in this browser to run the program. The source below is plain text.</p></noscript>
+<div id="fns"></div>
+<h2>The Omega source</h2>
+<pre><code>${escapeHtml(project.source)}</code></pre>
+<p class="small">Compiled to ${project.wasm.length} bytes of WebAssembly with no imports by the pinned seeded Omega compiler${pin} at <a href="https://www.aienos.com/aien/">https://www.aienos.com/aien/</a>.</p>
+</main>
+<script>
+${script}
+</script>
+</body>
+</html>
+`;
   }
   function field(parent, label, tag, max) {
     const wrap = el('label', 'allen-field');
@@ -1705,10 +1942,12 @@
     out.replaceChildren(panel);
     project.wasm = bytes;
     project.functions = list.filter(fn => fn && typeof fn.name === 'string');
+    project.pin = typeof reply.omc_sha256 === 'string' && /^[0-9a-f]{64}$/.test(reply.omc_sha256) ? reply.omc_sha256 : '';
     if (project.wasmButton) {
       project.wasmButton.disabled = false;
       project.wasmButton.title = '';
     }
+    if (project.htmlButton) project.htmlButton.hidden = false;
   }
   function omegaFailed(source, reply, out) {
     const where = reply.stage === 'irwasm' ? 'The WebAssembly translator refused it' : reply.stage === 'limit' ? 'It is over a size limit' : 'The Omega compiler refused it';

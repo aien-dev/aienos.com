@@ -1,0 +1,3 @@
+note err15_missing_end: the input ends inside an open function or block
+fn main to int
+ret 0

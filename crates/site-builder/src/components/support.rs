@@ -3,7 +3,7 @@
 use maud::{html, Markup, PreEscaped};
 
 pub const TITLE: &str = "Support my open source work | AienOS";
-pub const DESCRIPTION: &str = "Help Drake Stapleton keep building free and open source software through X Money. X Money is currently US-only and requires an eligible X account.";
+pub const DESCRIPTION: &str = "Help Drake Stapleton keep building free and open source software through X Money or Bitcoin. X Money is currently US-only and requires an eligible X account.";
 pub const URL: &str = "https://www.aienos.com/support/";
 pub const PAGE: &str = include_str!("../../../../om/support-page/main.html");
 
@@ -43,8 +43,21 @@ mod tests {
             assert!(PAGE.contains(text), "missing {text}");
         }
         assert_eq!(PAGE.matches("<li>").count(), 3);
+        assert_eq!(PAGE.matches("class=\"support-button\"").count(), 1, "one primary action");
+        assert!(PAGE.find("support-button").unwrap() < PAGE.find("support-card").unwrap(), "action before the steps");
         assert!(!PAGE.contains("<script"));
         assert!(!PAGE.contains('—') && !PAGE.contains('–'));
+    }
+    #[test]
+    fn bitcoin_address_text_link_and_qr_agree() {
+        const ADDR: &str = "bc1qtfzkt7un99e3hrmc6uh3z7ccy6hny7axvxkgd2";
+        assert_eq!(PAGE.matches("bc1q").count(), 3, "one address, shown once and linked twice");
+        assert!(PAGE.contains(&format!("<code class=\"support-addr\">{ADDR}</code>")));
+        assert_eq!(PAGE.matches(&format!("href=\"bitcoin:{ADDR}\"")).count(), 2);
+        assert!(PAGE.contains("src=\"/assets/support-btc-qr.svg\""));
+        // The QR is decoded against bitcoin:ADDR when regenerated; see AGENTS.md.
+        let qr = include_str!("../../../../public/assets/support-btc-qr.svg");
+        assert!(qr.contains("Created with qrencode 4.1.1") && !qr.contains("<script") && !qr.contains("href"));
     }
     #[test]
     fn support_enrichment_is_idempotent_and_in_header() {

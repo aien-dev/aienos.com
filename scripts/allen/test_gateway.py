@@ -970,6 +970,232 @@ def voice_tests(a):
 TOKEN = "console-test-token-" + "x" * 20
 
 
+class Paced(BaseHTTPRequestHandler):
+    """Stub model server for the speed test: streams min(max_tokens, server.n) tokens, server.delay
+    seconds apart, reports usage and a /health in_flight of server.base plus open streams."""
+
+    protocol_version = "HTTP/1.1"
+
+    def log_message(self, *a):
+        pass
+
+    def do_GET(self):
+        with self.server.lock:
+            n = self.server.base + self.server.open
+        body = json.dumps({"status": "ok", "in_flight": n}).encode()
+        self.send_response(200)
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_POST(self):
+        srv = self.server
+        req = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+        with srv.lock:
+            srv.posts.append(req)
+            srv.open += 1
+        try:
+            self.send_response(200)
+            if not req.get("stream"):
+                body = json.dumps({"choices": [{"message": {"content": "NONE"}, "finish_reason": "stop"}]}).encode()
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+                return
+            self.send_header("Content-Type", "text/event-stream")
+            self.send_header("Transfer-Encoding", "chunked")
+            self.end_headers()
+            n = min(req.get("max_tokens") or 16, srv.n)
+            plen = sum(len(m["content"]) for m in req["messages"]) // 4
+            time.sleep(srv.prefill)
+            for i in range(n):
+                e = json.dumps({"choices": [{"delta": {"content": "t%d " % i}, "index": 0}]})
+                b = ("data: " + e + "\n\n").encode()
+                self.wfile.write(b"%x\r\n%s\r\n" % (len(b), b))
+                self.wfile.flush()
+                time.sleep(srv.delay)
+            for e in (json.dumps({"choices": [{"delta": {}, "finish_reason": "length" if n == req.get("max_tokens") else "stop",
+                                               "index": 0}], "usage": {"prompt_tokens": plen, "completion_tokens": n}}),
+                      "[DONE]"):
+                b = ("data: " + e + "\n\n").encode()
+                self.wfile.write(b"%x\r\n%s\r\n" % (len(b), b))
+            self.wfile.write(b"0\r\n\r\n")
+            self.wfile.flush()
+        except OSError:
+            pass
+        finally:
+            with srv.lock:
+                srv.open -= 1
+
+
+def paced(n=8, delay=0.05, prefill=0.05, base=0):
+    srv = ThreadingHTTPServer(("127.0.0.1", 0), Paced)
+    srv.daemon_threads = True
+    srv.n, srv.delay, srv.prefill, srv.base = n, delay, prefill, base
+    srv.posts, srv.lock, srv.open = [], threading.Lock(), 0
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    return srv
+
+
+def infer_run(g, body, ip, timeout=60):
+    """(status, events or refusal JSON)."""
+    c, r = g.post("/allen/api/infer", body, ip=ip, timeout=timeout)
+    if r.status != 200:
+        out = json.loads(r.read())
+        c.close()
+        return r.status, out
+    evs = [(e, d) for e, d, _ in events(r)]
+    c.close()
+    return 200, evs
+
+
+def infer_bg(g, body, ip, sink):
+    t = threading.Thread(target=lambda: sink.append(infer_run(g, body, ip)), daemon=True)
+    t.start()
+    return t
+
+
+def infer_tests(a):
+    """Speed test routes: presets, caps, signature, one-per-visitor, slots, heavy lock, chat
+    priority and yield, server room, rate limits, cold-prefill nonce and the sweep."""
+    s = paced()
+    up = "127.0.0.1:%d" % s.server_address[1]
+    g = Gateway(a, "--chat-burst", "100", "--regen-per-hour", "0", upstream=up)
+    try:
+        c, r = g.get("/allen/api/infer-info")
+        info = json.loads(r.read())
+        check("infer-info lists presets and limits", r.status == 200 and set(info["presets"]) == {"short", "medium", "long"}
+              and info["limits"]["slots"] == 4 and info["limits"]["max_tokens"] == 4096, str(info["limits"]))
+
+        st, evs = infer_run(g, {"mode": "single", "preset": "short"}, "198.51.100.1")
+        kinds = [e for e, _ in evs]
+        done = [d for e, d in evs if e == "done"]
+        stream = [d for e, d in evs if e == "stream"]
+        check("single preset streams start, tok, stream, done", st == 200 and kinds[0] == "start" and "tok" in kinds
+              and stream and done and stream[0]["completion_tokens"] == 8 and stream[0]["decode_tps"] is not None
+              and done[0]["result"]["load1"] is not None, "%s %s" % (st, kinds[:3] + kinds[-2:]))
+        sysmsg = s.posts[-1]["messages"][0]
+        check("every run starts with a fresh nonce line and no persona", s.posts[-1]["messages"][1]["content"].startswith("In two")
+              and re.match(r"^Speed test run [0-9a-f]{8}\.$", sysmsg["content"]) and s.posts[-1]["temperature"] == 0,
+              sysmsg["content"])
+        res, sig = done[0]["result"], done[0]["sig"]
+        c, r = g.post("/allen/api/infer-verify", {"result": res, "sig": sig})
+        ok1 = json.loads(r.read())["ok"]
+        bad = dict(res, streams_out=[dict(res["streams_out"][0], decode_tps=999.0)])
+        c, r = g.post("/allen/api/infer-verify", {"result": bad, "sig": sig})
+        ok2 = json.loads(r.read())["ok"]
+        # A browser re-serialises 48.0 as 48; the signed bytes must not change across that round trip.
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import allen_infer
+        res2 = dict(res, load1=3.0, streams_out=[dict(res["streams_out"][0], decode_tps=48.0)])
+        js = json.loads(re.sub(r"(\d)\.0(?=[,}\]])", r"\1", json.dumps(res2)))
+        same = allen_infer.canon(res2) == allen_infer.canon(js) and js["load1"] == 3 and type(js["load1"]) is int
+        check("signed result verifies; an edited one does not; integral floats survive a JS round trip",
+              ok1 is True and ok2 is False and same, "%s %s %s" % (ok1, ok2, same))
+
+        st, evs = infer_run(g, {"mode": "single", "prompt": "hi", "max_tokens": 99999}, "198.51.100.2")
+        start = [d for e, d in evs if e == "start"][0]
+        check("single max_tokens capped at 4096", start["max_tokens"] == 4096 and start["max_tokens_requested"] == 99999
+              and s.posts[-1]["max_tokens"] == 4096, str(start))
+        st, out = infer_run(g, {"mode": "single", "prompt": "word " * 12000}, "198.51.100.3")
+        check("prompt over 48 KiB refused 413", st == 413 and out["error"] == "too_long", "%s %s" % (st, out))
+
+        s.delay = 0.3
+        sink = []
+        t1 = infer_bg(g, {"mode": "single", "prompt": "a", "max_tokens": 8}, "198.51.100.4", sink)
+        time.sleep(0.4)
+        st, out = infer_run(g, {"mode": "single", "prompt": "b", "max_tokens": 8}, "198.51.100.4")
+        check("one run per visitor at a time (409)", st == 409 and out["error"] == "one_at_a_time", "%s %s" % (st, out))
+        t1.join()
+
+        sink = []
+        ts = [infer_bg(g, {"mode": "single", "prompt": "x", "max_tokens": 8}, "198.51.100.%d" % (10 + i), sink)
+              for i in range(5)]
+        for t in ts:
+            t.join()
+        queued = [evs for st, evs in sink if any(e == "queue" and d["reason"] == "slots" for e, d in evs)]
+        check("a 5th light run waits for a test slot (4 rows max)", len(sink) == 5 and all(st == 200 for st, _ in sink)
+              and len(queued) == 1, "queued=%d" % len(queued))
+
+        sink = []
+        t1 = infer_bg(g, {"mode": "concurrent", "preset": "short", "streams": 2}, "198.51.100.20", sink)
+        time.sleep(0.4)
+        t2 = infer_bg(g, {"mode": "single", "prompt": "y", "max_tokens": 4}, "198.51.100.21", sink)
+        t1.join()
+        t2.join()
+        par = [evs for st, evs in sink if any(e == "start" and d["mode"] == "concurrent" for e, d in evs)][0]
+        light = [evs for st, evs in sink if any(e == "start" and d["mode"] == "single" for e, d in evs)][0]
+        agg = [d for e, d in par if e == "done"][0]["result"]["aggregate_tps"]
+        check("a heavy test runs alone: a light run queues behind it", any(e == "queue" for e, _ in light)
+              and agg is not None, "aggregate_tps=%s" % agg)
+        nonces = {p["messages"][0]["content"] for p in s.posts[-3:]}
+        check("parallel streams get distinct nonces", len(nonces) == 3, str(nonces))
+
+        s.base = 6
+        sink = []
+        t1 = infer_bg(g, {"mode": "single", "prompt": "z", "max_tokens": 4}, "198.51.100.30", sink)
+        time.sleep(1.5)
+        s.base = 0
+        t1.join()
+        reasons = {d["reason"] for e, d in sink[0][1] if e == "queue"}
+        check("a run waits while the server has no room for two chat rows", "server" in reasons and
+              any(e == "done" for e, _ in sink[0][1]), str(reasons))
+
+        s.delay = 0.2
+        chat_sink = []
+        tc = threading.Thread(target=lambda: chat_sink.append(list(chat_events(g, "Describe cache lines in detail", ip="198.51.100.40"))),
+                              daemon=True)
+        tc.start()
+        time.sleep(0.3)
+        st, evs = infer_run(g, {"mode": "concurrent", "preset": "short", "streams": 2}, "198.51.100.41")
+        tc.join()
+        reasons = [d.get("reason") for e, d in evs if e == "queue"]
+        check("a heavy test waits for a live chat to finish", "chat" in reasons and any(e == "done" for e, _ in evs),
+              str(reasons[:3]))
+
+        s.delay = 0.3
+        s.n = 30
+        sink = []
+        t1 = infer_bg(g, {"mode": "concurrent", "prompt": "long one", "max_tokens": 30, "streams": 2}, "198.51.100.50", sink)
+        time.sleep(1.5)
+        tc = threading.Thread(target=lambda: list(chat_events(g, "Describe branch prediction", ip="198.51.100.51")), daemon=True)
+        tc.start()
+        t1.join()
+        tc.join()
+        evs = sink[0][1]
+        res = [d for e, d in evs if e == "done"][0]["result"]
+        check("a chat arriving mid-test makes a parallel test yield at once", any(e == "yielded" for e, _ in evs)
+              and res["yielded"] and res["wall_ms"] < 6000, "wall_ms=%s" % res["wall_ms"])
+
+        s.delay, s.n = 0.01, 8
+        st, evs = infer_run(g, {"mode": "sweep", "sweep_max": 4096}, "198.51.100.60")
+        steps = [d for e, d in evs if e == "stream"]
+        start = [d for e, d in evs if e == "start"][0]
+        check("sweep runs separate requests at 512..4096 prompt tokens", start["steps"] == [512, 1024, 2048, 4096]
+              and [d["target_tokens"] for d in steps] == [512, 1024, 2048, 4096]
+              and steps[0]["prompt_tokens"] < steps[-1]["prompt_tokens"], str([d["prompt_tokens"] for d in steps]))
+
+        outs = [infer_run(g, {"mode": "single", "preset": "short"}, "198.51.100.70")[0] for _ in range(7)]
+        check("per-visitor rate: the 7th run in a minute is refused 429", outs[:6] == [200] * 6 and outs[6] == 429, str(outs))
+        outs = [infer_run(g, {"mode": "concurrent", "preset": "short", "streams": 2}, "198.51.100.71")[0] for _ in range(4)]
+        check("heavy rate: the 4th heavy run in 10 minutes is refused 429", outs[:3] == [200] * 3 and outs[3] == 429, str(outs))
+        st, out = infer_run(g, {"mode": "concurrent", "preset": "short", "streams": 9}, "198.51.100.72")
+        check("more than 4 streams refused 400", st == 400, "%s %s" % (st, out))
+        s.shutdown()
+        s.server_close()  # the model server goes away (a GPU window): refuse at once, do not queue
+        time.sleep(0.6)
+        c, r = g.get("/allen/api/infer-info")
+        info = json.loads(r.read())
+        t = time.monotonic()
+        st, out = infer_run(g, {"mode": "single", "preset": "short"}, "198.51.100.73")
+        check("model offline: infer-info says so and a run is refused 503 offline at once",
+              info["server_ok"] is False and st == 503 and out.get("error") == "offline" and time.monotonic() - t < 5,
+              "%s %s %s" % (info["server_ok"], st, out))
+    finally:
+        g.close()
+        s.shutdown()
+
+
 class Console:
     def __init__(self, g):
         self.g, self.cookie, self.csrf = g, None, None
@@ -1622,7 +1848,8 @@ def main():
     for name, fn in (("offline", offline_tests), ("spool", spool_tests), ("pool", pool_tests),
                      ("relay", relay_tests), ("live", live_tests), ("anon", anon_tests),
                      ("summary", summary_tests), ("volunteer", volunteer_tests), ("tools", tool_tests),
-                     ("warm", warm_tests), ("speed", speed_tests), ("voice", voice_tests)):
+                     ("warm", warm_tests), ("speed", speed_tests), ("voice", voice_tests),
+                     ("infer", infer_tests)):
         if not only or name in only.split(","):
             fn(a)
     if not a.skip_model:

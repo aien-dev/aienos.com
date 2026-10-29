@@ -1,0 +1,4 @@
+note err01_input: error 1, the compiler could not read its input. The gate feeds a directory as stdin; this file is a placeholder valid program
+fn main to int
+ret 0
+end

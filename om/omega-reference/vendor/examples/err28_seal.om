@@ -1,0 +1,8 @@
+note err28_seal: OM-2 seal is allowed only as the whole body of the abstract type's constructor
+om2
+abstract v32 ulong
+holds v32 dup32
+fn main to int
+v = seal v32 ulong 0
+ret 0
+end
