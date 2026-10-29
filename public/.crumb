@@ -43,21 +43,21 @@
           "purpose": "Public static research or licensing pages using the shared website navigation"
         },
         {
-          "digest": "b7a22209517127934a20f2054c42b841a86aa305dfdb82752db2ecf43bde2a3b",
-          "last_commit": "8f55098",
+          "digest": "d85c0e4b21e04fe4ff2e9c3e6e10812230495b3f30582aa35218e683380c08a2",
+          "last_commit": "c3f24e5",
           "name": "research",
           "purpose": "Public static research or licensing pages using the shared website navigation"
         }
       ],
-      "children_root": "sha256:43c4f5e86df8b88bf5b65fc770bf252cb264e219660058f766500592fb0fc038",
-      "compiled_at": "2026-10-29T13:29:39Z",
+      "children_root": "sha256:ea85035d01e80644fddd93761fb253cd9a8b8480373b6e565b7df8cea55eea15",
+      "compiled_at": "2026-10-29T13:30:00Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:a8eb774fd2e2f8a4f705d05b51559f14f0b86f6d23a7913735b90fde8296c1ea",
+      "digest": "sha256:fe159b13e867fdf8646cb09526d6c6a4699232df220ccb9a62335a7632c3df0f",
       "evidence_files": 1,
       "evidence_root": "sha256:63bece7cb299b29d19622dcb0de4cbaa623357b117d8c7643a562de286c4b2fb",
-      "files": 156,
-      "generated_at_commit": "a9c5dbbc9e41ee8d05284185a642e5f70bdd993e",
-      "source_tree": "sha256:48dff55842909a3d86f4a6951cfd1a9e6bd247edfa2da971da4459ad4f1af288"
+      "files": 159,
+      "generated_at_commit": "c3f24e5c3cf731677402b0e8aaa3b52323ecf383",
+      "source_tree": "sha256:ea45c8b0f696a4289e9c391636e226747fefd0137863a19135c2179400cb1db7"
     }
   },
   "invariants": [
