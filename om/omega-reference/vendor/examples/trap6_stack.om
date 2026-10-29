@@ -1,0 +1,13 @@
+note trap6_stack: recursion below the 8 MiB stack traps 6, exit 106
+text before "before\n"
+fn deep n ulong to ulong
+if eq n 0
+ret 0
+end
+ret add 1 deep sub n 1
+end
+fn main to int
+k = write 1 before 0 len before
+x = deep 100000000
+ret 0
+end

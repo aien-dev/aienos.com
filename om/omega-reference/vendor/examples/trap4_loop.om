@@ -1,0 +1,10 @@
+note trap4_loop: one pass more than the bound traps 4, exit 104
+text before "before\n"
+fn main to int
+k = write 1 before 0 len before
+i = ulong 0
+while lt i 10 bound 5
+i = add i 1
+end
+ret 0
+end

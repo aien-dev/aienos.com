@@ -1,0 +1,7 @@
+note mistake_c_call: a call is the function name then its values, no brackets or commas. Fix: ret f 1 2
+fn f a int b int to int
+ret add a b
+end
+fn main to int
+ret f(1, 2)
+end

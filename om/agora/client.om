@@ -1,0 +1,561 @@
+note client.om: the HTTP client and Agora text-wire helpers shared by aien-agora.om, agora-sync.om and
+note agora-edge.om. The text API's address is one packed ulong ap = ip * 65536 + port (ac_apiarg), so a
+note node listening on another interface (agora serve --listen) is reachable as --api A.B.C.D:PORT.
+note A library unit (no om2 line, no main, no globals). Compose after http.om and sha256.om:
+note { printf 'om2\n'; cat http.om sha256.om json.om jsonw.om client.om aien-agora.om; } | omc
+note Names: functions ac_*, texts ac*. Connection state is the caller's cs (ulong 320) and io (uchar 65536).
+
+text achost "Host"
+text acctype "Content-Type"
+text actxt "text/plain; charset=utf-8"
+text acjson "application/json"
+text acget "GET"
+text acpost "POST"
+text acloop "127.0.0.1"
+text acok "agora 1\nok\n"
+text acerr "agora 1\nerr "
+text accl "challenge\t"
+text acnon "\nnonce\t"
+text acpchal "/agora/api/challenge"
+text acphel "/agora/api/hello"
+text acppost "/agora/api/post"
+text acpnote "/agora/api/note"
+text acpimp "/agora/api/import"
+text actmp ".tmp"
+text achexd "0123456789abcdef"
+
+note ======== transport ========
+
+note ac_dial: connect to ip:port (host order, 2130706433 = 127.0.0.1). tmo bounds every wait in ns.
+fn ac_dial cs edit ulong 320 io edit uchar 65536 ip ulong port ulong tmo long to long
+a = new uchar 16 0
+r = haddr4 a uint ip port
+if lt r 0
+ret r
+end
+fd = hdial a tmo
+if lt fd 0
+ret fd
+end
+r = hinit cs io int fd 0
+if lt r 0
+c = fclose int fd
+ret r
+end
+hsettmo cs tmo tmo
+hsetbdl cs tmo
+ret 0
+end
+
+note ac_dialap: connect to the packed text API address ap (ac_apiarg)
+fn ac_dialap cs edit ulong 320 io edit uchar 65536 ap ulong tmo long to long
+ret ac_dial cs io shr ap 16 and ap 65535 tmo
+end
+
+note ac_get: GET pa with Host ho; the final status or a negative http.om error
+fn ac_get cs edit ulong 320 io edit uchar 65536 pa view uchar * ho view uchar * to long
+r = hreqst cs io acget
+r = hfe r hreqtg cs io pa
+r = hfe r hhname cs io achost
+r = hfe r hhval cs io ho
+r = hfe r hhend cs io 0 0
+r = hfe r hwfin cs io
+if lt r 0
+ret r
+end
+ret hrsprd cs io
+end
+
+note ac_phead: request line, Host and Content-Type of a POST to pa on loopback; js 1 for application/json
+fn ac_phead cs edit ulong 320 io edit uchar 65536 pa view uchar * js ulong to long
+r = hreqst cs io acpost
+r = hfe r hreqtg cs io pa
+r = hfe r hhname cs io achost
+r = hfe r hhval cs io acloop
+r = hfe r hhname cs io acctype
+if eq js 1
+ret hfe r hhval cs io acjson
+end
+ret hfe r hhval cs io actxt
+end
+
+note ac_pfin: Content-Length, the body bd and the final status (a negative r passes through)
+fn ac_pfin cs edit ulong 320 io edit uchar 65536 r long bd view uchar * to long
+x = hfe r hhend cs io 0 len bd
+x = hfe x hput cs io bd
+x = hfe x hwfin cs io
+if lt x 0
+ret x
+end
+ret hrsprd cs io
+end
+
+note ac_post: POST the text bd to pa on loopback; the final status or a negative error
+fn ac_post cs edit ulong 320 io edit uchar 65536 pa view uchar * bd view uchar * to long
+r = ac_phead cs io pa 0
+ret ac_pfin cs io r bd
+end
+
+note ac_postj: POST the JSON bd to pa on loopback
+fn ac_postj cs edit ulong 320 io edit uchar 65536 pa view uchar * bd view uchar * to long
+r = ac_phead cs io pa 1
+ret ac_pfin cs io r bd
+end
+
+note ac_body: the whole response body into d, then close; the length or a negative error
+fn ac_body cs edit ulong 320 io edit uchar 65536 d edit uchar * to long
+put cs 37 add len d 1
+n = hbodyall cs io d
+c = hclose cs
+ret n
+end
+
+note ======== text wire ========
+
+note ac_okhdr: offset of the first record after "agora 1\nok\n"; -1 for an err reply, -2 otherwise
+fn ac_okhdr d view uchar * n ulong to long
+if ge n len acok
+if ac_peq d 0 len acok acok
+ret long len acok
+end
+end
+if ge n len acerr
+if ac_peq d 0 len acerr acerr
+ret -1
+end
+end
+ret -2
+end
+
+note ac_lend: index of the first LF at or after p before n, or n
+fn ac_lend d view uchar * p ulong n ulong to ulong
+i = p
+while lt i n bound 999999
+if eq get d i 10
+ret i
+end
+i = add i 1
+end
+ret n
+end
+
+note ac_fend: end of the TAB field starting at p (the next TAB or e)
+fn ac_fend d view uchar * p ulong e ulong to ulong
+i = p
+while lt i e bound 999999
+if eq get d i 9
+ret i
+end
+i = add i 1
+end
+ret e
+end
+
+note ac_fld: start of TAB field k of the line [p, e); e + 1 when the line has fewer fields
+fn ac_fld d view uchar * p ulong e ulong k ulong to ulong
+q = p
+for i ulong k
+f = ac_fend d q e
+if ge f e
+ret add e 1
+end
+q = add f 1
+end
+ret q
+end
+
+note ac_peq: whether d[p, e) equals t
+fn ac_peq d view uchar * p ulong e ulong t view uchar * to bool
+if ne sub e p len t
+ret false
+end
+n = len t
+for i ulong n
+if ne get d add p i get t i
+ret false
+end
+end
+ret true
+end
+
+note ac_pre: whether d[p, e) starts with t
+fn ac_pre d view uchar * p ulong e ulong t view uchar * to bool
+if lt sub e p len t
+ret false
+end
+ret ac_peq d p add p len t t
+end
+
+note ac_dec: the decimal d[p, e); 2^64 - 1 when empty, not all digits or longer than 18 digits
+fn ac_dec d view uchar * p ulong e ulong to ulong
+bad = ulong 18446744073709551615
+if or ge p e gt sub e p 18
+ret bad
+end
+v = ulong 0
+k = sub e p
+for i ulong k
+c = get d add p i
+if or lt c 48 gt c 57
+ret bad
+end
+v = add mul v 10 ulong sub c 48
+end
+ret v
+end
+
+note ======== byte building ========
+
+note ac_cat: s appended to dst at q; the new q, or len dst + 1 when it does not fit
+fn ac_cat dst edit uchar * q ulong s view uchar * to ulong
+n = len s
+if gt add q n len dst
+ret add len dst 1
+end
+for i ulong n
+put dst add q i get s i
+end
+ret add q n
+end
+
+note ac_catc: one byte c appended to dst at q
+fn ac_catc dst edit uchar * q ulong c uchar to ulong
+if ge q len dst
+ret add len dst 1
+end
+put dst q c
+ret add q 1
+end
+
+note ac_catu: the decimal of v appended to dst at q
+fn ac_catu dst edit uchar * q ulong v ulong to ulong
+t = new uchar 24 0
+n = ulong 0
+x = v
+for i ulong 20
+put t n uchar add 48 rem x 10
+n = add n 1
+x = div x 10
+if eq x 0
+break
+end
+end
+w = q
+for j ulong n
+w = ac_catc dst w get t sub sub n 1 j
+end
+ret w
+end
+
+note ======== addresses ========
+
+note ac_ipv4: dotted quad d[p, e) in host order; 2^64 - 1 when malformed
+fn ac_ipv4 d view uchar * p ulong e ulong to ulong
+bad = ulong 18446744073709551615
+v = ulong 0
+q = p
+for k ulong 4
+f = q
+while lt f e bound 64
+if eq get d f 46
+break
+end
+f = add f 1
+end
+if and lt k 3 ge f e
+ret bad
+end
+x = ac_dec d q f
+if gt x 255
+ret bad
+end
+v = or shl v 8 x
+q = add f 1
+end
+if lt q add e 1
+ret bad
+end
+ret v
+end
+
+note ac_hostp: "a.b.c.d:port" in d[p, e) into o[0] (ip) and o[1] (port); false when malformed
+fn ac_hostp d view uchar * p ulong e ulong o edit ulong 4 to bool
+c = p
+while lt c e bound 256
+if eq get d c 58
+break
+end
+c = add c 1
+end
+if ge c e
+ret false
+end
+ip = ac_ipv4 d p c
+pt = ac_dec d add c 1 e
+if or gt ip 4294967295 or eq pt 0 gt pt 65535
+ret false
+end
+put o 0 ip
+put o 1 pt
+ret true
+end
+
+note ac_apiarg: an --api value d[p, e), "PORT" (127.0.0.1) or "A.B.C.D:PORT", as the packed address
+note ip * 65536 + port; 0 when malformed
+fn ac_apiarg d view uchar * p ulong e ulong to ulong
+o = new ulong 4 0
+if ac_hostp d p e o
+ret or shl get o 0 16 get o 1
+end
+pt = ac_dec d p e
+if or eq pt 0 gt pt 65535
+ret 0
+end
+ret or shl ulong 2130706433 16 pt
+end
+
+note ======== proof of work ========
+
+note ac_lz: leading zero bits of a 32-byte digest
+fn ac_lz g view uchar 32 to ulong
+z = ulong 0
+for i ulong 32
+b = ulong get g i
+if ne b 0
+for j ulong 8
+if ne and b 128 0
+ret z
+end
+z = add z 1
+b = shl b 1
+end
+end
+z = add z 8
+end
+ret z
+end
+
+note ac_powok: whether SHA-256(m[0, n)) has >= bits leading zero bits
+fn ac_powok m view uchar * n ulong bits ulong to bool
+g = new uchar 32 0
+sha256_hash view part m 0 n g
+ret ge ac_lz g bits
+end
+
+note ac_pow: the smallest nonce with SHA-256(ch LF nonce LF rest) having >= bits leading zero bits; ch is the
+note 32 hex bytes of the challenge. 2^64 - 1 when rest is too large or 2^26 nonces fail.
+fn ac_pow ch view uchar * bits ulong rest view uchar * to ulong
+m = new uchar 20480 0
+if or ne len ch 32 gt len rest 20000
+ret ulong 18446744073709551615
+end
+q = ac_cat m 0 ch
+q = ac_catc m q 10
+nd = ulong 0
+nl = ulong 0
+v = ulong 0
+for a ulong 128
+for b ulong 524288
+w = ac_catu m q v
+if ne w nd
+nd = w
+nl = ac_cat m ac_catc m w 10 rest
+end
+if ac_powok view m nl bits
+ret v
+end
+v = add v 1
+end
+end
+ret ulong 18446744073709551615
+end
+
+note ac_wbody: "challenge\t<ch>\nnonce\t<nonce>\n" then rest into dst; the length, or len dst + 1
+fn ac_wbody dst edit uchar * ch view uchar 32 non ulong rest view uchar * to ulong
+q = ac_cat dst 0 accl
+q = ac_cat dst q ch
+q = ac_cat dst q acnon
+q = ac_catu dst q non
+q = ac_catc dst q 10
+ret ac_cat dst q rest
+end
+
+note ac_chal: GET the challenge from the text API at ap; its 32 hex bytes into ch; the bits, or negative
+fn ac_chal ap ulong ch edit uchar 32 to long
+cs = new ulong 320 0
+io = new uchar 65536 0
+d = new uchar 1024 0
+r = ac_dialap cs io ap 10000000000
+if lt r 0
+ret r
+end
+st = ac_get cs io acpchal acloop
+if lt st 0
+c = hclose cs
+ret st
+end
+n = ac_body cs io d
+if lt n 0
+ret n
+end
+h = ac_okhdr d ulong n
+if lt h 0
+ret -1
+end
+p = ulong h
+e = ac_lend d p ulong n
+if not ac_pre d p e accl
+ret -1
+end
+x = ac_fld d p e 1
+y = ac_fend d x e
+if ne sub y x 32
+ret -1
+end
+for i ulong 32
+put ch i get d add x i
+end
+z = ac_fld d p e 2
+bits = ac_dec d z ac_fend d z e
+if gt bits 256
+ret -1
+end
+ret long bits
+end
+
+note ac_send: POST the text bd to endpoint ep (1 hello, 2 post, 3 note, 4 import) of the text API at ap; the
+note reply body goes into d; its length, or negative
+fn ac_send ap ulong ep ulong bd view uchar * d edit uchar 65536 to long
+cs = new ulong 320 0
+io = new uchar 65536 0
+r = ac_dialap cs io ap 10000000000
+if lt r 0
+ret r
+end
+st = long -4
+if eq ep 1
+st = ac_post cs io acphel bd
+end
+if eq ep 2
+st = ac_post cs io acppost bd
+end
+if eq ep 3
+st = ac_post cs io acpnote bd
+end
+if eq ep 4
+st = ac_post cs io acpimp bd
+end
+if lt st 0
+c = hclose cs
+ret st
+end
+ret ac_body cs io d
+end
+
+note ac_solve: a fresh challenge from the text API at ap solved for rest; the whole request body into bd
+note (20480 bytes); its length, or 0 on failure
+fn ac_solve ap ulong rest view uchar * bd edit uchar 20480 to ulong
+ch = new uchar 32 0
+bits = ac_chal ap ch
+if lt bits 0
+ret 0
+end
+non = ac_pow view ch ulong bits rest
+if eq non 18446744073709551615
+ret 0
+end
+n = ac_wbody bd ch non rest
+if gt n 20480
+ret 0
+end
+ret n
+end
+
+note ac_write: solve a challenge for rest and POST it to endpoint ep (ac_send); the reply length or negative
+fn ac_write ap ulong ep ulong rest view uchar * d edit uchar 65536 to long
+bd = new uchar 20480 0
+n = ac_solve ap rest bd
+if eq n 0
+ret -3
+end
+ret ac_send ap ep view part bd 0 n d
+end
+
+note ======== files ========
+
+note ac_join: dir "/" name into dst; the length (dst holds 512 bytes)
+fn ac_join dir view uchar * name view uchar * dst edit uchar 512 to ulong
+q = ac_cat dst 0 dir
+q = ac_catc dst q 47
+ret ac_cat dst q name
+end
+
+note ac_rdat: up to len d bytes of file p from offset off into d; the count, -2 when p does not exist
+fn ac_rdat p view uchar * off ulong d edit uchar * to long
+fd = int fopen p 0 len p 0 0
+if lt fd 0
+ret -2
+end
+got = ulong 0
+while lt got len d bound 999999
+r = pread fd d got sub len d got long add off got
+if lt r 0
+c = fclose fd
+ret -1
+end
+if eq r 0
+break
+end
+got = add got ulong r
+end
+c = fclose fd
+ret long got
+end
+
+note ac_put: replace file p with s atomically (p.tmp, fsync, rename); mode is the permission bits
+fn ac_put p view uchar * s view uchar * mode int to bool
+t = new uchar 520 0
+pl = new uchar 1100 0
+q = ac_cat t 0 p
+q = ac_cat t q actmp
+if gt q 512
+ret false
+end
+fd = int fopen t 0 q 577 mode
+if lt fd 0
+ret false
+end
+w = write fd s 0 len s
+y = fsync fd
+c = fclose fd
+if ne w long len s
+ret false
+end
+k = ac_catc pl 0 2
+k = ac_catc pl k 0
+k = ac_catc pl k uchar and q 255
+k = ac_catc pl k uchar shr q 8
+k = ac_cat pl k view part t 0 q
+k = ac_catc pl k uchar and len p 255
+k = ac_catc pl k uchar shr len p 8
+k = ac_cat pl k p
+r = renames pl 0 k 0
+ret ge r 0
+end
+
+note ac_app: append s to file p (created with mode); false on any failure
+fn ac_app p view uchar * s view uchar * mode int to bool
+fd = int fopen p 0 len p 1089 mode
+if lt fd 0
+ret false
+end
+w = write fd s 0 len s
+y = fsync fd
+c = fclose fd
+ret eq w long len s
+end
+
+note ac_say: s on stdout
+fn ac_say s view uchar * to void
+w = write 1 s 0 len s
+end

@@ -1,0 +1,7 @@
+note err09_disallowed: a word in a place it is not allowed; new is only in a function's outermost block
+fn main to int
+if true
+a = new uchar 4 0
+end
+ret 0
+end

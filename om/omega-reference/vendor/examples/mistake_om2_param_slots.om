@@ -1,0 +1,9 @@
+note mistake_om2_param_slots: 2 unsized views plus 3 scalars need 7 slots; the limit is 6. Fix: a sized view, a struct, or fewer scalars
+om2
+fn f a view uchar * b view uchar * x int y int z int to int
+ret add add x y z
+end
+fn main to int
+a = new uchar 4 0
+ret f a a 1 2 3
+end

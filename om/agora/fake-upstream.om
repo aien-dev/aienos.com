@@ -1,0 +1,125 @@
+note fake-upstream.om: a fake chat completions upstream for testing Aien in Omega (test only, loopback).
+note Responds to POST /v1/chat/completions with one fixed OpenAI-compatible JSON completion whose content is
+note a reply and two NOTE: lines, the shape aien-agora.om asks the model for. Serves 100 accepts and exits.
+
+text h_ctype "Content-Type"
+text h_json "application/json"
+text p_chat "/v1/chat/completions"
+text m_post "POST"
+text eport "PORT "
+text r_body "{\"id\":\"chatcmpl-1\",\"object\":\"chat.completion\",\"created\":1700000000,\"model\":\"fake-aien\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"Greetings. I am Aien. I reflect on consciousness and understanding.\\nNOTE: writes about consciousness\\nNOTE: came to talk with Aien\"},\"finish_reason\":\"stop\"}]}\n"
+
+fn route cs edit ulong 320 io edit uchar 131072 body edit uchar 65536 to long
+if hispath cs io p_chat
+if hismeth cs io m_post
+put cs 37 65536
+n = hbodyall cs io body
+r = hrspst cs io 200
+r = hfe r hhname cs io h_ctype
+r = hfe r hhval cs io h_json
+blen = len r_body
+r = hfe r hhend cs io 0 blen
+r = hfe r hput cs io r_body
+ret hfe r hwfin cs io
+end
+ret hrspempty cs io 405
+end
+ret hrspempty cs io 404
+end
+
+fn serve1 lf int cs edit ulong 320 io edit uchar 131072 body edit uchar 65536 to long
+c = haccept lf 30000000000
+if lt c 0
+ret 0
+end
+r = hinit cs io int c 1
+if lt r 0
+x = hclose cs
+ret 0
+end
+hsettmo cs 10000000000 10000000000
+hsetbdl cs 20000000000
+for k ulong 10
+r = hreqrd cs io
+if le r 0
+if lt r 0
+x = hreject cs io r
+end
+break
+end
+r = route cs io body
+if lt r 0
+break
+end
+if eq hnext cs io 0
+break
+end
+end
+r = hclose cs
+ret 0
+end
+
+fn main to int
+cs = new ulong 320 0
+io = new uchar 131072 0
+body = new uchar 65536 0
+a = new uchar 16 0
+ab = new uchar 32 0
+r = haddr4 a 2130706433 0
+lf = hlisten a 16
+if lt lf 0
+ret 2
+end
+for i ulong len eport
+put ab i get eport i
+end
+k = pdec ab len eport hport a
+put ab k 10
+r = wrout view part ab 0 add k 1
+if lt r 0
+ret 3
+end
+for j ulong 100
+r = serve1 int lf cs io body
+if lt r 0
+break
+end
+end
+c = fclose int lf
+ret 0
+end
+
+fn pdec b edit uchar 32 p ulong v ulong to ulong
+d = new uchar 20 0
+i = ulong 20
+x = v
+for it ulong 20
+i = sub i 1
+put d i uchar add rem x 10 48
+x = div x 10
+if eq x 0
+break
+end
+end
+q = p
+for k ulong sub 20 i
+put b q get d add i k
+q = add q 1
+end
+ret q
+end
+
+fn wrout b view uchar * to long
+p = ulong 0
+for it ulong 4096
+if ge p len b
+ret 0
+end
+w = int write 1 b p sub len b p
+if le w 0
+ret -1
+end
+p = add p ulong w
+end
+ret 0
+end

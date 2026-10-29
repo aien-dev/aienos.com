@@ -478,37 +478,37 @@
   ],
   "beyond": [
     {
-      "title": "No NVIDIA software at all",
-      "text": "My own GB10 driver replaces nvidia.ko and nvidia-uvm.ko (L332): Omega's golden tokens identical on my driver and on NVIDIA's, with per-word timing. The GSP firmware stays, as above.",
+      "title": "Independent driver research",
+      "text": "My independent GB10 driver is experimental work in aienux, with source and simulator checks. It has not replaced NVIDIA's kernel modules in the supported CUDA++ path. An open driver proposal is not a hardware qualification or a deployed replacement.",
       "links": [
         [
-          "L332 on the ledger",
-          "/now/#L332"
+          "Current driver dependency",
+          "p:README.md"
         ]
       ],
-      "box": "o:docs/OMEGA.md#4-the-rest-of-omega-replaces-everything"
+      "box": "p:README.md"
     },
     {
       "title": "The runtime written in Omega",
-      "text": "The GPU runtime and libraries are mostly C today: 87 C files in the live server's build. The move into Omega has started. Since 2026-10-25 the SHA-256 in that library is Omega: src/sha256.c keeps only its entry points, and the algorithm is om/sha256/sha256.om, compiled by the seed-born compiler and called in place through the native call ABI, with byte parity against the C it replaced. The rest follows file by file, each checked byte for byte against the C it replaces. The language rule (aien-architecture ADR 0024) keeps C only where hardware, boot, ABI or measurement justifies it.",
+      "text": "The GPU runtime and libraries still include C while migration into Omega continues. In Omega's repository, SHA-256 is implemented in om/sha256/sha256-om2.om. The old src/sha256.c is deleted; src/sha256.h exposes declarations, and om/units.sh generates the binding in src/omega_om_units.c, which embeds the compiled Omega machine code. Its --check mode checks regeneration against the pinned compiler and Bridge. This describes Omega's tree; CUDA++ has its own source and migration state.",
       "links": [
         [
           "SHA-256 in Omega",
           "o:om/sha256/README.md"
         ]
       ],
-      "box": "a:docs/adr/0024-rust-scaffolding-omega-destination.md"
+      "box": "o:om/sha256/README.md"
     },
     {
       "title": "The CPU",
-      "text": "The OSC and Omegese backends emit AArch64 machine code today (src/compiler/osc_a64.c). Code the seed-born compiler writes now runs inside C and Rust programs through the native call ABI (omega-bridge), and the GPU library calls it for SHA-256. The live server is still a gcc and Rust build linked against glibc; it picks up each Omega replacement when it is next rebuilt, and moves to Omega-compiled code file by file.",
+      "text": "Compiled Omega units can run inside existing host programs through checked Omega Bridge bindings. Omega's SHA-256 binding is in src/omega_om_units.c. That does not establish that a running server has adopted the same source, or that its whole build and runtime are written in Omega. Each consumer and its remaining dependencies need their own verification.",
       "links": [
         [
           "native call ABI",
           "b:docs/NATIVE-ABI.md"
         ]
       ],
-      "box": "o:src/compiler/osc_a64.c"
+      "box": "b:docs/NATIVE-ABI.md"
     }
   ],
   "performance": {

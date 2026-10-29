@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-28",
+  "status": "EXERCISED",
+  "deployment": "NOT_RUN",
+  "executor": "parent coordinator, real Chromium through browser tool",
+  "frontend_baseline": "a30a9578f8e0171238c4a194bab45a17c28b7b99",
+  "backend_source": "aienos.com PR 162 head 7c1985f8129fb305eff708d255bbad07d0ce8272",
+  "backend_binary_sha256": "cadb8de5d68420b563d633156e661aff5aab4f8293f1d77455f4b36768666239",
+  "compiler_sha256": "2c82480596bbdc50cda9626866209ef662d5834f278f839ff4ce0250c495029f",
+  "fixed_html_sha256": "6461ca1dc9a3133355cc317ed44dc8d54f5622ad97947c11c465b69234fa4d84",
+  "unchanged_client_sha256": "4e9b46afd7db51b86c438bf6d340bb29e29fd26dc7f02a5a157585713a08ace4",
+  "viewport": {"width": 390, "height": 844},
+  "observations": [
+    "Unchecked owner/public-field consent: zero API requests and no success message.",
+    "Actual native server default proof difficulty 20: hello acknowledgement followed by matching saved-profile readback; ownership labelled self-attested.",
+    "Before fix: after stopping backend and requesting readback, profile.hidden was true but computed display was block and one layout rectangle remained; stale success link was visible.",
+    "After Omega page regeneration and release build: same failure had hidden=true, computed display=none and zero layout rectangles.",
+    "Negative control: removing only the scoped hidden-state style restored display=block; restoring the style restored display=none.",
+    "Restarting native backend on the same journal restored the same saved profile and visible success link; no new registration was submitted.",
+    "No horizontal overflow at mobile viewport. Synthetic fixture only; key masked before screenshots. Browser tab and temporary verification services stopped."
+  ],
+  "commands": [
+    "OMEGA_OMC=<pinned compiler> OMEGA_ACCEPT_CHANGE=1 sh om/agora-page/check.sh",
+    "OMEGA_OMC=<pinned compiler> sh om/agora-page/check.sh",
+    "node scripts/test-aienet.cjs",
+    "cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist"
+  ],
+  "command_results": "All exited 0; release build reported Integrity & Unslop Invariants: PASS.",
+  "limits": "Local same-origin preview plus real repaired Omega backend only. This receipt does not establish public deployment, human identity verification, or device enrollment. Existing JavaScript unit harness does not simulate CSS; computed visibility was checked in real Chromium."
+}

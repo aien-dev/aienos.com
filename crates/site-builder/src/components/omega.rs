@@ -28,10 +28,11 @@ pub const URL: &str = "https://www.aienos.com/omega/";
 /// The data file, compiled in and published as /omega.json.
 pub const RAW: &str = include_str!("../../data/omega.json");
 
-/// Omega on GitHub. These paths land on main when the omega branch
-/// docs/what-omega-is merges.
-pub const OMEGA_BLOB: &str = "https://github.com/aien-dev/omega/blob/main/";
-pub const OMEGA_TREE: &str = "https://github.com/aien-dev/omega/tree/main/";
+/// Omega on GitHub. The repository aien-dev/omega was renamed to
+/// aien-dev/omega-mv; GitHub still redirects the old name, but the links
+/// name the repository as it is now.
+pub const OMEGA_BLOB: &str = "https://github.com/aien-dev/omega-mv/blob/main/";
+pub const OMEGA_TREE: &str = "https://github.com/aien-dev/omega-mv/tree/main/";
 
 /// Status words a CUDA row may carry, in the order the legend shows them.
 pub const STATUSES: [&str; 4] = ["PASS", "PARTIAL", "MISSING", "NOT REPLACEABLE"];
@@ -142,7 +143,7 @@ pub struct Bar {
 pub fn expand(link: &str) -> Result<String, String> {
     const MAP: [(&str, &str); 10] = [
         ("o/:", OMEGA_TREE),
-        ("ob:", "https://github.com/aien-dev/omega/tree/"),
+        ("ob:", "https://github.com/aien-dev/omega-mv/tree/"),
         ("o:", OMEGA_BLOB),
         ("p:", "https://github.com/aien-dev/physics-mv/blob/main/"),
         ("c@:", "https://github.com/aien-dev/aien-sovereign-core-mv/blob/"),
@@ -150,7 +151,7 @@ pub fn expand(link: &str) -> Result<String, String> {
         ("c:", "https://github.com/aien-dev/aien-sovereign-core-mv/blob/main/"),
         ("a:", "https://github.com/aien-dev/aien-architecture-mv/blob/main/"),
         ("b:", "https://github.com/aien-dev/omega-bridge/blob/main/"),
-        ("issue:", "https://github.com/aien-dev/omega/issues/"),
+        ("issue:", "https://github.com/aien-dev/omega-mv/issues/"),
     ];
     if link.starts_with('/') || link.starts_with('#') {
         return Ok(link.to_string());
@@ -370,6 +371,11 @@ pub fn render_omega_page() -> Markup {
                         "CUDA++, the GPU half of Omega, has its own page: "
                         a href="/cudaplusplus/" { "CUDA++" }
                         "."
+                    }
+                    p class="om-source" {
+                        "Writing Omega yourself, or pointing an agent at it: the "
+                        a href="/omega/reference/" { "Omega language reference" }
+                        " has every compiler error, every trap and every gated worked example."
                     }
                 }
             }
@@ -620,8 +626,9 @@ mod tests {
         let n = check_boxes(&s).unwrap();
         let d = data();
         assert_eq!(n, d.parts.len() + 1 + d.layers.len() + 1 + d.not_yet.len() + d.bar.len() + d.beyond.len() + 1 + d.performance.bar.len());
-        assert!(s.contains("https://github.com/aien-dev/omega/blob/main/evidence/WHAT-OMEGA-IS-20261021/live-serve-no-cuda.txt"));
-        assert!(s.contains("https://github.com/aien-dev/omega/blob/main/docs/OMEGA.md"));
+        assert!(s.contains("https://github.com/aien-dev/omega-mv/blob/main/evidence/WHAT-OMEGA-IS-20261021/live-serve-no-cuda.txt"));
+        assert!(s.contains("https://github.com/aien-dev/omega-mv/blob/main/docs/OMEGA.md"));
+        assert!(!s.contains("https://github.com/aien-dev/omega/"));
     }
 
     #[test]
@@ -662,9 +669,9 @@ mod tests {
 
     #[test]
     fn link_expansion() {
-        assert_eq!(expand("o:docs/OMEGA.md").unwrap(), "https://github.com/aien-dev/omega/blob/main/docs/OMEGA.md");
-        assert_eq!(expand("o/:src/checker2").unwrap(), "https://github.com/aien-dev/omega/tree/main/src/checker2");
-        assert_eq!(expand("ob:runtime/r2-hello").unwrap(), "https://github.com/aien-dev/omega/tree/runtime/r2-hello");
+        assert_eq!(expand("o:docs/OMEGA.md").unwrap(), "https://github.com/aien-dev/omega-mv/blob/main/docs/OMEGA.md");
+        assert_eq!(expand("o/:src/checker2").unwrap(), "https://github.com/aien-dev/omega-mv/tree/main/src/checker2");
+        assert_eq!(expand("ob:runtime/r2-hello").unwrap(), "https://github.com/aien-dev/omega-mv/tree/runtime/r2-hello");
         assert_eq!(expand("/now/#L332").unwrap(), "/now/#L332");
         assert_eq!(expand("c@:abc/docs/x.md").unwrap(), "https://github.com/aien-dev/aien-sovereign-core-mv/blob/abc/docs/x.md");
         assert_eq!(expand("c/:abc/evidence/x").unwrap(), "https://github.com/aien-dev/aien-sovereign-core-mv/tree/abc/evidence/x");

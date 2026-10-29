@@ -1,0 +1,12 @@
+note contract_invariant: a false loop invariant traps 10, exit 110, at the top of the failing pass
+om2
+text before "before\n"
+fn main to int
+k = write 1 before 0 len before
+i = uint 0
+while lt i 10
+invariant lt i 5
+i = add i 1
+end
+ret 0
+end

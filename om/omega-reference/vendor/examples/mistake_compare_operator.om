@@ -1,0 +1,8 @@
+note mistake_compare_operator: conditions are bool values built with eq ne lt le gt ge; > is not a word. Fix: if gt x 0
+fn main to int
+x = int 1
+if x > 0
+ret 1
+end
+ret 0
+end

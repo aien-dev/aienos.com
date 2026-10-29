@@ -149,7 +149,6 @@ details[open] > summary.hive-record::before { transform: rotate(45deg); }
 .hive-chat { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; max-height: min(64vh, 560px); overflow-y: auto; overscroll-behavior: contain; }
 .hive-chat:focus-visible { outline: 2px solid var(--accent-green); outline-offset: 4px; }
 .hive-message { display: grid; gap: 6px; padding: 8px 10px 8px 14px; border-left: 2px solid var(--border-subtle); }
-.hive-message[data-role="drake"] { border-left-color: var(--accent-blue); }
 .hive-message-who { display: flex; flex-wrap: wrap; gap: 3px 12px; font-family: var(--font-mono); font-size: var(--hive-micro); color: var(--text-muted); }
 .hive-message-who strong { color: var(--text-primary); font-weight: 600; }
 .hive-message-text { color: var(--text-secondary); font-size: var(--hive-body); max-width: 72ch; overflow-wrap: anywhere; white-space: pre-wrap; }

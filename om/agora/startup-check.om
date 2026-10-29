@@ -1,0 +1,139 @@
+note Native startup verification policy; no production process is launched or signalled.
+note With five args: deadline_ns, executable_match, effective_uid, effective_gid, same_pid_listener.
+note Policy exits: 0 pending, 1 ready, 2 refused; malformed syntax exits 90 and checked-integer overflow traps.
+note Without args: synthetic credential snapshots exercise the same policy against the real monotonic clock.
+note WolframLanguageEvaluator: UnitConvert[Quantity[10,"Seconds"],"Nanoseconds"] -> Quantity[10000000000,"Nanoseconds"].
+global sc_argb uchar 32
+text sc_pass "AGORA STARTUP OMEGA PASS modeled pre-exec root pending; expected executable/976/964/same-PID listener accepted; root past deadline refused\n"
+fn sc_arg idx ulong to long
+n = argread idx sc_argb 0 len sc_argb
+if or le n 0 ge n long len sc_argb
+ret -1
+end
+v = long 0
+for i ulong ulong n
+c = get sc_argb i
+if or lt c 48 gt c 57
+ret -1
+end
+v = add mul v 10 long sub c 48
+end
+ret v
+end
+fn sc_gate xe bool uid long gid long sc_own bool until long to int
+now = monons
+if or lt now 0 ge now until
+ret 2
+end
+note MUTANT_PREEXEC: a root pre-exec observation is pending, not an immediate failure.
+if xe
+if or ne uid 976 ne gid 964
+ret 2
+end
+if sc_own
+now = monons
+if or lt now 0 ge now until
+ret 2
+end
+ret 1
+end
+ret 0
+end
+if sc_own
+ret 2
+end
+if and eq uid 0 or eq gid 0 eq gid 964
+ret 0
+end
+if and eq uid 976 eq gid 964
+ret 0
+end
+ret 2
+end
+fn sc_root until long to bool
+while true bound 999999
+now = monons
+if lt now 0
+ret false
+end
+if ge now until
+ret eq sc_gate false 0 0 false until 2
+end
+state = sc_gate false 0 0 false until
+if eq state 1
+ret false
+end
+if eq state 2
+now = monons
+ret and ge now 0 ge now until
+end
+r = sleepns 10000000
+if lt r 0
+ret false
+end
+end
+ret false
+end
+fn sc_test to int
+start = monons
+if lt start 0
+ret 39
+end
+until = add start 10000000000
+if ne sc_gate false 0 0 false until 0
+ret 40
+end
+if ne sc_gate false 976 964 false until 0
+ret 41
+end
+if ne sc_gate true 976 964 false until 0
+ret 42
+end
+if ne sc_gate true 976 964 true until 1
+ret 43
+end
+if ne sc_gate true 0 0 true until 2
+ret 44
+end
+if ne sc_gate true 976 0 true until 2
+ret 45
+end
+if ne sc_gate false 976 964 true until 2
+ret 46
+end
+start = monons
+if lt start 0
+ret 39
+end
+if not sc_root add start 10000000000
+ret 48
+end
+if ne sc_gate true 976 964 true 0 2
+ret 47
+end
+r = write 1 sc_pass 0 len sc_pass
+if ne r long len sc_pass
+ret 49
+end
+ret 0
+end
+fn main to int
+if eq argcnt 1
+ret sc_test
+end
+if ne argcnt 6
+ret 90
+end
+until = sc_arg 1
+xe = sc_arg 2
+uid = sc_arg 3
+gid = sc_arg 4
+sc_own = sc_arg 5
+if or lt until 0 or lt xe 0 gt xe 1
+ret 90
+end
+if or lt uid 0 or lt gid 0 or lt sc_own 0 gt sc_own 1
+ret 90
+end
+ret sc_gate eq xe 1 uid gid eq sc_own 1 until
+end

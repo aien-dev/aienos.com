@@ -1,0 +1,8 @@
+note sha2h.om: sha256_hash (the one sha256.om entry point client.om calls) over om/tls sha2.om, for
+note programs that compose the TLS stack. sha256.om and tls/sha2.om both define sha256_init, _update
+note and _final, so a TLS program composes tls/sha2.om ... tls/tls.om and this unit instead of sha256.om.
+note Library unit: no om2 line, no main, no globals.
+
+fn sha256_hash d view uchar * o out uchar 32 to void
+n = sha2_digest 256 d o
+end
