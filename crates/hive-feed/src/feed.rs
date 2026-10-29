@@ -1,4 +1,4 @@
-use crate::{privacy::{label, public_text}, source::{self, Cursor}};
+use crate::{privacy::{label, public_text}, quotes::Quotes, source::{self, Cursor}};
 use chrono::{DateTime, SecondsFormat, Utc};
 use hmac::{Hmac, Mac};
 use serde::Serialize;
@@ -10,6 +10,16 @@ pub fn timestamp(ms: i64) -> String { DateTime::<Utc>::from_timestamp_millis(ms)
 pub fn milliseconds(value: &Value) -> Option<i64> { value.as_i64().or_else(|| value.as_str().and_then(|s| DateTime::parse_from_rfc3339(s).ok()).map(|t| t.timestamp_millis())) }
 fn text<'a>(v: &'a Value, key: &str) -> &'a str { v[key].as_str().unwrap_or("") }
 fn safe_date(v: &Value) -> Option<String> { milliseconds(v).map(timestamp) }
+/// Text parts only: tool calls, tool results, images and reasoning are never joined.
+fn joined_text(content: &Value) -> String {
+    if let Some(s) = content.as_str() { return s.to_owned(); }
+    let mut joined = String::new();
+    for part in content.as_array().into_iter().flatten() {
+        if !matches!(text(part,"type"), "text" | "input_text" | "output_text") { continue; }
+        if let Some(t) = part["text"].as_str() { if !joined.is_empty() { joined.push('\n'); } joined.push_str(t); }
+    }
+    joined
+}
 
 #[derive(Clone, Serialize)]
 pub struct Agent {
@@ -17,6 +27,10 @@ pub struct Agent {
     pub provider: String, pub model: String, pub role: String, pub task: String, pub status: String,
     pub activity: String, pub activity_state: String, pub started_at: Option<String>, pub updated_at: Option<String>, pub observed_at: String,
 }
+/// Claude Code and Codex transcript directories are listed this often, and a
+/// transcript counts as a live session while written within the active window.
+const TRANSCRIPT_RESCAN_MS: i64 = 10_000;
+const TRANSCRIPT_ACTIVE_MS: i64 = 15 * 60_000;
 /// The receiver, the client validator and this collector share one window size.
 const INTERACTION_WINDOW: usize = 100;
 #[derive(Clone, Serialize)]
@@ -25,13 +39,19 @@ pub struct Interaction { pub id: String, pub agent_id: String, pub role: String,
 pub struct Coverage { label: &'static str, roots: usize, agents: usize, complete: bool, notice: String }
 #[derive(Serialize)]
 pub struct Feed { schema_version: u8, generated_at: String, sequence: String, poll_ms: u32, stale_after_ms: u32, coverage: Coverage, agents: Vec<Agent>, interactions: Vec<Interaction> }
-struct Node { public: Agent, root: String, seen: i64, terminal: Option<i64>, tools: BTreeMap<String,(String,String)>, placeholder: bool, unavailable: Option<(String,String)>, has_summary: bool }
+struct Node { public: Agent, root: String, seen: i64, terminal: Option<i64>, tools: BTreeMap<String,(String,String)>, placeholder: bool, unavailable: Option<(String,String)> }
 pub struct Collector {
     salt: Vec<u8>, since: i64, sequence: u64, nodes: BTreeMap<String,Node>, cursors: HashMap<PathBuf,Cursor>,
     interactions: VecDeque<Interaction>, seen_events: HashSet<String>, known_hosts: HashMap<u32,String>, task_summaries: HashMap<String,String>,
+    /// Recent human messages per session root, private, used only for quote elision.
+    quotes: HashMap<String,Quotes>,
+    /// Claude Code and Codex transcript directories, observed while recently written.
+    transcripts: Vec<(source::Transcript, PathBuf)>, active_transcripts: Vec<(source::Transcript, PathBuf, i64)>, transcript_scan: Option<i64>,
 }
 impl Collector {
-    pub fn new(salt: Vec<u8>, since: i64) -> Self { Self { salt, since, sequence: 0, nodes: BTreeMap::new(), cursors: HashMap::new(), interactions: VecDeque::new(), seen_events: HashSet::new(), known_hosts: HashMap::new(), task_summaries: HashMap::new() } }
+    pub fn new(salt: Vec<u8>, since: i64) -> Self { Self { salt, since, sequence: 0, nodes: BTreeMap::new(), cursors: HashMap::new(), interactions: VecDeque::new(), seen_events: HashSet::new(), known_hosts: HashMap::new(), task_summaries: HashMap::new(), quotes: HashMap::new(), transcripts: Vec::new(), active_transcripts: Vec::new(), transcript_scan: None } }
+    /// Also observe Claude Code or Codex transcripts under `dir`.
+    pub fn with_transcripts(mut self, kind: source::Transcript, dir: PathBuf) -> Self { self.transcripts.push((kind,dir)); self }
     fn id(&self, private: &str) -> String {
         let mut mac = Hmac::<Sha256>::new_from_slice(&self.salt).expect("HMAC accepts any key length"); mac.update(private.as_bytes());
         let digest = mac.finalize().into_bytes(); let mut out = String::from("h");
@@ -41,7 +61,7 @@ impl Collector {
         if self.nodes.contains_key(key) { return; }
         let id = self.id(key); let parent_id = parent.map(|p| self.id(p));
         let summary = self.task_summaries.get(key);
-        self.nodes.insert(key.to_owned(), Node { public: Agent { id, parent_id, name: label(name, "Agent"), runtime: "OMP".into(), provider: "unknown".into(), model: "unknown".into(), role: if parent.is_some() { "worker" } else { "root" }.into(), task: summary.cloned().unwrap_or_else(|| label(name, "Task label withheld")), status: "unknown".into(), activity: "No action observed".into(), activity_state: "unknown".into(), started_at: None, updated_at: None, observed_at: timestamp(now) }, root: root.to_owned(), seen: now, terminal: None, tools: BTreeMap::new(), placeholder: true, unavailable: None, has_summary: summary.is_some() });
+        self.nodes.insert(key.to_owned(), Node { public: Agent { id, parent_id, name: label(name, "Agent"), runtime: "OMP".into(), provider: "unknown".into(), model: "unknown".into(), role: if parent.is_some() { "worker" } else { "root" }.into(), task: summary.cloned().unwrap_or_else(|| label(name, "Task label withheld")), status: "unknown".into(), activity: "No action observed".into(), activity_state: "unknown".into(), started_at: None, updated_at: None, observed_at: timestamp(now) }, root: root.to_owned(), seen: now, terminal: None, tools: BTreeMap::new(), placeholder: true, unavailable: None });
     }
     fn model(node: &mut Node, raw: &str, provider: Option<&str>) {
         let (p,m) = if let Some(p) = provider { (p,raw) } else { raw.split_once('/').unwrap_or(("unknown",raw)) };
@@ -57,14 +77,20 @@ impl Collector {
             if name.trim().is_empty() { continue; }
             // This is the sole public assignment-summary field. Never use task,
             // context or any other tool argument as a display fallback.
-            let Some(summary) = public_text(text(task,"solutionSpace"),180) else { continue; };
+            // Agent-written, but it can quote the human verbatim: a summary
+            // that repeats a recent human message is withheld whole.
+            let Some(summary) = public_text(text(task,"solutionSpace"),180).filter(|s| !self.quotes_human(root,s)) else { continue; };
             let key = Self::child_key(root,parent,name);
             if let Some(node) = self.nodes.get_mut(&key) {
-                node.public.task = summary.clone(); node.has_summary = true;
+                node.public.task = summary.clone();
             }
             // Do not create a live worker merely because a spawn was requested.
             self.task_summaries.insert(key,summary);
         }
+    }
+    /// True when `text` repeats a recent human message from session `root`.
+    fn quotes_human(&self, root: &str, text: &str) -> bool {
+        self.quotes.get(root).is_some_and(|q| q.elide(text).as_deref() != Some(text))
     }
     fn terminal(&mut self, key: &str, status: &str, now: i64) {
         if let Some(node) = self.nodes.get_mut(key) {
@@ -78,7 +104,8 @@ impl Collector {
         let event_time = milliseconds(&value["timestamp"]).unwrap_or(now);
         if let Some(node) = self.nodes.get_mut(key) {
             node.placeholder = false;
-            if kind == "title" && !node.has_summary && !text(value,"title").trim().is_empty() { node.public.task = label(text(value,"title"), "Task label withheld"); }
+            // Session titles ("title" events, host sessionName) are generated from
+            // the human's first prompt, so they are never published.
             if kind == "session" { node.public.started_at = at.clone(); }
             if kind == "session_init" {
                 node.public.role = label(text(value,"agent"), "worker");
@@ -91,7 +118,9 @@ impl Collector {
             }
             if custom == "tool_execution_start" {
                 let d = &value["data"]; let tool = label(text(d,"toolName"), "tool");
-                let action = public_text(text(d,"intent"), 180).map(|i| format!("{tool}: {i}")).unwrap_or(tool);
+                let action = public_text(text(d,"intent"), 180).map(|i| format!("{tool}: {i}")).unwrap_or_else(|| tool.clone());
+                let quoted = self.quotes.get(&root).is_some_and(|q| q.elide(&action).as_deref() != Some(action.as_str()));
+                let action = if quoted { tool } else { action };
                 let date = safe_date(&d["startedAt"]).or(at.clone());
                 node.tools.insert(text(d,"toolCallId").to_owned(), (action.clone(), date.clone().unwrap_or_default()));
                 node.public.activity = action; node.public.activity_state = "running".into(); node.public.status = "working".into(); node.public.updated_at = date; node.terminal = None;
@@ -153,25 +182,89 @@ impl Collector {
                 }
             }
         }
-        // Attribution is a strict provenance boundary, not a heuristic on visible text.
-        let direct_user = role == "user" && key == root && m["attribution"] == "user";
-        if role != "assistant" && !direct_user { return; }
+        // Human text is never published. It is kept privately, per session, only
+        // so that an agent reply quoting it can be elided. Every human-side role
+        // counts: Drake, collaboration guests, developer and custom injections.
+        if role != "assistant" && role != "toolResult" && (key == root || m["attribution"] == "user") {
+            let human = joined_text(&m["content"]);
+            if !human.is_empty() { self.quotes.entry(root.clone()).or_default().add(&human); }
+        }
+        // Only the final text of a completed turn is a reply; narration before
+        // tool calls, tool output and reasoning stay unpublished.
+        if role != "assistant" || text(m,"stopReason") != "stop" { return; }
         let Some(time) = milliseconds(&m["timestamp"]).or_else(|| milliseconds(&value["timestamp"])) else { return; };
-        if time < self.since { return; }
-        let Some(parts) = m["content"].as_array() else { return; };
-        let mut joined = String::new();
-        for part in parts { if part["type"] == "text" { if let Some(t) = part["text"].as_str() { if !joined.is_empty() { joined.push('\n'); } joined.push_str(t); } } }
-        let Some(public) = public_text(&joined,4000) else { return; };
-        let eid = self.id(&format!("interaction:{key}:{}:{time}:{joined}", text(value,"id")));
+        let joined = joined_text(&m["content"]);
+        let seed = format!("interaction:{key}:{}:{time}:{joined}", text(value,"id"));
+        self.publish(key, &root, &joined, time, &seed, "OMP", label(text(m,"provider"),"unknown"), label(text(m,"model"),"unknown"));
+    }
+    /// Publish one agent reply after quote elision and the privacy screen. The
+    /// public role is always "assistant"; no other role is ever emitted.
+    #[allow(clippy::too_many_arguments)]
+    fn publish(&mut self, key: &str, root: &str, reply: &str, time: i64, seed: &str, runtime: &str, provider: String, model: String) {
+        if time < self.since || reply.trim().is_empty() { return; }
+        let elided = match self.quotes.get(root) { Some(q) => q.elide(reply), None => Some(reply.to_owned()) };
+        let Some(public) = elided.and_then(|r| public_text(&r,4000)) else { return; };
+        let eid = self.id(seed);
         if !self.seen_events.insert(eid.clone()) { return; }
-        self.interactions.push_back(Interaction { id: eid, agent_id: self.id(key), role: if direct_user { "drake" } else { "assistant" }.into(), text: public, at: timestamp(time), runtime: "OMP".into(), provider: if direct_user { "unknown".into() } else { label(text(m,"provider"),"unknown") }, model: if direct_user { "unknown".into() } else { label(text(m,"model"),"unknown") } });
+        self.interactions.push_back(Interaction { id: eid, agent_id: self.id(key), role: "assistant".into(), text: public, at: timestamp(time), runtime: runtime.into(), provider, model });
         self.interactions.make_contiguous().sort_by(|a,b| a.at.cmp(&b.at).then(a.id.cmp(&b.id)));
-        // Drake's own messages are the scarce signal here; agent replies would
-        // otherwise fill the whole window within minutes. Evict the oldest agent
-        // reply first, and only drop Drake's once no replies remain to evict.
+        // Flood protection balanced across agents: one busy agent must not push
+        // every other agent out of the window. Evict the oldest reply of the
+        // agent holding the most replies.
         while self.interactions.len() > INTERACTION_WINDOW {
-            let victim = self.interactions.iter().position(|m| m.role != "drake").unwrap_or(0);
+            let mut counts: HashMap<&str,usize> = HashMap::new();
+            for i in &self.interactions { *counts.entry(i.agent_id.as_str()).or_default() += 1; }
+            let most = counts.values().copied().max().unwrap_or(0);
+            let victim = self.interactions.iter().position(|i| counts[i.agent_id.as_str()] == most).unwrap_or(0);
             if let Some(old) = self.interactions.remove(victim) { self.seen_events.remove(&old.id); }
+        }
+    }
+    fn read_transcript(&mut self, kind: source::Transcript, key: &str, path: &Path, now: i64) -> bool {
+        let cursor = self.cursors.entry(path.to_owned()).or_default();
+        let Ok(values) = cursor.read(path) else { return false; };
+        if let Some(n) = self.nodes.get_mut(key) { n.placeholder = false; }
+        for value in values {
+            match kind { source::Transcript::Claude => self.claude_event(key,&value), source::Transcript::Codex => self.codex_event(key,&value,now) }
+        }
+        true
+    }
+    /// Claude Code: human prompts are `user` entries with text content (tool
+    /// results excluded); a reply is the text of an `assistant` entry whose
+    /// message ended the turn (`stop_reason` `end_turn`). Sidechains are skipped.
+    fn claude_event(&mut self, key: &str, value: &Value) {
+        if value["isSidechain"] == true { return; }
+        let m = &value["message"];
+        match text(value,"type") {
+            "user" => {
+                let human = joined_text(&m["content"]);
+                if !human.is_empty() { self.quotes.entry(key.to_owned()).or_default().add(&human); }
+            }
+            "assistant" => {
+                if let Some(n) = self.nodes.get_mut(key) { if let Some(model) = m["model"].as_str() { Self::model(n,model,Some("anthropic")); } }
+                if text(m,"stop_reason") != "end_turn" { return; }
+                let Some(time) = milliseconds(&value["timestamp"]) else { return; };
+                let seed = format!("interaction:{key}:{}", text(value,"uuid"));
+                self.publish(key,key,&joined_text(&m["content"]),time,&seed,"Claude Code","anthropic".into(),label(text(m,"model"),"unknown"));
+            }
+            _ => {}
+        }
+    }
+    /// Codex: human prompts are `user_message` events and user response items;
+    /// a reply is `task_complete.last_agent_message`, the final text of a turn.
+    fn codex_event(&mut self, key: &str, value: &Value, _now: i64) {
+        let p = &value["payload"];
+        match (text(value,"type"), text(p,"type")) {
+            ("session_meta", _) => if let Some(n) = self.nodes.get_mut(key) { n.public.provider = label(text(p,"model_provider"),"unknown"); },
+            ("turn_context", _) => if let Some(n) = self.nodes.get_mut(key) { n.public.model = label(text(p,"model"),"unknown"); },
+            ("event_msg", "user_message") => { let human = text(p,"message"); if !human.is_empty() { self.quotes.entry(key.to_owned()).or_default().add(human); } }
+            ("response_item", "message") if text(p,"role") != "assistant" => { let human = joined_text(&p["content"]); if !human.is_empty() { self.quotes.entry(key.to_owned()).or_default().add(&human); } }
+            ("event_msg", "task_complete") => {
+                let Some(time) = milliseconds(&value["timestamp"]) else { return; };
+                let (provider,model) = self.nodes.get(key).map(|n| (n.public.provider.clone(),n.public.model.clone())).unwrap_or_else(|| ("unknown".into(),"unknown".into()));
+                let seed = format!("interaction:{key}:{time}:{}", text(p,"turn_id"));
+                self.publish(key,key,text(p,"last_agent_message"),time,&seed,"Codex",provider,model);
+            }
+            _ => {}
         }
     }
     fn read_node(&mut self, key: &str, path: &Path, now: i64) -> bool {
@@ -204,7 +297,7 @@ impl Collector {
                 observed.insert(key.to_owned());
                 if let Some(pid) = host["pid"].as_u64() { host_pids.insert(pid as u32,key.to_owned()); }
                 let n = self.nodes.get_mut(key).unwrap(); n.seen = now; n.terminal = None;
-                n.public.task = label(text(host,"sessionName"), "Task label withheld"); n.public.name = n.public.task.clone();
+                n.public.task = "Coding session".into(); n.public.name = n.public.task.clone();
                 n.public.started_at = safe_date(&host["startedAt"]);
                 Self::model(n,text(&host["model"],"id"),host["model"]["provider"].as_str());
                 n.public.status = if host["inputRequired"] == true { "waiting" } else { match host["busy"].as_bool() { Some(true) => "working", Some(false) => "idle", None => "unknown" } }.into();
@@ -258,6 +351,34 @@ impl Collector {
                 }, Err(_) => faults += 1,
             }
         }
+        // Claude Code and Codex sessions are observed through their own
+        // transcripts while those are being written. Only final replies publish.
+        if !self.transcripts.is_empty() {
+            if self.transcript_scan.is_none_or(|t| now - t >= TRANSCRIPT_RESCAN_MS) {
+                self.transcript_scan = Some(now);
+                let mut active = Vec::new();
+                for (kind,dir) in &self.transcripts {
+                    match source::recent_transcripts(*kind,dir,now,TRANSCRIPT_ACTIVE_MS) {
+                        Ok(found) => active.extend(found.into_iter().map(|(p,m)| (*kind,p,m))),
+                        Err(_) => faults += 1,
+                    }
+                }
+                self.active_transcripts = active;
+            }
+            for (kind,path,_) in self.active_transcripts.clone() {
+                let key = format!("{}:{}", kind.runtime(), path.display());
+                self.ensure(&key,&key,None,&format!("{} session", kind.runtime()),now);
+                if let Some(n) = self.nodes.get_mut(&key) { n.public.runtime = kind.runtime().into(); n.public.role = "transcript-observed session".into(); }
+                if !self.read_transcript(kind,&key,&path,now) { faults += 1; continue; }
+                observed.insert(key.clone()); roots.insert(key.clone());
+                let modified = std::fs::metadata(&path).ok().and_then(|m| m.modified().ok()).and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map(|d| d.as_millis() as i64);
+                if let Some(n) = self.nodes.get_mut(&key) {
+                    n.seen = now;
+                    n.public.status = if modified.is_some_and(|m| now - m < 60_000) { "working" } else { "unknown" }.into();
+                    n.public.updated_at = modified.map(timestamp);
+                }
+            }
+        }
         for (key,node) in &mut self.nodes {
             if observed.contains(key) {
                 node.public.observed_at = timestamp(now);
@@ -285,7 +406,7 @@ impl Collector {
         let mut interactions: Vec<_> = self.interactions.iter().cloned().collect(); interactions.sort_by(|a,b| a.at.cmp(&b.at));
         Feed { schema_version: 1, generated_at: timestamp(now), sequence: self.id(&format!("snapshot:{now}:{}",self.sequence)), poll_ms: 1000, stale_after_ms: 15000,
             coverage: Coverage { label: "Observed live coding sessions", roots: agents.iter().filter(|a| a.parent_id.is_none()).count(), agents: agents.len(), complete: false,
-                notice: format!("OMP collaboration trees and recognized live coding processes. Process-only workers have limited metadata. Other runtimes and disconnected sessions may be unobserved. {faults} source gaps this snapshot. Disappearance is unknown, not completion.") }, agents, interactions }
+                notice: format!("OMP collaboration trees, Claude Code and Codex transcripts being written, and recognized live coding processes. Only agents' final replies are published; human messages never are. Process-only workers have limited metadata. Other runtimes and disconnected sessions may be unobserved. {faults} source gaps this snapshot. Disappearance is unknown, not completion.") }, agents, interactions }
     }
 }
 
