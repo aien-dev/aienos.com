@@ -13,14 +13,14 @@
           "purpose": "Pinned alpha wizard source and unmodified terminal capture assets"
         },
         {
-          "digest": "f30d6f7e75f8207a8160783f99aa374ffeadd09d153198cb88b50cb253d109b7",
+          "digest": "dce69fbca079800fa65f9374bf626ec2daa1b3c2aef46126d0645c8f3f8bb8dc",
           "last_commit": "f0cd2eb",
           "name": "assets",
           "purpose": "Website styles including the project dashboard"
         },
         {
           "digest": "0e9517ee6ee094a4de8a763013d1124dfff19cc19f001820c6c309e5f4b3d0c9",
-          "last_commit": "83192cf",
+          "last_commit": "016ace0",
           "name": "data",
           "purpose": "Published generated project measurements with pinned sources"
         },
@@ -44,20 +44,20 @@
         },
         {
           "digest": "47631eb31c78f300a94bf49b81fe3841336b7cf1e72643dc9723c60ddf315704",
-          "last_commit": "8f55098",
+          "last_commit": "016ace0",
           "name": "research",
           "purpose": "Public static research or licensing pages using the shared website navigation"
         }
       ],
-      "children_root": "sha256:343603d4dbcea916a5b40fbf3354c30743ada4f12b82aab99732ed51106e0ca8",
-      "compiled_at": "2026-10-28T21:37:46Z",
+      "children_root": "sha256:07d3813e1ffce7d9a381eea1d407b1eebf97512de210c0a3d7b2688f77c90fcd",
+      "compiled_at": "2026-10-29T17:40:49Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:4d988d7707c164cf017d724121ffae0975a3c000f11937934075639eba80cd5d",
+      "digest": "sha256:26ca4e27b534a756de12becc93659d8c62a3564ff91f26a4f77ef262f3fd8014",
       "evidence_files": 1,
       "evidence_root": "sha256:63bece7cb299b29d19622dcb0de4cbaa623357b117d8c7643a562de286c4b2fb",
       "files": 156,
-      "generated_at_commit": "07736aa17fd16e862725cf440bcae71527945285",
-      "source_tree": "sha256:77b423018869bc56056b85014a06213f1bb075cbfef51987ff83c5e28fcceba1"
+      "generated_at_commit": "016ace066ba349018342a646c1852c0752fd067b",
+      "source_tree": "sha256:119e46e6b97a0f9c2862d6a5b8344bc76a420f6e1a27e330e0e12abbb3bf354f"
     }
   },
   "invariants": [
