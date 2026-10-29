@@ -1,0 +1,3 @@
+# Default is same-host loopback. Configure the exact approved private backend
+# in the installed file; do not commit machine addresses or broaden trust.
+server 127.0.0.1:18132;
