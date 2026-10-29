@@ -1,12 +1,13 @@
-//! Where Drake is and how to reach him: the /contact/ page, the "Follow me
-//! on X" link in every header, and the contact line in every footer.
+//! Where Drake is and how to reach him: the /contact/ page, the X button in
+//! every header, and the contact line in every footer.
 //!
 //! Generated pages get the header and footer pieces from the navbar and the
 //! footer components. Hand-written and translated pages under public/ carry
 //! their own copy of the header, so [`enrich`] adds the same markup to them
 //! in the shared document pass, and [`verify`] fails the build if any page
-//! in dist lacks either piece. The X link is a plain link: no widget, no
-//! script and nothing loaded from X.
+//! in dist lacks either piece. The X button is a plain link: no widget, no
+//! script and nothing loaded from X. It is the header's only contact entry;
+//! the email address lives in the footer line and on /contact/.
 
 use std::fs;
 use std::path::Path;
@@ -20,7 +21,7 @@ pub const DESCRIPTION: &str = "How to reach Drake Stapleton: X @mdrakestapleton,
 pub const URL: &str = "https://www.aienos.com/contact/";
 pub const PATH: &str = "/contact/";
 pub const EMAIL: &str = "drake@aienos.com";
-pub const ALLEN: &str = "/allen/";
+pub const ALLEN: &str = "/aien/";
 pub const GITHUB: &str = "https://github.com/aien-dev";
 /// The front door: install command, releases and a hub of every part.
 pub const SI: &str = "https://github.com/aien-dev/sovereign-intelligence";
@@ -32,7 +33,7 @@ const X_MARK: &str = r#"<svg class="aien-x-mark" width="13" height="13" viewBox=
 /// Simplified Chinese of the /zh-CN/ mirror.
 struct Words {
     follow: &'static str,
-    contact: &'static str,
+    button: &'static str,
     nav_label: &'static str,
     reach: &'static str,
     email: &'static str,
@@ -41,7 +42,7 @@ struct Words {
 
 const EN: Words = Words {
     follow: "Follow me on X",
-    contact: "Contact",
+    button: "Contact me on X",
     nav_label: "Reach me",
     reach: "Where I am and how to reach me",
     email: "Email",
@@ -50,7 +51,7 @@ const EN: Words = Words {
 
 const ZH: Words = Words {
     follow: "在 X 上关注我",
-    contact: "联系我",
+    button: "在 X 上联系我",
     nav_label: "联系我",
     reach: "我在哪里，如何联系我",
     email: "邮箱",
@@ -72,13 +73,19 @@ fn x_link(w: &Words) -> Markup {
     }
 }
 
-/// The last group of the header nav: the contact page and the X link.
+/// The last group of the header nav: one pressable X button, the header's
+/// contact entry. Its accessible name says what it does; the mark is the
+/// only thing drawn.
 pub fn nav_reach(zh: bool) -> Markup {
     let w = words(zh);
+    let name = format!("{} ({X_HANDLE})", w.button);
     html! {
         ul class="aien-nav-secondary aien-nav-reach" aria-label=(w.nav_label) {
-            li { a class="aien-nav-minor" href=(PATH) { (w.contact) } }
-            li { (x_link(w)) }
+            li {
+                a class="aien-x-link aien-x-button" href=(X_URL) target="_blank" rel="me noopener noreferrer" aria-label=(name) title=(name) {
+                    (PreEscaped(X_MARK))
+                }
+            }
         }
     }
 }
@@ -107,7 +114,7 @@ pub fn footer_reach(zh: bool) -> Markup {
 /// without the shared header nav: every page must show the X link.
 pub fn enrich(mut page: String, zh: bool) -> String {
     if !page.contains("aien-nav-reach") {
-        let nav = page.find("class=\"aien-nav\"").expect("page carries the shared header nav");
+        let nav = page.find("class=\"aien-nav").expect("page carries the shared header nav");
         let end = nav + page[nav..].find("</nav>").expect("shared header nav closes");
         page.insert_str(end, &nav_reach(zh).into_string());
     }
@@ -138,23 +145,32 @@ pub fn verify(dist: &Path) {
     }
     let mut n = 0;
     walk(dist, &mut n);
-    println!("  Follow me on X and the contact line: {n} pages");
+    println!("  X contact button and the contact line: {n} pages");
 }
 
 fn check_page(html: &str) -> Result<(), String> {
     let x_href = format!("class=\"aien-x-link\" href=\"{X_URL}\"");
+    let x_button = format!("class=\"aien-x-link aien-x-button\" href=\"{X_URL}\"");
     let header = html.find("class=\"aien-header\"").ok_or("no shared header")?;
     let header_end = header + html[header..].find("</header>").ok_or("shared header does not close")?;
     let reach = html.find("class=\"aien-nav-secondary aien-nav-reach\"").ok_or("header lacks the reach group")?;
     if reach < header || reach > header_end {
         return Err("the reach group must sit in the header".into());
     }
-    if !html[reach..header_end].contains(&x_href) || !html[reach..header_end].contains(&format!("href=\"{PATH}\"")) {
-        return Err("header lacks the X link or the contact page".into());
+    if !html[reach..header_end].contains(&x_button) {
+        return Err("header lacks the X contact button".into());
+    }
+    if html[reach..header_end].contains(&format!("href=\"{PATH}\"")) {
+        return Err("the header's contact entry is the X button alone".into());
+    }
+    let more = html[header..header_end].find("<details class=\"aien-nav-more\">").ok_or("header lacks the More button (the nav must fit one row)")?;
+    if !html[header..header + more].contains("aien-nav-bar") || header + more > reach {
+        return Err("the header must be the one-row bar: sections, More, then the X button".into());
     }
     let foot = html.rfind("class=\"aien-reach-foot\"").ok_or("footer lacks the contact line")?;
-    if foot < header_end || !html[foot..].contains(&x_href) || !html[foot..].contains(&format!("href=\"mailto:{EMAIL}\"")) {
-        return Err("footer contact line lacks the X link or the email".into());
+    let tail = &html[foot..];
+    if foot < header_end || !tail.contains(&x_href) || !tail.contains(&format!("href=\"mailto:{EMAIL}\"")) || !tail.contains(&format!("href=\"{PATH}\"")) {
+        return Err("footer contact line lacks the X link, the email or the contact page".into());
     }
     Ok(())
 }
@@ -190,7 +206,7 @@ pub fn render_contact() -> Markup {
                         "For anything longer than a post, or anything private."
                     }))
                     (route("Talk to Aien", html! {
-                        a href=(ALLEN) { "aienos.com/allen/" }
+                        a href=(ALLEN) { "aienos.com/aien/" }
                     }, html! {
                         "Aien is my AI. Aien can pass a message to me, or put you through to me when I'm online."
                     }))
@@ -220,12 +236,13 @@ pub fn render_contact() -> Markup {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::components::navbar::fold_legacy;
 
     const HAND_WRITTEN: &str = "<html><head></head><body><header class=\"aien-header\"><div class=\"aien-header-inner\"><nav aria-label=\"x\" class=\"aien-nav\"><ul class=\"aien-nav-primary\"></ul></nav></div></header><main>text</main><footer>own footer</footer></body></html>";
 
     #[test]
     fn enrich_adds_the_header_link_and_footer_line_once() {
-        let once = enrich(HAND_WRITTEN.to_string(), false);
+        let once = enrich(fold_legacy(HAND_WRITTEN.to_string(), false), false);
         check_page(&once).expect("enriched page passes the check");
         assert_eq!(enrich(once.clone(), false), once, "enrich must be idempotent");
         assert!(once.find("aien-nav-reach").unwrap() < once.find("</nav>").unwrap(), "reach group sits inside the nav");
@@ -235,7 +252,7 @@ mod tests {
 
     #[test]
     fn translated_pages_get_chinese_words_and_the_same_links() {
-        let zh = enrich(HAND_WRITTEN.replace("<footer>own footer</footer>", "<footer class=\"aien-footer\"><div>x</div></footer>"), true);
+        let zh = enrich(fold_legacy(HAND_WRITTEN.replace("<footer>own footer</footer>", "<footer class=\"aien-footer\"><div>x</div></footer>"), true), true);
         check_page(&zh).expect("zh page passes the check");
         assert!(zh.contains("在 X 上关注我"));
         assert!(zh.find("aien-reach-strip").unwrap() < zh.rfind("</footer>").unwrap(), "inside the translated footer");
@@ -246,6 +263,8 @@ mod tests {
         assert!(check_page(HAND_WRITTEN).is_err());
         let footer_only = enrich(HAND_WRITTEN.to_string(), false).replace("aien-nav-reach", "gone");
         assert!(check_page(&footer_only).is_err());
+        let unfolded = enrich(HAND_WRITTEN.to_string(), false);
+        assert!(check_page(&unfolded).unwrap_err().contains("More"), "a wrapping header fails the check");
     }
 
     #[test]
@@ -256,7 +275,7 @@ mod tests {
             "href=\"https://x.com/mdrakestapleton\"",
             "@mdrakestapleton",
             "href=\"mailto:drake@aienos.com\"",
-            "href=\"/allen/\"",
+            "href=\"/aien/\"",
             "href=\"https://github.com/aien-dev\"",
             "href=\"https://github.com/aien-dev/sovereign-intelligence\"",
         ] {

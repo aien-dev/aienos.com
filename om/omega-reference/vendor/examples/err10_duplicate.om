@@ -1,0 +1,7 @@
+note err10_duplicate: a new name may not repeat a visible name, a function or a struct
+fn f x int x int to int
+ret x
+end
+fn main to int
+ret f 1 2
+end

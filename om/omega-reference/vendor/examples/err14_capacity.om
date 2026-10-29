@@ -1,0 +1,101 @@
+note err14_capacity: a compiler capacity; here the 33rd export in one OM-2 unit (limit 32). Exports are function mode, so no main
+om2
+export fn e0 x uint to uint
+ret x
+end
+export fn e1 x uint to uint
+ret x
+end
+export fn e2 x uint to uint
+ret x
+end
+export fn e3 x uint to uint
+ret x
+end
+export fn e4 x uint to uint
+ret x
+end
+export fn e5 x uint to uint
+ret x
+end
+export fn e6 x uint to uint
+ret x
+end
+export fn e7 x uint to uint
+ret x
+end
+export fn e8 x uint to uint
+ret x
+end
+export fn e9 x uint to uint
+ret x
+end
+export fn e10 x uint to uint
+ret x
+end
+export fn e11 x uint to uint
+ret x
+end
+export fn e12 x uint to uint
+ret x
+end
+export fn e13 x uint to uint
+ret x
+end
+export fn e14 x uint to uint
+ret x
+end
+export fn e15 x uint to uint
+ret x
+end
+export fn e16 x uint to uint
+ret x
+end
+export fn e17 x uint to uint
+ret x
+end
+export fn e18 x uint to uint
+ret x
+end
+export fn e19 x uint to uint
+ret x
+end
+export fn e20 x uint to uint
+ret x
+end
+export fn e21 x uint to uint
+ret x
+end
+export fn e22 x uint to uint
+ret x
+end
+export fn e23 x uint to uint
+ret x
+end
+export fn e24 x uint to uint
+ret x
+end
+export fn e25 x uint to uint
+ret x
+end
+export fn e26 x uint to uint
+ret x
+end
+export fn e27 x uint to uint
+ret x
+end
+export fn e28 x uint to uint
+ret x
+end
+export fn e29 x uint to uint
+ret x
+end
+export fn e30 x uint to uint
+ret x
+end
+export fn e31 x uint to uint
+ret x
+end
+export fn e32 x uint to uint
+ret x
+end

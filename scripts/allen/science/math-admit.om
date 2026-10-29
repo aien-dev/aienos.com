@@ -1,0 +1,234 @@
+note Pure Omega mathematical-expression admission, protocol v1.
+note stdin at most 4096 bytes; stdout untouched; exit 0 admit, 2 refuse, 3 IO.
+note Every name and quoted unit is allowlisted. No context/assignment/escape/effect symbols.
+note Native host IO only. Bounded lexical gate; aien-math owns expression grammar.
+text symbols "Abs|ArcCos|ArcSin|ArcTan|Cos|Sin|Tan|Cosh|Sinh|Tanh|Exp|Log|Sqrt|Power|Rational|Complex|N|D|Integrate|NIntegrate|Limit|Series|Normal|Sum|Product|Solve|Reduce|Simplify|FullSimplify|Expand|Factor|Together|Apart|Cancel|Numerator|Denominator|Coefficient|CoefficientList|Collect|Det|Inverse|Transpose|Eigenvalues|Eigenvectors|MatrixRank|RowReduce|LinearSolve|Dot|IdentityMatrix|DiagonalMatrix|Tr|EigenSystem|Eigensystem|DSolve|DSolveValue|NDSolve|Mean|Median|Variance|StandardDeviation|Covariance|Correlation|PDF|CDF|Quantile|NormalDistribution|BinomialDistribution|PoissonDistribution|Gamma|Beta|Erf|Erfc|Factorial|Binomial|GCD|LCM|Mod|Min|Max|Floor|Ceiling|Round|Sign|Re|Im|Conjugate|Chop|Length|Total|Range|Table|List|Plus|Times|Equal|Less|Greater|LessEqual|GreaterEqual|And|Or|Not|True|False|Pi|E|I|Infinity|DirectedInfinity|Assumptions|GenerateConditions|ConditionalExpression|SingularValueList|MatrixExp|First|HermiteH|C|Quantity|QuantityMagnitude|QuantityUnit|UnitConvert|UnitSimplify|Probability|Expectation|Zeta|SeriesData|Distributed|x|y|z|t|a|b|c|d|f|g|h|k|m|n|p|q|r|s|u|v|w|"
+text units "Kilograms|SpeedOfLight|Joules|GravitationalConstant|SolarMass|Kilometers|Parsecs|LightYears|ReducedPlanckConstant|Meters|Seconds|Kelvins|Celsius|Fahrenheit|Radians|Degrees|Moles|Amperes|Candelas|Newtons|Pascals|Watts|Hertz|MetersPerSecond|SIBase|"
+text dist "\\[Distributed]"
+global inp uchar 4097
+global stk uchar 32
+global total ulong 1
+global level ulong 1
+
+fn alpha c uchar to bool
+ret or and ge c 65 le c 90 and ge c 97 le c 122
+end
+
+fn insym start ulong size ulong to bool
+p = ulong 0
+matched = ulong 0
+while lt p len symbols bound 4096
+c = get symbols p
+if eq c 124
+if eq matched size
+ret true
+end
+matched = 0
+else
+if lt matched size
+if eq c get inp add start matched
+matched = add matched 1
+else
+matched = 4096
+end
+else
+matched = 4096
+end
+end
+p = add p 1
+end
+ret false
+end
+
+fn inunit start ulong size ulong to bool
+p = ulong 0
+matched = ulong 0
+while lt p len units bound 4096
+c = get units p
+if eq c 124
+if eq matched size
+ret true
+end
+matched = 0
+else
+if lt matched size
+if eq c get inp add start matched
+matched = add matched 1
+else
+matched = 4096
+end
+else
+matched = 4096
+end
+end
+p = add p 1
+end
+ret false
+end
+
+fn pairat p ulong a uchar b uchar to bool
+if ge add p 1 get total 0
+ret false
+end
+ret and eq get inp p a eq get inp add p 1 b
+end
+
+fn brackets c uchar to bool
+n = get level 0
+if or eq c 91 or eq c 123 eq c 40
+if ge n 32
+ret false
+end
+put stk n c
+put level 0 add n 1
+ret true
+end
+if or eq c 93 or eq c 125 eq c 41
+if eq n 0
+ret false
+end
+n = sub n 1
+want = uchar 40
+if eq c 93
+want = 91
+end
+if eq c 125
+want = 123
+end
+if ne get stk n want
+ret false
+end
+put level 0 n
+end
+ret true
+end
+
+fn safechr p ulong to bool
+c = get inp p
+if or eq c 32 or eq c 9 or eq c 10 eq c 13
+ret true
+end
+if and ge c 48 le c 57
+ret true
+end
+if eq c 61
+if pairat p 61 61
+ret true
+end
+if gt p 0
+prev = get inp sub p 1
+if or eq prev 61 or eq prev 60 eq prev 62
+ret true
+end
+end
+ret false
+end
+if or pairat p 47 47 or pairat p 47 42 or pairat p 42 47 or pairat p 40 42 pairat p 42 41
+ret false
+end
+if eq c 44
+if eq get level 0 0
+ret false
+end
+end
+if or pairat p 43 43 pairat p 45 45
+ret false
+end
+if or eq c 91 or eq c 93 or eq c 123 or eq c 125 or eq c 40 eq c 41
+ret brackets c
+end
+if or eq c 43 or eq c 45 or eq c 42 eq c 47
+ret true
+end
+if or eq c 94 or eq c 46 eq c 44
+ret true
+end
+ret or eq c 60 or eq c 62 eq c 39
+end
+
+fn scan to bool
+p = ulong 0
+seen = false
+while lt p get total 0 bound 4096
+c = get inp p
+if alpha c
+start = p
+while lt p get total 0 bound 4096
+if not alpha get inp p
+break
+end
+p = add p 1
+end
+if not insym start sub p start
+ret false
+end
+seen = true
+else
+if eq c 34
+p = add p 1
+start = p
+while lt p get total 0 bound 4096
+if not alpha get inp p
+break
+end
+p = add p 1
+end
+if ge p get total 0
+ret false
+end
+if ne get inp p 34
+ret false
+end
+if not inunit start sub p start
+ret false
+end
+p = add p 1
+seen = true
+else
+if eq c 92
+if gt len dist sub get total 0 p
+ret false
+end
+for i ulong len dist
+if ne get inp add p i get dist i
+ret false
+end
+end
+p = add p len dist
+seen = true
+else
+if not safechr p
+ret false
+end
+if and ge c 48 le c 57
+seen = true
+end
+p = add p 1
+end
+end
+end
+end
+ret and seen eq get level 0 0
+end
+
+fn main to int
+n = ulong 0
+while lt n len inp bound 4097
+r = read 0 inp n sub len inp n
+if lt r 0
+ret 3
+end
+if eq r 0
+break
+end
+n = add n ulong r
+end
+if or eq n 0 gt n 4096
+ret 2
+end
+put total 0 n
+if scan
+ret 0
+end
+ret 2
+end

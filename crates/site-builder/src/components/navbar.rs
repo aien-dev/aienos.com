@@ -13,10 +13,13 @@ pub const NAV_PRIMARY: [(&str, &str); 6] = [
     ("Philosophy", "/philosophy/"),
 ];
 
-/// Secondary links: smaller, after a divider.
-pub const NAV_SECONDARY: [(&str, &str); 9] = [
+/// Secondary links: behind the "More" menu button at the end of the row.
+pub const NAV_SECONDARY: [(&str, &str); 12] = [
     ("Sovereign Intelligence", "/alpha/"),
+    ("Lab", "/lab/"),
     ("Start here", "/start/"),
+    ("Agora", "/agora/"),
+    ("Agents", "/agents/"),
     ("Omega", "/omega/"),
     ("CUDA++", "/cudaplusplus/"),
     ("Now", "/now/"),
@@ -50,21 +53,39 @@ pub fn render_navbar() -> Markup {
                         span class="aien-brand-tag" { "PERSISTENT MACHINE INTELLIGENCE" }
                     }
                 }
-                nav class="aien-nav" aria-label="Primary navigation" {
+                nav class="aien-nav aien-nav-bar" aria-label="Primary navigation" {
                     ul class="aien-nav-primary" {
                         @for (label, href) in NAV_PRIMARY {
                             li { a class="aien-nav-link" href=(href) { (label) } }
                         }
                     }
-                    ul class="aien-nav-secondary" aria-label="More" {
-                        @for (label, href) in NAV_SECONDARY {
-                            li { a class="aien-nav-minor" href=(href) { (label) } }
+                    // One button holds everything that used to wrap onto
+                    // further rows. A native <details>: it opens and closes
+                    // by click, Enter or Space and needs no script. Below
+                    // the narrow breakpoint the six sections move in here
+                    // too (aien-nav-sections), so the header stays one row.
+                    details class="aien-nav-more" {
+                        summary class="aien-nav-more-button" {
+                            span class="aien-nav-more-wide" { "More" }
+                            span class="aien-nav-more-narrow" { "Menu" }
                         }
-                    }
-                    ul class="aien-nav-secondary aien-nav-lang" aria-label="Language" translate="no" {
-                        li { a class="aien-nav-minor" href="/" hreflang="en" lang="en" { "English" } }
-                        @for (code, name) in LANGUAGES {
-                            li { a class="aien-nav-minor" href=(format!("/{code}/")) hreflang=(code) lang=(code) { (name) } }
+                        div class="aien-nav-panel" {
+                            ul class="aien-nav-sections" aria-label="Sections" {
+                                @for (label, href) in NAV_PRIMARY {
+                                    li { a class="aien-nav-minor" href=(href) { (label) } }
+                                }
+                            }
+                            ul class="aien-nav-secondary" aria-label="More" {
+                                @for (label, href) in NAV_SECONDARY {
+                                    li { a class="aien-nav-minor" href=(href) { (label) } }
+                                }
+                            }
+                            ul class="aien-nav-secondary aien-nav-lang" aria-label="Language" translate="no" {
+                                li { a class="aien-nav-minor" href="/" hreflang="en" lang="en" { "English" } }
+                                @for (code, name) in LANGUAGES {
+                                    li { a class="aien-nav-minor" href=(format!("/{code}/")) hreflang=(code) lang=(code) { (name) } }
+                                }
+                            }
                         }
                     }
                     (crate::components::contact::nav_reach(false))
@@ -72,6 +93,42 @@ pub fn render_navbar() -> Markup {
             }
         }
     }
+}
+
+/// Folds an older wrapping header nav (the translated /zh-CN/ pages carry
+/// their own copy) into the one-row shape: the six sections stay in the
+/// row, every later list moves behind the More button, and a copy of the
+/// sections joins them for narrow screens. Idempotent; pages without the
+/// shared nav pass through unchanged. Runs before contact::enrich, so the
+/// X button lands after the button, as on generated pages.
+pub fn fold_legacy(page: String, zh: bool) -> String {
+    let Some(nav) = page.find("class=\"aien-nav\"") else { return page };
+    let Some(header_end) = page.find("</header>") else { return page };
+    if nav > header_end {
+        return page;
+    }
+    let Some(open_end) = page[nav..].find('>').map(|i| nav + i + 1) else { return page };
+    let primary_close = "</ul>";
+    let Some(primary_end) = page[open_end..].find(primary_close).map(|i| open_end + i + primary_close.len()) else { return page };
+    let Some(nav_end) = page[primary_end..].find("</nav>").map(|i| primary_end + i) else { return page };
+    let primary = &page[open_end..primary_end];
+    if !primary.trim_start().starts_with("<ul class=\"aien-nav-primary\"") {
+        return page;
+    }
+    let rest = &page[primary_end..nav_end];
+    let sections = primary
+        .replacen("<ul class=\"aien-nav-primary\">", "<ul class=\"aien-nav-sections\">", 1)
+        .replace("class=\"aien-nav-link\"", "class=\"aien-nav-minor\"");
+    let (wide, narrow) = if zh { ("更多", "菜单") } else { ("More", "Menu") };
+    let mut out = String::with_capacity(page.len() + sections.len() + 256);
+    out.push_str(&page[..nav]);
+    out.push_str("class=\"aien-nav aien-nav-bar\"");
+    out.push_str(&page[nav + "class=\"aien-nav\"".len()..primary_end]);
+    out.push_str(&format!(
+        "<details class=\"aien-nav-more\"><summary class=\"aien-nav-more-button\"><span class=\"aien-nav-more-wide\">{wide}</span><span class=\"aien-nav-more-narrow\">{narrow}</span></summary><div class=\"aien-nav-panel\">{sections}{rest}</div></details>"
+    ));
+    out.push_str(&page[nav_end..]);
+    out
 }
 
 #[cfg(test)]
@@ -141,12 +198,37 @@ mod tests {
     }
 
     #[test]
-    fn header_links_x_and_the_contact_page() {
+    fn header_contact_is_one_x_button_and_the_rest_sits_behind_more() {
         let html = render_navbar().into_string();
-        assert!(html.contains("class=\"aien-x-link\" href=\"https://x.com/mdrakestapleton\""), "header must link X");
-        assert!(html.contains(">Follow me on X<") && html.contains(">@mdrakestapleton<"));
-        assert!(html.contains("href=\"/contact/\""), "header must link /contact/");
-        assert!(!html.contains("<script"), "the X link is a plain link");
+        assert!(
+            html.contains("class=\"aien-x-link aien-x-button\" href=\"https://x.com/mdrakestapleton\""),
+            "header must carry the X contact button"
+        );
+        assert!(html.contains("aria-label=\"Contact me on X (@mdrakestapleton)\""), "the X button needs a name");
+        assert!(!html.contains("href=\"/contact/\""), "Contact and X are one button");
+        assert!(!html.contains("<script"), "the X link is a plain link and the menu is native");
+        let more = html.find("<details class=\"aien-nav-more\">").expect("one More button");
+        assert_eq!(html.matches("<details").count(), 1);
+        for (label, href) in NAV_SECONDARY {
+            assert!(html[more..].contains(&format!("href=\"{href}\">{label}<")), "{label} belongs behind More");
+        }
+        let reach = html.find("aien-nav-reach").expect("X button group");
+        assert!(reach > html.find("</details>").unwrap(), "X button follows the More button");
+    }
+
+    #[test]
+    fn fold_legacy_moves_a_translated_wrapping_nav_into_one_row() {
+        let page = "<header class=\"aien-header\"><nav aria-label=\"主要导航\" class=\"aien-nav\"><ul class=\"aien-nav-primary\"><li><a class=\"aien-nav-link\" href=\"/zh-CN/machine/\">机器</a></li></ul><ul class=\"aien-nav-secondary\"><li><a class=\"aien-nav-minor\" href=\"/zh-CN/blog\">博客</a></li></ul></nav></header><main><nav class=\"aien-nav\"></nav></main>".to_string();
+        let out = fold_legacy(page, true);
+        assert!(out.contains("class=\"aien-nav aien-nav-bar\""));
+        assert!(out.contains("<span class=\"aien-nav-more-wide\">更多</span><span class=\"aien-nav-more-narrow\">菜单</span>"));
+        let more = out.find("<details").unwrap();
+        assert!(out[..more].contains("class=\"aien-nav-link\" href=\"/zh-CN/machine/\""), "sections stay in the row");
+        assert!(out[more..].contains("<ul class=\"aien-nav-sections\"><li><a class=\"aien-nav-minor\" href=\"/zh-CN/machine/\""), "narrow copy of the sections");
+        assert!(out[more..out.find("</details>").unwrap()].contains("/zh-CN/blog"), "later lists sit behind the button");
+        assert!(out.contains("</details></nav></header>"));
+        assert!(out.ends_with("<main><nav class=\"aien-nav\"></nav></main>"), "only the header nav is folded");
+        assert_eq!(fold_legacy(out.clone(), true), out, "idempotent");
     }
 
     #[test]

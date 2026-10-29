@@ -267,3 +267,29 @@
   .om-part, .om-layer { transition: none; }
   .om-part:hover, .om-layer:hover { transform: none; }
 }
+
+/* ---------- /omega/reference/: the language guide and its worked examples ---------- */
+.ref-page .om-section { padding: 48px 0; }
+.ref-page .om-section > h2, .ref-page .om-section > h3 { margin: 40px 0 12px; line-height: 1.2; }
+.ref-page .om-section h4 { margin: 24px 0 8px; }
+.ref-page .om-section p, .ref-page .om-section li { color: var(--tl-ink-2); line-height: 1.65; max-width: 860px; }
+.ref-page .om-section a { color: var(--tl-blue-soft); }
+.ref-page code { font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.92em; color: var(--tl-ink); }
+.ref-page pre {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre;
+  overflow-x: auto;
+  background: var(--tl-card);
+  border: 1px solid var(--tl-line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin: 8px 0 18px;
+}
+.ref-page table { border-collapse: collapse; margin: 12px 0 22px; font-size: 14px; display: block; overflow-x: auto; }
+.ref-page th, .ref-page td { border: 1px solid var(--tl-line-2); padding: 6px 10px; text-align: left; vertical-align: top; color: var(--tl-ink-2); }
+.ref-page th { color: var(--tl-ink); background: var(--tl-card-2); }
+.ref-ex { border-top: 1px solid var(--tl-line); padding-top: 8px; margin-top: 28px; }
+.ref-ex h3 { font-family: var(--font-mono, ui-monospace, monospace); font-size: 18px; }
+.ref-file { margin: 10px 0 0; font-size: 14px; }

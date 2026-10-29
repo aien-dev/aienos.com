@@ -129,9 +129,12 @@ pub fn render_evidence() -> Markup {
                     }
                 }
 
-                div class="responsive-card-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px;" {
+                // Each card leads with its verdict, number and title, then
+                // what it proves. The description and the receipt fields sit
+                // in a native disclosure, so six cards read at a glance.
+                div class="responsive-card-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 32px;" {
                     @for c in &cards {
-                        div class="glow-box" style="padding: 28px; border-radius: 8px; display: flex; flex-direction: column; gap: 14px;" {
+                        div class="glow-box" style="padding: 32px; border-radius: 8px; display: flex; flex-direction: column; gap: 16px;" {
                             div {
                                 span class=(format!("badge {}", c.badge)) style="font-size: 10px;" {
                                     (c.verdict)
@@ -143,10 +146,7 @@ pub fn render_evidence() -> Markup {
                             h3 style="font-size: 17px; font-weight: 700; color: var(--text-primary);" {
                                 (c.title)
                             }
-                            p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin: 0;" {
-                                (super::omega::link_first(c.desc))
-                            }
-                            div style="font-size: 13.5px; line-height: 1.6; display: flex; flex-direction: column; gap: 6px;" {
+                            div style="font-size: 14px; line-height: 1.6; display: flex; flex-direction: column; gap: 8px;" {
                                 p style="margin: 0; color: var(--text-secondary);" {
                                     span style="color: var(--accent-green); font-weight: 700;" { "Proves: " }
                                     (c.proves)
@@ -156,11 +156,17 @@ pub fn render_evidence() -> Markup {
                                     (c.not_proves)
                                 }
                             }
-                            div style="margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border-subtle); font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); display: flex; flex-direction: column; gap: 5px;" {
-                                span { "DATE " (c.date) }
-                                span { "ENVIRONMENT " (c.environment) }
-                                span { "GATE " (c.gate) }
-                                span { "RECEIPT " (c.source) }
+                            details class="ev-more" style="margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border-subtle);" {
+                                summary style="cursor: pointer; font-size: 13px; color: var(--text-muted);" { "What was run, and the receipt" }
+                                p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin: 12px 0;" {
+                                    (super::omega::link_first(c.desc))
+                                }
+                                div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); display: flex; flex-direction: column; gap: 5px;" {
+                                    span { "DATE " (c.date) }
+                                    span { "ENVIRONMENT " (c.environment) }
+                                    span { "GATE " (c.gate) }
+                                    span { "RECEIPT " (c.source) }
+                                }
                             }
                             (foot(c.url, Target::Evidence))
                         }

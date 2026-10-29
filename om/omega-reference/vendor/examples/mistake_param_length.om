@@ -1,0 +1,8 @@
+note mistake_param_length: a sized array parameter takes exactly that length; use OM-2 view T * for any length
+fn f a view uchar 4 to uchar
+ret get a 0
+end
+fn main to int
+b = new uchar 8 0
+ret int f b
+end

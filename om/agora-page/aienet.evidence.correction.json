@@ -1,0 +1,9 @@
+{
+  "corrects": "aienet.evidence.json",
+  "scope": "Deployment prerequisite wording only; measured browser/test results and original receipt remain unchanged.",
+  "original_claim": "Backend challenge-capacity and client-address quota repairs are separate prerequisites before public backend deployment.",
+  "correction": "Signup uses the existing direct text hello/profile API, not the MCP/A2A JSON edge. Require the challenge-capacity repair plus durable state and preservation of the direct text API restricted trusted-proxy client-address boundary before deployment. Do not claim per-client MCP/A2A edge isolation: that edge retains a shared fail-closed quota.",
+  "source": "AgoraRepair handoff for draft aienos.com PR 162: AG1 repaired; AG2 per-client MCP/A2A isolation intentionally NOT_IMPLEMENTED because pinned accept4 discards peer sockaddr and no new trust path is authorized.",
+  "deployment": "NOT_RUN",
+  "runtime_source_changed": false
+}

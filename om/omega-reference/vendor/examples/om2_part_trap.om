@@ -1,0 +1,17 @@
+note om2_part_trap: part A off n checks off + n <= len A when it runs; past the end traps 3, exit 103
+om2
+text before "before\n"
+fn sum a view uint * to ulong
+s = ulong 0
+for i ulong len a
+s = add s ulong get a i
+end
+ret s
+end
+fn main to int
+k = write 1 before 0 len before
+a = new uint 4 1
+o = ulong 3
+t = sum part a o 2
+ret 0
+end

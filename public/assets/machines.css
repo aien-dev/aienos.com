@@ -302,6 +302,17 @@
   text-decoration: underline;
 }
 
+/* The full table is one click away: the summary reads as a quiet link. */
+.mx-receipts { margin-top: 32px; }
+.mx-receipts-summary {
+  cursor: pointer;
+  width: fit-content;
+  font-size: 14px;
+  color: var(--tl-blue-soft);
+  margin-bottom: 20px;
+}
+.mx-receipts-summary:hover { text-decoration: underline; }
+
 /* ---------- speed table ---------- */
 .mx-table-wrap {
   border: 1px solid var(--tl-line);

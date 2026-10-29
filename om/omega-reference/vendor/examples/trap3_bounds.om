@@ -1,0 +1,9 @@
+note trap3_bounds: a run-time index outside the array traps 3, exit 103
+text before "before\n"
+fn main to int
+k = write 1 before 0 len before
+a = new uint 4 0
+i = ulong 4
+v = get a i
+ret 0
+end

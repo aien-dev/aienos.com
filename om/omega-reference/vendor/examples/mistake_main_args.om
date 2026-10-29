@@ -1,0 +1,4 @@
+note mistake_main_args: main takes no parameters; read arguments with argcnt and argread
+fn main argc int to int
+ret 0
+end
