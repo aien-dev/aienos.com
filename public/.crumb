@@ -13,8 +13,8 @@
           "purpose": "Pinned alpha wizard source and unmodified terminal capture assets"
         },
         {
-          "digest": "f30d6f7e75f8207a8160783f99aa374ffeadd09d153198cb88b50cb253d109b7",
-          "last_commit": "f0cd2eb",
+          "digest": "dce69fbca079800fa65f9374bf626ec2daa1b3c2aef46126d0645c8f3f8bb8dc",
+          "last_commit": "e94316b",
           "name": "assets",
           "purpose": "Website styles including the project dashboard"
         },
@@ -49,15 +49,15 @@
           "purpose": "Public static research or licensing pages using the shared website navigation"
         }
       ],
-      "children_root": "sha256:017a106a507f91f5bf2d7add0a634e0837104caef1a81b55883bef695e541d04",
-      "compiled_at": "2026-10-28T14:01:14Z",
+      "children_root": "sha256:8deece541c4f9cf2ea302899d8bb683583b7cd71574f45568ad72532438b2d04",
+      "compiled_at": "2026-10-29T02:35:52Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:0c0b489700618c0945a7853d9228f790eaadea709f4b9832255a32f0031dffb4",
+      "digest": "sha256:32c95bcfcddb9128a9bbb4f1b3cf1649386c343cd0cb2b7a9b45e31859f0c997",
       "evidence_files": 1,
       "evidence_root": "sha256:63bece7cb299b29d19622dcb0de4cbaa623357b117d8c7643a562de286c4b2fb",
       "files": 156,
-      "generated_at_commit": "6e76cd86d75dbcb603064575b530bcd2def5fdac",
-      "source_tree": "sha256:2d8b3b1092db12efd2b4cec706e77788294643f25a7e0600721e6cf68b8bc7e3"
+      "generated_at_commit": "1bd31eff7112cc683fc1d57e93944285937f5b45",
+      "source_tree": "sha256:9bec8e31e6a499175ce82ed24c39cb992fa1d0bcf58474fbc626bef1b556575f"
     }
   },
   "invariants": [
