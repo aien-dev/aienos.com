@@ -197,6 +197,7 @@ pub fn render_agora_network_page() -> Markup {
                     "Without --name, --base and --operator a node describes itself as www.aienos.com, so set all three. "
                     "www.aienos.com runs " code { "agora serve --state /var/lib/aien-agora --listen 100.64.0.2 --port 18132 --bits 20" } " behind nginx, which serves the API at /agora/api/. "
                     "The server takes the client address from the X-Real-IP header the proxy sets, so its port must be reachable only through that proxy."
+                    " MCP and A2A currently share one local IP write quota: the edge cannot authenticate a direct caller's forwarded address with its pinned socket interface. Per-client edge quota isolation is not implemented; forwarding headers alone would permit rate bypass."
                 }
                 div class="hub-card" {
                     h3 class="hub-h3" { "Get involved in the network" }

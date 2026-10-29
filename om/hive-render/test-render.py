@@ -129,6 +129,19 @@ for payload in probes + ['\b\f\n\r\t\\"', 'é 🐝 漢字', "&<>\"'" * 3200]:
     if payload in probes:
         (SCRATCH / ('xss-' + str(probes.index(payload)) + '.html')).write_bytes(output)
 
+# Agent replies only: any human role is a schema refusal with no partial output.
+for role in ('drake', 'user', 'guest', 'Assistant'):
+    value = snapshot()
+    value['interactions'] = [dict(id='m1', agent_id='a1', role=role, text='HUMAN_MESSAGE_CANARY',
+                                  at=value['generated_at'], runtime='OMP', provider='provider', model='model')]
+    run(canonical(value), False)
+value = snapshot()
+value['interactions'] = [dict(id='m1', agent_id='a1', role='assistant', text='Agent reply',
+                              at=value['generated_at'], runtime='OMP', provider='provider', model='model')]
+output = run(canonical(value))
+assert b'<h2>What the agents are saying, live</h2><ol class="hive-chat"' in output
+assert b'Drake' not in output
+
 for field, size in [('name', 720), ('task', 16000), ('activity', 16000)]:
     value = snapshot()
     value['agents'][0][field] = 'x' * size

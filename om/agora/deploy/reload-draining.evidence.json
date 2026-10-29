@@ -1,0 +1,103 @@
+{
+  "status": "EXERCISED_HOST_ORACLE",
+  "repository_base": "0127685b40d2477033769568aa21bf550113ced6",
+  "compiler_source": "omega-mv@e5b32567",
+  "compiler_sha256": "2c82480596bbdc50cda9626866209ef662d5834f278f839ff4ce0250c495029f",
+  "oracle": "nginx1.24.0 unchanged external loopback verification binary",
+  "source": "om/agora/reload-check.om",
+  "compose_command": "{ printf \"om2\\n\"; cat om/agora/sha256.om om/agora/http.om om/agora/reload-check.om; } | \"$OMEGA_OMC\" > \"$TMP/reload\"; chmod 700 \"$TMP/reload\"",
+  "run_command": "\"$TMP/reload\" \"$NGINX_BIN\" \"$EMPTY_SCRATCH\"",
+  "observed_stdout": "AGORA RELOAD OMEGA PASS pre-existing drainer/no-listener accepted; missing-reload and old-active-listener refused; readiness 200/no-store/one upstream hit",
+  "controls": [
+    {
+      "name": "real",
+      "source_sha256": "9ce28f58f43c3de467f0f8668ee6664712aa9abca4f10472a9c39798cc9c0f6d",
+      "binary_sha256": "fe9e1696c7841f93d72e29708e120440dce62ee8e7e86a8775298010db27e594",
+      "compile_exit": 0,
+      "expected_exit": 0,
+      "observed_exit": 0
+    },
+    {
+      "name": "barrier-off",
+      "source_sha256": "1dedcac7c092d9b7f79806b3e5967a43141c821c2080789ca335838e26b4c90a",
+      "binary_sha256": "3ed180f65e002a3a46e9dd157e082da98e6de8f6a8b5349746c971bb86f80b89",
+      "compile_exit": 0,
+      "expected_exit": 11,
+      "observed_exit": 11
+    },
+    {
+      "name": "active-listener-off",
+      "source_sha256": "fcd0d6917bd4d919edcb42df46061f5b43d2959ca6d744bed2b1c920a6df0a95",
+      "binary_sha256": "e3ac0b6c8ce4a3f7dfa405b6953aee4a63b506896e30b81f4a00ac4cfd70e631",
+      "compile_exit": 0,
+      "expected_exit": 14,
+      "observed_exit": 14
+    },
+    {
+      "name": "draining-worker-refused",
+      "source_sha256": "24f7642adc5ed178ab37e266fc5d12798e2d9416d091e8b9adf9eecab4bd02a1",
+      "binary_sha256": "6c09108f524001c69fa204c702b440c8dc33ac9d8ec3f9c92d07c8750be75e00",
+      "compile_exit": 0,
+      "expected_exit": 23,
+      "observed_exit": 23
+    },
+    {
+      "name": "listener-check-off",
+      "source_sha256": "2656df0323acc60dafc9649253c608547bd48bf37784c4a839610d73496f45d9",
+      "binary_sha256": "f8114cdacc23170bd5d29ad8bf8ff64611146655c15061728b91362b1872b3d5",
+      "compile_exit": 0,
+      "expected_exit": 30,
+      "observed_exit": 30
+    }
+  ],
+  "commands": [
+    {
+      "command": "NET_KEEP=1 OMEGA_OMC=/tmp/aienet-omc NGINX_BIN=/tmp/aienet-nginx-oracle/usr/sbin/nginx sh om/agora/check.sh",
+      "exit": 0,
+      "observed": "core realPASS;7coremutants rejected; native realPASS; barrier-off11; active-listener-off14; draining-worker-refused23; listener-check-off30; networkPASS; independent edge client quotas NOT_IMPLEMENTED (not used by registration-only deployment)"
+    },
+    {
+      "command": "NGINX_BIN=/tmp/aienet-nginx-oracle/usr/sbin/nginx python3 scripts/test-agora-deploy.py",
+      "exit": 0,
+      "observed": "exact routes/methods; refusalupstream0; nonPROXYrefusal; spoofidentity/quota; responseprivacyheaders; APIaccesslogexclusion; active-debug syntheticbody-sentinelabsence; no retainedbodyfiles. Suppressioncausality NOT_QUALIFIED (override-removal mutant survived); transientbodyspill and recoverykey response logs NOT_QUALIFIED"
+    }
+  ],
+  "mechanism": [
+    "Held native /hold response across initial HUP leaves a real old worker alive, title shutting down, with no listener; barrier accepts it.",
+    "The next active worker is stopped only in the isolated fixture; its actual listener is proven before master HUP control. Barrier refuses a still-active owner despite a newer worker.",
+    "rc_safe(pid,true) predicate seam must refuse that proven owned listener even when given a draining classification. Only removal of the listener predicate produces exit30. This is a classification seam, not an observation that a naturally draining nginx worker retained a listener.",
+    "TCP ownership uses128descriptor fixturelimit and ARM64 stat inodeoffset8; socket filekind is learned from live fstat on the native reference socket. Both TCP tables streamed in256bytebuffer, preserving tokens/rows across reads, absence only afterEOF; read errors/incomplete rows/boundedloop exhaustion refuse.",
+    "Successful observations recheck monotonicdeadline before returningtrue."
+  ],
+  "diagnostic_history": [
+    {
+      "observation": "initial single-read reader could return absence beforeEOF; corrected following read-onlyreview",
+      "label": "CODE_DEFECT; historical missed-row cause INFERENCE"
+    },
+    {
+      "observed_full_matrix_exits": [
+        25,
+        32
+      ],
+      "observation": "64K accumulated-table reader failed its safe capacity check during corematrix load; instrumented capacity stage203 ondrainingworker320280; simultaneous rootlessss showed no320280listener",
+      "command": "wc -c /proc/net/tcp /proc/net/tcp6",
+      "observed_bytes": {
+        "tcp": 140250,
+        "tcp6": 1569
+      },
+      "fix": "bounded streaming parser; subsequent complete matrix exit0"
+    }
+  ],
+  "production_read_only_control": {
+    "command": "ssh hub 'sudo ss -ltnp && ps -p 1707,1708,1710 -o pid=,ppid=,args='",
+    "observed": "AllthreePIDs1707/1708/1710 are nginx worker process is shutting down; none owns any listed IPv4/IPv6TCP listening socket. No worker signaled or killed."
+  },
+  "review": "Read-only DrainBarrierFinal approved logic with explicit fixture/production limits; no checks run by reviewer.",
+  "wolfram": "WolframLanguageEvaluator output relayed by Main: UnitConvert[Quantity[{30,0.1,0.01},\"Seconds\"],\"Nanoseconds\"] -> {Quantity[30000000000,\"Nanoseconds\"],Quantity[1.*^8,\"Nanoseconds\"],Quantity[1.*^7,\"Nanoseconds\"]}.",
+  "limits": [
+    "One-worker native fixture is not full productionworker enumeration; explicit128FDlimit is fixture-only.",
+    "Native newchildPID observation is not independent proof of production new ACTIVE title; production ps/ss evidence remains mandatory.",
+    "No live activation in this receipt; productionprivacy/browser/durability andbootenable NOT_RUN.",
+    "Earlier reload.evidence.json remains historical and unchanged. No Omega harness language/compiler/pin/genericguide affected; deploymentrunbook updated."
+  ]
+}
