@@ -40,9 +40,9 @@ fn salt(path: &Path) -> io::Result<Vec<u8>> {
     }
 }
 /// Private repository names, one per line, optionally followed by a tab and the
-/// anonymised id they publish as. A missing file means no private names are known.
+/// anonymised id they publish as. An empty file explicitly declares no private names.
 fn private_repos(path: &Path) -> io::Result<Vec<(String, Option<String>)>> {
-    let text = match fs::read_to_string(path) { Ok(t) => t, Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(Vec::new()), Err(e) => return Err(e) };
+    let text = fs::read_to_string(path)?;
     Ok(text.lines().map(str::trim).filter(|l| !l.is_empty() && !l.starts_with('#')).map(|l| match l.split_once('\t') {
         Some((name, id)) if !id.trim().is_empty() => (name.trim().to_owned(), Some(id.trim().to_owned())),
         Some((name, _)) => (name.trim().to_owned(), None),
@@ -61,7 +61,7 @@ fn publish(path: &Path, bytes: &[u8]) -> io::Result<()> {
 fn run() -> Result<(), &'static str> {
     let opts = options()?;
     let key = salt(&opts.salt).map_err(|_| "private salt unavailable or unsafe")?;
-    privacy::set_private_repos(private_repos(&opts.private_repos).map_err(|_| "private repository list unreadable")?);
+    privacy::set_private_repos(private_repos(&opts.private_repos).map_err(|_| "private repository list unreadable; provide --private-repos (an empty file declares none)")?)?;
     let mut collector = feed::Collector::new(key,opts.since);
     if opts.hosts.is_none() {
         collector = collector.with_transcripts(source::Transcript::Claude, opts.claude).with_transcripts(source::Transcript::Codex, opts.codex);
@@ -76,3 +76,22 @@ fn run() -> Result<(), &'static str> {
     }
 }
 fn main() { if let Err(error) = run() { eprintln!("hive-feed: {error}"); std::process::exit(1); } }
+
+#[cfg(test)]
+mod config_tests {
+    use super::*;
+    #[test]
+    fn missing_private_repo_list_is_refused() {
+        let file = std::env::temp_dir().join(format!("hive-missing-private-list-{}", std::process::id()));
+        assert!(!file.exists());
+        assert!(private_repos(&file).is_err());
+    }
+    #[test]
+    fn empty_private_repo_list_is_an_explicit_empty_set() {
+        let file = std::env::temp_dir().join(format!("hive-empty-private-list-{}", std::process::id()));
+        drop(OpenOptions::new().write(true).create_new(true).open(&file).unwrap());
+        let result = private_repos(&file);
+        fs::remove_file(&file).unwrap();
+        assert!(result.unwrap().is_empty());
+    }
+}

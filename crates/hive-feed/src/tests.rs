@@ -234,7 +234,7 @@ impl Drop for Fixture { fn drop(&mut self) { let _ = fs::remove_dir_all(&self.di
     f.append(json!({"type":"title","timestamp":1001,"title":"TITLE_CANARY separate plans"}));
     f.append(json!({"type":"message","timestamp":1002,"message":{"role":"user","attribution":"user","content":[{"type":"text","text":drake}]}}));
     f.append(json!({"type":"message","timestamp":1003,"message":{"role":"assistant","stopReason":"toolUse","content":[{"type":"toolCall","name":"task","arguments":{"tasks":[
-        {"name":"Quoter","solutionSpace":format!("{drake}")},
+        {"name":"Quoter","solutionSpace":drake.to_string()},
         {"name":"Plain","solutionSpace":"one fix: split the billing table"}]}}]}}));
     f.append(json!({"type":"custom","customType":"tool_execution_start","timestamp":1004,"data":{"toolCallId":"t","toolName":"bash","intent":drake,"startedAt":1004}}));
     let mut c=Collector::new(run_salt(),1000);

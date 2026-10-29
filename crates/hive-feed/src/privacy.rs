@@ -33,10 +33,16 @@ static PRIVATE_REPOS: OnceLock<Option<PrivateRepos>> = OnceLock::new();
 
 /// Install the private repository list once at startup. Each entry is a name and
 /// an optional anonymised id; names without an id publish as `[private repo]`.
-pub fn set_private_repos(entries: Vec<(String, Option<String>)>) {
-    let _ = PRIVATE_REPOS.set(compile_repos(entries));
+pub fn set_private_repos(entries: Vec<(String, Option<String>)>) -> Result<(), &'static str> {
+    let nonempty = !entries.is_empty();
+    let compiled = compile_repos(entries);
+    if nonempty && compiled.is_none() { return Err("invalid private repository list"); }
+    PRIVATE_REPOS.set(compiled).map_err(|_| "private repository list already initialized")
 }
 fn compile_repos(entries: Vec<(String, Option<String>)>) -> Option<PrivateRepos> {
+    if entries.iter().any(|(name, id)| name.trim().is_empty() || id.as_ref().is_some_and(|id| {
+        !id.strip_prefix("private-").is_some_and(|digits| !digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit()))
+    })) { return None; }
     let mut names: Vec<_> = entries.iter().map(|(n, _)| n.to_ascii_lowercase()).filter(|n| !n.is_empty()).collect();
     if names.is_empty() { return None; }
     names.sort_by_key(|n| std::cmp::Reverse(n.len()));
@@ -103,6 +109,11 @@ pub fn public_text(input: &str, limit: usize) -> Option<String> {
 #[cfg(test)]
 mod agent_reply_tests {
     use super::*;
+    #[test] fn invalid_public_repo_alias_is_refused() {
+        for alias in ["my-private-repository", "private-", "private-03 extra", "private-03\nsecret"] {
+            assert!(compile_repos(vec![("fixture-repo".into(), Some(alias.into()))]).is_none(), "invalid alias accepted");
+        }
+    }
     #[test] fn redacts_email_addresses() {
         let value = public_text("I sent the note to first.last+tag@example.ac.uk and copied drake@aienos.com.", 4000).unwrap();
         assert!(!value.contains('@') && value.contains("[email withheld]"), "{value}");
