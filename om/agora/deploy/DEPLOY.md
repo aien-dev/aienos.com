@@ -155,6 +155,61 @@ as well. Check every installed file, not only the new snippet files. This
 procedure changes the transfer mechanism, not the approved configuration,
 network boundary, reload barrier or deployment acceptance gates.
 
+### Firewall preflight
+
+The tcp/18132 accept rule is not yet approved or applied. Run this preflight
+before starting the unit. Do not add the rule. On the Spark, nftables table
+`inet atlas_ingress` handles input before the unit's systemd IP filter. Its
+input chain policy is drop, and port 18132 is not accepted there. Adding the
+rule needs Drake's explicit approval. This preflight does not insert it, does
+not authorize a temporary rule, and does not write `/etc/nftables.conf`.
+
+Back up the live ruleset with `nft list ruleset` to a root-owned regular file,
+mode 0600. Record the path.
+
+```sh
+backup=$(sudo mktemp /root/aien-agora-nft.XXXXXX)
+sudo nft list ruleset | sudo tee "$backup" >/dev/null
+sudo chown root:root "$backup"
+sudo chmod 0600 "$backup"
+sudo stat -c '%u %g %a %F %s %n' "$backup"
+```
+
+PASS: uid 0, gid 0, mode 600, type `regular file`, size greater than 0.
+FAIL: any other owner, group, mode, type, or an empty file. Stop. Do not
+start the unit.
+
+List the input chain. `nft` must exit 0. The header must contain
+`policy drop`.
+
+```sh
+list=$(sudo nft -a list chain inet atlas_ingress input) || exit 1
+printf '%s\n' "$list"
+printf '%s\n' "$list" | grep -F -n 'policy drop'
+rule='iifname "tailscale0" ip saddr 100.64.0.3 tcp dport 18132 accept comment "aien-agora, hub nginx only"'
+printf '%s\n' "$list" | grep -F -c -- "$rule" || true
+```
+
+The expression is the listed form of the 18110 rule in
+`scripts/allen/README.md`: table `inet atlas_ingress`, chain `input`,
+`iifname "tailscale0"`, source `100.64.0.3`, then `tcp dport` and `accept`.
+That README records the 18110 rule with shell quoting `iifname '"tailscale0"'`,
+which `nft` lists as `iifname "tailscale0"`. The 18110 line has no comment.
+The 18132 line is that same listed form with this port and comment. A
+trailing `# handle N` may follow the expression. `grep -F -n` on `policy drop`
+must print a line. The last command prints the number of lines that contain
+the exact expression.
+
+PASS for a later start that Drake has approved: `policy drop`, and the count
+is 1.
+A count of 0 is the current host. The rule is not yet approved or applied.
+Zero is a failed preflight for starting the listener on `100.64.0.2:18132`.
+Leave the chain unchanged.
+FAIL: `nft` does not exit 0, the chain is missing, `policy drop` is absent,
+or the count is greater than 1. Stop.
+Do not start the unit for hub ingress while the count is 0. A drop in this
+chain never reaches the systemd IP filter, so unit IP accounting stays 0.
+
 ### Backend startup identity barrier
 
 `Type=simple` reports a successful start before the child has necessarily
@@ -200,6 +255,131 @@ fixture, not a claim that a privileged fixture process was launched.
 The conductor requires preexec-root-fail, deadline-off and identity-off
 mutants to fail with exits 40, 48 and 44 respectively. Actual production
 `/proc` and listener ownership remain mandatory independent observations.
+
+### Hub path gate
+
+Run this only after the startup identity barrier shows the same PID listening
+on `100.64.0.2:18132`, and only when the firewall preflight found the exact
+rule once. That rule is not yet approved or applied, so this gate cannot pass
+on the current host. Do not add the rule to make it pass. No temporary
+firewall rule is authorized.
+
+A SYN from the hub to `100.64.0.2:18132` must be answered by a SYN-ACK. A
+denied source must still get none. Record unit IP accounting immediately
+before and after each probe. One probe per source. Do not retry a failed
+probe as a pass.
+
+On the Spark, start the capture first and leave it running until the probe
+finishes. tcpdump exit 0 or 124 ends a complete capture. Any other exit is
+FAIL.
+
+```sh
+systemctl show -p IPIngressPackets -p IPIngressBytes -p IPEgressPackets -p IPEgressBytes aien-agora.service
+sudo timeout 20 tcpdump -ni tailscale0 -nn -tt -S -l \
+  'tcp port 18132 and host 100.64.0.3 and (tcp[tcpflags] & tcp-syn != 0)'
+```
+
+On the hub, whose tailnet address is `100.64.0.3`:
+
+```sh
+curl --silent --show-error --max-time 5 --interface 100.64.0.3 \
+  --output /dev/null --write-out '%{http_code}\n' \
+  http://100.64.0.2:18132/agora/api/challenge
+```
+
+tcpdump prints `Flags [S]` for a SYN and `Flags [S.]` for a SYN-ACK. Extra
+flag letters may appear beside those. A SYN-ACK is a packet whose flags
+contain both `S` and `.`. A SYN counted below must contain `S` and must not
+contain `.`.
+
+PASS: the capture has at least one SYN from `100.64.0.3` to
+`100.64.0.2.18132`, and at least one reply from `100.64.0.2.18132` to
+`100.64.0.3` that is a SYN-ACK. `IPIngressPackets` is greater than the value
+recorded before this probe. The firewall verdict is the SYN-ACK. Record the
+HTTP code beside it.
+FAIL: a hub SYN and no SYN-ACK to `100.64.0.3`. FAIL: `IPIngressPackets`
+unchanged after a hub SYN. The 2026-10-30 capture was 5 SYNs, 0 SYN-ACKs,
+and unit IP accounting at 0. FAIL: no hub SYN in the capture. The probe did
+not arrive, so the gate did not run.
+
+Denied source. Set `DENIED` to an address other than `100.64.0.3` and other
+than `100.64.0.2` that can already place a packet on `tailscale0` toward
+`100.64.0.2`. Do not add a firewall rule, a route, or a systemd address
+allowance to create that path. Start a new capture on the Spark, then run
+one curl on the denied host.
+
+```sh
+systemctl show -p IPIngressPackets -p IPIngressBytes -p IPEgressPackets -p IPEgressBytes aien-agora.service
+sudo timeout 20 tcpdump -ni tailscale0 -nn -tt -S -l \
+  "tcp port 18132 and host ${DENIED} and (tcp[tcpflags] & tcp-syn != 0)"
+```
+
+```sh
+curl --silent --show-error --max-time 5 --interface "$DENIED" \
+  --output /dev/null --write-out '%{http_code}\n' \
+  http://100.64.0.2:18132/agora/api/challenge
+```
+
+PASS: at least one SYN from `DENIED` to `100.64.0.2.18132`, and no SYN-ACK
+from `100.64.0.2.18132` to `DENIED`. `IPIngressPackets` stays at the value
+recorded before this probe.
+FAIL: any SYN-ACK to `DENIED`. FAIL: no SYN from `DENIED`. Denial was not
+observed.
+A failed gate stops activation. It does not approve a firewall change.
+
+### Firewall rollback
+
+Prefer deleting the single rule by its handle. List the chain:
+
+```sh
+sudo nft -a list chain inet atlas_ingress input
+```
+
+Find the one line that contains this exact expression:
+
+```
+iifname "tailscale0" ip saddr 100.64.0.3 tcp dport 18132 accept comment "aien-agora, hub nginx only"
+```
+
+Read `N` from the `# handle N` at the end of that line. Do not use the handle
+on the 18110 line (`tcp dport 18110 accept`). If the expression occurs zero
+times, there is nothing to delete. If it occurs more than once, do not pick a
+handle. Restore the preflight backup instead.
+
+```sh
+sudo nft delete rule inet atlas_ingress input handle N
+sudo nft -a list chain inet atlas_ingress input
+```
+
+PASS: the 18132 expression is gone, input policy is still drop, and this
+18110 line is still present:
+`iifname "tailscale0" ip saddr 100.64.0.3 tcp dport 18110 accept`.
+FAIL: the 18132 expression remains, or the 18110 line is missing. Stop and
+restore the backup.
+
+Or restore the preflight file. `$backup` is the root-owned mode 0600 file
+from the firewall preflight, a full `nft list ruleset` snapshot taken before
+any firewall change. Check it, then replace the live ruleset. Loading that
+file while its tables already exist appends a second copy of each rule, so
+flush first. `flush ruleset` removes every table until the next command loads
+the backup. Run the flush and the load as one rollback, from a session that
+stays connected while the ruleset is empty.
+
+```sh
+sudo test "$(sudo stat -c '%u %g %a' "$backup")" = '0 0 600'
+sudo nft -c -f "$backup"
+sudo nft flush ruleset
+sudo nft -f "$backup"
+sudo nft -a list chain inet atlas_ingress input
+```
+
+`nft -c -f` must exit 0 before the flush. If the mode test or the check
+fails, do not flush. After the load, the input chain must match the backup,
+including the 18110 accept rule. This guide adds no 18132 rule, so a
+preflight backup taken while that rule is absent restores a chain without
+it. Do not write a replacement ruleset if the load fails. Leave the 18110
+accept rule in place. It is documented in `scripts/allen/README.md` and is
+not part of this registration unit.
 
 ### Reload adoption barrier
 
@@ -362,16 +542,6 @@ Record observed outputs, not just the commands:
   secret-bearing response logging, early header logging, live TLS/SNI identity
   and actual systemd BPF enforcement require separate live inspection/evidence.
 
-The 2026-10-28 activation was rolled back after an immediate post-reload public
-challenge returned the Pages 404. Replaying the complete captured hub
-configuration returned 200 through both the PROXY listener and the SNI router.
-Reloading from the preceding configuration reproduced an immediate old-worker
-Pages 404 followed by 200 after handover. This establishes the reload race
-mechanism, not a retrospective proof of the production cause: historical
-worker lifecycle and per-request upstream counts were not captured. No
-registration location change follows from that observation.
-
-
 Ownership and API consent remain self-attested. Browser consent does not become
 a cryptographic ownership proof. Browser-local recovery keys are accessible to
 scripts executing on the same origin, including third-party scripts permitted
@@ -386,6 +556,35 @@ registration unit if necessary. Preserve private state, recovery material and
 backups. Never delete accepted profiles as part of rollback. Restore unrelated
 configuration only from its exact pre-change backup, and recheck the normal
 website response. No rollback command should affect model services.
+
+The tcp/18132 accept rule is not yet approved or applied. If that exact
+expression is present, roll it back by handle, or restore the preflight
+backup, as written under [Firewall rollback](#firewall-rollback). Do not
+delete the 18110 accept rule in `inet atlas_ingress` input. That rule is
+documented in `scripts/allen/README.md`.
+
+## History
+
+### 2026-10-28 rollback record
+
+The 2026-10-28 activation was rolled back after an immediate post-reload public
+challenge returned the Pages 404. Replaying the complete captured hub
+configuration returned 200 through both the PROXY listener and the SNI router.
+Reloading from the preceding configuration reproduced an immediate old-worker
+Pages 404 followed by 200 after handover. This establishes the reload race
+mechanism, not a retrospective proof of the production cause: historical
+worker lifecycle and per-request upstream counts were not captured. No
+registration location change follows from that observation.
+
+### 2026-10-30
+
+The 2026-10-30 hello-door activation was rolled back at 09:00 CT. The Spark
+nftables table `inet atlas_ingress` has its input chain on policy drop, and
+port 18132 is not accepted. Hub SYNs were dropped before they reached the
+systemd IP filter: 5 SYNs, 0 SYN-ACKs, and unit IP accounting at 0. The
+accept rule for tcp/18132 is not yet approved or applied. Adding it needs
+Drake's explicit approval. The earlier public-routing rollback is the
+[2026-10-28 rollback record](#2026-10-28-rollback-record).
 
 ## Remaining boundary
 
