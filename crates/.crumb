@@ -8,19 +8,19 @@
       "children": [
         {
           "digest": "508d8bce69376caff2f63380a8f3f48f73c7cf650090d823fa0c12ac441e391f",
-          "last_commit": "92eaa53",
+          "last_commit": "89b03f5",
           "name": "site-builder",
           "purpose": "Rust static site generator"
         }
       ],
       "children_root": "sha256:02e1be5bddca4774906c3fdc1022740f2d78d24a0b7d9d7cab9d0c95452199ee",
-      "compiled_at": "2026-10-30T03:13:36Z",
+      "compiled_at": "2026-10-30T03:15:44Z",
       "compiler": "crumb-compile/1",
       "digest": "sha256:0f39d075d86067569a8d5786449b054b74fb0cb33e65a2cc8f74be1294329ed4",
       "evidence_files": 0,
       "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "files": 70,
-      "generated_at_commit": "92eaa533bbfc93c5cc306a20a43c1090fca69fc1",
+      "generated_at_commit": "89b03f5591cf2cdd57254cbc37591e3ade977310",
       "source_tree": "sha256:bc4f48009a6fcdf8ace8ca64bdc9f7e137b0f501ffff9013f0e5868f289d61e1"
     }
   },
