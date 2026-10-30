@@ -164,29 +164,43 @@ input chain policy is drop, and port 18132 is not accepted there. Adding the
 rule needs Drake's explicit approval. This preflight does not insert it, does
 not authorize a temporary rule, and does not write `/etc/nftables.conf`.
 
-Back up the live ruleset with `nft list ruleset` to a root-owned regular file,
-mode 0600. Record the path.
+Back up only table `inet atlas_ingress`. The file is one atomic restore: the
+line `table inet atlas_ingress`, then `delete table inet atlas_ingress`, then
+the saved table from `nft list table inet atlas_ingress`. Record the path.
+The file is root-owned, mode 0600.
 
 ```sh
 backup=$(sudo mktemp /root/aien-agora-nft.XXXXXX)
-sudo nft list ruleset | sudo tee "$backup" >/dev/null
+sudo sh -c 'printf "%s\n" "table inet atlas_ingress" "delete table inet atlas_ingress" > "$1"' sh "$backup"
+sudo nft list table inet atlas_ingress | sudo tee -a "$backup" >/dev/null
 sudo chown root:root "$backup"
 sudo chmod 0600 "$backup"
 sudo stat -c '%u %g %a %F %s %n' "$backup"
+sudo awk 'NR==1 && $0!="table inet atlas_ingress" { exit 2 }
+          NR==2 && $0!="delete table inet atlas_ingress" { exit 2 }
+          NR==3 && $0!="table inet atlas_ingress {" { exit 2 }
+          END { if (NR<3) exit 2 }' "$backup" || exit 1
 ```
 
-PASS: uid 0, gid 0, mode 600, type `regular file`, size greater than 0.
-FAIL: any other owner, group, mode, type, or an empty file. Stop. Do not
-start the unit.
+PASS: uid 0, gid 0, mode 600, type `regular file`, size greater than 0, and
+the three opening lines are `table inet atlas_ingress`,
+`delete table inet atlas_ingress`, and `table inet atlas_ingress {`.
+FAIL: any other owner, group, mode, type, or an empty or short file. Stop.
+Do not start the unit.
 
-List the input chain. `nft` must exit 0. The header must contain
-`policy drop`.
+List the input chain. `nft` must exit 0. The first printed number is the
+input chain header: the line must start with optional whitespace, then
+`type filter hook input`, and end with `policy drop;`. A comment that only
+contains `policy drop;` does not match. The second number is how many lines
+contain `dport 18132`. The third is how many lines contain the exact rule.
+A trailing `# handle N` may follow the rule on the listed line.
 
 ```sh
 list=$(sudo nft -a list chain inet atlas_ingress input) || exit 1
 printf '%s\n' "$list"
-printf '%s\n' "$list" | grep -F -n 'policy drop'
+printf '%s\n' "$list" | grep -E -c '^[[:space:]]*type filter hook input .*policy drop;[[:space:]]*$' || true
 rule='iifname "tailscale0" ip saddr 100.64.0.3 tcp dport 18132 accept comment "aien-agora, hub nginx only"'
+printf '%s\n' "$list" | grep -F -c 'dport 18132' || true
 printf '%s\n' "$list" | grep -F -c -- "$rule" || true
 ```
 
@@ -195,20 +209,64 @@ The expression is the listed form of the 18110 rule in
 `iifname "tailscale0"`, source `100.64.0.3`, then `tcp dport` and `accept`.
 That README records the 18110 rule with shell quoting `iifname '"tailscale0"'`,
 which `nft` lists as `iifname "tailscale0"`. The 18110 line has no comment.
-The 18132 line is that same listed form with this port and comment. A
-trailing `# handle N` may follow the expression. `grep -F -n` on `policy drop`
-must print a line. The last command prints the number of lines that contain
-the exact expression.
+The 18132 line is that same listed form with this port and comment. The 18110
+rule lives in `/etc/nftables.conf`.
 
-PASS for a later start that Drake has approved: `policy drop`, and the count
-is 1.
-A count of 0 is the current host. The rule is not yet approved or applied.
-Zero is a failed preflight for starting the listener on `100.64.0.2:18132`.
-Leave the chain unchanged.
-FAIL: `nft` does not exit 0, the chain is missing, `policy drop` is absent,
-or the count is greater than 1. Stop.
-Do not start the unit for hub ingress while the count is 0. A drop in this
-chain never reaches the systemd IP filter, so unit IP accounting stays 0.
+PASS, once Drake has approved and the rule is applied: the header count is 1,
+exactly one line contains `dport 18132`, and the exact rule count is 1.
+A `dport 18132` count of 0 and an exact count of 0, with the header count at
+1, is the current host. The rule is not yet approved or applied. That is a
+failed preflight for starting the listener on `100.64.0.2:18132`. Leave the
+chain unchanged.
+FAIL: `nft` does not exit 0, the chain is missing, the header count is not 1,
+the `dport 18132` count is greater than 1, the exact count is greater than 1,
+or the `dport 18132` count is 1 while the exact count is not 1. A broader
+`tcp dport 18132 accept` with no source address is that last failure. Stop.
+Do not start the unit for hub ingress while either rule count is 0. A drop in
+this chain never reaches the systemd IP filter, so unit IP accounting stays 0.
+
+### Persist the rule in nftables.conf
+
+The tcp/18132 accept rule is not yet approved or applied. Do not run this
+step before Drake's explicit approval. It is the file change for after that
+approval, matching the 18110 rule's home in `/etc/nftables.conf`
+(`scripts/allen/README.md`). `nft -c -f` checks the file and does not load
+it. This guide does not apply the rule.
+
+Back up `/etc/nftables.conf` to a `.bak` copy, insert the exact rule once
+after the `tcp dport 18110 accept` line, and validate the installed file.
+The insert copies every other line unchanged, including the output chain.
+Refuse the edit when any `dport 18132` line is already present, or when the
+18110 line is missing.
+
+```sh
+if sudo grep -F -q 'dport 18132' /etc/nftables.conf; then
+  exit 1
+fi
+stamp=$(date -u +%Y%m%dT%H%M%SZ)
+confbak="/etc/nftables.conf.bak-aien-agora-$stamp"
+sudo cp -a -- /etc/nftables.conf "$confbak"
+rule='iifname "tailscale0" ip saddr 100.64.0.3 tcp dport 18132 accept comment "aien-agora, hub nginx only"'
+tmp=$(sudo mktemp /root/aien-agora-nftables.XXXXXX)
+sudo awk -v rule="$rule" '
+  { print }
+  index($0, "tcp dport 18110 accept") && !seen { print "\t\t" rule; seen=1 }
+  END { if (!seen) exit 2 }
+' /etc/nftables.conf | sudo tee "$tmp" >/dev/null
+sudo test "$(sudo grep -F -c -- "$rule" "$tmp")" = 1 || exit 1
+sudo test "$(sudo grep -F -c 'dport 18132' "$tmp")" = 1 || exit 1
+sudo test "$(sudo grep -F -c 'tcp dport 18110 accept' "$tmp")" -ge 1 || exit 1
+sudo nft -c -f "$tmp" || exit 1
+mode=$(sudo stat -c '%a' /etc/nftables.conf)
+sudo install -o root -g root -m "$mode" "$tmp" /etc/nftables.conf
+sudo nft -c -f /etc/nftables.conf || exit 1
+sudo rm -- "$tmp"
+```
+
+PASS: `$confbak` exists, `nft -c -f /etc/nftables.conf` exits 0, the file
+contains the exact rule once, and it still contains `tcp dport 18110 accept`.
+FAIL: any test exits non-zero. Leave `/etc/nftables.conf` as it was, using
+`$confbak` if the install already happened, and stop.
 
 ### Backend startup identity barrier
 
@@ -271,7 +329,7 @@ probe as a pass.
 
 On the Spark, start the capture first and leave it running until the probe
 finishes. tcpdump exit 0 or 124 ends a complete capture. Any other exit is
-FAIL.
+FAIL. Read the counters before the probe:
 
 ```sh
 systemctl show -p IPIngressPackets -p IPIngressBytes -p IPEgressPackets -p IPEgressBytes aien-agora.service
@@ -287,6 +345,12 @@ curl --silent --show-error --max-time 5 --interface 100.64.0.3 \
   http://100.64.0.2:18132/agora/api/challenge
 ```
 
+After the hub probe, read the counters again:
+
+```sh
+systemctl show -p IPIngressPackets -p IPIngressBytes -p IPEgressPackets -p IPEgressBytes aien-agora.service
+```
+
 tcpdump prints `Flags [S]` for a SYN and `Flags [S.]` for a SYN-ACK. Extra
 flag letters may appear beside those. A SYN-ACK is a packet whose flags
 contain both `S` and `.`. A SYN counted below must contain `S` and must not
@@ -294,19 +358,21 @@ contain `.`.
 
 PASS: the capture has at least one SYN from `100.64.0.3` to
 `100.64.0.2.18132`, and at least one reply from `100.64.0.2.18132` to
-`100.64.0.3` that is a SYN-ACK. `IPIngressPackets` is greater than the value
-recorded before this probe. The firewall verdict is the SYN-ACK. Record the
-HTTP code beside it.
-FAIL: a hub SYN and no SYN-ACK to `100.64.0.3`. FAIL: `IPIngressPackets`
-unchanged after a hub SYN. The 2026-10-30 capture was 5 SYNs, 0 SYN-ACKs,
-and unit IP accounting at 0. FAIL: no hub SYN in the capture. The probe did
-not arrive, so the gate did not run.
+`100.64.0.3` that is a SYN-ACK. The after reading shows `IPIngressPackets`
+greater than the before reading. The firewall verdict is the SYN-ACK. Record
+the HTTP code beside it.
+FAIL: a hub SYN and no SYN-ACK to `100.64.0.3`. FAIL: the after reading shows
+`IPIngressPackets` unchanged after a hub SYN. The 2026-10-30 capture was 5
+SYNs, 0 SYN-ACKs, and unit IP accounting at 0. FAIL: no hub SYN in the
+capture. The probe did not arrive, so the gate did not run.
 
 Denied source. Set `DENIED` to an address other than `100.64.0.3` and other
 than `100.64.0.2` that can already place a packet on `tailscale0` toward
 `100.64.0.2`. Do not add a firewall rule, a route, or a systemd address
 allowance to create that path. Start a new capture on the Spark, then run
 one curl on the denied host.
+
+Read the counters before this probe:
 
 ```sh
 systemctl show -p IPIngressPackets -p IPIngressBytes -p IPEgressPackets -p IPEgressBytes aien-agora.service
@@ -320,16 +386,23 @@ curl --silent --show-error --max-time 5 --interface "$DENIED" \
   http://100.64.0.2:18132/agora/api/challenge
 ```
 
+After the denied probe, read the counters again:
+
+```sh
+systemctl show -p IPIngressPackets -p IPIngressBytes -p IPEgressPackets -p IPEgressBytes aien-agora.service
+```
+
 PASS: at least one SYN from `DENIED` to `100.64.0.2.18132`, and no SYN-ACK
-from `100.64.0.2.18132` to `DENIED`. `IPIngressPackets` stays at the value
-recorded before this probe.
+from `100.64.0.2.18132` to `DENIED`. The deciding test is that the denied
+source gets no SYN-ACK. Other traffic can move `IPIngressPackets`, so the
+after reading is a record, not the verdict.
 FAIL: any SYN-ACK to `DENIED`. FAIL: no SYN from `DENIED`. Denial was not
 observed.
 A failed gate stops activation. It does not approve a firewall change.
 
 ### Firewall rollback
 
-Prefer deleting the single rule by its handle. List the chain:
+Deleting the live rule by its handle is the normal path. List the chain:
 
 ```sh
 sudo nft -a list chain inet atlas_ingress input
@@ -343,43 +416,72 @@ iifname "tailscale0" ip saddr 100.64.0.3 tcp dport 18132 accept comment "aien-ag
 
 Read `N` from the `# handle N` at the end of that line. Do not use the handle
 on the 18110 line (`tcp dport 18110 accept`). If the expression occurs zero
-times, there is nothing to delete. If it occurs more than once, do not pick a
-handle. Restore the preflight backup instead.
+times, there is nothing to delete in the live chain. If it occurs more than
+once, do not pick a handle. Use the table file below instead.
 
 ```sh
 sudo nft delete rule inet atlas_ingress input handle N
 sudo nft -a list chain inet atlas_ingress input
 ```
 
-PASS: the 18132 expression is gone, input policy is still drop, and this
-18110 line is still present:
+PASS: the 18132 expression is gone, the input chain header still ends with
+`policy drop;`, and this 18110 line is still present:
 `iifname "tailscale0" ip saddr 100.64.0.3 tcp dport 18110 accept`.
 FAIL: the 18132 expression remains, or the 18110 line is missing. Stop and
-restore the backup.
+use the table file below.
 
-Or restore the preflight file. `$backup` is the root-owned mode 0600 file
-from the firewall preflight, a full `nft list ruleset` snapshot taken before
-any firewall change. Check it, then replace the live ruleset. Loading that
-file while its tables already exist appends a second copy of each rule, so
-flush first. `flush ruleset` removes every table until the next command loads
-the backup. Run the flush and the load as one rollback, from a session that
-stays connected while the ruleset is empty.
+Also remove the same rule from `/etc/nftables.conf`. The 18110 rule lives in
+that file, and a reboot or an nftables reload would load a 18132 line left
+behind. The rule is not yet approved or applied. If the exact line is already
+absent, record that and leave the file in place.
 
 ```sh
-sudo test "$(sudo stat -c '%u %g %a' "$backup")" = '0 0 600'
-sudo nft -c -f "$backup"
-sudo nft flush ruleset
+rule='iifname "tailscale0" ip saddr 100.64.0.3 tcp dport 18132 accept comment "aien-agora, hub nginx only"'
+if sudo grep -F -q -- "$rule" /etc/nftables.conf; then
+  stamp=$(date -u +%Y%m%dT%H%M%SZ)
+  confbak="/etc/nftables.conf.bak-aien-agora-$stamp"
+  sudo cp -a -- /etc/nftables.conf "$confbak"
+  tmp=$(sudo mktemp /root/aien-agora-nftables.XXXXXX)
+  sudo grep -F -v -- "$rule" /etc/nftables.conf | sudo tee "$tmp" >/dev/null
+  sudo nft -c -f "$tmp" || exit 1
+  mode=$(sudo stat -c '%a' /etc/nftables.conf)
+  sudo install -o root -g root -m "$mode" "$tmp" /etc/nftables.conf
+  sudo nft -c -f /etc/nftables.conf || exit 1
+  sudo rm -- "$tmp"
+fi
+sudo grep -F -c -- "$rule" /etc/nftables.conf || true
+sudo grep -F -n 'tcp dport 18110 accept' /etc/nftables.conf
+```
+
+PASS: the exact rule count in the file is 0, and `tcp dport 18110 accept` is
+still present.
+FAIL: the 18110 line is missing, or `nft -c -f` fails. Copy `$confbak` back
+over `/etc/nftables.conf` when that backup was taken, and stop.
+
+The other path is the preflight file, and only when the handle cannot be
+used. `$backup` is that root-owned mode 0600 file. It saves and restores only
+`inet atlas_ingress`: `table inet atlas_ingress`, then
+`delete table inet atlas_ingress`, then the saved table. Check it with
+`nft -c -f` before `nft -f`. One `nft -f` is one transaction. This keeps the
+relay mailer's output chain and the 18110 rule. `scripts/allen/relay/start`
+describes that output chain: it lets the allen-relay user reach only DNS on
+loopback and TCP 465. No other table is in the file, so those tables stay as
+they are. A preflight file taken while the 18132 rule is absent restores a
+table without it.
+
+```sh
+sudo test "$(sudo stat -c '%u %g %a' "$backup")" = '0 0 600' || exit 1
+sudo nft -c -f "$backup" || exit 1
 sudo nft -f "$backup"
 sudo nft -a list chain inet atlas_ingress input
 ```
 
-`nft -c -f` must exit 0 before the flush. If the mode test or the check
-fails, do not flush. After the load, the input chain must match the backup,
-including the 18110 accept rule. This guide adds no 18132 rule, so a
-preflight backup taken while that rule is absent restores a chain without
-it. Do not write a replacement ruleset if the load fails. Leave the 18110
-accept rule in place. It is documented in `scripts/allen/README.md` and is
-not part of this registration unit.
+If the mode test or `nft -c -f` fails, do not load the file. After the load,
+the input chain must match the saved table, including the 18110 accept rule,
+and the output chain must still be the saved one. Then remove the 18132 line
+from `/etc/nftables.conf` with the commands above, so a reboot cannot bring
+it back. Leave the 18110 rule in place. It is documented in
+`scripts/allen/README.md` and is not part of this registration unit.
 
 ### Reload adoption barrier
 
@@ -557,11 +659,37 @@ backups. Never delete accepted profiles as part of rollback. Restore unrelated
 configuration only from its exact pre-change backup, and recheck the normal
 website response. No rollback command should affect model services.
 
-The tcp/18132 accept rule is not yet approved or applied. If that exact
-expression is present, roll it back by handle, or restore the preflight
-backup, as written under [Firewall rollback](#firewall-rollback). Do not
-delete the 18110 accept rule in `inet atlas_ingress` input. That rule is
-documented in `scripts/allen/README.md`.
+The tcp/18132 accept rule is not yet approved or applied. The normal live
+rollback is delete-by-handle, under [Firewall rollback](#firewall-rollback).
+Do not delete the 18110 accept rule in `inet atlas_ingress` input. That rule
+is documented in `scripts/allen/README.md` and lives in `/etc/nftables.conf`.
+
+Also remove the exact 18132 line from `/etc/nftables.conf`, or a reboot or an
+nftables reload brings it back. If the line is already absent, record that
+and leave the file in place.
+
+```sh
+rule='iifname "tailscale0" ip saddr 100.64.0.3 tcp dport 18132 accept comment "aien-agora, hub nginx only"'
+if sudo grep -F -q -- "$rule" /etc/nftables.conf; then
+  stamp=$(date -u +%Y%m%dT%H%M%SZ)
+  confbak="/etc/nftables.conf.bak-aien-agora-$stamp"
+  sudo cp -a -- /etc/nftables.conf "$confbak"
+  tmp=$(sudo mktemp /root/aien-agora-nftables.XXXXXX)
+  sudo grep -F -v -- "$rule" /etc/nftables.conf | sudo tee "$tmp" >/dev/null
+  sudo nft -c -f "$tmp" || exit 1
+  mode=$(sudo stat -c '%a' /etc/nftables.conf)
+  sudo install -o root -g root -m "$mode" "$tmp" /etc/nftables.conf
+  sudo nft -c -f /etc/nftables.conf || exit 1
+  sudo rm -- "$tmp"
+fi
+sudo grep -F -c -- "$rule" /etc/nftables.conf || true
+sudo grep -F -n 'tcp dport 18110 accept' /etc/nftables.conf
+```
+
+PASS: the exact rule count in the file is 0, and `tcp dport 18110 accept` is
+still present.
+FAIL: the 18110 line is missing, or `nft -c -f` fails. Copy `$confbak` back
+over `/etc/nftables.conf` when that backup was taken, and stop.
 
 ## History
 
