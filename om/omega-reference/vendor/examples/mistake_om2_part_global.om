@@ -1,0 +1,9 @@
+note mistake_om2_part_global: part of a global is refused like any global argument; slice a local array
+om2
+global g uchar 8
+fn f a view uchar * to ulong
+ret len a
+end
+fn main to int
+ret int f part g 0 2
+end

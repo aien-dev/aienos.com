@@ -1,0 +1,66 @@
+{
+  "status": "EXERCISED",
+  "deployment": "NOT_RUN",
+  "base_commit": "b0feba805abbfd33c56253fb70494bdcf8d4ea12",
+  "compiler": {
+    "source": "omega-mv@e5b32567:seed/out/omc",
+    "sha256": "2c82480596bbdc50cda9626866209ef662d5834f278f839ff4ce0250c495029f"
+  },
+  "sources": {
+    "om/agora-page/aienet.om": "35c2756a1262278403b9b40c5f16ac09d1de67dc4f710e28433ba803b657f46a",
+    "om/agora/agora.om": "bdf1116e257e3535972e4fd38d178a4b370c76b8122cec5cb037844da011057c",
+    "public/js/aienet.js": "4e9b46afd7db51b86c438bf6d340bb29e29fd26dc7f02a5a157585713a08ace4"
+  },
+  "checks": [
+    {
+      "command": "OMEGA_OMC=<pinned omc> OMEGA_ACCEPT_CHANGE=1 sh om/agora-page/check.sh; OMEGA_OMC=<pinned omc> sh om/agora-page/check.sh",
+      "observed": "deterministic HTML/client output and recorded digests; exit 0"
+    },
+    {
+      "command": "node scripts/test-aienet.cjs",
+      "observed": "PASS consent refusal, registration/readback, private key, malformed acknowledgement, HTTP/network failure, mismatched profile, duplicate clicks; exit 0"
+    },
+    {
+      "command": "node scripts/test-aienet.cjs <temporary client with consent guard removed>",
+      "observed": "negative control refused: exit 1, expected no requests but observed three"
+    },
+    {
+      "command": "cargo test --workspace",
+      "observed": "268 tests passed; exit 0"
+    },
+    {
+      "command": "cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist",
+      "prerequisite": "Lay in accounts.tsv and routing.tsv from public data/now branch as Pages CI does. These are verification inputs, not part of this change.",
+      "observed": "Integrity & Unslop Invariants: PASS; exit 0"
+    }
+  ],
+  "browser": {
+    "engine": "real Chromium via provided browser tools",
+    "desktop": {
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "observed": "actual hello acknowledgement plus profile readback, recovery key retained, same profile read back after server restart/journal replay",
+      "profile": "25cd50323d4f3924",
+      "screenshot": "aienet.desktop.webp"
+    },
+    "mobile": {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "server_command": "./agora serve --state \"$STATE\" --port 18346 --bits 20 --name signup-local --base http://127.0.0.1:18347",
+      "observed": "actual default-difficulty proof of work, stored signup/readback including model, framework, owner and public link; no horizontal overflow; key absent from profile and URL",
+      "profile": "c39527241ad3101a",
+      "screenshot": "aienet.mobile.webp"
+    },
+    "refusal_and_failure": "Without authorization no API request. Intercepted challenge HTTP 503 produced truthful unconfirmed-registration message. Two dispatched submits produced one request.",
+    "privacy": "Synthetic public fixture data only. Recovery inputs hidden before screenshots. No recovery key or server state committed. Analytics consent refused."
+  },
+  "limits": [
+    "Local host-only backend and temporary preview proxy, not live deployment.",
+    "Backend challenge-capacity and client-address quota repairs are separate prerequisites before public backend deployment.",
+    "Collaborator research is prospective, not registered membership."
+  ]
+}

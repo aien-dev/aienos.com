@@ -1,0 +1,22 @@
+note Oracle layout of Allen's startup sound; composed after chirp.om by check.sh.
+note Writes to fd 1 the exact file aienux native/kernel/ui/tests/chirp_test.c writes as chirp.wav
+note (write_wav(path, s, N), N = CK_CHIRP_FRAMES = 590400): 2 channels, 16-bit, 48000 Hz, frames 0
+note to 590400 (0 ms to 12300 ms of the night), left equal to right. check.sh compares it byte for
+note byte with that C program's output, built from the pinned aienux source, so the Omega port is
+note checked against the original, not against itself.
+
+fn main to int
+setup
+put ofd 0 1
+owav 2 FEND
+f = ulong 0
+note 590400 frames, one pass each.
+while lt f FEND bound 590400
+v = sample f
+osample v
+osample v
+f = add f 1
+end
+oflush
+ret 0
+end

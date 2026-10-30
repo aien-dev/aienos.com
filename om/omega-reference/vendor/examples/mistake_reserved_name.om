@@ -1,0 +1,5 @@
+note mistake_reserved_name: len, text, read, write, stat and every host word are reserved; pick another name
+fn main to int
+len = int 1
+ret 0
+end

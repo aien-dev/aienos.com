@@ -1,0 +1,15 @@
+note y[i] = a*x[i] + y[i]: one element, the work of one CUDA thread.
+fn axpy a long x long y long to long
+ret add mul a x y
+end
+note The grid: elements lo to hi-1, with x[i] = i and y[i] = 2i+1 generated in place.
+note Returns the sum of the results so a host can check every element.
+fn run a long lo long hi long to long
+s = long 0
+i = lo
+while lt i hi bound 999999
+s = add s axpy a i add mul long 2 i long 1
+i = add i long 1
+end
+ret s
+end

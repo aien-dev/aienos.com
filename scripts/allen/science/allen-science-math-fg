@@ -1,0 +1,16 @@
+#!/bin/sh
+# Interim foreground launcher for allen-science-math: the same service, sandbox and privilege drop
+# as allen-science-fg, on 127.0.0.1:18114 with only the math_compute tool. allen-chat (the public
+# /aien/api/math route) may reach this port and no other science port, so a public request can
+# never call omega_compile, web_app, paper, research or plot. Run as `sudo -n` by spark-supervisor
+# until aien-supervise owns it (allen-science-math.svc).
+# Install: root:root 0755 at /usr/local/libexec/aien-supervise/allen-science-math-fg.
+set -eu
+umask 077
+exec </dev/null
+if ss -ltnH 'sport = :18114' | grep -q .; then echo "allen-science-math-fg: port 18114 already in use" >&2; exit 1; fi
+exec /usr/bin/setpriv --reuid=allen-science --regid=allen-science --clear-groups \
+  --no-new-privs --inh-caps=-all --bounding-set=-all \
+  /usr/bin/env -i PATH=/usr/bin:/bin \
+  /usr/bin/python3.12 -I /opt/allen-science/launch.py --listen 127.0.0.1:18114 \
+  -- --port 18114 --tools math_compute

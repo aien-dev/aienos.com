@@ -1,0 +1,8 @@
+note mistake_bound_range: a while bound is 1..999999; without bound the limit is 1000000 passes
+fn main to int
+i = ulong 0
+while lt i 3 bound 1000000
+i = add i 1
+end
+ret 0
+end
