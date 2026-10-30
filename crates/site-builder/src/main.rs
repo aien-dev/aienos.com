@@ -651,12 +651,6 @@ fn verify_site(dist: &Path) {
     {
         let mut bad = Vec::new();
         collect_comparison_pages(dist, dist, &mut bad);
-        // The two scholar chemistry sentences stay flagged. Their source link
-        // is in the next paragraph, and the page text is left as written.
-        let bad: Vec<_> = bad
-            .into_iter()
-            .filter(|(_, problem)| !components::machines::is_known_scholar_chemistry(problem))
-            .collect();
         assert!(
             bad.is_empty(),
             "Unsourced comparison or overclaim. Every page uses machines::comparison_errors:\n{}",

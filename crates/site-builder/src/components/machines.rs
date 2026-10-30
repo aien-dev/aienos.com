@@ -788,12 +788,51 @@ fn is_comparison_claim(s: &str) -> bool {
     context_is_claim(&scanned)
 }
 
-/// CUDA performance bars from omega.json. A tie does not pass: each sentence
-/// must require a beat, and a different sentence with the same words does not.
-const OMEGA_CUDA_BAR_SENTENCES: &[&str] = &[
-    "Omega's best format beats the best measured CUDA number at one conversation, with golden tokens identical to my host reference.",
-    "Omega prefill beats the best measured CUDA number at 512 and 8k.",
-    "Omega total words per second beats the best measured CUDA number at 8 and 32 conversations.",
+/// One exact sentence the checker allows, with the source and the reason.
+/// A different wording is not on the list, so it is checked like any other sentence.
+struct FixedSentence {
+    sentence: &'static str,
+    source: &'static str,
+    reason: &'static str,
+    /// The omega page prints these bars as `Done when: {sentence}`.
+    done_when_prefix: bool,
+}
+
+/// CUDA performance bars from omega.json, then two published chemistry results.
+/// A tie does not pass a CUDA bar: each bar sentence must require a beat, and a
+/// different sentence with the same words does not. The chemistry sentences match
+/// only as written. Their links sit in the next paragraph of engineer.json.
+const FIXED_SENTENCES: &[FixedSentence] = &[
+    FixedSentence {
+        sentence: "Omega's best format beats the best measured CUDA number at one conversation, with golden tokens identical to my host reference.",
+        source: "https://github.com/aien-dev/aienos.com/blob/main/crates/site-builder/data/omega.json",
+        reason: "Omega performance bar from omega.json. A different wording does not pass, so a tie does not pass.",
+        done_when_prefix: true,
+    },
+    FixedSentence {
+        sentence: "Omega prefill beats the best measured CUDA number at 512 and 8k.",
+        source: "https://github.com/aien-dev/aienos.com/blob/main/crates/site-builder/data/omega.json",
+        reason: "Omega performance bar from omega.json. A different wording does not pass, so a tie does not pass.",
+        done_when_prefix: true,
+    },
+    FixedSentence {
+        sentence: "Omega total words per second beats the best measured CUDA number at 8 and 32 conversations.",
+        source: "https://github.com/aien-dev/aienos.com/blob/main/crates/site-builder/data/omega.json",
+        reason: "Omega performance bar from omega.json. A different wording does not pass, so a tie does not pass.",
+        done_when_prefix: true,
+    },
+    FixedSentence {
+        sentence: "Platinum deposited this way outperformed organic-solvent materials in photocatalytic dye degradation.",
+        source: "https://doi.org/10.3762/bjnano.10.71",
+        reason: "published chemistry result, sourced in the next paragraph",
+        done_when_prefix: false,
+    },
+    FixedSentence {
+        sentence: "Ionic-liquid synthesis outperformed organic-solvent routes in photocatalytic methylene blue degradation.",
+        source: "https://digitalcommons.wku.edu/theses/2101/",
+        reason: "published chemistry result, sourced in the next paragraph",
+        done_when_prefix: false,
+    },
 ];
 
 /// Game title. It names a memorizer, not another project's system.
@@ -813,7 +852,9 @@ fn is_fixed_sentence(s: &str) -> bool {
     if n == TURING_GAME_SENTENCE {
         return true;
     }
-    OMEGA_CUDA_BAR_SENTENCES.iter().any(|bar| n == *bar || n == format!("Done when: {bar}"))
+    FIXED_SENTENCES.iter().any(|row| {
+        n == row.sentence || (row.done_when_prefix && n == format!("Done when: {}", row.sentence))
+    })
 }
 
 /// `None` when the text is not a comparison, or is one honest sentence
@@ -1028,21 +1069,6 @@ fn split_sentences(text: &str) -> Vec<String> {
         out.push(sentence);
     }
     out
-}
-
-/// Scholar chemistry comparisons in `engineer.json`. The source link is in the
-/// next paragraph, so the same-sentence source rule does not cover them.
-/// The sentences stay flagged. Callers that publish the site name these two
-/// exact sentences and still refuse every other unsourced comparison.
-pub fn is_known_scholar_chemistry(problem: &str) -> bool {
-    const KNOWN: &[&str] = &[
-        "Platinum deposited this way outperformed organic-solvent materials in photocatalytic dye degradation.",
-        "Ionic-liquid synthesis outperformed organic-solvent routes in photocatalytic methylene blue degradation.",
-    ];
-    KNOWN.iter().any(|sentence| {
-        let wrapped = format!("unsourced comparison in {sentence:?}");
-        problem == *sentence || problem == wrapped || problem.ends_with(&format!(": {wrapped}"))
-    })
 }
 
 /// Sentence-sized check. A date or a link in another sentence does not
@@ -1916,24 +1942,65 @@ mod tests {
                 "must fail: {sentence:?}"
             );
         }
-        // Chemistry comparisons. The DOI and the repository link sit in the next
-        // paragraph, so the existing same-sentence source rule does not cover them.
-        let chemistry = [
-            "Platinum deposited this way outperformed organic-solvent materials in photocatalytic dye degradation.",
-            "Ionic-liquid synthesis outperformed organic-solvent routes in photocatalytic methylene blue degradation.",
-        ];
-        for sentence in chemistry {
-            assert_eq!(comparison_problem(sentence), Some("unsourced comparison"), "{sentence}");
-            assert!(is_known_scholar_chemistry(sentence), "{sentence}");
-            let sourced = format!(
-                "{sentence} Recorded 2019-04-02 (https://github.com/aien-dev/sovereign-intelligence)."
-            );
-            assert!(comparison_problem(&sourced).is_none(), "a same-sentence source would allow it: {sentence}");
+        // The same-sentence source rule is unchanged. A one-word variant is not
+        // on the exact list, so it still needs a real date and an allowlisted link.
+        let variant = "Platinum deposited this way outperformed organic-solvent compounds in photocatalytic dye degradation.";
+        assert_eq!(comparison_problem(variant), Some("unsourced comparison"));
+        let sourced = format!(
+            "{variant} Recorded 2019-04-02 (https://github.com/aien-dev/sovereign-intelligence)."
+        );
+        assert!(comparison_problem(&sourced).is_none(), "a dated allowlisted link still covers a real comparison");
+        let unrelated = format!("{variant} See https://doi.org/10.3762/bjnano.10.71.");
+        assert!(comparison_problem(&unrelated).is_some(), "doi.org is not an allowlisted source host");
+    }
+
+    #[test]
+    fn fixed_sentences_match_exactly_and_carry_a_source() {
+        for row in FIXED_SENTENCES {
+            assert!(!row.source.is_empty() && row.source.starts_with("https://"), "{}", row.sentence);
+            assert!(!row.reason.is_empty(), "{}", row.sentence);
+            assert!(comparison_problem(row.sentence).is_none(), "{}", row.sentence);
         }
-        assert!(!is_known_scholar_chemistry("This outperformed vLLM in the same benchmark."));
-        let mixed = "Platinum deposited this way outperformed organic-solvent materials in photocatalytic dye degradation and vLLM.";
-        assert!(!is_known_scholar_chemistry(mixed));
-        assert!(comparison_problem(mixed).is_some(), "a chemistry sentence that also names vLLM still fails");
+        let chemistry: Vec<_> = FIXED_SENTENCES.iter().filter(|row| !row.done_when_prefix).collect();
+        assert_eq!(chemistry.len(), 2);
+        for row in &chemistry {
+            assert_eq!(row.reason, "published chemistry result, sourced in the next paragraph");
+            let changed = row.sentence.replacen("outperformed", "surpassed", 1);
+            assert_ne!(changed, row.sentence);
+            assert_eq!(comparison_problem(&changed), Some("unsourced comparison"), "{changed}");
+            let prefixed = format!("Done when: {}", row.sentence);
+            assert!(comparison_problem(&prefixed).is_some(), "the chemistry sentence has no Done when prefix");
+        }
+        assert_eq!(
+            chemistry[0].source,
+            "https://doi.org/10.3762/bjnano.10.71"
+        );
+        assert_eq!(
+            chemistry[1].source,
+            "https://digitalcommons.wku.edu/theses/2101/"
+        );
+        let scholar = crate::components::engineer::pages()
+            .into_iter()
+            .find(|page| page.path == "/engineer/scholar/")
+            .expect("scholar page");
+        for row in chemistry {
+            let at = scholar.body_html.find(row.sentence).unwrap_or_else(|| panic!("missing {}", row.sentence));
+            let following = &scholar.body_html[at + row.sentence.len()..];
+            let window = following.chars().take(800).collect::<String>();
+            assert!(
+                window.contains(row.source),
+                "{} is not in the paragraph after {}",
+                row.source,
+                row.sentence
+            );
+        }
+        assert!(comparison_errors(&scholar.body_html).is_empty());
+        let extra = format!("{}<p>This new line outperforms vLLM.</p>", scholar.body_html);
+        let problems = comparison_errors(&extra);
+        assert!(
+            problems.iter().any(|e| e.contains("outperforms vLLM")),
+            "a new unsourced comparison in engineer.json fails the same check the build runs: {problems:?}"
+        );
     }
 
     #[test]
@@ -2026,18 +2093,7 @@ mod tests {
                 ));
             }
         }
-        let (scholar, other): (Vec<_>, Vec<_>) =
-            bad.into_iter().partition(|item| is_known_scholar_chemistry(item));
-        assert!(
-            other.is_empty(),
-            "pages failed the shared check:\n{}",
-            other.join("\n")
-        );
-        assert_eq!(
-            scholar.len(),
-            2,
-            "the two scholar chemistry sentences stay unsourced until the source link is in the same sentence: {scholar:?}"
-        );
+        assert!(bad.is_empty(), "pages failed the shared check:\n{}", bad.join("\n"));
         assert!(
             files.iter().any(|p| p.ends_with("om/alpha-page/main.html")),
             "the generated alpha page is scanned, not skipped"
