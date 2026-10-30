@@ -93,17 +93,17 @@ A running system was given a goal by a human: reduce the cost of a mathematical 
 
 What followed was continuation. The cognitive faculty assessed the goal and published a plan. The synthesis faculty took up the plan on its own, opened a new search, synthesized candidates, verified them, and measured them. Experiments ran, with the physical hardware standing witness to each result. The cognitive faculty confirmed the evidence supported the new approach. The synthesis faculty selected it. The system promoted itself from its first generation to its second, and production switched to the new realization. Then the cognitive faculty checked the goal and confirmed it was met.
 
-The numbers: the operation fell from 7,000 nanoseconds per call to about 2,686. The cognitive faculty acted 137 times, the synthesis faculty 122 times. The authority system never had to intervene. Every control passed. Three thousand one hundred fifty-nine causal links were recorded, so the whole chain can be audited.
+The numbers: the operation fell from 7,000 nanoseconds per call to about 2,686. The cognitive faculty acted on 137 calls, the synthesis faculty on 122 calls. The authority system never had to intervene. Every control passed. Three thousand one hundred fifty-nine causal links were recorded, so the whole chain can be audited.
 
 There is one more piece of evidence, and it is not a number. During the run, the processor trace showed a pattern: near zero almost the entire time, and while the system worked, small regular pulses, evenly spaced, like a heartbeat. Then back to rest. I do not claim the machine is alive. I claim the shape is right. Living things do their work in pulses and rest between them. The trace shows exactly that: work, pulse, rest. The game, continuing.
 
-Now the honest bounds, and they matter more than the numbers. The goal came from a human. The domain was bounded: the cost of one operation. The cognition is statistical, not neural, and no one claims consciousness. And the system that continued was one subsystem, not the whole machine. What ran was the heart: the part that plans, searches, verifies, and promotes. A heart beating does not mean the body is finished.
+Now the honest bounds, and they matter more than the numbers. The goal came from a human. The domain was bounded: the cost of one operation. The cognition is statistical, not neural, and no one claims consciousness. And the system that continued was one subsystem, not the whole machine. What ran was the heart: the part that plans, searches, verifies, and promotes. A heart at work does not mean the body is finished.
 
 So this was the continuation test, run for the first time, and it measured something real: a machine that continued past its own boundaries without being led. It was not given a verdict to chase. It was given a direction, and it kept the game going until the direction was reached, and then it checked its work. The principle holds. The scope is one organ.
 
 ## 8. The Game Continues
 
-The heart is beating. The rest of the body is still being built.
+The heart is at work. The rest of the body is still being built.
 
 The full game, the one this theory points at, is larger than one subsystem improving one operation. It looks like this: a human asks the machine to investigate something real and act on what it finds. The machine routes the request, discovers what it is capable of, branches into alternatives and compares them, places the work where it runs best, uses real models and real tools, gathers evidence, judges between competing outcomes, proposes an irreversible action, submits it to authority, waits for the human's approval, acts, records what happened, proves it, remembers it, answers, and then improves itself from the record. At every step: conjecture, test, retain, continue. No hand inside the loop except where the rules put one.
 
@@ -111,7 +111,7 @@ That is the continuation test at full scale. Not "did it pass," but "did it keep
 
 I don't hope the machine wins. There is nothing to win, and there is no wall for it to cross, because the wall was never there. I hope it takes its position on the spectrum and keeps moving: honest when it knows, honest when it doesn't, conjecturing, testing, retaining, continuing.
 
-Not long ago that was only a hope. Then I watched one subsystem do it: a goal given, and a machine that continued with no hand inside the loop, promoting itself, cutting its own cost nearly in half, checking its work at the end. The theory has its first measurement. The heart beats.
+Not long ago that was only a hope. Then I watched one subsystem do it: a goal given, and a machine that continued with no hand inside the loop, promoting itself, cutting its own cost nearly in half, checking its work at the end. The theory has its first measurement. The heart is at work.
 
 And the game is infinite on both sides.
 

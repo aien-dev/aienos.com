@@ -709,19 +709,9 @@ mod tests {
         for w in ["beating cuda", "matching and then", "runs on omega", "omega runs"] {
             assert!(!lower.contains(w), "{w}");
         }
-        // The future bar may name another system and say what a later
-        // measurement would have to beat. That is not a comparison claim.
-        // A comparison claim on this page still has to be dated and sourced.
-        for sentence in s.split(|c| matches!(c, '\n' | '.' | '!' | '?')) {
-            let sentence = sentence.trim();
-            let l = sentence.to_ascii_lowercase();
-            if l.contains("faster than") || l.contains("level with") || l.contains("ahead of") {
-                assert!(
-                    crate::components::machines::comparison_problem(sentence).is_none(),
-                    "unsourced comparison on /omega/: {sentence}"
-                );
-            }
-        }
+        // /omega/ uses the same sentence check as every other page.
+        let problems = crate::components::machines::comparison_errors(&s);
+        assert!(problems.is_empty(), "comparison on /omega/: {problems:?}");
         assert!(crate::components::machines::comparison_problem("2x faster than llama.cpp").unwrap().contains("unsourced"));
         assert!(crate::components::machines::comparison_problem(
             "On 2026-10-21 this run was faster than llama.cpp's published 40 tok/s (https://example.com/bench)."

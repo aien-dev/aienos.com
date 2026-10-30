@@ -215,7 +215,7 @@ fn section_ladder() -> Markup {
         section id="research-ladder" class="narr-section" data-source="research_status.json" aria-labelledby="ladder-heading" {
             h2 id="ladder-heading" { "The discovery ladder" }
             p {
-                "Each rung is a stronger claim about what the machine has shown, and each rests on the rung below. The ladder is drawn from the research status record, the same record behind the full status page, so this page never states a result by hand."
+                "Each rung is a stronger claim about what the machine has shown, and each rests on the rung below. The ladder is drawn from the research status record, the same record the full status page uses, so this page never states a result by hand."
             }
             (render_research_status_summary())
         }

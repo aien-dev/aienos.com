@@ -2,7 +2,7 @@
 //
 // A hidden rule generates a stream of bits. You call each next bit before
 // it lands. A correct call earns 1 T, a miss costs 1 T, and a coin flip
-// averages zero: exactly the idea behind the measure. Memorizing is
+// averages zero: exactly the idea of the measure. Memorizing is
 // useless here because every bit is new; only finding the rule pays.
 (function () {
   "use strict";

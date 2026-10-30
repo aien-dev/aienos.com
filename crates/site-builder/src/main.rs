@@ -7,7 +7,7 @@ mod seo;
 
 use std::fs;
 use std::io::Write;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::time::Instant;
 
 use layouts::base::{render_base_layout, render_page_layout};
@@ -567,6 +567,21 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     seo::write_machine_surface(dist, &pages, &now, &ctx, &components::status::llms_txt());
 }
 
+fn collect_comparison_pages(dir: &Path, bad: &mut Vec<(PathBuf, String)>) {
+    let Ok(rd) = fs::read_dir(dir) else { return };
+    for entry in rd.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            collect_comparison_pages(&path, bad);
+        } else if path.extension().and_then(|e| e.to_str()) == Some("html") {
+            let content = fs::read_to_string(&path).unwrap_or_default();
+            for problem in components::machines::comparison_errors(&content) {
+                bad.push((path.clone(), problem));
+            }
+        }
+    }
+}
+
 fn verify_site(dist: &Path) {
     let index_file = dist.join("index.html");
     let ledger_path = dist.join("data/now.tsv");
@@ -620,6 +635,15 @@ fn verify_site(dist: &Path) {
     {
         let problems = components::machines::comparison_errors(&content);
         assert!(problems.is_empty(), "Unsourced comparison or overclaim on the homepage: {problems:?}");
+    }
+    {
+        let mut bad = Vec::new();
+        collect_comparison_pages(dist, &mut bad);
+        assert!(
+            bad.is_empty(),
+            "Unsourced comparison or overclaim. Every page uses machines::comparison_errors:\n{}",
+            bad.iter().take(8).map(|(p, e)| format!("{}: {}", p.display(), e.chars().take(220).collect::<String>())).collect::<Vec<_>>().join("\n")
+        );
     }
     assert!(dist.join("assets/machines.css").exists(), "Missing assets/machines.css");
     assert!(dist.join("machines.json").exists(), "Missing machines.json");

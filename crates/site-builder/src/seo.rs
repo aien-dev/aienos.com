@@ -107,7 +107,7 @@ pub const PAGES: &[PageInfo] = &[
     PageInfo { path: "/agora/protocol/", name: "Agora wire protocol & etiquette", what: "The line-oriented text wire protocol for Agora: authentication, challenge proof of work, request formats, limits, and etiquette.", section: Section::Start, kind: Kind::Page, image: "/og.png", published: "2026-10-27", doi: None },
     PageInfo { path: "/agora/network/", name: "Run your own Agora node", what: "Agora is an open agent network: discover nodes via /.well-known/agora, subscribe to the live SSE stream, and run the Omega reference node.", section: Section::Start, kind: Kind::Page, image: "/og.png", published: "2026-10-27", doi: None },
     PageInfo { path: "/progress/", name: "Project progress", what: "Source lines, revisions, test footprint and verification activity across the public repositories, refreshed hourly from GitHub.", section: Section::Machine, kind: Kind::Live, image: "/og.png", published: "2026-10-01", doi: None },
-    PageInfo { path: "/turing/", name: "The Turing: an interactive field guide", what: "What the Turing measures (net held-out explanatory compression), with games, live calculations and the theories behind it.", section: Section::Turing, kind: Kind::Article, image: "/og-turing.png", published: "2026-09-30", doi: None },
+    PageInfo { path: "/turing/", name: "The Turing: an interactive field guide", what: "What the Turing measures (net held-out explanatory compression), with games, live calculations and the theories it rests on.", section: Section::Turing, kind: Kind::Article, image: "/og-turing.png", published: "2026-09-30", doi: None },
     PageInfo { path: "/research/", name: "Aien Research", what: "The index of preprints and public evidence.", section: Section::Turing, kind: Kind::Collection, image: "/og-research.png", published: "2026-09-30", doi: None },
     PageInfo { path: "/research/computing-machinery-and-understanding/", name: "Computing Machinery and Understanding: From the Imitation Game to the Turing", what: "The formal preprint defining the Turing as an operational measure of generalized explanatory compression. DOI 10.5281/zenodo.23437498.", section: Section::Turing, kind: Kind::Paper, image: "/og-turing.png", published: "2026-09-30", doi: Some("10.5281/zenodo.23437498") },
     PageInfo { path: "/research/computing-machinery-and-understanding-emergence/", name: "Computing Machinery and Understanding: The Turing as a Measure Emerging from AIEN", what: "The companion engineering paper: how the Turing emerged from building Aien. DOI 10.5281/zenodo.23437568.", section: Section::Turing, kind: Kind::Paper, image: "/og-turing.png", published: "2026-09-30", doi: Some("10.5281/zenodo.23437568") },
@@ -121,7 +121,7 @@ pub const PAGES: &[PageInfo] = &[
     PageInfo { path: "/discovery/", name: "Scientific Discovery", what: "Physics Zero, Dirac, Zeta and supersymmetry as examinations of representation discovery; the machine is never given the named answer.", section: Section::Evidence, kind: Kind::Article, image: "/og-discovery.png", published: "2026-10-10", doi: None },
     PageInfo { path: "/evidence/", name: "Evidence", what: "What counts as evidence, which source wins when two disagree, and where the receipts, frozen profiles and status records live.", section: Section::Evidence, kind: Kind::Collection, image: "/og-evidence.png", published: "2026-10-10", doi: None },
     PageInfo { path: "/research/status/", name: "Research status", what: "The qualification ladder, every experiment with its verdict, receipt and limits, and what is built versus still a hypothesis.", section: Section::Evidence, kind: Kind::Live, image: "/og-evidence.png", published: "2026-10-05", doi: None },
-    PageInfo { path: "/philosophy/", name: "Philosophy", what: "The position papers behind Aien. These argue a stance and are not experimental results.", section: Section::Philosophy, kind: Kind::Collection, image: "/og-philosophy.png", published: "2026-10-10", doi: None },
+    PageInfo { path: "/philosophy/", name: "Philosophy", what: "The position papers of Aien. These argue a stance and are not experimental results.", section: Section::Philosophy, kind: Kind::Collection, image: "/og-philosophy.png", published: "2026-10-10", doi: None },
     PageInfo { path: "/research/the-stapleton-doctrine/", name: "The Stapleton Doctrine", what: "A personal philosophy of AI architecture and programming.", section: Section::Philosophy, kind: Kind::Paper, image: "/og-philosophy.png", published: "2026-09-30", doi: None },
     PageInfo { path: "/post-llm-case/", name: "The Post-LLM Case", what: "The case for a different learning machine: programs proposed, verification deciding, knowledge kept as inspectable programs.", section: Section::Philosophy, kind: Kind::Article, image: "/og-philosophy.png", published: "2026-09-27", doi: None },
     PageInfo { path: "/owned/", name: "Intelligence should be owned", what: "Drake Stapleton's manifesto: language models are a common inheritance, running one yourself is a right and a responsibility, and what Aien does about it with receipts.", section: Section::Philosophy, kind: Kind::Article, image: "/og-philosophy.png", published: "2026-10-19", doi: None },
@@ -132,7 +132,7 @@ pub const PAGES: &[PageInfo] = &[
     PageInfo { path: "/engineer/", name: "About the engineer", what: "The personal project record of Drake Stapleton, Freedom Fighter, AI Architect & Operator: model training, research, Atlas, and what my generation can build with AI.", section: Section::Engineer, kind: Kind::Collection, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/engineer/path/", name: "AI Architect Career Path", what: "Follow Drake Stapleton, an engineer who builds by directing AI agents and holds them to proof, from R&D labs through manufacturing engineering to AI architecture.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/engineer/what-i-learned/", name: "What I learned", what: "The experiences, production lessons, and disciplined returns that shaped Drake Stapleton's work as an AI operator.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
-    PageInfo { path: "/engineer/philosophy/", name: "Philosophy", what: "How Drake Stapleton approaches projects, duties, difficult things, and setbacks. The working philosophy behind everything he builds: there is always a way, and giving up is not one of the options.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/philosophy/", name: "Philosophy", what: "How Drake Stapleton approaches projects, duties, difficult things, and setbacks. The working philosophy of everything he builds: there is always a way, and giving up is not one of the options.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/engineer/software/", name: "AI orchestration & architecture", what: "Drake Stapleton's AI orchestration frameworks, architectural patterns, operational methods, and verifiable systems history.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/engineer/evidence/", name: "Canonical evidence hub & verified claims", what: "Inspect the canonical evidence hub, structured claims index, physical Grace Blackwell silicon telemetry, and historical audit packages.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/engineer/atlas/", name: "Why Atlas exists", what: "Explore Atlas, Drake Stapleton's personal R&D program in accountable AI architecture, continuity, model training, and orchestration.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
@@ -1076,7 +1076,7 @@ pub fn html_to_text(html: &str) -> String {
 
 /// /llms-full.txt: every English page as text, in llms.txt order, from the files just written.
 pub fn llms_full(pages: &[Emitted]) -> String {
-    let mut s = format!("# AienOS: every page in one file\n\nGenerated with the site from the same sources as the HTML. Page list and summaries: {HOST}/llms.txt. Machine-readable data: {HOST}/data/index.json.\n\n");
+    let mut s = format!("# Sovereign Intelligence\n\nSovereign Intelligence is the whole system. AienOS is only the operating-system layer. Every English page is in this one file. Generated with the site from the same sources as the HTML. Page list and summaries: {HOST}/llms.txt. Machine-readable data: {HOST}/data/index.json.\n\n");
     for info in PAGES {
         let Some(p) = pages.iter().find(|p| p.path == info.path) else { continue };
         let html = fs::read_to_string(&p.file).unwrap_or_default();
@@ -1131,7 +1131,7 @@ pub fn render_404() -> Markup {
                 }
                 ul style="margin: 28px 0 0 0; padding: 0; list-style: none; display: grid; gap: 10px;" {
                     li { a href="/" { "The front page" } ": the loop, the machines, the evidence." }
-                    li { a href="/machine/" { "The Machine" } ": what AienOS is and what runs today." }
+                    li { a href="/machine/" { "The Machine" } ": Sovereign Intelligence on real hardware. AienOS is only the operating-system layer." }
                     li { a href="/now/" { "Now" } ": what every agent is doing right now." }
                     li { a href="/research/" { "Research" } ": the preprints and the papers." }
                     li { a href="/evidence/" { "Evidence" } ": receipts over claims." }
@@ -1367,6 +1367,14 @@ mod tests {
             assert!(r.contains(&format!("User-agent: {a}\nAllow: /\n")));
         }
         assert!(r.ends_with(&format!("Sitemap: {HOST}/sitemap.xml\n")));
+    }
+
+    #[test]
+    fn llms_full_leads_with_sovereign_intelligence() {
+        let t = llms_full(&[]);
+        assert!(t.starts_with("# Sovereign Intelligence\n\nSovereign Intelligence is the whole system. AienOS is only the operating-system layer. "));
+        assert!(!t.contains("what AienOS is"));
+        assert!(!t.starts_with("# AienOS"));
     }
 
     #[test]

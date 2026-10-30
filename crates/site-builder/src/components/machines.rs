@@ -23,30 +23,28 @@ use super::boxlink::{foot, Target};
 /// The raw data file, compiled into the binary.
 pub const RAW: &str = include_str!("../../data/machines.json");
 
-/// Comparison claims. One may appear only in a sentence that also carries
-/// a real ISO date and a link (an href or a URL) to a receipt or to the
-/// other project's published numbers. The words "receipt" and "published"
-/// are not a source. A date in another sentence is not a date for this one.
-pub const COMPARISON_CLAIMS: [&str; 18] = [
-    "faster than",
-    "x faster",
-    "beats ",
-    "beat the",
-    "level with",
-    "ahead of",
-    "outperforms",
-    "outperform",
+/// Phrases matched case-insensitively, with a word boundary on each side.
+pub const COMPARISON_PHRASES: &[&str] = &[
     "better than",
     "worse than",
-    "on par with",
-    "matches",
-    "matching",
+    "faster than",
     "slower than",
+    "on par with",
+    "on a par with",
+    "level with",
+    "ahead of",
+    "same speed as",
     "as fast as",
-    "as slow as",
-    "parity with",
-    "\u{00d7}",
 ];
+
+/// Whole words, case-insensitively. Not stems, so "unmatched" is not "matched".
+pub const COMPARISON_WORDS: &[&str] = &[
+    "beat", "beats", "beating", "beaten", "match", "matches", "matched", "matching", "behind",
+];
+
+/// A word that starts with one of these, case-insensitively: outperforms,
+/// outpaced, surpasses, exceeded, rivals, rivalry.
+pub const COMPARISON_STEMS: &[&str] = &["outperform", "outpace", "surpass", "exceed", "rival"];
 
 /// Overclaims. These stay banned even when a date and a link sit beside them.
 /// Phrases are lowercase; callers compare a lowercased string.
@@ -125,6 +123,115 @@ fn has_source_link(s: &str) -> bool {
         || lower.contains("href='")
 }
 
+fn is_word_char(c: char) -> bool {
+    c.is_ascii_alphanumeric() || c == '_'
+}
+
+fn boundary_phrase(lower: &str, phrase: &str) -> bool {
+    let mut from = 0;
+    while let Some(at) = lower[from..].find(phrase) {
+        let i = from + at;
+        let before_ok = i == 0 || !is_word_char(lower.as_bytes()[i - 1] as char);
+        let after = i + phrase.len();
+        let after_ok = after >= lower.len() || !is_word_char(lower.as_bytes()[after] as char);
+        if before_ok && after_ok {
+            return true;
+        }
+        from = i + phrase.len();
+    }
+    false
+}
+
+fn has_word_form(lower: &str) -> bool {
+    for word in lower.split(|c: char| !is_word_char(c)) {
+        if word.is_empty() {
+            continue;
+        }
+        if COMPARISON_WORDS.contains(&word) || COMPARISON_STEMS.iter().any(|stem| word.starts_with(stem)) {
+            return true;
+        }
+    }
+    false
+}
+
+/// `2x vLLM`, `2× faster`, `2 x vLLM`, or `3 times`. The `x` or `×` must be
+/// followed by whitespace or the end of the text, so `1920x1080` and hex
+/// `0xff` are not multipliers. URLs are removed by the caller.
+fn has_multiplier(lower: &str) -> bool {
+    let chars: Vec<char> = lower.chars().collect();
+    let mut i = 0;
+    while i < chars.len() {
+        let start_ok = chars[i].is_ascii_digit() && (i == 0 || !is_word_char(chars[i - 1]));
+        if !start_ok {
+            i += 1;
+            continue;
+        }
+        let mut j = i + 1;
+        while j < chars.len() && chars[j].is_ascii_digit() {
+            j += 1;
+        }
+        if j + 1 < chars.len() && chars[j] == '.' && chars[j + 1].is_ascii_digit() {
+            j += 2;
+            while j < chars.len() && chars[j].is_ascii_digit() {
+                j += 1;
+            }
+        }
+        let mut k = j;
+        while k < chars.len() && chars[k] == ' ' {
+            k += 1;
+        }
+        if k < chars.len() && (chars[k] == 'x' || chars[k] == '\u{00d7}') {
+            let after = k + 1;
+            if after >= chars.len() || chars[after].is_whitespace() {
+                return true;
+            }
+        }
+        if k > j {
+            let rest: String = chars[k..].iter().collect();
+            if rest.starts_with("times") {
+                let after = "times".len();
+                if after >= rest.len() || !is_word_char(rest[after..].chars().next().unwrap_or(' ')) {
+                    return true;
+                }
+            }
+        }
+        i = j;
+    }
+    false
+}
+
+fn without_urls(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let mut rest = s;
+    loop {
+        let http = rest.find("http://");
+        let https = rest.find("https://");
+        let i = match (http, https) {
+            (Some(a), Some(b)) => Some(a.min(b)),
+            (Some(a), None) => Some(a),
+            (None, Some(b)) => Some(b),
+            (None, None) => None,
+        };
+        let Some(i) = i else {
+            out.push_str(rest);
+            break;
+        };
+        out.push_str(&rest[..i]);
+        rest = &rest[i..];
+        let end = rest.find(char::is_whitespace).unwrap_or(rest.len());
+        rest = &rest[end..];
+        out.push(' ');
+    }
+    out
+}
+
+fn is_comparison_claim(s: &str) -> bool {
+    let scanned = without_urls(&s.to_ascii_lowercase());
+    COMPARISON_PHRASES.iter().any(|phrase| boundary_phrase(&scanned, phrase))
+        || has_word_form(&scanned)
+        || has_multiplier(&scanned)
+}
+
 /// `None` when the text is not a comparison, or is one honest sentence
 /// with a real ISO date and a source link. Overclaims always return
 /// "overclaim". A comparison with no date or no link in this same text
@@ -139,9 +246,7 @@ pub fn comparison_problem(s: &str) -> Option<&'static str> {
             return Some("overclaim");
         }
     }
-    if COMPARISON_CLAIMS.iter().any(|w| lower.contains(w))
-        && !(has_real_iso_date(s) && has_source_link(s))
-    {
+    if is_comparison_claim(s) && !(has_real_iso_date(s) && has_source_link(s)) {
         return Some("unsourced comparison");
     }
     None
@@ -174,8 +279,59 @@ fn closes_block(tag_l: &str) -> bool {
         || tag_l.starts_with("<br")
 }
 
+fn open_name(tag_l: &str) -> Option<&str> {
+    let t = tag_l.strip_prefix('<')?;
+    if t.starts_with('/') || t.starts_with('!') {
+        return None;
+    }
+    let end = t.find(|c: char| !c.is_ascii_alphanumeric()).unwrap_or(t.len());
+    if end == 0 {
+        return None;
+    }
+    Some(&t[..end])
+}
+
+/// Skip a balanced element. `rest` begins just after the opening tag.
+fn skip_balanced<'a>(rest: &'a str, name: &str) -> &'a str {
+    let lower = rest.to_ascii_lowercase();
+    let open = format!("<{name}");
+    let close = format!("</{name}");
+    let mut depth = 1usize;
+    let mut i = 0usize;
+    while depth > 0 && i < lower.len() {
+        let rel_open = lower[i..].find(&open);
+        let rel_close = lower[i..].find(&close);
+        match (rel_open, rel_close) {
+            (Some(o), Some(c)) if o < c => {
+                depth += 1;
+                i += o + open.len();
+            }
+            (_, Some(c)) => {
+                depth -= 1;
+                i += c + close.len();
+                if depth == 0 {
+                    let after = rest.get(i..).unwrap_or("");
+                    let gt = after.find('>').map(|n| n + 1).unwrap_or(0);
+                    return after.get(gt..).unwrap_or("");
+                }
+            }
+            _ => return "",
+        }
+    }
+    ""
+}
+
+fn skip_whole_element(tag_l: &str) -> bool {
+    matches!(
+        open_name(tag_l),
+        Some("script" | "style" | "pre" | "textarea" | "code" | "kbd" | "samp")
+    ) || tag_l.contains("data-verbatim")
+}
+
 /// Keep link targets, drop tags, and break on block ends so a date in one
-/// element does not license a claim in the next.
+/// element does not license a claim in the next. Script, style, comments,
+/// program text (`pre`, `code`, `textarea`, `kbd`, `samp`), and a
+/// `data-verbatim` record are not page prose.
 fn readable_text(text: &str) -> String {
     if !text.contains('<') {
         return text.to_string();
@@ -185,17 +341,28 @@ fn readable_text(text: &str) -> String {
     while let Some(start) = rest.find('<') {
         out.push_str(&rest[..start]);
         rest = &rest[start..];
+        if rest.starts_with("<!--") {
+            rest = rest.find("-->").map(|end| &rest[end + 3..]).unwrap_or("");
+            continue;
+        }
         let Some(end) = rest.find('>') else {
             out.push_str(rest);
             return out;
         };
         let tag = &rest[..=end];
+        let tag_l = tag.to_ascii_lowercase();
+        if !tag_l.ends_with("/>") && skip_whole_element(&tag_l) {
+            if let Some(name) = open_name(&tag_l) {
+                rest = skip_balanced(&rest[end + 1..], name);
+                continue;
+            }
+        }
         if let Some(url) = href_in_tag(tag) {
             out.push(' ');
             out.push_str(url);
             out.push(' ');
         }
-        if closes_block(&tag.to_ascii_lowercase()) {
+        if closes_block(&tag_l) {
             out.push('\n');
         }
         rest = &rest[end + 1..];
@@ -204,8 +371,15 @@ fn readable_text(text: &str) -> String {
     out
 }
 
-/// Split on ". " followed by a capital letter, on a line break, or at the
-/// end of the text. A dot inside llama.cpp, a URL, or a decimal stays put.
+fn is_closer(c: char) -> bool {
+    matches!(c, ')' | ']' | '"' | '\'' | '\u{201d}' | '\u{2019}')
+}
+
+/// A sentence ends at `.`, `!`, or `?` followed by whitespace, or at the
+/// end of the text. A closing `)` or quote may sit between the mark and
+/// the whitespace. The next sentence may start with a digit or a lowercase
+/// letter. A mark with no whitespace after it stays inside the sentence,
+/// so llama.cpp, URLs, and 21.95 stay whole.
 fn split_sentences(text: &str) -> Vec<String> {
     let chars: Vec<char> = text.chars().collect();
     let mut out = Vec::new();
@@ -213,27 +387,26 @@ fn split_sentences(text: &str) -> Vec<String> {
     let mut i = 0;
     while i < chars.len() {
         let c = chars[i];
-        if c == '\n' || c == '\r' {
-            let sentence = cur.trim().to_string();
-            if !sentence.is_empty() {
-                out.push(sentence);
+        if matches!(c, '.' | '!' | '?') {
+            let mut j = i + 1;
+            while j < chars.len() && is_closer(chars[j]) {
+                j += 1;
             }
-            cur.clear();
-            i += 1;
-            continue;
-        }
-        if c == '.'
-            && i + 2 < chars.len()
-            && chars[i + 1] == ' '
-            && chars[i + 2].is_ascii_uppercase()
-        {
-            let sentence = cur.trim().to_string();
-            if !sentence.is_empty() {
-                out.push(sentence);
+            if j >= chars.len() || chars[j].is_whitespace() {
+                for ch in chars.iter().take(j).skip(i) {
+                    cur.push(*ch);
+                }
+                let sentence = cur.trim().to_string();
+                if !sentence.is_empty() {
+                    out.push(sentence);
+                }
+                cur.clear();
+                i = j;
+                while i < chars.len() && chars[i].is_whitespace() {
+                    i += 1;
+                }
+                continue;
             }
-            cur.clear();
-            i += 2;
-            continue;
         }
         cur.push(c);
         i += 1;
@@ -453,7 +626,7 @@ fn big_value(value: &str) -> Markup {
 fn where_badge(on_main: bool, branch: &str) -> Markup {
     html! {
         @if on_main {
-            span class="mx-where mx-where-main" { "on main" }
+            span class="mx-where mx-where-main" { "receipt on main" }
         } @else {
             span class="mx-where mx-where-branch" title=(format!("branch {branch}")) { "branch " (branch) }
         }
@@ -795,11 +968,13 @@ mod tests {
         assert!(speeds.contains("id=\"speed-35b-e2e\""));
         assert!(speeds.contains("22.0 to 22.5"));
         assert!(speeds.contains("test server running a branch build"));
+        assert!(speeds.contains("mx-where-main\">receipt on main"), "35B row badge");
         assert!(speeds.contains("comes from prompt reading"));
         assert!(!speeds.to_ascii_lowercase().contains("without the server"));
         assert!(!speeds.to_ascii_lowercase().contains("leaves out the server"));
         assert!(speeds.contains(&data().judging));
         let machines = render_machines_section().into_string();
+        assert!(machines.contains("mx-where-main\">receipt on main"), "Spark badge");
         for id in ["machine-spark", "machine-imac", "machine-pi5", "machine-qemu", "machine-rig"] {
             assert!(machines.contains(&format!("id=\"{id}\"")), "{id} missing");
         }
@@ -843,5 +1018,170 @@ mod tests {
         assert!(comparison_problem(
             "On 2026-10-21 this run was faster than llama.cpp's published 40 tok/s (https://example.com/bench)."
         ).is_none());
+    }
+
+    #[test]
+    fn a_sentence_ends_at_a_mark_then_whitespace_whatever_follows() {
+        for mark in [".", "!", "?"] {
+            let page = format!(
+                "Measured on 2026-10-21 (https://example.com/bench){mark} vLLM is slower than Omega."
+            );
+            let problems = comparison_errors(&page);
+            assert!(
+                problems.iter().any(|e| e.contains("unsourced comparison") && e.contains("slower than")),
+                "{mark}: {problems:?}"
+            );
+            assert!(
+                !problems.iter().any(|e| e.contains("Measured on")),
+                "the dated sentence is not the failure ({mark}): {problems:?}"
+            );
+        }
+        let closer = "Measured on 2026-10-21 (https://example.com/bench.) vLLM is slower than Omega.";
+        let problems = comparison_errors(closer);
+        assert!(
+            problems.iter().any(|e| e.contains("slower than") && !e.contains("Measured on")),
+            "a closing paren between the mark and the space still ends the sentence: {problems:?}"
+        );
+        let quoted = "Measured on 2026-10-21 (https://example.com/bench).\" vLLM is slower than Omega.";
+        let problems = comparison_errors(quoted);
+        assert!(
+            problems.iter().any(|e| e.contains("slower than")),
+            "a closing quote between the mark and the space still ends the sentence: {problems:?}"
+        );
+        let digit = "Measured on 2026-10-21 (https://example.com/bench). 2x vLLM was the next sentence.";
+        let problems = comparison_errors(digit);
+        assert!(
+            problems.iter().any(|e| e.contains("unsourced comparison") && e.contains("2x")),
+            "a next sentence may start with a digit: {problems:?}"
+        );
+        assert!(!problems.iter().any(|e| e.contains("Measured on")), "{problems:?}");
+        let whole = comparison_errors("Lead 21.95 tok/s from llama.cpp and https://example.com/bench.v2/time.jsonl stayed put.");
+        assert!(whole.is_empty(), "no whitespace after the mark, so the token stays whole: {whole:?}");
+    }
+
+    #[test]
+    fn every_comparison_term_fails_without_a_date_and_link_and_passes_with_both() {
+        let terms = [
+            "beat vLLM",
+            "beats vLLM",
+            "beating vLLM",
+            "beaten by vLLM",
+            "match vLLM",
+            "matches vLLM",
+            "matched vLLM",
+            "matching vLLM",
+            "outperforms vLLM",
+            "outpaced vLLM",
+            "surpasses vLLM",
+            "exceeded vLLM",
+            "rivals vLLM",
+            "better than vLLM",
+            "worse than vLLM",
+            "faster than vLLM",
+            "slower than vLLM",
+            "on par with vLLM",
+            "on a par with vLLM",
+            "level with vLLM",
+            "ahead of vLLM",
+            "behind vLLM",
+            "same speed as vLLM",
+            "as fast as vLLM",
+            "2x vLLM",
+            "2× faster",
+            "3 times vLLM",
+        ];
+        for term in terms {
+            let bare = format!("This run will {term}.");
+            let problems = comparison_errors(&bare);
+            assert!(
+                problems.iter().any(|e| e.contains("unsourced comparison")),
+                "{term} must fail: {problems:?}"
+            );
+            let honest = format!("On 2026-10-21 this was {term} (https://example.com/bench).");
+            let problems = comparison_errors(&honest);
+            assert!(problems.is_empty(), "{term} with a real date and a link must pass: {problems:?}");
+        }
+        let shouted = comparison_errors("BEATS vLLM. Faster Than the published figure.");
+        assert_eq!(shouted.len(), 2, "word forms are case-insensitive, one sentence each: {shouted:?}");
+        assert!(comparison_problem("The frame is 1920x1080 and the hex is 0xff.").is_none());
+        assert!(comparison_problem("served_match is an identifier, not a claim.").is_none());
+        assert!(comparison_errors("<style>/* beat the memorizer */</style><p>A note.</p>").is_empty());
+        assert!(comparison_errors("<pre><code>files match SHA256SUMS. 3x physical.</code></pre>").is_empty());
+        assert!(comparison_errors("<p data-verbatim>The gb10 behind it is 2x vLLM.</p><p>A note.</p>").is_empty());
+    }
+
+    #[test]
+    fn omega_and_every_other_page_use_the_shared_check() {
+        let omega = crate::components::omega::render_omega_page().into_string();
+        let problems = comparison_errors(&omega);
+        assert!(problems.is_empty(), "/omega/ must pass the shared check: {problems:?}");
+        let planted = format!(
+            "{omega}\nMeasured on 2026-10-21 (https://example.com/bench). vLLM is slower than Omega."
+        );
+        let problems = comparison_errors(&planted);
+        assert!(
+            problems.iter().any(|e| e.contains("unsourced comparison") && e.contains("slower than")),
+            "the same function still refuses a planted sentence on /omega/: {problems:?}"
+        );
+
+        for page in crate::components::engineer::pages() {
+            for (what, text) in [("body", page.body_html.as_str()), ("description", page.description.as_str())] {
+                let problems = comparison_errors(text);
+                assert!(
+                    problems.is_empty(),
+                    "{} {what} failed the shared check: {}",
+                    page.path,
+                    problems.iter().take(3).map(|e| clip(e, 220)).collect::<Vec<_>>().join(" | ")
+                );
+            }
+        }
+
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let mut files = Vec::new();
+        collect_html(&root.join("public"), &mut files);
+        collect_html(&root.join("crates/site-builder/templates"), &mut files);
+        collect_named(&root.join("om"), "main.html", &mut files);
+        assert!(files.len() > 20, "expected the shipped pages, found {}", files.len());
+        for path in files {
+            let text = std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+            let problems = comparison_errors(&text);
+            assert!(
+                problems.is_empty(),
+                "{} failed the shared check: {}",
+                path.display(),
+                problems.iter().take(4).map(|e| clip(e, 240)).collect::<Vec<_>>().join(" | ")
+            );
+        }
+    }
+
+    fn clip(s: &str, n: usize) -> String {
+        s.chars().take(n).collect()
+    }
+
+    fn collect_html(dir: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
+        let Ok(rd) = std::fs::read_dir(dir) else { return };
+        for entry in rd.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                collect_html(&path, out);
+            } else if path.extension().and_then(|e| e.to_str()) == Some("html") {
+                out.push(path);
+            }
+        }
+    }
+
+    fn collect_named(dir: &std::path::Path, name: &str, out: &mut Vec<std::path::PathBuf>) {
+        let Ok(rd) = std::fs::read_dir(dir) else { return };
+        for entry in rd.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                if path.file_name().and_then(|n| n.to_str()) == Some("vendor") {
+                    continue;
+                }
+                collect_named(&path, name, out);
+            } else if path.file_name().and_then(|n| n.to_str()) == Some(name) {
+                out.push(path);
+            }
+        }
     }
 }

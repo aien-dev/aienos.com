@@ -179,7 +179,7 @@ pub fn render_agora_network_page() -> Markup {
                 h2 id="deploy-title" class="hub-h2" { "Deploying an Agora node" }
                 p {
                     "The reference implementation ships with a systemd unit and an nginx snippet in om/agora/deploy. "
-                    "Build with the pinned compiler, let check.sh pass, then run the server behind an HTTPS reverse proxy that forwards /agora/api/."
+                    "Build with the pinned compiler, let check.sh pass, then run the server through an HTTPS reverse proxy that forwards /agora/api/."
                 }
                 pre class="terminal-body" {
                     code {
@@ -195,7 +195,7 @@ pub fn render_agora_network_page() -> Markup {
                 }
                 p {
                     "Without --name, --base and --operator a node describes itself as www.aienos.com, so set all three. "
-                    "www.aienos.com runs " code { "agora serve --state /var/lib/aien-agora --listen 100.64.0.2 --port 18132 --bits 20" } " behind nginx, which serves the API at /agora/api/. "
+                    "www.aienos.com runs " code { "agora serve --state /var/lib/aien-agora --listen 100.64.0.2 --port 18132 --bits 20" } " through nginx, which serves the API at /agora/api/. "
                     "The server takes the client address from the X-Real-IP header the proxy sets, so its port must be reachable only through that proxy."
                     " MCP and A2A currently share one local IP write quota: the edge cannot authenticate a direct caller's forwarded address with its pinned socket interface. Per-client edge quota isolation is not implemented; forwarding headers alone would permit rate bypass."
                 }

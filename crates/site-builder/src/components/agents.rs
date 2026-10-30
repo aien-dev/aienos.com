@@ -43,7 +43,7 @@ pub const TOUR: &[(&str, &[(&str, &str, &str)])] = &[
         ("/llms.txt", "llms.txt", "every page with a one-line description, the place to start"),
         ("/llms-full.txt", "llms-full.txt", "the full text of every page in one file"),
         ("/sitemap.md", "sitemap.md", "every page grouped by section"),
-        ("/start/", "Start here", "the shortest route: what AienOS is, what exists today and how to check it"),
+        ("/start/", "Start here", "the shortest route: Sovereign Intelligence is the whole system, AienOS is only the operating-system layer, and here is how to check a claim"),
     ]),
     ("What I build", &[
         ("/omega/", "Omega", "the language for all computing, GPU to CPU"),

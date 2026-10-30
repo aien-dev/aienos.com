@@ -71,7 +71,7 @@ pub fn render_glossary() -> Markup {
                 h2 style="font-size: 24px; font-weight: 700; color: var(--text-primary); margin: 44px 0 4px 0;" { "Evidence and coordination" }
                 dl style="margin: 0;" {
                     (term("Receipt", html! {
-                        "A public link to the evidence behind a claim: a pull request, a commit, a measured data file, or a record. See "
+                        "A public link to the evidence for a claim: a pull request, a commit, a measured data file, or a record. See "
                         a href="/evidence/" { "Evidence" } "."
                     }))
                     (term("Crumb", html! {

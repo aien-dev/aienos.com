@@ -35,7 +35,7 @@
       "served_match": null,
       "absent": "not-trained",
       "track": "Track C, own model",
-      "role": "A Spark-shaped model grown by teaching from the borrowed brain. It takes over a task only when it beats the rental on the same goldens.",
+      "role": "A Spark-shaped model grown by teaching from the borrowed brain. It takes over a task only when the same goldens put it past the rental.",
       "plan_ledger": null,
       "source": { "label": "Design: aien-train issue 21", "url": "https://github.com/aien-dev/aien-train/issues/21" },
       "figures": []

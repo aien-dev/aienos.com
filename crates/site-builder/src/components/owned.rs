@@ -183,7 +183,7 @@ pub fn render_owned() -> Markup {
                     p class="narr-byline" { (SIGNATURE_LINE) }
                     ul class="hub-cards" {
                         li class="hub-card" {
-                            a href="/philosophy/" { "More on the philosophy behind Aien" }
+                            a href="/philosophy/" { "More on the philosophy of Aien" }
                             p { "The Stapleton Doctrine and the Post-LLM Case, argued as positions and not as experimental results." }
                             (foot(&source_href(THIS_FILE), Target::Source))
                         }

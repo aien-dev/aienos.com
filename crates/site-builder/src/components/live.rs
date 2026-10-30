@@ -139,7 +139,7 @@ pub fn render_live(facts: &Facts) -> Markup {
                         a href="https://github.com/aien-dev/aien-architecture/tree/main/docs/adr" rel="noopener" { "All decision records" }
                         " · "
                         a href="/facts.json" { "facts.json" }
-                        ", the data behind this block."
+                        ", the data for this block."
                     }
                 }
             }

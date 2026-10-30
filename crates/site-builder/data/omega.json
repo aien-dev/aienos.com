@@ -387,7 +387,7 @@
     {
       "id": "C1",
       "title": "The language reaches the GPU.",
-      "done_when": "Kernels written in Omegese compile through the IR and checker2 to sm_121 machine code and run on the GB10: vector add, a tiled GEMM and one decode-attention kernel. Their output matches a host reference bit for bit (or within a tolerance stated before the run), checker2 accepts every one, and a deliberately broken kernel is refused. At least one kernel of the live 35B decode path is then replaced by its Omegese version with identical golden tokens.",
+      "done_when": "Kernels written in Omegese compile through the IR and checker2 to sm_121 machine code and run on the GB10: vector add, a tiled GEMM and one decode-attention kernel. Their output agrees with a host reference bit for bit (or within a tolerance stated before the run), checker2 accepts every one, and a deliberately broken kernel is refused. At least one kernel of the live 35B decode path is then replaced by its Omegese version with identical golden tokens.",
       "status": "MISSING",
       "now": "No Omegese kernel has run on the GPU (map row: CUDA C++ language).",
       "receipt": null,
@@ -539,7 +539,7 @@
       {
         "id": "P1",
         "title": "One conversation.",
-        "done_when": "Omega's best format beats the best measured CUDA number at one conversation, with golden tokens identical to my host reference.",
+        "done_when": "Omega's best format is at the best measured CUDA number, or past it, at one conversation, with golden tokens identical to my host reference.",
         "status": "MISSING",
         "now": "",
         "receipt": null,
@@ -548,7 +548,7 @@
       {
         "id": "P2",
         "title": "Prompt reading.",
-        "done_when": "Omega prefill beats the best measured CUDA number at 512 and 8k.",
+        "done_when": "Omega prefill is at the best measured CUDA number, or past it, at 512 and 8k.",
         "status": "MISSING",
         "now": "",
         "receipt": null,
@@ -557,7 +557,7 @@
       {
         "id": "P3",
         "title": "Many conversations.",
-        "done_when": "Omega total words per second beats the best measured CUDA number at 8 and 32 conversations.",
+        "done_when": "Omega total words per second is at the best measured CUDA number, or past it, at 8 and 32 conversations.",
         "status": "MISSING",
         "now": "",
         "receipt": null,
