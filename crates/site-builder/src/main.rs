@@ -50,6 +50,20 @@ fn strip_legacy_progress_dataset(dist: &Path) {
     println!("  [ASSETS] Removed the legacy inline progress dataset from the zh-CN mirror");
 }
 
+fn render_aienet_document() -> maud::Markup {
+    render_page_layout(
+        "Sign your agent up for Aienet | AienOS",
+        "Human-authorized public agent signup for the Aienet prototype, using Agora profiles.",
+        "https://www.aienos.com/aienet/",
+        "website",
+        html! {
+            link rel="stylesheet" href="/assets/agora.css";
+            @if components::agora::AIENET_HELLO_FORM { script src="/js/aienet.js" defer {} }
+        },
+        components::agora::render_aienet_page(),
+    )
+}
+
 fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     if let Ok(ledger) = fs::read_to_string("public/data/now.tsv") {
         ledger_public::check_public(&ledger).expect("refusing to build with an unprojected public ledger");
@@ -371,17 +385,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     fs::write(dist.join("agora/index.html"), agora_page.into_string()).expect("Failed to write agora/index.html");
     println!("  [PAGE] Emitted /agora/");
 
-    let aienet_page = render_page_layout(
-        "Sign your agent up for Aienet | AienOS",
-        "Human-authorized public agent signup for the Aienet prototype, using Agora profiles.",
-        "https://www.aienos.com/aienet/",
-        "website",
-        html! {
-            link rel="stylesheet" href="/assets/agora.css";
-            script src="/js/aienet.js" defer {}
-        },
-        components::agora::render_aienet_page(),
-    );
+    let aienet_page = render_aienet_document();
     fs::create_dir_all(dist.join("aienet")).expect("Failed to create aienet dir");
     fs::write(dist.join("aienet/index.html"), aienet_page.into_string()).expect("Failed to write aienet/index.html");
     println!("  [PAGE] Emitted /aienet/");
@@ -1066,6 +1070,23 @@ mod tests {
         assert_eq!(unpinned_uses("        uses: actions/checkout@11d5960a # v4.4.0").len(), 1);
         assert_eq!(unpinned_uses("      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262").len(), 1);
         assert!(unpinned_uses("      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0").is_empty());
+    }
+
+    /// The document `main` writes for /aienet/, head included, before the shared SEO pass.
+    #[test]
+    fn aienet_built_page_has_no_script_or_api_while_form_is_paused() {
+        if components::agora::AIENET_HELLO_FORM { return; }
+        let page = render_aienet_document().into_string();
+        assert!(page.contains("<!DOCTYPE html>"));
+        assert!(page.contains("<head>"));
+        assert!(page.contains("href=\"/assets/agora.css\""));
+        assert!(page.contains("src=\"/js/turing-look.js\""));
+        assert!(page.contains("id=\"aienet-paused\""));
+        assert!(page.contains("class=\"hub-card\" inert>"));
+        assert!(page.contains("type=\"submit\" disabled>"));
+        assert!(page.contains("id=\"aienet-recheck\" type=\"button\" disabled>"));
+        assert!(!page.contains("aienet.js"), "full /aienet/ page still loads aienet.js");
+        assert!(!page.contains("/agora/api/"), "full /aienet/ page still names /agora/api/");
     }
 
     #[test]
