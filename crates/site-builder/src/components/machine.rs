@@ -252,7 +252,7 @@ fn section_connections() -> Markup {
     html! {
         section id="connections" class="narr-section" aria-labelledby="connections-heading" {
             h2 id="connections-heading" { "Connections to other research" }
-            p { "Each of these is a connection or an opportunity. Where the research status record has a matching entry, its badge sits beside the name." }
+            p { "Each of these is a connection or an opportunity. Where the research status record has an entry for it, its badge sits beside the name." }
             dl class="narr-connections" {
                 dt { "Petri nets and reaction systems" }
                 dd {

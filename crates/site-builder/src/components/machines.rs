@@ -6,9 +6,10 @@
 //! speed row must carry a public link; a row without one fails the build.
 //! Numbers stand beside the physical ceiling of the machine they ran on
 //! and beside my own previous run. A comparison with another project is
-//! allowed when it is honest, dated, and backed by a receipt or that
-//! project's own published numbers. Overclaims and unsourced comparisons
-//! are refused.
+//! allowed when the same sentence has a real ISO date and a link to a
+//! receipt or to that project's published numbers. Overclaims and
+//! unsourced comparisons are refused. The one allowlisted sentence is
+//! "Slower than I want."
 //! The homepage shows both sections; /machine/ shows the machines first,
 //! before the theory, so the page describes real hardware.
 
@@ -22,11 +23,29 @@ use super::boxlink::{foot, Target};
 /// The raw data file, compiled into the binary.
 pub const RAW: &str = include_str!("../../data/machines.json");
 
-/// Comparison claims. A field or sentence may use one only when that same
-/// text carries an ISO date and a receipt, an https link, or the other
-/// project's own published number.
-pub const COMPARISON_CLAIMS: [&str; 6] = [
-    "faster than", "x faster", "beats ", "beat the", "level with", "ahead of",
+/// Comparison claims. One may appear only in a sentence that also carries
+/// a real ISO date and a link (an href or a URL) to a receipt or to the
+/// other project's published numbers. The words "receipt" and "published"
+/// are not a source. A date in another sentence is not a date for this one.
+pub const COMPARISON_CLAIMS: [&str; 18] = [
+    "faster than",
+    "x faster",
+    "beats ",
+    "beat the",
+    "level with",
+    "ahead of",
+    "outperforms",
+    "outperform",
+    "better than",
+    "worse than",
+    "on par with",
+    "matches",
+    "matching",
+    "slower than",
+    "as fast as",
+    "as slow as",
+    "parity with",
+    "\u{00d7}",
 ];
 
 /// Overclaims. These stay banned even when a date and a link sit beside them.
@@ -39,55 +58,199 @@ pub const OVERCLAIMS: [&str; 5] = [
     "matching and then",
 ];
 
-fn has_iso_date(s: &str) -> bool {
+/// The only sentence that may say "slower than" with no date and no link.
+const OWNED_SLOWER: &str = "Slower than I want.";
+
+fn is_owned_slower(s: &str) -> bool {
+    let t = s.trim();
+    t == OWNED_SLOWER || t == "Slower than I want"
+}
+
+fn is_real_date(year: i32, month: u32, day: u32) -> bool {
+    if !(1..=9999).contains(&year) || !(1..=12).contains(&month) || day == 0 {
+        return false;
+    }
+    let leap = year % 400 == 0 || (year % 4 == 0 && year % 100 != 0);
+    let dim = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if leap => 29,
+        2 => 28,
+        _ => return false,
+    };
+    day <= dim
+}
+
+/// A real calendar date written YYYY-MM-DD. `2026-02-31` and `2026-13-01`
+/// do not count. A digit glued on either side does not count.
+fn has_real_iso_date(s: &str) -> bool {
     let b = s.as_bytes();
     if b.len() < 10 {
         return false;
     }
     for i in 0..=b.len() - 10 {
+        if i > 0 && b[i - 1].is_ascii_digit() {
+            continue;
+        }
+        if i + 10 < b.len() && b[i + 10].is_ascii_digit() {
+            continue;
+        }
         let w = &b[i..i + 10];
-        if w[4] == b'-'
-            && w[7] == b'-'
-            && w[..4].iter().all(u8::is_ascii_digit)
-            && w[5..7].iter().all(u8::is_ascii_digit)
-            && w[8..10].iter().all(u8::is_ascii_digit)
+        if w[4] != b'-' || w[7] != b'-' {
+            continue;
+        }
+        if !w[..4].iter().all(u8::is_ascii_digit)
+            || !w[5..7].iter().all(u8::is_ascii_digit)
+            || !w[8..10].iter().all(u8::is_ascii_digit)
         {
+            continue;
+        }
+        let year: i32 = std::str::from_utf8(&w[..4]).unwrap().parse().unwrap();
+        let month: u32 = std::str::from_utf8(&w[5..7]).unwrap().parse().unwrap();
+        let day: u32 = std::str::from_utf8(&w[8..10]).unwrap().parse().unwrap();
+        if is_real_date(year, month, day) {
             return true;
         }
     }
     false
 }
 
-fn sourced_comparison(lower: &str) -> bool {
-    has_iso_date(lower)
-        && (lower.contains("https://") || lower.contains("receipt") || lower.contains("published"))
+/// A link in this sentence: an http(s) URL, or an href attribute.
+/// The bare words "receipt" and "published" are not a link.
+fn has_source_link(s: &str) -> bool {
+    let lower = s.to_ascii_lowercase();
+    lower.contains("https://")
+        || lower.contains("http://")
+        || lower.contains("href=\"")
+        || lower.contains("href='")
 }
 
-/// `None` when the text is not a comparison, or is an honest dated sourced
-/// comparison. Overclaims and unsourced comparison claims return a reason.
+/// `None` when the text is not a comparison, or is one honest sentence
+/// with a real ISO date and a source link. Overclaims always return
+/// "overclaim". A comparison with no date or no link in this same text
+/// returns "unsourced comparison".
 pub fn comparison_problem(s: &str) -> Option<&'static str> {
+    if is_owned_slower(s) {
+        return None;
+    }
     let lower = s.to_ascii_lowercase();
     for w in OVERCLAIMS {
         if lower.contains(w) {
             return Some("overclaim");
         }
     }
-    if COMPARISON_CLAIMS.iter().any(|w| lower.contains(w)) && !sourced_comparison(&lower) {
+    if COMPARISON_CLAIMS.iter().any(|w| lower.contains(w))
+        && !(has_real_iso_date(s) && has_source_link(s))
+    {
         return Some("unsourced comparison");
     }
     None
 }
 
-/// Sentence-sized check for a rendered page, so a date elsewhere in the
-/// document does not license a comparison in another sentence.
-pub fn comparison_errors(text: &str) -> Vec<String> {
-    let mut errors = Vec::new();
-    for sentence in text.split(|c| matches!(c, '\n' | '.' | '!' | '?')) {
-        let sentence = sentence.trim();
-        if sentence.is_empty() {
+fn href_in_tag(tag: &str) -> Option<&str> {
+    let tag_l = tag.to_ascii_lowercase();
+    for key in ["href=\"", "href='"] {
+        if let Some(i) = tag_l.find(key) {
+            let value = &tag[i + key.len()..];
+            let quote = if key.ends_with('"') { '"' } else { '\'' };
+            let end = value.find(quote)?;
+            return Some(&value[..end]);
+        }
+    }
+    None
+}
+
+fn closes_block(tag_l: &str) -> bool {
+    tag_l.starts_with("</p")
+        || tag_l.starts_with("</li")
+        || tag_l.starts_with("</h")
+        || tag_l.starts_with("</div")
+        || tag_l.starts_with("</tr")
+        || tag_l.starts_with("</dd")
+        || tag_l.starts_with("</dt")
+        || tag_l.starts_with("</blockquote")
+        || tag_l.starts_with("</section")
+        || tag_l.starts_with("</article")
+        || tag_l.starts_with("<br")
+}
+
+/// Keep link targets, drop tags, and break on block ends so a date in one
+/// element does not license a claim in the next.
+fn readable_text(text: &str) -> String {
+    if !text.contains('<') {
+        return text.to_string();
+    }
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(start) = rest.find('<') {
+        out.push_str(&rest[..start]);
+        rest = &rest[start..];
+        let Some(end) = rest.find('>') else {
+            out.push_str(rest);
+            return out;
+        };
+        let tag = &rest[..=end];
+        if let Some(url) = href_in_tag(tag) {
+            out.push(' ');
+            out.push_str(url);
+            out.push(' ');
+        }
+        if closes_block(&tag.to_ascii_lowercase()) {
+            out.push('\n');
+        }
+        rest = &rest[end + 1..];
+    }
+    out.push_str(rest);
+    out
+}
+
+/// Split on ". " followed by a capital letter, on a line break, or at the
+/// end of the text. A dot inside llama.cpp, a URL, or a decimal stays put.
+fn split_sentences(text: &str) -> Vec<String> {
+    let chars: Vec<char> = text.chars().collect();
+    let mut out = Vec::new();
+    let mut cur = String::new();
+    let mut i = 0;
+    while i < chars.len() {
+        let c = chars[i];
+        if c == '\n' || c == '\r' {
+            let sentence = cur.trim().to_string();
+            if !sentence.is_empty() {
+                out.push(sentence);
+            }
+            cur.clear();
+            i += 1;
             continue;
         }
-        if let Some(kind) = comparison_problem(sentence) {
+        if c == '.'
+            && i + 2 < chars.len()
+            && chars[i + 1] == ' '
+            && chars[i + 2].is_ascii_uppercase()
+        {
+            let sentence = cur.trim().to_string();
+            if !sentence.is_empty() {
+                out.push(sentence);
+            }
+            cur.clear();
+            i += 2;
+            continue;
+        }
+        cur.push(c);
+        i += 1;
+    }
+    let sentence = cur.trim().to_string();
+    if !sentence.is_empty() {
+        out.push(sentence);
+    }
+    out
+}
+
+/// Sentence-sized check. A date or a link in another sentence does not
+/// license a comparison in this one.
+pub fn comparison_errors(text: &str) -> Vec<String> {
+    let mut errors = Vec::new();
+    for sentence in split_sentences(&readable_text(text)) {
+        if let Some(kind) = comparison_problem(&sentence) {
             errors.push(format!("{kind} in {sentence:?}"));
         }
     }
@@ -181,8 +344,8 @@ fn check_text(what: &str, s: &str, errors: &mut Vec<String>) {
     if has_dash(s) {
         errors.push(format!("{what}: em or en dash in {s:?}"));
     }
-    if let Some(kind) = comparison_problem(s) {
-        errors.push(format!("{what}: {kind} in {s:?}"));
+    for problem in comparison_errors(s) {
+        errors.push(format!("{what}: {problem}"));
     }
 }
 
@@ -356,7 +519,7 @@ pub fn render_machines_section() -> Markup {
                 }
                 (render_machine_cards(d))
                 p class="mx-stamp" {
-                    "Inventory as of " span class="mono" { (d.as_of) } ". A machine without a public receipt is not on this list."
+                    "Inventory date " span class="mono" { (d.as_of) } " is when this list was taken. It is not the date of each card. Each card carries its own evidence date. A machine without a public receipt is not on this list."
                 }
             }
         }
@@ -374,6 +537,9 @@ pub fn render_real_machines() -> Markup {
                 "One machine, five physical bodies. Aien is one system whose work moves between them: a DGX Spark for development and judgment, an Intel iMac and a Raspberry Pi 5 that run the kernel bare metal, QEMU for every gate before hardware, and a Windows PC with an RTX 5070 as the next target. Each card says what runs on that body today, the last evidence for it, and where the receipt is. The loop below is what they are for."
             }
             (render_machine_cards(d))
+            p class="mx-stamp" {
+                "Inventory date " span class="mono" { (d.as_of) } " is when this list was taken. It is not the date of each card. Each card carries its own evidence date."
+            }
             p class="narr-more" {
                 a href="/#speed" { "The speeds measured on them, with receipts, are on the homepage." }
             }
@@ -524,7 +690,12 @@ mod tests {
         }
         assert!(d.speeds.first().unwrap().model.starts_with("Qwen3.6-35B-A3B"), "the 35B end to end comes first");
         let spark = d.machines.iter().find(|m| m.id == "spark").unwrap();
-        assert!(spark.today.contains("qwen3.6-35b-a3b-fp8"), "the Spark today line names the live model: {}", spark.today);
+        assert_eq!(spark.evidence_date, "2026-10-21");
+        assert!(spark.today.contains("test server") && spark.today.contains("branch build"), "{}", spark.today);
+        assert!(spark.today.contains("bin-16b0e6f8") && spark.today.contains("21.95") && spark.today.contains("22.46"), "{}", spark.today);
+        assert!(!spark.today.contains("aien-serve-http"), "the Spark card must not say the receipt is the live server: {}", spark.today);
+        assert!(!spark.today.contains("qwen3.6-35b-a3b-fp8"), "the q36 receipt does not name that id: {}", spark.today);
+        assert!(!spark.evidence.to_ascii_lowercase().contains("qwen3.6-35b-a3b-fp8"));
         assert!(!spark.today.contains("Qwen3.8-27B"), "the Spark today line must not say it serves the 27B");
         assert!(d.speeds.first().unwrap().what.starts_with("End to end"));
         assert!(d.speeds.first().unwrap().what.contains("test server") && d.speeds.first().unwrap().what.contains("branch build"));
@@ -585,6 +756,20 @@ mod tests {
         );
         let err = parse(&over).unwrap_err();
         assert!(err.contains("overclaim"), "{err}");
+        let neighbor = RAW.replacen(
+            "\"note\": \"Nothing has run on the 5070 yet.\"",
+            "\"note\": \"Measured on 2026-10-21 (https://example.com/bench). CUDA is slower than Omega.\"",
+            1,
+        );
+        let err = parse(&neighbor).unwrap_err();
+        assert!(err.contains("unsourced comparison"), "{err}");
+        let bare = RAW.replacen(
+            "\"note\": \"Nothing has run on the 5070 yet.\"",
+            "\"note\": \"On 2026-10-21 this beats vLLM (receipt).\"",
+            1,
+        );
+        let err = parse(&bare).unwrap_err();
+        assert!(err.contains("unsourced comparison"), "{err}");
         let above = RAW.replacen("\"tok_s\": 7.63,", "\"tok_s\": 70.63,", 1);
         assert!(parse(&above).unwrap_err().contains("above its ceiling"));
         let extra = RAW.replacen("\"as_of\"", "\"surprise\": 1, \"as_of\"", 1);
@@ -622,5 +807,41 @@ mod tests {
         assert_eq!(crate::components::boxlink::check_boxes(&machines), Ok(5), "every machine card links to GitHub");
         let rows = data().speeds.len();
         assert_eq!(crate::components::boxlink::check_boxes(&speeds), Ok(rows), "every speed row links to GitHub");
+    }
+
+    #[test]
+    fn honest_example_passes_the_page_check() {
+        let page = "Lead 21.95 tok/s from https://example.com/bench.v2/time.jsonl stayed put. On 2026-10-21 this run was faster than llama.cpp's published 40 tok/s (https://example.com/bench).";
+        let problems = comparison_errors(page);
+        assert!(problems.is_empty(), "{problems:?}");
+        let html = "<p>On 2026-10-21 this run was faster than llama.cpp's published 40 tok/s (<a href=\"https://example.com/bench\">bench</a>).</p>";
+        let problems = comparison_errors(html);
+        assert!(problems.is_empty(), "{problems:?}");
+    }
+
+    #[test]
+    fn unsourced_comparisons_fail_on_the_page() {
+        let slower = comparison_errors("CUDA is slower than Omega");
+        assert!(slower.iter().any(|e| e.contains("unsourced comparison")), "{slower:?}");
+        let neighbor = comparison_errors(
+            "Measured on 2026-10-21 (https://example.com/bench). CUDA is slower than Omega.",
+        );
+        assert!(
+            neighbor.iter().any(|e| e.contains("unsourced comparison") && e.to_ascii_lowercase().contains("slower than")),
+            "{neighbor:?}"
+        );
+        assert!(
+            !neighbor.iter().any(|e| e.contains("Measured on")),
+            "the dated sentence is not the failure: {neighbor:?}"
+        );
+        let bare = comparison_errors("On 2026-10-21 this beats vLLM (receipt).");
+        assert!(bare.iter().any(|e| e.contains("unsourced comparison")), "{bare:?}");
+        let published = comparison_errors("On 2026-10-21 this was faster than the published figure.");
+        assert!(published.iter().any(|e| e.contains("unsourced comparison")), "{published:?}");
+        assert!(comparison_problem("Slower than I want.").is_none());
+        assert!(comparison_problem("On 2026-02-31 this was faster than CUDA (https://example.com/r).").is_some());
+        assert!(comparison_problem(
+            "On 2026-10-21 this run was faster than llama.cpp's published 40 tok/s (https://example.com/bench)."
+        ).is_none());
     }
 }

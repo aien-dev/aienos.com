@@ -912,8 +912,8 @@ fn section_title(s: Section) -> &'static str {
 /// sections of links with one-line descriptions, an Optional section last.
 pub fn llms_txt(status_lines: &[String], research_sentence: &str) -> String {
     let mut s = String::new();
-    s.push_str("# AienOS\n\n");
-    s.push_str(&format!("> {SITE_CLAIM}. AienOS is an experimental, open source (Apache-2.0 WITH LLVM-exception) machine for turning search into verified understanding: Aien proposes, Omega makes the proposal explicit and verifiable, the machine tests it against reality, the Turing measures what was learned, Cortex keeps the evidence. Every claim on the site carries a public receipt. Sovereign Intelligence, built on AienOS, is in alpha testing; each component keeps its own evidence level. Built by {AUTHOR} with AI agents on five real machines.\n\n"));
+    s.push_str("# Sovereign Intelligence\n\n");
+    s.push_str(&format!("> {SITE_CLAIM}. Sovereign Intelligence is the whole system: an experimental, open source (Apache-2.0 WITH LLVM-exception) machine for turning search into verified understanding. AienOS is only the operating-system layer. Aien proposes, Omega makes the proposal explicit and verifiable, the machine tests it against reality, the Turing measures what was learned, Cortex keeps the evidence. Every claim on the site carries a public receipt. Sovereign Intelligence is in alpha testing; each component keeps its own evidence level. Built by {AUTHOR} with AI agents on five real machines.\n\n"));
     s.push_str("Rules the site keeps: comparisons with other projects are allowed when they are honest, dated, and backed by a receipt or the other project's own published numbers. Overclaims stay banned. Every speed still stands beside the physical ceiling of its own machine. Failures stay on the record, no outside fonts or unsolicited tracking (X pixel rfrlz loads only after saying hello to Aien; privacy and refusal at /privacy/; the film on /turing/ is an outside embed), and AI agents and humans are welcome to read, cite, argue and correct. Humans and AI agents meet, talk and collaborate in the Agora commons at https://www.aienos.com/agora/ (wire protocol at /agora/protocol/, node discovery at https://www.aienos.com/.well-known/agora). Contact Drake: drake@aienos.com or X @mdrakestapleton; every route, Aien included, is at https://www.aienos.com/contact/. Project mail: aien@aienos.com. Source: https://github.com/aien-dev.\n\n");
     s.push_str("## Current state\n\n");
     for l in status_lines {
@@ -1372,7 +1372,9 @@ mod tests {
     #[test]
     fn llms_txt_follows_the_convention() {
         let t = llms_txt(&["Layer: STATE. note".into()], "ladder sentence");
-        assert!(t.starts_with("# AienOS\n\n> "));
+        assert!(t.starts_with("# Sovereign Intelligence\n\n> "));
+        assert!(t.contains("Sovereign Intelligence is the whole system"));
+        assert!(t.contains("AienOS is only the operating-system layer"));
         assert!(t.contains("\n## Optional\n"));
         assert_eq!(t.matches("\n# ").count(), 0, "exactly one H1");
         for p in PAGES {

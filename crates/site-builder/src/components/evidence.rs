@@ -44,7 +44,7 @@ fn cards() -> Vec<Card> {
             badge: "badge-amber",
             figure: "install.sh exits 101",
             title: "A stranger follows the alpha guide",
-            desc: "A fresh Linux account followed the public guide to install and run the 27B server. The install script failed at the server build step. With a hand workaround, the remaining steps passed: 81 of 81 checksums, the gate, and 7.657 tok/s with answers matching the shipped reference.",
+            desc: "A fresh Linux account followed the public guide to install and run the 27B server. The install script failed at the server build step. With a hand workaround, the remaining steps passed: 81 of 81 checksums, the gate, and 7.657 tok/s with answers that agreed with the shipped reference.",
             date: "2026-10-19",
             environment: "Spark GB10, new user, branch alpha/fresh-account-evidence",
             gate: "Fresh-account alpha test",

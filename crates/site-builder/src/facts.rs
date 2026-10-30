@@ -106,7 +106,7 @@ fn s(v: &serde_json::Value, key: &str) -> String {
 /// An honest comparison that is dated and backed by a receipt or by the other
 /// project's published numbers is kept. The title is not rewritten.
 fn comparison_title(t: &str) -> bool {
-    crate::components::machines::comparison_problem(t).is_some()
+    !crate::components::machines::comparison_errors(t).is_empty()
 }
 
 /// The retired name is not rendered, including in an automatically collected
