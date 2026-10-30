@@ -462,80 +462,6 @@ fn is_x_tail(c: char) -> bool {
         || matches!(c, '.' | ',' | ';' | ':' | '!' | '?' | ')' | ']' | '"' | '\'' | '\u{201d}' | '\u{2019}')
 }
 
-/// `2x`, `2×`, `1.8x.`, `(2x)`, `20.3-fold`, `12% faster`, or `3 times`.
-/// A letter after `x` is not a multiplier, so `1920x1080` and hex `0xff` stay whole.
-/// URLs are removed by the caller. A bare multiplier is not a claim by itself.
-/// `context_is_claim` asks for an outside system, a rival noun, or a comparative
-/// glued to the number.
-fn has_multiplier(lower: &str) -> bool {
-    let chars: Vec<char> = lower.chars().collect();
-    let mut i = 0;
-    while i < chars.len() {
-        let start_ok = chars[i].is_ascii_digit() && (i == 0 || !is_word_char(chars[i - 1]));
-        if !start_ok {
-            i += 1;
-            continue;
-        }
-        let mut j = i + 1;
-        while j < chars.len() && chars[j].is_ascii_digit() {
-            j += 1;
-        }
-        if j + 1 < chars.len() && chars[j] == '.' && chars[j + 1].is_ascii_digit() {
-            j += 2;
-            while j < chars.len() && chars[j].is_ascii_digit() {
-                j += 1;
-            }
-        }
-        let mut k = j;
-        while k < chars.len() && chars[k] == ' ' {
-            k += 1;
-        }
-        if chars.get(j) == Some(&'-') {
-            let rest: String = chars[j + 1..].iter().collect();
-            if rest.starts_with("fold") {
-                let after = "fold".len();
-                if after >= rest.len() || !is_word_char(rest[after..].chars().next().unwrap_or(' ')) {
-                    return true;
-                }
-            }
-        }
-        if chars.get(k) == Some(&'%') {
-            let mut m = k + 1;
-            while m < chars.len() && chars[m] == ' ' {
-                m += 1;
-            }
-            let rest: String = chars[m..].iter().collect();
-            if rest.starts_with("faster") {
-                let after = "faster".len();
-                if after >= rest.len() || !is_word_char(rest[after..].chars().next().unwrap_or(' ')) {
-                    return true;
-                }
-            }
-        }
-        if k < chars.len() && (chars[k] == 'x' || chars[k] == '\u{00d7}') {
-            let zero = chars[i..j].iter().all(|c| *c == '0' || *c == '.');
-            let hex = zero && chars[k] == 'x';
-            if !hex {
-                let after = k + 1;
-                if after >= chars.len() || is_x_tail(chars[after]) {
-                    return true;
-                }
-            }
-        }
-        if k > j {
-            let rest: String = chars[k..].iter().collect();
-            if rest.starts_with("times") {
-                let after = "times".len();
-                if after >= rest.len() || !is_word_char(rest[after..].chars().next().unwrap_or(' ')) {
-                    return true;
-                }
-            }
-        }
-        i = j;
-    }
-    false
-}
-
 fn without_urls(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     let mut rest = s;
@@ -764,18 +690,89 @@ fn is_self_baseline(lower: &str) -> bool {
     has_nx_own(lower)
 }
 
+/// A bare `20x`, `3 times`, or `20.3-fold` names a rival only when that rival
+/// follows the number. "2x vLLM" and "20.3-fold vLLM" count. "Claude Max 20x plan"
+/// does not: Claude is the product, and 20x is the plan name.
+fn bare_multiplier_targets_rival(lower: &str) -> bool {
+    let chars: Vec<char> = lower.chars().collect();
+    let mut i = 0;
+    while i < chars.len() {
+        let start_ok = chars[i].is_ascii_digit() && (i == 0 || !is_word_char(chars[i - 1]));
+        if !start_ok {
+            i += 1;
+            continue;
+        }
+        let mut j = i + 1;
+        while j < chars.len() && chars[j].is_ascii_digit() {
+            j += 1;
+        }
+        if j + 1 < chars.len() && chars[j] == '.' && chars[j + 1].is_ascii_digit() {
+            j += 2;
+            while j < chars.len() && chars[j].is_ascii_digit() {
+                j += 1;
+            }
+        }
+        let mut k = j;
+        while k < chars.len() && chars[k] == ' ' {
+            k += 1;
+        }
+        let mut tail_at: Option<usize> = None;
+        if chars.get(j) == Some(&'-') {
+            let rest: String = chars[j + 1..].iter().collect();
+            if rest.starts_with("fold") {
+                let after = "fold".len();
+                if after >= rest.len() || !is_word_char(rest[after..].chars().next().unwrap_or(' ')) {
+                    tail_at = Some(j + 1 + "fold".chars().count());
+                }
+            }
+        }
+        if k < chars.len() && (chars[k] == 'x' || chars[k] == '\u{00d7}') {
+            let zero = chars[i..j].iter().all(|c| *c == '0' || *c == '.');
+            let hex = zero && chars[k] == 'x';
+            if !hex {
+                let after = k + 1;
+                if after >= chars.len() || is_x_tail(chars[after]) {
+                    tail_at = Some(after);
+                }
+            }
+        }
+        if k > j {
+            let rest: String = chars[k..].iter().collect();
+            if rest.starts_with("times") {
+                let after = "times".len();
+                if after >= rest.len() || !is_word_char(rest[after..].chars().next().unwrap_or(' ')) {
+                    tail_at = Some(k + "times".chars().count());
+                }
+            }
+        }
+        if let Some(at) = tail_at {
+            let tail: String = chars[at..].iter().collect();
+            if has_outside_system(&tail) || has_rival(&tail) {
+                return true;
+            }
+        }
+        i = j;
+    }
+    false
+}
+
 fn context_is_claim(lower: &str) -> bool {
-    let triggered = has_context_word(lower)
-        || has_context_phrase(lower)
-        || has_multiplier(lower)
-        || has_attached_comparative(lower);
-    if !triggered {
+    let word_or_phrase = has_context_word(lower) || has_context_phrase(lower);
+    let attached = has_attached_comparative(lower);
+    let aimed = bare_multiplier_targets_rival(lower);
+    if !word_or_phrase && !attached && !aimed {
         return false;
     }
     if is_self_baseline(lower) && !has_outside_system(lower) && !has_rival(lower) {
         return false;
     }
-    has_attached_comparative(lower) || has_outside_system(lower) || has_rival(lower)
+    if attached {
+        return true;
+    }
+    if word_or_phrase && (has_outside_system(lower) || has_rival(lower)) {
+        return true;
+    }
+    aimed
 }
 
 fn is_comparison_claim(s: &str) -> bool {
@@ -1882,6 +1879,8 @@ mod tests {
             "parity with CUDA++",
             "twice CUDA++",
             "The GPU half of Omega, with no NVIDIA software.",
+            "Claude Max 20x plan.",
+            "Claude Max 20x planread 2026-10-30T14:45Z",
         ];
         for sentence in pass {
             assert!(
