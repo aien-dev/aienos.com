@@ -48,7 +48,7 @@ pub const COMPARISON_PHRASES: &[&str] = &[
 /// Superlatives ("fastest", "slowest", "quickest", "best", "worst") count only
 /// beside a project name, in `has_guarded_word`.
 /// "beat", "parity", "trails" and "lags" are context-bound, in `CONTEXT_WORDS`.
-pub const COMPARISON_WORDS: &[&str] = &["equals", "outdoes", "tops"];
+pub const COMPARISON_WORDS: &[&str] = &["equals", "outdoes", "tops", "rivals"];
 
 /// Count only when the same sentence also names an outside system, a rival
 /// noun, or a number glued to the comparative ("2x faster", "half as fast").
@@ -102,11 +102,14 @@ const RIVAL_NOUNS: &[&str] = &[
     "the field",
     "everyone else",
     "existing tools",
+    "rival",
 ];
 
 /// A word that starts with one of these, case-insensitively: outperforms,
-/// outpaced, surpasses, exceeded, rivals, rivalry.
-pub const COMPARISON_STEMS: &[&str] = &["outperform", "outpace", "surpass", "exceed", "rival"];
+/// outpaced, surpasses, exceeded. "rival" is a noun in `RIVAL_NOUNS`, not a
+/// stem: "holds back every rival" is not a comparison. The verb "rivals" is
+/// a comparison word on its own.
+pub const COMPARISON_STEMS: &[&str] = &["outperform", "outpace", "surpass", "exceed"];
 
 /// Overclaims. These stay banned even when a date and a link sit beside them.
 /// Phrases are lowercase; callers compare a lowercased string.
@@ -523,6 +526,42 @@ fn has_within_percent(lower: &str) -> bool {
     false
 }
 
+fn is_timezone(word: &str) -> bool {
+    matches!(word, "cdt" | "cst" | "edt" | "est" | "mdt" | "mst" | "pdt" | "pst" | "utc" | "gmt")
+}
+
+/// `19:3x`, `~19:30` and a trailing timezone are clock tokens. They are not
+/// multipliers. A later `3x faster` in the same sentence still counts.
+fn is_clock_multiplier(chars: &[char], number_start: usize, after_mark: usize) -> bool {
+    if number_start > 0 && chars[number_start - 1] == ':' {
+        let mut k = number_start - 1;
+        if k > 0 {
+            k -= 1;
+            if chars[k].is_ascii_digit() {
+                let mut digits = 1usize;
+                while k > 0 && chars[k - 1].is_ascii_digit() && digits < 2 {
+                    k -= 1;
+                    digits += 1;
+                }
+                let before = if k == 0 { None } else { Some(chars[k - 1]) };
+                if matches!(before, None | Some('~')) || before.is_some_and(|c| c.is_whitespace()) {
+                    return true;
+                }
+            }
+        }
+    }
+    let mut m = after_mark;
+    while m < chars.len() && chars[m] == ' ' {
+        m += 1;
+    }
+    if m >= chars.len() {
+        return false;
+    }
+    let rest: String = chars[m..].iter().collect();
+    let word = rest.split(|c: char| !is_word_char(c)).next().unwrap_or("");
+    is_timezone(word)
+}
+
 fn is_x_tail(c: char) -> bool {
     c.is_whitespace()
         || matches!(c, '.' | ',' | ';' | ':' | '!' | '?' | ')' | ']' | '"' | '\'' | '\u{201d}' | '\u{2019}')
@@ -576,6 +615,18 @@ fn phrase_claim(lower: &str) -> bool {
             let after = i + phrase.len();
             let after_ok = after >= lower.len() || !is_word_char(lower.as_bytes()[after] as char);
             if before_ok && after_ok {
+                // "ahead of time" is an idiom, not a comparison. "ahead of NVIDIA" still is.
+                if *phrase == "ahead of" {
+                    let rest = lower[after..].trim_start();
+                    if rest.starts_with("time") {
+                        let n = "time".len();
+                        let boundary = n >= rest.len() || !is_word_char(rest[n..].chars().next().unwrap());
+                        if boundary {
+                            from = i + phrase.len();
+                            continue;
+                        }
+                    }
+                }
                 let denial = (*phrase == "comparable to" || *phrase == "competitive with") && negated_before(lower, i);
                 if !denial {
                     return true;
@@ -797,7 +848,7 @@ fn bare_multiplier_targets_rival(lower: &str) -> bool {
             let hex = zero && chars[k] == 'x';
             if !hex {
                 let after = k + 1;
-                if after >= chars.len() || is_x_tail(chars[after]) {
+                if (after >= chars.len() || is_x_tail(chars[after])) && !is_clock_multiplier(&chars, i, after) {
                     tail_at = Some(after);
                 }
             }
@@ -853,7 +904,7 @@ fn has_multiplier(lower: &str) -> bool {
             let after = k + 1;
             if after >= chars.len() || is_x_tail(chars[after]) {
                 let zero = chars[i..j].iter().all(|c| *c == '0' || *c == '.');
-                if !(zero && chars[k] == 'x') {
+                if !(zero && chars[k] == 'x') && !is_clock_multiplier(&chars, i, after) {
                     return true;
                 }
             }
@@ -915,7 +966,7 @@ fn colon_nx_targets_rival(lower: &str) -> bool {
             m += 1;
         }
         let times = m < chars.len() && (chars[m] == 'x' || chars[m] == '\u{00d7}');
-        if !times {
+        if !times || is_clock_multiplier(&chars, k, m + 1) {
             i += 1;
             continue;
         }
@@ -1388,6 +1439,188 @@ pub fn comparison_errors_at(path: &str, text: &str) -> Vec<String> {
     } else {
         comparison_errors(text)
     }
+}
+
+fn section_is_exempt(rel: &str) -> bool {
+    is_prose_exempt(&format!("public/{rel}")) || is_prose_exempt(rel)
+}
+
+/// `https://www.aienos.com/now/` becomes `now/index.html`. Anything else is unmapped.
+fn map_aienos_page(url: &str) -> Option<String> {
+    let url = url.trim().trim_end_matches(|c: char| c == '.' || c == ')');
+    let rest = url
+        .strip_prefix("https://www.aienos.com")
+        .or_else(|| url.strip_prefix("http://www.aienos.com"))
+        .or_else(|| url.strip_prefix("https://aienos.com"))
+        .or_else(|| url.strip_prefix("http://aienos.com"))?;
+    let path = rest.split(['?', '#', ' ']).next().unwrap_or("");
+    if !path.is_empty() && !path.starts_with('/') {
+        return None;
+    }
+    let rel = path.trim_matches('/');
+    if rel.is_empty() {
+        Some("index.html".to_string())
+    } else if rel.ends_with(".html") || rel.ends_with(".md") || rel.ends_with(".json") || rel.ends_with(".tsv") {
+        Some(rel.to_string())
+    } else {
+        Some(format!("{rel}/index.html"))
+    }
+}
+
+fn norm_ws(s: &str) -> String {
+    s.split_whitespace().collect::<Vec<_>>().join(" ").to_ascii_lowercase()
+}
+
+/// Fields from the public ledger long enough to identify a row. A sentence that
+/// contains one of these is that row, not a new claim on the page.
+fn ledger_fields(ledger: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    for line in ledger.lines() {
+        for field in line.split('\t') {
+            let n = norm_ws(field);
+            if n.chars().count() >= 40 {
+                out.push(n);
+            }
+        }
+    }
+    out
+}
+
+fn is_ledger_excerpt(sentence: &str, fields: &[String]) -> bool {
+    let s = norm_ws(sentence);
+    let n = s.chars().count();
+    if n < 40 {
+        return false;
+    }
+    fields.iter().any(|field| s.contains(field.as_str()) || field.contains(s.as_str()))
+}
+
+/// `llms-full.txt` is one file with one section per page. Each section is
+/// checked under its own source path. An exempt paper, receipt or ledger
+/// section is skipped. A sentence copied from the public ledger stays with
+/// the ledger. A section with no mappable source fails closed. The file as a
+/// whole is not exempt.
+fn push_line_problems(problems: &mut Vec<String>, n: usize, label: &str, line: &str, fields: &[String]) {
+    if is_ledger_excerpt(line, fields) {
+        return;
+    }
+    for sentence in split_sentences(line) {
+        if is_ledger_excerpt(&sentence, fields) {
+            continue;
+        }
+        if let Some(kind) = comparison_problem(&sentence) {
+            problems.push(format!("llms-full.txt:{n} ({label}): {kind} in {sentence:?}"));
+        }
+    }
+}
+
+pub fn llms_full_problems(text: &str, ledger: &str) -> Vec<String> {
+    let fields = ledger_fields(ledger);
+    let mut problems = Vec::new();
+    // None: file banner, before the first section. Some(None): section not yet
+    // mapped. Some(Some(path)): mapped page.
+    let mut section: Option<Option<String>> = None;
+    let mut exempt = false;
+    let mut reported_unmapped = false;
+    let mut section_line = 1usize;
+    let mut in_fence = false;
+    let mut prelude: Vec<(usize, String)> = Vec::new();
+    let flush = |section: &mut Option<Option<String>>,
+                 reported_unmapped: bool,
+                 section_line: usize,
+                 prelude: &mut Vec<(usize, String)>,
+                 problems: &mut Vec<String>,
+                 fields: &[String]| {
+        if let Some(None) = section {
+            if !reported_unmapped && !prelude.is_empty() {
+                problems.push(format!("llms-full.txt:{section_line}: unmapped section"));
+                for (n, line) in prelude.iter() {
+                    push_line_problems(problems, *n, "unmapped", line, fields);
+                }
+            }
+            *section = None;
+        }
+        prelude.clear();
+    };
+    for (idx, line) in text.lines().enumerate() {
+        let n = idx + 1;
+        // html_to_text emits pre and textarea as fenced blocks. The page check
+        // skips that program text, so the section check skips the same blocks.
+        // A "---" inside a fence is program text, not the next page.
+        if in_fence {
+            if line.trim() == "```" {
+                in_fence = false;
+            }
+            continue;
+        }
+        if line.trim() == "```" {
+            in_fence = true;
+            continue;
+        }
+        if line == "---" {
+            flush(&mut section, reported_unmapped, section_line, &mut prelude, &mut problems, &fields);
+            section = Some(None);
+            exempt = false;
+            reported_unmapped = false;
+            section_line = n;
+            continue;
+        }
+        if let Some(rest) = line.strip_prefix("Source: ") {
+            if section.is_none() {
+                section_line = n;
+            }
+            match map_aienos_page(rest) {
+                Some(path) => {
+                    exempt = section_is_exempt(&path);
+                    if exempt {
+                        prelude.clear();
+                    } else {
+                        for (pn, pline) in prelude.drain(..) {
+                            push_line_problems(&mut problems, pn, &path, &pline, &fields);
+                        }
+                    }
+                    section = Some(Some(path));
+                }
+                None => {
+                    problems.push(format!("llms-full.txt:{n}: unmapped section {rest}"));
+                    exempt = false;
+                    section = Some(None);
+                    reported_unmapped = true;
+                    for (pn, pline) in prelude.drain(..) {
+                        push_line_problems(&mut problems, pn, "unmapped", &pline, &fields);
+                    }
+                }
+            }
+            continue;
+        }
+        if section.is_none() {
+            for sentence in split_sentences(line) {
+                if let Some(kind) = comparison_problem(&sentence) {
+                    problems.push(format!("llms-full.txt:{n}: {kind} in {sentence:?}"));
+                }
+            }
+            continue;
+        }
+        if line.is_empty() || line.starts_with("Published:") {
+            continue;
+        }
+        if exempt {
+            continue;
+        }
+        match &section {
+            Some(Some(path)) => push_line_problems(&mut problems, n, path, line, &fields),
+            Some(None) => {
+                if reported_unmapped {
+                    push_line_problems(&mut problems, n, "unmapped", line, &fields);
+                } else {
+                    prelude.push((n, line.to_string()));
+                }
+            }
+            None => {}
+        }
+    }
+    flush(&mut section, reported_unmapped, section_line, &mut prelude, &mut problems, &fields);
+    problems
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -2345,6 +2578,51 @@ mod tests {
         assert_eq!(comparison_problem("beating CUDA"), Some("overclaim"));
         assert_eq!(comparison_problem("beating CUDA today"), Some("overclaim"));
         assert!(
+            comparison_problem("convert once ahead of time and store").is_none(),
+            "ahead of time is an idiom: {:?}",
+            comparison_problem("convert once ahead of time and store")
+        );
+        assert_eq!(
+            comparison_problem("Omega is ahead of NVIDIA."),
+            Some("unsourced comparison"),
+            "ahead of a rival is still a comparison"
+        );
+        assert!(
+            comparison_problem("Session-limit cutoff 2026-10-19 ~19:3x CDT killed 9 Claude agents.").is_none(),
+            "a clock token is not a multiplier: {:?}",
+            comparison_problem("Session-limit cutoff 2026-10-19 ~19:3x CDT killed 9 Claude agents.")
+        );
+        assert!(
+            comparison_problem("Noted at ~19:30 CDT on 2026-10-19.").is_none(),
+            "a timestamp is not a multiplier: {:?}",
+            comparison_problem("Noted at ~19:30 CDT on 2026-10-19.")
+        );
+        assert_eq!(
+            comparison_problem("On 2026-10-19 at ~19:30 CDT the run was 3x faster than vLLM."),
+            Some("unsourced comparison"),
+            "a real multiplier beside a timestamp still fails"
+        );
+        assert!(
+            comparison_problem("That grip holds back every rival chipmaker.").is_none(),
+            "holds back plus a rival noun is not a comparison: {:?}",
+            comparison_problem("That grip holds back every rival chipmaker.")
+        );
+        assert!(
+            comparison_problem("holds back every rival chipmaker, every independent builder, and every person who wants intelligence running on hardware they own.").is_none(),
+            "the call-to-humanity sentence is not a comparison: {:?}",
+            comparison_problem("holds back every rival chipmaker, every independent builder, and every person who wants intelligence running on hardware they own.")
+        );
+        assert_eq!(
+            comparison_problem("Omega is faster than every rival chipmaker."),
+            Some("unsourced comparison"),
+            "a rival noun with a real comparative still fails"
+        );
+        assert_eq!(
+            comparison_problem("This rivals vLLM."),
+            Some("unsourced comparison"),
+            "the verb rivals is still a comparison"
+        );
+        assert!(
             comparison_problem("beating CUDA++").is_none(),
             "beating CUDA++ is this project's GPU half, not the beating-CUDA overclaim: {:?}",
             comparison_problem("beating CUDA++")
@@ -2361,6 +2639,76 @@ mod tests {
         ] {
             assert!(comparison_problem(sentence).is_none(), "must pass: {sentence:?} -> {:?}", comparison_problem(sentence));
         }
+    }
+
+    #[test]
+    fn llms_full_is_checked_section_by_section() {
+        let ledger = "id\titem\nL1\tCUDA++ developer experience includes a D-bar that beats CUDA in the written plan for the driver work\n";
+        let doc = "\
+# Sovereign Intelligence
+
+The site in one file.
+
+---
+
+# A Call to Humanity
+
+Source: https://www.aienos.com/call-to-humanity/
+
+This beats vLLM with no date.
+
+---
+
+# Now
+
+Source: https://www.aienos.com/now/
+
+CUDA++ developer experience includes a D-bar that beats CUDA in the written plan for the driver work
+The now page itself is faster than vLLM.
+
+---
+
+# Agents
+
+Source: https://www.aienos.com/agents/
+
+Same-Spark end-to-end head-to-head: aien-serve-http vs vLLM vs llama.cpp.
+
+---
+
+# Nowhere
+
+Source: https://example.com/not-a-page
+
+Omega beats CUDA.
+
+---
+
+# Reference
+
+Source: https://www.aienos.com/omega/reference/
+
+```
+note collatz: exceeding it traps 4
+---
+```
+
+The reference page itself is faster than CUDA.
+";
+        let problems = llms_full_problems(doc, ledger);
+        let joined = problems.join("\n");
+        assert!(!joined.contains("call-to-humanity"), "exempt source must be skipped: {joined}");
+        assert!(!joined.contains("D-bar that beats CUDA"), "a ledger excerpt is not a new page claim: {joined}");
+        assert!(joined.contains("now/index.html") && joined.contains("faster than vLLM"), "the now page's own sentence still fails: {joined}");
+        assert!(joined.contains("agents/index.html") && joined.contains("vs vLLM"), "a live page section still fails: {joined}");
+        assert!(joined.contains("unmapped"), "an unmapped source fails closed: {joined}");
+        assert!(!joined.contains("exceeding it traps"), "program text in a fence is not page prose: {joined}");
+        assert!(
+            joined.contains("omega/reference/index.html") && joined.contains("faster than CUDA"),
+            "prose after a fence is still checked: {joined}"
+        );
+        assert!(!is_prose_exempt("llms-full.txt"), "the aggregate file is not itself exempt");
+        assert!(!is_prose_exempt("public/llms-full.txt"));
     }
 
     #[test]

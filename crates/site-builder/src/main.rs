@@ -615,9 +615,16 @@ fn collect_comparison_pages(dist: &Path, dir: &Path, bad: &mut Vec<(PathBuf, Str
                     return Err(msg);
                 }
             };
-            let key = comparison_page_key(dist, &path);
-            for problem in components::machines::comparison_errors_at(&key, &content) {
-                bad.push((path.clone(), problem));
+            if path.file_name().and_then(|n| n.to_str()) == Some("llms-full.txt") {
+                let ledger = fs::read_to_string(dist.join("data/now.tsv")).unwrap_or_default();
+                for problem in components::machines::llms_full_problems(&content, &ledger) {
+                    bad.push((path.clone(), problem));
+                }
+            } else {
+                let key = comparison_page_key(dist, &path);
+                for problem in components::machines::comparison_errors_at(&key, &content) {
+                    bad.push((path.clone(), problem));
+                }
             }
         }
     }
