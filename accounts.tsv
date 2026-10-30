@@ -1,17 +1,17 @@
-checked	2026-10-30T14:35Z
-limit	Anthropic	1		5h	Claude 5 Hour	5	2026-10-30T15:40Z	ok
-limit	Anthropic	1		week	Claude 7 Day	94	2026-11-02T04:00Z	ok
-limit	Anthropic	1		week	Claude 7 Day (Fable)	51	2026-11-02T03:59Z	ok
+checked	2026-10-30T15:05Z
+limit	Anthropic	1		5h	Claude 5 Hour	26	2026-10-30T15:40Z	ok
+limit	Anthropic	1		week	Claude 7 Day	100	2026-11-02T04:00Z	exhausted
+limit	Anthropic	1		week	Claude 7 Day (Fable)	51	2026-11-02T04:00Z	ok
 limit	Anthropic	2		5h	Claude 5 Hour	0		ok
 limit	Anthropic	2		week	Claude 7 Day	100	2026-10-31T15:59Z	exhausted
 limit	Anthropic	2		week	Claude 7 Day (Fable)	100	2026-10-31T15:59Z	exhausted
-limit	Anthropic	3		5h	Claude 5 Hour	0		ok
-limit	Anthropic	3		week	Claude 7 Day	98	2026-10-31T07:59Z	ok
-limit	Anthropic	3		week	Claude 7 Day (Fable)	63	2026-10-31T07:59Z	ok
+limit	Anthropic	3		5h	Claude 5 Hour	6	2026-10-30T19:50Z	ok
+limit	Anthropic	3		week	Claude 7 Day	99	2026-10-31T08:00Z	ok
+limit	Anthropic	3		week	Claude 7 Day (Fable)	63	2026-10-31T08:00Z	ok
 limit	Anthropic	4		5h	Claude 5 Hour	0		ok
-limit	Anthropic	4		week	Claude 7 Day	100	2026-11-02T14:00Z	exhausted
-limit	Anthropic	4		week	Claude 7 Day (Fable)	55	2026-11-02T14:00Z	ok
+limit	Anthropic	4		week	Claude 7 Day	100	2026-11-02T13:59Z	exhausted
+limit	Anthropic	4		week	Claude 7 Day (Fable)	55	2026-11-02T13:59Z	ok
 limit	OpenAI Codex	1		week	7 days	100	2026-11-04T21:04Z	exhausted
-limit	xAI Grok	1		week	Cursor (Weekly)	46	2026-11-05T10:39Z	ok
-limit	xAI Grok	1		week	GrokBot (Weekly)	21	2026-11-05T10:39Z	ok
-limit	xAI Grok	1		week	SuperGrok Weekly Credits	67	2026-11-05T10:39Z	ok
+limit	xAI Grok	1		week	Cursor (Weekly)	50	2026-11-05T10:39Z	ok
+limit	xAI Grok	1		week	GrokBot (Weekly)	22	2026-11-05T10:39Z	ok
+limit	xAI Grok	1		week	SuperGrok Weekly Credits	72	2026-11-05T10:39Z	ok
