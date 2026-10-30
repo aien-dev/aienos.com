@@ -607,14 +607,15 @@ fn verify_site(dist: &Path) {
     assert!(content.contains("<ol class=\"loop-stages\""), "Missing loop stage list in index.html");
 
     // The machines and the speeds (components::machines): five machines,
-    // the 27B on Omega first, every number beside its receipt, and no
+    // the 35B end to end first, every number beside its receipt, and no
     // comparison with anyone else's system anywhere on the homepage.
     assert!(content.contains("id=\"machines\""), "Missing machines section in index.html");
     assert!(content.contains("id=\"speed\""), "Missing speed section in index.html");
-    for id in ["machine-spark", "machine-imac", "machine-pi5", "machine-qemu", "machine-rig", "speed-27b-live"] {
+    for id in ["machine-spark", "machine-imac", "machine-pi5", "machine-qemu", "machine-rig", "speed-35b-e2e", "speed-27b-live"] {
         assert!(content.contains(&format!("id=\"{id}\"")), "Missing {id} in index.html");
     }
-    assert!(content.contains("7.63 tok/s"), "Missing the live 27B speed in index.html");
+    assert!(content.contains("22.0 to 22.5"), "Missing the 35B end-to-end speed in index.html");
+    assert!(content.contains("7.63"), "Missing the 27B chip-time row in index.html");
     {
         let lower = content.to_ascii_lowercase();
         for w in components::machines::FORBIDDEN {
@@ -682,7 +683,7 @@ fn verify_site(dist: &Path) {
         let o = fs::read_to_string(&omega_page).expect("read omega page");
         for phrase in [
             "Omega is Aien&#39;s language for all computing, GPU to CPU.",
-            "On the GPU, that makes Omega the replacement for CUDA.",
+            "Replacing CUDA on the GPU is not true yet.",
             "id=\"cuda-map\"",
             "id=\"today\"",
             "id=\"not-yet\"",
