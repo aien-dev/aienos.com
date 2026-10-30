@@ -579,6 +579,7 @@ https://github.com/aien-dev/aienos.com/commit/74a40ff6ac399db5dd9908664e2c05281f
         for url in [
             format!("{commit}/../../../../evil/repo/commit/{sha}"),
             format!("https://github.com/aien-dev/./commit/{sha}"),
+            format!("{commit}/./extra"),
             format!("https://github.com/aien-dev/../commit/{sha}"),
             format!("{commit}/../other"),
             format!("https://github.com/aien-dev/aienos.com//commit/{sha}"),
@@ -597,6 +598,7 @@ https://github.com/aien-dev/aienos.com/commit/74a40ff6ac399db5dd9908664e2c05281f
         for url in [
             format!("{run}/../../../../evil/repo/actions/runs/1"),
             "https://github.com/aien-dev/./actions/runs/12345678901".to_string(),
+            format!("{run}/./extra"),
             "https://github.com/aien-dev/../actions/runs/12345678901".to_string(),
             format!("{run}/../hello"),
             "https://github.com/aien-dev/aienos.com/actions//runs/12345678901".to_string(),
