@@ -328,12 +328,27 @@ mod tests {
         (1..=max).contains(&day)
     }
 
+    /// One GitHub URL for an aien-dev commit, a blob pinned to a commit, or an
+    /// Actions run. `.` and `..` segments, an empty segment (`//`), and any
+    /// `?`, `#`, or `%` are refused on the org, the repo, and the file path,
+    /// so the link cannot traverse into another org or hide another path.
+    /// The same rules apply to commit and Actions run URLs.
+    ///
+    /// A commit sha must be lowercase hex. That is GitHub's canonical object
+    /// id. An uppercase sha is a different spelling and is refused.
     fn is_specific_aien_url(raw: &str) -> bool {
+        if raw.chars().any(|c| matches!(c, '?' | '#' | '%')) {
+            return false;
+        }
         let url = raw.trim_end_matches(|c: char| matches!(c, '.' | ',' | ';' | ')'));
         let Some(rest) = url.strip_prefix("https://github.com/") else {
             return false;
         };
-        let mut segs = rest.split('/');
+        let segs: Vec<&str> = rest.split('/').collect();
+        if segs.iter().any(|seg| seg.is_empty() || *seg == "." || *seg == "..") {
+            return false;
+        }
+        let mut segs = segs.into_iter();
         // The org segment must be exactly aien-dev, so aien-devx and aien-dev.evil fail.
         if segs.next() != Some("aien-dev") {
             return false;
@@ -341,12 +356,13 @@ mod tests {
         let Some(repo) = segs.next() else {
             return false;
         };
-        if repo.is_empty()
-            || !repo.bytes().all(|c| c.is_ascii_alphanumeric() || matches!(c, b'_' | b'.' | b'-'))
-        {
+        if !repo.bytes().all(|c| c.is_ascii_alphanumeric() || matches!(c, b'_' | b'.' | b'-')) {
             return false;
         }
-        let hex40 = |s: &str| s.len() == 40 && s.bytes().all(|c| c.is_ascii_hexdigit() && !c.is_ascii_uppercase());
+        // Lowercase only. GitHub's canonical sha is lowercase hex.
+        let hex40 = |s: &str| {
+            s.len() == 40 && s.bytes().all(|c| c.is_ascii_hexdigit() && !c.is_ascii_uppercase())
+        };
         match segs.next() {
             Some("commit") => {
                 let Some(sha) = segs.next() else {
@@ -358,9 +374,9 @@ mod tests {
                 let Some(sha) = segs.next() else {
                     return false;
                 };
-                // A pinned commit and at least one non-empty path segment.
+                // A pinned commit and at least one file path segment.
                 // blob/main/ and a trailing slash alone are not a file.
-                hex40(sha) && segs.any(|seg| !seg.is_empty())
+                hex40(sha) && segs.next().is_some()
             }
             Some("actions") => {
                 segs.next() == Some("runs")
@@ -529,5 +545,77 @@ https://github.com/aien-dev/aienos.com/commit/74a40ff6ac399db5dd9908664e2c05281f
     fn a_url_before_the_date_is_refused() {
         let text = "The hello door is live. hello-door-live-receipt: https://github.com/aien-dev/aienos.com/commit/74a40ff6ac399db5dd9908664e2c05281ff27bcd 2026-10-30";
         assert!(live_claim_without_receipt(text).is_some());
+    }
+
+    fn assert_receipt_refused(url: &str) {
+        let text = format!("The hello door is live. hello-door-live-receipt: 2026-10-30 {url}");
+        assert!(live_claim_without_receipt(&text).is_some(), "unsafe url accepted: {url}");
+    }
+
+    #[test]
+    fn a_blob_url_that_leaves_the_path_is_refused() {
+        let sha = "74a40ff6ac399db5dd9908664e2c05281ff27bcd";
+        let base = format!("https://github.com/aien-dev/aienos.com/blob/{sha}");
+        for url in [
+            format!("{base}/../../../../evil/repo/blob/{sha}/hello.txt"),
+            format!("{base}/./hello.txt"),
+            format!("https://github.com/aien-dev/./aienos.com/blob/{sha}/hello.txt"),
+            format!("https://github.com/aien-dev/../aienos.com/blob/{sha}/hello.txt"),
+            format!("{base}/../hello.txt"),
+            format!("{base}//hello.txt"),
+            format!("https://github.com/aien-dev//aienos.com/blob/{sha}/hello.txt"),
+            format!("{base}/hello.txt?x=1"),
+            format!("{base}/hello.txt#frag"),
+            format!("{base}/%2e%2e/hello.txt"),
+        ] {
+            assert_receipt_refused(&url);
+        }
+    }
+
+    #[test]
+    fn a_commit_url_that_leaves_the_path_is_refused() {
+        let sha = "74a40ff6ac399db5dd9908664e2c05281ff27bcd";
+        let commit = format!("https://github.com/aien-dev/aienos.com/commit/{sha}");
+        for url in [
+            format!("{commit}/../../../../evil/repo/commit/{sha}"),
+            format!("https://github.com/aien-dev/./commit/{sha}"),
+            format!("https://github.com/aien-dev/../commit/{sha}"),
+            format!("{commit}/../other"),
+            format!("https://github.com/aien-dev/aienos.com//commit/{sha}"),
+            format!("https://github.com//aien-dev/aienos.com/commit/{sha}"),
+            format!("{commit}?x=1"),
+            format!("{commit}#frag"),
+            format!("https://github.com/aien-dev/aienos.com/commit/%2e%2e"),
+        ] {
+            assert_receipt_refused(&url);
+        }
+    }
+
+    #[test]
+    fn a_run_url_that_leaves_the_path_is_refused() {
+        let run = "https://github.com/aien-dev/aienos.com/actions/runs/12345678901";
+        for url in [
+            format!("{run}/../../../../evil/repo/actions/runs/1"),
+            "https://github.com/aien-dev/./actions/runs/12345678901".to_string(),
+            "https://github.com/aien-dev/../actions/runs/12345678901".to_string(),
+            format!("{run}/../hello"),
+            "https://github.com/aien-dev/aienos.com/actions//runs/12345678901".to_string(),
+            "https://github.com/aien-dev//aienos.com/actions/runs/12345678901".to_string(),
+            format!("{run}?x=1"),
+            format!("{run}#frag"),
+            "https://github.com/aien-dev/aienos.com/actions/runs/%2e%2e".to_string(),
+        ] {
+            assert_receipt_refused(&url);
+        }
+    }
+
+    #[test]
+    fn an_uppercase_sha_is_refused() {
+        // GitHub's canonical sha is lowercase hex, so this spelling is refused.
+        let sha = "74a40ff6ac399db5dd9908664e2c05281ff27bcd".to_ascii_uppercase();
+        assert_receipt_refused(&format!("https://github.com/aien-dev/aienos.com/commit/{sha}"));
+        assert_receipt_refused(&format!(
+            "https://github.com/aien-dev/aienos.com/blob/{sha}/evidence/hello.txt"
+        ));
     }
 }
