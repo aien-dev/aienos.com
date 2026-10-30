@@ -10,6 +10,7 @@ introduction is.
 import io
 import json
 import os
+import re
 import sys
 import tempfile
 import threading
@@ -99,11 +100,18 @@ class Call:
         self.body_read = False
 
 
-def post(app, path, obj=None, raw=None, headers=None):
+def post(app, path, obj=None, raw=None, headers=None, version="1.0", content_type="application/json"):
     if raw is None:
         raw = json.dumps(obj).encode()
     call = allen_chat.Handler.__new__(allen_chat.Handler)
     src = Call(app, raw, path, headers)
+    if "Content-Type" in src.headers:
+        src.headers.replace_header("Content-Type", content_type)
+    else:
+        src.headers["Content-Type"] = content_type
+    route = path.split("?", 1)[0]
+    if version is not False and route == "/allen/api/a2a" and "A2A-Version" not in src.headers:
+        src.headers["A2A-Version"] = version
     call.__dict__.update(src.__dict__)
     call.server = type("S", (), {"app": app})()
     call.do_POST()
@@ -196,6 +204,8 @@ def test_consent():
             ("missing consent", missing),
             ("consent false", intro(consent=False)),
             ("consent as string", intro(consent="true")),
+            ("consent number 1", intro(consent=1)),
+            ("consent yes", intro(consent="yes")),
         )
         for name, fields in cases:
             st, hdrs, body = post(app, "/allen/api/a2a", rpc("SendMessage", message(fields)))
@@ -290,6 +300,97 @@ def test_nothing_stored():
         os.rmdir(drop)
 
 
+def test_version():
+    drop = tempfile.mkdtemp(prefix="a2a-version-")
+    app = App(drop)
+    try:
+        for name, kwargs in (
+            ("missing header", {"version": False}),
+            ("empty header", {"version": ""}),
+            ("header 0.3", {"version": "0.3"}),
+            ("blank header", {"version": "  "}),
+        ):
+            st, hdrs, body = post(app, "/allen/api/a2a", rpc("SendMessage", message(intro())), **kwargs)
+            err = (body or {}).get("error", {})
+            check("A2A-Version %s is 0.3 and stores nothing" % name,
+                  st == 200 and no_store(hdrs) and err.get("code") == -32009 and not files(drop),
+                  "status %s code %s body %s" % (st, err.get("code"), body))
+        st, hdrs, body = post(app, "/allen/api/a2a?A2A-Version=1.0",
+                              rpc("SendMessage", message(intro(name="Query Version"))), version=False)
+        check("query A2A-Version 1.0 is accepted when the header is absent",
+              st == 200 and no_store(hdrs) and (body or {}).get("result", {}).get("message", {}).get("role") == "ROLE_AGENT"
+              and len(files(drop)) == 1,
+              "status %s code %s" % (st, (body or {}).get("error")))
+    finally:
+        for name in files(drop):
+            os.remove(os.path.join(drop, name))
+        os.rmdir(drop)
+
+
+def nginx_patterns(conf, variable):
+    """Regexes that the named map assigns 0, after nginx double-quote escapes."""
+    chunk = conf.split("map $content_type $%s {" % variable, 1)[1].split("}", 1)[0]
+    patterns = []
+    for quoted in re.findall(r'"~\*(.*?)"\s+0;', chunk):
+        out = []
+        i = 0
+        while i < len(quoted):
+            if quoted[i] == "\\" and i + 1 < len(quoted):
+                nxt = quoted[i + 1]
+                out.append({"\\": "\\", "t": "\t", "n": "\n", "r": "\r"}.get(nxt, "\\" + nxt))
+                i += 2
+            else:
+                out.append(quoted[i])
+                i += 1
+        patterns.append("".join(out))
+    return patterns
+
+
+def ctype_allowed(patterns, ctype):
+    return any(re.search(pat, ctype, re.IGNORECASE) for pat in patterns)
+
+
+def test_a2a_content_type():
+    drop = tempfile.mkdtemp(prefix="a2a-ctype-")
+    app = App(drop)
+    zones = open(os.path.join(HERE, "nginx-allen-zones.conf"), encoding="utf-8").read()
+    loc = open(os.path.join(HERE, "nginx-allen-location.conf"), encoding="utf-8").read()
+    block = loc.split("location = /allen/api/a2a {", 1)[1].split("\n    }", 1)[0]
+    a2a_pats = nginx_patterns(zones, "allen_a2a_notjson")
+    json_pats = nginx_patterns(zones, "allen_notjson")
+    try:
+        check("a2a location does not use $allen_notjson",
+              "$allen_notjson" not in block and "if ($allen_a2a_notjson)" in block,
+              block.strip().splitlines()[0] if block.strip() else "missing")
+        check("application/a2a+json is allowed only on the a2a map",
+              ctype_allowed(a2a_pats, "application/a2a+json")
+              and ctype_allowed(a2a_pats, "application/a2a+json; charset=utf-8")
+              and ctype_allowed(a2a_pats, "application/json")
+              and not ctype_allowed(a2a_pats, "text/plain")
+              and not ctype_allowed(json_pats, "application/a2a+json")
+              and ctype_allowed(json_pats, "application/json"),
+              "a2a %s json %s" % (a2a_pats, json_pats))
+        st, hdrs, body = post(app, "/allen/api/a2a", rpc("SendMessage", message(intro(name="A2A Type"))),
+                              content_type="application/a2a+json")
+        err = (body or {}).get("error")
+        check("application/a2a+json is not a 415 and stores the introduction",
+              st == 200 and st != 415 and no_store(hdrs) and err is None and len(files(drop)) == 1,
+              "status %s err %s drops %d" % (st, err, len(files(drop))))
+        st, hdrs, body = post(app, "/allen/api/a2a", rpc("GetTask", message(intro())),
+                              content_type="application/a2a+json; charset=utf-8")
+        check("application/a2a+json with a charset reaches the method",
+              st == 200 and (body or {}).get("error", {}).get("code") == -32004 and len(files(drop)) == 1,
+              "status %s body %s" % (st, body))
+        st, _, body = post(app, "/allen/api/a2a", rpc("SendMessage", message(intro())),
+                           content_type="text/plain")
+        check("text/plain is still 415 and stores nothing more",
+              st == 415 and len(files(drop)) == 1, "status %s drops %d body %s" % (st, len(files(drop)), body))
+    finally:
+        for name in files(drop):
+            os.remove(os.path.join(drop, name))
+        os.rmdir(drop)
+
+
 def test_docs_and_card():
     doc = a2a.__doc__
     required = (
@@ -328,6 +429,8 @@ def main():
     test_malformed()
     test_unsupported()
     test_nothing_stored()
+    test_version()
+    test_a2a_content_type()
     test_docs_and_card()
     failed = [n for n, ok in results if not ok]
     print("%d/%d passed" % (len(results) - len(failed), len(results)))

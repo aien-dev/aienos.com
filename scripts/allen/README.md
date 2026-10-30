@@ -425,7 +425,13 @@ These methods are not supported. Each one is a JSON-RPC error and stores nothing
 
 Older slash names of those same methods return the same codes. `scripts/allen/a2a.py` lists them.
 
+A missing or empty `A2A-Version` is version 0.3. Spec section 3.6.2 says an empty value is 0.3, and section 3.6.1 assumes 0.3 for an empty header. This door implements 1.0 only, so that request returns `-32009` and stores nothing. Send `A2A-Version: 1.0`. When the header is absent, the query parameter `A2A-Version` is read instead.
+
+Rate-limit and daily-cap refusals stay JSON-RPC `-32603`. Spec section 3.3.2 lists "rate limit exceeded" as an example of that code. The A2A table from `-32001` to `-32009` has no rate-limit code.
+
 The location is `location = /allen/api/a2a` in `nginx-allen-location.conf`.
+`$allen_notjson` allows only `application/json`, so this location uses
+`$allen_a2a_notjson`, which also allows `application/a2a+json`.
 On the hub, after that file is installed as `/etc/nginx/snippets/aienos-allen.conf`:
 
     sudo nginx -t
@@ -438,11 +444,28 @@ Then check the response. This asks for `GetTask`, which is not supported, and it
 
     curl -sS -D - -o /tmp/a2a-check.json -X POST https://www.aienos.com/aien/api/a2a \
       -H 'Content-Type: application/json' \
+      -H 'A2A-Version: 1.0' \
       --data '{"jsonrpc":"2.0","id":"deploy-check","method":"GetTask","params":{}}'
 
 Expect HTTP 200, a `Cache-Control: no-store` header, and a JSON body whose
 error code is `-32004`. Nothing is stored. Do not send a consented
 `SendMessage` as the deploy check.
+
+The same call with `Content-Type: application/a2a+json` must not be 415.
+`$allen_notjson` would refuse that media type. This location does not use it:
+
+    curl -sS -D - -o /tmp/a2a-ctype.json -X POST https://www.aienos.com/aien/api/a2a \
+      -H 'Content-Type: application/a2a+json' \
+      -H 'A2A-Version: 1.0' \
+      --data '{"jsonrpc":"2.0","id":"ctype-check","method":"GetTask","params":{}}'
+
+Expect HTTP 200, not 415, `Cache-Control: no-store`, and error code `-32004`.
+
+The same call with no `A2A-Version` header is version 0.3 and returns `-32009`:
+
+    curl -sS -D - -o /tmp/a2a-version.json -X POST https://www.aienos.com/aien/api/a2a \
+      -H 'Content-Type: application/json' \
+      --data '{"jsonrpc":"2.0","id":"version-check","method":"GetTask","params":{}}'
 
 Rollback: restore the previous snippet, run `nginx -t`, then reload.
 

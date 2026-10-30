@@ -28,9 +28,13 @@ Any other method returns JSON-RPC -32601 Method not found. Nothing is stored.
   GetExtendedAgentCard, agent/getAuthenticatedExtendedCard: -32004
     Unsupported operation. capabilities.extendedAgentCard is false.
 
-A request with an A2A-Version header other than 1.0 returns -32009 and stores
-nothing. A missing header is accepted as 1.0. Notifications (a request with no
-id) are rejected with -32600. This door does not take a silent store.
+A2A-Version: spec 3.6.2 says an empty value is version 0.3, and spec 3.6.1
+assumes 0.3 when the header is empty. A missing header is that empty case.
+This door implements 1.0 only, so a missing or empty version is 0.3 and
+returns -32009, and nothing is stored. Send A2A-Version: 1.0. When the header
+is absent, the query parameter A2A-Version is read instead (spec 3.6.1). Any
+other version returns -32009. Notifications (a request with no id) are
+rejected with -32600. This door does not take a silent store.
 
 SendMessage params.message is the introduction. Fields come from message.metadata,
 then from each JSON data part (a later part overrides). A text part is the
@@ -49,6 +53,7 @@ body. Cache-Control stays no-store.
 
 import json
 import secrets
+from urllib.parse import parse_qs, urlsplit
 
 # The introduce door's field names. consent is checked by that door, not copied
 # into the stored record.
@@ -133,15 +138,39 @@ def controls(text):
     return any((ord(c) < 32 and c not in "\n\t") or ord(c) == 127 for c in text)
 
 
-def version_error(headers):
-    """None when the call may proceed. A missing header means 1.0."""
+def _header(headers, name):
+    """(value, present). Missing is not the same as an empty value."""
     if headers is None:
-        return None
-    raw = headers.get("A2A-Version")
-    if raw is None:
-        return None
-    version = str(raw).strip()
-    if version == "" or version == "1.0":
+        return None, False
+    for key in headers.keys():
+        if str(key).lower() == name.lower():
+            return headers.get(key), True
+    return None, False
+
+
+def version_token(headers, path=""):
+    """The version this door must apply.
+
+    Spec 3.6.2: an empty value is 0.3. Spec 3.6.1: an empty header is assumed
+    to be 0.3, and a client may send A2A-Version as a query parameter instead
+    of the header. A missing header is that empty case, so it is 0.3 unless
+    the query parameter is present. This door speaks 1.0 only.
+    """
+    raw, present = _header(headers, "A2A-Version")
+    if not present and path:
+        query = parse_qs(urlsplit(path).query, keep_blank_values=True)
+        if "A2A-Version" in query:
+            raw = query["A2A-Version"][0] if query["A2A-Version"] else ""
+            present = True
+    if not present or raw is None or str(raw).strip() == "":
+        return "0.3"
+    return str(raw).strip()
+
+
+def version_error(headers, path=""):
+    """None when the call is version 1.0. Otherwise VersionNotSupportedError."""
+    version = version_token(headers, path)
+    if version == "1.0":
         return None
     return (-32009, "Version is not supported",
             error_info("VERSION_NOT_SUPPORTED", {"version": version}))
@@ -271,6 +300,8 @@ def map_intro(status, body):
         return -32602, "Invalid parameters", bad_request("message", msg)
     if err == "anonymous":
         return -32602, "Invalid parameters", bad_request("X-Allen-Anonymous", msg)
+    # Spec 3.3.2 names "rate limit exceeded" as an example of -32603. The
+    # -32001 to -32009 table has no rate-limit code, so this stays -32603.
     if err == "rate":
         return -32603, "Internal error", error_info("RATE_LIMITED", {"message": msg})
     if err == "busy":
@@ -293,7 +324,7 @@ def result_message(body, context_id):
     }}
 
 
-def dispatch(raw, headers, accept):
+def dispatch(raw, headers, accept, path=""):
     """One JSON-RPC call. accept(intro) is the introduce door.
 
     Returns (http_status, object, extra_headers). This function does not write
@@ -303,7 +334,7 @@ def dispatch(raw, headers, accept):
     kind, parsed = parse(raw)
     if kind == "error":
         return 200, parsed, None
-    ver = version_error(headers)
+    ver = version_error(headers, path)
     if ver:
         return 200, error_obj(parsed["id"], ver[0], ver[1], ver[2]), None
     method = parsed["method"]
