@@ -1,0 +1,5 @@
+note err17_after_path: a line after ret, break, continue, trap or exit in the same block can never run
+fn main to int
+ret 0
+ret 1
+end

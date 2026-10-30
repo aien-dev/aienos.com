@@ -1,0 +1,6 @@
+note mistake_new_var_len: a new length is a literal or an integer const, never a variable; there are no run-time-sized arrays
+fn main to int
+n = ulong 4
+a = new uchar n 0
+ret 0
+end

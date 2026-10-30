@@ -1,0 +1,12 @@
+note contract_requires: a false precondition traps 9, exit 109, before the body runs
+om2
+text before "before\n"
+fn half x uint to uint
+requires eq rem x 2 0
+ret div x 2
+end
+fn main to int
+k = write 1 before 0 len before
+h = half 7
+ret 0
+end

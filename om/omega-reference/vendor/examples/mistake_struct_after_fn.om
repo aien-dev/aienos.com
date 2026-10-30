@@ -1,0 +1,5 @@
+note mistake_struct_after_fn: a struct line comes before the first fn
+fn main to int
+ret 0
+end
+struct P a uint end

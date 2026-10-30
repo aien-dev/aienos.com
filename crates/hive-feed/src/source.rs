@@ -128,6 +128,35 @@ pub fn nearest_parent(mut pid: u32, known: &std::collections::HashMap<u32,String
     None
 }
 
+/// Transcript formats read beside OMP collaboration trees.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Transcript { Claude, Codex }
+impl Transcript {
+    pub fn runtime(self) -> &'static str { match self { Self::Claude => "Claude Code", Self::Codex => "Codex" } }
+}
+/// Top-level session transcripts written within `window_ms` of `now_ms`, with
+/// their modification time. Claude Code keeps `projects/<project>/<session>.jsonl`
+/// (subagent sidechains live deeper and are skipped); Codex keeps
+/// `sessions/YYYY/MM/DD/rollout-*.jsonl`. A missing directory is no transcripts.
+pub fn recent_transcripts(kind: Transcript, base: &Path, now_ms: i64, window_ms: i64) -> io::Result<Vec<(PathBuf,i64)>> {
+    let depth = match kind { Transcript::Claude => 1, Transcript::Codex => 3 };
+    let mut result = Vec::new();
+    if !base.exists() { return Ok(result); }
+    let mut dirs = vec![(base.to_owned(),0)];
+    while let Some((dir,level)) = dirs.pop() {
+        for entry in fs::read_dir(&dir)? {
+            let entry = entry?; let kind_of = entry.file_type()?;
+            if kind_of.is_dir() && level < depth { dirs.push((entry.path(),level + 1)); continue; }
+            if !kind_of.is_file() || level != depth || entry.path().extension().is_none_or(|e| e != "jsonl") { continue; }
+            let Ok(meta) = entry.metadata() else { continue; };
+            let modified = meta.mtime() * 1000 + meta.mtime_nsec() / 1_000_000;
+            if now_ms - modified <= window_ms { result.push((entry.path(),modified)); }
+        }
+    }
+    result.sort();
+    Ok(result)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

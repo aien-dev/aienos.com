@@ -1,0 +1,5 @@
+repository https://github.com/aien-dev/omega-mv
+source_commit e5b32567a7aff3ce594e3254a622a846a6cd190b
+source_path seed/json/json.om
+source_sha256 456254fc754ea35103ced480407b24fc1a3896d094b90ae0e9623e7b6594e2d2
+note Pinned strict JSON reader in seeded Omega, compiled by omc.

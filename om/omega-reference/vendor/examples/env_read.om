@@ -1,0 +1,67 @@
+note env_read: envcnt counts the environment entries; envread copies one KEY=VALUE without a terminator
+note ---- output helpers: a function works on a global by naming it (a global is never an argument)
+global ob uchar 32
+note outb: write ob[off .. off+n) to stdout; a short write continues, 0 or an error exits 90
+note bound: every pass writes at least one byte and n <= 32, so at most 32 passes
+fn outb off ulong n ulong to void
+e = add off n
+p = off
+while lt p e bound 32
+k = write 1 ob p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline. A ulong has at most 20 digits, so 20 passes
+fn putu v ulong to void
+i = ulong 31
+put ob 31 10
+n = v
+while true bound 20
+i = sub i 1
+put ob i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outb i sub 32 i
+end
+note putl: a signed value; -(v+1)+1 avoids negating the minimum, which would trap 1
+fn putl v long to void
+if lt v 0
+put ob 0 45
+outb 0 1
+putu add ulong neg add v 1 1
+ret
+end
+putu ulong v
+end
+global eb uchar 64
+fn main to int
+n = envcnt
+putl n
+i = ulong 0
+while lt long i n bound 64
+k = envread i eb 0 63
+if lt k 0
+note -105: the entry is longer than the capacity; the buffer is unchanged
+k = long 0
+end
+m = ulong k
+put eb m 10
+e = add m 1
+p = ulong 0
+while lt p e bound 64
+w = write 1 eb p sub e p
+if le w 0
+exit 90
+end
+p = add p ulong w
+end
+i = add i 1
+end
+ret 0
+end

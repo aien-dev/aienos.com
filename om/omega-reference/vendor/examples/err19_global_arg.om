@@ -1,0 +1,9 @@
+note err19_global_arg: a global is never an argument. Fix: name the global inside the function
+global g uchar 4
+fn f a edit uchar 4 to void
+put a 0 1
+end
+fn main to int
+f g
+ret 0
+end
