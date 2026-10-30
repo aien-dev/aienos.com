@@ -146,7 +146,7 @@ pub const PAGES: &[PageInfo] = &[
     PageInfo { path: "/engineer/symphony/map/", name: "AI orchestration map", what: "Explore a six-track operator map of Atlas development and multi-model orchestration from June through August 2026.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/engineer/works/", name: "Works", what: "A public catalog of Drake Stapleton's shipped systems: Atlas Symphony, Atlas Harness, MobDev and Panel Arena, DefiantMob, BeltBrain, DHG Hive, the 2025 foundations, Aien, CUDA++, AEGIS, and inference research.", section: Section::Engineer, kind: Kind::Collection, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/engineer/works/aegis/", name: "AEGIS", what: "AEGIS extends Atlas into on-prem cyber defense for authorized networks, with containment, evidence preservation, and a verified project evaluation.", section: Section::Engineer, kind: Kind::Article, image: "/og.png", published: "2026-10-26", doi: None },
-    PageInfo { path: "/engineer/works/aien/", name: "Aien", what: "Aien is a sovereign computing stack built in the open on one machine: AienOS, Omega, the sovereign core runtime and the Spark verification pipeline, gathered into one core tree, aienix.", section: Section::Engineer, kind: Kind::Article, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/works/aien/", name: "Aien", what: "Aien is a sovereign computing stack built in the open on one machine: AienOS, Omega, the sovereign core runtime and the Spark verification pipeline. The whole system is Sovereign Intelligence. aienix is retired.", section: Section::Engineer, kind: Kind::Article, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/engineer/works/atlas-harness/", name: "Atlas Harness", what: "Atlas Harness is the operating desk that turns prose rules into typed policy, clear work lanes, completion checks, source records, recovery, and evaluation.", section: Section::Engineer, kind: Kind::Article, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/engineer/works/atlas-symphony/", name: "Atlas Symphony", what: "Atlas Symphony is the named process for exclusive lanes, a gatekeeper, cost-aware model routing, and an operator who still owns the final GO.", section: Section::Engineer, kind: Kind::Article, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/engineer/works/beltbrain/", name: "BeltBrain", what: "BeltBrain is a local-first decision engine for planning, inventory intelligence, and execution on a durable system of record.", section: Section::Engineer, kind: Kind::Article, image: "/og.png", published: "2026-10-26", doi: None },
@@ -180,7 +180,7 @@ pub const DATA_FILES: &[DataFile] = &[
     DataFile { path: "/now.json", purpose: "The live coordination ledger: every item with owner, status, done-when, evidence notes and timestamps.", schema: "{ built_utc, ledger_written_utc, items: [{ id, opened_utc, owner, owner_kind, status, item, done_when, notes[], updated_utc, stream, age_s }], pulse: [{ key, value }] }", cadence: "whenever the ledger changes, at most hourly", media_type: "application/json" },
     DataFile { path: "/now/feed.xml", purpose: "Atom feed of settled ledger lines (done or dropped) with their evidence, newest first.", schema: "Atom 1.0", cadence: "whenever the ledger changes, at most hourly", media_type: "application/atom+xml" },
     DataFile { path: "/machines.json", purpose: "The five real machines, what runs on each today, and every measured speed beside its physical ceiling, each with a receipt link.", schema: "{ as_of, source, judging, ceilings: [{ id, model, machine, tok_s, how, link, receipt, branch, on_main }], machines: [{ id, name, detail, role, today, evidence_date, evidence, link, branch, on_main, more[] }], speeds: [...] }", cadence: "when a new receipt is published", media_type: "application/json" },
-    DataFile { path: "/omega.json", purpose: "What Omega is: its parts, every CUDA piece with Omega's replacement and status, the live no-CUDA receipt, what is not true yet, and the bar C1 to C6, each with its GitHub link.", schema: "{ source, claim, claim_rest[], true_today, not_true_yet, parts[], below, layers: [{ cuda, job, omega, status, note, links, box }], receipt, not_yet[], bar: [{ id, title, done_when, status, now, receipt, links }], beyond[] }; links are short forms (o: omega file, o/: omega folder, p: physics) expanded as on /omega/", cadence: "when a bar row or map row changes", media_type: "application/json" },
+    DataFile { path: "/omega.json", purpose: "What Omega is: its parts, every CUDA piece with the Omega work beside it and that work's status, the live no-CUDA receipt, what is not true yet, and the bar C1 to C6, each with its GitHub link.", schema: "{ source, claim, claim_rest[], true_today, not_true_yet, parts[], below, layers: [{ cuda, job, omega, status, note, links, box }], receipt, not_yet[], bar: [{ id, title, done_when, status, now, receipt, links }], beyond[] }; links are short forms (o: omega file, o/: omega folder, p: physics) expanded as on /omega/", cadence: "when a bar row or map row changes", media_type: "application/json" },
     DataFile { path: "/cudaplusplus.json", purpose: "CUDA++: what it is for, every step from program to chip with whose code runs there and its status, how I did it, CUDA's pain points and the swap, each with its GitHub link.", schema: "{ source, claim, claim_rest[], purpose_title, purpose, hops: [{ step, cuda, ours, status, note, ledger, links, box }], steps[], did_not[], pains: [{ title, text, status, ledger, command, receipt, links, box }], swaps[] }; links are short forms (cp: CUDA++ main, cp@: CUDA++ at a commit, om@: omega at a commit) expanded as on /cudaplusplus/", cadence: "when a step or row changes", media_type: "application/json" },
     DataFile { path: "/facts.json", purpose: "The public GitHub record read at build time: components, last merges, open PR counts, latest decision records, latest verification receipt.", schema: "{ generated_at, components: [{ key, name, repo, role, url, pushed_at, open_prs, last_merge }], decisions: [{ id, title, url }], receipt: { repo, sha, state, description, target_url, updated_at } }", cadence: "hourly", media_type: "application/json" },
     DataFile { path: "/status.json", purpose: "The status of every layer of the stack (IMPLEMENTED, QUALIFIED, EXPERIMENTAL, BLOCKED, PLANNED) with a note and a receipt.", schema: "{ project, updated, canonical, statuses[], layers: [{ name, status, note, receipt }] }", cadence: "when a layer changes state", media_type: "application/json" },
@@ -912,9 +912,9 @@ fn section_title(s: Section) -> &'static str {
 /// sections of links with one-line descriptions, an Optional section last.
 pub fn llms_txt(status_lines: &[String], research_sentence: &str) -> String {
     let mut s = String::new();
-    s.push_str("# AienOS\n\n");
-    s.push_str(&format!("> {SITE_CLAIM}. AienOS is an experimental, open source (Apache-2.0 WITH LLVM-exception) machine for turning search into verified understanding: Aien proposes, Omega makes the proposal explicit and verifiable, the machine tests it against reality, the Turing measures what was learned, Cortex keeps the evidence. Every claim on the site carries a public receipt. Sovereign Intelligence, built on AienOS, is in alpha testing; each component keeps its own evidence level. Built by {AUTHOR} with AI agents on five real machines.\n\n"));
-    s.push_str("Rules the site keeps: no comparisons with other systems (every speed stands beside the physical ceiling of its own machine only), failures stay on the record, no outside fonts or unsolicited tracking (X pixel rfrlz loads only after saying hello to Aien; privacy and refusal at /privacy/; the film on /turing/ is an outside embed), and AI agents and humans are welcome to read, cite, argue and correct. Humans and AI agents meet, talk and collaborate in the Agora commons at https://www.aienos.com/agora/ (wire protocol at /agora/protocol/, node discovery at https://www.aienos.com/.well-known/agora). Contact Drake: drake@aienos.com or X @mdrakestapleton; every route, Aien included, is at https://www.aienos.com/contact/. Project mail: aien@aienos.com. Source: https://github.com/aien-dev.\n\n");
+    s.push_str("# Sovereign Intelligence\n\n");
+    s.push_str(&format!("> {SITE_CLAIM}. Sovereign Intelligence is the whole system: an experimental, open source (Apache-2.0 WITH LLVM-exception) machine for turning search into verified understanding. AienOS is only the operating-system layer. Aien proposes, Omega makes the proposal explicit and verifiable, the machine tests it against reality, the Turing measures what was learned, Cortex keeps the evidence. Every claim on the site carries a public receipt. Sovereign Intelligence is in alpha testing; each component keeps its own evidence level. Built by {AUTHOR} with AI agents on five real machines.\n\n"));
+    s.push_str("Rules the site keeps: comparisons with other projects are allowed when they are honest, dated, and backed by a receipt or the other project's own published numbers. Overclaims stay banned. Every speed still stands beside the physical ceiling of its own machine. Failures stay on the record, no outside fonts or unsolicited tracking (X pixel rfrlz loads only after saying hello to Aien; privacy and refusal at /privacy/; the film on /turing/ is an outside embed), and AI agents and humans are welcome to read, cite, argue and correct. Humans and AI agents meet, talk and collaborate in the Agora commons at https://www.aienos.com/agora/ (wire protocol at /agora/protocol/, node discovery at https://www.aienos.com/.well-known/agora). Contact Drake: drake@aienos.com or X @mdrakestapleton; every route, Aien included, is at https://www.aienos.com/contact/. Project mail: aien@aienos.com. Source: https://github.com/aien-dev.\n\n");
     s.push_str("## Current state\n\n");
     for l in status_lines {
         s.push_str(&format!("- {l}\n"));
@@ -1076,7 +1076,7 @@ pub fn html_to_text(html: &str) -> String {
 
 /// /llms-full.txt: every English page as text, in llms.txt order, from the files just written.
 pub fn llms_full(pages: &[Emitted]) -> String {
-    let mut s = format!("# AienOS: every page in one file\n\nGenerated with the site from the same sources as the HTML. Page list and summaries: {HOST}/llms.txt. Machine-readable data: {HOST}/data/index.json.\n\n");
+    let mut s = format!("# Sovereign Intelligence\n\nSovereign Intelligence is the whole system. AienOS is only the operating-system layer. Every English page is in this one file. Generated with the site from the same sources as the HTML. Page list and summaries: {HOST}/llms.txt. Machine-readable data: {HOST}/data/index.json.\n\n");
     for info in PAGES {
         let Some(p) = pages.iter().find(|p| p.path == info.path) else { continue };
         let html = fs::read_to_string(&p.file).unwrap_or_default();
@@ -1098,7 +1098,7 @@ pub fn data_index(ctx: &BuildCtx) -> String {
         "contact": ORG_EMAIL,
         "source": ORG_URL,
         "rules": [
-            "No comparisons with other systems: every number stands beside the physical ceiling of its own machine only.",
+            "Comparisons with other projects are allowed when they are honest, dated, and backed by a receipt or the other project's own published numbers. Overclaims stay banned. Every speed still stands beside the physical ceiling of its own machine.",
             "Every claim links its receipt. Failures stay on the record.",
             "No outside fonts or unsolicited tracking. X pixel rfrlz loads only with Aien introduction consent; /privacy/ explains and controls the choice. The film on /turing/ is an outside embed."
         ],
@@ -1131,7 +1131,7 @@ pub fn render_404() -> Markup {
                 }
                 ul style="margin: 28px 0 0 0; padding: 0; list-style: none; display: grid; gap: 10px;" {
                     li { a href="/" { "The front page" } ": the loop, the machines, the evidence." }
-                    li { a href="/machine/" { "The Machine" } ": what AienOS is and what runs today." }
+                    li { a href="/machine/" { "The Machine" } ": Sovereign Intelligence on real hardware. AienOS is only the operating-system layer." }
                     li { a href="/now/" { "Now" } ": what every agent is doing right now." }
                     li { a href="/research/" { "Research" } ": the preprints and the papers." }
                     li { a href="/evidence/" { "Evidence" } ": receipts over claims." }
@@ -1370,9 +1370,19 @@ mod tests {
     }
 
     #[test]
+    fn llms_full_leads_with_sovereign_intelligence() {
+        let t = llms_full(&[]);
+        assert!(t.starts_with("# Sovereign Intelligence\n\nSovereign Intelligence is the whole system. AienOS is only the operating-system layer. "));
+        assert!(!t.contains("what AienOS is"));
+        assert!(!t.starts_with("# AienOS"));
+    }
+
+    #[test]
     fn llms_txt_follows_the_convention() {
         let t = llms_txt(&["Layer: STATE. note".into()], "ladder sentence");
-        assert!(t.starts_with("# AienOS\n\n> "));
+        assert!(t.starts_with("# Sovereign Intelligence\n\n> "));
+        assert!(t.contains("Sovereign Intelligence is the whole system"));
+        assert!(t.contains("AienOS is only the operating-system layer"));
         assert!(t.contains("\n## Optional\n"));
         assert_eq!(t.matches("\n# ").count(), 0, "exactly one H1");
         for p in PAGES {

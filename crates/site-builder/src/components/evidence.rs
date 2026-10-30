@@ -197,10 +197,8 @@ mod tests {
         for must in ["7.63 tok/s", "FAIL AS WRITTEN", "24 of 24", "Raspberry Pi 5", "iMac", "install.sh exits 101"] {
             assert!(page.contains(must), "missing {must}");
         }
-        let lower = page.to_ascii_lowercase();
-        for w in crate::components::machines::FORBIDDEN {
-            assert!(!lower.contains(w), "forbidden word {w}");
-        }
+        let problems = crate::components::machines::comparison_errors(&page);
+        assert!(problems.is_empty(), "comparison problem on /evidence/: {problems:?}");
         assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(6), "every receipt card links to GitHub");
     }
 }

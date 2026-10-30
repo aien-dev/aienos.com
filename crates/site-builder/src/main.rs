@@ -7,7 +7,7 @@ mod seo;
 
 use std::fs;
 use std::io::Write;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::time::Instant;
 
 use layouts::base::{render_base_layout, render_page_layout};
@@ -571,6 +571,70 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     seo::write_machine_surface(dist, &pages, &now, &ctx, &components::status::llms_txt());
 }
 
+fn comparison_page_key(dist: &Path, path: &Path) -> String {
+    let rel = path.strip_prefix(dist).unwrap_or(path);
+    let rel = rel.to_string_lossy().replace('\\', "/");
+    let source = format!("public/{rel}");
+    if components::machines::is_prose_exempt(&source) {
+        source
+    } else {
+        rel
+    }
+}
+
+fn is_scanned_comparison_file(path: &Path) -> bool {
+    let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
+    path.extension().and_then(|e| e.to_str()) == Some("html")
+        || name == "llms.txt"
+        || name == "llms-full.txt"
+}
+
+fn collect_comparison_pages(dist: &Path, dir: &Path, bad: &mut Vec<(PathBuf, String)>) -> Result<(), String> {
+    let rd = match fs::read_dir(dir) {
+        Ok(rd) => rd,
+        Err(e) => {
+            let msg = format!("unreadable directory {}: {e}", dir.display());
+            eprintln!("{msg}");
+            return Err(msg);
+        }
+    };
+    for entry in rd {
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(e) => {
+                let msg = format!("unreadable directory entry in {}: {e}", dir.display());
+                eprintln!("{msg}");
+                return Err(msg);
+            }
+        };
+        let path = entry.path();
+        if path.is_dir() {
+            collect_comparison_pages(dist, &path, bad)?;
+        } else if is_scanned_comparison_file(&path) {
+            let content = match fs::read_to_string(&path) {
+                Ok(content) => content,
+                Err(e) => {
+                    let msg = format!("unreadable file {}: {e}", path.display());
+                    eprintln!("{msg}");
+                    return Err(msg);
+                }
+            };
+            if path.file_name().and_then(|n| n.to_str()) == Some("llms-full.txt") {
+                let ledger = fs::read_to_string(dist.join("data/now.tsv")).unwrap_or_default();
+                for problem in components::machines::llms_full_problems(&content, &ledger) {
+                    bad.push((path.clone(), problem));
+                }
+            } else {
+                let key = comparison_page_key(dist, &path);
+                for problem in components::machines::comparison_errors_at(&key, &content) {
+                    bad.push((path.clone(), problem));
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
 fn verify_site(dist: &Path) {
     let index_file = dist.join("index.html");
     let ledger_path = dist.join("data/now.tsv");
@@ -611,8 +675,9 @@ fn verify_site(dist: &Path) {
     assert!(content.contains("<ol class=\"loop-stages\""), "Missing loop stage list in index.html");
 
     // The machines and the speeds (components::machines): five machines,
-    // the 35B end to end first, every number beside its receipt, and no
-    // comparison with anyone else's system anywhere on the homepage.
+    // the 35B end to end first, every number beside its receipt. An honest
+    // dated sourced comparison may appear. Overclaims and unsourced
+    // comparisons may not.
     assert!(content.contains("id=\"machines\""), "Missing machines section in index.html");
     assert!(content.contains("id=\"speed\""), "Missing speed section in index.html");
     for id in ["machine-spark", "machine-imac", "machine-pi5", "machine-qemu", "machine-rig", "speed-35b-e2e", "speed-27b-live"] {
@@ -621,10 +686,17 @@ fn verify_site(dist: &Path) {
     assert!(content.contains("22.0 to 22.5"), "Missing the 35B end-to-end speed in index.html");
     assert!(content.contains("7.63"), "Missing the 27B chip-time row in index.html");
     {
-        let lower = content.to_ascii_lowercase();
-        for w in components::machines::FORBIDDEN {
-            assert!(!lower.contains(w), "Comparison with another system on the homepage: {w:?}");
-        }
+        let problems = components::machines::comparison_errors(&content);
+        assert!(problems.is_empty(), "Unsourced comparison or overclaim on the homepage: {problems:?}");
+    }
+    {
+        let mut bad = Vec::new();
+        collect_comparison_pages(dist, dist, &mut bad).expect("comparison scan refused an unreadable directory");
+        assert!(
+            bad.is_empty(),
+            "Unsourced comparison or overclaim. Every page uses machines::comparison_errors:\n{}",
+            bad.iter().take(40).map(|(p, e)| format!("{}: {}", p.display(), e.chars().take(300).collect::<String>())).collect::<Vec<_>>().join("\n")
+        );
     }
     assert!(dist.join("assets/machines.css").exists(), "Missing assets/machines.css");
     assert!(dist.join("machines.json").exists(), "Missing machines.json");
@@ -1087,6 +1159,34 @@ mod tests {
         assert!(page.contains("id=\"aienet-recheck\" type=\"button\" disabled>"));
         assert!(!page.contains("aienet.js"), "full /aienet/ page still loads aienet.js");
         assert!(!page.contains("/agora/api/"), "full /aienet/ page still names /agora/api/");
+    }
+
+    #[test]
+    fn unreadable_directory_fails_the_comparison_scan() {
+        let missing = std::env::temp_dir().join(format!("aienos-unreadable-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&missing);
+        let err = collect_comparison_pages(&missing, &missing, &mut Vec::new())
+            .expect_err("a missing directory is unreadable");
+        assert!(err.contains("unreadable directory"), "{err}");
+    }
+
+    #[test]
+    fn llms_txt_and_llms_full_are_scanned() {
+        let dir = std::env::temp_dir().join(format!("aienos-llms-scan-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(dir.join("llms.txt"), "Omega beats vLLM.\n").unwrap();
+        fs::write(dir.join("llms-full.txt"), "Omega matches vLLM.\n").unwrap();
+        fs::write(dir.join("notes.txt"), "Omega beats vLLM.\n").unwrap();
+        fs::write(dir.join("ok.html"), "<p>A quiet page.</p>\n").unwrap();
+        let mut bad = Vec::new();
+        collect_comparison_pages(&dir, &dir, &mut bad).expect("readable scan");
+        let joined = bad.iter().map(|(p, e)| format!("{} {e}", p.display())).collect::<Vec<_>>().join("\n");
+        assert!(joined.contains("llms.txt") && joined.contains("beats vLLM"), "{joined}");
+        assert!(joined.contains("llms-full.txt") && joined.contains("matches vLLM"), "{joined}");
+        assert!(!joined.contains("notes.txt"), "{joined}");
+        assert!(!joined.contains("ok.html"), "{joined}");
+        let _ = fs::remove_dir_all(&dir);
     }
 
     #[test]

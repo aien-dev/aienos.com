@@ -72,6 +72,7 @@ The development method is Human-Directed Agentic Engineering (HDAE). I define th
 - No em dashes and no en dashes anywhere, including code comments, commit messages and evidence. Several repositories fail their gates on them. Use commas, colons, parentheses or periods.
 - No AI cliches ("delve", "tapestry", "seamlessly", "game-changer", "unleash").
 - Write status as what was measured, where and when, not as adjectives.
+- Comparisons with other projects are allowed when they are honest, dated, and backed by a receipt or the other project's own published numbers. Overclaims stay banned (for example, a claim to be a replacement for CUDA, or to give everything CUDA gives you).
 
 ## Where to go next
 

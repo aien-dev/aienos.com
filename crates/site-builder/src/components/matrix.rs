@@ -6,7 +6,7 @@ use super::boxlink::{foot, Target};
 /// the role, from the site inventory of 2026-10-19.
 const ROLE_LINKS: [(&str, &str); 8] = [
     ("ATLAS", "https://github.com/aien-dev/atlas"),
-    ("AienOS", "https://github.com/aien-dev/aienix"),
+    ("AienOS", "https://github.com/aien-dev/AienOS-nv"),
     ("OMEGA", "https://github.com/aien-dev/omega-mv"),
     ("Aien", "https://github.com/aien-dev/aien-sovereign-core-mv"),
     ("AEGIS", "https://github.com/aien-dev/omega-mv/blob/main/spec/r8-aegis-resident.md"),
@@ -34,7 +34,7 @@ pub fn render_matrix() -> Markup {
         (
             "AienOS",
             "persists",
-            "The sovereign substrate, and more than an operating system: it owns the hardware, keeps the agent alive and continuous, and holds memory, keys, and receipts on the owner's side of the line.",
+            "The operating-system layer of Sovereign Intelligence. It owns the hardware, keeps the agent alive and continuous, and holds memory, keys, and receipts on the owner's side of the line.",
         ),
         (
             "OMEGA",

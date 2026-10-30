@@ -5,7 +5,7 @@
 
 The source of the AienOS website. A Rust program builds the pages, GitHub Pages serves their origin, and the existing nginx edge adds Markdown negotiation and the opt-in live Hive feed.
 
-Part of [Aienix](https://github.com/aien-dev/aienix), the core tree of AIEN: start there for what the project is and how the pieces fit.
+Part of [Sovereign Intelligence](https://github.com/aien-dev/sovereign-intelligence), the whole system: releases are assembled there, install starts there, and the signed Spark test runs there. AienOS is only the operating-system layer. [aienix](https://github.com/aien-dev/aienix) is retired. Other repositories keep their own parts.
 
 Live: [https://www.aienos.com](https://www.aienos.com), rebuilt hourly from the repository's own facts.
 

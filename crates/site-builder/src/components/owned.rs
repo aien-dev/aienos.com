@@ -240,10 +240,16 @@ mod tests {
     }
 
     #[test]
-    fn no_comparisons_with_other_systems() {
-        let body = render_owned().into_string().to_lowercase();
-        for word in ["chatgpt", "openai", "gemini", "llama", "gpt-", "anthropic", "claude"] {
-            assert!(!body.contains(word), "names another system: {word}");
-        }
+    fn comparisons_are_dated_and_sourced_or_absent() {
+        let body = render_owned().into_string();
+        let problems = crate::components::machines::comparison_errors(&body);
+        assert!(problems.is_empty(), "comparison problem on /owned/: {problems:?}");
+        assert!(crate::components::machines::comparison_problem("faster than ChatGPT").is_some());
+        assert!(crate::components::machines::comparison_problem(
+            "On 2026-10-21 this was faster than the published ChatGPT figure (https://example.com/n)."
+        ).is_some());
+        assert!(crate::components::machines::comparison_problem(
+            "On 2026-10-21 this was faster than the published ChatGPT figure (https://github.com/aien-dev/sovereign-intelligence)."
+        ).is_none());
     }
 }

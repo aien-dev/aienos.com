@@ -43,7 +43,7 @@ pub const TOUR: &[(&str, &[(&str, &str, &str)])] = &[
         ("/llms.txt", "llms.txt", "every page with a one-line description, the place to start"),
         ("/llms-full.txt", "llms-full.txt", "the full text of every page in one file"),
         ("/sitemap.md", "sitemap.md", "every page grouped by section"),
-        ("/start/", "Start here", "the shortest route: what AienOS is, what exists today and how to check it"),
+        ("/start/", "Start here", "the shortest route: Sovereign Intelligence is the whole system, AienOS is only the operating-system layer, and here is how to check a claim"),
     ]),
     ("What I build", &[
         ("/omega/", "Omega", "the language for all computing, GPU to CPU"),
@@ -192,8 +192,9 @@ fn gather_from_pages(
                 break;
             }
         }
+        let description = if name == "aienix" { AIENIX_NOTE.to_string() } else { s(v, "description") };
         repos.push(Repo {
-            description: s(v, "description"),
+            description,
             url: s(v, "html_url"),
             fork: v.get("fork").and_then(|x| x.as_bool()).unwrap_or(false),
             archived: v.get("archived").and_then(|x| x.as_bool()).unwrap_or(false),
@@ -224,13 +225,19 @@ pub fn prompt(repo_url: &str) -> String {
     )
 }
 
+/// Site-owned note for the retired repository. GitHub's description can still
+/// call it a front door; the page and the collected catalog do not.
+pub const AIENIX_NOTE: &str = "Retired. It is not the core tree or the entry point. Sovereign Intelligence (aien-dev/sovereign-intelligence) is the whole system: releases are assembled there, install starts there, and the signed Spark test runs there. AienOS is only the operating-system layer. Other repositories keep their own parts.";
+
 fn repo_card(r: &Repo) -> Markup {
     html! {
         li class="hub-card agents-card" id=(format!("repo-{}", r.name)) {
             a href=(r.url) target="_blank" rel="noopener noreferrer" {
                 @match r.name.as_str() {
-                    "aienix" | "aienos" => { "AienOS (whole system)" }
+                    "sovereign-intelligence" => { "Sovereign Intelligence (whole system)" }
+                    "aienix" => { "aienix (retired)" }
                     "aienux" => { "aienux (kernel)" }
+                    "AienOS-nv" => { "AienOS (operating system)" }
                     _ => { span data-verbatim { (r.name) } }
                 }
             }
@@ -240,8 +247,10 @@ fn repo_card(r: &Repo) -> Markup {
             @if r.fork {
                 p class="agents-tag" { "Fork" }
             }
-            @if !r.description.is_empty() {
-                p data-verbatim { (r.description) }
+            @if r.name == "aienix" {
+                p { (AIENIX_NOTE) }
+            } @else if !r.description.is_empty() {
+                p class="agents-verbatim" data-verbatim { (r.description) }
             }
             @match r.brief_url() {
                 Some(href) => {
@@ -386,6 +395,7 @@ mod tests {
                 repo("omega-mv", Some("AGENTS.md"), "2026-10-25T18:00:00Z"),
                 repo("translate", Some("CLAUDE.md"), "2026-10-24T18:00:00Z"),
                 repo("aien-edge", None, "2026-10-22T18:00:00Z"),
+                repo("sovereign-intelligence", Some("AGENTS.md"), "2026-10-26T18:00:00Z"),
                 repo("aienix", Some("AGENTS.md"), "2026-10-23T18:00:00Z"),
             ],
         }
@@ -399,7 +409,7 @@ mod tests {
         assert!(page.contains(">CLAUDE.md on GitHub"));
         assert!(!page.contains("aien-edge/blob/main/AGENTS.md"), "a brief that does not exist is never linked");
         assert!(page.contains("No AGENTS.md or CLAUDE.md yet"));
-        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(5), "the rules box and every listed repository have a GitHub link");
+        assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(6), "the rules box and every listed repository have a GitHub link");
     }
 
     #[test]
@@ -426,9 +436,25 @@ mod tests {
     #[test]
     fn whole_system_keeps_its_real_url_and_current_label() {
         let page = render_agents_page(&sample()).into_string();
-        assert!(page.contains("href=\"https://github.com/aien-dev/aienix\""));
-        assert!(page.contains("AienOS (whole system)"));
-        assert!(page.contains("4 public repositories, 3 with their own instructions"));
+        assert!(page.contains("href=\"https://github.com/aien-dev/sovereign-intelligence\""));
+        assert!(page.contains("Sovereign Intelligence (whole system)"));
+        assert!(page.contains("aienix (retired)"));
+        assert!(page.contains(AIENIX_NOTE));
+        assert!(!page.contains("AienOS (whole system)"));
+        assert!(!page.contains("aienix does a thing"), "a stale front-door description is not shown");
+        assert!(page.contains("5 public repositories, 4 with their own instructions"));
+    }
+
+    #[test]
+    fn aienix_catalog_description_is_the_retirement_note() {
+        let pages = serde_json::json!([[{
+            "name": "aienix",
+            "description": "AienOS front door: pinned repositories",
+            "html_url": "https://github.com/aien-dev/aienix",
+            "default_branch": "main"
+        }]]);
+        let repos = gather_from_pages(&pages, |_, _, _| Ok(false)).unwrap();
+        assert_eq!(repos.repos[0].description, AIENIX_NOTE);
     }
 
     #[test]

@@ -1,7 +1,7 @@
 {
   "as_of": "2026-10-19",
   "source": "Spark ~/handoffs/2026-10-19-site-inventory.md and .json (ledger L057). Every row carries a public link; a fact without a link is not on the page.",
-  "judging": "Every number on this page is judged against two things only: the physical ceiling of the machine it ran on, and my own previous run. Nothing here is compared with anyone else's software. End to end means wall time through the server as a client sees it, prompt reading included. Chip time means the GPU's own time per generated token, decode only, with prompt reading excluded. For the 35B, the gap between chip time and end-to-end time comes from prompt reading. The two are labelled and never mixed.",
+  "judging": "Every number on this page is judged against the physical ceiling of the machine it ran on, and against my own previous run. A comparison with another project is allowed when it is honest, dated, and backed by a receipt or that project's own published numbers. Overclaims stay off this page. End to end means wall time through the server as a client sees it, prompt reading included. Chip time means the GPU's own time per generated token, decode only, with prompt reading excluded. For the 35B, the gap between chip time and end-to-end time comes from prompt reading. The two are labelled and never mixed.",
   "ceilings": [
     {
       "id": "qwen38-27b-fp8-gb10",

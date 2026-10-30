@@ -74,8 +74,10 @@ const EXCLUDED_DIRS: &[&str] = &[
     "vendor", "vendored", "third_party", "third-party", "node_modules", "target", "dist", "build", "generated",
     "evidence", "receipts", "artifacts", "data", "results", "fixtures",
 ];
-/// `aienux` is the kernel; `aienos` is the whole system (today GitHub's aien-dev/aienix). Once
-/// that repository is renamed aienos, the name rule reads it as its own Core project.
+/// `aienux` is the kernel. A repository named `aienos` is still read as its own
+/// Core project. ADR 0045 retired aien-dev/aienix: it is not the core tree.
+/// Sovereign Intelligence (aien-dev/sovereign-intelligence) is the whole system,
+/// and AienOS is only the operating-system layer.
 const CORE_NAMES: &[&str] = &["aien-sovereign-core", "aienux", "aienos", "omega", "physics", "forge", "atlas", "aien-protocols", "aien-architecture", "benchmarks"];
 const SITE_NAMES: &[&str] = &["aienos.com", "drakestapleton.com", "interplane.io", ".github", "aien-dev"];
 
@@ -1512,8 +1514,10 @@ mod tests {
     }
 
     #[test]
-    fn the_kernel_and_the_whole_system_are_two_projects() {
-        // aien-dev/aienix is renamed aienos (the whole system) while aienux stays the kernel.
+    fn the_kernel_and_a_repository_named_aienos_are_two_projects() {
+        // A repository named aienos is its own Core project beside the kernel.
+        // ADR 0045 retired aien-dev/aienix. This snapshot does not treat that
+        // repository as the whole system.
         let mut rows = LISTING_2026_10_17.to_vec();
         rows.push("aien-dev aienos - -");
         let (targets, missing) = select_repos(&listing(&rows));
