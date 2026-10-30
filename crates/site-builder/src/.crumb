@@ -11,19 +11,19 @@
       "children": [
         {
           "digest": "bc95dd26aa86aaa2aa34550d5d69677efdbbe5e327c64724828f7e5935c6d5c7",
-          "last_commit": "a9c5dbb",
+          "last_commit": "e588e63",
           "name": "components",
           "purpose": "Reusable page content and navigation"
         }
       ],
       "children_root": "sha256:c473ee517fe150ac3bed3066094ebcf40bb59fe4edaeb818ac7d1d31f6f5b8d1",
-      "compiled_at": "2026-10-30T21:57:23Z",
+      "compiled_at": "2026-10-30T21:58:06Z",
       "compiler": "crumb-compile/1",
       "digest": "sha256:896cb99445e96daaa70b38e27b9768a8a83cb07be4cbc018e91b4afb966b0390",
       "evidence_files": 0,
       "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "files": 54,
-      "generated_at_commit": "06d824b1d063d7cfd2e8a40294f22880e8a7a77d",
+      "generated_at_commit": "016e6f1f1ab539dc11e965de5a00088e6496b155",
       "source_tree": "sha256:15b5da8fc14386a801cc1b37b9a84e0196875f0e0997e09db69db77faf7d9c78"
     }
   },
