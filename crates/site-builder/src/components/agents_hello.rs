@@ -256,9 +256,10 @@ mod tests {
     }
 
     /// A line that says the public hello door is accepting traffic needs a
-    /// receipt on that same line: `hello-door-live-receipt:`, then a
-    /// YYYY-MM-DD date, then one aien-dev blob, commit, or Actions run URL.
-    /// A DEPLOY.md link on another line is not that receipt.
+    /// receipt on that same line: `hello-door-live-receipt:`, then a real
+    /// YYYY-MM-DD date, then one aien-dev commit URL, a blob URL pinned to a
+    /// 40-hex commit and a file path, or an Actions run URL.
+    /// A DEPLOY.md link, including `blob/main`, is not that receipt.
     /// `not yet live` is not a liveness claim.
     fn live_claim_without_receipt(text: &str) -> Option<&'static str> {
         const PHRASES: &[&str] = &[
@@ -278,7 +279,8 @@ mod tests {
     }
 
     /// `hello-door-live-receipt: YYYY-MM-DD https://github.com/aien-dev/...`
-    /// with the URL naming one blob, one commit, or one Actions run.
+    /// with the date a real calendar day and the URL naming one commit, one
+    /// blob at a 40-hex commit, or one Actions run.
     fn line_has_live_receipt(line: &str) -> bool {
         let Some((_, after)) = line.split_once("hello-door-live-receipt:") else {
             return false;
@@ -293,6 +295,8 @@ mod tests {
         is_ymd(date) && is_specific_aien_url(url)
     }
 
+    /// A real Gregorian day. Year 0000 is refused. February follows leap years
+    /// (divisible by 4, except centuries, unless divisible by 400).
     fn is_ymd(date: &str) -> bool {
         let b = date.as_bytes();
         if b.len() != 10 || b[4] != b'-' || b[7] != b'-' {
@@ -301,17 +305,39 @@ mod tests {
         if !b.iter().enumerate().all(|(i, c)| i == 4 || i == 7 || c.is_ascii_digit()) {
             return false;
         }
-        let month: u8 = date[5..7].parse().unwrap_or(0);
-        let day: u8 = date[8..10].parse().unwrap_or(0);
-        (1..=12).contains(&month) && (1..=31).contains(&day)
+        let Ok(year) = date[0..4].parse::<u16>() else {
+            return false;
+        };
+        let Ok(month) = date[5..7].parse::<u8>() else {
+            return false;
+        };
+        let Ok(day) = date[8..10].parse::<u8>() else {
+            return false;
+        };
+        if year == 0 {
+            return false;
+        }
+        let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+        let max = match month {
+            1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+            4 | 6 | 9 | 11 => 30,
+            2 if leap => 29,
+            2 => 28,
+            _ => return false,
+        };
+        (1..=max).contains(&day)
     }
 
     fn is_specific_aien_url(raw: &str) -> bool {
         let url = raw.trim_end_matches(|c: char| matches!(c, '.' | ',' | ';' | ')'));
-        let Some(rest) = url.strip_prefix("https://github.com/aien-dev/") else {
+        let Some(rest) = url.strip_prefix("https://github.com/") else {
             return false;
         };
         let mut segs = rest.split('/');
+        // The org segment must be exactly aien-dev, so aien-devx and aien-dev.evil fail.
+        if segs.next() != Some("aien-dev") {
+            return false;
+        }
         let Some(repo) = segs.next() else {
             return false;
         };
@@ -321,9 +347,6 @@ mod tests {
             return false;
         }
         let hex40 = |s: &str| s.len() == 40 && s.bytes().all(|c| c.is_ascii_hexdigit() && !c.is_ascii_uppercase());
-        let one_segment = |s: &str| {
-            !s.is_empty() && s.bytes().all(|c| c.is_ascii_alphanumeric() || matches!(c, b'_' | b'.' | b'-'))
-        };
         match segs.next() {
             Some("commit") => {
                 let Some(sha) = segs.next() else {
@@ -332,11 +355,12 @@ mod tests {
                 hex40(sha) && segs.next().is_none()
             }
             Some("blob") => {
-                let Some(rev) = segs.next() else {
+                let Some(sha) = segs.next() else {
                     return false;
                 };
-                // One ref segment, then a file path. That is one blob, not the repo root.
-                one_segment(rev) && segs.next().is_some()
+                // A pinned commit and at least one non-empty path segment.
+                // blob/main/ and a trailing slash alone are not a file.
+                hex40(sha) && segs.any(|seg| !seg.is_empty())
             }
             Some("actions") => {
                 segs.next() == Some("runs")
@@ -409,17 +433,101 @@ hello-door-live-receipt: 2026-10-30 https://github.com/aien-dev/aienos.com/blob/
     #[test]
     fn a_dated_specific_receipt_line_allows_a_live_claim() {
         let sha = "74a40ff6ac399db5dd9908664e2c05281ff27bcd";
-        for url in [
+        let urls = [
             format!("https://github.com/aien-dev/aienos.com/commit/{sha}"),
             format!("https://github.com/aien-dev/aienos.com/blob/{sha}/evidence/hello.txt"),
-            "https://github.com/aien-dev/aienos.com/blob/main/evidence/hello.txt".to_string(),
             "https://github.com/aien-dev/aienos.com/actions/runs/12345678901".to_string(),
+        ];
+        for date in ["2026-10-30", "2024-02-29", "2000-02-29"] {
+            for url in &urls {
+                let text = format!("The hello door is live. hello-door-live-receipt: {date} {url}");
+                assert!(
+                    live_claim_without_receipt(&text).is_none(),
+                    "well-formed receipt refused: {date} {url}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn an_impossible_date_is_refused() {
+        let sha = "74a40ff6ac399db5dd9908664e2c05281ff27bcd";
+        let url = format!("https://github.com/aien-dev/aienos.com/commit/{sha}");
+        for date in ["2026-02-31", "0000-01-01", "0000-02-29", "2026-02-29", "1900-02-29", "2026-04-31"] {
+            let text = format!("The hello door is live. hello-door-live-receipt: {date} {url}");
+            assert!(
+                live_claim_without_receipt(&text).is_some(),
+                "impossible date accepted: {date}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_blob_on_a_moving_branch_is_refused() {
+        let sha = "74a40ff6ac399db5dd9908664e2c05281ff27bcd";
+        let urls = [
+            "https://github.com/aien-dev/aienos.com/blob/main/evidence/hello.txt".to_string(),
+            "https://github.com/aien-dev/aienos.com/blob/main/".to_string(),
+            "https://github.com/aien-dev/aienos.com/blob/main/om/agora/deploy/DEPLOY.md".to_string(),
+            "https://github.com/aien-dev/aienos.com/blob/develop/evidence/hello.txt".to_string(),
+            format!("https://github.com/aien-dev/aienos.com/blob/{sha}"),
+            format!("https://github.com/aien-dev/aienos.com/blob/{sha}/"),
+        ];
+        for url in urls {
+            let text = format!("The hello door is live. hello-door-live-receipt: 2026-10-30 {url}");
+            assert!(
+                live_claim_without_receipt(&text).is_some(),
+                "moving or empty blob accepted: {url}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_date_and_url_split_across_lines_is_refused() {
+        let text = "\
+The hello door is live. hello-door-live-receipt: 2026-10-30
+https://github.com/aien-dev/aienos.com/commit/74a40ff6ac399db5dd9908664e2c05281ff27bcd
+";
+        assert!(live_claim_without_receipt(text).is_some());
+    }
+
+    #[test]
+    fn a_wrong_host_or_org_is_refused() {
+        let sha = "74a40ff6ac399db5dd9908664e2c05281ff27bcd";
+        for url in [
+            format!("https://github.com/aien-dev.evil/aienos.com/commit/{sha}"),
+            format!("https://github.com/aien-devx/aienos.com/commit/{sha}"),
+            format!("https://github.com.evil/aien-dev/aienos.com/commit/{sha}"),
+            format!("https://example.com/aien-dev/aienos.com/commit/{sha}"),
         ] {
             let text = format!("The hello door is live. hello-door-live-receipt: 2026-10-30 {url}");
             assert!(
-                live_claim_without_receipt(&text).is_none(),
-                "well-formed receipt refused: {url}"
+                live_claim_without_receipt(&text).is_some(),
+                "wrong host or org accepted: {url}"
             );
         }
+    }
+
+    #[test]
+    fn a_wrong_url_kind_is_refused() {
+        let sha = "74a40ff6ac399db5dd9908664e2c05281ff27bcd";
+        for url in [
+            format!("https://github.com/aien-dev/aienos.com/tree/{sha}"),
+            "https://github.com/aien-dev/aienos.com/issues/179".to_string(),
+            "https://github.com/aien-dev/aienos.com".to_string(),
+            "https://github.com/aien-dev/aienos.com/".to_string(),
+        ] {
+            let text = format!("The hello door is live. hello-door-live-receipt: 2026-10-30 {url}");
+            assert!(
+                live_claim_without_receipt(&text).is_some(),
+                "wrong URL kind accepted: {url}"
+            );
+        }
+    }
+
+    #[test]
+    fn a_url_before_the_date_is_refused() {
+        let text = "The hello door is live. hello-door-live-receipt: https://github.com/aien-dev/aienos.com/commit/74a40ff6ac399db5dd9908664e2c05281ff27bcd 2026-10-30";
+        assert!(live_claim_without_receipt(text).is_some());
     }
 }
