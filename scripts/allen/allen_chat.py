@@ -1375,7 +1375,8 @@ class Handler(BaseHTTPRequestHandler):
         that still carries Sec-Fetch-Site is a browser and refused; with neither it is a
         non-browser client (server-side callers, tests), which the Content-Type rule still binds.
         Content-Type must be application/json, except transcribe, which checks its audio type
-        itself; so a cross-site "simple" request (text/plain, form) never executes."""
+        itself, and /a2a, which also accepts application/a2a+json. A cross-site "simple"
+        request (text/plain, form) never executes."""
         origin = self.headers.get("Origin")
         if origin is not None:
             ok = origin in self.app.args.allow_origin
@@ -1386,7 +1387,10 @@ class Handler(BaseHTTPRequestHandler):
             return False
         if r != "transcribe":
             ctype = self.headers.get("Content-Type", "").split(";")[0].strip().lower()
-            if ctype != "application/json":
+            allowed = {"application/json"}
+            if r == "a2a":
+                allowed.add("application/a2a+json")
+            if ctype not in allowed:
                 self.refuse(415, "content_type", "Send the request as application/json.")
                 return False
         return True
@@ -2053,7 +2057,7 @@ class Handler(BaseHTTPRequestHandler):
                 app.stats.add("refused_" + body["error"])
             return code, body, retry
 
-        status, obj, extra = a2a.dispatch(raw, self.headers, accept)
+        status, obj, extra = a2a.dispatch(raw, self.headers, accept, self.path)
         self.send_json(status, obj, extra)
 
     def project_summary(self):
