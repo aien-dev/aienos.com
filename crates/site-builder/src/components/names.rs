@@ -7,7 +7,10 @@
 //! marked `data-verbatim` (quoted third-party words such as GitHub repository
 //! descriptions), identifier joins (aien-dev, aienos.com, nvidia.ko), the
 //! phrases in `ALLOW` (published titles, CI check names) and text copied
-//! verbatim from a record: the work ledger on /now/ and the research status table. A label written entirely in
+//! verbatim from a record: the work ledger on /now/, the research status table
+//! and the titles read from GitHub into `facts.json` (merged PR titles, decision
+//! record titles, the receipt's commit title and status). Hand-written roles in
+//! `facts.json` are not a record. A label written entirely in
 //! capitals (AIEN VERIFICATION) uppercases every name, so it is not a misspelling.
 
 use regex::Regex;
@@ -195,6 +198,22 @@ fn status_record(raw: &str) -> String {
     out
 }
 
+/// The strings `facts` copied from GitHub, one per line: each component's last
+/// merged PR title, each decision record title, the receipt's commit title and
+/// status description. Editorial fields (names, roles) are typed by hand and
+/// stay checked.
+fn facts_record(raw: &str) -> String {
+    let facts: crate::facts::Facts = serde_json::from_str(raw).expect("facts.json parses");
+    let mut out = String::new();
+    let titles = facts.components.iter().filter_map(|c| c.last_merge.as_ref()).map(|m| m.title.as_str());
+    let titles = titles.chain(facts.decisions.iter().map(|d| d.title.as_str()));
+    for t in titles.chain([facts.receipt.commit_title.as_str(), facts.receipt.description.as_str()]) {
+        out.push_str(&squash(t));
+        out.push('\n');
+    }
+    out
+}
+
 fn walk(dir: &Path, root: &Path, record: &str, out: &mut Vec<String>) {
     for entry in fs::read_dir(dir).expect("read dist dir") {
         let path = entry.expect("dist entry").path();
@@ -215,10 +234,12 @@ fn walk(dir: &Path, root: &Path, record: &str, out: &mut Vec<String>) {
 
 /// Every rendered page spells project, product and vendor names canonically.
 pub fn verify_canonical_names(dist: &Path) {
-    // Records quoted on the pages: the work ledger (/now/) and the research status table.
+    // Records quoted on the pages: the work ledger (/now/), the research status
+    // table and the GitHub titles in facts.json.
     let mut record = squash(&fs::read_to_string(dist.join("data/now.tsv")).unwrap_or_default().replace('\t', " "));
     record.push('\n');
     record.push_str(&status_record(super::research_status::RAW));
+    record.push_str(&facts_record(&fs::read_to_string(dist.join("facts.json")).expect("read dist/facts.json")));
     let mut out = Vec::new();
     walk(dist, dist, &record, &mut out);
     assert!(
@@ -280,5 +301,24 @@ mod tests {
         // Too little shared context: one word on its own proves nothing.
         assert_eq!(violations("Imac", rec).len(), 1);
         assert_eq!(violations("Boot your Imac now", rec).len(), 1);
+    }
+
+    #[test]
+    fn github_titles_in_facts_are_a_record_but_roles_are_not() {
+        // aien-protocols #60, merged 2026-10-28: the last merged change of a component.
+        let facts = r#"{"generated_at":"2026-10-29T00:00:00Z",
+            "components":[{"key":"protocols","name":"Protocols","repo":"aien-dev/aien-protocols",
+              "role":"Allen speaks the protocols.","url":"","pushed_at":"","open_prs":0,
+              "last_merge":{"number":60,"title":"rename: Allen -> Aien (pi-spark-task spec)","merged_at":"","url":""}}],
+            "decisions":[],"receipt":{"repo":"","sha":"","commit_title":"","committed_at":"","state":"none","description":"","target_url":"","updated_at":""}}"#;
+        let rec = facts_record(facts);
+        let page = |rec: &str, body: &str| violations(&copy_text(body), rec);
+        let merge = r#"<td><a class="merge" href="https://github.com/aien-dev/aien-protocols/pull/60">rename: Allen -&gt; Aien (pi-spark-task spec)</a></td>"#;
+        assert!(page(&rec, merge).is_empty());
+        assert_eq!(page("", merge).len(), 1);
+        // The hand-written role is in facts.json but not a record.
+        assert_eq!(page(&rec, "<td>Allen speaks the protocols.</td>").len(), 1);
+        // New prose that only shares the bare name is still caught.
+        assert_eq!(page(&rec, "<p>Say hello to Allen today.</p>").len(), 1);
     }
 }
