@@ -725,10 +725,11 @@ mod tests {
         for w in ["beating cuda", "matching and then", "runs on omega", "omega runs"] {
             assert!(!lower.contains(w), "{w}");
         }
-        // omega.json is exempt by exact path, and /omega/ is the page that renders it.
-        let problems = crate::components::machines::comparison_errors_at("omega/index.html", &s);
-        assert!(problems.is_empty(), "exempt path: {problems:?}");
-        assert!(crate::components::machines::is_prose_exempt("crates/site-builder/data/omega.json"));
+        // The page is scanned. Only the exact CUDA bar sentences are allowed.
+        let problems = crate::components::machines::comparison_errors(&s);
+        assert!(problems.is_empty(), "live sentences: {problems:?}");
+        assert!(!crate::components::machines::is_prose_exempt("crates/site-builder/data/omega.json"));
+        assert!(!crate::components::machines::is_prose_exempt("omega/index.html"));
         assert!(crate::components::machines::comparison_problem("2x faster than llama.cpp").unwrap().contains("unsourced"));
         assert!(crate::components::machines::comparison_problem(
             "On 2026-10-21 this run was faster than llama.cpp's published 40 tok/s (https://example.com/bench)."

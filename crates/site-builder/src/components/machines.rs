@@ -46,13 +46,20 @@ pub const COMPARISON_PHRASES: &[&str] = &[
     "half the speed",
     "half the time",
     "in half",
+    "quicker than",
+    "cheaper than",
+    "more efficient than",
+    "edges out",
 ];
 
 /// Whole words, case-insensitively. Not stems.
 /// Bare "behind" and "match" are ordinary English, so they are not claims.
 /// Superlatives ("fastest", "slowest", "quickest", "best", "worst") count only
 /// beside a project name, in `has_guarded_word`.
-pub const COMPARISON_WORDS: &[&str] = &["beat", "beats", "beating", "beaten"];
+pub const COMPARISON_WORDS: &[&str] = &[
+    "beat", "beats", "beating", "beaten",
+    "equals", "ties", "parity", "outdoes", "tops", "trails", "lags",
+];
 
 /// A word that starts with one of these, case-insensitively: outperforms,
 /// outpaced, surpasses, exceeded, rivals, rivalry.
@@ -145,8 +152,8 @@ pub const PROJECT_SOURCE_DOMAINS: &[&str] = &[
 
 /// Project names that turn a nearby superlative, "twice", "double", "half", or "vs" into a comparison.
 const PROJECT_TOKENS: &[&str] = &[
-    "vllm", "llama", "tensorrt", "pytorch", "chatgpt", "openai", "gemini", "claude", "triton", "cudnn",
-    "tgi", "sglang",
+    "cuda", "nvidia", "vllm", "llama.cpp", "llama", "tensorrt", "pytorch", "triton", "cudnn",
+    "chatgpt", "openai", "gemini", "claude", "tgi", "sglang", "cutlass",
 ];
 
 fn url_is_allowed(url: &str) -> bool {
@@ -501,19 +508,47 @@ fn is_comparison_claim(s: &str) -> bool {
         || has_multiplier(&scanned)
 }
 
+/// CUDA performance bars from omega.json. A tie does not pass: each sentence
+/// must require a beat, and a different sentence with the same words does not.
+const OMEGA_CUDA_BAR_SENTENCES: &[&str] = &[
+    "Omega's best format beats the best measured CUDA number at one conversation, with golden tokens identical to my host reference.",
+    "Omega prefill beats the best measured CUDA number at 512 and 8k.",
+    "Omega total words per second beats the best measured CUDA number at 8 and 32 conversations.",
+];
+
+/// Game title. It names a memorizer, not another project's system.
+const TURING_GAME_SENTENCE: &str = "Game 2: Beat the memorizer";
+
+fn plain_sentence(s: &str) -> String {
+    s.replace("&#39;", "'")
+        .replace("&#x27;", "'")
+        .replace("&apos;", "'")
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn is_fixed_sentence(s: &str) -> bool {
+    let n = plain_sentence(s);
+    if n == TURING_GAME_SENTENCE {
+        return true;
+    }
+    OMEGA_CUDA_BAR_SENTENCES.iter().any(|bar| n == *bar || n == format!("Done when: {bar}"))
+}
+
 /// `None` when the text is not a comparison, or is one honest sentence
 /// with a real ISO date and a source link. Overclaims always return
 /// "overclaim". A comparison with no date or no link in this same text
 /// returns "unsourced comparison".
 pub fn comparison_problem(s: &str) -> Option<&'static str> {
-    if is_owned_slower(s) {
-        return None;
-    }
     let lower = s.to_ascii_lowercase();
     for w in OVERCLAIMS {
         if lower.contains(w) {
             return Some("overclaim");
         }
+    }
+    if is_owned_slower(s) || is_fixed_sentence(s) {
+        return None;
     }
     if is_comparison_claim(s) && !(has_real_iso_date(s) && has_allowed_source(s)) {
         return Some("unsourced comparison");
@@ -545,6 +580,7 @@ fn closes_block(tag_l: &str) -> bool {
         || tag_l.starts_with("</blockquote")
         || tag_l.starts_with("</section")
         || tag_l.starts_with("</article")
+        || tag_l.starts_with("</nav")
         || tag_l.starts_with("<br")
 }
 
@@ -718,106 +754,33 @@ fn split_sentences(text: &str) -> Vec<String> {
 /// license a comparison in this one.
 pub fn comparison_errors(text: &str) -> Vec<String> {
     let mut errors = Vec::new();
-    for sentence in split_sentences(&readable_text(text)) {
-        if let Some(kind) = comparison_problem(&sentence) {
-            errors.push(format!("{kind} in {sentence:?}"));
+    // Block ends already become newlines in `readable_text`. A newline ends a
+    // sentence so a claim in the next block does not inherit the previous line.
+    for line in readable_text(text).split('\n') {
+        for sentence in split_sentences(line) {
+            if let Some(kind) = comparison_problem(&sentence) {
+                errors.push(format!("{kind} in {sentence:?}"));
+            }
         }
     }
     errors
 }
 
-/// Published papers and receipts, by exact source path and by the page that renders them.
-/// A path hits this list only when it equals an entry or ends with `/` + that entry.
+/// Published papers and receipts, by exact repo path. Live pages are not on
+/// this list: `/omega/`, `omega.json`, and the `/engineer/` tree are scanned.
+/// A path matches only when the whole string equals an entry.
 pub const PROSE_EXEMPT_PATHS: &[&str] = &[
-    "public/data/engineer.json",
     "public/engineer/papers/the-continuation-test.md",
-    "crates/site-builder/data/omega.json",
     "crates/site-builder/data/models.json",
     "public/research/aien-research-plan.md",
     "public/research/computing-machinery-and-understanding-emergence/index.html",
     "public/research/the-stapleton-doctrine/index.html",
     "public/call-to-humanity/index.html",
-    "data/engineer.json",
-    "engineer/papers/the-continuation-test.md",
-    "research/aien-research-plan.md",
-    "research/computing-machinery-and-understanding-emergence/index.html",
-    "research/the-stapleton-doctrine/index.html",
-    "call-to-humanity/index.html",
-    "omega/index.html",
-    "omega.json",
-    "/engineer/",
-    "engineer/index.html",
-    "/engineer/path/",
-    "engineer/path/index.html",
-    "/engineer/what-i-learned/",
-    "engineer/what-i-learned/index.html",
-    "/engineer/philosophy/",
-    "engineer/philosophy/index.html",
-    "/engineer/software/",
-    "engineer/software/index.html",
-    "/engineer/evidence/",
-    "engineer/evidence/index.html",
-    "/engineer/atlas/",
-    "engineer/atlas/index.html",
-    "/engineer/scholar/",
-    "engineer/scholar/index.html",
-    "/engineer/interest/",
-    "engineer/interest/index.html",
-    "/engineer/donate/",
-    "engineer/donate/index.html",
-    "/engineer/glossary/",
-    "engineer/glossary/index.html",
-    "/engineer/symphony/",
-    "engineer/symphony/index.html",
-    "/engineer/symphony/first/",
-    "engineer/symphony/first/index.html",
-    "/engineer/symphony/workflow/",
-    "engineer/symphony/workflow/index.html",
-    "/engineer/symphony/map/",
-    "engineer/symphony/map/index.html",
-    "/engineer/works/",
-    "engineer/works/index.html",
-    "/engineer/works/aegis/",
-    "engineer/works/aegis/index.html",
-    "/engineer/works/aien/",
-    "engineer/works/aien/index.html",
-    "/engineer/works/atlas-harness/",
-    "engineer/works/atlas-harness/index.html",
-    "/engineer/works/atlas-symphony/",
-    "engineer/works/atlas-symphony/index.html",
-    "/engineer/works/beltbrain/",
-    "engineer/works/beltbrain/index.html",
-    "/engineer/works/chatgpt-vs-aien/",
-    "engineer/works/chatgpt-vs-aien/index.html",
-    "/engineer/works/cudaplusplus/",
-    "engineer/works/cudaplusplus/index.html",
-    "/engineer/works/defiantmob/",
-    "engineer/works/defiantmob/index.html",
-    "/engineer/works/dhg-hive/",
-    "engineer/works/dhg-hive/index.html",
-    "/engineer/works/endless-symphony/",
-    "engineer/works/endless-symphony/index.html",
-    "/engineer/works/foundations-2025/",
-    "engineer/works/foundations-2025/index.html",
-    "/engineer/works/mobdev-panel-arena/",
-    "engineer/works/mobdev-panel-arena/index.html",
-    "/engineer/works/research/",
-    "engineer/works/research/index.html",
-    "/engineer/works/the-continuation-test/",
-    "engineer/works/the-continuation-test/index.html",
-    "/engineer/works/chatgpt-vs-aien/infographic/",
-    "engineer/works/chatgpt-vs-aien/infographic/index.html",
 ];
 
 pub fn is_prose_exempt(path: &str) -> bool {
     let norm = path.replace('\\', "/");
-    PROSE_EXEMPT_PATHS.iter().any(|entry| {
-        if entry.starts_with('/') {
-            norm == *entry || norm.ends_with(entry)
-        } else {
-            norm == *entry || norm.ends_with(&format!("/{entry}"))
-        }
-    })
+    PROSE_EXEMPT_PATHS.contains(&norm.as_str())
 }
 
 /// Same check as `comparison_errors`, except a path on `PROSE_EXEMPT_PATHS` is skipped.
@@ -1262,13 +1225,12 @@ mod tests {
         }
         assert!(d.speeds.first().unwrap().model.starts_with("Qwen3.6-35B-A3B"), "the 35B end to end comes first");
         let spark = d.machines.iter().find(|m| m.id == "spark").unwrap();
-        assert_eq!(spark.evidence_date, "2026-10-21");
-        assert!(spark.today.contains("test server") && spark.today.contains("branch build"), "{}", spark.today);
-        assert!(spark.today.contains("bin-16b0e6f8") && spark.today.contains("21.95") && spark.today.contains("22.46"), "{}", spark.today);
-        assert!(!spark.today.contains("aien-serve-http"), "the Spark card must not say the receipt is the live server: {}", spark.today);
-        assert!(!spark.today.contains("qwen3.6-35b-a3b-fp8"), "the q36 receipt does not name that id: {}", spark.today);
-        assert!(!spark.evidence.to_ascii_lowercase().contains("qwen3.6-35b-a3b-fp8"));
-        assert!(!spark.today.contains("Qwen3.8-27B"), "the Spark today line must not say it serves the 27B");
+        assert_eq!(spark.evidence_date, "2026-10-19");
+        assert_eq!(spark.branch, "qwen38/serve-fast");
+        assert!(!spark.on_main);
+        assert!(spark.today.contains("Serves Qwen3.8-27B"), "{}", spark.today);
+        assert!(spark.today.contains("aien-serve-http"), "{}", spark.today);
+        assert!(!spark.today.contains("bin-16b0e6f8"), "{}", spark.today);
         assert!(d.speeds.first().unwrap().what.starts_with("End to end"));
         assert!(d.speeds.first().unwrap().what.contains("test server") && d.speeds.first().unwrap().what.contains("branch build"));
         assert!(d.speeds.first().unwrap().engine.contains("Omega"));
@@ -1505,7 +1467,23 @@ mod tests {
             "1.8x.",
             "(2x)",
             "the fastest vLLM",
+            "the worst vLLM",
+            "the slowest vLLM",
+            "the quickest vLLM",
             "best vLLM",
+            "equals vLLM",
+            "ties vLLM",
+            "parity with vLLM",
+            "outdoes vLLM",
+            "tops vLLM",
+            "trails vLLM",
+            "lags vLLM",
+            "edges out vLLM",
+            "quicker than vLLM",
+            "cheaper than vLLM",
+            "more efficient than vLLM",
+            "Omega vs CUDA",
+            "twice CUDA",
             "comparable to vLLM",
             "competitive with vLLM",
             "within 5% of vLLM",
@@ -1527,6 +1505,14 @@ mod tests {
             assert!(problems.is_empty(), "{term} with a real date and a link must pass: {problems:?}");
         }
         assert!(comparison_problem("The quickest walkthrough of what exists today.").is_none());
+        assert!(comparison_problem("Omega vs CUDA.").is_some());
+        assert!(comparison_problem("This ties CUDA.").is_some());
+        assert!(comparison_problem("Omega's best format beats the best measured CUDA number at one conversation, with golden tokens identical to my host reference.").is_none());
+        assert!(comparison_problem("Done when: Omega prefill beats the best measured CUDA number at 512 and 8k.").is_none());
+        assert!(comparison_problem("Omega total words per second beats the best measured CUDA number at 8 and 32 conversations.").is_none());
+        assert!(comparison_problem("Omega beats the best measured CUDA number.").is_some());
+        assert!(comparison_problem("Game 2: Beat the memorizer").is_none());
+        assert!(comparison_problem("Game 2: Beat CUDA").is_some());
         assert!(comparison_problem("The drive behind the grades.").is_none());
         assert!(comparison_problem("answers matching the shipped reference.").is_none());
         assert!(comparison_problem("This is not directly comparable to TOP500 scores.").is_none());
@@ -1553,9 +1539,7 @@ mod tests {
     #[test]
     fn published_papers_are_exempt_by_exact_path() {
         let papers = [
-            "public/data/engineer.json",
             "public/engineer/papers/the-continuation-test.md",
-            "crates/site-builder/data/omega.json",
             "crates/site-builder/data/models.json",
             "public/research/aien-research-plan.md",
             "public/research/computing-machinery-and-understanding-emergence/index.html",
@@ -1566,18 +1550,38 @@ mod tests {
         for path in papers {
             assert!(is_prose_exempt(path), "{path} missing from the fixed list");
             assert!(comparison_errors_at(path, claim).is_empty(), "{path} was scanned");
+            assert!(!is_prose_exempt(&format!("/tmp/{path}")), "{path} must not match by ending");
+            assert!(!is_prose_exempt(&format!("dist/{path}")), "{path} must not match by ending");
         }
-        assert!(!is_prose_exempt("public/research/index.html"));
-        assert!(!comparison_errors_at("public/research/index.html", claim).is_empty());
-        assert!(PROSE_EXEMPT_PATHS.contains(&"public/call-to-humanity/index.html"));
-        assert!(!PROSE_EXEMPT_PATHS.contains(&"public/research/index.html"));
+        for live in [
+            "public/research/index.html",
+            "omega/index.html",
+            "dist/omega/index.html",
+            "public/omega/index.html",
+            "crates/site-builder/data/omega.json",
+            "omega.json",
+            "public/data/engineer.json",
+            "/engineer/",
+            "engineer/index.html",
+            "public/engineer/index.html",
+            "dist/engineer/index.html",
+        ] {
+            assert!(!is_prose_exempt(live), "{live} is a live page and must be scanned");
+            assert!(!comparison_errors_at(live, claim).is_empty(), "{live} was skipped");
+        }
+        assert_eq!(PROSE_EXEMPT_PATHS, papers);
     }
 
     #[test]
     fn omega_and_every_other_page_use_the_shared_check() {
         let omega = crate::components::omega::render_omega_page().into_string();
-        let problems = comparison_errors_at("omega/index.html", &omega);
-        assert!(problems.is_empty(), "/omega/ is the omega.json page and is exempt: {problems:?}");
+        assert!(!is_prose_exempt("omega/index.html"));
+        let problems = comparison_errors("This beats vLLM.");
+        assert!(!problems.is_empty());
+        let mut bad = Vec::new();
+        for problem in comparison_errors_at("omega/index.html", &omega) {
+            bad.push(format!("omega/index.html: {problem}"));
+        }
         let planted = "Measured on 2026-10-21 (https://example.com/bench). vLLM is slower than Omega.";
         let problems = comparison_errors(planted);
         assert!(
@@ -1586,12 +1590,21 @@ mod tests {
         );
 
         for page in crate::components::engineer::pages() {
-            assert!(is_prose_exempt(&page.path), "engineer page {} is on the exempt list", page.path);
+            assert!(!is_prose_exempt(&page.path), "engineer page {} must be scanned", page.path);
             assert!(
-                comparison_errors_at(&page.path, "This beats vLLM.").is_empty(),
-                "{} must be skipped",
+                !comparison_errors_at(&page.path, "This beats vLLM.").is_empty(),
+                "{} must not be skipped",
                 page.path
             );
+        }
+
+        let facts: crate::facts::Facts = serde_json::from_str(include_str!("../../../../facts.json")).expect("facts");
+        let engineer_pages = crate::components::engineer::pages();
+        for page in &engineer_pages {
+            let html = crate::components::engineer::render(page, &engineer_pages, &facts).into_string();
+            for problem in comparison_errors(&html) {
+                bad.push(format!("{}: {problem}", page.path));
+            }
         }
 
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
@@ -1600,15 +1613,16 @@ mod tests {
         collect_html(&root.join("crates/site-builder/templates"), &mut files);
         collect_named(&root.join("om"), "main.html", &mut files);
         assert!(files.len() > 20, "expected the shipped pages, found {}", files.len());
-        let mut bad = Vec::new();
         for path in &files {
             let text = std::fs::read_to_string(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
-            let problems = comparison_errors_at(&path.display().to_string(), &text);
+            let rel = path.strip_prefix(&root).unwrap_or(path);
+            let rel = rel.to_string_lossy().replace('\\', "/");
+            let problems = comparison_errors_at(&rel, &text);
             if !problems.is_empty() {
                 bad.push(format!(
                     "{}: {}",
                     path.display(),
-                    problems.iter().take(4).map(|e| clip(e, 200)).collect::<Vec<_>>().join(" | ")
+                    problems.iter().map(|e| clip(e, 400)).collect::<Vec<_>>().join(" | ")
                 ));
             }
         }
