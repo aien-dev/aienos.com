@@ -374,9 +374,9 @@ pub fn render_speeds_section() -> Markup {
             div class="container" {
                 div class="mx-head" {
                     p class="kicker" { "Speed, with receipts" }
-                    h2 id="speed-title" class="mx-h2" { "The 35B through my own server, end to end" }
+                    h2 id="speed-title" class="mx-h2" { "The 35B end to end, on a test server" }
                     p class="mx-lead" {
-                        "Qwen3.6-35B-A3B, a mixture-of-experts with about 3B parameters active per token, answers through my own server on my own C GPU stack, on the Spark. The number below is wall time as a client sees it, prompt reading included. The full table holds the 27B chip-time rows, the engine alone, the smaller Rig engine and the long-context cost, each labelled end to end or chip time, and every row links to the folder its number came from."
+                        "Qwen3.6-35B-A3B, a mixture-of-experts with about 3B parameters active per token, answers through my own C GPU stack, on the Spark. The number below is end-to-end wall time from a test server running a branch build, prompt reading included. Chip time for the same model is decode only. The gap between chip time and this end-to-end time comes from prompt reading. The full table holds the 27B chip-time rows, the engine alone, the smaller Rig engine and the long-context cost, each labelled end to end or chip time, and every row links to the folder its number came from."
                     }
                 }
                 div class="mx-hero" {
@@ -442,6 +442,14 @@ pub fn render_speeds_section() -> Markup {
 mod tests {
     use super::*;
 
+    /// A speed row whose receipt is chip time: a chip folder, milliseconds per
+    /// token, or GPU time per token. End-to-end wall time and cold time to
+    /// first token are not chip time.
+    fn is_chip_time(s: &Speed) -> bool {
+        let blob = format!("{} {} {}", s.receipt, s.detail, s.value).to_ascii_lowercase();
+        blob.contains("chip") || blob.contains("ms per token") || blob.contains("gpu time")
+    }
+
     #[test]
     fn real_data_parses_and_validates() {
         let d = parse(RAW).expect("machines.json must validate");
@@ -451,9 +459,12 @@ mod tests {
         }
         assert!(d.speeds.first().unwrap().model.starts_with("Qwen3.6-35B-A3B"), "the 35B end to end comes first");
         assert!(d.speeds.first().unwrap().what.starts_with("End to end"));
+        assert!(d.speeds.first().unwrap().what.contains("test server") && d.speeds.first().unwrap().what.contains("branch build"));
         assert!(d.speeds.first().unwrap().engine.contains("Omega"));
-        for s in d.speeds.iter().filter(|s| s.detail.contains("GPU time per token")) {
-            assert!(s.what.contains("chip time only"), "{}: chip-time row must say so", s.id);
+        assert!(d.judging.contains("prompt reading"));
+        assert!(!d.judging.to_ascii_lowercase().contains("without the server"));
+        for s in d.speeds.iter().filter(|s| is_chip_time(s)) {
+            assert!(s.what.to_ascii_lowercase().contains("chip time"), "{}: chip-time row must say so ({})", s.id, s.what);
         }
     }
 
@@ -519,6 +530,10 @@ mod tests {
         assert!(speeds.contains("id=\"speed-27b-live\""));
         assert!(speeds.contains("id=\"speed-35b-e2e\""));
         assert!(speeds.contains("22.0 to 22.5"));
+        assert!(speeds.contains("test server running a branch build"));
+        assert!(speeds.contains("comes from prompt reading"));
+        assert!(!speeds.to_ascii_lowercase().contains("without the server"));
+        assert!(!speeds.to_ascii_lowercase().contains("leaves out the server"));
         assert!(speeds.contains(&data().judging));
         let machines = render_machines_section().into_string();
         for id in ["machine-spark", "machine-imac", "machine-pi5", "machine-qemu", "machine-rig"] {

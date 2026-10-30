@@ -10,7 +10,7 @@
   "claim": "Omega is Aien's language for all computing, GPU to CPU.",
   "claim_rest": [
     "You write a program once. Omega's own tools check it and compile it straight to the machine code of the processor that runs it, GPU or CPU. No vendor compiler, toolkit or runtime library is involved anywhere.",
-    "On the GPU, that makes Omega the replacement for CUDA. On the CPU, it replaces C and its toolchain. This page says how far each of those has got, and the checks that have to pass before I can claim each one."
+    "Replacing CUDA on the GPU is not true yet. On the CPU, it replaces C and its toolchain. This page says how far each of those has got, and the checks that have to pass before I can claim each one."
   ],
   "true_today": "My own C GPU stack, built inside the Omega project, serves Aien's 35B model on the GB10 with no CUDA software: no libcuda, no cuBLAS, no nvcc. The Omega language does not reach the GPU yet (bar C1).",
   "not_true_yet": "Omega replaces CUDA.",
@@ -512,7 +512,7 @@
     }
   ],
   "performance": {
-    "stand": "Measured end to end: Qwen3.6-35B-A3B at FP8, a mixture-of-experts with about 3B parameters active per token, served through my HTTP server by my own C GPU stack on one DGX Spark GB10. Wall time from the first request out to the last reply in, prompt reading included, greedy, at most 128 tokens per reply, two runs each (2026-10-21): 21.95 and 22.46 tokens a second for one conversation; 57.10 and 57.09 in total for 8 at once; 62.42 and 62.40 for 16; 65.66 and 66.38 for 32. Measured separately, chip-only: the GPU's own time per generated token, 20.1 to 24.0 ms, gives 41.7 to 49.8 tokens a second for one conversation (48.31 in the ceiling receipt). That figure leaves out the server, the prompt and everything around the chip, so it is not an end-to-end number and is never set beside one.",
+    "stand": "Measured end to end on a test server running a branch build (bin-16b0e6f8, port 18089, context 2048; the live server on port 18091 was stopped): Qwen3.6-35B-A3B at FP8, a mixture-of-experts with about 3B parameters active per token, served through my HTTP server by my own C GPU stack on one DGX Spark GB10. Wall time from the first request out to the last reply in, prompt reading included, greedy, at most 128 tokens per reply, two runs each (2026-10-21): 21.95 and 22.46 tokens a second for one conversation; 57.10 and 57.09 in total for 8 at once; 62.42 and 62.40 for 16; 65.66 and 66.38 for 32. Measured separately, chip time (decode only, prompt reading excluded): 20.7 ms per generated token, 48.31 tokens a second for one conversation, from Q36_CEILING.md section 3. The gap between that chip time and the end-to-end figure comes from prompt reading. The replies are short, many end before 128 tokens, and prompt reading is a large share of the wall, so the two measures stay under their own labels.",
     "how": "No comparison on the same machine exists yet. Bar P0 below measures llama.cpp and vLLM on this Spark with the same model and prompts; until it publishes, I make no speed comparison with them, TensorRT or any other CUDA stack. Figures other people have published for those systems are theirs and have not been re-measured here. The end to end measurements are in the q36-batch-20261021 receipt.",
     "links": [
       [

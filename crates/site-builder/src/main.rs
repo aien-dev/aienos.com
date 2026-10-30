@@ -683,7 +683,7 @@ fn verify_site(dist: &Path) {
         let o = fs::read_to_string(&omega_page).expect("read omega page");
         for phrase in [
             "Omega is Aien&#39;s language for all computing, GPU to CPU.",
-            "On the GPU, that makes Omega the replacement for CUDA.",
+            "Replacing CUDA on the GPU is not true yet.",
             "id=\"cuda-map\"",
             "id=\"today\"",
             "id=\"not-yet\"",

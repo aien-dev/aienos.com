@@ -1,8 +1,8 @@
 //! /omega/: what Omega is, in the same words as the omega repository's
 //! `docs/OMEGA.md`.
 //!
-//! Omega is AIEN's language for all computing, GPU to CPU; on the GPU it is
-//! the replacement for CUDA. The page renders, from `data/omega.json`:
+//! Omega is Aien's language for all computing, GPU to CPU. Replacing CUDA
+//! is not true yet. The page renders, from `data/omega.json`:
 //! the parts of Omega, the CUDA stack piece by piece with Omega's
 //! replacement and its status, the one thing that is true today with its
 //! receipt, what is not true yet, and the bar C1 to C6 as a checklist.
@@ -22,7 +22,7 @@ use serde::Deserialize;
 use super::boxlink::{foot_labelled, Target};
 
 pub const TITLE: &str = "What Omega is | AienOS";
-pub const DESCRIPTION: &str = "Omega is Aien's language for all computing, GPU to CPU. On the GPU it is the replacement for CUDA. The CUDA stack piece by piece, the receipt for what is true today, what is not true yet, and the bar C1 to C6.";
+pub const DESCRIPTION: &str = "Omega is Aien's language for all computing, GPU to CPU. Replacing CUDA is not true yet. The CUDA stack piece by piece, the receipt for what is true today, what is not true yet, and the bar C1 to C6.";
 pub const URL: &str = "https://www.aienos.com/omega/";
 
 /// The data file, compiled in and published as /omega.json.
@@ -603,7 +603,7 @@ mod tests {
         let s = render_omega_page().into_string();
         let h1 = s.find("<h1").unwrap();
         assert!(s[h1..].starts_with("<h1 class=\"om-title\">Omega is Aien&#39;s language for all computing, GPU to CPU.</h1>") || s[h1..].starts_with("<h1 class=\"om-title\">Omega is Aien's language for all computing, GPU to CPU.</h1>"), "{}", &s[h1..h1 + 120]);
-        assert!(s.contains("On the GPU, that makes Omega the replacement for CUDA."));
+        assert!(s.contains("Replacing CUDA on the GPU is not true yet."));
         assert_eq!(s.matches("<h1").count(), 1);
     }
 
@@ -708,9 +708,44 @@ mod tests {
             assert!(!lower.contains(w), "{w}");
         }
         let d = data();
-        assert!(d.performance.stand.contains("end to end") && d.performance.stand.contains("chip-only"));
+        assert!(d.performance.stand.contains("end to end") && d.performance.stand.contains("chip time"));
+        assert!(d.performance.stand.contains("20.7 ms") && d.performance.stand.contains("48.31"));
+        assert!(!d.performance.stand.contains("20.1") && !d.performance.stand.contains("49.8"));
+        assert!(!d.performance.stand.to_ascii_lowercase().contains("leaves out the server"));
+        assert!(d.performance.stand.contains("prompt reading"));
+        assert!(d.performance.stand.contains("test server") && d.performance.stand.contains("branch build"));
         assert!(d.performance.stand.contains("about 3B parameters active per token"));
         assert!(d.true_today.contains("C GPU stack") && d.true_today.contains("bar C1"));
         assert!(s.contains("https://github.com/aien-dev/aien-sovereign-core-mv/tree/9c62690a252ab1c0b75eb8933c550316b5c50d52/evidence/q36-batch-20261021"));
+        // The same phrases are refused in the sources that used to state them,
+        // not only in the rendered /omega/ page.
+        assert_no_parity("/omega/", &s);
+        for (name, text) in [
+            ("matrix.rs", include_str!("matrix.rs")),
+            ("facts.rs", include_str!("../facts.rs")),
+            ("omega.json", RAW),
+            ("cudaplusplus.json", include_str!("../../data/cudaplusplus.json")),
+            ("cudaplusplus.rs", include_str!("cudaplusplus.rs")),
+            ("seo.rs", include_str!("../seo.rs")),
+            ("main.rs", include_str!("../main.rs")),
+            ("omega.rs", include_str!("omega.rs")),
+            ("research/index.html", include_str!("../../../../public/research/index.html")),
+            ("research/omega-language/index.html", include_str!("../../../../public/research/omega-language/index.html")),
+            ("engineer.json", include_str!("../../../../public/data/engineer.json")),
+        ] {
+            assert_no_parity(name, text);
+        }
+    }
+
+    /// Phrases split so this file can be scanned without matching itself.
+    fn parity_phrases() -> [&'static str; 2] {
+        [concat!("replacement for ", "CUDA"), concat!("everything ", "CUDA gives you")]
+    }
+
+    fn assert_no_parity(name: &str, text: &str) {
+        let lower = text.to_ascii_lowercase();
+        for w in parity_phrases() {
+            assert!(!lower.contains(&w.to_ascii_lowercase()), "{name} contains {w}");
+        }
     }
 }

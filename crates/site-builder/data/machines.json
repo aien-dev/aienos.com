@@ -1,7 +1,7 @@
 {
   "as_of": "2026-10-19",
   "source": "Spark ~/handoffs/2026-10-19-site-inventory.md and .json (ledger L057). Every row carries a public link; a fact without a link is not on the page.",
-  "judging": "Every number on this page is judged against two things only: the physical ceiling of the machine it ran on, and my own previous run. Nothing here is compared with anyone else's software. End to end means wall time through the server as a client sees it; chip time means only the GPU's own time per token, without the server, and the two are labelled and never mixed.",
+  "judging": "Every number on this page is judged against two things only: the physical ceiling of the machine it ran on, and my own previous run. Nothing here is compared with anyone else's software. End to end means wall time through the server as a client sees it, prompt reading included. Chip time means the GPU's own time per generated token, decode only, with prompt reading excluded. For the 35B, the gap between chip time and end-to-end time comes from prompt reading. The two are labelled and never mixed.",
   "ceilings": [
     {
       "id": "qwen38-27b-fp8-gb10",
@@ -105,12 +105,12 @@
   "speeds": [
     {
       "id": "35b-e2e",
-      "what": "End to end through the server, one conversation",
+      "what": "End to end through a test server running a branch build, one conversation",
       "model": "Qwen3.6-35B-A3B FP8, a mixture-of-experts with about 3B parameters active per token",
       "machine": "Spark GB10",
       "engine": "C GPU stack (Omega project) behind aien-serve-http",
       "value": "22.0 to 22.5 tok/s",
-      "detail": "21.95 and 22.46 tok/s in two runs: wall time from request out to last reply in, prompt reading included, greedy, at most 128 tokens per reply. Many conversations at once, in total: 57.1 tok/s at 8, 62.4 at 16, 65.7 to 66.4 at 32.",
+      "detail": "21.95 and 22.46 tok/s in two runs: wall time from request out to last reply in, prompt reading included, greedy, at most 128 tokens per reply, on a test server running branch build bin-16b0e6f8 (port 18089, context 2048; the live server on port 18091 was stopped). Many conversations at once, in total: 57.1 tok/s at 8, 62.4 at 16, 65.7 to 66.4 at 32.",
       "tok_s": null,
       "ceiling": "",
       "previous": "",
@@ -120,7 +120,7 @@
       "branch": "main",
       "on_main": true,
       "verdict": "",
-      "note": "Chip time for this model is a different measure, kept on the models page under its own label and never set beside this number."
+      "note": "The receipt commit is on main. Chip time for this model is decode only, prompt reading excluded, and is kept on the models page under its own label. The gap between that chip time and this end-to-end time comes from prompt reading."
     },
     {
       "id": "27b-live",
@@ -181,7 +181,7 @@
     },
     {
       "id": "27b-fp8-head",
-      "what": "FP8 final word-scoring step, A against B",
+      "what": "FP8 final word-scoring step, A against B, chip time only",
       "model": "Qwen3.8-27B FP8",
       "machine": "Spark GB10",
       "engine": "C kernels (Omega project), engine test tool",
@@ -200,7 +200,7 @@
     },
     {
       "id": "27b-w4",
-      "what": "4-bit weights, whole model",
+      "what": "4-bit weights, whole model, chip time only",
       "model": "Qwen3.8-27B MXFP4",
       "machine": "Spark GB10, chip shared with two servers",
       "engine": "C kernels (Omega project), engine test tool",
@@ -219,7 +219,7 @@
     },
     {
       "id": "rig-8b-fp8",
-      "what": "Rig engine in a 12 GiB budget",
+      "what": "Rig engine in a 12 GiB budget, chip time only",
       "model": "Qwen3-8B FP8",
       "machine": "Spark GB10 under a 12 GiB device budget, not an RTX 5070",
       "engine": "Omega dense door",
@@ -238,7 +238,7 @@
     },
     {
       "id": "rig-8b-w4",
-      "what": "Rig engine in a 12 GiB budget, 4-bit",
+      "what": "Rig engine in a 12 GiB budget, 4-bit, chip time only",
       "model": "Qwen3-8B MXFP4",
       "machine": "Spark GB10 under a 12 GiB device budget, not an RTX 5070",
       "engine": "Omega dense door",
