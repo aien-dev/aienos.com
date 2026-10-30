@@ -1049,6 +1049,9 @@ struct FixedSentence {
 /// sentences are in body_html on line 91, and the link for each one is in the
 /// next paragraph. The benchmark sentence matches only as written. It names a
 /// plan. A result or a different comparative is not on the list.
+/// Three call-to-humanity sentences stay as written. Each matches only as that
+/// sentence. In llms.txt the same sentence is the text after `- [Name](url): `.
+/// One changed word is not on the list, and neither is "a replacement for CUDA".
 const FIXED_SENTENCES: &[FixedSentence] = &[
     FixedSentence {
         sentence: "Omega's best format beats the best measured CUDA number at one conversation, with golden tokens identical to my host reference.",
@@ -1086,6 +1089,24 @@ const FIXED_SENTENCES: &[FixedSentence] = &[
         reason: "planned same-Spark benchmark; no result claimed until a receipt exists. omega.json bar P0, status MISSING, receipt null.",
         done_when_prefix: false,
     },
+    FixedSentence {
+        sentence: "An open letter on breaking the CUDA stranglehold on the hardware market: a clean-room replacement for the CUDA user stack, built in the open, with public receipts.",
+        source: "https://github.com/aien-dev/aienos.com/blob/main/crates/site-builder/src/seo.rs",
+        reason: "Drake's decision 2026-10-30 (relayed by Aien): keep these three call-to-humanity sentences as written.",
+        done_when_prefix: false,
+    },
+    FixedSentence {
+        sentence: "I intend to break it, and this letter is how I am starting: a working replacement for the CUDA user software layer, built in the open, with receipts anyone on Earth can check.",
+        source: "https://github.com/aien-dev/aienos.com/blob/main/public/call-to-humanity/index.html",
+        reason: "Drake's decision 2026-10-30 (relayed by Aien): keep these three call-to-humanity sentences as written.",
+        done_when_prefix: false,
+    },
+    FixedSentence {
+        sentence: "What exists today is a clean-room replacement for the CUDA user stack on the GB10, with no nvcc, no libcuda, and no cuBLAS at run time.",
+        source: "https://github.com/aien-dev/aienos.com/blob/main/public/call-to-humanity/index.html",
+        reason: "Drake's decision 2026-10-30 (relayed by Aien): keep these three call-to-humanity sentences as written.",
+        done_when_prefix: false,
+    },
 ];
 
 /// Game title. It names a memorizer, not another project's system.
@@ -1100,13 +1121,30 @@ fn plain_sentence(s: &str) -> String {
         .join(" ")
 }
 
+/// `llms.txt` writes `- [Name](https://...): {sentence}`. The page summary is
+/// that sentence and nothing after it. A different summary does not match.
+fn llms_catalogue_sentence(prepared: &str) -> Option<&str> {
+    let rest = prepared.strip_prefix("- [")?;
+    let marker = rest.find("](https://")?;
+    let after = &rest[marker + 2..];
+    let split = after.find("): ")?;
+    let url = &after[..split];
+    if !url.starts_with("https://") || url.chars().any(char::is_whitespace) {
+        return None;
+    }
+    Some(&after[split + 3..])
+}
+
 fn is_fixed_sentence(s: &str) -> bool {
     let n = plain_sentence(s);
     if n == TURING_GAME_SENTENCE {
         return true;
     }
+    let catalogue = llms_catalogue_sentence(&n);
     FIXED_SENTENCES.iter().any(|row| {
-        n == row.sentence || (row.done_when_prefix && n == format!("Done when: {}", row.sentence))
+        n == row.sentence
+            || catalogue == Some(row.sentence)
+            || (row.done_when_prefix && n == format!("Done when: {}", row.sentence))
     })
 }
 
@@ -1310,11 +1348,13 @@ fn has_overclaim(lower: &str) -> bool {
 pub fn comparison_problem(s: &str) -> Option<&'static str> {
     let prepared = prepare_sentence(s);
     let lower = prepared.to_ascii_lowercase();
-    if has_overclaim(&lower) {
-        return Some("overclaim");
-    }
+    // An exact fixed sentence is allowed even when its words are an overclaim.
+    // Any other wording, including one changed word, stays banned.
     if is_owned_slower(&prepared) || is_fixed_sentence(&prepared) {
         return None;
+    }
+    if has_overclaim(&lower) {
+        return Some("overclaim");
     }
     if is_comparison_claim(&prepared) && !(has_real_iso_date(&prepared) && has_allowed_source(&prepared)) {
         return Some("unsourced comparison");
@@ -2854,21 +2894,6 @@ mod tests {
             "a not that is not the word before replacement still fails"
         );
         assert_eq!(
-            comparison_problem("An open letter on breaking the CUDA stranglehold on the hardware market: a clean-room replacement for the CUDA user stack, built in the open, with public receipts. DOI 10.5281/zenodo.23614947."),
-            Some("overclaim"),
-            "call-to-humanity llms.txt sentence still fails"
-        );
-        assert_eq!(
-            comparison_problem("I intend to break it, and this letter is how I am starting: a working replacement for the CUDA user software layer, built in the open, with receipts anyone on Earth can check."),
-            Some("overclaim"),
-            "call-to-humanity line 85 still fails"
-        );
-        assert_eq!(
-            comparison_problem("What exists today is a clean-room replacement for the CUDA user stack on the GB10, with no nvcc, no libcuda, and no cuBLAS at run time."),
-            Some("overclaim"),
-            "call-to-humanity line 95 still fails"
-        );
-        assert_eq!(
             comparison_problem("aien-serve-http matched vLLM and llama.cpp on Qwen3.6-35B-A3B."),
             Some("unsourced comparison")
         );
@@ -3157,6 +3182,69 @@ Published: yesterday.
     }
 
     #[test]
+    fn call_to_humanity_sentences_are_exact_allowances() {
+        const REASON: &str = "Drake's decision 2026-10-30 (relayed by Aien): keep these three call-to-humanity sentences as written.";
+        let rows: Vec<_> = FIXED_SENTENCES.iter().filter(|row| row.reason == REASON).collect();
+        assert_eq!(rows.len(), 3);
+        let summary = rows[0].sentence;
+        let working = rows[1].sentence;
+        let gb10 = rows[2].sentence;
+        assert!(summary.contains("a clean-room replacement for the CUDA user stack"));
+        assert!(!summary.contains("GB10"));
+        assert!(working.contains("a working replacement for the CUDA user software layer"));
+        assert!(gb10.contains("a clean-room replacement for the CUDA user stack on the GB10"));
+        assert!(rows[0].source.ends_with("crates/site-builder/src/seo.rs"));
+        assert!(rows[1].source.ends_with("public/call-to-humanity/index.html"));
+        assert!(rows[2].source.ends_with("public/call-to-humanity/index.html"));
+        assert!(rows.iter().all(|row| !row.done_when_prefix));
+        for row in &rows {
+            assert!(comparison_problem(row.sentence).is_none(), "{}", row.sentence);
+            assert!(comparison_problem(&format!("Done when: {}", row.sentence)).is_some());
+        }
+        let seo = include_str!("../seo.rs");
+        let seo_line = seo.lines().nth(127).expect("seo.rs line 128");
+        assert!(seo_line.contains(summary), "the page summary is seo.rs line 128");
+        let html = include_str!("../../../../public/call-to-humanity/index.html");
+        let html_lines: Vec<_> = html.lines().collect();
+        assert!(html_lines[6].contains(summary), "line 7 is the page summary");
+        assert!(html_lines[84].contains(working), "line 85");
+        assert!(html_lines[94].contains(gb10), "line 95");
+        let catalogue = format!("- [A Call to Humanity](https://www.aienos.com/call-to-humanity/): {summary} DOI 10.5281/zenodo.23614947.");
+        assert!(
+            comparison_errors(&catalogue).is_empty(),
+            "the llms.txt line is the same sentence: {:?}",
+            comparison_errors(&catalogue)
+        );
+        assert!(comparison_errors(html).is_empty(), "{:?}", comparison_errors(html));
+        assert_eq!(comparison_problem("a replacement for CUDA"), Some("overclaim"));
+        assert_eq!(
+            comparison_problem("The lab page is a replacement for CUDA."),
+            Some("overclaim")
+        );
+        let changed = [
+            summary.replacen("clean-room", "partial", 1),
+            working.replacen("working", "partial", 1),
+            gb10.replacen("GB10", "GB200", 1),
+        ];
+        for sentence in changed {
+            assert_eq!(comparison_problem(&sentence), Some("overclaim"), "{sentence}");
+        }
+        let wrapped = format!(
+            "- [Omega](https://www.aienos.com/omega/): {}",
+            summary.replacen("clean-room", "partial", 1)
+        );
+        assert!(
+            comparison_errors(&wrapped).iter().any(|e| e.contains("overclaim")),
+            "the catalogue wrapper does not allow a changed sentence: {:?}",
+            comparison_errors(&wrapped)
+        );
+        assert!(
+            comparison_problem("I only compare my work with other systems when I can show a dated receipt.").is_none(),
+            "the engineer sentence is not a comparison claim"
+        );
+    }
+
+    #[test]
     fn engineer_json_unsourced_comparison_fails_the_build() {
         let raw = include_str!("../../../../public/data/engineer.json");
         let line = raw
@@ -3282,8 +3370,8 @@ Published: yesterday.
             if rel == "public/call-to-humanity/index.html" {
                 assert!(!is_prose_exempt(&rel), "call-to-humanity is a live page");
                 assert!(
-                    !problems.is_empty(),
-                    "call-to-humanity is scanned; its overclaims stay for a content decision"
+                    problems.is_empty(),
+                    "the three allowed sentences are exact; nothing else on the page is a hit: {problems:?}"
                 );
                 continue;
             }
