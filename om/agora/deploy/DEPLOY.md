@@ -164,43 +164,70 @@ input chain policy is drop, and port 18132 is not accepted there. Adding the
 rule needs Drake's explicit approval. This preflight does not insert it, does
 not authorize a temporary rule, and does not write `/etc/nftables.conf`.
 
-Back up only table `inet atlas_ingress`. The file is one atomic restore: the
-line `table inet atlas_ingress`, then `delete table inet atlas_ingress`, then
-the saved table from `nft list table inet atlas_ingress`. Record the path.
-The file is root-owned, mode 0600.
+Back up only table `inet atlas_ingress`, once, before any 18132 rule exists.
+The path is `/root/aien-agora-atlas-ingress.nft`. If that file is already
+present, leave it. Do not overwrite it, and do not delete it in order to take
+a new snapshot after the 18132 rule exists. A snapshot taken then would put
+the rule back in the live table on restore, while `/etc/nftables.conf` says
+the port is closed. The file is one atomic restore: the line
+`table inet atlas_ingress`, then `delete table inet atlas_ingress`, then the
+saved table from `nft list table inet atlas_ingress`. It is root-owned, mode
+0600, and it must contain no port 18132 rule.
 
 ```sh
-backup=$(sudo mktemp /root/aien-agora-nft.XXXXXX)
-sudo sh -c 'printf "%s\n" "table inet atlas_ingress" "delete table inet atlas_ingress" > "$1"' sh "$backup"
-sudo nft list table inet atlas_ingress | sudo tee -a "$backup" >/dev/null
-sudo chown root:root "$backup"
-sudo chmod 0600 "$backup"
+backup=/root/aien-agora-atlas-ingress.nft
+portre='dport[[:space:]]+18132([^0-9]|$)|dport[[:space:]]*\{[[:space:]]*18132([^0-9]|$)|dport[[:space:]]*\{[^}]*[^0-9]18132([^0-9]|$)'
+if sudo test -e "$backup"; then
+  sudo test "$(sudo stat -c '%u %g %a' "$backup")" = '0 0 600' || exit 1
+  sudo awk 'NR==1 && $0!="table inet atlas_ingress" { exit 2 }
+            NR==2 && $0!="delete table inet atlas_ingress" { exit 2 }
+            NR==3 && $0!="table inet atlas_ingress {" { exit 2 }
+            END { if (NR<3) exit 2 }' "$backup" || exit 1
+  test "$(sudo grep -E -c "$portre" "$backup" || true)" = 0 || exit 1
+else
+  list=$(sudo nft -a list chain inet atlas_ingress input) || exit 1
+  test "$(printf '%s\n' "$list" | grep -E -c "$portre" || true)" = 0 || exit 1
+  sudo sh -c 'printf "%s\n" "table inet atlas_ingress" "delete table inet atlas_ingress" > "$1"' sh "$backup"
+  sudo nft list table inet atlas_ingress | sudo tee -a "$backup" >/dev/null
+  sudo chown root:root "$backup"
+  sudo chmod 0600 "$backup"
+  if test "$(sudo grep -E -c "$portre" "$backup" || true)" != 0; then
+    sudo rm -f -- "$backup"
+    exit 1
+  fi
+  sudo awk 'NR==1 && $0!="table inet atlas_ingress" { exit 2 }
+            NR==2 && $0!="delete table inet atlas_ingress" { exit 2 }
+            NR==3 && $0!="table inet atlas_ingress {" { exit 2 }
+            END { if (NR<3) exit 2 }' "$backup" || exit 1
+fi
 sudo stat -c '%u %g %a %F %s %n' "$backup"
-sudo awk 'NR==1 && $0!="table inet atlas_ingress" { exit 2 }
-          NR==2 && $0!="delete table inet atlas_ingress" { exit 2 }
-          NR==3 && $0!="table inet atlas_ingress {" { exit 2 }
-          END { if (NR<3) exit 2 }' "$backup" || exit 1
 ```
 
-PASS: uid 0, gid 0, mode 600, type `regular file`, size greater than 0, and
-the three opening lines are `table inet atlas_ingress`,
-`delete table inet atlas_ingress`, and `table inet atlas_ingress {`.
-FAIL: any other owner, group, mode, type, or an empty or short file. Stop.
-Do not start the unit.
+`portre` matches `dport 18132` and a set such as `dport { 18110, 18132 }`.
+It does not match a longer number such as 181320.
+PASS: the file exists, this run did not overwrite an existing file, uid 0,
+gid 0, mode 600, type `regular file`, size greater than 0, the three opening
+lines are `table inet atlas_ingress`, `delete table inet atlas_ingress`, and
+`table inet atlas_ingress {`, and the file's port 18132 count is 0.
+FAIL: the file is missing its header, has the wrong owner or mode, or names
+port 18132. Stop. Do not replace it. If the file was absent and the live
+chain already names port 18132, do not create it.
 
 List the input chain. `nft` must exit 0. The first printed number is the
 input chain header: the line must start with optional whitespace, then
 `type filter hook input`, and end with `policy drop;`. A comment that only
 contains `policy drop;` does not match. The second number is how many lines
-contain `dport 18132`. The third is how many lines contain the exact rule.
+name port 18132, either as `dport 18132` or inside a set such as
+`dport { 18110, 18132 }`. The third is how many lines contain the exact rule.
 A trailing `# handle N` may follow the rule on the listed line.
 
 ```sh
 list=$(sudo nft -a list chain inet atlas_ingress input) || exit 1
 printf '%s\n' "$list"
 printf '%s\n' "$list" | grep -E -c '^[[:space:]]*type filter hook input .*policy drop;[[:space:]]*$' || true
+portre='dport[[:space:]]+18132([^0-9]|$)|dport[[:space:]]*\{[[:space:]]*18132([^0-9]|$)|dport[[:space:]]*\{[^}]*[^0-9]18132([^0-9]|$)'
 rule='iifname "tailscale0" ip saddr 100.64.0.3 tcp dport 18132 accept comment "aien-agora, hub nginx only"'
-printf '%s\n' "$list" | grep -F -c 'dport 18132' || true
+printf '%s\n' "$list" | grep -E -c "$portre" || true
 printf '%s\n' "$list" | grep -F -c -- "$rule" || true
 ```
 
@@ -213,15 +240,16 @@ The 18132 line is that same listed form with this port and comment. The 18110
 rule lives in `/etc/nftables.conf`.
 
 PASS, once Drake has approved and the rule is applied: the header count is 1,
-exactly one line contains `dport 18132`, and the exact rule count is 1.
-A `dport 18132` count of 0 and an exact count of 0, with the header count at
-1, is the current host. The rule is not yet approved or applied. That is a
-failed preflight for starting the listener on `100.64.0.2:18132`. Leave the
-chain unchanged.
+exactly one line names port 18132, and the exact rule count is 1.
+A port count of 0 and an exact count of 0, with the header count at 1, is the
+current host. The rule is not yet approved or applied. That is a failed
+preflight for starting the listener on `100.64.0.2:18132`. Leave the chain
+unchanged.
 FAIL: `nft` does not exit 0, the chain is missing, the header count is not 1,
-the `dport 18132` count is greater than 1, the exact count is greater than 1,
-or the `dport 18132` count is 1 while the exact count is not 1. A broader
-`tcp dport 18132 accept` with no source address is that last failure. Stop.
+the port count is greater than 1, the exact count is greater than 1, or the
+port count is 1 while the exact count is not 1. A broader
+`tcp dport 18132 accept`, or a set such as `dport { 18110, 18132 }`, is that
+last failure. Stop.
 Do not start the unit for hub ingress while either rule count is 0. A drop in
 this chain never reaches the systemd IP filter, so unit IP accounting stays 0.
 
@@ -233,14 +261,22 @@ approval, matching the 18110 rule's home in `/etc/nftables.conf`
 (`scripts/allen/README.md`). `nft -c -f` checks the file and does not load
 it. This guide does not apply the rule.
 
+A stock Debian `/etc/nftables.conf` usually begins with `flush ruleset`, so a
+full reload wipes every table. During this deploy, check that file only with
+`nft -c -f`. Do not reload it: do not run `nft -f /etc/nftables.conf`, and do
+not restart the nftables service.
+
 Back up `/etc/nftables.conf` to a `.bak` copy, insert the exact rule once
-after the `tcp dport 18110 accept` line, and validate the installed file.
-The insert copies every other line unchanged, including the output chain.
-Refuse the edit when any `dport 18132` line is already present, or when the
-18110 line is missing.
+after the first real `tcp dport 18110 accept` line, and validate the
+installed file. The insert copies every other line unchanged, including the
+output chain. A commented-out `tcp dport 18110 accept` line is not that
+anchor: a `#` outside quotes ends the code on that line. Refuse the edit when
+any port 18132 line is already present, including a set such as
+`dport { 18110, 18132 }`, or when no real 18110 line exists.
 
 ```sh
-if sudo grep -F -q 'dport 18132' /etc/nftables.conf; then
+portre='dport[[:space:]]+18132([^0-9]|$)|dport[[:space:]]*\{[[:space:]]*18132([^0-9]|$)|dport[[:space:]]*\{[^}]*[^0-9]18132([^0-9]|$)'
+if sudo grep -E -q "$portre" /etc/nftables.conf; then
   exit 1
 fi
 stamp=$(date -u +%Y%m%dT%H%M%SZ)
@@ -249,12 +285,28 @@ sudo cp -a -- /etc/nftables.conf "$confbak"
 rule='iifname "tailscale0" ip saddr 100.64.0.3 tcp dport 18132 accept comment "aien-agora, hub nginx only"'
 tmp=$(sudo mktemp /root/aien-agora-nftables.XXXXXX)
 sudo awk -v rule="$rule" '
-  { print }
-  index($0, "tcp dport 18110 accept") && !seen { print "\t\t" rule; seen=1 }
-  END { if (!seen) exit 2 }
+function code(s,   i, c, q, out) {
+  q = 0
+  out = ""
+  for (i = 1; i <= length(s); i++) {
+    c = substr(s, i, 1)
+    if (c == "\"") q = !q
+    else if (c == "#" && !q) break
+    out = out c
+  }
+  return out
+}
+{
+  print
+  if (!seen && index(code($0), "tcp dport 18110 accept")) {
+    print "\t\t" rule
+    seen = 1
+  }
+}
+END { if (!seen) exit 2 }
 ' /etc/nftables.conf | sudo tee "$tmp" >/dev/null
 sudo test "$(sudo grep -F -c -- "$rule" "$tmp")" = 1 || exit 1
-sudo test "$(sudo grep -F -c 'dport 18132' "$tmp")" = 1 || exit 1
+sudo test "$(sudo grep -E -c "$portre" "$tmp" || true)" = 1 || exit 1
 sudo test "$(sudo grep -F -c 'tcp dport 18110 accept' "$tmp")" -ge 1 || exit 1
 sudo nft -c -f "$tmp" || exit 1
 mode=$(sudo stat -c '%a' /etc/nftables.conf)
@@ -431,12 +483,15 @@ FAIL: the 18132 expression remains, or the 18110 line is missing. Stop and
 use the table file below.
 
 Also remove the same rule from `/etc/nftables.conf`. The 18110 rule lives in
-that file, and a reboot or an nftables reload would load a 18132 line left
-behind. The rule is not yet approved or applied. If the exact line is already
-absent, record that and leave the file in place.
+that file, and a later reload would load a 18132 line left behind. Do not
+reload `/etc/nftables.conf` during this rollback. A stock Debian copy usually
+begins with `flush ruleset`, and reloading it wipes every table. The rule is
+not yet approved or applied. If the exact line is already absent, record that
+and leave the file in place.
 
 ```sh
 rule='iifname "tailscale0" ip saddr 100.64.0.3 tcp dport 18132 accept comment "aien-agora, hub nginx only"'
+portre='dport[[:space:]]+18132([^0-9]|$)|dport[[:space:]]*\{[[:space:]]*18132([^0-9]|$)|dport[[:space:]]*\{[^}]*[^0-9]18132([^0-9]|$)'
 if sudo grep -F -q -- "$rule" /etc/nftables.conf; then
   stamp=$(date -u +%Y%m%dT%H%M%SZ)
   confbak="/etc/nftables.conf.bak-aien-agora-$stamp"
@@ -450,38 +505,52 @@ if sudo grep -F -q -- "$rule" /etc/nftables.conf; then
   sudo rm -- "$tmp"
 fi
 sudo grep -F -c -- "$rule" /etc/nftables.conf || true
+sudo grep -E -c "$portre" /etc/nftables.conf || true
 sudo grep -F -n 'tcp dport 18110 accept' /etc/nftables.conf
+live=$(sudo nft -a list chain inet atlas_ingress input) || exit 1
+printf '%s\n' "$live" | grep -E -c "$portre" || true
 ```
 
-PASS: the exact rule count in the file is 0, and `tcp dport 18110 accept` is
-still present.
-FAIL: the 18110 line is missing, or `nft -c -f` fails. Copy `$confbak` back
-over `/etc/nftables.conf` when that backup was taken, and stop.
+PASS: the exact rule count in the file is 0, the file's port 18132 count is
+0, and the live input chain's `dport 18132` count is 0, including a set such
+as `dport { 18110, 18132 }`. `tcp dport 18110 accept` is still present.
+FAIL: any of those counts is not 0, the 18110 line is missing, or `nft -c -f`
+fails. Copy `$confbak` back over `/etc/nftables.conf` when that backup was
+taken, and stop. Do not reload the file.
 
-The other path is the preflight file, and only when the handle cannot be
-used. `$backup` is that root-owned mode 0600 file. It saves and restores only
+The other path is the write-once file `/root/aien-agora-atlas-ingress.nft`,
+and only when the handle cannot be used. It saves and restores only
 `inet atlas_ingress`: `table inet atlas_ingress`, then
-`delete table inet atlas_ingress`, then the saved table. Check it with
-`nft -c -f` before `nft -f`. One `nft -f` is one transaction. This keeps the
-relay mailer's output chain and the 18110 rule. `scripts/allen/relay/start`
-describes that output chain: it lets the allen-relay user reach only DNS on
-loopback and TCP 465. No other table is in the file, so those tables stay as
-they are. A preflight file taken while the 18132 rule is absent restores a
-table without it.
+`delete table inet atlas_ingress`, then the saved table. Do not load it when
+it names port 18132. Check it with `nft -c -f` before `nft -f`. One `nft -f`
+is one transaction. This keeps the relay mailer's output chain and the 18110
+rule as they were in that snapshot. `scripts/allen/relay/start` describes that
+output chain: it lets the allen-relay user reach only DNS on loopback and TCP
+465. No other table is in the file, so those tables stay as they are. A
+snapshot restore undoes any later `atlas_ingress` changes, because the whole
+table is replaced by the saved copy. The saved copy has no 18132 rule, so the
+restore cannot put that rule back.
 
 ```sh
+backup=/root/aien-agora-atlas-ingress.nft
+portre='dport[[:space:]]+18132([^0-9]|$)|dport[[:space:]]*\{[[:space:]]*18132([^0-9]|$)|dport[[:space:]]*\{[^}]*[^0-9]18132([^0-9]|$)'
 sudo test "$(sudo stat -c '%u %g %a' "$backup")" = '0 0 600' || exit 1
+test "$(sudo grep -E -c "$portre" "$backup" || true)" = 0 || exit 1
 sudo nft -c -f "$backup" || exit 1
 sudo nft -f "$backup"
-sudo nft -a list chain inet atlas_ingress input
+live=$(sudo nft -a list chain inet atlas_ingress input) || exit 1
+printf '%s\n' "$live"
+test "$(printf '%s\n' "$live" | grep -E -c "$portre" || true)" = 0 || exit 1
 ```
 
-If the mode test or `nft -c -f` fails, do not load the file. After the load,
-the input chain must match the saved table, including the 18110 accept rule,
-and the output chain must still be the saved one. Then remove the 18132 line
-from `/etc/nftables.conf` with the commands above, so a reboot cannot bring
-it back. Leave the 18110 rule in place. It is documented in
-`scripts/allen/README.md` and is not part of this registration unit.
+If the mode test, the port count, or `nft -c -f` fails, do not load the file.
+After any restore, the live input chain must show a `dport 18132` count of 0.
+FAIL when that count is not 0. The input chain must also still contain the
+18110 accept rule, and the output chain must still be the saved one. Then
+remove the 18132 line from `/etc/nftables.conf` with the commands above, so a
+later reload cannot bring it back. Leave the 18110 rule in place. It is
+documented in `scripts/allen/README.md` and is not part of this registration
+unit.
 
 ### Reload adoption barrier
 
@@ -664,12 +733,13 @@ rollback is delete-by-handle, under [Firewall rollback](#firewall-rollback).
 Do not delete the 18110 accept rule in `inet atlas_ingress` input. That rule
 is documented in `scripts/allen/README.md` and lives in `/etc/nftables.conf`.
 
-Also remove the exact 18132 line from `/etc/nftables.conf`, or a reboot or an
-nftables reload brings it back. If the line is already absent, record that
-and leave the file in place.
+Also remove the exact 18132 line from `/etc/nftables.conf`, or a later reload
+brings it back. Do not reload that file here. If the line is already absent,
+record that and leave the file in place.
 
 ```sh
 rule='iifname "tailscale0" ip saddr 100.64.0.3 tcp dport 18132 accept comment "aien-agora, hub nginx only"'
+portre='dport[[:space:]]+18132([^0-9]|$)|dport[[:space:]]*\{[[:space:]]*18132([^0-9]|$)|dport[[:space:]]*\{[^}]*[^0-9]18132([^0-9]|$)'
 if sudo grep -F -q -- "$rule" /etc/nftables.conf; then
   stamp=$(date -u +%Y%m%dT%H%M%SZ)
   confbak="/etc/nftables.conf.bak-aien-agora-$stamp"
@@ -683,13 +753,18 @@ if sudo grep -F -q -- "$rule" /etc/nftables.conf; then
   sudo rm -- "$tmp"
 fi
 sudo grep -F -c -- "$rule" /etc/nftables.conf || true
+sudo grep -E -c "$portre" /etc/nftables.conf || true
 sudo grep -F -n 'tcp dport 18110 accept' /etc/nftables.conf
+live=$(sudo nft -a list chain inet atlas_ingress input) || exit 1
+printf '%s\n' "$live" | grep -E -c "$portre" || true
 ```
 
-PASS: the exact rule count in the file is 0, and `tcp dport 18110 accept` is
-still present.
-FAIL: the 18110 line is missing, or `nft -c -f` fails. Copy `$confbak` back
-over `/etc/nftables.conf` when that backup was taken, and stop.
+PASS: the exact rule count in the file is 0, the file's port 18132 count is
+0, and the live input chain's `dport 18132` count is 0, including a set such
+as `dport { 18110, 18132 }`. `tcp dport 18110 accept` is still present.
+FAIL: any of those counts is not 0, the 18110 line is missing, or `nft -c -f`
+fails. Copy `$confbak` back over `/etc/nftables.conf` when that backup was
+taken, and stop. Do not reload the file.
 
 ## History
 
