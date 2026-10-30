@@ -52,6 +52,7 @@ install $OWN -m 0755 "$ENGINE" "$DEST/aien-math"
 install $OWN -m 0755 "$OMC" "$DEST/omc"
 install $OWN -m 0755 "$IRWASM" "$DEST/irwasm"
 install $OWN -m 0755 "$SRC/allen-science-fg" "$LIBEXEC/allen-science-fg"
+install $OWN -m 0755 "$SRC/allen-science-math-fg" "$LIBEXEC/allen-science-math-fg"
 cmp -s "$DEST/science_protocol.py" "$GW/science_protocol.py" || {
   echo "install.sh: service and gateway science_protocol.py differ" >&2; exit 1; }
 echo "installed $DEST and $GW/science_protocol.py; not started"
