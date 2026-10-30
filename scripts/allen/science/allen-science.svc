@@ -1,0 +1,16 @@
+exec /usr/bin/python3.12 -I /opt/allen-science/launch.py --listen 127.0.0.1:18113
+user allen-science
+restart always
+env PATH=/usr/bin:/bin
+ro /opt/allen-science
+net filter
+allow 127.0.0.1
+listen 18113 127.0.0.1
+net-default drop
+memory-max 1610612736
+tasks-max 64
+cpu-quota 200
+syscalls @system-service @mount @ns
+namespaces yes
+syscall-error eperm
+families unix inet netlink

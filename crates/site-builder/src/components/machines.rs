@@ -213,10 +213,10 @@ pub fn fraction(tok_s: f64, ceiling: f64) -> String {
     format!("{:.3}", tok_s / ceiling)
 }
 
-/// "7.63 tok/s" as a big number and a small unit; a value with no space
-/// stays whole.
+/// "22.0 to 22.5 tok/s" as a big number and a small unit (the last word);
+/// a value with no space stays whole.
 fn big_value(value: &str) -> Markup {
-    let (n, unit) = value.split_once(' ').unwrap_or((value, ""));
+    let (n, unit) = value.rsplit_once(' ').unwrap_or((value, ""));
     html! {
         span class="mx-hero-value mono" { (n) @if !unit.is_empty() { " " span class="mx-unit" { (unit) } } }
     }
@@ -343,7 +343,7 @@ fn speed_row(d: &Data, s: &Speed) -> Markup {
                         a href=(c.link) target="_blank" rel="noopener noreferrer" { (format!("{:.2} tok/s", c.tok_s)) }
                     }
                 } @else {
-                    span class="mx-sub mx-none" { "none published" }
+                    span class="mx-sub mx-none" { "none shown" }
                 }
             }
             td class="mx-td-prev" data-label="My previous run" {
@@ -364,7 +364,7 @@ fn speed_row(d: &Data, s: &Speed) -> Markup {
     }
 }
 
-/// Homepage section: the speed table, the 27B on Omega first.
+/// Homepage section: the speed table, the 35B end to end first.
 pub fn render_speeds_section() -> Markup {
     let d = data();
     let first = d.speeds.first().expect("at least one speed row");
@@ -374,9 +374,9 @@ pub fn render_speeds_section() -> Markup {
             div class="container" {
                 div class="mx-head" {
                     p class="kicker" { "Speed, with receipts" }
-                    h2 id="speed-title" class="mx-h2" { "A 27B model on my own engine, today" }
+                    h2 id="speed-title" class="mx-h2" { "The 35B end to end, on a test server" }
                     p class="mx-lead" {
-                        "Qwen3.8-27B answers through my own server on my own GPU kernels, on the Spark. The first row is the door a visitor uses; the rest are the engine alone, the smaller Rig engine and the long-context cost. Every row links to the folder its number came from."
+                        "Qwen3.6-35B-A3B, a mixture-of-experts with about 3B parameters active per token, answers through my own C GPU stack, on the Spark. The number below is end-to-end wall time from a test server running a branch build, prompt reading included. Chip time for the same model is decode only. The gap between chip time and this end-to-end time comes from prompt reading. The full table holds the 27B chip-time rows, the engine alone, the smaller Rig engine and the long-context cost, each labelled end to end or chip time, and every row links to the folder its number came from."
                     }
                 }
                 div class="mx-hero" {
@@ -402,30 +402,35 @@ pub fn render_speeds_section() -> Markup {
                         "Receipt: " (first.receipt) " " (where_badge(first.on_main, &first.branch))
                     }
                 }
-                div class="mx-table-wrap" {
-                    table class="mx-table" {
-                        thead {
-                            tr {
-                                th { "What" }
-                                th { "Machine and engine" }
-                                th { "Measured" }
-                                th { "Ceiling" }
-                                th { "My previous run" }
-                                th { "Date" }
-                                th { "Receipt" }
+                // One number leads; every other row stays one click away in a
+                // native disclosure, so the section reads as one idea.
+                details class="mx-receipts" {
+                    summary class="mx-receipts-summary" { "All " (d.speeds.len()) " speed receipts, ceilings and how they are judged" }
+                    div class="mx-table-wrap" {
+                        table class="mx-table" {
+                            thead {
+                                tr {
+                                    th { "What" }
+                                    th { "Machine and engine" }
+                                    th { "Measured" }
+                                    th { "Ceiling" }
+                                    th { "My previous run" }
+                                    th { "Date" }
+                                    th { "Receipt" }
+                                }
+                            }
+                            tbody {
+                                @for s in &d.speeds { (speed_row(d, s)) }
                             }
                         }
-                        tbody {
-                            @for s in &d.speeds { (speed_row(d, s)) }
-                        }
                     }
-                }
-                p class="mx-judging" { (d.judging) }
-                @for c in &d.ceilings {
-                    p class="mx-stamp" {
-                        "Ceiling for " (c.model) " on the " (c.machine) ": " span class="mono" { (format!("{:.2} tok/s", c.tok_s)) } ". " (c.how) " "
-                        a href=(c.link) target="_blank" rel="noopener noreferrer" { (c.receipt) }
-                        " " (where_badge(c.on_main, &c.branch))
+                    p class="mx-judging" { (d.judging) }
+                    @for c in &d.ceilings {
+                        p class="mx-stamp" {
+                            "Ceiling for " (c.model) " on the " (c.machine) ": " span class="mono" { (format!("{:.2} tok/s", c.tok_s)) } ". " (c.how) " "
+                            a href=(c.link) target="_blank" rel="noopener noreferrer" { (c.receipt) }
+                            " " (where_badge(c.on_main, &c.branch))
+                        }
                     }
                 }
             }
@@ -437,6 +442,14 @@ pub fn render_speeds_section() -> Markup {
 mod tests {
     use super::*;
 
+    /// A speed row whose receipt is chip time: a chip folder, milliseconds per
+    /// token, or GPU time per token. End-to-end wall time and cold time to
+    /// first token are not chip time.
+    fn is_chip_time(s: &Speed) -> bool {
+        let blob = format!("{} {} {}", s.receipt, s.detail, s.value).to_ascii_lowercase();
+        blob.contains("chip") || blob.contains("ms per token") || blob.contains("gpu time")
+    }
+
     #[test]
     fn real_data_parses_and_validates() {
         let d = parse(RAW).expect("machines.json must validate");
@@ -444,8 +457,15 @@ mod tests {
         for want in ["Spark", "iMac", "Raspberry Pi 5", "QEMU", "RTX 5070"] {
             assert!(d.machines.iter().any(|m| m.name.contains(want)), "machine {want} missing");
         }
-        assert!(d.speeds.first().unwrap().model.starts_with("Qwen3.8-27B"), "the 27B on Omega comes first");
+        assert!(d.speeds.first().unwrap().model.starts_with("Qwen3.6-35B-A3B"), "the 35B end to end comes first");
+        assert!(d.speeds.first().unwrap().what.starts_with("End to end"));
+        assert!(d.speeds.first().unwrap().what.contains("test server") && d.speeds.first().unwrap().what.contains("branch build"));
         assert!(d.speeds.first().unwrap().engine.contains("Omega"));
+        assert!(d.judging.contains("prompt reading"));
+        assert!(!d.judging.to_ascii_lowercase().contains("without the server"));
+        for s in d.speeds.iter().filter(|s| is_chip_time(s)) {
+            assert!(s.what.to_ascii_lowercase().contains("chip time"), "{}: chip-time row must say so ({})", s.id, s.what);
+        }
     }
 
     #[test]
@@ -508,6 +528,12 @@ mod tests {
         assert!(speeds.contains("0.752"));
         assert!(speeds.contains("10.15 tok/s"));
         assert!(speeds.contains("id=\"speed-27b-live\""));
+        assert!(speeds.contains("id=\"speed-35b-e2e\""));
+        assert!(speeds.contains("22.0 to 22.5"));
+        assert!(speeds.contains("test server running a branch build"));
+        assert!(speeds.contains("comes from prompt reading"));
+        assert!(!speeds.to_ascii_lowercase().contains("without the server"));
+        assert!(!speeds.to_ascii_lowercase().contains("leaves out the server"));
         assert!(speeds.contains(&data().judging));
         let machines = render_machines_section().into_string();
         for id in ["machine-spark", "machine-imac", "machine-pi5", "machine-qemu", "machine-rig"] {

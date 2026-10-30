@@ -1,0 +1,21 @@
+C1  pass         rc=0 Integrate[Exp[-a*x],{x,0,Infinity},Assumptions->a>0]
+C2  pass         rc=0 Series[Exp[Sin[x]],{x,0,5}]
+C3  pass         rc=0 Sum[k^(-s),{k,1,Infinity},GenerateConditions->True]
+L1  pass         rc=0 Eigensystem[{{1,I},{-I,2}}]
+L2  pass         rc=0 SingularValueList[{{1,2},{3,4}}]
+L3  fail         rc=0 MatrixExp[N[{{(-1/2+(-2/5)*I),(0/1+(-1/5)*I),(1/2+(0/1)*I),(-1/4+(1/5)
+D1  pass         rc=0 ({y[1],z[1]}/.First[NDSolve[{y'[x]==z[x],z'[x]==-y[x],y[0]==0,z[0]==1}
+D2  fail         rc=0 DSolve[y''[x]+y[x]==0,y[x],x]
+D3  fail         rc=0 Simplify[D[Exp[-x^2/(4 t)]/Sqrt[4 Pi t],t] - D[Exp[-x^2/(4 t)]/Sqrt[4 
+Q1  fail         rc=0 Integrate[x^2 Exp[-x^2]/Sqrt[Pi],{x,-Infinity,Infinity}]
+Q2  pass         rc=0 {{0,1},{1,0}}.{{0,-I},{I,0}} - {{0,-I},{I,0}}.{{0,1},{1,0}}
+Q3  fail         rc=0 Integrate[4 r^3 Exp[-2 r],{r,0,Infinity}]
+Q4  pass         rc=0 HermiteH[10,1/3]
+R1  pass         rc=0 1/Sqrt[1-(3/5)^2]
+R2  pass         rc=0 UnitConvert[Quantity[1, "Kilograms"*"SpeedOfLight"^2], "Joules"]
+R3  pass         rc=0 N[UnitConvert[2 Quantity[1,"GravitationalConstant"] Quantity[1,"SolarM
+S1  pass         rc=0 N[Probability[x >= 71, x \[Distributed] BinomialDistribution[120, 1/2]
+S2  pass         rc=0 Expectation[x^3, x \[Distributed] NormalDistribution[m, s]]
+U1  pass         rc=0 UnitConvert[Quantity[3/2, "Parsecs"], "LightYears"]
+U2  pass         rc=0 UnitConvert[Quantity[1, "ReducedPlanckConstant"]]
+tally {'pass': 15, 'fail': 5}

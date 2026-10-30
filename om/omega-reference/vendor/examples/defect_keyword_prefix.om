@@ -1,0 +1,9 @@
+note defect_keyword_prefix: known defect at the pin. A function name longer than 8 bytes whose first
+note 8 bytes are an 8-letter keyword (continue, truncate, sockname, execprog, peercred) is refused error 16.
+note Workaround: rename (cont_x, trunc_num). Expected to change when the compiler fix is pinned
+fn continue_x to int
+ret 7
+end
+fn main to int
+ret continue_x
+end

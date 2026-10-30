@@ -1,0 +1,43 @@
+note om2_tour: layout, abstract/holds/seal/open, fresh, unroll (after omega-mv examples/om2-tour.om)
+om2
+layout blk 8
+field lo uint at 0 little
+field hi uint at 4 big
+end
+abstract v32 ulong
+holds v32 dup32
+note the erasing constructor: the body is exactly this line
+fn v32mk x uint to v32
+ret seal v32 or shl ulong x 32 ulong x
+end
+note fresh: every element is written before it is read (error 27 otherwise)
+fn seed s edit uint 8 fresh to uint
+for i uint 8 unroll
+put s i mul i 3
+end
+ret get s 7
+end
+fn stamp c edit blk to void
+put c lo 0x01020304
+put c hi 0x05060708
+end
+fn main to int
+s = new uint 8 0
+v = seed s
+if ne v 21
+ret 1
+end
+c = new uchar 8 0
+stamp c
+if ne get c 0 0x04
+ret 2
+end
+if ne get c 4 0x05
+ret 3
+end
+u = open v32mk 7
+if ne u 0x0000000700000007
+ret 4
+end
+ret 0
+end

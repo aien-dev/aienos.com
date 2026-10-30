@@ -1,0 +1,4 @@
+note err16_syntax: a line that starts with no statement word; C-style declarations are not Omega
+int main to int
+ret 0
+end

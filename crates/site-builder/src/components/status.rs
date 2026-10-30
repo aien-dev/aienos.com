@@ -146,7 +146,11 @@ pub fn render_status(facts: &Facts) -> Markup {
                     }
                 }
 
-                (super::live::render_live(facts))
+                // The live readings are a second idea; they open on request.
+                details class="status-live" style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border-subtle);" {
+                    summary style="cursor: pointer; font-family: var(--font-mono); font-size: 13px; color: var(--text-secondary);" { "Live readings from the machines" }
+                    (super::live::render_live(facts))
+                }
 
                 div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 32px;" {
                     a href="https://github.com/aien-dev" target="_blank" rel="noopener noreferrer" style="background: var(--accent-green); color: var(--bg-base); border-radius: 4px; padding: 10px 20px; font-family: var(--font-mono); font-size: 13px; font-weight: 700;" {

@@ -1,0 +1,5 @@
+note mistake_char_literal: there are no character literals; write the byte value. Fix: x = uchar 65
+fn main to int
+x = uchar 'A'
+ret 0
+end

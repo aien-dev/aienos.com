@@ -487,9 +487,12 @@ mod tests {
         let evidence = &HUBS[1];
         let page = render_hub_document(evidence);
         assert!(check_hub_document(evidence, &page.replace("Failure is evidence.", "")).is_err());
-        // A status link that survives only in the footer does not count.
+        // A status link that survives only in the footer does not count. The
+        // shared footer no longer links the data, so the test plants one there.
         let footer = page.find(FOOTER_START).expect("footer present");
         let (head, foot) = page.split_at(footer);
+        let open = foot.find('>').expect("footer tag closes") + 1;
+        let foot = format!("{}<a {STATUS_JSON_LINK}>data</a>{}", &foot[..open], &foot[open..]);
         let unlinked = format!("{}{foot}", head.replace(STATUS_JSON_LINK, "href=\"/x\""));
         assert!(foot.contains(STATUS_JSON_LINK), "footer still links the data");
         assert!(check_hub_document(evidence, &unlinked).is_err());

@@ -38,13 +38,13 @@ const RECEIPTS: &[Receipt] = &[
     },
     Receipt {
         title: "A 27 billion parameter model on my own engine",
-        says: "Qwen3.8-27B in 8-bit form, served by my own server on my own GPU kernels, on one DGX Spark. Measured 7.63 tokens a second against a ceiling of 10.15 for this machine and this model, which is 75.17 percent of the ceiling (calc:ce5d974e). Slower than I want.",
+        says: "Qwen3.8-27B in 8-bit form, served by my own server on my own GPU kernels, on one DGX Spark. Measured on the chip alone, not end to end: 7.63 tokens a second of GPU time per token against an arithmetic memory ceiling of 10.15 for this machine and this model, which is 75.17 percent of the ceiling (calc:ce5d974e). Slower than I want.",
         href: "https://github.com/aien-dev/aien-sovereign-core-mv/tree/qwen38/serve-fast/evidence/qwen38-serve-fast-20261019",
         on_branch: true,
     },
     Receipt {
         title: "The ceiling that number is judged against",
-        says: "How the 10.15 tokens a second limit was worked out from the machine's memory speed and the size of the model.",
+        says: "How the 10.15 tokens a second limit was worked out from the machine's memory speed and the size of the model. Arithmetic, not a measurement.",
         href: "https://github.com/aien-dev/aien-sovereign-core-mv/blob/alpha/ceiling-and-model/docs/qwen38/CEILING.md",
         on_branch: true,
     },

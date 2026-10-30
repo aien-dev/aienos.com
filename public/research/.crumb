@@ -3,21 +3,21 @@
     "generated": {
       "children": [
         {
-          "digest": "db738c32a50dfd100d1e5731676aa1cd6a6f6c2cb31bb3a45051f064ba430ba9",
-          "last_commit": "983b3b4",
+          "digest": "0bc346b941c84514e99639f55626243afcd846478cdb32bf81ab7a763a8dd632",
+          "last_commit": "8f55098",
           "name": "the-stapleton-doctrine",
           "purpose": "Public static research or licensing pages using the shared website navigation"
         }
       ],
-      "children_root": "sha256:f0d5a89e78e142fb3695c1584ac37bd9801be0d4586ed338fd3d2ca83aea49b4",
-      "compiled_at": "2026-10-26T16:35:09Z",
+      "children_root": "sha256:7bbbc065244250aee0bfdd1879b9fcd8e4731699a53b7e2711fc1f5fba1e5260",
+      "compiled_at": "2026-10-28T21:37:46Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:8bc939e2afeab81799eeb7f73520c8963b649c0d0cb588b39f6f85aadc02bf77",
+      "digest": "sha256:47631eb31c78f300a94bf49b81fe3841336b7cf1e72643dc9723c60ddf315704",
       "evidence_files": 0,
       "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "files": 50,
-      "generated_at_commit": "1858269c2036a010c5ec43bfeb3d33ee5040de7e",
-      "source_tree": "sha256:902c903cdf8e61e2e61b8f4d7c3dc171df4e7b936f67480dce14e65ba6ac0dd2"
+      "generated_at_commit": "07736aa17fd16e862725cf440bcae71527945285",
+      "source_tree": "sha256:70c4f4faa8606236cf1bb8c7f1489d299fec0cf51190608cdcd52c70ee29d3fc"
     }
   },
   "layer": "website",

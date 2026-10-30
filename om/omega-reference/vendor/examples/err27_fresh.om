@@ -1,0 +1,9 @@
+note err27_fresh: OM-2 fresh means every element is written before it is read
+om2
+fn f s edit uint 4 fresh to uint
+ret get s 0
+end
+fn main to int
+a = new uint 4 0
+ret int f a
+end

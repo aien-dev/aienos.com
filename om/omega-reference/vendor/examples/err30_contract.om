@@ -1,0 +1,12 @@
+note err30_contract: a contract clause may not call a function, use floats or host words; result needs a value postcondition
+om2
+fn g x uint to uint
+ret x
+end
+fn f x uint to uint
+requires lt g x 10
+ret x
+end
+fn main to int
+ret int f 1
+end

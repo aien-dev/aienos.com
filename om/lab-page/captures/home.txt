@@ -1,0 +1,13 @@
+$ git clone --depth 1 https://github.com/aien-dev/aienos.com
+(recorded from branch feat/omega-lab before merge)
+$ cd aienos.com
+$ sh om/lab-page/run.sh
+pin     omc sha256 734f0a39319fbfa930bcc62cb30dbf06d47d78e126372b74f5baf478e6126b61
+pin     irwasm sha256 2d235a70c39ac1461a09c41e10e058d962b767ae83893cdcfc693ef6c47182e6
+build   omc: axpy.om + harness.om -> out/axpy in 1048 us
+run     out/axpy a=3 n=1048576 -> 2748777496576 in 3779 us (whole process)
+check   awk reference 2748777496576
+control add -> sub gives 549754241024: mismatch, so the check can fail
+wasm    out/axpy.wasm 519 bytes, sha256 7607811d1d4440195bd39c5bab57385dd3b81f87321dc6e83f3855b2a5fba76e
+PASS
+(recorded 2026-10-27T00:43:06Z in an empty directory, Linux aarch64, load1 8.21)

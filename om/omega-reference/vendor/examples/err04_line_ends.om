@@ -1,0 +1,5 @@
+note err04_line_ends: the line ends before the statement is complete; here sub needs two values
+fn main to int
+x = int 5
+ret sub x
+end

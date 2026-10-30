@@ -1,0 +1,67 @@
+name: Generated Aien artifacts
+on:
+  pull_request:
+    paths:
+      - 'om/allen-page/**'
+      - 'om/aien-universe/**'
+      - 'om/allen-panes/**'
+      - 'om/allen-scene/**'
+      - 'public/js/allen*.js'
+      - 'public/js/aien-universe.js'
+      - 'public/assets/allen*.css'
+      - 'public/allen/**'
+      - 'crates/site-builder/**'
+      - '.github/workflows/generated-allen.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'om/allen-page/**'
+      - 'om/aien-universe/**'
+      - 'om/allen-panes/**'
+      - 'om/allen-scene/**'
+      - 'public/js/allen*.js'
+      - 'public/js/aien-universe.js'
+      - 'public/assets/allen*.css'
+      - 'public/allen/**'
+      - 'crates/site-builder/**'
+      - '.github/workflows/generated-allen.yml'
+permissions:
+  contents: read
+jobs:
+  artifact-hashes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      # These tests only hash and read committed bytes; never execute the arm64 omc pin.
+      - name: Check the /aien/ page, its generated scripts and stylesheet
+        run: cargo test --manifest-path crates/site-builder/Cargo.toml components::allen::tests
+  # The whole site-builder suite and the site build for a pull request, so a
+  # change can be tested and previewed without the Spark. The built site is a
+  # workflow artifact (aienos-dist); nothing here publishes.
+  site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Lay in the live ledger from the data/now branch
+        run: |
+          set -euo pipefail
+          mkdir -p public/data
+          if git fetch --depth 1 origin data/now 2>/dev/null; then
+            for f in now.tsv now-pulse.tsv models.tsv claude-usage.tsv accounts.tsv routing.tsv; do
+              if git cat-file -e "FETCH_HEAD:$f" 2>/dev/null; then
+                git show "FETCH_HEAD:$f" > "public/data/$f"
+              fi
+            done
+          fi
+      - name: Site-builder suite
+        run: cargo test --release --manifest-path crates/site-builder/Cargo.toml
+      - name: Build the site
+        run: cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: aienos-dist
+          path: dist
+          retention-days: 7

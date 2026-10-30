@@ -58,6 +58,16 @@ pub fn render_learn_page() -> Markup {
                 p class="learn-invitation" {
                     "Start with a small change you can describe and observe. Let an agent help with the code. Keep hold of the purpose, the boundaries, and the decision to publish."
                 }
+                p class="learn-invitation" {
+                    "I use Human-Directed Agentic Engineering (HDAE): I define the goals, architecture, constraints, acceptance criteria and stopping points; my agents implement, run checks, diagnose failures and revise within those boundaries. I retain responsibility for the claims, acceptance and release decisions."
+                }
+                p {
+                    "For the documented method and a systems-software case study, see Gregory M. Kurtzer, "
+                    a href="https://doi.org/10.5281/zenodo.23682548" {
+                        "Ginux: Building an Independent Kernel That Runs Linux Userspace through Human-Directed Agentic Engineering"
+                    }
+                    " (2026)."
+                }
                 nav class="learn-jump" aria-label="Learning guide" {
                     a href="#workflow" { "The working loop" }
                     a href="#brief" { "A brief to copy" }

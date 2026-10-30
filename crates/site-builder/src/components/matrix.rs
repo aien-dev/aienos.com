@@ -39,7 +39,7 @@ pub fn render_matrix() -> Markup {
         (
             "OMEGA",
             "defines · synthesizes · verifies",
-            "Aien's language for all computing, GPU to CPU. Its own tools check every program and compile it to the machine code of the chip that runs it; on the GPU it is the replacement for CUDA. Nothing runs on a claim; everything runs on a check.",
+            "Aien's language for all computing, GPU to CPU. Its own tools check every program and compile it to the machine code of the chip that runs it. Replacing CUDA is not true yet. Nothing runs on a claim; everything runs on a check.",
         ),
         (
             "Aien",
