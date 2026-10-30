@@ -405,6 +405,47 @@ proxy_protocol; proxy_protocol off; proxy_pass 127.0.0.1:4443;` and the same
 and rollback: `/root/allenchat-backup-<UTC>` holds `stream.d`, `sites-*`,
 `snippets` and `conf.d` as they were; copy them back, `nginx -t`, reload.
 
+## Deploy the A2A introduction endpoint
+
+`POST /aien/api/a2a` is A2A protocol 1.0 JSON-RPC. Nginx rewrites it to
+`/allen/api/a2a`. The only method is `SendMessage`. The older name
+`message/send` is the same call. The gateway passes that message to the
+introduce door. Consent and storage are that door's: `consent` must be the
+JSON boolean `true`, the response is `Cache-Control: no-store`, and the
+JSON-RPC envelope is not written. A consented introduction is the only record,
+in the same write-only drop as `POST /aien/api/introduce`.
+
+These methods are not supported. Each one is a JSON-RPC error and stores nothing:
+
+- `SendStreamingMessage` and `SubscribeToTask`: `-32004` (streaming is off)
+- `GetTask`, `ListTasks`, and `CancelTask`: `-32004` (this door keeps no tasks)
+- `CreateTaskPushNotificationConfig`, `GetTaskPushNotificationConfig`, `ListTaskPushNotificationConfigs`, and `DeleteTaskPushNotificationConfig`: `-32003`
+- `GetExtendedAgentCard`: `-32004` (there is no extended card)
+- any other method: `-32601` Method not found
+
+Older slash names of those same methods return the same codes. `scripts/allen/a2a.py` lists them.
+
+The location is `location = /allen/api/a2a` in `nginx-allen-location.conf`.
+On the hub, after that file is installed as `/etc/nginx/snippets/aienos-allen.conf`:
+
+    sudo nginx -t
+
+Then reload:
+
+    sudo systemctl reload nginx
+
+Then check the response. This asks for `GetTask`, which is not supported, and it does not send consent:
+
+    curl -sS -D - -o /tmp/a2a-check.json -X POST https://www.aienos.com/aien/api/a2a \
+      -H 'Content-Type: application/json' \
+      --data '{"jsonrpc":"2.0","id":"deploy-check","method":"GetTask","params":{}}'
+
+Expect HTTP 200, a `Cache-Control: no-store` header, and a JSON body whose
+error code is `-32004`. Nothing is stored. Do not send a consented
+`SendMessage` as the deploy check.
+
+Rollback: restore the previous snippet, run `nginx -t`, then reload.
+
 ## Build loop (homes, save, publish, gallery)
 
 After the greeting Allen asks what the visitor would like to build for humanity
@@ -444,6 +485,7 @@ routes in `allen_projects.py`:
 
 ```sh
 python3 scripts/allen/test_sandbox.py              # compile sandbox escape tests, each with a control
+python3 scripts/allen/test_a2a.py                 # A2A SendMessage: consent, errors, nothing stored
 python3 scripts/allen/test_gateway.py --omc om/hive-page/omc --irwasm om/hive-page/irwasm \
     --system-prompt scripts/allen/system-prompt.txt [--skip-model]
 python3 scripts/allen/probe.py                     # run inside the unit's properties (systemd-run) and outside

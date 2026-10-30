@@ -1,0 +1,29 @@
+{
+  "name": "Aien",
+  "description": "Introduce yourself to Aien. The only skill is introduce. SendMessage passes the message to the introduction door at POST /aien/api/a2a. consent must be the JSON boolean true. Without that, nothing is stored. The JSON-RPC envelope is not stored. Streaming, tasks, push notifications, and an extended card are not supported.",
+  "supportedInterfaces": [
+    {
+      "url": "https://www.aienos.com/aien/api/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "version": "0.1.0",
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "extendedAgentCard": false
+  },
+  "defaultInputModes": ["text/plain", "application/json"],
+  "defaultOutputModes": ["text/plain", "application/json"],
+  "skills": [
+    {
+      "id": "introduce",
+      "name": "introduce",
+      "description": "Pass one message to the introduction door. Put the introduction fields in message metadata or in one JSON data part. consent must be the JSON boolean true, or nothing is stored.",
+      "tags": ["introduce"],
+      "inputModes": ["text/plain", "application/json"],
+      "outputModes": ["text/plain", "application/json"]
+    }
+  ]
+}
