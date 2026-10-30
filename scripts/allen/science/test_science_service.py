@@ -1,7 +1,10 @@
+import argparse
+import http.client
 import importlib.util
 import json
 from pathlib import Path
 import tempfile
+import threading
 import unittest
 from unittest.mock import patch
 import allen_science as service
@@ -51,5 +54,34 @@ class ServiceControls(unittest.TestCase):
         with self.assertRaises(ValueError): content('math',{'text':'result','html':'<script>bad</script>'})
         with self.assertRaises(ValueError): content('omega',{'source':'ir','language':'omega','wasm':'!!!!'})
         with self.assertRaises(ValueError): content('doc',{'markdown':'draft','citations':[],'title':'extra'})
+    def test_tools_option_is_a_subset_of_the_protocol(self):
+        self.assertEqual(service.allowed_tools('math_compute'),frozenset({'math_compute'}))
+        for bad in ('','deploy','math_compute,math_compute','math_compute,'):
+            with self.assertRaises(argparse.ArgumentTypeError): service.allowed_tools(bad)
+    def test_math_only_instance_refuses_other_tools(self):
+        server=service.Server(('127.0.0.1',0),service.Handler)
+        server.tools=frozenset({'math_compute'})
+        threading.Thread(target=server.serve_forever,daemon=True).start()
+        self.addCleanup(server.server_close)
+        self.addCleanup(server.shutdown)
+        def call(tool,arguments):
+            conn=http.client.HTTPConnection(*server.server_address,timeout=10)
+            body=json.dumps({'tool':tool,'arguments':arguments})
+            conn.request('POST','/compute',body,{'Content-Type':'application/json'})
+            resp=conn.getresponse()
+            return resp.status,json.loads(resp.read())
+        with patch.object(service,'run_math',return_value={'ok':True,'output':'1/3'}) as math, \
+                patch.object(service,'run_omega') as omega:
+            status,out=call('math_compute',{'title':'Math','expression':'Integrate[x^2,{x,0,1}]'})
+            self.assertEqual(status,200)
+            self.assertEqual(out['events'][1]['data']['content']['text'],'1/3')
+            status,out=call('omega_compile',{'title':'Omega','source':'1 2 + .'})
+            self.assertEqual((status,out),(403,{'error':'tool_not_allowed'}))
+            status,out=call('paper',{'title':'Paper','markdown':'draft','citations':[]})
+            self.assertEqual((status,out),(403,{'error':'tool_not_allowed'}))
+            omega.assert_not_called()
+            self.assertEqual(math.call_count,1)
+    def test_default_instance_keeps_every_tool(self):
+        self.assertEqual(service.Server.tools,frozenset(service.TOOLS))
 
 if __name__=='__main__': unittest.main(verbosity=2)

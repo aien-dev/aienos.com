@@ -1,8 +1,10 @@
 """POST /allen/api/math: one expression to the Omega math engine, answered as glass pane events.
 
 The /aien/ page sends {"expression": "...", "title": "..."}; this module forwards it as the
-math_compute tool to the loopback allen-science service (127.0.0.1:18113, scripts/allen/science),
-which runs the pure-Omega aien-math engine in its sandbox and answers with at most three v1 pane
+math_compute tool to the math-only allen-science instance (127.0.0.1:18114, started with
+--tools math_compute, scripts/allen/science/allen-science-math-fg). That instance refuses every
+other science tool, so the public route reaches math and nothing else. It runs the pure-Omega
+aien-math engine in its sandbox and answers with at most three v1 pane
 events (pane.open, pane.update, pane.close) plus a one-line result. No model call, no network
 beyond loopback, nothing stored or logged. The page renders the events with AllenPanes, which
 checks every event again against the pane contract before showing it.
@@ -11,7 +13,7 @@ import http.client
 import json
 import socket
 
-SCIENCE = ("127.0.0.1", 18113)
+SCIENCE = ("127.0.0.1", 18114)
 MAX_EXPRESSION = 4096
 MAX_TITLE = 200
 MAX_REPLY = 262144

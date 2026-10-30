@@ -14,13 +14,13 @@
         },
         {
           "digest": "dce69fbca079800fa65f9374bf626ec2daa1b3c2aef46126d0645c8f3f8bb8dc",
-          "last_commit": "e94316b",
+          "last_commit": "f0cd2eb",
           "name": "assets",
           "purpose": "Website styles including the project dashboard"
         },
         {
-          "digest": "c8b477d42287dc3ace90ab02916bf3c7431cc1020acde5c63fc8255650df3edd",
-          "last_commit": "83192cf",
+          "digest": "0e9517ee6ee094a4de8a763013d1124dfff19cc19f001820c6c309e5f4b3d0c9",
+          "last_commit": "016ace0",
           "name": "data",
           "purpose": "Published generated project measurements with pinned sources"
         },
@@ -43,21 +43,21 @@
           "purpose": "Public static research or licensing pages using the shared website navigation"
         },
         {
-          "digest": "18f575c2a981a44b3eaa0130d02b3787d13c60833852d6f993d109be3126fd1c",
-          "last_commit": "8f55098",
+          "digest": "47631eb31c78f300a94bf49b81fe3841336b7cf1e72643dc9723c60ddf315704",
+          "last_commit": "016ace0",
           "name": "research",
           "purpose": "Public static research or licensing pages using the shared website navigation"
         }
       ],
-      "children_root": "sha256:8deece541c4f9cf2ea302899d8bb683583b7cd71574f45568ad72532438b2d04",
-      "compiled_at": "2026-10-29T02:35:52Z",
+      "children_root": "sha256:07d3813e1ffce7d9a381eea1d407b1eebf97512de210c0a3d7b2688f77c90fcd",
+      "compiled_at": "2026-10-29T17:40:49Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:32c95bcfcddb9128a9bbb4f1b3cf1649386c343cd0cb2b7a9b45e31859f0c997",
+      "digest": "sha256:26ca4e27b534a756de12becc93659d8c62a3564ff91f26a4f77ef262f3fd8014",
       "evidence_files": 1,
       "evidence_root": "sha256:63bece7cb299b29d19622dcb0de4cbaa623357b117d8c7643a562de286c4b2fb",
       "files": 156,
-      "generated_at_commit": "1bd31eff7112cc683fc1d57e93944285937f5b45",
-      "source_tree": "sha256:9bec8e31e6a499175ce82ed24c39cb992fa1d0bcf58474fbc626bef1b556575f"
+      "generated_at_commit": "016ace066ba349018342a646c1852c0752fd067b",
+      "source_tree": "sha256:119e46e6b97a0f9c2862d6a5b8344bc76a420f6e1a27e330e0e12abbb3bf354f"
     }
   },
   "invariants": [
