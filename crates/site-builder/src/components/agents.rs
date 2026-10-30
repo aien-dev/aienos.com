@@ -250,7 +250,7 @@ fn repo_card(r: &Repo) -> Markup {
             @if r.name == "aienix" {
                 p { (AIENIX_NOTE) }
             } @else if !r.description.is_empty() {
-                p data-verbatim { (r.description) }
+                p class="agents-verbatim" data-verbatim { (r.description) }
             }
             @match r.brief_url() {
                 Some(href) => {

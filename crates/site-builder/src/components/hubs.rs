@@ -77,7 +77,7 @@ pub static HUBS: [Hub; 3] = [
     Hub {
         slug: "philosophy",
         title: "Philosophy | AienOS",
-        description: "Position papers of Aien: the Stapleton Doctrine and the Post-LLM Case. These argue a stance and are not experimental results.",
+        description: "Position papers behind Aien: the Stapleton Doctrine and the Post-LLM Case. These argue a stance and are not experimental results.",
         required: &[PHILOSOPHY_PHRASE],
         status: StatusSource::Absent,
         render: render_philosophy_hub,
@@ -247,7 +247,7 @@ pub fn render_philosophy_hub() -> Markup {
                     "The Post-LLM Case argues that scaling centralized prediction cannot be the only route to machine intelligence. A machine can propose programs, verify them against held-out reality, and keep what survives as inspectable structure."
                 }
                 p {
-                    "These are positions, not measurements. The research status record and the evidence hub carry what has been tested. The philosophy pages state the stance of the design, including where the design has not been established."
+                    "These are positions, not measurements. The research status record and the evidence hub carry what has been tested. The philosophy pages state the stance behind the design, including where the design has not been established."
                 }
             }
             ul class="hub-cards" {

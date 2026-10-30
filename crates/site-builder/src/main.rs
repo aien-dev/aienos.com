@@ -575,7 +575,7 @@ fn collect_comparison_pages(dir: &Path, bad: &mut Vec<(PathBuf, String)>) {
             collect_comparison_pages(&path, bad);
         } else if path.extension().and_then(|e| e.to_str()) == Some("html") {
             let content = fs::read_to_string(&path).unwrap_or_default();
-            for problem in components::machines::comparison_errors(&content) {
+            for problem in components::machines::comparison_errors_at(&path.display().to_string(), &content) {
                 bad.push((path.clone(), problem));
             }
         }

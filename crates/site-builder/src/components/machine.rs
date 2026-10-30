@@ -215,7 +215,7 @@ fn section_ladder() -> Markup {
         section id="research-ladder" class="narr-section" data-source="research_status.json" aria-labelledby="ladder-heading" {
             h2 id="ladder-heading" { "The discovery ladder" }
             p {
-                "Each rung is a stronger claim about what the machine has shown, and each rests on the rung below. The ladder is drawn from the research status record, the same record the full status page uses, so this page never states a result by hand."
+                "Each rung is a stronger claim about what the machine has shown, and each rests on the rung below. The ladder is drawn from the research status record, the same record behind the full status page, so this page never states a result by hand."
             }
             (render_research_status_summary())
         }
@@ -252,7 +252,7 @@ fn section_connections() -> Markup {
     html! {
         section id="connections" class="narr-section" aria-labelledby="connections-heading" {
             h2 id="connections-heading" { "Connections to other research" }
-            p { "Each of these is a connection or an opportunity. Where the research status record has an entry for it, its badge sits beside the name." }
+            p { "Each of these is a connection or an opportunity. Where the research status record has a matching entry, its badge sits beside the name." }
             dl class="narr-connections" {
                 dt { "Petri nets and reaction systems" }
                 dd {

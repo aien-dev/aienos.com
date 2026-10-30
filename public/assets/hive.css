@@ -184,7 +184,7 @@ details[open] > summary.hive-record::before { transform: rotate(45deg); }
    above. */
 .hive { max-width:1600px; padding:22px 4vw 80px; }
 .hive *, .hive *::before, .hive *::after { box-sizing:border-box; }
-/* The sky covers the whole page, not inside a band: one fixed layer the
+/* The sky sits behind the whole page, not inside a band: one fixed layer the
    size of the viewport, so it has no edge to show and never scrolls. A fixed,
    composited layer is rasterised once and only moved by the compositor;
    the old band was a cover-sized layer at half opacity under a gradient scrim
@@ -219,7 +219,7 @@ details[open] > summary.hive-record::before { transform: rotate(45deg); }
    come from that program; this block only places the stage and paints the
    discs, and it animates nothing. The emitted <style> in the artifact
    attaches the animations, inside a prefers-reduced-motion:no-preference
-   query and with the native motion checkbox, so with motion off the
+   query and behind the native motion checkbox, so with motion off the
    base values below are what the reader sees: one frame of the sequence, the
    two holes at a visible separation (t = 7000 ms of the 19000 ms cycle), no
    merged hole and no ripple.

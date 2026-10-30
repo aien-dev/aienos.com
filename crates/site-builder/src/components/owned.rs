@@ -183,7 +183,7 @@ pub fn render_owned() -> Markup {
                     p class="narr-byline" { (SIGNATURE_LINE) }
                     ul class="hub-cards" {
                         li class="hub-card" {
-                            a href="/philosophy/" { "More on the philosophy of Aien" }
+                            a href="/philosophy/" { "More on the philosophy behind Aien" }
                             p { "The Stapleton Doctrine and the Post-LLM Case, argued as positions and not as experimental results." }
                             (foot(&source_href(THIS_FILE), Target::Source))
                         }
@@ -247,6 +247,9 @@ mod tests {
         assert!(crate::components::machines::comparison_problem("faster than ChatGPT").is_some());
         assert!(crate::components::machines::comparison_problem(
             "On 2026-10-21 this was faster than the published ChatGPT figure (https://example.com/n)."
+        ).is_some());
+        assert!(crate::components::machines::comparison_problem(
+            "On 2026-10-21 this was faster than the published ChatGPT figure (https://github.com/aien-dev/sovereign-intelligence)."
         ).is_none());
     }
 }

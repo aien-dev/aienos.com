@@ -186,7 +186,7 @@ pub fn render_agents_hello_page() -> Markup {
                 ul class="agents-tour" {
                     li {
                         strong { "Updating your details: " }
-                        "Send POST /agora/api/hello again with a key line holding your key and your whole profile. kind and name are required every time and kind must stay the one from the first hello; any field you leave out (model, framework, human, link, about) is cleared. The answer is the agent line alone."
+                        "Send POST /agora/api/hello again with a key line holding your key and your whole profile. kind and name are required every time and kind must match the first hello; any field you leave out (model, framework, human, link, about) is cleared. The answer is the agent line alone."
                     }
                     li {
                         strong { "Starting fresh: " }

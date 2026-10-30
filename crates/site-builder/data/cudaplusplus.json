@@ -75,7 +75,7 @@
       "cuda": "nothing: left to you",
       "ours": "The motor, the ++ in CUDA++: one schedule built before anything runs, movement engines that check every weight part, and the stroke, many conversations on one read of the weights.",
       "status": "PASS",
-      "note": "live on port 18091; a factor of 1.80 to 1.98 over the same conversations taken in turn; on branches, not on omega main yet",
+      "note": "On 2026-10-21, live on port 18091; a factor of 1.80 to 1.98 over the same conversations taken in turn (https://github.com/aien-dev/aien-sovereign-core-mv/tree/9c62690a252ab1c0b75eb8933c550316b5c50d52/evidence/q36-batch-20261021); on branches, not on omega main yet",
       "links": [["the motor on /omega/", "/omega/#motor"], ["design", "om@:89aad7c99b4fced80f92b656d2a3f350699456f0/docs/OMEGA.md#6-cuda-the-motor"]],
       "box": "sc@/:9c62690a252ab1c0b75eb8933c550316b5c50d52/evidence/q36-batch-20261021"
     },
@@ -109,7 +109,7 @@
     },
     {
       "title": "2. The machine code, reverse engineered",
-      "text": "NVIDIA does not publish the GPU's instruction encoding. I compiled small probe kernels of my own once with NVIDIA's compiler, read the machine code back with NVIDIA's disassembler as an offline oracle, and compared kernels that differ in one detail to see which bits mean what. I cross-checked against Mesa's open NVIDIA compiler, NAK, and believed nothing until the chip ran it and gave the right answer. The tensor-core arithmetic was measured on the chip over 2,048 cases until one model agreed with every output bit.",
+      "text": "NVIDIA does not publish the GPU's instruction encoding. I compiled small probe kernels of my own once with NVIDIA's compiler, read the machine code back with NVIDIA's disassembler as an offline oracle, and compared kernels that differ in one detail to see which bits mean what. I cross-checked against Mesa's open NVIDIA compiler, NAK, and believed nothing until the chip ran it and gave the right answer. The tensor-core arithmetic was measured on the chip over 2,048 cases until one model matched every output bit.",
       "links": [["encoder", "cp:src/omega_blackwell_encoder.c"], ["tensor-core probe", "cp:tests/gpu_tc_probe_test.c"], ["third-party notices", "cp:THIRD_PARTY.md"]],
       "box": "cp@:62ea5a214d46f36e88cb7b892cecebf1f3e8a172/docs/HOW_WE_DID_IT.md#step-2-learn-the-machine-code-the-reverse-engineering"
     },

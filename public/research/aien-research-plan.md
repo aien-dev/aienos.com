@@ -165,7 +165,7 @@ authority proofs must pass absolutely, not relatively).
 - Adversarial suite: forged generations, out-of-bounds offsets, rights
   escalation attempts, replayed handles.
 
-**Falsifier:** overhead goes past the frozen budget; or any authority escape;
+**Falsifier:** overhead exceeds the frozen budget; or any authority escape;
 or any stale generation accepted.
 
 **Maps to:** M15-M19 era extension; AEGIS verification duties.
@@ -173,7 +173,7 @@ or any stale generation accepted.
 ### H7. Resident Cooperation Protocol
 
 **Claim:** Fine-grained CPU/GPU co-production on shared objects (both
-engines consume and publish work against the shared object world) passes
+engines consume and publish work against the shared object world) beats
 bulk offload (CPU prepares dispatch, rings GPU, waits) on latency and/or
 bytes moved for interactive frontier-style workloads on the shared
 273 GB/s pipe.
@@ -198,7 +198,7 @@ both latency and bytes moved.
 
 **Claim:** An epoch barrier (open N+1, drain N, freeze committed N, publish
 Generation N) produces consistent semantic cuts of the live world without
-global pauses past the budget, and cold reconstruction from sealed
+global pauses exceeding budget, and cold reconstruction from sealed
 generations reproduces logically identical state.
 
 **Boundary:** Single machine. Pause budget frozen before measurement
@@ -218,7 +218,7 @@ soak). Crash recovery must yield OLD or NEW generation, never half of each.
   latency, no generation exhaustion.
 
 **Falsifier:** any torn generation; reconstructed state logically diverges;
-pauses go past the budget; soak shows unbounded growth.
+pauses exceed budget; soak shows unbounded growth.
 
 **Identity ladder (invariant).** Three identifier concepts already exist in
 the system and must never accidentally collapse into one:
@@ -273,7 +273,7 @@ measured contention facts); evolves OmegaCost toward OmegaPhysicalCost.
 **Claim:** The loop OMEGA proposes -> AEGIS proves -> FORGE realizes ->
 GB10 executes -> EVIDENCE measures -> OMEGA searches again can run
 end-to-end without human intervention, and can produce a substrate
-realization that holds all invariants and passes the human reference oracle
+realization that holds all invariants and beats the human reference oracle
 on measured physical cost.
 
 **Boundary:** First target: the bounded concurrent work queue, with
@@ -285,7 +285,7 @@ before the loop starts. Humans build the first reference oracle.
 **Test protocol:**
 - Milestone 1 (keystone): one full loop turn with zero human intervention.
   The loop running closed matters more than winning.
-- Milestone 2: a loop-produced realization that AEGIS proves and that passes
+- Milestone 2: a loop-produced realization that AEGIS proves and that beats
   the oracle on measured physical cost.
 - Every turn emits immutable receipts: proposal identity, proof outcome,
   realization identity, machine identity, measurements, and the decision.

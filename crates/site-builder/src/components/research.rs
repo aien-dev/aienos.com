@@ -26,7 +26,7 @@ pub fn render_research() -> Markup {
         ),
         (
             "The Stapleton Doctrine",
-            "The philosophy of the architecture, stated as a position paper: build on physics, own the foundation, prove every claim.",
+            "The philosophy behind the architecture, stated as a position paper: build on physics, own the foundation, prove every claim.",
             "Position paper",
             "/research/the-stapleton-doctrine",
             "Read the doctrine",
@@ -53,7 +53,7 @@ pub fn render_research() -> Markup {
                         "Do not take my word for it. Check the receipts."
                     }
                     p style="color: var(--text-secondary); margin-top: 8px; line-height: 1.6;" {
-                        "Most AI asks you to trust a demo and a promise. This project publishes its science in the open instead: the Turing, a unit of net held-out explanatory compression (one operational component of machine understanding), plus the papers about it and the data anyone can recheck. It starts with the Turing."
+                        "Most AI asks you to trust a demo and a promise. This project publishes its science in the open instead: the Turing, a unit of net held-out explanatory compression (one operational component of machine understanding), plus the papers behind it and the data anyone can recheck. It starts with the Turing."
                     }
                 }
 

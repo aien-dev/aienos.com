@@ -571,7 +571,7 @@ PASS
 <div class="lab-install"><pre>gh repo create my-kernel --template aien-dev/omega-kernel-template --public --clone</pre></div>
 <p class="lab-small"><a href="https://github.com/aien-dev/omega-kernel-template">omega-kernel-template</a> · <a href="https://github.com/aien-dev/omega-kernel-template/actions/runs/40426781699">passing check</a> · <a href="https://github.com/aien-dev/omega-kernel-template/actions/runs/40426783628">failing control: an overflowing kernel must fail</a></p>
 <h3>Do not trust my compiler? Rebuild it.</h3>
-<p class="lab-small">The seed challenge rebuilds the Omega seed chain from 408 bytes and must land on the same fixed output. It passes on GitHub's own ubuntu-24.04-arm runner, and its tampered-rung, wrong-value and forged-log controls fail as required. From a fresh full clone of omega-mv main (52eba88) on my Spark it printed CHALLENGE PASS in 1.06 s wall. It is a fixed-output reproducibility check, not general self-hosting and not diverse double compiling. It needs the full history, so no --depth.</p>
+<p class="lab-small">The seed challenge rebuilds the Omega seed chain from 408 bytes and must land on the same fixed output. It passes on GitHub's own ubuntu-24.04-arm runner, and its tampered-rung, wrong-value and forged-log controls fail as required. From a fresh full clone of omega-mv main (52eba88) on my Spark it printed CHALLENGE PASS in 1.06 s wall. It is a fixed-output reproducibility match, not general self-hosting and not diverse double compiling. It needs the full history, so no --depth.</p>
 <div class="lab-install"><pre>git clone https://github.com/aien-dev/omega-mv
 cd omega-mv
 sh seed/challenge/run.sh</pre></div>

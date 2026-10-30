@@ -698,6 +698,22 @@ mod tests {
     }
 
     #[test]
+    fn a_tie_does_not_pass_the_cuda_bars() {
+        let d = data();
+        for id in ["P1", "P2", "P3"] {
+            let bar = d.performance.bar.iter().find(|b| b.id == id).expect(id);
+            assert!(
+                bar.done_when.contains("beats the best measured CUDA number"),
+                "{id} must require a beat: {}",
+                bar.done_when
+            );
+            let lower = bar.done_when.to_ascii_lowercase();
+            assert!(!lower.contains("or past"), "{id} would let a tie pass");
+            assert!(!lower.contains("at the best"), "{id} would let a tie pass");
+        }
+    }
+
+    #[test]
     fn speed_is_measured_only_never_compared() {
         // The page states what was measured, keeps chip time apart from end
         // to end, and does not say Omega the language runs the model.
@@ -709,12 +725,16 @@ mod tests {
         for w in ["beating cuda", "matching and then", "runs on omega", "omega runs"] {
             assert!(!lower.contains(w), "{w}");
         }
-        // /omega/ uses the same sentence check as every other page.
-        let problems = crate::components::machines::comparison_errors(&s);
-        assert!(problems.is_empty(), "comparison on /omega/: {problems:?}");
+        // omega.json is exempt by exact path, and /omega/ is the page that renders it.
+        let problems = crate::components::machines::comparison_errors_at("omega/index.html", &s);
+        assert!(problems.is_empty(), "exempt path: {problems:?}");
+        assert!(crate::components::machines::is_prose_exempt("crates/site-builder/data/omega.json"));
         assert!(crate::components::machines::comparison_problem("2x faster than llama.cpp").unwrap().contains("unsourced"));
         assert!(crate::components::machines::comparison_problem(
             "On 2026-10-21 this run was faster than llama.cpp's published 40 tok/s (https://example.com/bench)."
+        ).is_some());
+        assert!(crate::components::machines::comparison_problem(
+            "On 2026-10-21 this run was faster than llama.cpp's published 40 tok/s (https://github.com/aien-dev/sovereign-intelligence)."
         ).is_none());
         let overclaim = format!(
             "A {}, dated 2026-10-21, receipt https://example.com/r.",
