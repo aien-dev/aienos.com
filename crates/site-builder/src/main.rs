@@ -578,20 +578,50 @@ fn comparison_page_key(dist: &Path, path: &Path) -> String {
     }
 }
 
-fn collect_comparison_pages(dist: &Path, dir: &Path, bad: &mut Vec<(PathBuf, String)>) {
-    let Ok(rd) = fs::read_dir(dir) else { return };
-    for entry in rd.flatten() {
+fn is_scanned_comparison_file(path: &Path) -> bool {
+    let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
+    path.extension().and_then(|e| e.to_str()) == Some("html")
+        || name == "llms.txt"
+        || name == "llms-full.txt"
+}
+
+fn collect_comparison_pages(dist: &Path, dir: &Path, bad: &mut Vec<(PathBuf, String)>) -> Result<(), String> {
+    let rd = match fs::read_dir(dir) {
+        Ok(rd) => rd,
+        Err(e) => {
+            let msg = format!("unreadable directory {}: {e}", dir.display());
+            eprintln!("{msg}");
+            return Err(msg);
+        }
+    };
+    for entry in rd {
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(e) => {
+                let msg = format!("unreadable directory entry in {}: {e}", dir.display());
+                eprintln!("{msg}");
+                return Err(msg);
+            }
+        };
         let path = entry.path();
         if path.is_dir() {
-            collect_comparison_pages(dist, &path, bad);
-        } else if path.extension().and_then(|e| e.to_str()) == Some("html") {
-            let content = fs::read_to_string(&path).unwrap_or_default();
+            collect_comparison_pages(dist, &path, bad)?;
+        } else if is_scanned_comparison_file(&path) {
+            let content = match fs::read_to_string(&path) {
+                Ok(content) => content,
+                Err(e) => {
+                    let msg = format!("unreadable file {}: {e}", path.display());
+                    eprintln!("{msg}");
+                    return Err(msg);
+                }
+            };
             let key = comparison_page_key(dist, &path);
             for problem in components::machines::comparison_errors_at(&key, &content) {
                 bad.push((path.clone(), problem));
             }
         }
     }
+    Ok(())
 }
 
 fn verify_site(dist: &Path) {
@@ -650,7 +680,7 @@ fn verify_site(dist: &Path) {
     }
     {
         let mut bad = Vec::new();
-        collect_comparison_pages(dist, dist, &mut bad);
+        collect_comparison_pages(dist, dist, &mut bad).expect("comparison scan refused an unreadable directory");
         assert!(
             bad.is_empty(),
             "Unsourced comparison or overclaim. Every page uses machines::comparison_errors:\n{}",
@@ -1101,6 +1131,34 @@ mod tests {
         assert_eq!(unpinned_uses("        uses: actions/checkout@11d5960a # v4.4.0").len(), 1);
         assert_eq!(unpinned_uses("      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262").len(), 1);
         assert!(unpinned_uses("      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0").is_empty());
+    }
+
+    #[test]
+    fn unreadable_directory_fails_the_comparison_scan() {
+        let missing = std::env::temp_dir().join(format!("aienos-unreadable-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&missing);
+        let err = collect_comparison_pages(&missing, &missing, &mut Vec::new())
+            .expect_err("a missing directory is unreadable");
+        assert!(err.contains("unreadable directory"), "{err}");
+    }
+
+    #[test]
+    fn llms_txt_and_llms_full_are_scanned() {
+        let dir = std::env::temp_dir().join(format!("aienos-llms-scan-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(dir.join("llms.txt"), "Omega beats vLLM.\n").unwrap();
+        fs::write(dir.join("llms-full.txt"), "Omega matches vLLM.\n").unwrap();
+        fs::write(dir.join("notes.txt"), "Omega beats vLLM.\n").unwrap();
+        fs::write(dir.join("ok.html"), "<p>A quiet page.</p>\n").unwrap();
+        let mut bad = Vec::new();
+        collect_comparison_pages(&dir, &dir, &mut bad).expect("readable scan");
+        let joined = bad.iter().map(|(p, e)| format!("{} {e}", p.display())).collect::<Vec<_>>().join("\n");
+        assert!(joined.contains("llms.txt") && joined.contains("beats vLLM"), "{joined}");
+        assert!(joined.contains("llms-full.txt") && joined.contains("matches vLLM"), "{joined}");
+        assert!(!joined.contains("notes.txt"), "{joined}");
+        assert!(!joined.contains("ok.html"), "{joined}");
+        let _ = fs::remove_dir_all(&dir);
     }
 
     #[test]

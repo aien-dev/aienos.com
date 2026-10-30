@@ -30,8 +30,6 @@ pub const COMPARISON_PHRASES: &[&str] = &[
     "better than",
     "worse than",
     "slower than",
-    "on par with",
-    "on a par with",
     "level with",
     "ahead of",
     "same speed as",
@@ -43,11 +41,14 @@ pub const COMPARISON_PHRASES: &[&str] = &[
 ];
 
 /// Whole words, case-insensitively. Not stems. A claim on their own.
-/// Bare "behind" and "match" are ordinary English, so they are not claims.
+/// Bare "behind" is ordinary English, so it is not a claim.
+/// "match", "ties", "tied with", "equal to" and "on par with" are context-bound,
+/// in `TIE_WORDS` and `TIE_PHRASES`: they count beside an outside name, a rival
+/// noun, a multiplier, or the "best measured CUDA number" bar.
 /// Superlatives ("fastest", "slowest", "quickest", "best", "worst") count only
 /// beside a project name, in `has_guarded_word`.
 /// "beat", "parity", "trails" and "lags" are context-bound, in `CONTEXT_WORDS`.
-pub const COMPARISON_WORDS: &[&str] = &["equals", "ties", "outdoes", "tops"];
+pub const COMPARISON_WORDS: &[&str] = &["equals", "outdoes", "tops"];
 
 /// Count only when the same sentence also names an outside system, a rival
 /// noun, or a number glued to the comparative ("2x faster", "half as fast").
@@ -63,6 +64,22 @@ const CONTEXT_WORDS: &[&str] = &[
     "beat", "beats", "beating", "beaten",
 ];
 
+/// Tie words. Same targets as the other context words, plus a multiplier
+/// or the bar phrase "best measured CUDA number". A different word in a
+/// CUDA bar sentence does not stay on the exact-sentence list.
+const TIE_WORDS: &[&str] = &["match", "matches", "matching", "ties"];
+
+const TIE_PHRASES: &[&str] = &["tied with", "equal to", "on par with", "on a par with"];
+
+/// Connectors. They count when the same sentence names a rival.
+const CONNECTORS: &[&str] = &[
+    "versus",
+    "compared with",
+    "compared to",
+    "relative to",
+    "speedup over",
+];
+
 /// A generic rival. Not a project name. Context-bound words count beside one of these.
 const RIVAL_NOUNS: &[&str] = &[
     "competitors",
@@ -76,6 +93,15 @@ const RIVAL_NOUNS: &[&str] = &[
     "the industry",
     "state of the art",
     "sota",
+    "incumbent",
+    "leader",
+    "leading",
+    "market leader",
+    "gpu stack",
+    "gpu stacks",
+    "the field",
+    "everyone else",
+    "existing tools",
 ];
 
 /// A word that starts with one of these, case-insensitively: outperforms,
@@ -175,7 +201,11 @@ pub const PROJECT_SOURCE_DOMAINS: &[&str] = &[
 const PROJECT_TOKENS: &[&str] = &[
     "cuda", "nvidia", "vllm", "llama.cpp", "llama", "tensorrt", "pytorch", "triton", "cudnn",
     "chatgpt", "openai", "gemini", "claude", "tgi", "sglang", "cutlass",
+    "ollama", "mlx", "rocm", "groq",
 ];
+
+/// Multi-word rival names. "onnx runtime" is not a single token.
+const PROJECT_PHRASES: &[&str] = &["onnx runtime"];
 
 fn url_is_allowed(url: &str) -> bool {
     let lower = url.to_ascii_lowercase();
@@ -340,11 +370,47 @@ fn nvidia_is_target(lower: &str) -> bool {
     false
 }
 
+/// A comparison word other than "half", "twice" or "double". Those three stay
+/// descriptive in "GPU half" and do not, by themselves, make a nearby NVIDIA a rival.
+fn comparison_word_activates_nvidia(lower: &str) -> bool {
+    const WORDS: &[&str] = &[
+        "parity", "trails", "lags",
+        "beat", "beats", "beating", "beaten",
+        "match", "matches", "matching", "ties",
+        "slower", "faster", "quicker", "cheaper",
+    ];
+    if lower.split(|c: char| !is_word_char(c)).any(|word| {
+        WORDS.contains(&word)
+            || COMPARISON_WORDS.contains(&word)
+            || COMPARISON_STEMS.iter().any(|stem| word.starts_with(stem))
+    }) {
+        return true;
+    }
+    if CONTEXT_PHRASES.iter().any(|phrase| boundary_phrase(lower, phrase))
+        || TIE_PHRASES.iter().any(|phrase| boundary_phrase(lower, phrase))
+        || COMPARISON_PHRASES.iter().any(|phrase| boundary_phrase(lower, phrase))
+        || CONNECTORS.iter().any(|phrase| boundary_phrase(lower, phrase))
+    {
+        return true;
+    }
+    has_attached_comparative(lower) || has_vs(lower)
+}
+
 fn has_outside_system(lower: &str) -> bool {
-    if nvidia_is_target(lower) {
+    if nvidia_is_target(lower) || (token_present(lower, "nvidia") && comparison_word_activates_nvidia(lower)) {
         return true;
     }
     PROJECT_TOKENS.iter().any(|token| *token != "nvidia" && token_present(lower, token))
+        || PROJECT_PHRASES.iter().any(|phrase| boundary_phrase(lower, phrase))
+}
+
+/// Every rival name, in any position. NVIDIA counts here too. Used when the
+/// sentence already has a connector or a `<rival>: Nx` multiplier, so a
+/// descriptive NVIDIA sentence with no comparison word never reaches this.
+fn names_rival(lower: &str) -> bool {
+    PROJECT_TOKENS.iter().any(|token| token_present(lower, token))
+        || PROJECT_PHRASES.iter().any(|phrase| boundary_phrase(lower, phrase))
+        || has_rival(lower)
 }
 
 fn has_rival(lower: &str) -> bool {
@@ -540,8 +606,8 @@ fn adjective_at(rest: &str, words: &[&str]) -> bool {
 /// A bare "2x" or "137 times" is not attached.
 fn has_attached_comparative(lower: &str) -> bool {
     const LOOSE: &[&str] = &[
-        "faster", "cheaper", "quicker", "more efficient",
-        "fast", "cheap", "quick", "efficient",
+        "faster", "slower", "cheaper", "quicker", "more efficient",
+        "fast", "slow", "cheap", "quick", "efficient",
     ];
     for lead in ["half as", "twice as", "double as"] {
         let mut from = 0;
@@ -559,7 +625,7 @@ fn has_attached_comparative(lower: &str) -> bool {
             from = i + lead.len().max(1);
         }
     }
-    const TIGHT: &[&str] = &["faster", "cheaper", "quicker", "more efficient"];
+    const TIGHT: &[&str] = &["faster", "slower", "cheaper", "quicker", "more efficient"];
     let chars: Vec<char> = lower.chars().collect();
     let mut i = 0;
     while i < chars.len() {
@@ -747,7 +813,7 @@ fn bare_multiplier_targets_rival(lower: &str) -> bool {
         }
         if let Some(at) = tail_at {
             let tail: String = chars[at..].iter().collect();
-            if has_outside_system(&tail) || has_rival(&tail) {
+            if names_rival(&tail) {
                 return true;
             }
         }
@@ -756,10 +822,126 @@ fn bare_multiplier_targets_rival(lower: &str) -> bool {
     false
 }
 
+fn has_tie(lower: &str) -> bool {
+    lower.split(|c: char| !is_word_char(c)).any(|word| TIE_WORDS.contains(&word))
+        || TIE_PHRASES.iter().any(|phrase| boundary_phrase(lower, phrase))
+}
+
+fn has_multiplier(lower: &str) -> bool {
+    let chars: Vec<char> = lower.chars().collect();
+    let mut i = 0;
+    while i < chars.len() {
+        if !(chars[i].is_ascii_digit() && (i == 0 || !is_word_char(chars[i - 1]))) {
+            i += 1;
+            continue;
+        }
+        let mut j = i + 1;
+        while j < chars.len() && chars[j].is_ascii_digit() {
+            j += 1;
+        }
+        if j + 1 < chars.len() && chars[j] == '.' && chars[j + 1].is_ascii_digit() {
+            j += 2;
+            while j < chars.len() && chars[j].is_ascii_digit() {
+                j += 1;
+            }
+        }
+        let mut k = j;
+        while k < chars.len() && chars[k] == ' ' {
+            k += 1;
+        }
+        if k < chars.len() && (chars[k] == 'x' || chars[k] == '\u{00d7}') {
+            let after = k + 1;
+            if after >= chars.len() || is_x_tail(chars[after]) {
+                let zero = chars[i..j].iter().all(|c| *c == '0' || *c == '.');
+                if !(zero && chars[k] == 'x') {
+                    return true;
+                }
+            }
+        }
+        if chars.get(j) == Some(&'-') {
+            let rest: String = chars[j + 1..].iter().collect();
+            if rest.starts_with("fold") {
+                let n = "fold".len();
+                if n >= rest.len() || !is_word_char(rest[n..].chars().next().unwrap_or(' ')) {
+                    return true;
+                }
+            }
+        }
+        if k > j {
+            let rest: String = chars[k..].iter().collect();
+            if rest.starts_with("times") {
+                let n = "times".len();
+                if n >= rest.len() || !is_word_char(rest[n..].chars().next().unwrap_or(' ')) {
+                    return true;
+                }
+            }
+        }
+        i = j;
+    }
+    false
+}
+
+/// `<rival>: Nx`, including `llama.cpp: 1.8x` and `speedup over vLLM: 2x`.
+/// The rival sits before the colon. A colon that is not followed by a multiplier
+/// is not this form, so "Game 2: Beat the memorizer" is not a multiplier claim.
+fn colon_nx_targets_rival(lower: &str) -> bool {
+    let chars: Vec<char> = lower.chars().collect();
+    let mut i = 0;
+    while i < chars.len() {
+        if chars[i] != ':' {
+            i += 1;
+            continue;
+        }
+        let mut k = i + 1;
+        while k < chars.len() && chars[k] == ' ' {
+            k += 1;
+        }
+        if k >= chars.len() || !chars[k].is_ascii_digit() {
+            i += 1;
+            continue;
+        }
+        let mut j = k + 1;
+        while j < chars.len() && chars[j].is_ascii_digit() {
+            j += 1;
+        }
+        if j + 1 < chars.len() && chars[j] == '.' && chars[j + 1].is_ascii_digit() {
+            j += 2;
+            while j < chars.len() && chars[j].is_ascii_digit() {
+                j += 1;
+            }
+        }
+        let mut m = j;
+        while m < chars.len() && chars[m] == ' ' {
+            m += 1;
+        }
+        let times = m < chars.len() && (chars[m] == 'x' || chars[m] == '\u{00d7}');
+        if !times {
+            i += 1;
+            continue;
+        }
+        let after = m + 1;
+        if after < chars.len() && !is_x_tail(chars[after]) {
+            i += 1;
+            continue;
+        }
+        let before: String = chars[..i].iter().collect();
+        if names_rival(&before) {
+            return true;
+        }
+        i += 1;
+    }
+    false
+}
+
+fn has_connector(lower: &str) -> bool {
+    CONNECTORS.iter().any(|phrase| boundary_phrase(lower, phrase)) && names_rival(lower)
+}
+
 fn context_is_claim(lower: &str) -> bool {
-    let word_or_phrase = has_context_word(lower) || has_context_phrase(lower);
+    let tie = has_tie(lower);
+    let word_or_phrase = has_context_word(lower) || has_context_phrase(lower) || tie;
     let attached = has_attached_comparative(lower);
-    let aimed = bare_multiplier_targets_rival(lower);
+    let aimed = bare_multiplier_targets_rival(lower) || colon_nx_targets_rival(lower);
     if !word_or_phrase && !attached && !aimed {
         return false;
     }
@@ -769,7 +951,8 @@ fn context_is_claim(lower: &str) -> bool {
     if attached {
         return true;
     }
-    if word_or_phrase && (has_outside_system(lower) || has_rival(lower)) {
+    let bar = lower.contains("best measured cuda number");
+    if word_or_phrase && (has_outside_system(lower) || has_rival(lower) || (tie && (bar || has_multiplier(lower)))) {
         return true;
     }
     aimed
@@ -781,6 +964,7 @@ fn is_comparison_claim(s: &str) -> bool {
         || has_word_form(&scanned)
         || has_guarded_word(&scanned)
         || has_vs(&scanned)
+        || has_connector(&scanned)
         || has_within_percent(&scanned)
     {
         return true;
@@ -801,7 +985,9 @@ struct FixedSentence {
 /// CUDA performance bars from omega.json, then two published chemistry results.
 /// A tie does not pass a CUDA bar: each bar sentence must require a beat, and a
 /// different sentence with the same words does not. The chemistry sentences match
-/// only as written. Their links sit in the next paragraph of engineer.json.
+/// only as written. They are the scholar body in public/data/engineer.json.
+/// Line 89 of that file is the description. Both sentences are in body_html
+/// on line 91, and the link for each one is in the next paragraph.
 const FIXED_SENTENCES: &[FixedSentence] = &[
     FixedSentence {
         sentence: "Omega's best format beats the best measured CUDA number at one conversation, with golden tokens identical to my host reference.",
@@ -861,17 +1047,95 @@ fn is_fixed_sentence(s: &str) -> bool {
 /// with a real ISO date and a source link. Overclaims always return
 /// "overclaim". A comparison with no date or no link in this same text
 /// returns "unsourced comparison".
-pub fn comparison_problem(s: &str) -> Option<&'static str> {
+fn decode_nbsp(s: &str) -> String {
     let lower = s.to_ascii_lowercase();
-    for w in OVERCLAIMS {
-        if lower.contains(w) {
-            return Some("overclaim");
+    let mut out = String::with_capacity(s.len());
+    let mut i = 0;
+    while i < s.len() {
+        let ch = s[i..].chars().next().unwrap();
+        if ch == '\u{00a0}' {
+            out.push(' ');
+            i += ch.len_utf8();
+            continue;
+        }
+        let rest = &lower[i..];
+        let entity = ["&nbsp;", "&#160;", "&#xa0;", "&#x00a0;"]
+            .into_iter()
+            .find(|entity| rest.starts_with(entity));
+        if let Some(entity) = entity {
+            out.push(' ');
+            i += entity.len();
+            continue;
+        }
+        out.push(ch);
+        i += ch.len_utf8();
+    }
+    out
+}
+
+fn strip_tags_to_space(s: &str) -> String {
+    if !s.contains('<') {
+        return s.to_string();
+    }
+    let mut out = String::with_capacity(s.len());
+    let mut rest = s;
+    while let Some(start) = rest.find('<') {
+        out.push_str(&rest[..start]);
+        if let Some(end) = rest[start..].find('>') {
+            out.push(' ');
+            rest = &rest[start + end + 1..];
+        } else {
+            out.push_str(&rest[start..]);
+            return out;
         }
     }
-    if is_owned_slower(s) || is_fixed_sentence(s) {
+    out.push_str(rest);
+    out
+}
+
+/// NBSP and `&nbsp;` become spaces, inline tags become spaces, and whitespace collapses.
+fn prepare_sentence(s: &str) -> String {
+    decode_nbsp(&strip_tags_to_space(s))
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+/// "beating cuda" is an overclaim. "beating cuda++" is this project's GPU half, not that claim.
+fn has_overclaim(lower: &str) -> bool {
+    for w in OVERCLAIMS {
+        if w == "beating cuda" {
+            let mut from = 0;
+            while let Some(at) = lower[from..].find(w) {
+                let i = from + at;
+                let before_ok = i == 0 || !is_word_char(lower[..i].chars().next_back().unwrap());
+                let after = i + w.len();
+                let plus = lower[after..].starts_with("++");
+                let after_ok = after >= lower.len() || !is_word_char(lower[after..].chars().next().unwrap());
+                if before_ok && after_ok && !plus {
+                    return true;
+                }
+                from = i + w.len();
+            }
+            continue;
+        }
+        if lower.contains(w) {
+            return true;
+        }
+    }
+    false
+}
+
+pub fn comparison_problem(s: &str) -> Option<&'static str> {
+    let prepared = prepare_sentence(s);
+    let lower = prepared.to_ascii_lowercase();
+    if has_overclaim(&lower) {
+        return Some("overclaim");
+    }
+    if is_owned_slower(&prepared) || is_fixed_sentence(&prepared) {
         return None;
     }
-    if is_comparison_claim(s) && !(has_real_iso_date(s) && has_allowed_source(s)) {
+    if is_comparison_claim(&prepared) && !(has_real_iso_date(&prepared) && has_allowed_source(&prepared)) {
         return Some("unsourced comparison");
     }
     None
@@ -902,7 +1166,17 @@ fn closes_block(tag_l: &str) -> bool {
         || tag_l.starts_with("</section")
         || tag_l.starts_with("</article")
         || tag_l.starts_with("</nav")
-        || tag_l.starts_with("<br")
+}
+
+fn is_inline_join(tag_l: &str) -> bool {
+    matches!(
+        open_name(tag_l),
+        Some(
+            "a" | "abbr" | "b" | "bdi" | "bdo" | "br" | "cite" | "code" | "data" | "dfn" | "em" | "i"
+                | "mark" | "q" | "s" | "small" | "span" | "strong" | "sub" | "sup" | "time" | "u"
+                | "var" | "wbr"
+        )
+    )
 }
 
 fn open_name(tag_l: &str) -> Option<&str> {
@@ -1013,6 +1287,9 @@ fn readable_text(text: &str) -> String {
         if let Some(url) = href_in_tag(tag) {
             out.push(' ');
             out.push_str(url);
+            out.push(' ');
+        }
+        if is_inline_join(&tag_l) {
             out.push(' ');
         }
         if closes_block(&tag_l) {
@@ -1995,12 +2272,136 @@ mod tests {
             );
         }
         assert!(comparison_errors(&scholar.body_html).is_empty());
-        let extra = format!("{}<p>This new line outperforms vLLM.</p>", scholar.body_html);
-        let problems = comparison_errors(&extra);
-        assert!(
-            problems.iter().any(|e| e.contains("outperforms vLLM")),
-            "a new unsourced comparison in engineer.json fails the same check the build runs: {problems:?}"
+    }
+
+    #[test]
+    fn cuda_bar_tie_variants_fail() {
+        let bars = [
+            "Omega's best format beats the best measured CUDA number at one conversation, with golden tokens identical to my host reference.",
+            "Omega prefill beats the best measured CUDA number at 512 and 8k.",
+            "Omega total words per second beats the best measured CUDA number at 8 and 32 conversations.",
+        ];
+        for bar in bars {
+            assert!(comparison_problem(bar).is_none(), "{bar}");
+            let tied = bar.replacen("beats", "matches", 1);
+            assert_ne!(tied, bar);
+            assert_eq!(comparison_problem(&tied), Some("unsourced comparison"), "{tied}");
+        }
+        assert_eq!(
+            comparison_problem("Omega prefill matches the best measured CUDA number at 512 and 8k."),
+            Some("unsourced comparison")
         );
+    }
+
+    #[test]
+    fn arch_review_examples_fail() {
+        let fail = [
+            "beats the incumbent",
+            "faster than the leading GPU stack",
+            "Nvidia's stack is 3x slower",
+            "NVIDIA trails Omega",
+            "reaches NVIDIA parity",
+            "Omega versus vLLM",
+            "compared with vLLM",
+            "matches vLLM",
+            "tied with vLLM",
+            "llama.cpp: 1.8x",
+            "speedup over vLLM: 2x",
+            "faster&nbsp;than CUDA",
+            "faster\u{00a0}than CUDA",
+            "faster<br>than CUDA",
+            "faster<em>than</em> CUDA",
+            "faster<span>than</span> CUDA",
+            "equal to vLLM",
+            "on par with vLLM",
+            "matching vLLM",
+            "match vLLM",
+            "ties vLLM",
+            "compared to vLLM",
+            "relative to vLLM",
+            "ahead of vLLM",
+            "beats the leader",
+            "faster than the market leader",
+            "beats the GPU stacks",
+            "faster than the field",
+            "beats everyone else",
+            "faster than existing tools",
+            "beats Ollama",
+            "faster than ONNX Runtime",
+            "beats MLX",
+            "faster than ROCm",
+            "beats Groq",
+            "faster than TensorRT",
+            "beats SGLang",
+        ];
+        for sentence in fail {
+            assert!(
+                comparison_problem(sentence).is_some(),
+                "must fail: {sentence:?} -> {:?}",
+                comparison_problem(sentence)
+            );
+        }
+        assert!(comparison_errors("faster<br>than CUDA").iter().any(|e| e.contains("faster than CUDA")));
+        assert_eq!(comparison_problem("beating CUDA"), Some("overclaim"));
+        assert_eq!(comparison_problem("beating CUDA today"), Some("overclaim"));
+        assert!(
+            comparison_problem("beating CUDA++").is_none(),
+            "beating CUDA++ is this project's GPU half, not the beating-CUDA overclaim: {:?}",
+            comparison_problem("beating CUDA++")
+        );
+        for sentence in [
+            "The GPU half of Omega, with no NVIDIA software.",
+            "parity with CUDA++",
+            "twice CUDA++",
+            "answers matching the shipped reference.",
+            "Understanding versus search.",
+            "How hard was it compared with verifying it?",
+            "A paper projects average investment equal to 3.63% of U.S. GDP per year.",
+            "Claude Max 20x plan.",
+        ] {
+            assert!(comparison_problem(sentence).is_none(), "must pass: {sentence:?} -> {:?}", comparison_problem(sentence));
+        }
+    }
+
+    #[test]
+    fn engineer_json_unsourced_comparison_fails_the_build() {
+        let raw = include_str!("../../../../public/data/engineer.json");
+        let line = raw
+            .lines()
+            .position(|l| l.contains("Platinum deposited this way outperformed"))
+            .expect("chemistry sentence")
+            + 1;
+        assert_eq!(line, 91, "body_html holds the sentences; line 89 is the description");
+        assert!(!raw.lines().nth(88).unwrap().contains("Platinum deposited"));
+        let needle = "Platinum deposited this way outperformed organic-solvent materials in photocatalytic dye degradation.";
+        let doctored = raw.replacen(needle, &format!("{needle} This new line outperforms vLLM."), 1);
+        assert_ne!(doctored, raw);
+        let value: serde_json::Value = serde_json::from_str(&doctored).expect("doctored engineer.json still parses");
+        let body = value["pages"]
+            .as_array()
+            .expect("pages")
+            .iter()
+            .find_map(|page| {
+                let body = page["body_html"].as_str()?;
+                body.contains("This new line outperforms vLLM.").then(|| body.to_string())
+            })
+            .expect("the injected sentence is in engineer.json");
+        let problems = comparison_errors(&body);
+        assert!(
+            problems.iter().any(|e| e.contains("unsourced comparison") && e.contains("outperforms vLLM")),
+            "an unsourced comparison added to engineer.json fails the check the build runs: {problems:?}"
+        );
+        let clean: serde_json::Value = serde_json::from_str(raw).expect("engineer.json");
+        let clean_body = clean["pages"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find_map(|page| {
+                let body = page["body_html"].as_str()?;
+                body.contains(needle).then_some(body)
+            })
+            .unwrap();
+        assert!(comparison_errors(clean_body).is_empty(), "{clean_body}");
     }
 
     #[test]
@@ -2105,8 +2506,9 @@ mod tests {
     }
 
     fn collect_html(dir: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
-        let Ok(rd) = std::fs::read_dir(dir) else { return };
-        for entry in rd.flatten() {
+        let rd = std::fs::read_dir(dir).unwrap_or_else(|e| panic!("unreadable directory {}: {e}", dir.display()));
+        for entry in rd {
+            let entry = entry.unwrap_or_else(|e| panic!("unreadable directory entry in {}: {e}", dir.display()));
             let path = entry.path();
             if path.is_dir() {
                 collect_html(&path, out);
@@ -2117,8 +2519,9 @@ mod tests {
     }
 
     fn collect_named(dir: &std::path::Path, name: &str, out: &mut Vec<std::path::PathBuf>) {
-        let Ok(rd) = std::fs::read_dir(dir) else { return };
-        for entry in rd.flatten() {
+        let rd = std::fs::read_dir(dir).unwrap_or_else(|e| panic!("unreadable directory {}: {e}", dir.display()));
+        for entry in rd {
+            let entry = entry.unwrap_or_else(|e| panic!("unreadable directory entry in {}: {e}", dir.display()));
             let path = entry.path();
             if path.is_dir() {
                 if path.file_name().and_then(|n| n.to_str()) == Some("vendor") {
