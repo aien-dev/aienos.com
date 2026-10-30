@@ -1033,12 +1033,15 @@ struct FixedSentence {
     done_when_prefix: bool,
 }
 
-/// CUDA performance bars from omega.json, then two published chemistry results.
-/// A tie does not pass a CUDA bar: each bar sentence must require a beat, and a
-/// different sentence with the same words does not. The chemistry sentences match
-/// only as written. They are the scholar body in public/data/engineer.json.
-/// Line 89 of that file is the description. Both sentences are in body_html
-/// on line 91, and the link for each one is in the next paragraph.
+/// CUDA performance bars from omega.json, then two published chemistry results,
+/// then the planned same-Spark benchmark named in the gpu-head-to-head
+/// repository description. A tie does not pass a CUDA bar: each bar sentence
+/// must require a beat, and a different sentence with the same words does not.
+/// The chemistry sentences match only as written. They are the scholar body in
+/// public/data/engineer.json. Line 89 of that file is the description. Both
+/// sentences are in body_html on line 91, and the link for each one is in the
+/// next paragraph. The benchmark sentence matches only as written. It names a
+/// plan. A result or a different comparative is not on the list.
 const FIXED_SENTENCES: &[FixedSentence] = &[
     FixedSentence {
         sentence: "Omega's best format beats the best measured CUDA number at one conversation, with golden tokens identical to my host reference.",
@@ -1068,6 +1071,12 @@ const FIXED_SENTENCES: &[FixedSentence] = &[
         sentence: "Ionic-liquid synthesis outperformed organic-solvent routes in photocatalytic methylene blue degradation.",
         source: "https://digitalcommons.wku.edu/theses/2101/",
         reason: "published chemistry result, sourced in the next paragraph",
+        done_when_prefix: false,
+    },
+    FixedSentence {
+        sentence: "Same-Spark end-to-end head-to-head: aien-serve-http vs vLLM vs llama.cpp, Qwen3.6-35B-A3B (bar P0).",
+        source: "https://github.com/aien-dev/aienos.com/blob/main/crates/site-builder/data/omega.json",
+        reason: "planned same-Spark benchmark; no result claimed until a receipt exists. omega.json bar P0, status MISSING, receipt null.",
         done_when_prefix: false,
     },
 ];
@@ -1152,6 +1161,41 @@ fn prepare_sentence(s: &str) -> String {
         .join(" ")
 }
 
+/// "replacement for" followed later in the sentence by CUDA, with or without
+/// words between them. "replacement for the CUDA user stack" and "a replacement
+/// for CUDA" are the same overclaim. CUDA++ is this project's GPU half.
+fn replacement_for_cuda(lower: &str) -> bool {
+    let phrase = "replacement for";
+    let mut from = 0;
+    while let Some(rel) = lower[from..].find(phrase) {
+        let i = from + rel;
+        let before_ok = i == 0 || !is_word_char(lower.as_bytes()[i - 1] as char);
+        let after = i + phrase.len();
+        let after_ok = after >= lower.len() || !is_word_char(lower.as_bytes()[after] as char);
+        if before_ok && after_ok && cuda_token_not_plus(&lower[after..]) {
+            return true;
+        }
+        from = i + phrase.len().max(1);
+    }
+    false
+}
+
+fn cuda_token_not_plus(lower: &str) -> bool {
+    let mut from = 0;
+    while let Some(rel) = lower[from..].find("cuda") {
+        let i = from + rel;
+        let before_ok = i == 0 || !is_word_char(lower.as_bytes()[i - 1] as char);
+        let after = i + "cuda".len();
+        let plus = lower[after..].starts_with("++");
+        let after_ok = after >= lower.len() || !is_word_char(lower.as_bytes()[after] as char);
+        if before_ok && after_ok && !plus {
+            return true;
+        }
+        from = i + "cuda".len().max(1);
+    }
+    false
+}
+
 /// "beating cuda" is an overclaim. "beating cuda++" is this project's GPU half, not that claim.
 fn has_overclaim(lower: &str) -> bool {
     for w in OVERCLAIMS {
@@ -1167,6 +1211,12 @@ fn has_overclaim(lower: &str) -> bool {
                     return true;
                 }
                 from = i + w.len();
+            }
+            continue;
+        }
+        if w == "replacement for cuda" {
+            if replacement_for_cuda(lower) {
+                return true;
             }
             continue;
         }
@@ -1424,7 +1474,6 @@ pub const PROSE_EXEMPT_PATHS: &[&str] = &[
     "public/research/aien-research-plan.md",
     "public/research/computing-machinery-and-understanding-emergence/index.html",
     "public/research/the-stapleton-doctrine/index.html",
-    "public/call-to-humanity/index.html",
 ];
 
 pub fn is_prose_exempt(path: &str) -> bool {
@@ -2471,7 +2520,10 @@ mod tests {
             assert!(!row.reason.is_empty(), "{}", row.sentence);
             assert!(comparison_problem(row.sentence).is_none(), "{}", row.sentence);
         }
-        let chemistry: Vec<_> = FIXED_SENTENCES.iter().filter(|row| !row.done_when_prefix).collect();
+        let chemistry: Vec<_> = FIXED_SENTENCES
+            .iter()
+            .filter(|row| row.reason == "published chemistry result, sourced in the next paragraph")
+            .collect();
         assert_eq!(chemistry.len(), 2);
         for row in &chemistry {
             assert_eq!(row.reason, "published chemistry result, sourced in the next paragraph");
@@ -2577,6 +2629,17 @@ mod tests {
         assert!(comparison_errors("faster<br>than CUDA").iter().any(|e| e.contains("faster than CUDA")));
         assert_eq!(comparison_problem("beating CUDA"), Some("overclaim"));
         assert_eq!(comparison_problem("beating CUDA today"), Some("overclaim"));
+        assert_eq!(comparison_problem("replacement for the CUDA user stack"), Some("overclaim"));
+        assert_eq!(comparison_problem("a replacement for CUDA"), Some("overclaim"));
+        assert_eq!(
+            comparison_problem("a clean-room replacement for the CUDA user stack"),
+            Some("overclaim")
+        );
+        assert!(
+            comparison_problem("a replacement for CUDA++").is_none(),
+            "a replacement for CUDA++ is this project's GPU half, not the replacement-for-CUDA overclaim: {:?}",
+            comparison_problem("a replacement for CUDA++")
+        );
         assert!(
             comparison_problem("convert once ahead of time and store").is_none(),
             "ahead of time is an idiom: {:?}",
@@ -2697,7 +2760,10 @@ The reference page itself is faster than CUDA.
 ";
         let problems = llms_full_problems(doc, ledger);
         let joined = problems.join("\n");
-        assert!(!joined.contains("call-to-humanity"), "exempt source must be skipped: {joined}");
+        assert!(
+            joined.contains("call-to-humanity/index.html") && joined.contains("beats vLLM"),
+            "call-to-humanity is a live page and must be scanned: {joined}"
+        );
         assert!(!joined.contains("D-bar that beats CUDA"), "a ledger excerpt is not a new page claim: {joined}");
         assert!(joined.contains("now/index.html") && joined.contains("faster than vLLM"), "the now page's own sentence still fails: {joined}");
         assert!(joined.contains("agents/index.html") && joined.contains("vs vLLM"), "a live page section still fails: {joined}");
@@ -2709,6 +2775,52 @@ The reference page itself is faster than CUDA.
         );
         assert!(!is_prose_exempt("llms-full.txt"), "the aggregate file is not itself exempt");
         assert!(!is_prose_exempt("public/llms-full.txt"));
+    }
+
+    #[test]
+    fn planned_head_to_head_is_exact_and_a_result_fails() {
+        const PLANNED: &str = "Same-Spark end-to-end head-to-head: aien-serve-http vs vLLM vs llama.cpp, Qwen3.6-35B-A3B (bar P0).";
+        const DESCRIPTION: &str = "Same-Spark end-to-end head-to-head: aien-serve-http vs vLLM vs llama.cpp, Qwen3.6-35B-A3B (bar P0). Published even if I lose.";
+        let raw = include_str!("../../../../public/data/agent-repos.json");
+        let line = raw.lines().position(|l| l.contains(DESCRIPTION)).expect("gpu-head-to-head description") + 1;
+        assert_eq!(line, 197);
+        let row = FIXED_SENTENCES.iter().find(|row| row.sentence == PLANNED).expect("allowance");
+        assert!(row.source.contains("crates/site-builder/data/omega.json"), "{}", row.source);
+        assert_eq!(
+            row.reason,
+            "planned same-Spark benchmark; no result claimed until a receipt exists. omega.json bar P0, status MISSING, receipt null."
+        );
+        assert!(!row.done_when_prefix);
+        let omega: serde_json::Value = serde_json::from_str(include_str!("../../data/omega.json")).expect("omega.json");
+        let p0 = omega["performance"]["bar"]
+            .as_array()
+            .expect("bar")
+            .iter()
+            .find(|bar| bar["id"] == "P0")
+            .expect("bar P0");
+        assert_eq!(p0["status"], "MISSING");
+        assert!(p0["receipt"].is_null());
+        assert!(comparison_problem(PLANNED).is_none(), "{:?}", comparison_problem(PLANNED));
+        assert!(
+            comparison_errors(DESCRIPTION).is_empty(),
+            "the published description is the plan sentence plus a sentence that is not a claim: {:?}",
+            comparison_errors(DESCRIPTION)
+        );
+        assert!(comparison_problem(&format!("Done when: {PLANNED}")).is_some());
+        let beats = DESCRIPTION.replacen("vs vLLM", "beats vLLM", 1);
+        assert_ne!(beats, DESCRIPTION);
+        assert!(
+            comparison_errors(&beats).iter().any(|e| e.contains("unsourced comparison") && e.contains("beats vLLM")),
+            "{:?}",
+            comparison_errors(&beats)
+        );
+        let numbered = PLANNED.replacen("vs vLLM", "is 2x faster than vLLM", 1);
+        assert_ne!(numbered, PLANNED);
+        assert_eq!(comparison_problem(&numbered), Some("unsourced comparison"), "{numbered}");
+        assert_eq!(
+            comparison_problem("aien-serve-http beats vLLM"),
+            Some("unsourced comparison")
+        );
     }
 
     #[test]
@@ -2760,7 +2872,6 @@ The reference page itself is faster than CUDA.
             "public/research/aien-research-plan.md",
             "public/research/computing-machinery-and-understanding-emergence/index.html",
             "public/research/the-stapleton-doctrine/index.html",
-            "public/call-to-humanity/index.html",
         ];
         let claim = "This beats vLLM with no date.";
         for path in papers {
@@ -2770,6 +2881,7 @@ The reference page itself is faster than CUDA.
             assert!(!is_prose_exempt(&format!("dist/{path}")), "{path} must not match by ending");
         }
         for live in [
+            "public/call-to-humanity/index.html",
             "public/research/index.html",
             "omega/index.html",
             "dist/omega/index.html",
@@ -2834,6 +2946,14 @@ The reference page itself is faster than CUDA.
             let rel = path.strip_prefix(&root).unwrap_or(path);
             let rel = rel.to_string_lossy().replace('\\', "/");
             let problems = comparison_errors_at(&rel, &text);
+            if rel == "public/call-to-humanity/index.html" {
+                assert!(!is_prose_exempt(&rel), "call-to-humanity is a live page");
+                assert!(
+                    !problems.is_empty(),
+                    "call-to-humanity is scanned; its overclaims stay for a content decision"
+                );
+                continue;
+            }
             if !problems.is_empty() {
                 bad.push(format!(
                     "{}: {}",
