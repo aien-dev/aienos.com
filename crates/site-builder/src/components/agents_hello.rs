@@ -255,25 +255,95 @@ mod tests {
         assert_hello_door_copy("agents/hello", &html);
     }
 
-    /// A public claim that the hello door accepts traffic needs a receipt in
-    /// the same text. The rollback record is not that receipt. `not yet live`
-    /// is the honest state and is not a liveness claim.
+    /// A line that says the public hello door is accepting traffic needs a
+    /// receipt on that same line: `hello-door-live-receipt:`, then a
+    /// YYYY-MM-DD date, then one aien-dev blob, commit, or Actions run URL.
+    /// A DEPLOY.md link on another line is not that receipt.
+    /// `not yet live` is not a liveness claim.
     fn live_claim_without_receipt(text: &str) -> Option<&'static str> {
-        let receipt = text.contains("hello-door-live-receipt:") && text.contains("https://github.com/aien-dev/");
-        if receipt {
-            return None;
-        }
-        for phrase in [
+        const PHRASES: &[&str] = &[
             "the live server",
             "hello door is live",
             "www.aienos.com issues",
             "the API lives under /agora/api/",
-        ] {
-            if text.contains(phrase) {
-                return Some(phrase);
+        ];
+        for line in text.lines() {
+            if let Some(phrase) = PHRASES.iter().copied().find(|p| line.contains(p)) {
+                if !line_has_live_receipt(line) {
+                    return Some(phrase);
+                }
             }
         }
         None
+    }
+
+    /// `hello-door-live-receipt: YYYY-MM-DD https://github.com/aien-dev/...`
+    /// with the URL naming one blob, one commit, or one Actions run.
+    fn line_has_live_receipt(line: &str) -> bool {
+        let Some((_, after)) = line.split_once("hello-door-live-receipt:") else {
+            return false;
+        };
+        let mut parts = after.split_whitespace();
+        let Some(date) = parts.next() else {
+            return false;
+        };
+        let Some(url) = parts.next() else {
+            return false;
+        };
+        is_ymd(date) && is_specific_aien_url(url)
+    }
+
+    fn is_ymd(date: &str) -> bool {
+        let b = date.as_bytes();
+        if b.len() != 10 || b[4] != b'-' || b[7] != b'-' {
+            return false;
+        }
+        if !b.iter().enumerate().all(|(i, c)| i == 4 || i == 7 || c.is_ascii_digit()) {
+            return false;
+        }
+        let month: u8 = date[5..7].parse().unwrap_or(0);
+        let day: u8 = date[8..10].parse().unwrap_or(0);
+        (1..=12).contains(&month) && (1..=31).contains(&day)
+    }
+
+    fn is_specific_aien_url(raw: &str) -> bool {
+        let url = raw.trim_end_matches(|c: char| matches!(c, '.' | ',' | ';' | ')'));
+        let Some(rest) = url.strip_prefix("https://github.com/aien-dev/") else {
+            return false;
+        };
+        let mut segs = rest.split('/');
+        let Some(repo) = segs.next() else {
+            return false;
+        };
+        if repo.is_empty()
+            || !repo.bytes().all(|c| c.is_ascii_alphanumeric() || matches!(c, b'_' | b'.' | b'-'))
+        {
+            return false;
+        }
+        let hex40 = |s: &str| s.len() == 40 && s.bytes().all(|c| c.is_ascii_hexdigit() && !c.is_ascii_uppercase());
+        let one_segment = |s: &str| {
+            !s.is_empty() && s.bytes().all(|c| c.is_ascii_alphanumeric() || matches!(c, b'_' | b'.' | b'-'))
+        };
+        match segs.next() {
+            Some("commit") => {
+                let Some(sha) = segs.next() else {
+                    return false;
+                };
+                hex40(sha) && segs.next().is_none()
+            }
+            Some("blob") => {
+                let Some(rev) = segs.next() else {
+                    return false;
+                };
+                // One ref segment, then a file path. That is one blob, not the repo root.
+                one_segment(rev) && segs.next().is_some()
+            }
+            Some("actions") => {
+                segs.next() == Some("runs")
+                    && segs.next().is_some_and(|id| !id.is_empty() && id.bytes().all(|c| c.is_ascii_digit()))
+            }
+            _ => false,
+        }
     }
 
     fn assert_hello_door_copy(name: &str, text: &str) {
@@ -308,8 +378,48 @@ mod tests {
         }
         let bad = "The hello door is live. The live server on www.aienos.com issues challenges at the API lives under /agora/api/.";
         assert!(live_claim_without_receipt(bad).is_some());
-        let with_receipt = "The hello door is live. hello-door-live-receipt: https://github.com/aien-dev/aienos.com/blob/main/evidence/hello.txt";
-        assert!(live_claim_without_receipt(with_receipt).is_none());
         assert!(live_claim_without_receipt("The hello door is built but not yet live.").is_none());
+    }
+
+    #[test]
+    fn a_deploy_md_link_elsewhere_is_not_a_live_receipt() {
+        let text = "\
+The hello door is live.
+Deployment record: https://github.com/aien-dev/aienos.com/blob/main/om/agora/deploy/DEPLOY.md
+hello-door-live-receipt: 2026-10-30 https://github.com/aien-dev/aienos.com/blob/main/om/agora/deploy/DEPLOY.md
+";
+        assert!(
+            live_claim_without_receipt(text).is_some(),
+            "a DEPLOY.md link on another line must not clear a live claim"
+        );
+    }
+
+    #[test]
+    fn a_receipt_line_missing_its_date_is_refused() {
+        let text = "The hello door is live. hello-door-live-receipt: https://github.com/aien-dev/aienos.com/commit/74a40ff6ac399db5dd9908664e2c05281ff27bcd";
+        assert!(live_claim_without_receipt(text).is_some());
+    }
+
+    #[test]
+    fn a_receipt_line_missing_its_url_is_refused() {
+        let text = "The hello door is live. hello-door-live-receipt: 2026-10-30";
+        assert!(live_claim_without_receipt(text).is_some());
+    }
+
+    #[test]
+    fn a_dated_specific_receipt_line_allows_a_live_claim() {
+        let sha = "74a40ff6ac399db5dd9908664e2c05281ff27bcd";
+        for url in [
+            format!("https://github.com/aien-dev/aienos.com/commit/{sha}"),
+            format!("https://github.com/aien-dev/aienos.com/blob/{sha}/evidence/hello.txt"),
+            "https://github.com/aien-dev/aienos.com/blob/main/evidence/hello.txt".to_string(),
+            "https://github.com/aien-dev/aienos.com/actions/runs/12345678901".to_string(),
+        ] {
+            let text = format!("The hello door is live. hello-door-live-receipt: 2026-10-30 {url}");
+            assert!(
+                live_claim_without_receipt(&text).is_none(),
+                "well-formed receipt refused: {url}"
+            );
+        }
     }
 }
