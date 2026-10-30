@@ -42,13 +42,14 @@ pub const COMPARISON_PHRASES: &[&str] = &[
 
 /// Whole words, case-insensitively. Not stems. A claim on their own.
 /// Bare "behind" is ordinary English, so it is not a claim.
-/// "match", "ties", "tied with", "equal to" and "on par with" are context-bound,
-/// in `TIE_WORDS` and `TIE_PHRASES`: they count beside an outside name, a rival
-/// noun, a multiplier, or the "best measured CUDA number" bar.
+/// "match", "matched", "tie", "ties", "tied", "equal", "equals", "equaled",
+/// "tied with", "equal to" and "on par with" are context-bound, in `TIE_WORDS`
+/// and `TIE_PHRASES`: they count beside an outside name, a rival noun, a
+/// multiplier, or the "best measured CUDA number" bar.
 /// Superlatives ("fastest", "slowest", "quickest", "best", "worst") count only
 /// beside a project name, in `has_guarded_word`.
 /// "beat", "parity", "trails" and "lags" are context-bound, in `CONTEXT_WORDS`.
-pub const COMPARISON_WORDS: &[&str] = &["equals", "outdoes", "tops", "rivals"];
+pub const COMPARISON_WORDS: &[&str] = &["outdoes", "tops", "rivals"];
 
 /// Count only when the same sentence also names an outside system, a rival
 /// noun, or a number glued to the comparative ("2x faster", "half as fast").
@@ -67,7 +68,11 @@ const CONTEXT_WORDS: &[&str] = &[
 /// Tie words. Same targets as the other context words, plus a multiplier
 /// or the bar phrase "best measured CUDA number". A different word in a
 /// CUDA bar sentence does not stay on the exact-sentence list.
-const TIE_WORDS: &[&str] = &["match", "matches", "matching", "ties"];
+const TIE_WORDS: &[&str] = &[
+    "match", "matches", "matching", "matched",
+    "tie", "ties", "tied",
+    "equal", "equals", "equaled",
+];
 
 const TIE_PHRASES: &[&str] = &["tied with", "equal to", "on par with", "on a par with"];
 
@@ -379,7 +384,9 @@ fn comparison_word_activates_nvidia(lower: &str) -> bool {
     const WORDS: &[&str] = &[
         "parity", "trails", "lags",
         "beat", "beats", "beating", "beaten",
-        "match", "matches", "matching", "ties",
+        "match", "matches", "matching", "matched",
+        "tie", "ties", "tied",
+        "equal", "equals", "equaled",
         "slower", "faster", "quicker", "cheaper",
     ];
     if lower.split(|c: char| !is_word_char(c)).any(|word| {
@@ -1161,9 +1168,11 @@ fn prepare_sentence(s: &str) -> String {
         .join(" ")
 }
 
-/// "replacement for" followed later in the sentence by CUDA, with or without
-/// words between them. "replacement for the CUDA user stack" and "a replacement
-/// for CUDA" are the same overclaim. CUDA++ is this project's GPU half.
+/// "replacement for" then a CUDA token within four words. A period, semicolon,
+/// colon, comma, parenthesis or em dash in that gap ends the search.
+/// "not a replacement" and "isn't a replacement" are not the claim.
+/// "replacement for the CUDA user stack" and "a replacement for CUDA" are
+/// the same overclaim. CUDA++ is this project's GPU half.
 fn replacement_for_cuda(lower: &str) -> bool {
     let phrase = "replacement for";
     let mut from = 0;
@@ -1172,7 +1181,7 @@ fn replacement_for_cuda(lower: &str) -> bool {
         let before_ok = i == 0 || !is_word_char(lower.as_bytes()[i - 1] as char);
         let after = i + phrase.len();
         let after_ok = after >= lower.len() || !is_word_char(lower.as_bytes()[after] as char);
-        if before_ok && after_ok && cuda_token_not_plus(&lower[after..]) {
+        if before_ok && after_ok && !replacement_is_negated(lower, i) && cuda_within_four_words(&lower[after..]) {
             return true;
         }
         from = i + phrase.len().max(1);
@@ -1180,18 +1189,89 @@ fn replacement_for_cuda(lower: &str) -> bool {
     false
 }
 
-fn cuda_token_not_plus(lower: &str) -> bool {
-    let mut from = 0;
-    while let Some(rel) = lower[from..].find("cuda") {
-        let i = from + rel;
-        let before_ok = i == 0 || !is_word_char(lower.as_bytes()[i - 1] as char);
-        let after = i + "cuda".len();
-        let plus = lower[after..].starts_with("++");
-        let after_ok = after >= lower.len() || !is_word_char(lower.as_bytes()[after] as char);
-        if before_ok && after_ok && !plus {
-            return true;
+/// The word immediately before "replacement", skipping one "a", "an" or "the".
+fn replacement_is_negated(lower: &str, phrase_at: usize) -> bool {
+    let Some((start, end)) = previous_word_span(lower, phrase_at) else {
+        return false;
+    };
+    let mut word = &lower[start..end];
+    if matches!(word, "a" | "an" | "the") {
+        let Some((start, end)) = previous_word_span(lower, start) else {
+            return false;
+        };
+        word = &lower[start..end];
+    }
+    matches!(word, "not" | "isn't" | "isnt")
+}
+
+fn previous_word_span(lower: &str, at: usize) -> Option<(usize, usize)> {
+    let mut i = at;
+    while i > 0 {
+        let ch = lower[..i].chars().next_back()?;
+        if negation_word_char(ch) {
+            break;
         }
-        from = i + "cuda".len().max(1);
+        i -= ch.len_utf8();
+    }
+    if i == 0 {
+        return None;
+    }
+    let end = i;
+    while i > 0 {
+        let ch = lower[..i].chars().next_back()?;
+        if !negation_word_char(ch) {
+            break;
+        }
+        i -= ch.len_utf8();
+    }
+    Some((i, end))
+}
+
+fn negation_word_char(c: char) -> bool {
+    is_word_char(c) || c == '\''
+}
+
+/// At most four words between "for" and the CUDA token. Zero words counts:
+/// "replacement for CUDA" is the claim. A clause break stops the gap.
+fn cuda_within_four_words(tail: &str) -> bool {
+    let mut words = 0u32;
+    let mut i = 0;
+    while i < tail.len() {
+        let c = tail[i..].chars().next().unwrap();
+        let clen = c.len_utf8();
+        if c.is_whitespace() {
+            i += clen;
+            continue;
+        }
+        if matches!(c, '.' | ';' | ':' | ',' | '(' | ')') || c == '\u{2014}' {
+            return false;
+        }
+        if tail[i..].starts_with("cuda") {
+            let after = i + "cuda".len();
+            let before_ok = i == 0 || !is_word_char(tail[..i].chars().next_back().unwrap());
+            let next = tail[after..].chars().next();
+            let plus = tail[after..].starts_with("++");
+            let after_ok = next.map(|ch| !is_word_char(ch)).unwrap_or(true);
+            if before_ok && after_ok && !plus {
+                return words <= 4;
+            }
+        }
+        if is_word_char(c) {
+            words += 1;
+            if words > 4 {
+                return false;
+            }
+            i += clen;
+            while i < tail.len() {
+                let n = tail[i..].chars().next().unwrap();
+                if !is_word_char(n) {
+                    break;
+                }
+                i += n.len_utf8();
+            }
+            continue;
+        }
+        i += clen;
     }
     false
 }
@@ -1547,8 +1627,10 @@ fn is_ledger_excerpt(sentence: &str, fields: &[String]) -> bool {
 /// `llms-full.txt` is one file with one section per page. Each section is
 /// checked under its own source path. An exempt paper, receipt or ledger
 /// section is skipped. A sentence copied from the public ledger stays with
-/// the ledger. A section with no mappable source fails closed. The file as a
-/// whole is not exempt.
+/// the ledger. A section with no mappable source fails closed. A second
+/// `Source:` line stays on the first path and is an error. `Published:` is
+/// skipped only when it is the header line directly after `Source:`. The
+/// file as a whole is not exempt.
 fn push_line_problems(problems: &mut Vec<String>, n: usize, label: &str, line: &str, fields: &[String]) {
     if is_ledger_excerpt(line, fields) {
         return;
@@ -1563,6 +1645,80 @@ fn push_line_problems(problems: &mut Vec<String>, n: usize, label: &str, line: &
     }
 }
 
+/// `Published: YYYY-MM-DD. Last changed: <timestamp>.` as `seo::llms_full` writes it.
+/// The timestamp is `YYYY-MM-DDTHH:MM:SSZ` or the same clock with a numeric offset.
+fn is_published_header(line: &str) -> bool {
+    let Some(rest) = line.strip_prefix("Published: ") else {
+        return false;
+    };
+    let Some((date, changed)) = rest.split_once(". Last changed: ") else {
+        return false;
+    };
+    let Some(stamp) = changed.strip_suffix('.') else {
+        return false;
+    };
+    is_exact_iso_date(date) && is_exact_timestamp(stamp)
+}
+
+fn is_exact_iso_date(s: &str) -> bool {
+    let b = s.as_bytes();
+    if b.len() != 10 || b[4] != b'-' || b[7] != b'-' {
+        return false;
+    }
+    if !b[..4].iter().all(u8::is_ascii_digit)
+        || !b[5..7].iter().all(u8::is_ascii_digit)
+        || !b[8..10].iter().all(u8::is_ascii_digit)
+    {
+        return false;
+    }
+    let Ok(year) = s[..4].parse::<i32>() else {
+        return false;
+    };
+    let Ok(month) = s[5..7].parse::<u32>() else {
+        return false;
+    };
+    let Ok(day) = s[8..10].parse::<u32>() else {
+        return false;
+    };
+    is_real_date(year, month, day)
+}
+
+fn is_exact_timestamp(s: &str) -> bool {
+    let b = s.as_bytes();
+    if b.len() != 20 && b.len() != 25 {
+        return false;
+    }
+    if !is_exact_iso_date(&s[..10]) || b[10] != b'T' || !is_hh_mm_ss(&b[11..19]) {
+        return false;
+    }
+    if b.len() == 20 {
+        return b[19] == b'Z';
+    }
+    (b[19] == b'+' || b[19] == b'-')
+        && b[22] == b':'
+        && is_two_digits(&b[20..22], 23)
+        && is_two_digits(&b[23..25], 59)
+}
+
+fn is_hh_mm_ss(b: &[u8]) -> bool {
+    b.len() == 8
+        && b[2] == b':'
+        && b[5] == b':'
+        && is_two_digits(&b[0..2], 23)
+        && is_two_digits(&b[3..5], 59)
+        && is_two_digits(&b[6..8], 59)
+}
+
+fn is_two_digits(b: &[u8], max: u32) -> bool {
+    if b.len() != 2 || !b.iter().all(u8::is_ascii_digit) {
+        return false;
+    }
+    let Ok(n) = std::str::from_utf8(b).unwrap_or("").parse::<u32>() else {
+        return false;
+    };
+    n <= max
+}
+
 pub fn llms_full_problems(text: &str, ledger: &str) -> Vec<String> {
     let fields = ledger_fields(ledger);
     let mut problems = Vec::new();
@@ -1573,6 +1729,8 @@ pub fn llms_full_problems(text: &str, ledger: &str) -> Vec<String> {
     let mut reported_unmapped = false;
     let mut section_line = 1usize;
     let mut in_fence = false;
+    let mut saw_source = false;
+    let mut expect_published = false;
     let mut prelude: Vec<(usize, String)> = Vec::new();
     let flush = |section: &mut Option<Option<String>>,
                  reported_unmapped: bool,
@@ -1612,9 +1770,21 @@ pub fn llms_full_problems(text: &str, ledger: &str) -> Vec<String> {
             exempt = false;
             reported_unmapped = false;
             section_line = n;
+            saw_source = false;
+            expect_published = false;
             continue;
         }
         if let Some(rest) = line.strip_prefix("Source: ") {
+            if saw_source {
+                problems.push(format!("llms-full.txt:{n}: second Source in section"));
+                if expect_published {
+                    expect_published = false;
+                    problems.push(format!("llms-full.txt:{n}: missing Published header"));
+                }
+                continue;
+            }
+            saw_source = true;
+            expect_published = true;
             if section.is_none() {
                 section_line = n;
             }
@@ -1650,7 +1820,14 @@ pub fn llms_full_problems(text: &str, ledger: &str) -> Vec<String> {
             }
             continue;
         }
-        if line.is_empty() || line.starts_with("Published:") {
+        if expect_published {
+            expect_published = false;
+            if is_published_header(line) {
+                continue;
+            }
+            problems.push(format!("llms-full.txt:{n}: missing Published header"));
+        }
+        if line.is_empty() {
             continue;
         }
         if exempt {
@@ -2601,7 +2778,12 @@ mod tests {
             "on par with vLLM",
             "matching vLLM",
             "match vLLM",
+            "matched vLLM",
             "ties vLLM",
+            "tie vLLM",
+            "tied vLLM",
+            "equal vLLM",
+            "equaled vLLM",
             "compared to vLLM",
             "relative to vLLM",
             "ahead of vLLM",
@@ -2639,6 +2821,70 @@ mod tests {
             comparison_problem("a replacement for CUDA++").is_none(),
             "a replacement for CUDA++ is this project's GPU half, not the replacement-for-CUDA overclaim: {:?}",
             comparison_problem("a replacement for CUDA++")
+        );
+        assert_eq!(
+            comparison_problem("a replacement for one two three four CUDA"),
+            Some("overclaim"),
+            "four words between replacement for and CUDA still fail"
+        );
+        assert!(
+            comparison_problem("a replacement for one two three four five CUDA").is_none(),
+            "five words is past the gap: {:?}",
+            comparison_problem("a replacement for one two three four five CUDA")
+        );
+        for sentence in [
+            "a replacement for the stack, CUDA is named later",
+            "a replacement for the stack; CUDA stays",
+            "a replacement for the stack: CUDA stays",
+            "a replacement for the stack. CUDA stays",
+            "a replacement for the stack \u{2014} CUDA stays",
+            "a replacement for (CUDA)",
+            "not a replacement for CUDA",
+            "isn't a replacement for CUDA",
+        ] {
+            assert!(
+                comparison_problem(sentence).is_none(),
+                "gap, clause break, or negation must pass: {sentence:?} -> {:?}",
+                comparison_problem(sentence)
+            );
+        }
+        assert_eq!(
+            comparison_problem("This is not really a replacement for CUDA"),
+            Some("overclaim"),
+            "a not that is not the word before replacement still fails"
+        );
+        assert_eq!(
+            comparison_problem("An open letter on breaking the CUDA stranglehold on the hardware market: a clean-room replacement for the CUDA user stack, built in the open, with public receipts. DOI 10.5281/zenodo.23614947."),
+            Some("overclaim"),
+            "call-to-humanity llms.txt sentence still fails"
+        );
+        assert_eq!(
+            comparison_problem("I intend to break it, and this letter is how I am starting: a working replacement for the CUDA user software layer, built in the open, with receipts anyone on Earth can check."),
+            Some("overclaim"),
+            "call-to-humanity line 85 still fails"
+        );
+        assert_eq!(
+            comparison_problem("What exists today is a clean-room replacement for the CUDA user stack on the GB10, with no nvcc, no libcuda, and no cuBLAS at run time."),
+            Some("overclaim"),
+            "call-to-humanity line 95 still fails"
+        );
+        assert_eq!(
+            comparison_problem("aien-serve-http matched vLLM and llama.cpp on Qwen3.6-35B-A3B."),
+            Some("unsourced comparison")
+        );
+        assert_eq!(
+            comparison_problem("Omega prefill matched the best measured CUDA number"),
+            Some("unsourced comparison")
+        );
+        assert!(
+            comparison_problem("The total equals 4.").is_none(),
+            "equals with no rival is not a tie: {:?}",
+            comparison_problem("The total equals 4.")
+        );
+        assert!(
+            comparison_problem("The notes matched.").is_none(),
+            "matched with no rival is not a tie: {:?}",
+            comparison_problem("The notes matched.")
         );
         assert!(
             comparison_problem("convert once ahead of time and store").is_none(),
@@ -2775,6 +3021,93 @@ The reference page itself is faster than CUDA.
         );
         assert!(!is_prose_exempt("llms-full.txt"), "the aggregate file is not itself exempt");
         assert!(!is_prose_exempt("public/llms-full.txt"));
+        assert!(
+            joined.contains("missing Published header"),
+            "a section with no header line still reports it: {joined}"
+        );
+    }
+
+    #[test]
+    fn llms_full_published_header_and_second_source_fail_closed() {
+        let missing = "\
+---
+
+# Call
+
+Source: https://www.aienos.com/call-to-humanity/
+
+This beats vLLM.
+";
+        let missing_problems = llms_full_problems(missing, "").join("\n");
+        assert!(
+            missing_problems.contains("missing Published header"),
+            "{missing_problems}"
+        );
+        assert!(
+            missing_problems.contains("call-to-humanity/index.html") && missing_problems.contains("beats vLLM"),
+            "the body is still scanned: {missing_problems}"
+        );
+
+        let doubled = "\
+---
+
+# Now
+
+Source: https://www.aienos.com/now/
+Published: 2026-10-16. Last changed: 2026-10-16T16:29:47Z.
+
+Source: https://www.aienos.com/agents/
+
+Omega beats CUDA.
+";
+        let doubled_problems = llms_full_problems(doubled, "").join("\n");
+        assert!(doubled_problems.contains("second Source"), "{doubled_problems}");
+        assert!(
+            !doubled_problems.contains("missing Published"),
+            "a real header directly after Source is not an error: {doubled_problems}"
+        );
+        assert!(
+            doubled_problems.contains("now/index.html") && doubled_problems.contains("beats CUDA"),
+            "{doubled_problems}"
+        );
+        assert!(
+            !doubled_problems.contains("agents/index.html"),
+            "a second Source does not move the section: {doubled_problems}"
+        );
+
+        let offset = "\
+---
+
+# Now
+
+Source: https://www.aienos.com/now/
+Published: 2026-09-23. Last changed: 2026-10-30T16:17:50+00:00.
+
+Published: the paper is a replacement for CUDA.
+";
+        let offset_problems = llms_full_problems(offset, "").join("\n");
+        assert!(
+            !offset_problems.contains("missing Published"),
+            "a numeric offset header is the real format: {offset_problems}"
+        );
+        assert!(
+            offset_problems.contains("now/index.html") && offset_problems.contains("overclaim"),
+            "a later Published line is prose: {offset_problems}"
+        );
+
+        let fake = "\
+---
+
+# Now
+
+Source: https://www.aienos.com/now/
+Published: yesterday.
+";
+        let fake_problems = llms_full_problems(fake, "").join("\n");
+        assert!(
+            fake_problems.contains("missing Published header"),
+            "{fake_problems}"
+        );
     }
 
     #[test]
