@@ -3,8 +3,8 @@
 //!
 //! Omega is Aien's language for all computing, GPU to CPU. Replacing CUDA
 //! is not true yet. The page renders, from `data/omega.json`:
-//! the parts of Omega, the CUDA stack piece by piece with Omega's
-//! replacement and its status, the one thing that is true today with its
+//! the parts of Omega, the CUDA stack piece by piece with the Omega
+//! work beside each piece and its status, the one thing that is true today with its
 //! receipt, what is not true yet, and the bar C1 to C6 as a checklist.
 //! Every row links to its source or receipt on GitHub. A row whose status
 //! is MISSING is drawn like any other row; nothing is filtered out.
@@ -699,14 +699,38 @@ mod tests {
 
     #[test]
     fn speed_is_measured_only_never_compared() {
-        // Until a same-Spark head-to-head is published (bar P0), the page
-        // states only what was measured, keeps chip-only apart from end to
-        // end, and never says Omega the language runs the model.
+        // The page states what was measured, keeps chip time apart from end
+        // to end, and does not say Omega the language runs the model.
+        // Overclaims stay banned. A comparison claim ("level with", "ahead
+        // of", "faster than") may appear only in a sentence that is dated
+        // and backed by a receipt or the other project's published numbers.
         let s = render_omega_page().into_string();
         let lower = s.to_ascii_lowercase();
-        for w in ["level with", "ahead of", "beating cuda", "matching and then", "runs on omega", "omega runs"] {
+        for w in ["beating cuda", "matching and then", "runs on omega", "omega runs"] {
             assert!(!lower.contains(w), "{w}");
         }
+        // The future bar may name another system and say what a later
+        // measurement would have to beat. That is not a comparison claim.
+        // A comparison claim on this page still has to be dated and sourced.
+        for sentence in s.split(|c| matches!(c, '\n' | '.' | '!' | '?')) {
+            let sentence = sentence.trim();
+            let l = sentence.to_ascii_lowercase();
+            if l.contains("faster than") || l.contains("level with") || l.contains("ahead of") {
+                assert!(
+                    crate::components::machines::comparison_problem(sentence).is_none(),
+                    "unsourced comparison on /omega/: {sentence}"
+                );
+            }
+        }
+        assert!(crate::components::machines::comparison_problem("2x faster than llama.cpp").unwrap().contains("unsourced"));
+        assert!(crate::components::machines::comparison_problem(
+            "On 2026-10-21 this run was faster than llama.cpp's published 40 tok/s (https://example.com/bench)."
+        ).is_none());
+        let overclaim = format!(
+            "A {}, dated 2026-10-21, receipt https://example.com/r.",
+            concat!("replacement for ", "CUDA")
+        );
+        assert!(crate::components::machines::comparison_problem(&overclaim).unwrap().contains("overclaim"));
         let d = data();
         assert!(d.performance.stand.contains("end to end") && d.performance.stand.contains("chip time"));
         assert!(d.performance.stand.contains("20.7 ms") && d.performance.stand.contains("48.31"));
@@ -738,8 +762,12 @@ mod tests {
     }
 
     /// Phrases split so this file can be scanned without matching itself.
-    fn parity_phrases() -> [&'static str; 2] {
-        [concat!("replacement for ", "CUDA"), concat!("everything ", "CUDA gives you")]
+    fn parity_phrases() -> [&'static str; 3] {
+        [
+            concat!("replacement for ", "CUDA"),
+            concat!("everything ", "CUDA gives you"),
+            concat!("Omega's replacement and ", "its status"),
+        ]
     }
 
     fn assert_no_parity(name: &str, text: &str) {

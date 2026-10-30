@@ -607,8 +607,9 @@ fn verify_site(dist: &Path) {
     assert!(content.contains("<ol class=\"loop-stages\""), "Missing loop stage list in index.html");
 
     // The machines and the speeds (components::machines): five machines,
-    // the 35B end to end first, every number beside its receipt, and no
-    // comparison with anyone else's system anywhere on the homepage.
+    // the 35B end to end first, every number beside its receipt. An honest
+    // dated sourced comparison may appear. Overclaims and unsourced
+    // comparisons may not.
     assert!(content.contains("id=\"machines\""), "Missing machines section in index.html");
     assert!(content.contains("id=\"speed\""), "Missing speed section in index.html");
     for id in ["machine-spark", "machine-imac", "machine-pi5", "machine-qemu", "machine-rig", "speed-35b-e2e", "speed-27b-live"] {
@@ -617,10 +618,8 @@ fn verify_site(dist: &Path) {
     assert!(content.contains("22.0 to 22.5"), "Missing the 35B end-to-end speed in index.html");
     assert!(content.contains("7.63"), "Missing the 27B chip-time row in index.html");
     {
-        let lower = content.to_ascii_lowercase();
-        for w in components::machines::FORBIDDEN {
-            assert!(!lower.contains(w), "Comparison with another system on the homepage: {w:?}");
-        }
+        let problems = components::machines::comparison_errors(&content);
+        assert!(problems.is_empty(), "Unsourced comparison or overclaim on the homepage: {problems:?}");
     }
     assert!(dist.join("assets/machines.css").exists(), "Missing assets/machines.css");
     assert!(dist.join("machines.json").exists(), "Missing machines.json");

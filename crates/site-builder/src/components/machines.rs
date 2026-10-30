@@ -5,8 +5,10 @@
 //! and validated at build time and in the tests. Every machine and every
 //! speed row must carry a public link; a row without one fails the build.
 //! Numbers stand beside the physical ceiling of the machine they ran on
-//! and beside our own previous run, never beside anyone else's system,
-//! and the data is checked for the words that would break that rule.
+//! and beside my own previous run. A comparison with another project is
+//! allowed when it is honest, dated, and backed by a receipt or that
+//! project's own published numbers. Overclaims and unsourced comparisons
+//! are refused.
 //! The homepage shows both sections; /machine/ shows the machines first,
 //! before the theory, so the page describes real hardware.
 
@@ -20,11 +22,77 @@ use super::boxlink::{foot, Target};
 /// The raw data file, compiled into the binary.
 pub const RAW: &str = include_str!("../../data/machines.json");
 
-/// Words that compare us with other people's systems. None may appear in
-/// the data or on the rendered sections.
-pub const FORBIDDEN: [&str; 7] = [
-    "faster than", "x faster", "llama.cpp", "vllm", "ollama", "beats ", "beat the",
+/// Comparison claims. A field or sentence may use one only when that same
+/// text carries an ISO date and a receipt, an https link, or the other
+/// project's own published number.
+pub const COMPARISON_CLAIMS: [&str; 6] = [
+    "faster than", "x faster", "beats ", "beat the", "level with", "ahead of",
 ];
+
+/// Overclaims. These stay banned even when a date and a link sit beside them.
+/// Phrases are lowercase; callers compare a lowercased string.
+pub const OVERCLAIMS: [&str; 5] = [
+    "replacement for cuda",
+    "everything cuda gives you",
+    "omega's replacement and its status",
+    "beating cuda",
+    "matching and then",
+];
+
+fn has_iso_date(s: &str) -> bool {
+    let b = s.as_bytes();
+    if b.len() < 10 {
+        return false;
+    }
+    for i in 0..=b.len() - 10 {
+        let w = &b[i..i + 10];
+        if w[4] == b'-'
+            && w[7] == b'-'
+            && w[..4].iter().all(u8::is_ascii_digit)
+            && w[5..7].iter().all(u8::is_ascii_digit)
+            && w[8..10].iter().all(u8::is_ascii_digit)
+        {
+            return true;
+        }
+    }
+    false
+}
+
+fn sourced_comparison(lower: &str) -> bool {
+    has_iso_date(lower)
+        && (lower.contains("https://") || lower.contains("receipt") || lower.contains("published"))
+}
+
+/// `None` when the text is not a comparison, or is an honest dated sourced
+/// comparison. Overclaims and unsourced comparison claims return a reason.
+pub fn comparison_problem(s: &str) -> Option<&'static str> {
+    let lower = s.to_ascii_lowercase();
+    for w in OVERCLAIMS {
+        if lower.contains(w) {
+            return Some("overclaim");
+        }
+    }
+    if COMPARISON_CLAIMS.iter().any(|w| lower.contains(w)) && !sourced_comparison(&lower) {
+        return Some("unsourced comparison");
+    }
+    None
+}
+
+/// Sentence-sized check for a rendered page, so a date elsewhere in the
+/// document does not license a comparison in another sentence.
+pub fn comparison_errors(text: &str) -> Vec<String> {
+    let mut errors = Vec::new();
+    for sentence in text.split(|c| matches!(c, '\n' | '.' | '!' | '?')) {
+        let sentence = sentence.trim();
+        if sentence.is_empty() {
+            continue;
+        }
+        if let Some(kind) = comparison_problem(sentence) {
+            errors.push(format!("{kind} in {sentence:?}"));
+        }
+    }
+    errors
+}
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -113,11 +181,8 @@ fn check_text(what: &str, s: &str, errors: &mut Vec<String>) {
     if has_dash(s) {
         errors.push(format!("{what}: em or en dash in {s:?}"));
     }
-    let lower = s.to_ascii_lowercase();
-    for w in FORBIDDEN {
-        if lower.contains(w) {
-            errors.push(format!("{what}: forbidden comparison word {w:?} in {s:?}"));
-        }
+    if let Some(kind) = comparison_problem(s) {
+        errors.push(format!("{what}: {kind} in {s:?}"));
     }
 }
 
@@ -458,6 +523,9 @@ mod tests {
             assert!(d.machines.iter().any(|m| m.name.contains(want)), "machine {want} missing");
         }
         assert!(d.speeds.first().unwrap().model.starts_with("Qwen3.6-35B-A3B"), "the 35B end to end comes first");
+        let spark = d.machines.iter().find(|m| m.id == "spark").unwrap();
+        assert!(spark.today.contains("qwen3.6-35b-a3b-fp8"), "the Spark today line names the live model: {}", spark.today);
+        assert!(!spark.today.contains("Qwen3.8-27B"), "the Spark today line must not say it serves the 27B");
         assert!(d.speeds.first().unwrap().what.starts_with("End to end"));
         assert!(d.speeds.first().unwrap().what.contains("test server") && d.speeds.first().unwrap().what.contains("branch build"));
         assert!(d.speeds.first().unwrap().engine.contains("Omega"));
@@ -503,7 +571,20 @@ mod tests {
         assert!(parse(&dashed).unwrap_err().contains("em or en dash"));
         let compared = RAW.replacen("\"note\": \"Nothing has run on the 5070 yet.\"", "\"note\": \"2x faster than llama.cpp\"", 1);
         let err = parse(&compared).unwrap_err();
-        assert!(err.contains("forbidden comparison word"), "{err}");
+        assert!(err.contains("unsourced comparison"), "{err}");
+        let honest = RAW.replacen(
+            "\"note\": \"Nothing has run on the 5070 yet.\"",
+            "\"note\": \"On 2026-10-21 this run was faster than llama.cpp's published 40 tok/s (https://example.com/bench).\"",
+            1,
+        );
+        assert!(parse(&honest).is_ok(), "an honest dated sourced comparison is allowed");
+        let over = RAW.replacen(
+            "\"note\": \"Nothing has run on the 5070 yet.\"",
+            "\"note\": \"A replacement for CUDA, dated 2026-10-21, receipt https://example.com/r.\"",
+            1,
+        );
+        let err = parse(&over).unwrap_err();
+        assert!(err.contains("overclaim"), "{err}");
         let above = RAW.replacen("\"tok_s\": 7.63,", "\"tok_s\": 70.63,", 1);
         assert!(parse(&above).unwrap_err().contains("above its ceiling"));
         let extra = RAW.replacen("\"as_of\"", "\"surprise\": 1, \"as_of\"", 1);
@@ -518,10 +599,8 @@ mod tests {
             render_real_machines().into_string(),
         ] {
             assert!(!page.contains('\u{2014}') && !page.contains('\u{2013}'), "dash on the page");
-            let lower = page.to_ascii_lowercase();
-            for w in FORBIDDEN {
-                assert!(!lower.contains(w), "forbidden word {w} on the page");
-            }
+            let problems = comparison_errors(&page);
+            assert!(problems.is_empty(), "comparison problem on the page: {problems:?}");
         }
         let speeds = render_speeds_section().into_string();
         assert!(speeds.contains("7.63 tok/s"));

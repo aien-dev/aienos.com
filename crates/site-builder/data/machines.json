@@ -1,7 +1,7 @@
 {
   "as_of": "2026-10-19",
   "source": "Spark ~/handoffs/2026-10-19-site-inventory.md and .json (ledger L057). Every row carries a public link; a fact without a link is not on the page.",
-  "judging": "Every number on this page is judged against two things only: the physical ceiling of the machine it ran on, and my own previous run. Nothing here is compared with anyone else's software. End to end means wall time through the server as a client sees it, prompt reading included. Chip time means the GPU's own time per generated token, decode only, with prompt reading excluded. For the 35B, the gap between chip time and end-to-end time comes from prompt reading. The two are labelled and never mixed.",
+  "judging": "Every number on this page is judged against the physical ceiling of the machine it ran on, and against my own previous run. A comparison with another project is allowed when it is honest, dated, and backed by a receipt or that project's own published numbers. Overclaims stay off this page. End to end means wall time through the server as a client sees it, prompt reading included. Chip time means the GPU's own time per generated token, decode only, with prompt reading excluded. For the 35B, the gap between chip time and end-to-end time comes from prompt reading. The two are labelled and never mixed.",
   "ceilings": [
     {
       "id": "qwen38-27b-fp8-gb10",
@@ -21,15 +21,16 @@
       "name": "NVIDIA DGX Spark",
       "detail": "Grace Blackwell GB10, 128 GB unified memory, AArch64",
       "role": "The development machine and the judge. Every speed receipt, every chip receipt, the verification pipeline and every agent run here.",
-      "today": "Linux. Serves Qwen3.8-27B (FP8) through my own server, aien-serve-http, on my own C GPU kernels, built inside the Omega project. The AienOS C kernel has not booted on the Spark; a Rust-era kernel booted once on 2026-09-24.",
-      "evidence_date": "2026-10-19",
-      "evidence": "Live-server speed receipt, evidence/qwen38-serve-fast-20261019",
-      "link": "https://github.com/aien-dev/aien-sovereign-core-mv/tree/qwen38/serve-fast/evidence/qwen38-serve-fast-20261019",
-      "branch": "qwen38/serve-fast",
-      "on_main": false,
+      "today": "Linux. Serves qwen3.6-35b-a3b-fp8 (Qwen3.6-35B-A3B FP8) through my own server, aien-serve-http, on my own C GPU stack, built inside the Omega project. The AienOS C kernel has not booted on the Spark; a Rust-era kernel booted once on 2026-09-24.",
+      "evidence_date": "2026-10-21",
+      "evidence": "End-to-end receipt for qwen3.6-35b-a3b-fp8, evidence/q36-batch-20261021",
+      "link": "https://github.com/aien-dev/aien-sovereign-core-mv/tree/9c62690a252ab1c0b75eb8933c550316b5c50d52/evidence/q36-batch-20261021",
+      "branch": "main",
+      "on_main": true,
       "more": [
         { "label": "First native boot, 2026-09-24", "link": "https://github.com/aien-dev/aienux/blob/main/evidence/m2_first_boot_2026-09-24.md" },
-        { "label": "Fresh-account alpha test, 2026-10-19", "link": "https://github.com/aien-dev/aien-sovereign-core-mv/tree/alpha/fresh-account-evidence/evidence/alpha-fresh-account-20261019" }
+        { "label": "Fresh-account alpha test, 2026-10-19", "link": "https://github.com/aien-dev/aien-sovereign-core-mv/tree/alpha/fresh-account-evidence/evidence/alpha-fresh-account-20261019" },
+        { "label": "27B chip time, 2026-10-19", "link": "https://github.com/aien-dev/aien-sovereign-core-mv/tree/qwen38/serve-fast/evidence/qwen38-serve-fast-20261019" }
       ]
     },
     {
