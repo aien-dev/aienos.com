@@ -43,13 +43,14 @@ pub const COMPARISON_PHRASES: &[&str] = &[
 /// Whole words, case-insensitively. Not stems. A claim on their own.
 /// Bare "behind" is ordinary English, so it is not a claim.
 /// "match", "matched", "tie", "ties", "tied", "equal", "equals", "equaled",
-/// "tied with", "equal to" and "on par with" are context-bound, in `TIE_WORDS`
-/// and `TIE_PHRASES`: they count beside an outside name, a rival noun, a
-/// multiplier, or the "best measured CUDA number" bar.
+/// "equalled", "tied with", "equal to" and "on par with" are context-bound,
+/// in `TIE_WORDS` and `TIE_PHRASES`: they count beside an outside name, a
+/// rival noun, a multiplier, or the "best measured CUDA number" bar.
+/// "rivals", "rivaled" and "rivalled" are comparison words on their own.
 /// Superlatives ("fastest", "slowest", "quickest", "best", "worst") count only
 /// beside a project name, in `has_guarded_word`.
 /// "beat", "parity", "trails" and "lags" are context-bound, in `CONTEXT_WORDS`.
-pub const COMPARISON_WORDS: &[&str] = &["outdoes", "tops", "rivals"];
+pub const COMPARISON_WORDS: &[&str] = &["outdoes", "tops", "rivals", "rivaled", "rivalled"];
 
 /// Count only when the same sentence also names an outside system, a rival
 /// noun, or a number glued to the comparative ("2x faster", "half as fast").
@@ -71,7 +72,7 @@ const CONTEXT_WORDS: &[&str] = &[
 const TIE_WORDS: &[&str] = &[
     "match", "matches", "matching", "matched",
     "tie", "ties", "tied",
-    "equal", "equals", "equaled",
+    "equal", "equals", "equaled", "equalled",
 ];
 
 const TIE_PHRASES: &[&str] = &["tied with", "equal to", "on par with", "on a par with"];
@@ -386,7 +387,7 @@ fn comparison_word_activates_nvidia(lower: &str) -> bool {
         "beat", "beats", "beating", "beaten",
         "match", "matches", "matching", "matched",
         "tie", "ties", "tied",
-        "equal", "equals", "equaled",
+        "equal", "equals", "equaled", "equalled",
         "slower", "faster", "quicker", "cheaper",
     ];
     if lower.split(|c: char| !is_word_char(c)).any(|word| {
@@ -1038,6 +1039,10 @@ struct FixedSentence {
     reason: &'static str,
     /// The omega page prints these bars as `Done when: {sentence}`.
     done_when_prefix: bool,
+    /// Dist paths where this exact sentence is allowed. `public/` and a
+    /// trailing slash are the same page. A llms.txt catalogue line is allowed
+    /// only when its URL maps to one of these pages.
+    pages: &'static [&'static str],
 }
 
 /// CUDA performance bars from omega.json, then two published chemistry results,
@@ -1049,63 +1054,74 @@ struct FixedSentence {
 /// sentences are in body_html on line 91, and the link for each one is in the
 /// next paragraph. The benchmark sentence matches only as written. It names a
 /// plan. A result or a different comparative is not on the list.
-/// Three call-to-humanity sentences stay as written. Each matches only as that
-/// sentence. In llms.txt the same sentence is the text after `- [Name](url): `.
-/// One changed word is not on the list, and neither is "a replacement for CUDA".
+/// Three call-to-humanity sentences stay as written, and only on that page:
+/// the HTML file, its llms-full section, and its llms.txt catalogue entry.
+/// Each matches only as that sentence. One changed word is not on the list,
+/// and neither is "a replacement for CUDA". The other allowances are scoped
+/// to the page that publishes them.
 const FIXED_SENTENCES: &[FixedSentence] = &[
     FixedSentence {
         sentence: "Omega's best format beats the best measured CUDA number at one conversation, with golden tokens identical to my host reference.",
         source: "https://github.com/aien-dev/aienos.com/blob/main/crates/site-builder/data/omega.json",
         reason: "Omega performance bar from omega.json. A different wording does not pass, so a tie does not pass.",
         done_when_prefix: true,
+        pages: &["omega/index.html"],
     },
     FixedSentence {
         sentence: "Omega prefill beats the best measured CUDA number at 512 and 8k.",
         source: "https://github.com/aien-dev/aienos.com/blob/main/crates/site-builder/data/omega.json",
         reason: "Omega performance bar from omega.json. A different wording does not pass, so a tie does not pass.",
         done_when_prefix: true,
+        pages: &["omega/index.html"],
     },
     FixedSentence {
         sentence: "Omega total words per second beats the best measured CUDA number at 8 and 32 conversations.",
         source: "https://github.com/aien-dev/aienos.com/blob/main/crates/site-builder/data/omega.json",
         reason: "Omega performance bar from omega.json. A different wording does not pass, so a tie does not pass.",
         done_when_prefix: true,
+        pages: &["omega/index.html"],
     },
     FixedSentence {
         sentence: "Platinum deposited this way outperformed organic-solvent materials in photocatalytic dye degradation.",
         source: "https://doi.org/10.3762/bjnano.10.71",
         reason: "published chemistry result, sourced in the next paragraph",
         done_when_prefix: false,
+        pages: &["engineer/scholar/index.html"],
     },
     FixedSentence {
         sentence: "Ionic-liquid synthesis outperformed organic-solvent routes in photocatalytic methylene blue degradation.",
         source: "https://digitalcommons.wku.edu/theses/2101/",
         reason: "published chemistry result, sourced in the next paragraph",
         done_when_prefix: false,
+        pages: &["engineer/scholar/index.html"],
     },
     FixedSentence {
         sentence: "Same-Spark end-to-end head-to-head: aien-serve-http vs vLLM vs llama.cpp, Qwen3.6-35B-A3B (bar P0).",
         source: "https://github.com/aien-dev/aienos.com/blob/main/crates/site-builder/data/omega.json",
         reason: "planned same-Spark benchmark; no result claimed until a receipt exists. omega.json bar P0, status MISSING, receipt null.",
         done_when_prefix: false,
+        pages: &["agents/index.html"],
     },
     FixedSentence {
         sentence: "An open letter on breaking the CUDA stranglehold on the hardware market: a clean-room replacement for the CUDA user stack, built in the open, with public receipts.",
         source: "https://github.com/aien-dev/aienos.com/blob/main/crates/site-builder/src/seo.rs",
         reason: "Drake's decision 2026-10-30 (relayed by Aien): keep these three call-to-humanity sentences as written.",
         done_when_prefix: false,
+        pages: &["call-to-humanity/index.html"],
     },
     FixedSentence {
         sentence: "I intend to break it, and this letter is how I am starting: a working replacement for the CUDA user software layer, built in the open, with receipts anyone on Earth can check.",
         source: "https://github.com/aien-dev/aienos.com/blob/main/public/call-to-humanity/index.html",
         reason: "Drake's decision 2026-10-30 (relayed by Aien): keep these three call-to-humanity sentences as written.",
         done_when_prefix: false,
+        pages: &["call-to-humanity/index.html"],
     },
     FixedSentence {
         sentence: "What exists today is a clean-room replacement for the CUDA user stack on the GB10, with no nvcc, no libcuda, and no cuBLAS at run time.",
         source: "https://github.com/aien-dev/aienos.com/blob/main/public/call-to-humanity/index.html",
         reason: "Drake's decision 2026-10-30 (relayed by Aien): keep these three call-to-humanity sentences as written.",
         done_when_prefix: false,
+        pages: &["call-to-humanity/index.html"],
     },
 ];
 
@@ -1121,9 +1137,37 @@ fn plain_sentence(s: &str) -> String {
         .join(" ")
 }
 
-/// `llms.txt` writes `- [Name](https://...): {sentence}`. The page summary is
-/// that sentence and nothing after it. A different summary does not match.
-fn llms_catalogue_sentence(prepared: &str) -> Option<&str> {
+/// A dist path, a `public/` path, and a directory path are one page.
+fn normalize_page(path: &str) -> String {
+    let path = path.trim().replace('\\', "/");
+    let path = path.strip_prefix("./").unwrap_or(&path);
+    let path = path.strip_prefix("public/").unwrap_or(path);
+    let path = path.trim_start_matches('/');
+    if path.is_empty() {
+        return String::new();
+    }
+    if path.ends_with('/') {
+        return format!("{path}index.html");
+    }
+    if !path.contains('.') {
+        return format!("{path}/index.html");
+    }
+    path.to_string()
+}
+
+fn page_is(page: &str, allowed: &str) -> bool {
+    normalize_page(page) == normalize_page(allowed)
+}
+
+/// `llms.txt` writes `- [Name](https://...): {sentence}`. Returns that sentence
+/// only when the URL maps to `page`. A different page's entry does not match.
+fn llms_catalogue_sentence<'a>(page: &str, prepared: &'a str) -> Option<&'a str> {
+    let (target, body) = catalogue_parts(prepared)?;
+    if page_is(page, &target) { Some(body) } else { None }
+}
+
+/// The page an llms.txt catalogue line points at, and the sentence after it.
+fn catalogue_parts(prepared: &str) -> Option<(String, &str)> {
     let rest = prepared.strip_prefix("- [")?;
     let marker = rest.find("](https://")?;
     let after = &rest[marker + 2..];
@@ -1132,19 +1176,34 @@ fn llms_catalogue_sentence(prepared: &str) -> Option<&str> {
     if !url.starts_with("https://") || url.chars().any(char::is_whitespace) {
         return None;
     }
-    Some(&after[split + 3..])
+    let target = map_aienos_page(url)?;
+    Some((target, &after[split + 3..]))
 }
 
-fn is_fixed_sentence(s: &str) -> bool {
+fn sentence_page(file_page: &str, prepared: &str) -> String {
+    if let Some((target, _)) = catalogue_parts(prepared) {
+        return target;
+    }
+    normalize_page(file_page)
+}
+
+fn is_fixed_sentence(page: &str, s: &str) -> bool {
     let n = plain_sentence(s);
     if n == TURING_GAME_SENTENCE {
         return true;
     }
-    let catalogue = llms_catalogue_sentence(&n);
+    let here = normalize_page(page);
+    if let Some(body) = llms_catalogue_sentence(&here, &n) {
+        if FIXED_SENTENCES.iter().any(|row| {
+            body == row.sentence && row.pages.iter().any(|allowed| page_is(&here, allowed))
+        }) {
+            return true;
+        }
+    }
     FIXED_SENTENCES.iter().any(|row| {
-        n == row.sentence
-            || catalogue == Some(row.sentence)
-            || (row.done_when_prefix && n == format!("Done when: {}", row.sentence))
+        let bare = n == row.sentence
+            || (row.done_when_prefix && n == format!("Done when: {}", row.sentence));
+        bare && row.pages.iter().any(|allowed| page_is(&here, allowed))
     })
 }
 
@@ -1207,7 +1266,7 @@ fn prepare_sentence(s: &str) -> String {
 }
 
 /// "replacement for" then a CUDA token within four words. A period, semicolon,
-/// colon, comma, parenthesis or em dash in that gap ends the search.
+/// colon, comma, parenthesis, em dash or en dash in that gap ends the search.
 /// "not a replacement" and "isn't a replacement" are not the claim.
 /// "replacement for the CUDA user stack" and "a replacement for CUDA" are
 /// the same overclaim. CUDA++ is this project's GPU half.
@@ -1270,7 +1329,8 @@ fn negation_word_char(c: char) -> bool {
 }
 
 /// At most four words between "for" and the CUDA token. Zero words counts:
-/// "replacement for CUDA" is the claim. A clause break stops the gap.
+/// "replacement for CUDA" is the claim. A clause break stops the gap,
+/// including an en dash.
 fn cuda_within_four_words(tail: &str) -> bool {
     let mut words = 0u32;
     let mut i = 0;
@@ -1281,7 +1341,7 @@ fn cuda_within_four_words(tail: &str) -> bool {
             i += clen;
             continue;
         }
-        if matches!(c, '.' | ';' | ':' | ',' | '(' | ')') || c == '\u{2014}' {
+        if matches!(c, '.' | ';' | ':' | ',' | '(' | ')') || c == '\u{2014}' || c == '\u{2013}' {
             return false;
         }
         if tail[i..].starts_with("cuda") {
@@ -1346,11 +1406,17 @@ fn has_overclaim(lower: &str) -> bool {
 }
 
 pub fn comparison_problem(s: &str) -> Option<&'static str> {
+    comparison_problem_on("", s)
+}
+
+/// Same check as `comparison_problem`, on one page. An exact fixed sentence
+/// is allowed only on a page named by that sentence. A llms.txt line uses the
+/// page its catalogue URL maps to. Any other wording stays banned.
+pub fn comparison_problem_on(page: &str, s: &str) -> Option<&'static str> {
     let prepared = prepare_sentence(s);
     let lower = prepared.to_ascii_lowercase();
-    // An exact fixed sentence is allowed even when its words are an overclaim.
-    // Any other wording, including one changed word, stays banned.
-    if is_owned_slower(&prepared) || is_fixed_sentence(&prepared) {
+    let page = sentence_page(page, &prepared);
+    if is_owned_slower(&prepared) || is_fixed_sentence(&page, &prepared) {
         return None;
     }
     if has_overclaim(&lower) {
@@ -1572,12 +1638,16 @@ fn split_sentences(text: &str) -> Vec<String> {
 /// Sentence-sized check. A date or a link in another sentence does not
 /// license a comparison in this one.
 pub fn comparison_errors(text: &str) -> Vec<String> {
+    comparison_errors_on("", text)
+}
+
+fn comparison_errors_on(page: &str, text: &str) -> Vec<String> {
     let mut errors = Vec::new();
     // Block ends already become newlines in `readable_text`. A newline ends a
     // sentence so a claim in the next block does not inherit the previous line.
     for line in readable_text(text).split('\n') {
         for sentence in split_sentences(line) {
-            if let Some(kind) = comparison_problem(&sentence) {
+            if let Some(kind) = comparison_problem_on(page, &sentence) {
                 errors.push(format!("{kind} in {sentence:?}"));
             }
         }
@@ -1606,7 +1676,7 @@ pub fn comparison_errors_at(path: &str, text: &str) -> Vec<String> {
     if is_prose_exempt(path) {
         Vec::new()
     } else {
-        comparison_errors(text)
+        comparison_errors_on(path, text)
     }
 }
 
@@ -1679,7 +1749,7 @@ fn push_line_problems(problems: &mut Vec<String>, n: usize, label: &str, line: &
         if is_ledger_excerpt(&sentence, fields) {
             continue;
         }
-        if let Some(kind) = comparison_problem(&sentence) {
+        if let Some(kind) = comparison_problem_on(label, &sentence) {
             problems.push(format!("llms-full.txt:{n} ({label}): {kind} in {sentence:?}"));
         }
     }
@@ -2612,9 +2682,9 @@ mod tests {
         assert!(comparison_problem("The quickest walkthrough of what exists today.").is_none());
         assert!(comparison_problem("Omega vs CUDA.").is_some());
         assert!(comparison_problem("This ties CUDA.").is_some());
-        assert!(comparison_problem("Omega's best format beats the best measured CUDA number at one conversation, with golden tokens identical to my host reference.").is_none());
-        assert!(comparison_problem("Done when: Omega prefill beats the best measured CUDA number at 512 and 8k.").is_none());
-        assert!(comparison_problem("Omega total words per second beats the best measured CUDA number at 8 and 32 conversations.").is_none());
+        assert!(comparison_problem_on("omega/index.html", "Omega's best format beats the best measured CUDA number at one conversation, with golden tokens identical to my host reference.").is_none());
+        assert!(comparison_problem_on("omega/index.html", "Done when: Omega prefill beats the best measured CUDA number at 512 and 8k.").is_none());
+        assert!(comparison_problem_on("omega/index.html", "Omega total words per second beats the best measured CUDA number at 8 and 32 conversations.").is_none());
         assert!(comparison_problem("Omega beats the best measured CUDA number.").is_some());
         assert!(comparison_problem("Game 2: Beat the memorizer").is_none());
         assert!(comparison_problem("Game 2: Beat CUDA").is_some());
@@ -2735,7 +2805,17 @@ mod tests {
         for row in FIXED_SENTENCES {
             assert!(!row.source.is_empty() && row.source.starts_with("https://"), "{}", row.sentence);
             assert!(!row.reason.is_empty(), "{}", row.sentence);
-            assert!(comparison_problem(row.sentence).is_none(), "{}", row.sentence);
+            assert!(!row.pages.is_empty(), "{}", row.sentence);
+            assert!(
+                comparison_problem_on(row.pages[0], row.sentence).is_none(),
+                "{}",
+                row.sentence
+            );
+            assert!(
+                comparison_problem_on("index.html", row.sentence).is_some(),
+                "the allowance stays on its own page: {}",
+                row.sentence
+            );
         }
         let chemistry: Vec<_> = FIXED_SENTENCES
             .iter()
@@ -2773,7 +2853,7 @@ mod tests {
                 row.sentence
             );
         }
-        assert!(comparison_errors(&scholar.body_html).is_empty());
+        assert!(comparison_errors_at("engineer/scholar/index.html", &scholar.body_html).is_empty());
     }
 
     #[test]
@@ -2784,7 +2864,8 @@ mod tests {
             "Omega total words per second beats the best measured CUDA number at 8 and 32 conversations.",
         ];
         for bar in bars {
-            assert!(comparison_problem(bar).is_none(), "{bar}");
+            assert!(comparison_problem_on("omega/index.html", bar).is_none(), "{bar}");
+            assert!(comparison_problem_on("index.html", bar).is_some(), "{bar} is an omega sentence");
             let tied = bar.replacen("beats", "matches", 1);
             assert_ne!(tied, bar);
             assert_eq!(comparison_problem(&tied), Some("unsourced comparison"), "{tied}");
@@ -2878,6 +2959,7 @@ mod tests {
             "a replacement for the stack: CUDA stays",
             "a replacement for the stack. CUDA stays",
             "a replacement for the stack \u{2014} CUDA stays",
+            "a replacement for the stack \u{2013} CUDA stays",
             "a replacement for (CUDA)",
             "not a replacement for CUDA",
             "isn't a replacement for CUDA",
@@ -2893,6 +2975,24 @@ mod tests {
             Some("overclaim"),
             "a not that is not the word before replacement still fails"
         );
+        for sentence in [
+            "not only a replacement for CUDA",
+            "not just a replacement for CUDA",
+            "no longer just a replacement for CUDA",
+        ] {
+            assert_eq!(
+                comparison_problem(sentence),
+                Some("overclaim"),
+                "a negation that does not cover the claim still fails: {sentence}"
+            );
+        }
+        assert_eq!(
+            comparison_problem("aien-serve-http equalled vLLM."),
+            Some("unsourced comparison")
+        );
+        assert_eq!(comparison_problem("Omega rivaled vLLM."), Some("unsourced comparison"));
+        assert_eq!(comparison_problem("Omega rivalled vLLM."), Some("unsourced comparison"));
+        assert_eq!(comparison_problem("Omega rivals vLLM."), Some("unsourced comparison"));
         assert_eq!(
             comparison_problem("aien-serve-http matched vLLM and llama.cpp on Qwen3.6-35B-A3B."),
             Some("unsourced comparison")
@@ -3158,11 +3258,16 @@ Published: yesterday.
             .expect("bar P0");
         assert_eq!(p0["status"], "MISSING");
         assert!(p0["receipt"].is_null());
-        assert!(comparison_problem(PLANNED).is_none(), "{:?}", comparison_problem(PLANNED));
         assert!(
-            comparison_errors(DESCRIPTION).is_empty(),
+            comparison_problem_on("agents/index.html", PLANNED).is_none(),
+            "{:?}",
+            comparison_problem_on("agents/index.html", PLANNED)
+        );
+        assert!(comparison_problem_on("omega/index.html", PLANNED).is_some(), "the plan sentence is an agents sentence");
+        assert!(
+            comparison_errors_at("agents/index.html", DESCRIPTION).is_empty(),
             "the published description is the plan sentence plus a sentence that is not a claim: {:?}",
-            comparison_errors(DESCRIPTION)
+            comparison_errors_at("agents/index.html", DESCRIPTION)
         );
         assert!(comparison_problem(&format!("Done when: {PLANNED}")).is_some());
         let beats = DESCRIPTION.replacen("vs vLLM", "beats vLLM", 1);
@@ -3197,9 +3302,24 @@ Published: yesterday.
         assert!(rows[1].source.ends_with("public/call-to-humanity/index.html"));
         assert!(rows[2].source.ends_with("public/call-to-humanity/index.html"));
         assert!(rows.iter().all(|row| !row.done_when_prefix));
+        assert!(rows.iter().all(|row| row.pages == ["call-to-humanity/index.html"]));
         for row in &rows {
-            assert!(comparison_problem(row.sentence).is_none(), "{}", row.sentence);
-            assert!(comparison_problem(&format!("Done when: {}", row.sentence)).is_some());
+            assert!(
+                comparison_problem_on("call-to-humanity/index.html", row.sentence).is_none(),
+                "{}",
+                row.sentence
+            );
+            assert!(
+                comparison_problem_on("public/call-to-humanity/index.html", row.sentence).is_none(),
+                "{}",
+                row.sentence
+            );
+            assert!(
+                comparison_problem_on("omega/index.html", row.sentence).is_some(),
+                "the same sentence fails on another page: {}",
+                row.sentence
+            );
+            assert!(comparison_problem_on("call-to-humanity/index.html", &format!("Done when: {}", row.sentence)).is_some());
         }
         let seo = include_str!("../seo.rs");
         let seo_line = seo.lines().nth(127).expect("seo.rs line 128");
@@ -3211,11 +3331,33 @@ Published: yesterday.
         assert!(html_lines[94].contains(gb10), "line 95");
         let catalogue = format!("- [A Call to Humanity](https://www.aienos.com/call-to-humanity/): {summary} DOI 10.5281/zenodo.23614947.");
         assert!(
-            comparison_errors(&catalogue).is_empty(),
-            "the llms.txt line is the same sentence: {:?}",
-            comparison_errors(&catalogue)
+            comparison_errors_at("llms.txt", &catalogue).is_empty(),
+            "the llms.txt entry for this page is the same sentence: {:?}",
+            comparison_errors_at("llms.txt", &catalogue)
         );
-        assert!(comparison_errors(html).is_empty(), "{:?}", comparison_errors(html));
+        let other_entry = format!("- [Omega](https://www.aienos.com/omega/): {summary}");
+        assert!(
+            comparison_errors_at("llms.txt", &other_entry).iter().any(|e| e.contains("overclaim")),
+            "the same sentence in another llms.txt entry fails: {:?}",
+            comparison_errors_at("llms.txt", &other_entry)
+        );
+        assert!(
+            comparison_errors_at("public/call-to-humanity/index.html", html).is_empty(),
+            "{:?}",
+            comparison_errors_at("public/call-to-humanity/index.html", html)
+        );
+        let sectioned = format!(
+            "---\n\n# Call\n\nSource: https://www.aienos.com/call-to-humanity/\nPublished: 2026-10-24. Last changed: 2026-10-16T16:29:47Z.\n\n{working}\n\n---\n\n# Omega\n\nSource: https://www.aienos.com/omega/\nPublished: 2026-10-21. Last changed: 2026-10-16T16:29:47Z.\n\n{working}\n"
+        );
+        let section_problems = llms_full_problems(&sectioned, "").join("\n");
+        assert!(
+            !section_problems.contains("call-to-humanity/index.html"),
+            "the sentence passes in its own llms-full section: {section_problems}"
+        );
+        assert!(
+            section_problems.contains("omega/index.html") && section_problems.contains("overclaim"),
+            "the same sentence fails in another llms-full section: {section_problems}"
+        );
         assert_eq!(comparison_problem("a replacement for CUDA"), Some("overclaim"));
         assert_eq!(
             comparison_problem("The lab page is a replacement for CUDA."),
@@ -3282,7 +3424,11 @@ Published: yesterday.
                 body.contains(needle).then_some(body)
             })
             .unwrap();
-        assert!(comparison_errors(clean_body).is_empty(), "{clean_body}");
+        assert!(
+            comparison_errors_at("engineer/scholar/index.html", clean_body).is_empty(),
+            "{:?}",
+            comparison_errors_at("engineer/scholar/index.html", clean_body)
+        );
     }
 
     #[test]
@@ -3351,7 +3497,7 @@ Published: yesterday.
         let engineer_pages = crate::components::engineer::pages();
         for page in &engineer_pages {
             let html = crate::components::engineer::render(page, &engineer_pages, &facts).into_string();
-            for problem in comparison_errors(&html) {
+            for problem in comparison_errors_at(&page.path, &html) {
                 bad.push(format!("{}: {problem}", page.path));
             }
         }

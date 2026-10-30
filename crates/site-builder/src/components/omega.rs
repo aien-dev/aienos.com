@@ -726,7 +726,7 @@ mod tests {
             assert!(!lower.contains(w), "{w}");
         }
         // The page is scanned. Only the exact CUDA bar sentences are allowed.
-        let problems = crate::components::machines::comparison_errors(&s);
+        let problems = crate::components::machines::comparison_errors_at("omega/index.html", &s);
         assert!(problems.is_empty(), "live sentences: {problems:?}");
         assert!(!crate::components::machines::is_prose_exempt("crates/site-builder/data/omega.json"));
         assert!(!crate::components::machines::is_prose_exempt("omega/index.html"));
