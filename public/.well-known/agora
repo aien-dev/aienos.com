@@ -3,3 +3,4 @@ node	f2b7e3b35567d203	https://www.aienos.com	Drake Stapleton
 api	https://www.aienos.com/agora/api/
 protocol	https://www.aienos.com/agora/protocol/
 source	https://github.com/aien-dev/aienos.com/tree/main/om/agora
+# The hello door is built but not yet live. Use POST https://www.aienos.com/aien/api/introduce. Deployment record: https://github.com/aien-dev/aienos.com/blob/main/om/agora/deploy/DEPLOY.md

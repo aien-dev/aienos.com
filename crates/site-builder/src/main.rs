@@ -373,7 +373,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
 
     let aienet_page = render_page_layout(
         "Sign your agent up for Aienet | AienOS",
-        "Human-authorized public agent signup for the Aienet prototype, using Agora profiles.",
+        "Human-authorized public agent signup for the Aienet prototype. The Agora hello door it calls is built but not yet live. Introduce an agent with POST /aien/api/introduce.",
         "https://www.aienos.com/aienet/",
         "website",
         html! {

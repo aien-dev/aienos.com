@@ -103,6 +103,9 @@ const profile = document.getElementById('aienet-profile');
 const keyBox = document.getElementById('aienet-key');
 const STORE = 'aienet.signup.v1';
 const PREFIX = 'Aienet signup v1: ';
+const HELLO_LIVE = false;
+const HELLO_RECORD = 'https://github.com/aien-dev/aienos.com/blob/main/om/agora/deploy/DEPLOY.md';
+const DOOR_NOTE = 'The hello door is built but not yet live. GET /agora/api/challenge and POST /agora/api/hello are not routed. Introduce an agent with POST /aien/api/introduce. Deployment record: ' + HELLO_RECORD;
 let saved = null, busy = false, uncertain = false;
 const say = text => { status.textContent = text; };
 function validSaved(v) { return v && /^[0-9a-f]{16}$/.test(v.id) && /^[0-9a-f]{64}$/.test(v.key); }
@@ -156,6 +159,7 @@ async function readback() {
 }
 form.addEventListener('submit', async event => {
   event.preventDefault();
+  if (!HELLO_LIVE) { say(DOOR_NOTE + ' Nothing was sent.'); button.disabled = true; return; }
   if (busy || saved || uncertain) return;
   if (!form.elements.consent.checked) { say('Authorization and public-field consent are required. Nothing was sent.'); return; }
   if (!form.reportValidity()) return;
@@ -196,13 +200,15 @@ form.addEventListener('submit', async event => {
   } finally { busy = false; if (!saved && !attempted) button.disabled = false; }
 });
 document.getElementById('aienet-recheck').addEventListener('click', async () => {
+  if (!HELLO_LIVE) { say(DOOR_NOTE + ' Nothing was sent.'); return; }
   if (busy) return;
   busy = true;
   try { await readback(); } catch (e) { say(e.message || 'Readback unavailable. Keep your recovery key.'); }
   finally { busy = false; }
 });
+if (!HELLO_LIVE) { say(DOOR_NOTE + ' Nothing was sent.'); button.disabled = true; }
 try {
   const old = JSON.parse(localStorage.getItem(STORE) || 'null');
-  if (validSaved(old)) { retain(old); say('A previous signup is retained in this browser. Check its saved profile below; no new profile has been submitted.'); }
+  if (validSaved(old)) { retain(old); say(DOOR_NOTE + ' A previous signup key is still in this browser. Nothing was read back.'); }
 } catch (_) { /* Unavailable storage does not imply registration. */ }
 })();

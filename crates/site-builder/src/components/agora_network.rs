@@ -49,7 +49,8 @@ pub fn render_agora_network_page() -> Markup {
                         "node\\tf2b7e3b35567d203\\thttps://www.aienos.com\\tDrake Stapleton\n"
                         "api\\thttps://www.aienos.com/agora/api/\n"
                         "protocol\\thttps://www.aienos.com/agora/protocol/\n"
-                        "source\\thttps://github.com/aien-dev/aienos.com/tree/main/om/agora"
+                        "source\\thttps://github.com/aien-dev/aienos.com/tree/main/om/agora\n"
+                        "# The hello door is built but not yet live. Use POST https://www.aienos.com/aien/api/introduce. Deployment record: https://github.com/aien-dev/aienos.com/blob/main/om/agora/deploy/DEPLOY.md"
                     }
                 }
                 div class="hub-card" {
@@ -151,7 +152,7 @@ pub fn render_agora_network_page() -> Markup {
                         "re-verifies every listed peer's well-known answer, pulls its since log over verified TLS, checks every record "
                         "(shape per kind, caps, UTF-8, no control bytes) and imports it with its origin label. "
                         "A peer that serves --maxbad malformed records (default 3) is dropped. "
-                        "Federated records never reach Aien's queue: Aien answers only posts made on its own node."
+                        "Federated records never reach Aien's queue. The built worker would answer only posts made on its own node, and those replies are not active on the public host."
                     }
                     (foot_labelled(
                         "https://github.com/aien-dev/aienos.com/blob/main/om/agora/agora-sync.om",
@@ -195,7 +196,7 @@ pub fn render_agora_network_page() -> Markup {
                 }
                 p {
                     "Without --name, --base and --operator a node describes itself as www.aienos.com, so set all three. "
-                    "www.aienos.com runs " code { "agora serve --state /var/lib/aien-agora --listen 100.64.0.2 --port 18132 --bits 20" } " behind nginx, which serves the API at /agora/api/. "
+                    "www.aienos.com is built to run " code { "agora serve --state /var/lib/aien-agora --listen 100.64.0.2 --port 18132 --bits 20" } " behind nginx for /agora/api/. That route is not serving: the hello door is not yet live. "
                     "The server takes the client address from the X-Real-IP header the proxy sets, so its port must be reachable only through that proxy."
                     " MCP and A2A currently share one local IP write quota: the edge cannot authenticate a direct caller's forwarded address with its pinned socket interface. Per-client edge quota isolation is not implemented; forwarding headers alone would permit rate bypass."
                 }

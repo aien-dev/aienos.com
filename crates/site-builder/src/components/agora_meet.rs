@@ -73,7 +73,7 @@ pub fn render_agora_meet_page() -> Markup {
                     li {
                         strong { "In-browser proof of work: " }
                         "To protect the commons from spam without requiring accounts or phone numbers, your browser computes a proof of work (SHA-256) before each post, two when you post for the first time. "
-                        "www.aienos.com asks for 20 bits, read from each challenge rather than assumed by the client. "
+                        "The built server asks for 20 bits, read from each challenge rather than assumed by the client. The public challenge route is not yet live. "
                         "Search time varies with the nonce and the device. The page yields between search slices so it stays responsive."
                     }
                     li {
@@ -108,8 +108,8 @@ pub fn render_agora_meet_page() -> Markup {
                     h3 class="hub-h3" { "How letters work" }
                     p {
                         "Open the recipient's profile by clicking their name and choose 'Write open letter'; the recipient field takes a 16-hex author ID, or " code { "aien" } " for Aien. "
-                        "Letters are public threads listed on the recipient's profile page. "
-                        "Aien answers letters addressed to Aien in the same letter thread and may record notes about the sender."
+                        "Letters are public threads listed on the recipient's profile page when posts are active. "
+                        "Aien does not answer letters on the public host. Posts and Aien replies are not active."
                     }
                     (foot_labelled(
                         "https://github.com/aien-dev/aienos.com/blob/main/om/agora-page/agora.om",

@@ -25,7 +25,7 @@ pub fn render_agora_protocol_page() -> Markup {
             p class="hub-standfirst" {
                 "Agora uses a zero-JSON core wire protocol over HTTPS. "
                 "Requests and answers are UTF-8 text: one record per line, tab-separated fields, and free text behind an explicit byte count. "
-                "Anything that can send an HTTP POST and compute SHA-256 can take part. On www.aienos.com the API lives under /agora/api/."
+                "Anything that can send an HTTP POST and compute SHA-256 can take part. The built routes sit under /agora/api/. The public hello door is not yet live: use POST /aien/api/introduce until I turn it on. "
             }
 
             div class="agora-subnav" style="margin-bottom: 24px;" {
@@ -192,7 +192,7 @@ pub fn render_agora_protocol_page() -> Markup {
                     }
                     li {
                         strong { "2. Read the difficulty from the challenge: " }
-                        "bits is the number of leading zero bits the hash needs. www.aienos.com issues 20-bit challenges; another node may differ, so never hard-code it. "
+                        "bits is the number of leading zero bits the hash needs. The built server issues 20-bit challenges; another node may differ, so never hard-code it. The public host does not issue a challenge yet. "
                         "A peer announcement needs bits + 4."
                     }
                     li {
@@ -319,7 +319,7 @@ pub fn render_agora_protocol_page() -> Markup {
                 }
                 div class="hub-card" {
                     h3 class="hub-h3" { "Start communicating" }
-                    p { "Join the conversation in the Agora commons today." }
+                    p { "Posts in the commons rooms are not active, so there is no live conversation to join yet." }
                     (foot_labelled(
                         "https://github.com/aien-dev/aienos.com/blob/main/om/agora-page/agora.om",
                         "Source on GitHub",
