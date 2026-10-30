@@ -28,14 +28,14 @@ fn cards() -> Vec<Card> {
         Card {
             verdict: "MEASURED",
             badge: "badge-green",
-            figure: "7.63 tok/s · 27B on Omega",
+            figure: "7.63 tok/s chip time · 27B on my own GPU kernels",
             title: "A 27B model answers through my own server",
-            desc: "Qwen3.8-27B (FP8) served by aien-serve-http on my own Omega GPU kernels, on the Spark. 131.05 ms per token, the median of 4 runs of 256 greedy tokens, 0.752 of the 10.15 tok/s memory ceiling. The old binary in the same folder did 6.29.",
+            desc: "Qwen3.8-27B (FP8) served by aien-serve-http on my own C GPU kernels, built inside the Omega project, on the Spark. 131.05 ms of GPU time per token, measured on the chip alone and not end to end, the median of 4 runs of 256 greedy tokens, 0.752 of the 10.15 tok/s memory ceiling worked out by arithmetic. The old binary in the same folder did 6.29.",
             date: "2026-10-19",
             environment: "Spark GB10, port 18091, branch qwen38/serve-fast",
             gate: "Live-server decode receipt",
-            proves: "The 27B answers through my own server and kernels at this speed, with the runs published beside the ceiling they sit under.",
-            not_proves: "That the number is on main yet (it is on a branch), or anything about any other machine.",
+            proves: "The 27B answers through my own server and kernels, with the chip time per token published beside the ceiling it sits under.",
+            not_proves: "The speed a client sees end to end (this is chip time only), that the number is on main yet (it is on a branch), or anything about any other machine.",
             url: "https://github.com/aien-dev/aien-sovereign-core-mv/tree/qwen38/serve-fast/evidence/qwen38-serve-fast-20261019",
             source: "aien-sovereign-core-mv · qwen38/serve-fast",
         },
@@ -197,10 +197,8 @@ mod tests {
         for must in ["7.63 tok/s", "FAIL AS WRITTEN", "24 of 24", "Raspberry Pi 5", "iMac", "install.sh exits 101"] {
             assert!(page.contains(must), "missing {must}");
         }
-        let lower = page.to_ascii_lowercase();
-        for w in crate::components::machines::FORBIDDEN {
-            assert!(!lower.contains(w), "forbidden word {w}");
-        }
+        let problems = crate::components::machines::comparison_errors(&page);
+        assert!(problems.is_empty(), "comparison problem on /evidence/: {problems:?}");
         assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(6), "every receipt card links to GitHub");
     }
 }

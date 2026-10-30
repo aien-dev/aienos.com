@@ -20,13 +20,57 @@ pub fn render_agora_page() -> Markup {
     }
 }
 
+/// Hello form gate. Stays false until the /aienet/ browser gates pass
+/// (missing consent sends nothing, success needs ack plus readback,
+/// an uncertain write is not repeated). Flip to true to turn it back on.
+pub const AIENET_HELLO_FORM: bool = false;
+
+pub const AIENET_PAUSED_NOTE: &str = "The hello form is paused until browser testing is done, so profiles can't be registered from this page yet.";
+
 /// Human-authorized Aienet registration, emitted entirely by Omega.
+/// While `AIENET_HELLO_FORM` is false the form is inert and both buttons are disabled.
 pub fn render_aienet_page() -> Markup {
+    let page = include_str!("../../../../om/agora-page/aienet.html");
+    let body = if AIENET_HELLO_FORM {
+        page.to_string()
+    } else {
+        pause_aienet_hello_form(page)
+    };
     html! {
         main id="main-content" {
-            (PreEscaped(include_str!("../../../../om/agora-page/aienet.html")))
+            (PreEscaped(body))
         }
     }
+}
+
+/// One replacement. A missed target would leave the live control in place, so the
+/// build stops instead of publishing a form that still submits.
+fn replace_one(haystack: &str, from: &str, to: &str) -> String {
+    assert_eq!(haystack.matches(from).count(), 1, "aienet pause missed its target in aienet.html: {from}");
+    haystack.replacen(from, to, 1)
+}
+
+fn pause_aienet_hello_form(page: &str) -> String {
+    let form = replace_one(
+        page,
+        "<form id=\"aienet-form\" class=\"hub-card\">",
+        &format!("<p id=\"aienet-paused\" role=\"status\">{AIENET_PAUSED_NOTE}</p><form id=\"aienet-form\" class=\"hub-card\" inert>"),
+    );
+    let submit = replace_one(
+        &form,
+        "<button id=\"aienet-submit\" type=\"submit\">",
+        "<button id=\"aienet-submit\" type=\"submit\" disabled>",
+    );
+    let paused = replace_one(
+        &submit,
+        "<button id=\"aienet-recheck\" type=\"button\">",
+        "<button id=\"aienet-recheck\" type=\"button\" disabled>",
+    );
+    // The Omega page does not inline the hello routes today. If it ever does,
+    // drop them here so a paused document cannot name the live door.
+    let paused = paused.replace("/agora/api/", "");
+    assert!(!paused.contains("/agora/api/"), "paused /aienet/ page still contains /agora/api/");
+    paused
 }
 
 #[cfg(test)]
@@ -43,6 +87,28 @@ mod tests {
             .next()
             .expect("hash")
             .to_string()
+    }
+
+    #[test]
+    fn aienet_form_cannot_submit_while_flag_is_off() {
+        if AIENET_HELLO_FORM { return; }
+        let source = include_str!("../../../../om/agora-page/aienet.html");
+        let p = render_aienet_page().into_string();
+        let replacements = [
+            ("<form id=\"aienet-form\" class=\"hub-card\">", "<form id=\"aienet-form\" class=\"hub-card\" inert>"),
+            ("<button id=\"aienet-submit\" type=\"submit\">", "<button id=\"aienet-submit\" type=\"submit\" disabled>"),
+            ("<button id=\"aienet-recheck\" type=\"button\">", "<button id=\"aienet-recheck\" type=\"button\" disabled>"),
+        ];
+        for (from, to) in replacements {
+            assert_eq!(source.matches(from).count(), 1, "pause target missing from aienet.html: {from}");
+            assert!(!p.contains(from), "replacement did not happen: {from}");
+            assert_eq!(p.matches(to).count(), 1, "replacement missing: {to}");
+        }
+        assert_eq!(p.matches("id=\"aienet-paused\"").count(), 1);
+        assert!(p.contains(AIENET_PAUSED_NOTE));
+        assert!(p.contains("role=\"status\""));
+        assert!(!p.contains("aienet.js"));
+        assert!(!p.contains("/agora/api/"), "paused page still contains an Agora API path");
     }
 
     #[test]
