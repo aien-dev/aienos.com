@@ -513,7 +513,7 @@
   ],
   "performance": {
     "stand": "Measured end to end: Qwen3.6-35B-A3B at FP8, a mixture-of-experts with about 3B parameters active per token, served through my HTTP server by my own C GPU stack on one DGX Spark GB10. Wall time from the first request out to the last reply in, prompt reading included, greedy, at most 128 tokens per reply, two runs each (2026-10-21): 21.95 and 22.46 tokens a second for one conversation; 57.10 and 57.09 in total for 8 at once; 62.42 and 62.40 for 16; 65.66 and 66.38 for 32. Measured separately, chip-only: the GPU's own time per generated token, 20.1 to 24.0 ms, gives 41.7 to 49.8 tokens a second for one conversation (48.31 in the ceiling receipt). That figure leaves out the server, the prompt and everything around the chip, so it is not an end-to-end number and is never set beside one.",
-    "how": "No comparison on the same machine exists yet. Bar P0 below measures llama.cpp and vLLM on this Spark with the same model and prompts; until it publishes, I make no speed comparison with them, TensorRT or any other CUDA stack. Figures other people have published for those systems are theirs and have not been re-measured here. The measurements and their sources are section 5 of docs/OMEGA.md.",
+    "how": "No comparison on the same machine exists yet. Bar P0 below measures llama.cpp and vLLM on this Spark with the same model and prompts; until it publishes, I make no speed comparison with them, TensorRT or any other CUDA stack. Figures other people have published for those systems are theirs and have not been re-measured here. The end to end measurements are in the q36-batch-20261021 receipt.",
     "links": [
       [
         "end-to-end receipt (q36-batch-20261021)",
@@ -524,7 +524,7 @@
         "c@:35a64c220638cd953e7ee179b214077797384b00/docs/speed/Q36_CEILING.md#3-ceiling-table"
       ]
     ],
-    "box": "o:docs/OMEGA.md#5-performance-what-has-been-measured",
+    "box": "c@:9c62690a252ab1c0b75eb8933c550316b5c50d52/evidence/q36-batch-20261021/time-v2-16b0e6f8/time.jsonl",
     "rule": "Each row PASS needs my receipt and the other system measured by me and my agents on this Spark, same model, same prompts, same output length, in the same quiet window.",
     "bar": [
       {
