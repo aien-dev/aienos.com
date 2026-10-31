@@ -11,20 +11,20 @@
       "children": [
         {
           "digest": "bc95dd26aa86aaa2aa34550d5d69677efdbbe5e327c64724828f7e5935c6d5c7",
-          "last_commit": "e588e63",
+          "last_commit": "a9c5dbbc",
           "name": "components",
           "purpose": "Reusable page content and navigation"
         }
       ],
       "children_root": "sha256:c473ee517fe150ac3bed3066094ebcf40bb59fe4edaeb818ac7d1d31f6f5b8d1",
-      "compiled_at": "2026-10-30T21:58:06Z",
+      "compiled_at": "2026-10-31T02:19:00Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:896cb99445e96daaa70b38e27b9768a8a83cb07be4cbc018e91b4afb966b0390",
+      "digest": "sha256:b4019d468ab42a24241f88ce37a48c8682a277ffe519d47c4b9f679501196c6a",
       "evidence_files": 0,
       "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "files": 54,
-      "generated_at_commit": "016e6f1f1ab539dc11e965de5a00088e6496b155",
-      "source_tree": "sha256:15b5da8fc14386a801cc1b37b9a84e0196875f0e0997e09db69db77faf7d9c78"
+      "generated_at_commit": "f06c7cbe930f23a91775b0bac491f74d71b78f5a",
+      "source_tree": "sha256:306acae62c6d6ffcd81c21476850d7b7bd4f0243346896debe4fc47aa5733ac9"
     }
   },
   "invariants": [
