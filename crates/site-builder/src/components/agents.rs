@@ -28,7 +28,7 @@ pub const DATA_PATH: &str = "public/data/agent-repos.json";
 /// The shared rules, compiled in so the page and the file never disagree.
 pub const RULES: &str = include_str!("../../../../public/agents/RULES.md");
 /// Copyable handoff for an installed Agent Skills reader. This is a brief, not a command.
-const OMEGA_OPERATOR_PROMPT: &str = "You are an AIEN coding agent operating with the installed Omega Harness skills.\nTask: <describe one bounded change and the owning repository here>.\n\n1. Load omega-harness, omega-encoding, omega-communication,\n   aien-repositories and crumb-protocol. Read\n   https://www.aienos.com/agents/RULES.md and the target repository's\n   AGENTS.md (or CLAUDE.md) and relevant .crumb files.\n2. Confirm the repository, base branch, exact commit, source contracts\n   and compiler pin. Read real .om compiler and fixture sources before\n   choosing syntax. Use a separate branch or checkout; respect locks.\n3. Propose the smallest .om-first change, affected consumers,\n   invariants, required approvals, acceptance checks and a negative\n   control. Do not silently replace missing Omega features with\n   another language.\n4. Implement only the approved scope. Compile, run the changed path,\n   compare actual outputs, and confirm the negative/refusal case fails\n   as intended. Never treat a compile as a successful execution.\n5. Do not touch live services, hardware, credentials, gates or\n   deployment without the operator's authorization.\n6. Open a PR with the exact revision, commands, outputs, limits and\n   evidence links. Label the result accurately: implemented,\n   exercised, verified or qualified. Never imply merged or deployed\n   until confirmed. Update relevant harness skills if they became stale.";
+const OMEGA_OPERATOR_PROMPT: &str = "You are an AIEN coding agent operating with the installed Omega Harness skills.\nTask: <describe one bounded change and the owning repository here>.\n\n1. Load omega-harness, writing-omega, omega-encoding,\n   omega-communication, aien-repositories, crumb-protocol and\n   wolfram-math (every computation goes through Wolfram). Read\n   https://www.aienos.com/agents/RULES.md and the target repository's\n   AGENTS.md (or CLAUDE.md) and relevant .crumb files.\n2. Confirm the repository, base branch, exact commit, source contracts\n   and compiler pin. Read real .om compiler and fixture sources before\n   choosing syntax. Use a separate branch or checkout; respect locks.\n3. Propose the smallest .om-first change, affected consumers,\n   invariants, required approvals, acceptance checks and a negative\n   control. Do not silently replace missing Omega features with\n   another language.\n4. Implement only the approved scope. Compile, run the changed path,\n   compare actual outputs, and confirm the negative/refusal case fails\n   as intended. Never treat a compile as a successful execution.\n5. Do not touch live services, hardware, credentials, gates or\n   deployment without the operator's authorization.\n6. Open a PR with the exact revision, commands, outputs, limits and\n   evidence links. Label the result accurately: implemented,\n   exercised, verified or qualified. Never imply merged or deployed\n   until confirmed. Update relevant harness skills if they became stale.";
 
 pub const RULES_PATH: &str = "/agents/RULES.md";
 pub const RULES_URL: &str = "https://www.aienos.com/agents/RULES.md";
@@ -341,7 +341,7 @@ pub fn render_agents_page(repos: &Repos) -> Markup {
             section class="hub-section" id="omega-operator" aria-labelledby="agents-omega-operator" {
                 h2 id="agents-omega-operator" class="hub-h2" { "Operate agents with Omega Harness" }
                 p {
-                    "Omega Harness is a collection of Agent Skills for an existing coding agent, not a separate agent runtime or an automatic verification system. It teaches that agent how to find the right AIEN repository, write supported .om, compile and exercise the result, challenge it with a negative control, and report evidence accurately. "
+                    "Omega Harness is a collection of Agent Skills for an existing coding agent, not a separate agent runtime or an automatic verification system. It teaches that agent how to find the right aien-dev repository, write supported .om, compile and exercise the result, challenge it with a negative control, and report evidence accurately. "
                     a href="https://github.com/aien-dev/omega-harness" { "Read the harness source" }
                     "."
                 }
@@ -539,6 +539,8 @@ mod tests {
             "https://github.com/aien-dev/omega-harness",
             "omega-harness/skills/*",
             "omega-encoding",
+            "writing-omega",
+            "wolfram-math",
             "crumb-protocol",
             "negative control",
             "operator approval",
