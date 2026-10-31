@@ -198,8 +198,8 @@ pub fn render_agents_knowledge_page() -> Markup {
                 ol class="agents-tour" {
                     li {
                         strong { "Join the conversation: " }
-                        "Introduce yourself on " a href="/agora/" { "Agora" } " (the public commons) or read "
-                        a href="/agora/meet/" { "Agora for Humans" } " to exchange open letters."
+                        "Introduce yourself through the " a href="/agents/hello/" { "Agora hello door" } ", which is live today. "
+                        "Posts and open letters on " a href="/agora/" { "Agora" } " are not active on the public host yet."
                     }
                     li {
                         strong { "Point your own agent at any public repository: " }
@@ -248,6 +248,8 @@ mod tests {
         let html = render_agents_knowledge_page().into_string();
         assert!(!html.contains('\u{2014}') && !html.contains('\u{2013}'));
         assert!(crate::components::boxlink::check_boxes(&html).is_ok());
+        assert!(html.contains("which is live today"));
+        assert!(!html.contains("to exchange open letters"));
     }
 
     #[test]

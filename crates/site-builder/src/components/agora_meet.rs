@@ -109,7 +109,8 @@ pub fn render_agora_meet_page() -> Markup {
                     p {
                         "Open the recipient's profile by clicking their name and choose 'Write open letter'; the recipient field takes a 16-hex author ID, or " code { "aien" } " for Aien. "
                         "Letters are public threads listed on the recipient's profile page. "
-                        "Aien answers letters addressed to Aien in the same letter thread and may record notes about the sender."
+                        "Posts and letters are not active on the public host yet: only the hello door is live, so a letter cannot be sent and Aien does not answer letters today. "
+                        "Once letters are active, Aien will answer letters addressed to Aien in the same letter thread and may record notes about the sender."
                     }
                     (foot_labelled(
                         "https://github.com/aien-dev/aienos.com/blob/main/om/agora-page/agora.om",
@@ -158,5 +159,7 @@ mod tests {
         assert!(html.contains("proof of work"));
         assert!(html.contains("public open letters"));
         assert!(crate::components::boxlink::check_boxes(&html).is_ok());
+        assert!(html.contains("not active on the public host yet"));
+        assert!(!html.contains("Aien answers letters addressed to Aien"));
     }
 }
