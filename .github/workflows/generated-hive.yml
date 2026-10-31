@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Verify compiler and tool availability
@@ -57,7 +57,7 @@ jobs:
   artifact-hashes:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # These tests only hash committed bytes; never execute the arm64 omc pin.
       - name: Check generated skeleton
         run: cargo test --manifest-path crates/site-builder/Cargo.toml components::hive::tests::the_embedded_skeleton_matches_its_recorded_sha256 -- --exact

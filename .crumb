@@ -17,14 +17,14 @@
     "generated": {
       "children": [
         {
-          "digest": "56136954a8b5f0dd43d98fc7bf549de759a89d3454d379d45e3767e75bfa39d1",
+          "digest": "43e838a6cbbb7e0d0ffa73cd396a1465492eaf3795b4d9dc80309399a836e668",
           "last_commit": "8267d597",
           "name": ".github",
           "purpose": "GitHub automation configuration"
         },
         {
           "digest": "830c5b102136e7ada852465c02cac50cb19de44876c5fba66acf69c59909f761",
-          "last_commit": "49fe7403",
+          "last_commit": "e7a4a477",
           "name": "crates",
           "purpose": "Native Rust website crates"
         },
@@ -77,15 +77,15 @@
           "purpose": "Isolated compute-only Allen tools and versioned glass-pane protocol; temporary host transport ar"
         }
       ],
-      "children_root": "sha256:5b2c19d340f6ab4be40e84df93e053eae362915d885f636bb3eca5ba9819a59d",
-      "compiled_at": "2026-10-31T11:11:25Z",
+      "children_root": "sha256:4eed589285b04a92b43dad5b5658fe9d61680b7f8a509eb62b80841f072b21ae",
+      "compiled_at": "2026-10-31T11:20:47Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:0f6d736ec5772087af8b007ef4592e6ff2b9a1b4413b38e5cf9a07155d542a56",
+      "digest": "sha256:0cc4f17093fb68b8b48823246b911d24d3abd77f3ed5773161a088f35342b29a",
       "evidence_files": 6,
       "evidence_root": "sha256:7fde48972a09dd4b0f7206aca4e313cd02c8cd195ec602e3924e59246c016aa5",
       "files": 819,
-      "generated_at_commit": "49fe7403fef00e8c53be64de14337b3f070c910c",
-      "source_tree": "sha256:ccad04f3c1630174752087e69362aa497b1b59f6a0ac43ce601a814c7f4c9602"
+      "generated_at_commit": "e7a4a47784c6e890e9924326c63cf956f22b1c66",
+      "source_tree": "sha256:63f1020bb66bf8e864e55c5ae0a024aa2364af27f4f1913f6d41674d2af13e40"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",

@@ -50,13 +50,13 @@
         }
       ],
       "children_root": "sha256:975ee395498ad0e3b579f7586e6417abcab2cf8f15be14e509155faed0606920",
-      "compiled_at": "2026-10-31T11:11:25Z",
+      "compiled_at": "2026-10-31T11:00:21Z",
       "compiler": "crumb-compile/1",
       "digest": "sha256:b2fe22e5e8951f589f063687696b8407e831be560cb80efab0054602f4341876",
       "evidence_files": 1,
       "evidence_root": "sha256:63bece7cb299b29d19622dcb0de4cbaa623357b117d8c7643a562de286c4b2fb",
       "files": 160,
-      "generated_at_commit": "49fe7403fef00e8c53be64de14337b3f070c910c",
+      "generated_at_commit": "ef5c0a4f3918b97df1bcef4f90c6bd0860e2dffc",
       "source_tree": "sha256:9a2bdca971fd62fe0920b4d784884b10dbd88b7e43246b46741106e14ef5fedd"
     }
   },
