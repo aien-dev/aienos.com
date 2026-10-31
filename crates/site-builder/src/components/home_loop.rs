@@ -176,6 +176,14 @@ pub fn render_home_loop() -> Markup {
                         span class="badge badge-blue" { "Open source · Apache-2.0 WITH LLVM-exception" }
                     }
 
+                    p id="alpha-ships" class="home-lead-rest" {
+                        strong { "What the Sovereign Intelligence alpha ships today: " }
+                        "one command that installs a signed engine and Qwen3.6-35B on an NVIDIA DGX Spark, with no CUDA libraries, and one command that removes it. "
+                        "The installer, its signature check and the uninstall have run on my Spark in a test tree and a container. A real install with a first token has not run yet. "
+                        a href="https://github.com/aien-dev/sovereign-intelligence#readme" { "Alpha status and evidence" }
+                        "."
+                    }
+
                     h1 id="home-lead" class="home-lead" { (LEAD) }
                     p class="home-lead-rest" { (super::omega::link_first(LEAD_REST)) }
 
@@ -273,7 +281,7 @@ pub fn render_home_loop() -> Markup {
                 }
                 ul class="home-checks" {
                     li { "C kernel boots via UEFI \u{2713}" }
-                    li { "Every claim carries a receipt \u{2713}" }
+                    li { "Every status names its evidence or says NOT_RUN \u{2713}" }
                     li { "Failures published, not hidden \u{2713}" }
                 }
             }
