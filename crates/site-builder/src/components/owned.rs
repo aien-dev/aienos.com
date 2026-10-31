@@ -38,13 +38,13 @@ const RECEIPTS: &[Receipt] = &[
     },
     Receipt {
         title: "A 27 billion parameter model on my own engine",
-        says: "Qwen3.8-27B in 8-bit form, served by my own server on my own GPU kernels, on one DGX Spark. Measured 7.63 tokens a second against a ceiling of 10.15 for this machine and this model, which is 75.17 percent of the ceiling (calc:ce5d974e). Slower than I want.",
+        says: "Qwen3.8-27B in 8-bit form, served by my own server on my own GPU kernels, on one DGX Spark. Measured on the chip alone, not end to end: 7.63 tokens a second of GPU time per token against an arithmetic memory ceiling of 10.15 for this machine and this model, which is 75.17 percent of the ceiling (calc:ce5d974e). Slower than I want.",
         href: "https://github.com/aien-dev/aien-sovereign-core-mv/tree/qwen38/serve-fast/evidence/qwen38-serve-fast-20261019",
         on_branch: true,
     },
     Receipt {
         title: "The ceiling that number is judged against",
-        says: "How the 10.15 tokens a second limit was worked out from the machine's memory speed and the size of the model.",
+        says: "How the 10.15 tokens a second limit was worked out from the machine's memory speed and the size of the model. Arithmetic, not a measurement.",
         href: "https://github.com/aien-dev/aien-sovereign-core-mv/blob/alpha/ceiling-and-model/docs/qwen38/CEILING.md",
         on_branch: true,
     },
@@ -240,10 +240,16 @@ mod tests {
     }
 
     #[test]
-    fn no_comparisons_with_other_systems() {
-        let body = render_owned().into_string().to_lowercase();
-        for word in ["chatgpt", "openai", "gemini", "llama", "gpt-", "anthropic", "claude"] {
-            assert!(!body.contains(word), "names another system: {word}");
-        }
+    fn comparisons_are_dated_and_sourced_or_absent() {
+        let body = render_owned().into_string();
+        let problems = crate::components::machines::comparison_errors(&body);
+        assert!(problems.is_empty(), "comparison problem on /owned/: {problems:?}");
+        assert!(crate::components::machines::comparison_problem("faster than ChatGPT").is_some());
+        assert!(crate::components::machines::comparison_problem(
+            "On 2026-10-21 this was faster than the published ChatGPT figure (https://example.com/n)."
+        ).is_some());
+        assert!(crate::components::machines::comparison_problem(
+            "On 2026-10-21 this was faster than the published ChatGPT figure (https://github.com/aien-dev/sovereign-intelligence)."
+        ).is_none());
     }
 }

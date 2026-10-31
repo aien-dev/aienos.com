@@ -155,6 +155,171 @@ as well. Check every installed file, not only the new snippet files. This
 procedure changes the transfer mechanism, not the approved configuration,
 network boundary, reload barrier or deployment acceptance gates.
 
+### Firewall preflight
+
+The tcp/18132 accept rule is not yet approved or applied. Run this preflight
+before starting the unit. Do not add the rule. On the Spark, nftables table
+`inet atlas_ingress` handles input before the unit's systemd IP filter. Its
+input chain policy is drop, and port 18132 is not accepted there. Adding the
+rule needs Drake's explicit approval. This preflight does not insert it, does
+not authorize a temporary rule, and does not write `/etc/nftables.conf`.
+
+Back up only table `inet atlas_ingress`, once, before any 18132 rule exists.
+The path is `/root/aien-agora-atlas-ingress.nft`. If that file is already
+present, leave it. Do not overwrite it, and do not delete it in order to take
+a new snapshot after the 18132 rule exists. A snapshot taken then would put
+the rule back in the live table on restore, while `/etc/nftables.conf` says
+the port is closed. The file is one atomic restore: the line
+`table inet atlas_ingress`, then `delete table inet atlas_ingress`, then the
+saved table from `nft list table inet atlas_ingress`. It is root-owned, mode
+0600, and it must contain no port 18132 rule.
+
+```sh
+backup=/root/aien-agora-atlas-ingress.nft
+portre='dport[[:space:]]+18132([^0-9]|$)|dport[[:space:]]*\{[[:space:]]*18132([^0-9]|$)|dport[[:space:]]*\{[^}]*[^0-9]18132([^0-9]|$)'
+if sudo test -e "$backup"; then
+  sudo test "$(sudo stat -c '%u %g %a' "$backup")" = '0 0 600' || exit 1
+  sudo awk 'NR==1 && $0!="table inet atlas_ingress" { exit 2 }
+            NR==2 && $0!="delete table inet atlas_ingress" { exit 2 }
+            NR==3 && $0!="table inet atlas_ingress {" { exit 2 }
+            END { if (NR<3) exit 2 }' "$backup" || exit 1
+  test "$(sudo grep -E -c "$portre" "$backup" || true)" = 0 || exit 1
+else
+  list=$(sudo nft -a list chain inet atlas_ingress input) || exit 1
+  test "$(printf '%s\n' "$list" | grep -E -c "$portre" || true)" = 0 || exit 1
+  sudo sh -c 'printf "%s\n" "table inet atlas_ingress" "delete table inet atlas_ingress" > "$1"' sh "$backup"
+  sudo nft list table inet atlas_ingress | sudo tee -a "$backup" >/dev/null
+  sudo chown root:root "$backup"
+  sudo chmod 0600 "$backup"
+  if test "$(sudo grep -E -c "$portre" "$backup" || true)" != 0; then
+    sudo rm -f -- "$backup"
+    exit 1
+  fi
+  sudo awk 'NR==1 && $0!="table inet atlas_ingress" { exit 2 }
+            NR==2 && $0!="delete table inet atlas_ingress" { exit 2 }
+            NR==3 && $0!="table inet atlas_ingress {" { exit 2 }
+            END { if (NR<3) exit 2 }' "$backup" || exit 1
+fi
+sudo stat -c '%u %g %a %F %s %n' "$backup"
+```
+
+`portre` matches `dport 18132` and a set such as `dport { 18110, 18132 }`.
+It does not match a longer number such as 181320.
+PASS: the file exists, this run did not overwrite an existing file, uid 0,
+gid 0, mode 600, type `regular file`, size greater than 0, the three opening
+lines are `table inet atlas_ingress`, `delete table inet atlas_ingress`, and
+`table inet atlas_ingress {`, and the file's port 18132 count is 0.
+FAIL: the file is missing its header, has the wrong owner or mode, or names
+port 18132. Stop. Do not replace it. If the file was absent and the live
+chain already names port 18132, do not create it.
+
+List the input chain. `nft` must exit 0. The first printed number is the
+input chain header: the line must start with optional whitespace, then
+`type filter hook input`, and end with `policy drop;`. A comment that only
+contains `policy drop;` does not match. The second number is how many lines
+name port 18132, either as `dport 18132` or inside a set such as
+`dport { 18110, 18132 }`. The third is how many lines contain the exact rule.
+A trailing `# handle N` may follow the rule on the listed line.
+
+```sh
+list=$(sudo nft -a list chain inet atlas_ingress input) || exit 1
+printf '%s\n' "$list"
+printf '%s\n' "$list" | grep -E -c '^[[:space:]]*type filter hook input .*policy drop;[[:space:]]*$' || true
+portre='dport[[:space:]]+18132([^0-9]|$)|dport[[:space:]]*\{[[:space:]]*18132([^0-9]|$)|dport[[:space:]]*\{[^}]*[^0-9]18132([^0-9]|$)'
+rule='iifname "tailscale0" ip saddr 100.64.0.3 tcp dport 18132 accept comment "aien-agora, hub nginx only"'
+printf '%s\n' "$list" | grep -E -c "$portre" || true
+printf '%s\n' "$list" | grep -F -c -- "$rule" || true
+```
+
+The expression is the listed form of the 18110 rule in
+`scripts/allen/README.md`: table `inet atlas_ingress`, chain `input`,
+`iifname "tailscale0"`, source `100.64.0.3`, then `tcp dport` and `accept`.
+That README records the 18110 rule with shell quoting `iifname '"tailscale0"'`,
+which `nft` lists as `iifname "tailscale0"`. The 18110 line has no comment.
+The 18132 line is that same listed form with this port and comment. The 18110
+rule lives in `/etc/nftables.conf`.
+
+PASS, once Drake has approved and the rule is applied: the header count is 1,
+exactly one line names port 18132, and the exact rule count is 1.
+A port count of 0 and an exact count of 0, with the header count at 1, is the
+current host. The rule is not yet approved or applied. That is a failed
+preflight for starting the listener on `100.64.0.2:18132`. Leave the chain
+unchanged.
+FAIL: `nft` does not exit 0, the chain is missing, the header count is not 1,
+the port count is greater than 1, the exact count is greater than 1, or the
+port count is 1 while the exact count is not 1. A broader
+`tcp dport 18132 accept`, or a set such as `dport { 18110, 18132 }`, is that
+last failure. Stop.
+Do not start the unit for hub ingress while either rule count is 0. A drop in
+this chain never reaches the systemd IP filter, so unit IP accounting stays 0.
+
+### Persist the rule in nftables.conf
+
+The tcp/18132 accept rule is not yet approved or applied. Do not run this
+step before Drake's explicit approval. It is the file change for after that
+approval, matching the 18110 rule's home in `/etc/nftables.conf`
+(`scripts/allen/README.md`). `nft -c -f` checks the file and does not load
+it. This guide does not apply the rule.
+
+A stock Debian `/etc/nftables.conf` usually begins with `flush ruleset`, so a
+full reload wipes every table. During this deploy, check that file only with
+`nft -c -f`. Do not reload it: do not run `nft -f /etc/nftables.conf`, and do
+not restart the nftables service.
+
+Back up `/etc/nftables.conf` to a `.bak` copy, insert the exact rule once
+after the first real `tcp dport 18110 accept` line, and validate the
+installed file. The insert copies every other line unchanged, including the
+output chain. A commented-out `tcp dport 18110 accept` line is not that
+anchor: a `#` outside quotes ends the code on that line. Refuse the edit when
+any port 18132 line is already present, including a set such as
+`dport { 18110, 18132 }`, or when no real 18110 line exists.
+
+```sh
+portre='dport[[:space:]]+18132([^0-9]|$)|dport[[:space:]]*\{[[:space:]]*18132([^0-9]|$)|dport[[:space:]]*\{[^}]*[^0-9]18132([^0-9]|$)'
+if sudo grep -E -q "$portre" /etc/nftables.conf; then
+  exit 1
+fi
+stamp=$(date -u +%Y%m%dT%H%M%SZ)
+confbak="/etc/nftables.conf.bak-aien-agora-$stamp"
+sudo cp -a -- /etc/nftables.conf "$confbak"
+rule='iifname "tailscale0" ip saddr 100.64.0.3 tcp dport 18132 accept comment "aien-agora, hub nginx only"'
+tmp=$(sudo mktemp /root/aien-agora-nftables.XXXXXX)
+sudo awk -v rule="$rule" '
+function code(s,   i, c, q, out) {
+  q = 0
+  out = ""
+  for (i = 1; i <= length(s); i++) {
+    c = substr(s, i, 1)
+    if (c == "\"") q = !q
+    else if (c == "#" && !q) break
+    out = out c
+  }
+  return out
+}
+{
+  print
+  if (!seen && index(code($0), "tcp dport 18110 accept")) {
+    print "\t\t" rule
+    seen = 1
+  }
+}
+END { if (!seen) exit 2 }
+' /etc/nftables.conf | sudo tee "$tmp" >/dev/null
+sudo test "$(sudo grep -F -c -- "$rule" "$tmp")" = 1 || exit 1
+sudo test "$(sudo grep -E -c "$portre" "$tmp" || true)" = 1 || exit 1
+sudo test "$(sudo grep -F -c 'tcp dport 18110 accept' "$tmp")" -ge 1 || exit 1
+sudo nft -c -f "$tmp" || exit 1
+mode=$(sudo stat -c '%a' /etc/nftables.conf)
+sudo install -o root -g root -m "$mode" "$tmp" /etc/nftables.conf
+sudo nft -c -f /etc/nftables.conf || exit 1
+sudo rm -- "$tmp"
+```
+
+PASS: `$confbak` exists, `nft -c -f /etc/nftables.conf` exits 0, the file
+contains the exact rule once, and it still contains `tcp dport 18110 accept`.
+FAIL: any test exits non-zero. Leave `/etc/nftables.conf` as it was, using
+`$confbak` if the install already happened, and stop.
+
 ### Backend startup identity barrier
 
 `Type=simple` reports a successful start before the child has necessarily
@@ -177,6 +342,14 @@ credentials, an unexpected stable identity, process/read failure or timeout
 is FAIL and triggers rollback. Do not extend the deadline, rerun start,
 change the service identity or activate routing to make this check pass.
 
+A recognized `/usr/lib/systemd/systemd-executor` to exact expected executable
+transition may coincide with a single valid ownerless LISTEN row. With stable
+MainPID, permitted pre-exec credentials, exact final credentials and time
+remaining, that narrow case is PENDING only. Reacquire the entire bracket.
+A stable ownerless listener, an explicit different owner, wrong endpoint,
+malformed or multiple rows, changed MainPID or deadline expiry still refuses.
+Only a fresh stable bracket with explicit same-PID ownership can become READY.
+
 The native `om/agora/startup-check.om` unit is the startup policy authority.
 Its CLI takes `deadline_ns executable_match effective_uid effective_gid
 same_pid_listener` and exits 0 for pending, 1 for ready, 2 for refusal, or 90
@@ -192,6 +365,192 @@ fixture, not a claim that a privileged fixture process was launched.
 The conductor requires preexec-root-fail, deadline-off and identity-off
 mutants to fail with exits 40, 48 and 44 respectively. Actual production
 `/proc` and listener ownership remain mandatory independent observations.
+
+### Hub path gate
+
+Run this only after the startup identity barrier shows the same PID listening
+on `100.64.0.2:18132`, and only when the firewall preflight found the exact
+rule once. That rule is not yet approved or applied, so this gate cannot pass
+on the current host. Do not add the rule to make it pass. No temporary
+firewall rule is authorized.
+
+A SYN from the hub to `100.64.0.2:18132` must be answered by a SYN-ACK. A
+denied source must still get none. Record unit IP accounting immediately
+before and after each probe. One probe per source. Do not retry a failed
+probe as a pass.
+
+On the Spark, start the capture first and leave it running until the probe
+finishes. tcpdump exit 0 or 124 ends a complete capture. Any other exit is
+FAIL. Read the counters before the probe:
+
+```sh
+systemctl show -p IPIngressPackets -p IPIngressBytes -p IPEgressPackets -p IPEgressBytes aien-agora.service
+sudo timeout 20 tcpdump -ni tailscale0 -nn -tt -S -l \
+  'tcp port 18132 and host 100.64.0.3 and (tcp[tcpflags] & tcp-syn != 0)'
+```
+
+On the hub, whose tailnet address is `100.64.0.3`:
+
+```sh
+curl --silent --show-error --max-time 5 --interface 100.64.0.3 \
+  --output /dev/null --write-out '%{http_code}\n' \
+  http://100.64.0.2:18132/agora/api/challenge
+```
+
+After the hub probe, read the counters again:
+
+```sh
+systemctl show -p IPIngressPackets -p IPIngressBytes -p IPEgressPackets -p IPEgressBytes aien-agora.service
+```
+
+tcpdump prints `Flags [S]` for a SYN and `Flags [S.]` for a SYN-ACK. Extra
+flag letters may appear beside those. A SYN-ACK is a packet whose flags
+contain both `S` and `.`. A SYN counted below must contain `S` and must not
+contain `.`.
+
+PASS: the capture has at least one SYN from `100.64.0.3` to
+`100.64.0.2.18132`, and at least one reply from `100.64.0.2.18132` to
+`100.64.0.3` that is a SYN-ACK. The after reading shows `IPIngressPackets`
+greater than the before reading. The firewall verdict is the SYN-ACK. Record
+the HTTP code beside it.
+FAIL: a hub SYN and no SYN-ACK to `100.64.0.3`. FAIL: the after reading shows
+`IPIngressPackets` unchanged after a hub SYN. The 2026-10-30 capture was 5
+SYNs, 0 SYN-ACKs, and unit IP accounting at 0. FAIL: no hub SYN in the
+capture. The probe did not arrive, so the gate did not run.
+
+Denied source. Set `DENIED` to an address other than `100.64.0.3` and other
+than `100.64.0.2` that can already place a packet on `tailscale0` toward
+`100.64.0.2`. Do not add a firewall rule, a route, or a systemd address
+allowance to create that path. Start a new capture on the Spark, then run
+one curl on the denied host.
+
+Read the counters before this probe:
+
+```sh
+systemctl show -p IPIngressPackets -p IPIngressBytes -p IPEgressPackets -p IPEgressBytes aien-agora.service
+sudo timeout 20 tcpdump -ni tailscale0 -nn -tt -S -l \
+  "tcp port 18132 and host ${DENIED} and (tcp[tcpflags] & tcp-syn != 0)"
+```
+
+```sh
+curl --silent --show-error --max-time 5 --interface "$DENIED" \
+  --output /dev/null --write-out '%{http_code}\n' \
+  http://100.64.0.2:18132/agora/api/challenge
+```
+
+After the denied probe, read the counters again:
+
+```sh
+systemctl show -p IPIngressPackets -p IPIngressBytes -p IPEgressPackets -p IPEgressBytes aien-agora.service
+```
+
+PASS: at least one SYN from `DENIED` to `100.64.0.2.18132`, and no SYN-ACK
+from `100.64.0.2.18132` to `DENIED`. The deciding test is that the denied
+source gets no SYN-ACK. Other traffic can move `IPIngressPackets`, so the
+after reading is a record, not the verdict.
+FAIL: any SYN-ACK to `DENIED`. FAIL: no SYN from `DENIED`. Denial was not
+observed.
+A failed gate stops activation. It does not approve a firewall change.
+
+### Firewall rollback
+
+Deleting the live rule by its handle is the normal path. List the chain:
+
+```sh
+sudo nft -a list chain inet atlas_ingress input
+```
+
+Find the one line that contains this exact expression:
+
+```
+iifname "tailscale0" ip saddr 100.64.0.3 tcp dport 18132 accept comment "aien-agora, hub nginx only"
+```
+
+Read `N` from the `# handle N` at the end of that line. Do not use the handle
+on the 18110 line (`tcp dport 18110 accept`). If the expression occurs zero
+times, there is nothing to delete in the live chain. If it occurs more than
+once, do not pick a handle. Use the table file below instead.
+
+```sh
+sudo nft delete rule inet atlas_ingress input handle N
+sudo nft -a list chain inet atlas_ingress input
+```
+
+PASS: the 18132 expression is gone, the input chain header still ends with
+`policy drop;`, and this 18110 line is still present:
+`iifname "tailscale0" ip saddr 100.64.0.3 tcp dport 18110 accept`.
+FAIL: the 18132 expression remains, or the 18110 line is missing. Stop and
+use the table file below.
+
+Also remove the same rule from `/etc/nftables.conf`. The 18110 rule lives in
+that file, and a later reload would load a 18132 line left behind. Do not
+reload `/etc/nftables.conf` during this rollback. A stock Debian copy usually
+begins with `flush ruleset`, and reloading it wipes every table. The rule is
+not yet approved or applied. If the exact line is already absent, record that
+and leave the file in place.
+
+```sh
+rule='iifname "tailscale0" ip saddr 100.64.0.3 tcp dport 18132 accept comment "aien-agora, hub nginx only"'
+portre='dport[[:space:]]+18132([^0-9]|$)|dport[[:space:]]*\{[[:space:]]*18132([^0-9]|$)|dport[[:space:]]*\{[^}]*[^0-9]18132([^0-9]|$)'
+if sudo grep -F -q -- "$rule" /etc/nftables.conf; then
+  stamp=$(date -u +%Y%m%dT%H%M%SZ)
+  confbak="/etc/nftables.conf.bak-aien-agora-$stamp"
+  sudo cp -a -- /etc/nftables.conf "$confbak"
+  tmp=$(sudo mktemp /root/aien-agora-nftables.XXXXXX)
+  sudo grep -F -v -- "$rule" /etc/nftables.conf | sudo tee "$tmp" >/dev/null
+  sudo nft -c -f "$tmp" || exit 1
+  mode=$(sudo stat -c '%a' /etc/nftables.conf)
+  sudo install -o root -g root -m "$mode" "$tmp" /etc/nftables.conf
+  sudo nft -c -f /etc/nftables.conf || exit 1
+  sudo rm -- "$tmp"
+fi
+sudo grep -F -c -- "$rule" /etc/nftables.conf || true
+sudo grep -E -c "$portre" /etc/nftables.conf || true
+sudo grep -F -n 'tcp dport 18110 accept' /etc/nftables.conf
+live=$(sudo nft -a list chain inet atlas_ingress input) || exit 1
+printf '%s\n' "$live" | grep -E -c "$portre" || true
+```
+
+PASS: the exact rule count in the file is 0, the file's port 18132 count is
+0, and the live input chain's `dport 18132` count is 0, including a set such
+as `dport { 18110, 18132 }`. `tcp dport 18110 accept` is still present.
+FAIL: any of those counts is not 0, the 18110 line is missing, or `nft -c -f`
+fails. Copy `$confbak` back over `/etc/nftables.conf` when that backup was
+taken, and stop. Do not reload the file.
+
+The other path is the write-once file `/root/aien-agora-atlas-ingress.nft`,
+and only when the handle cannot be used. It saves and restores only
+`inet atlas_ingress`: `table inet atlas_ingress`, then
+`delete table inet atlas_ingress`, then the saved table. Do not load it when
+it names port 18132. Check it with `nft -c -f` before `nft -f`. One `nft -f`
+is one transaction. This keeps the relay mailer's output chain and the 18110
+rule as they were in that snapshot. `scripts/allen/relay/start` describes that
+output chain: it lets the allen-relay user reach only DNS on loopback and TCP
+465. No other table is in the file, so those tables stay as they are. A
+snapshot restore undoes any later `atlas_ingress` changes, because the whole
+table is replaced by the saved copy. The saved copy has no 18132 rule, so the
+restore cannot put that rule back.
+
+```sh
+backup=/root/aien-agora-atlas-ingress.nft
+portre='dport[[:space:]]+18132([^0-9]|$)|dport[[:space:]]*\{[[:space:]]*18132([^0-9]|$)|dport[[:space:]]*\{[^}]*[^0-9]18132([^0-9]|$)'
+sudo test "$(sudo stat -c '%u %g %a' "$backup")" = '0 0 600' || exit 1
+test "$(sudo grep -E -c "$portre" "$backup" || true)" = 0 || exit 1
+sudo nft -c -f "$backup" || exit 1
+sudo nft -f "$backup"
+live=$(sudo nft -a list chain inet atlas_ingress input) || exit 1
+printf '%s\n' "$live"
+test "$(printf '%s\n' "$live" | grep -E -c "$portre" || true)" = 0 || exit 1
+```
+
+If the mode test, the port count, or `nft -c -f` fails, do not load the file.
+After any restore, the live input chain must show a `dport 18132` count of 0.
+FAIL when that count is not 0. The input chain must also still contain the
+18110 accept rule, and the output chain must still be the saved one. Then
+remove the 18132 line from `/etc/nftables.conf` with the commands above, so a
+later reload cannot bring it back. Leave the 18110 rule in place. It is
+documented in `scripts/allen/README.md` and is not part of this registration
+unit.
 
 ### Reload adoption barrier
 
@@ -256,6 +615,74 @@ locations; replace only host paths, ports, certificates and external upstreams
 with local fixtures. Do not publish private captured configuration.
 
 
+## Full isolated activation rehearsal
+
+Before another live retry, execute the file-backed activation observers end to
+end with `scripts/test-agora-activation.py` as root. Supply a new private
+`--root`, the approved `--backend`, oracle `--nginx`, compiled native
+`--native` observer and `--startup` policy, and the exact published `--page`
+and `--client`. Do not substitute a mock API or replace the browser client.
+The host needs `ip`, `tcpdump`, `bpftool`, systemd and the existing dedicated
+account. The verification tools are not production dependencies.
+
+The conductor creates a uniquely named network namespace, isolated systemd
+backend and stub nginx. Its executables live in its own `/opt/aien-agora-oracle-*`
+directory because Spark mounts `/run` noexec. Units and temporary boot links
+are runtime-only; no production firewall rule, unit, hub file or state changes.
+Fixed loopback tunnels carry raw TLS through the fixture SNI router and its
+PROXY listener. The backend socket is created inside its network namespace.
+The exact two-prefix policy is tested after a separately labelled third-source
+reachability control. Passive SYN and SYN-ACK observations prove allowed and
+denied paths without adding firewall rules.
+
+Use the root-only `control.sock` with `--control PATH --action pre-browser`.
+Then run `runBrowser` from `scripts/agora_activation_browser.mjs` against the
+returned `browser_url` in a new, CPU-only browser profile. Resolve only
+`www.aienos.com` to the returned loopback address, refuse other domains and
+permit the fixture certificate only in that owned browser. Recovery callbacks
+must pass secrets through stdin to the root-only `save-key` control; never put
+them in arguments, screenshots, HAR, console output or receipts. The
+`restart-backend` and `read-profile` controls operate only on the fixture.
+
+Pass the browser verdict to `after-browser`, which rejects any missing or
+failed prerequisite. It exercises real TLS quota exhaustion with forged
+identity headers, checks effective access/error/temp sinks directly and
+enables only the isolated runtime unit after all gates pass. Finally `finish`
+injects an acceptance failure and verifies rollback: API closed, ordinary
+site healthy, unit stopped and disabled, profiles unchanged. Private recovery
+files and a root-only retained-state copy remain beneath the scratch root.
+The receipt is explicitly `ISOLATED_NAMESPACE_ONLY_NOT_DEPLOYED`.
+
+The conductor treats SIGHUP, SIGINT and SIGTERM as failed acceptance: it records
+FAIL, rolls back and cleans up its own units and namespace while retaining
+private state. A killed process cannot execute cleanup. If recovering an older
+interrupted run, first prove the namespace, runtime units and paths belong to
+that fixture, preserve their files privately, and stop only those resources.
+Never label an interrupted run PASS or loosen directory permissions to read it;
+use the operator's existing permitted root read path.
+
+Privacy includes a negative control: place a public sentinel in an effective
+fixture temporary-body sink, require the actual scanner to refuse it, and
+remove only that control file. This demonstrates scanner sensitivity, not the
+absence of transient production body spills or historical logging causality.
+The privacy pass also scans current-invocation journals for the backend and
+every fixture routing unit. Raw journal bodies are private, including the
+startup warning observation; receipts retain only the scanner verdict and
+non-secret unit names. Empty control responses fail without an acceptance
+verdict rather than being treated as success.
+
+Run `python3 -m py_compile` and `pyflakes` on all three Python observer files,
+and `node --check scripts/agora_activation_browser.mjs`. Record the complete
+rehearsal receipt and static-check output on the source PR before any live
+retry. A fixture failure is not permission to continue live.
+
+`activation-rehearsal.evidence.json` records the completed 2026-10-28 isolated
+sequence at source `9caa5598159a8589f8dfd0c4c36b5b568b84786e`: all 17
+conductor gates and seven real-browser gates passed, including durable readback,
+lost-acknowledgement refusal and injected rollback. The earlier interrupted
+rehearsals remain failed or incomplete. This receipt is not a production retry,
+deployment authorization, or evidence that production routing is enabled.
+
 ## Required deployment checks
 
 Record observed outputs, not just the commands:
@@ -286,16 +713,6 @@ Record observed outputs, not just the commands:
   secret-bearing response logging, early header logging, live TLS/SNI identity
   and actual systemd BPF enforcement require separate live inspection/evidence.
 
-The 2026-10-28 activation was rolled back after an immediate post-reload public
-challenge returned the Pages 404. Replaying the complete captured hub
-configuration returned 200 through both the PROXY listener and the SNI router.
-Reloading from the preceding configuration reproduced an immediate old-worker
-Pages 404 followed by 200 after handover. This establishes the reload race
-mechanism, not a retrospective proof of the production cause: historical
-worker lifecycle and per-request upstream counts were not captured. No
-registration location change follows from that observation.
-
-
 Ownership and API consent remain self-attested. Browser consent does not become
 a cryptographic ownership proof. Browser-local recovery keys are accessible to
 scripts executing on the same origin, including third-party scripts permitted
@@ -310,6 +727,67 @@ registration unit if necessary. Preserve private state, recovery material and
 backups. Never delete accepted profiles as part of rollback. Restore unrelated
 configuration only from its exact pre-change backup, and recheck the normal
 website response. No rollback command should affect model services.
+
+The tcp/18132 accept rule is not yet approved or applied. The normal live
+rollback is delete-by-handle, under [Firewall rollback](#firewall-rollback).
+Do not delete the 18110 accept rule in `inet atlas_ingress` input. That rule
+is documented in `scripts/allen/README.md` and lives in `/etc/nftables.conf`.
+
+Also remove the exact 18132 line from `/etc/nftables.conf`, or a later reload
+brings it back. Do not reload that file here. If the line is already absent,
+record that and leave the file in place.
+
+```sh
+rule='iifname "tailscale0" ip saddr 100.64.0.3 tcp dport 18132 accept comment "aien-agora, hub nginx only"'
+portre='dport[[:space:]]+18132([^0-9]|$)|dport[[:space:]]*\{[[:space:]]*18132([^0-9]|$)|dport[[:space:]]*\{[^}]*[^0-9]18132([^0-9]|$)'
+if sudo grep -F -q -- "$rule" /etc/nftables.conf; then
+  stamp=$(date -u +%Y%m%dT%H%M%SZ)
+  confbak="/etc/nftables.conf.bak-aien-agora-$stamp"
+  sudo cp -a -- /etc/nftables.conf "$confbak"
+  tmp=$(sudo mktemp /root/aien-agora-nftables.XXXXXX)
+  sudo grep -F -v -- "$rule" /etc/nftables.conf | sudo tee "$tmp" >/dev/null
+  sudo nft -c -f "$tmp" || exit 1
+  mode=$(sudo stat -c '%a' /etc/nftables.conf)
+  sudo install -o root -g root -m "$mode" "$tmp" /etc/nftables.conf
+  sudo nft -c -f /etc/nftables.conf || exit 1
+  sudo rm -- "$tmp"
+fi
+sudo grep -F -c -- "$rule" /etc/nftables.conf || true
+sudo grep -E -c "$portre" /etc/nftables.conf || true
+sudo grep -F -n 'tcp dport 18110 accept' /etc/nftables.conf
+live=$(sudo nft -a list chain inet atlas_ingress input) || exit 1
+printf '%s\n' "$live" | grep -E -c "$portre" || true
+```
+
+PASS: the exact rule count in the file is 0, the file's port 18132 count is
+0, and the live input chain's `dport 18132` count is 0, including a set such
+as `dport { 18110, 18132 }`. `tcp dport 18110 accept` is still present.
+FAIL: any of those counts is not 0, the 18110 line is missing, or `nft -c -f`
+fails. Copy `$confbak` back over `/etc/nftables.conf` when that backup was
+taken, and stop. Do not reload the file.
+
+## History
+
+### 2026-10-28 rollback record
+
+The 2026-10-28 activation was rolled back after an immediate post-reload public
+challenge returned the Pages 404. Replaying the complete captured hub
+configuration returned 200 through both the PROXY listener and the SNI router.
+Reloading from the preceding configuration reproduced an immediate old-worker
+Pages 404 followed by 200 after handover. This establishes the reload race
+mechanism, not a retrospective proof of the production cause: historical
+worker lifecycle and per-request upstream counts were not captured. No
+registration location change follows from that observation.
+
+### 2026-10-30
+
+The 2026-10-30 hello-door activation was rolled back at 09:00 CT. The Spark
+nftables table `inet atlas_ingress` has its input chain on policy drop, and
+port 18132 is not accepted. Hub SYNs were dropped before they reached the
+systemd IP filter: 5 SYNs, 0 SYN-ACKs, and unit IP accounting at 0. The
+accept rule for tcp/18132 is not yet approved or applied. Adding it needs
+Drake's explicit approval. The earlier public-routing rollback is the
+[2026-10-28 rollback record](#2026-10-28-rollback-record).
 
 ## Remaining boundary
 

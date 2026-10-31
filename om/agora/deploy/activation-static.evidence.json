@@ -1,0 +1,15 @@
+{
+  "scope": "verification_oracles_only_not_production_deployment",
+  "checks": [
+    {"command": "python3 -m py_compile scripts/agora_activation_observers.py scripts/agora_activation_namespace.py scripts/test-agora-activation.py", "exit": 0, "stdout": "", "stderr": ""},
+    {"command": "/tmp/aienet-activation-lint/bin/pyflakes scripts/agora_activation_observers.py scripts/agora_activation_namespace.py scripts/test-agora-activation.py", "version": "3.2.0", "exit": 0, "stdout": "", "stderr": ""},
+    {"command": "node --check scripts/agora_activation_browser.mjs", "exit": 0, "stdout": "", "stderr": ""},
+    {"command": "/tmp/aienet-activation-lint/shellcheck-oracle/usr/bin/shellcheck om/agora/check.sh", "package": "shellcheck_0.9.0-1_arm64.deb", "exit": 0, "stdout": "", "stderr": ""}
+  ],
+  "prior_findings_fixed": ["SC1087: brace the variable before the literal character class in the mutation expression", "SC2016: document intentional literal systemd argv placeholders with narrow directives"],
+  "wolfram": {
+    "query": "UnitConvert[Quantity[{120,1.5},\"Seconds\"],\"Milliseconds\"]",
+    "raw_output": "Working...\nOut[1]= {Quantity[120000, \"Milliseconds\"], Quantity[1500., \"Milliseconds\"]}\nWall time: 40.01 seconds",
+    "route": "omp --print --no-session; mounted mcp__wolfram_wolframlanguageevaluator"
+  }
+}

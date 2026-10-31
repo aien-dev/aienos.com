@@ -10,7 +10,7 @@ use std::process::Command;
 pub const COMPONENTS: &[(&str, &str, &str, &str)] = &[
     // key, display name, repository, role (one line, ours)
     ("aienos", "aienux", "aien-dev/aienux", "The AienOS kernel: boot, scheduling, IPC and capability boundaries. Agent-first; the model is never the kernel."),
-    ("omega", "Omega", "aien-dev/omega", "Aien's language for all computing, GPU to CPU. On the GPU it is the replacement for CUDA."),
+    ("omega", "Omega", "aien-dev/omega", "Aien's language for all computing, GPU to CPU. Replacing CUDA is not true yet."),
     ("sovereign-core", "Sovereign core", "aien-dev/aien-sovereign-core", "Host runtime, inference ABI, and the pipeline that judges every change."),
     ("architecture", "Architecture", "aien-dev/aien-architecture", "Flows, boundaries, decision records, execution plan."),
     ("protocols", "Protocols", "aien-dev/aien-protocols", "Specifications, wire protocols, schemas."),
@@ -102,13 +102,11 @@ fn s(v: &serde_json::Value, key: &str) -> String {
     v.get(key).and_then(|x| x.as_str()).unwrap_or("").to_string()
 }
 
-/// The homepage forbids comparisons with other systems. A live PR title can
-/// contain one; such a merge is not rendered rather than rewritten.
+/// An unsourced comparison or an overclaim in a live PR title is not rendered.
+/// An honest comparison that is dated and backed by a receipt or by the other
+/// project's published numbers is kept. The title is not rewritten.
 fn comparison_title(t: &str) -> bool {
-    let l = t.to_ascii_lowercase();
-    ["faster than", "x faster", "llama.cpp", "vllm", "ollama", "beats ", "beat the"]
-        .iter()
-        .any(|w| l.contains(w))
+    !crate::components::machines::comparison_errors(t).is_empty()
 }
 
 /// The retired name is not rendered, including in an automatically collected
@@ -232,8 +230,8 @@ pub fn gather() -> Result<Facts, String> {
         .and_then(|m| m.lines().next())
         .unwrap_or("")
         .to_string();
-    // The homepage forbids comparisons with other systems. The receipt still
-    // names the commit and its link; a comparison in its title is not rendered.
+    // An unsourced comparison or an overclaim in the commit title is not
+    // rendered. The receipt still names the commit and its link.
     let commit_title = if comparison_title(&commit_title) {
         "Verification receipt for this commit".to_string()
     } else {

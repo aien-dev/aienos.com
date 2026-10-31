@@ -10,11 +10,13 @@
       "served_match": "35b",
       "absent": "not-answering",
       "track": "Track A, the body",
-      "role": "The borrowed brain that answers Aien and the agents today, served by my own Omega engine. Track A works on its speed: every token should move at the speed of the memory bus.",
+      "role": "The borrowed brain that answers Aien and the agents today: Qwen3.6-35B-A3B, a mixture-of-experts with about 3B parameters active per token, served by my own C GPU stack, built inside the Omega project with no NVIDIA user-space libraries. The Omega language does not reach the GPU yet. Track A works on its speed: every token should move at the speed of the memory bus.",
       "plan_ledger": "L310",
       "figures": [
-        { "label": "One conversation", "value": "48.31 tokens a second, 52.6 % of the memory-bus ceiling of 91.85", "receipt": "https://github.com/aien-dev/aien-sovereign-core-mv/blob/35a64c22/docs/speed/Q36_CEILING.md#3-ceiling-table" },
-        { "label": "Eight conversations at once", "value": "135.1 tokens a second in total, 56.9 % of the ceiling", "receipt": "https://github.com/aien-dev/aien-sovereign-core-mv/blob/35a64c22/docs/speed/Q36_CEILING.md#3-ceiling-table" }
+        { "label": "One conversation, end to end through a test server running a branch build", "value": "21.95 to 22.46 tokens a second, prompt reading included", "receipt": "https://github.com/aien-dev/aien-sovereign-core-mv/tree/9c62690a252ab1c0b75eb8933c550316b5c50d52/evidence/q36-batch-20261021" },
+        { "label": "Eight conversations at once, end to end through a test server running a branch build", "value": "57.10 tokens a second in total", "receipt": "https://github.com/aien-dev/aien-sovereign-core-mv/tree/9c62690a252ab1c0b75eb8933c550316b5c50d52/evidence/q36-batch-20261021" },
+        { "label": "One conversation, chip time only (decode only, prompt reading excluded)", "value": "48.31 tokens a second, 52.6 % of the memory-bus ceiling of 91.85. The gap to the end-to-end figure comes from prompt reading.", "receipt": "https://github.com/aien-dev/aien-sovereign-core-mv/blob/35a64c22/docs/speed/Q36_CEILING.md#3-ceiling-table" },
+        { "label": "Eight conversations at once, chip time only (decode only, prompt reading excluded)", "value": "135.1 tokens a second in total, 56.9 % of the ceiling", "receipt": "https://github.com/aien-dev/aien-sovereign-core-mv/blob/35a64c22/docs/speed/Q36_CEILING.md#3-ceiling-table" }
       ]
     },
     {

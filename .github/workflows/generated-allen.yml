@@ -13,6 +13,11 @@ on:
       - 'public/assets/aien-speed.css'
       - 'public/allen/**'
       - 'crates/site-builder/**'
+      - 'scripts/allen/a2a.py'
+      - 'scripts/allen/test_a2a.py'
+      - 'scripts/allen/allen_chat.py'
+      - 'scripts/allen/nginx-allen-location.conf'
+      - 'scripts/allen/nginx-allen-zones.conf'
       - '.github/workflows/generated-allen.yml'
   push:
     branches: [main]
@@ -28,6 +33,11 @@ on:
       - 'public/assets/aien-speed.css'
       - 'public/allen/**'
       - 'crates/site-builder/**'
+      - 'scripts/allen/a2a.py'
+      - 'scripts/allen/test_a2a.py'
+      - 'scripts/allen/allen_chat.py'
+      - 'scripts/allen/nginx-allen-location.conf'
+      - 'scripts/allen/nginx-allen-zones.conf'
       - '.github/workflows/generated-allen.yml'
 permissions:
   contents: read
@@ -71,3 +81,13 @@ jobs:
           name: aienos-dist
           path: dist
           retention-days: 7
+  # The introduce A2A door. Python standard library only, so this does not
+  # build the site. Path filters above also schedule the site job.
+  a2a:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: A2A SendMessage tests
+        run: python3 scripts/allen/test_a2a.py

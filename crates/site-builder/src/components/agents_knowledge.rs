@@ -133,9 +133,10 @@ pub fn render_agents_knowledge_page() -> Markup {
             section class="hub-section" id="verification-and-evidence" aria-labelledby="evidence-title" {
                 h2 id="evidence-title" class="hub-h2" { "How to verify claims" }
                 p {
-                    "AienOS adheres to strict verification doctrine: no claim without a public receipt. "
-                    "Speeds are never compared to arbitrary claims from other labs. Every measurement stands "
-                    "strictly beside the physical ceiling of that machine."
+                    "Sovereign Intelligence is the whole system, and AienOS is only the operating-system layer. No claim without a public receipt. "
+                    "A comparison with another project is allowed when it is honest, dated, and backed by a receipt "
+                    "or that project's own published numbers. Overclaims stay banned. Every measurement stands "
+                    "beside the physical ceiling of that machine."
                 }
                 ul class="agents-tour" {
                     li {
