@@ -1,6 +1,6 @@
 # AIEN agent rules (public edition)
 
-> These are the working rules every AIEN agent follows, published for any agent that works on an `aien-dev` repository. Read this file first, then the repository's own `AGENTS.md` (or `CLAUDE.md` when that is its instruction file). Where the two differ, the repository's file wins for that repository.
+> These are the working rules every AIEN agent follows, published for any agent that works on an `aien-dev` repository. This file and the repository's own `AGENTS.md` (or `CLAUDE.md` when that is its instruction file) are the only binding agent rules; section 8 lists what the other documents are. Read this file first, then the repository's file. Where the two differ, the repository's file wins for that repository.
 >
 > My own agents read the same rules plus a few that only make sense on the project's machine (local services, hardware reservations, how to report to the operator). Those are left out here because an outside agent cannot follow them.
 
@@ -48,6 +48,7 @@ The development method is Human-Directed Agentic Engineering (HDAE). I define th
 - No new trust path. Do not add a way for unverified code, keys or results to be accepted.
 - Verify before declaring done. Run the repository's own tests and build commands (listed in its instruction file) and quote the result. Compilation without the tests is an incomplete task. Inspect the actual changed behavior too: for a site, serve the built page and check its links and layout in a browser.
 - GPU and hardware claims need hardware evidence. A host-only run is labelled host-only; it does not qualify a chip.
+- Agent reviews, including reviews by different models under the same operator, do not count as independent verification.
 
 ## 5. Contributing
 
@@ -74,8 +75,35 @@ The development method is Human-Directed Agentic Engineering (HDAE). I define th
 - Write status as what was measured, where and when, not as adjectives.
 - Comparisons with other projects are allowed when they are honest, dated, and backed by a receipt or the other project's own published numbers. Overclaims stay banned (for example, a claim to be a replacement for CUDA, or to give everything CUDA gives you).
 
+## 8. Which documents bind
+
+- Binding: this file, and the repository's own `AGENTS.md` (or `CLAUDE.md`). The repository's file wins for its repository. Nothing else binds an agent.
+- Status and sequencing: `aien-dev/aien-architecture-mv` (`PLAN_AUTHORITY.md` and the files it names) is the authority for what is planned, in what order, and what milestone status is. It is not a source of agent behavior rules.
+- Statements of values: `CONSTITUTION.md`, `COVENANT.md`, `GOVERNANCE.md` and `AGENT_CODE_OF_CONDUCT.md` (in `aien-dev/.github` and the copies in other repositories), the Stapleton Doctrine, the Crumb Doctrine and the other research papers. They bind no agent. A rule from them binds only when it is written in this file or in a repository's `AGENTS.md`.
+- `.crumb` files describe a directory's role and invariants (section 2). They are facts about the code to read before working, not a separate source of rules. When a `.crumb` disagrees with the repository's `AGENTS.md`, follow `AGENTS.md` and report the stale `.crumb`.
+- Legal terms: `LICENSE`, `NOTICE` and the licensing sections of `CONTRIBUTING.md` are legal terms for contributions. This file does not change them.
+- Agent memory, including Cortex entries, is a lead to re-check, never evidence on its own. GitHub is canonical (section 2).
+
+Rules taken from those documents, with the check that enforces each one today:
+
+- Do not change repository or organization settings, branch protection, rulesets, signing keys, release tags, firewalls or anyone's access. Write the exact change in the pull request or issue and let the maintainer make it. Check: not enforced; only the permissions of the account the agent uses limit it.
+- Work on a branch and reach the default branch only through a pull request (section 5). Check: a repository ruleset requires a pull request on `main` of sovereign-intelligence, aien-sovereign-core-mv and omega-mv, with 0 required approvals. Not enforced on CUDApp, aienos.com or `.github`.
+- Run the repository's own build and test commands before a change merges (section 4). Check: enforced only where a required status check runs them. The only required check on a critical-path default branch is `index-check` on sovereign-intelligence.
+- Never write a secret to a repository, commit, pull request, issue or log (section 6). Check: GitHub secret scanning push protection blocks pushes that contain a supported token pattern on the critical-path repositories. Pull request text, issues and logs are not checked.
+- A pull request carries its commands and their output (section 5). Check: the organization pull request template asks for them; nothing reads them. Not enforced.
+
+## 9. Until alpha
+
+These hold until the maintainer declares alpha. The critical-path repositories are sovereign-intelligence, aien-sovereign-core-mv, omega-mv, CUDApp, aienos.com and `.github`.
+
+- The project's agents take only issues in the SI Alpha project. Check: not enforced.
+- Bot and agent reviews do not count as the review on a critical-path pull request. A human or an outside reviewer signs off. Check: not enforced; the rulesets require 0 approvals.
+- At most three critical-path deliverables are in progress or ready for review at once. Check: not enforced.
+- No repository renames, product renames or new repositories. Check: organization members cannot create repositories; owners can, so an agent working under an owner's account is not stopped. Renames are not enforced.
+- No new papers, doctrines, research pages or public capability claims. Corrections and retractions of existing claims are allowed and encouraged. Check: not enforced.
+
 ## Where to go next
 
 - Every repository and its own instructions: https://www.aienos.com/agents/
 - What the project's agents are doing right now: https://www.aienos.com/now/
-- The doctrine these rules come from: https://www.aienos.com/research/the-stapleton-doctrine/
+- The Stapleton Doctrine, a statement of values (it binds no agent): https://www.aienos.com/research/the-stapleton-doctrine/
