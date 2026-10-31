@@ -13,57 +13,57 @@
           "purpose": "Aien's pre-recorded voice clips (ElevenLabs Output, voice Aien Cosmic 1) and catalog.json listin"
         },
         {
-          "digest": "b8917c6f36b89eefce0ad992d3e57c834b50d2035a3316f3bdea333c1ae579c1",
-          "last_commit": "96d38f36",
+          "digest": "937ca48aa52a1bcdaea3533e8e508e7c154415294449fe8ff99c65be0eea2c1d",
+          "last_commit": "0804a190",
           "name": "alpha",
           "purpose": "Pinned alpha wizard source and unmodified terminal capture assets"
         },
         {
           "digest": "dce69fbca079800fa65f9374bf626ec2daa1b3c2aef46126d0645c8f3f8bb8dc",
-          "last_commit": "d266bc3a",
+          "last_commit": "a9c5dbbc",
           "name": "assets",
           "purpose": "Website styles including the project dashboard"
         },
         {
-          "digest": "701b00aacfafca2b32292040b1cb953054cf678a10665cbe32d0d5ca1a45614c",
-          "last_commit": "f33f701d",
+          "digest": "fbddcd26c59b9bf8dc30cfc42ba010787d5c934670fbe030b21b7c3552a636bc",
+          "last_commit": "37adb762",
           "name": "data",
           "purpose": "Published generated project measurements with pinned sources"
         },
         {
-          "digest": "f7663e11702c9495ea6de2f05d8ec832561970a0892403abbec155cf018405c5",
-          "last_commit": "3f268bbc",
+          "digest": "9ce5562cb449b0209c2cea73999b1dbee3148b40bea8034c591b60becc6d4210",
+          "last_commit": "85c98395",
           "name": "js",
           "purpose": "Browser interactions using public data only"
         },
         {
           "digest": "6ee328cab957d221721e988204b9ac7f6b4fdd2a9bfe3e474625ed4ce8fa898e",
-          "last_commit": "983b3b40",
+          "last_commit": "8f550982",
           "name": "licensing",
           "purpose": "Public static research or licensing pages using the shared website navigation"
         },
         {
-          "digest": "936828b67284e18ab0ab934dfa6010a80e0adf4ea6cf29753f304b9b5edba1ec",
-          "last_commit": "983b3b40",
+          "digest": "92ddc743ca7340b6a0f015a1ca78e1f6978e87f089182fe0bf1abc9e6b4fe48d",
+          "last_commit": "85c98395",
           "name": "post-llm-case",
           "purpose": "Public static research or licensing pages using the shared website navigation"
         },
         {
           "digest": "c484d91bbd5afaa165842ea77dcdf4cb921fb70a31ce8f730448c1fa21b3c242",
-          "last_commit": "99b3b4b9",
+          "last_commit": "e588e63b",
           "name": "research",
           "purpose": "Public static research or licensing pages using the shared website navigation"
         }
       ],
-      "children_root": "sha256:daa620a7d36712578d383abfba5e2d1fc1a6d21e38d0c004fd9f0c96cac53722",
-      "compiled_at": "2026-10-31T02:16:53Z",
+      "children_root": "sha256:fa4cf9853c77c1a9e00940ce3346841dcdf569868fbcf1436f8f8ca31481af19",
+      "compiled_at": "2026-10-31T11:22:00Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:7d71de59404d3cfde47cbcd23eae065e114799ec02ab26a80213a6c691d608a8",
+      "digest": "sha256:88e9c8620ad1f8336eda5f1cf895f131250f3b13a0de6c7a7da8ac655420ec17",
       "evidence_files": 1,
       "evidence_root": "sha256:63bece7cb299b29d19622dcb0de4cbaa623357b117d8c7643a562de286c4b2fb",
-      "files": 726,
-      "generated_at_commit": "4d7b9cdb59a3378500df2cfde793c1255b5b50ab",
-      "source_tree": "sha256:bb30633aaed0af0584f712b2ccfa17554989e264bf7de27476cf5d729904783a"
+      "files": 730,
+      "generated_at_commit": "6f1c828d5587a564860b40d81fc3ae67235a1014",
+      "source_tree": "sha256:24ab30d986d4801c53816c113656467b7756599909259d5229dd9beda8b512c2"
     }
   },
   "invariants": [
