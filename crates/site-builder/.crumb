@@ -7,27 +7,27 @@
     "generated": {
       "children": [
         {
-          "digest": "5ac0e9660e0f43d732f0c1df9cceec097ddc2e63d41e0052ee30d4e89368973c",
-          "last_commit": "d266bc3",
+          "digest": "896cb99445e96daaa70b38e27b9768a8a83cb07be4cbc018e91b4afb966b0390",
+          "last_commit": "f33f701d",
           "name": "src",
           "purpose": "Page assembly and site build verification"
         },
         {
-          "digest": "97b70f4dfde21c19074f20f8958f838ac4fcc6752eeb39d08fc873f9b8a9489f",
-          "last_commit": "e04299b",
+          "digest": "eae921a534bcf1dbeace156d677090e93082a521bf5ca66d8810597854066072",
+          "last_commit": "e04299ba",
           "name": "templates",
           "purpose": "Reviewed HTML templates for source-backed pages"
         }
       ],
-      "children_root": "sha256:7001985f6a5bfa666df2031d724f894f1d1a4f4e318300e5ef11b2d0c505f356",
-      "compiled_at": "2026-10-26T17:34:08Z",
+      "children_root": "sha256:dbce40a43f798e2876c019e3663517b9a0a47bdb2170ef61d20cab2fdea4ff2a",
+      "compiled_at": "2026-10-31T02:16:53Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:4228783934d36ef739c73f529706d47924f3c503d3ba4a693c48c9ac83b4e975",
+      "digest": "sha256:0e9573def314e9bff580fff65ccd174d919dce6bdaa8daf59b7ca6fd6cef2b96",
       "evidence_files": 0,
       "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "files": 51,
-      "generated_at_commit": "33ac3cdd984d8aa9bb30b7daaae3b96921332c53",
-      "source_tree": "sha256:d534469baf66fedbfaba0f9da02630152d8a549e24df6bb55595ef68febfb81b"
+      "files": 62,
+      "generated_at_commit": "4d7b9cdb59a3378500df2cfde793c1255b5b50ab",
+      "source_tree": "sha256:b1c543349ba2ef157defd1bdc62d8eb064e4a1802d386ea739f429bfb1e029bd"
     }
   },
   "invariants": [

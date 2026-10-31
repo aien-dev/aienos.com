@@ -1,0 +1,9 @@
+note edge: narrowing a value that does not fit traps 5, so the program exits 105
+note the masked store on line 6 is fine (300 and 255 = 44); the unmasked store on line 7 traps
+global b uchar 2
+fn main to int
+x = uint 300
+put b 0 uchar and x 255
+put b 1 uchar x
+ret int get b 0
+end

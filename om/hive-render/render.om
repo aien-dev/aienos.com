@@ -361,7 +361,7 @@ decimal div v 10
 end
 push uchar add rem v 10 48
 end
-text options "working|waiting|idle|completed|failed|unknown|running|finished|unknown|drake|assistant|"
+text options "working|waiting|idle|completed|failed|unknown|running|finished|unknown|assistant|"
 fn optmatch a ulong p ulong n ulong to bool
 if ne n get fld add a 1
 ret false
@@ -455,7 +455,7 @@ value add a 8 0 720
 take 44
 key 8
 value add a 10 0 20
-option add a 10 71 2
+option add a 10 71 1
 take 44
 key 9
 value add a 12 0 720
@@ -1678,7 +1678,7 @@ chat i
 end
 lit 56
 end
-text html "&amp;&lt;&gt;&quot;&#x27;Not reportedAfter snapshots<li class=\"hive-node\" id=\"node-\"><details id=\"branch-\" open><summary class=\"hive-record\"><a class=\"hive-select\" href=\"#agent=\" data-agent=\"\"></a><span class=\"hive-pill\"></span><span class=\"hive-chip\"> / </span><span class=\"hive-elapsed\"></span><span class=\"hive-activity\"></span></summary><p class=\"hive-small\">Observation  behind snapshot</p><ul class=\"hive-children\"></ul></details></li><details class=\"hive-manifest-card\" id=\"manifest-\"><summary></summary><div class=\"hive-manifest-body\"><dl class=\"hive-fields\"><dt>activity</dt><dd></dd><dt>activity state</dt><dd><dt>id</dt><dd><dt>model</dt><dd><dt>name</dt><dd><dt>observed at</dt><dd><dt>parent id</dt><dd><dt>provider</dt><dd><dt>role</dt><dd><dt>runtime</dt><dd><dt>started at</dt><dd><dt>status</dt><dd><dt>task</dt><dd><dt>updated at</dt><dd></dl></div></details><li class=\"hive-message\" id=\"message-\"><div class=\"hive-message-who\"><strong></strong><span class=\"hive-message-model\"></span><time></time></div><p class=\"hive-message-text\"></p></li><!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><meta http-equiv=\"refresh\" content=\"15\"><title>The Hive board | AienOS</title><link rel=\"stylesheet\" href=\"/assets/style.css\"><link rel=\"stylesheet\" href=\"/assets/hive.css\"></head><body><main class=\"hive\" id=\"hive-board\" data-generated=\"\" data-sequence=\"\" data-stale-after=\"15000\"><div class=\"hive-sections\"><section id=\"hive-strip\" class=\"hive-section hive-section-full\"><h1>The Hive board</h1><p id=\"hive-connection\">Snapshot observation, not a live connection guarantee.</p><p id=\"hive-freshness\">This no-script board reloads every 15 seconds. If its source timestamp stops advancing, the source is stale; last observation retained.</p><time id=\"hive-source-time\"></time><p id=\"hive-counts\"> agents /  missions</p><p id=\"hive-coverage\" class=\"hive-coverage\">: </p></section><section id=\"hive-tree-section\" class=\"hive-section hive-section-main hive-panel\"><div class=\"hive-panel-head\"><h2>Current missions</h2></div><div class=\"hive-panel-body\"><ul class=\"hive-tree\" id=\"hive-tree\"></ul></div></section><section id=\"hive-manifest\" class=\"hive-section hive-section-narrow hive-panel\"><div class=\"hive-panel-head\"><h2>Agent manifests</h2><p>Open a manifest below. Runtime observations are not proof of success.</p></div><div class=\"hive-panel-body\" id=\"hive-manifest-cards\"></div></section><section id=\"hive-chat-section\" class=\"hive-section hive-section-full\"><h2>Drake and the agents</h2><ol class=\"hive-chat\" id=\"hive-chat\" tabindex=\"0\"></ol></section></div></main></body></html>\n"
+text html "&amp;&lt;&gt;&quot;&#x27;Not reportedAfter snapshots<li class=\"hive-node\" id=\"node-\"><details id=\"branch-\" open><summary class=\"hive-record\"><a class=\"hive-select\" href=\"#agent=\" data-agent=\"\"></a><span class=\"hive-pill\"></span><span class=\"hive-chip\"> / </span><span class=\"hive-elapsed\"></span><span class=\"hive-activity\"></span></summary><p class=\"hive-small\">Observation  behind snapshot</p><ul class=\"hive-children\"></ul></details></li><details class=\"hive-manifest-card\" id=\"manifest-\"><summary></summary><div class=\"hive-manifest-body\"><dl class=\"hive-fields\"><dt>activity</dt><dd></dd><dt>activity state</dt><dd><dt>id</dt><dd><dt>model</dt><dd><dt>name</dt><dd><dt>observed at</dt><dd><dt>parent id</dt><dd><dt>provider</dt><dd><dt>role</dt><dd><dt>runtime</dt><dd><dt>started at</dt><dd><dt>status</dt><dd><dt>task</dt><dd><dt>updated at</dt><dd></dl></div></details><li class=\"hive-message\" id=\"message-\"><div class=\"hive-message-who\"><strong></strong><span class=\"hive-message-model\"></span><time></time></div><p class=\"hive-message-text\"></p></li><!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><meta http-equiv=\"refresh\" content=\"15\"><title>The Hive board | AienOS</title><link rel=\"stylesheet\" href=\"/assets/style.css\"><link rel=\"stylesheet\" href=\"/assets/hive.css\"></head><body><main class=\"hive\" id=\"hive-board\" data-generated=\"\" data-sequence=\"\" data-stale-after=\"15000\"><div class=\"hive-sections\"><section id=\"hive-strip\" class=\"hive-section hive-section-full\"><h1>The Hive board</h1><p id=\"hive-connection\">Snapshot observation, not a live connection guarantee.</p><p id=\"hive-freshness\">This no-script board reloads every 15 seconds. If its source timestamp stops advancing, the source is stale; last observation retained.</p><time id=\"hive-source-time\"></time><p id=\"hive-counts\"> agents /  missions</p><p id=\"hive-coverage\" class=\"hive-coverage\">: </p></section><section id=\"hive-tree-section\" class=\"hive-section hive-section-main hive-panel\"><div class=\"hive-panel-head\"><h2>Current missions</h2></div><div class=\"hive-panel-body\"><ul class=\"hive-tree\" id=\"hive-tree\"></ul></div></section><section id=\"hive-manifest\" class=\"hive-section hive-section-narrow hive-panel\"><div class=\"hive-panel-head\"><h2>Agent manifests</h2><p>Open a manifest below. Runtime observations are not proof of success.</p></div><div class=\"hive-panel-body\" id=\"hive-manifest-cards\"></div></section><section id=\"hive-chat-section\" class=\"hive-section hive-section-full\"><h2>What the agents are saying, live</h2><ol class=\"hive-chat\" id=\"hive-chat\" tabindex=\"0\"></ol></section></div></main></body></html>\n"
 fn lit k ulong to void
 p = ulong 0
 n = ulong 0
@@ -1904,10 +1904,10 @@ n = 290
 end
 if eq k 55
 p = 2462
-n = 166
+n = 178
 end
 if eq k 56
-p = 2628
+p = 2640
 n = 43
 end
 for i ulong n

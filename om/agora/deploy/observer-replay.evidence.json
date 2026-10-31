@@ -1,0 +1,3255 @@
+{
+  "status": "EXERCISED",
+  "claim": "Host native observer predicates and replay only, not deployment or later production gates. Exit2 is PENDING, never readiness.",
+  "base_commit": "9c6cdf148faf99f04a2ad944d3c32d85926f4272",
+  "compiler": {
+    "path": "/tmp/aienet-omc",
+    "omega_mv": "e5b32567",
+    "sha256": "2c82480596bbdc50cda9626866209ef662d5834f278f839ff4ce0250c495029f"
+  },
+  "source_and_binary_sha256": {
+    "om/agora/policy.om": "e3fb31ba9a7892519a193b8e3ec9c2f610ea4d7a3c89a329bd45a60176929fe3",
+    "om/agora/policy-check.om": "174ce7b224b35297e3c0b4610e70a740487f42c82147f8f286429ef91c558e40",
+    "om/agora/observer-check.om": "c1c5d3bed3df5e2ca69a83370a0802807ebe43cf674dd5fbde831dac3a83177d",
+    "om/agora/check.sh": "b324f8112900fe646b5e49b80666642ae63f52337662c4116567bfc250139338",
+    "om/agora/deploy/DEPLOY.md": "9c475f01d2a8c64a69a570acbb5d24f55646fc9fdf8798a462452b5a676acc3a",
+    "compiled_observer": "0438b1b5547ff63a919fd73a7267821e54a045e095d16d937517e73731a22d83",
+    "compiled_policy": "0bf98775c01d0cb4ddc2bd0d99193bd1825782206d4a3540e2b0993dba7d3eb0"
+  },
+  "capture_sha256": {
+    "E": "cf845f9311f6e89418934205a5c8891ed90d89deed6f192d83559f6a5056d243",
+    "F": "803a2617c13097634ec85753b74726172d1144af7ec91bee17e68ad813d9534e"
+  },
+  "captured_baselines": [
+    {
+      "id": "E-unit",
+      "source_arguments": [
+        "unit",
+        "RAW:E:/commands/42/stdout",
+        "$E_PID",
+        "$USER",
+        "$GROUP",
+        "$PROXY_PREFIX",
+        "$LOCAL_PREFIX",
+        "$FRAGMENT",
+        "$DROPIN"
+      ],
+      "expected_exit": 0
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured",
+      "source_arguments": [
+        "unit",
+        "RAW:F:/commands/121/stdout",
+        "$F_PID",
+        "$USER",
+        "$GROUP",
+        "$PROXY_PREFIX",
+        "$LOCAL_PREFIX",
+        "$FRAGMENT",
+        "$DROPIN"
+      ],
+      "expected_exit": 0
+    },
+    {
+      "id": "E-effective-state",
+      "source_arguments": [
+        "state",
+        "RAW:E:/commands/42/stdout",
+        "$CONTROLGROUP"
+      ],
+      "expected_exit": 0
+    },
+    {
+      "id": "F-ExecStart-display",
+      "source_arguments": [
+        "exec",
+        "RAW:F:/commands/121/stdout",
+        "$EXE",
+        "$DISPLAY_ARGV",
+        "$F_PID"
+      ],
+      "expected_exit": 0
+    },
+    {
+      "id": "E-preexec-ps",
+      "source_arguments": [
+        "ps",
+        "RAW:E:/commands/43/stdout",
+        "$E_PID",
+        "$USER",
+        "$GROUP",
+        "$RESOLVED_ARGV"
+      ],
+      "expected_exit": 2
+    },
+    {
+      "id": "F-changing-exec",
+      "source_arguments": [
+        "snapshot",
+        "$F_PID",
+        "RAW:F:/commands/105/stdout",
+        "RAW:F:/commands/106/stdout",
+        "RAW:F:/commands/107/stdout",
+        "RAW:F:/commands/108/stdout",
+        "RAW:F:/commands/109/stdout",
+        "RAW:F:/commands/110/stdout",
+        "RAW:F:/commands/111/stdout",
+        "$EXE",
+        "$UID",
+        "$GID",
+        "$ENDPOINT",
+        "SCALAR:F:/startup/observations/0/elapsed_ns",
+        "$LIMIT_NS"
+      ],
+      "expected_exit": 2
+    },
+    {
+      "id": "F-stable-owned-listener",
+      "source_arguments": [
+        "snapshot",
+        "$F_PID",
+        "RAW:F:/commands/112/stdout",
+        "RAW:F:/commands/113/stdout",
+        "RAW:F:/commands/114/stdout",
+        "RAW:F:/commands/115/stdout",
+        "RAW:F:/commands/116/stdout",
+        "RAW:F:/commands/117/stdout",
+        "RAW:F:/commands/118/stdout",
+        "$EXE",
+        "$UID",
+        "$GID",
+        "$ENDPOINT",
+        "SCALAR:F:/startup/observations/1/elapsed_ns",
+        "$LIMIT_NS"
+      ],
+      "expected_exit": 0
+    },
+    {
+      "id": "E-late-journal-provenance-only",
+      "source_arguments": [
+        "journal",
+        "JSON:E:/first_failure/subsequent_listen_journal_metadata/0",
+        "$E_PID",
+        "$UID",
+        "$GID",
+        "$EXE",
+        "$UNIT",
+        "$MESSAGE",
+        "$RESOLVED_ARGV",
+        "1793202905374536",
+        "1793202905374536"
+      ],
+      "expected_exit": 0
+    },
+    {
+      "id": "F-explicit-ancestor-policies",
+      "source_arguments": [
+        "ancestors",
+        "RAW:F:/commands/28/stdout",
+        "2"
+      ],
+      "expected_exit": 0
+    }
+  ],
+  "replay_count": 271,
+  "replay_mismatches": 0,
+  "public_fixture_notice": "Addresses in this public fixture are RFC5737 substitutions. Each public case was also executed. captured_replay_exit came from the unchanged actual source capture or the explicitly named one-field mutant of it; public replacements are never described as raw production captures.",
+  "public_baselines": {
+    "E-unit": [
+      "unit",
+      "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n",
+      "2319347",
+      "aien-agora",
+      "aien-agora",
+      "192.0.2.10/32",
+      "127.0.0.1/32",
+      "/etc/systemd/system/aien-agora.service",
+      "/etc/systemd/system/aien-agora.service.d/proxy.conf"
+    ],
+    "F-unit-reversed-deny-as-captured": [
+      "unit",
+      "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n",
+      "736362",
+      "aien-agora",
+      "aien-agora",
+      "192.0.2.10/32",
+      "127.0.0.1/32",
+      "/etc/systemd/system/aien-agora.service",
+      "/etc/systemd/system/aien-agora.service.d/proxy.conf"
+    ],
+    "E-effective-state": [
+      "state",
+      "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n",
+      "/system.slice/aien-agora.service"
+    ],
+    "F-ExecStart-display": [
+      "exec",
+      "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n",
+      "/opt/aien/bin/agora",
+      "/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20",
+      "736362"
+    ],
+    "E-preexec-ps": [
+      "ps",
+      "2319347 root     root     (agora)\n",
+      "2319347",
+      "aien-agora",
+      "aien-agora",
+      "/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20"
+    ],
+    "F-changing-exec": [
+      "snapshot",
+      "736362",
+      "736362\n",
+      "/usr/lib/systemd/systemd-executor\n",
+      "  976   964\n",
+      "",
+      "/opt/aien/bin/agora\n",
+      "  976   964\n",
+      "736362\n",
+      "/opt/aien/bin/agora",
+      "976",
+      "964",
+      "192.0.2.20:18132",
+      "90684745",
+      "10000000000"
+    ],
+    "F-stable-owned-listener": [
+      "snapshot",
+      "736362",
+      "736362\n",
+      "/opt/aien/bin/agora\n",
+      "  976   964\n",
+      "LISTEN 0      64     192.0.2.20:18132 0.0.0.0:* users:((\"agora\",pid=736362,fd=4))\n",
+      "/opt/aien/bin/agora\n",
+      "  976   964\n",
+      "736362\n",
+      "/opt/aien/bin/agora",
+      "976",
+      "964",
+      "192.0.2.20:18132",
+      "186443551",
+      "10000000000"
+    ],
+    "E-late-journal-provenance-only": [
+      "journal",
+      "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}",
+      "2319347",
+      "976",
+      "964",
+      "/opt/aien/bin/agora",
+      "aien-agora.service",
+      "listening 18132",
+      "/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20",
+      "1793202905374536",
+      "1793202905374536"
+    ],
+    "F-explicit-ancestor-policies": [
+      "ancestors",
+      "IPAddressAllow=\nIPAddressDeny=\n\nIPAddressAllow=\nIPAddressDeny=\n",
+      "2"
+    ]
+  },
+  "cases": [
+    {
+      "id": "E-unit",
+      "baseline": "E-unit",
+      "argument_overrides": {},
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "32294b0efd5d7cde9c081afead8410879193a20742328dc7d0a1c27233aa0dcf"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {},
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "0d87c040f3a231269ad85e455e278740ca420eb0a14d5c8b0c6a349d95e94752"
+    },
+    {
+      "id": "E-effective-state",
+      "baseline": "E-effective-state",
+      "argument_overrides": {},
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "a7299b8da803a425dc20d5d4f1089b30eefbfb71dc4325c46be231c5561ec7fd"
+    },
+    {
+      "id": "F-ExecStart-display",
+      "baseline": "F-ExecStart-display",
+      "argument_overrides": {},
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "d1857ca2fb833badf5dc1640b96bae41b98d4389fab573df58bb12dcef3ac100"
+    },
+    {
+      "id": "E-preexec-ps",
+      "baseline": "E-preexec-ps",
+      "argument_overrides": {},
+      "expected_exit": 2,
+      "captured_replay_exit": 2,
+      "public_replay_exit": 2,
+      "original_argv_sha256": "986378d48f15c3acc3e4a01bf5a7ff4c59ded31cc854301169f72002c91e8d92"
+    },
+    {
+      "id": "F-changing-exec",
+      "baseline": "F-changing-exec",
+      "argument_overrides": {},
+      "expected_exit": 2,
+      "captured_replay_exit": 2,
+      "public_replay_exit": 2,
+      "original_argv_sha256": "40748c6bf71390ed29743805e30dd0ea003f328e76ce370de18265e42ff5117d"
+    },
+    {
+      "id": "F-stable-owned-listener",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {},
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "e6eadf359bea5d68d179e2814e585bed6085a916a85ef9676ae252897e44465e"
+    },
+    {
+      "id": "E-late-journal-provenance-only",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {},
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "cb1242b85cfa89e0801306d03f75026615bee99136937926b45451322f2eb8ae"
+    },
+    {
+      "id": "E-unit:MainPID-changed",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=1\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "a1b1f13fd385a044b5221480906af710abdd6ec83fd93c0657577886e9acb742"
+    },
+    {
+      "id": "E-unit:MainPID-removed",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "ControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "6940e6e2de21672c075e9e03853cebb7c357fe97745e76d55c54b2cf11388189"
+    },
+    {
+      "id": "E-unit:MainPID-empty",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "dfefb8f9d6fa27eab5e56a699739dd38ef82924db2f9f38537a8af7ccdbccba9"
+    },
+    {
+      "id": "E-unit:MainPID-duplicate",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\nMainPID=2319347\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "a0550d357704496b7d2253651a7c115ee33f3f323adf8e0a922b065af14c48b1"
+    },
+    {
+      "id": "E-unit:User-changed",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=unexpected\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "bf148ea5131db47299829b4cf91f64d6101f636b21117f29d054b8625f3b8bb5"
+    },
+    {
+      "id": "E-unit:User-removed",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "a6e84463a0dc058ded1cbb49dfab3c17b5e29b311a4745e6724ddf24ec6c27b4"
+    },
+    {
+      "id": "E-unit:User-empty",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "c54270e29610acbe97faefdc80a30894ae03d849c715cfb0112f8f1e32f665d7"
+    },
+    {
+      "id": "E-unit:User-duplicate",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\nUser=aien-agora\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "3af8026183afe2ae6c7729557b437615d25799babefa77fbfd4bbacfa454f574"
+    },
+    {
+      "id": "E-unit:Group-changed",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=unexpected\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "2c2caf5948c84774caceb1e88338fe7aecfd7fbfb2f42944099085c29e429257"
+    },
+    {
+      "id": "E-unit:Group-removed",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "0d3e67ff8910af025e3015e78039ea7b69a8b061854b96feeb1f6d0342792825"
+    },
+    {
+      "id": "E-unit:Group-empty",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "309db6469add769f02b1861bdc841a62b58dc22b2c4e07d50867649c7c269071"
+    },
+    {
+      "id": "E-unit:Group-duplicate",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\nGroup=aien-agora\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "703fef1e5c4dadc68725cdd0f64ca794d263f2aa5d8b0e1243bd6852b9bece18"
+    },
+    {
+      "id": "E-unit:FragmentPath-changed",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=unexpected\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "b02f81e098ae0de52749a7c8423321a8c22760187ed32408e5e23492b1399579"
+    },
+    {
+      "id": "E-unit:FragmentPath-removed",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "ba1c042459f1a22b83c1698fb9b31283293d603d01ca5cf5b6d11a7c53563d80"
+    },
+    {
+      "id": "E-unit:FragmentPath-empty",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "40464a610fc79f76142709c9e4e8e0f8aea5f5348dfe522c1db8332ff3e9e2a6"
+    },
+    {
+      "id": "E-unit:FragmentPath-duplicate",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\nFragmentPath=/etc/systemd/system/aien-agora.service\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "009fcf0bdaaceed9d6386e7c103a849261e6c40629f8900dac9bbc34ea6a3fbd"
+    },
+    {
+      "id": "E-unit:DropInPaths-changed",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=unexpected\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "20966345c4630fdac06406ee80ab5b550dff4cf58c3a373301abfdb5dbbdabed"
+    },
+    {
+      "id": "E-unit:DropInPaths-removed",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "f9de4d04e0f57c0315a22bdb322fe1905da5da05cb5d14800c706e04139b4179"
+    },
+    {
+      "id": "E-unit:DropInPaths-empty",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "2adbc026efa7d3a5ba8f88667b6259e01245f02bd4af1c19189430b48e421beb"
+    },
+    {
+      "id": "E-unit:DropInPaths-duplicate",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "2592ab64c401e6394950b9465458cfab66cd52e1877fdb825d53e89359eb7ff8"
+    },
+    {
+      "id": "E-unit:IPAddressAllow-changed",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=unexpected\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "72e8dc9bb51dc93ebf11a3142251973636efdc18d5ba4943b9a2f293e981945d"
+    },
+    {
+      "id": "E-unit:IPAddressAllow-removed",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "93f342ced011446fe23adc8954961b87ae3d2c6f52b67fd6d48c230efdb79c25"
+    },
+    {
+      "id": "E-unit:IPAddressAllow-empty",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "7e8156c47a90a9cb825a718db3f2b5b863404394a3040c411d051cce540a4b9c"
+    },
+    {
+      "id": "E-unit:IPAddressAllow-duplicate",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "b420472dc7c82a803012801614bb13e86c936d6febf2cb3ffa2d3da4301c0ca8"
+    },
+    {
+      "id": "E-unit:IPAddressDeny-changed",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=unexpected\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "29d648bad953a520d3b072c914977c0886a69eb8b443bb7834e08dd87e94c008"
+    },
+    {
+      "id": "E-unit:IPAddressDeny-removed",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "1c054eeed0cfb30f986fdea9bb3ff7a83f488a3313397029bdbd73655cc2b962"
+    },
+    {
+      "id": "E-unit:IPAddressDeny-empty",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "5fbaa96fc8d6c024843e87c7e570fb9597066ba797d5a0562afb1be275f7a9a5"
+    },
+    {
+      "id": "E-unit:IPAddressDeny-duplicate",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\nIPAddressDeny=::/0 0.0.0.0/0\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "bb2b173452ab3eb56ec2004138c8f82dabfa2e317a235f3d9bc014324fdfec0a"
+    },
+    {
+      "id": "E-unit:IPAddressAllow-192.0.2.10/32-changed",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 198.51.100.99/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "f418c80a76c0d163c0e93b394929dfbd83a6bc5edd48f3b84ab0c552863268ad"
+    },
+    {
+      "id": "E-unit:IPAddressAllow-192.0.2.10/32-removed",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "75a52384491892a2616b6eeca1e71bef2f803aaa5548236c7e33bc04d614a262"
+    },
+    {
+      "id": "E-unit:IPAddressAllow-127.0.0.1/32-changed",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=198.51.100.99/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "8bddda59e58cf19411dae23c995530aefff80f7ba5a552b0bb3756d94402663f"
+    },
+    {
+      "id": "E-unit:IPAddressAllow-127.0.0.1/32-removed",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "6658ef8495c6d77dba4fb8ab40cf0b6593963e3e9eb067116089d61d13ae2ac6"
+    },
+    {
+      "id": "E-unit:IPAddressDeny-0.0.0.0/0-changed",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 198.51.100.99/32\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "ffd43859b9c73c4348328d1f6432ee593446434ad1fd57604b3024c463dcd93c"
+    },
+    {
+      "id": "E-unit:IPAddressDeny-0.0.0.0/0-removed",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "c5c6db5f3b94bd936fc0fb1cf096b40978a2ce47b257504e3c6b0691e0bcd536"
+    },
+    {
+      "id": "E-unit:IPAddressDeny-::/0-changed",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=198.51.100.99/32 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "0fb1026dce9f78c46ae7a8d04bd8eca00bae022639cfbbae0956c7ae1dcc4d23"
+    },
+    {
+      "id": "E-unit:IPAddressDeny-::/0-removed",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "52246344829608bfbb22f910623a8f431684ff0fe96f45dd682bdf87d1ac2221"
+    },
+    {
+      "id": "E-unit:IPAddressAllow-extra-198.51.100.99/32",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32 198.51.100.99/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "6a7ae94d1af693b2c86c533ae6e70dd6a3e99d9a6eccfc836c43ffd82e310a14"
+    },
+    {
+      "id": "E-unit:IPAddressAllow-extra-0.0.0.0/0",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32 0.0.0.0/0\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "b7d77081cbdc9a61f568e0f453ac2e5557e3cebf7d86fb140f936b369f864d10"
+    },
+    {
+      "id": "E-unit:IPAddressAllow-extra-::/0",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32 ::/0\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "3fca6cc79dc478de537a70ee4a19ae5bdb92168a0110132dc211355b2fc10bb0"
+    },
+    {
+      "id": "E-unit:IPAddressDeny-extra-198.51.100.99/32",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0 198.51.100.99/32\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "89bb513ab317c4fa42908a7bcd91504ff447e06c36f56759c25836581fb951dc"
+    },
+    {
+      "id": "E-unit:reversed-property-order",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "DropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\nFragmentPath=/etc/systemd/system/aien-agora.service\nSubState=running\nActiveState=active\nGroup=aien-agora\nUser=aien-agora\nIPAddressDeny=::/0 0.0.0.0/0\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAccounting=yes\nControlGroup=/system.slice/aien-agora.service\nMainPID=2319347\n"
+      },
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "bfd122ea777c77f20cbae44b2135ef4beff250924d367a615119f47e805a1813"
+    },
+    {
+      "id": "E-unit:numeric-leading-zero",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=02319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "277441db1a674732eb7c151fc9d970f068cf35de5852f2fcdf518d62d0222160"
+    },
+    {
+      "id": "E-unit:policy-normal",
+      "baseline": "E-unit",
+      "argument_overrides": {},
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "32294b0efd5d7cde9c081afead8410879193a20742328dc7d0a1c27233aa0dcf"
+    },
+    {
+      "id": "E-unit:policy-reverse",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=192.0.2.10/32 127.0.0.1/32\nIPAddressDeny=0.0.0.0/0 ::/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "fa68d396e30c8cbb0a8b5152c0bc6c00453b3788657d491daa3d56b3d171c771"
+    },
+    {
+      "id": "E-unit:policy-whitespace",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32\t  192.0.2.10/32\nIPAddressDeny=::/0\t  0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "e89ca948dc7762502521682cec6ac142a56e3280fa4dbd43794a0e4803136f67"
+    },
+    {
+      "id": "E-unit:policy-known-duplicates",
+      "baseline": "E-unit",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32 127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0 ::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "ebb8ce572169c31b0d99f6d7ce42fd4300d9b814a58516af22e9881a5549e28f"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:MainPID-changed",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=1\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "8fcfb13e0bb20c3a82e756662188bed6c478a112f2f2defafecd5e37c11b89e4"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:MainPID-removed",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "ExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "b4d07acbf73d02cd9122f0c0ab856455009d57b76c6ea6c481c7e0c2e54248d5"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:MainPID-empty",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "001dc24049c7373be1090f1f58297636987cdd3122b225756748c40731adb128"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:MainPID-duplicate",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\nMainPID=736362\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "2fe0fdc797193ba6276c4d40d430cf9717c915cad74e1d98e93a8eae193cf2fd"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:User-changed",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=unexpected\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "92d7f64e3161681e7720be55edd090c9553c1267bfc7eca8877cdba0ba7994b3"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:User-removed",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "bf65d9212fd9d2e172000b8e1ed17818aeb99762c24f965c9b074423a2c192c1"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:User-empty",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "6752047bfbe71956290b897da676897c56ceab255e720f55078a1457e7484a66"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:User-duplicate",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\nUser=aien-agora\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "e6f154568be16cea5ec52f90036cf9d2940367b47b5e298869be9ea559cafe12"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:Group-changed",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=unexpected\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "f92958f2ebe72ad3218442082f7048bc997a4273534e1b800581fdc6868f3e53"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:Group-removed",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "f69381219b9edfeef9faaea43beba1064488293b14d400b30f7a3fbf651673d8"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:Group-empty",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "903ac22d9cee0e39e926d2f3ea6b0b47b39dc00b5db34834c99863b90d4272bc"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:Group-duplicate",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\nGroup=aien-agora\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "74d372d4664be3d0ccc7b937229fef73d38852e7410d02c65312888524e7baff"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:FragmentPath-changed",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=unexpected\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "dabc3975135474f94a1db7e19ed78ba493d53c22c668aa5bb94a6f7929b3beee"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:FragmentPath-removed",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "c735f7fde9f21d28369cc046a5716eac18632d7db4f221aec091523995af8a7e"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:FragmentPath-empty",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "aa6395d64dc5acd6a486e3f36c0ea4bccc623d93957d7602f28ee02ca972f850"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:FragmentPath-duplicate",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\nFragmentPath=/etc/systemd/system/aien-agora.service\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "1df02d4ee6ddfb1c7e1dade7b38529dde6fc590ee5c5438b0dbaf6a19df4f88e"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:DropInPaths-changed",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=unexpected\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "19b6b5444146d315df3416a13ea9c291aa8cec64e9aea4933e257205130cc5db"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:DropInPaths-removed",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "54c234e5b2d665c640d19eda0f3ecee0fbfff5dfb28b0f9ebe036882af83709b"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:DropInPaths-empty",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "dd50752f967e9b75093dba0165245a46d703962b5104f3e7d992d32e4b4338d2"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:DropInPaths-duplicate",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "a61ffab8c81cf0957fdb0c00eadc6d33209c48155b2b332beb9c806c7d50cf13"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:IPAddressAllow-changed",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=unexpected\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "579f6e7859c07a8cb608af0a16aa2ca704687773013e97ef50584160951b53e9"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:IPAddressAllow-removed",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "a3bcf65fc0b8daeab4c99580bcbc354cfec7b7cdfd0c0b31bf7fe8b890c67067"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:IPAddressAllow-empty",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "31cf2737794bf480bfd4037bcff216fb005a76044dbac4b9d109fb3a168ee44c"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:IPAddressAllow-duplicate",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "036659dc5ad28dff4489dc8034991e30dda3044171d92858e957bc8fad40900d"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:IPAddressDeny-changed",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=unexpected\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "143fe434745cf4f780f1e7480994b225c872459b0ab35d400839c7286ed8cdc5"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:IPAddressDeny-removed",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "b615997ccd7de4f047f92e34f443d6473636a445427270b1f60ac13ab9a619ae"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:IPAddressDeny-empty",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "6d50e999907c671b1b18aa64398e008c35a66e49b332444aece3cc5632504590"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:IPAddressDeny-duplicate",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\nIPAddressDeny=::/0 0.0.0.0/0\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "00717c26cf42978861b253bdde6ec6a93d88f18c1175803c3d8589c0d6291b7d"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:IPAddressAllow-192.0.2.10/32-changed",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 198.51.100.99/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "6e142e5c713195a1137bfe3e5a92f4d15ed224e4dbc986c21d16c71899fe4bb4"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:IPAddressAllow-192.0.2.10/32-removed",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "61f949eeba3b07ac1a3774753a9290ef54ba397bdc986de6fe825c5ee08dcc29"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:IPAddressAllow-127.0.0.1/32-changed",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=198.51.100.99/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "e7667193fb93728c7282799352962bac9930a5b7e8650d9833f9c4fc04bb2b12"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:IPAddressAllow-127.0.0.1/32-removed",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "dd281bbac2e4251f160e2818d8048a0bdcd2a09cc97da2df482197e34a0fc9b2"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:IPAddressDeny-0.0.0.0/0-changed",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 198.51.100.99/32\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "31fe7287e3ee15eeae5f134e50eb4afdf03b248d0b8032f001b29def8621c964"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:IPAddressDeny-0.0.0.0/0-removed",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "14074b3954d7bcc193215765fc3d31e697c4fb75ae7e5112fc49498dd0ccfc87"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:IPAddressDeny-::/0-changed",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=198.51.100.99/32 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "1c24eabec943f45aa7c4566a3763463511fdee773da9cb843d033c10533f3f38"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:IPAddressDeny-::/0-removed",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "ff9479dce69b709af14e1dced4da4ea0aeda856ffecefb6f242bf81f0afb1386"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:IPAddressAllow-extra-198.51.100.99/32",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32 198.51.100.99/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "3b76cca9e520b571906a463d95bfa06468c17f333ce4596ae41f1ae3dc788b8a"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:IPAddressAllow-extra-0.0.0.0/0",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32 0.0.0.0/0\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "b8ea8e5eca280b765085f5848229f270b8b7b0029bae74dacd915e6b6c3065cd"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:IPAddressAllow-extra-::/0",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32 ::/0\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "5de5590952d83f38272af732adb54a4ea2314e8df61751c4c7584265082b4a33"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:IPAddressDeny-extra-198.51.100.99/32",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0 198.51.100.99/32\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "feed589321e31a5d246aa5d9a034653a8b2771fdc2131663ff9fa4aef668ddad"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:reversed-property-order",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "DropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\nFragmentPath=/etc/systemd/system/aien-agora.service\nGroup=aien-agora\nUser=aien-agora\nIPAddressDeny=::/0 0.0.0.0/0\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nMainPID=736362\n"
+      },
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "fe0ccfb804a98d5d68b617833e4b0249199ff03349b469a93c369e6e4f71742f"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:numeric-leading-zero",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=0736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "99333330bb280ac165c931505e7809ab570ae92ec6d7d86d316101d598a558b0"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:policy-normal",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {},
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "0d87c040f3a231269ad85e455e278740ca420eb0a14d5c8b0c6a349d95e94752"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:policy-reverse",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=192.0.2.10/32 127.0.0.1/32\nIPAddressDeny=0.0.0.0/0 ::/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "6cc02067ba5d53e03c96da6f2572cdae0a1ab20b71ff76e691cae9d5a09d2302"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:policy-whitespace",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32\t  192.0.2.10/32\nIPAddressDeny=::/0\t  0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "4ad5b9c695f7eac23a28bc71608d235a5116878f3aded7caf433ad7cbe5173a1"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:policy-known-duplicates",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32 127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0 ::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "5b181383ebcc53b45f39745f4615320753e3e6024122d87359c43a4c82352a4e"
+    },
+    {
+      "id": "E-effective-state:ActiveState-changed",
+      "baseline": "E-effective-state",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=inactive\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "f6fe92dd5e32e766c25c3345234ae70fee2b53b6275ccf609103bba24426f3a7"
+    },
+    {
+      "id": "E-effective-state:ActiveState-removed",
+      "baseline": "E-effective-state",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "baa78018db938d3b0a3bf12e4932ccb951e530c844cc781be983dcf514add2c9"
+    },
+    {
+      "id": "E-effective-state:ActiveState-empty",
+      "baseline": "E-effective-state",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "113ed762191db921611b11ee36ce336ba8a9734994b0b6aad6bc14d89d083e95"
+    },
+    {
+      "id": "E-effective-state:ActiveState-duplicate",
+      "baseline": "E-effective-state",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\nActiveState=active\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "d5c973c51c3720148f43972f48704118ffd64bc81d1da4adc991c4ff2e767757"
+    },
+    {
+      "id": "E-effective-state:SubState-changed",
+      "baseline": "E-effective-state",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=dead\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "0feb40f9b4cc33547e37b9491cac915b45e44e85d7a76760efe183dd3dc13b2d"
+    },
+    {
+      "id": "E-effective-state:SubState-removed",
+      "baseline": "E-effective-state",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "5515363f22b62ad0f82b19fda21fbd38ff35373ce9c4ca841715af85f5af1f35"
+    },
+    {
+      "id": "E-effective-state:SubState-empty",
+      "baseline": "E-effective-state",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "085ee87dd4c3d1883c2e86b296c76ff7aa8a2035097ab93ea5ee780b95496604"
+    },
+    {
+      "id": "E-effective-state:SubState-duplicate",
+      "baseline": "E-effective-state",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\nSubState=running\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "ba002be3549bfa2cc59a7ad0a8768bdd7a115f4d123cf38056790145e5ba6836"
+    },
+    {
+      "id": "E-effective-state:IPAccounting-changed",
+      "baseline": "E-effective-state",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=no\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "e69f1e32cc3523ad968a53a304e6e66721929952672867280354032fab8786b1"
+    },
+    {
+      "id": "E-effective-state:IPAccounting-removed",
+      "baseline": "E-effective-state",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "2681694dff149fab5bca636bc5fbbf40cb54b0479e4be90626f7503d7e210c22"
+    },
+    {
+      "id": "E-effective-state:IPAccounting-empty",
+      "baseline": "E-effective-state",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "90b734ed33ef37a64be4ef659ec7a78da81a7e69ef85236b138d2c10ee57fd03"
+    },
+    {
+      "id": "E-effective-state:IPAccounting-duplicate",
+      "baseline": "E-effective-state",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\nIPAccounting=yes\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "cd1ab0cff3b2b95223f5255f3bf7a8780409641605ad07d6c4833513e2c17e80"
+    },
+    {
+      "id": "E-effective-state:ControlGroup-changed",
+      "baseline": "E-effective-state",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/unexpected\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "17ddd3d4168635bca148d3e95d1a6059398a02673e287c65ceacc4076c080a7f"
+    },
+    {
+      "id": "E-effective-state:ControlGroup-removed",
+      "baseline": "E-effective-state",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "8451e9770516b3ea7f9ff7deb30529aa06b208dc260d3a07bff95bdfb55a2f1d"
+    },
+    {
+      "id": "E-effective-state:ControlGroup-empty",
+      "baseline": "E-effective-state",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "710a9d8ec542ca0abd6a95abd9bed8d67847899e37dc1cef56545ec69708ad85"
+    },
+    {
+      "id": "E-effective-state:ControlGroup-duplicate",
+      "baseline": "E-effective-state",
+      "argument_overrides": {
+        "1": "MainPID=2319347\nControlGroup=/system.slice/aien-agora.service\nIPAccounting=yes\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nActiveState=active\nSubState=running\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\nControlGroup=/system.slice/aien-agora.service\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "d2cb9114b4cd216b35b40528b759f338a5e4bad1b4cb3ec04917395e31daa365"
+    },
+    {
+      "id": "E-effective-state:reverse-property-order",
+      "baseline": "E-effective-state",
+      "argument_overrides": {
+        "1": "DropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\nFragmentPath=/etc/systemd/system/aien-agora.service\nSubState=running\nActiveState=active\nGroup=aien-agora\nUser=aien-agora\nIPAddressDeny=::/0 0.0.0.0/0\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAccounting=yes\nControlGroup=/system.slice/aien-agora.service\nMainPID=2319347\n"
+      },
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "1aeedd984d9d08219d946928e862353ecdab2c0209a34a6f92eb0ae4bdd0f694"
+    },
+    {
+      "id": "F-ExecStart-display:path=changed",
+      "baseline": "F-ExecStart-display",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/unexpected ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "f9dbd0a3e0b812655fefc19fe1c4bee1230971ce23923fe17e1650e0b7b65ed7"
+    },
+    {
+      "id": "F-ExecStart-display:path=removed",
+      "baseline": "F-ExecStart-display",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={  argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "2a50d5212f9ffab25ef3bad1fbd8abc01ddd0a519d4190a8521f13ad5f07b6fa"
+    },
+    {
+      "id": "F-ExecStart-display:path=empty",
+      "baseline": "F-ExecStart-display",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path= ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "c8a8dd628612631f1f5b82416d2af93d087fe24d89bfd8d400cf209c7c9f0a9b"
+    },
+    {
+      "id": "F-ExecStart-display:path=duplicate",
+      "baseline": "F-ExecStart-display",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "6821c711286d332ea4de1255adf1e83f91344cf397eec65dfad3acaede185b12"
+    },
+    {
+      "id": "F-ExecStart-display:argv[]=changed",
+      "baseline": "F-ExecStart-display",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora unexpected ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "29a95f231395148d8a5e50809a7e7230d054e4a0aa04a2ae3fd0c84d1eaab7b4"
+    },
+    {
+      "id": "F-ExecStart-display:argv[]=removed",
+      "baseline": "F-ExecStart-display",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ;  ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "7352838a5a7ca5f3b3137c88050282842682c83bc16ae0e8904c6090a9ef87a4"
+    },
+    {
+      "id": "F-ExecStart-display:argv[]=empty",
+      "baseline": "F-ExecStart-display",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]= ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "b95d07382e945acfbeff1bc11f901217a53e1a939a8a6a593537a9de50a0e27f"
+    },
+    {
+      "id": "F-ExecStart-display:argv[]=duplicate",
+      "baseline": "F-ExecStart-display",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "d1996414d27f2e544785fece5349e480b6845fbe97594a94c1fda93f9e32e2ad"
+    },
+    {
+      "id": "F-ExecStart-display:pid=changed",
+      "baseline": "F-ExecStart-display",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=1 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "39bc82e93654efdfa26dd05c22dd8bb487f5d2f696378fe29f8c5bdeb123404d"
+    },
+    {
+      "id": "F-ExecStart-display:pid=removed",
+      "baseline": "F-ExecStart-display",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ;  code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "4a33fb33c78f327dc40f76f4a74786694a006bdb694415d451e5064e1b35727a"
+    },
+    {
+      "id": "F-ExecStart-display:pid=empty",
+      "baseline": "F-ExecStart-display",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid= ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "a6c008aed98962ee73787f10aa91a7ccf8e4ec6f7e54fd627eae23ebade89c2e"
+    },
+    {
+      "id": "F-ExecStart-display:pid=duplicate",
+      "baseline": "F-ExecStart-display",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "baeeb0a872ab875ba47d974772b0a1f296fef031d2ac56df9c4f5596657e5855"
+    },
+    {
+      "id": "F-ExecStart-display:ExecStart-removed",
+      "baseline": "F-ExecStart-display",
+      "argument_overrides": {
+        "1": "MainPID=736362\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "f7d3d1d759d2b41c0371f2ff044b11ae435e0344098d29cc88e9dda994fe87c5"
+    },
+    {
+      "id": "F-ExecStart-display:ExecStart-empty",
+      "baseline": "F-ExecStart-display",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart=\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "6f8936734f687b558d1354cf86b07e3c0357d32e781f3f8c8943ea168e74906e"
+    },
+    {
+      "id": "F-ExecStart-display:ExecStart-duplicate",
+      "baseline": "F-ExecStart-display",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "4680fe5c978ccc97bee0944d79cfe8cad8c79133b3fe8553874b04e85c564bcd"
+    },
+    {
+      "id": "F-ExecStart-display:timestamp-display",
+      "baseline": "F-ExecStart-display",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[irrelevant timezone] ; stop_time=[another display] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\n"
+      },
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "fa3ede37a1e5a3dec3931e0a50c66eab8780ea5137733c87a1589d0433545078"
+    },
+    {
+      "id": "F-stable-owned-listener:MAIN_BEFORE-changed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "2": "1\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "1440a9f57aaba51e89ca6abfb7ddc8976c83926ff08c8514687fa0af2d3016e5"
+    },
+    {
+      "id": "F-stable-owned-listener:MAIN_BEFORE-removed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "2": ""
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "5dbf05888b801409649299f5cd9f01e98f46b1e351715f15515e2d17dd973076"
+    },
+    {
+      "id": "F-stable-owned-listener:MAIN_AFTER-changed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "8": "1\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "85375805d4c1041b90d576888a26b743daa23a92885fe95e2eaad88002ab1c52"
+    },
+    {
+      "id": "F-stable-owned-listener:MAIN_AFTER-removed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "8": ""
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "30be99ecd0a09c90a45092f1d1118863fbe62c0ec1bf1213b63f95311ca79373"
+    },
+    {
+      "id": "F-stable-owned-listener:EXE_BEFORE-changed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "3": "/unexpected\n"
+      },
+      "expected_exit": 2,
+      "captured_replay_exit": 2,
+      "public_replay_exit": 2,
+      "original_argv_sha256": "bc23e948350a1df279347ac0b5f2ad93d0a4fc06ddba23aedc039e81d9c17974"
+    },
+    {
+      "id": "F-stable-owned-listener:EXE_BEFORE-removed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "3": ""
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "5723c611916e2c3f65f2bc930995b05f4d70d92f4ed5fadd561bc9e73bff0308"
+    },
+    {
+      "id": "F-stable-owned-listener:EXE_AFTER-changed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "6": "/unexpected\n"
+      },
+      "expected_exit": 2,
+      "captured_replay_exit": 2,
+      "public_replay_exit": 2,
+      "original_argv_sha256": "80a9d67992f7cda01fb273fd655d87031288994a2101695c4261ef8e6635c067"
+    },
+    {
+      "id": "F-stable-owned-listener:EXE_AFTER-removed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "6": ""
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "994989d0c288a17b1a78ef09094aee86187470435a44e7a2ecf345bf45967358"
+    },
+    {
+      "id": "F-stable-owned-listener:both-executables-wrong",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "3": "/unexpected\n",
+        "6": "/unexpected\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "f3e08158bab011cddbaebd3e71806bcade68966ea4048125619e871fa332bf7d"
+    },
+    {
+      "id": "F-stable-owned-listener:PS_BEFORE-uid-changed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "4": "1 964\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "dc7591ea68a9ea1b2811ae848dbce5bb4c1aaf50ea61dc41f478da5a42fb5aa7"
+    },
+    {
+      "id": "F-stable-owned-listener:PS_BEFORE-uid-removed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "4": "964\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "e94aa1d0d46793ea3ff7e6614cc224e5a649e859aec56391069476fa0e098605"
+    },
+    {
+      "id": "F-stable-owned-listener:PS_BEFORE-gid-changed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "4": "976 1\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "f86f42c54536809e32c5437b623cd736e6f7f7720e127c16eb53bb2361b57e76"
+    },
+    {
+      "id": "F-stable-owned-listener:PS_BEFORE-gid-removed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "4": "976\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "3d6602dab578e7f1c5389aeb007e4ec37e7c6567e0c61db2c3066f7e82907eca"
+    },
+    {
+      "id": "F-stable-owned-listener:PS_BEFORE-removed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "4": ""
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "31b41e5e09903ab762e9edb6c404c18fb93dbab3a0919bd8779e852cdd15db35"
+    },
+    {
+      "id": "F-stable-owned-listener:PS_BEFORE-changing-root",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "4": "0 0\n"
+      },
+      "expected_exit": 2,
+      "captured_replay_exit": 2,
+      "public_replay_exit": 2,
+      "original_argv_sha256": "e82fa44f81756ad74920852ff58604fbb622634da4eb4baefc44ee5df89f3641"
+    },
+    {
+      "id": "F-stable-owned-listener:PS_AFTER-uid-changed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "7": "1 964\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "21efa9211fd6377327198697da9e90a3e67713e943f7d362be71cd4a32f1f611"
+    },
+    {
+      "id": "F-stable-owned-listener:PS_AFTER-uid-removed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "7": "964\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "2c4780c5cfc3d5b32d0d2333dc2af24195131ce709902dcc528b4ac4856401ae"
+    },
+    {
+      "id": "F-stable-owned-listener:PS_AFTER-gid-changed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "7": "976 1\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "f9476b3d36efe3e2bbf82365b39dd59cfa3d46c5806405b16639cf439f588b28"
+    },
+    {
+      "id": "F-stable-owned-listener:PS_AFTER-gid-removed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "7": "976\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "29b60d2d3811c1f5b71b72b0e0cfb9f28355c7e4719d93bb8116b2607005c7f9"
+    },
+    {
+      "id": "F-stable-owned-listener:PS_AFTER-removed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "7": ""
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "ae13317ce08aa27f8184f2529159bcb8473d70d6710d6ae73483e05c44caa5c9"
+    },
+    {
+      "id": "F-stable-owned-listener:PS_AFTER-changing-root",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "7": "0 0\n"
+      },
+      "expected_exit": 2,
+      "captured_replay_exit": 2,
+      "public_replay_exit": 2,
+      "original_argv_sha256": "2aeae83e90a561ae42a3aee81fb6749111ffc637d118cbca7cee2b0aa149f657"
+    },
+    {
+      "id": "F-stable-owned-listener:both-brackets-stably-root",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "4": "0 0\n",
+        "7": "0 0\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "e9c0a66bfb185e56a234edc8b60820f4e69981ef85303f178b820b6320fbd361"
+    },
+    {
+      "id": "F-stable-owned-listener:ss-state-changed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "5": "ESTAB 0 64 192.0.2.20:18132 0.0.0.0:* users:((\"agora\",pid=736362,fd=4))\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "e841ec709722ced415d038fbac535b159df89037fcb0e6c19aa3b9b71586e350"
+    },
+    {
+      "id": "F-stable-owned-listener:ss-address-changed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "5": "LISTEN 0 64 127.0.0.1:18132 0.0.0.0:* users:((\"agora\",pid=736362,fd=4))\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "aadbedaa87fbc576271759020d42cae62ab01c1f20054b57788336b446364363"
+    },
+    {
+      "id": "F-stable-owned-listener:ss-port-changed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "5": "LISTEN 0 64 192.0.2.20:18133 0.0.0.0:* users:((\"agora\",pid=736362,fd=4))\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "a8af12fc2ad15b51a69c8f1514f22422b23249cce553394d2c4106c5a520ec01"
+    },
+    {
+      "id": "F-stable-owned-listener:ss-wildcard-changed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "5": "LISTEN 0 64 0.0.0.0:18132 0.0.0.0:* users:((\"agora\",pid=736362,fd=4))\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "13ce23e4f0508a22c0b02a08d7e28b913214dd6f2fa967812aeb4dbe37c1445b"
+    },
+    {
+      "id": "F-stable-owned-listener:ss-state-removed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "5": "0 64 192.0.2.20:18132 0.0.0.0:* users:((\"agora\",pid=736362,fd=4))\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "6c194fb0100b463527f0ce9c26408219d8187463dcb7a79b1cf9e2f7bb235435"
+    },
+    {
+      "id": "F-stable-owned-listener:ss-endpoint-removed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "5": "LISTEN 0 64 0.0.0.0:* users:((\"agora\",pid=736362,fd=4))\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "216aa76503c8c0c62bd86640007fa189ecc434016c1a82b4696ef745fffc3598"
+    },
+    {
+      "id": "F-stable-owned-listener:ss-owner-removed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "5": "LISTEN 0      64     192.0.2.20:18132 0.0.0.0:* users:((\"agora\",fd=4))\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "027505886d140eaa183b1cc5953aa4d5f1d4276b04cd7556de6f88af62d57524"
+    },
+    {
+      "id": "F-stable-owned-listener:ss-owner-changed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "5": "LISTEN 0      64     192.0.2.20:18132 0.0.0.0:* users:((\"agora\",pid=1,fd=4))\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "cc70cb070b9b54fbf8a6f37ddd0a1cdbfe8eb2289fa2ede9c6935cc69d7251df"
+    },
+    {
+      "id": "F-stable-owned-listener:ss-owner-removed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "5": "LISTEN 0      64     192.0.2.20:18132 0.0.0.0:* users:((\"agora\",fd=4))\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "027505886d140eaa183b1cc5953aa4d5f1d4276b04cd7556de6f88af62d57524"
+    },
+    {
+      "id": "F-stable-owned-listener:ss-owner-prefix-only",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "5": "LISTEN 0      64     192.0.2.20:18132 0.0.0.0:* users:((\"agora\",pid=1736362,fd=4))\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "c461e1e596aad809d6b553d0cebf104d78c9d0efb605f34f23e497eb91be8425"
+    },
+    {
+      "id": "F-stable-owned-listener:ss-owner-suffix-only",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "5": "LISTEN 0      64     192.0.2.20:18132 0.0.0.0:* users:((\"agora\",pid=7363621,fd=4))\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "dc806d442fd656cee35963928525d56fdc394d64457da2bc334327917e0f0a03"
+    },
+    {
+      "id": "F-stable-owned-listener:ss-missing-owner-comma",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "5": "LISTEN 0      64     192.0.2.20:18132 0.0.0.0:* users:((\"agora\",pid=736362fd=4))\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "a323b2ad3d5494eef547f9d6f7585c696d2bb1ea0c624a2118f5b6843687c9be"
+    },
+    {
+      "id": "F-stable-owned-listener:ss-extra-owner",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "5": "LISTEN 0      64     192.0.2.20:18132 0.0.0.0:* users:((\"agora\",pid=736362,fd=4)) users:((\"other\",pid=1,fd=8))\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "e3a33a05e3559dc001d38801a6494f452f99e6f76cdf7e21f0e59c6d77ab4951"
+    },
+    {
+      "id": "F-stable-owned-listener:ss-duplicate-row",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "5": "LISTEN 0      64     192.0.2.20:18132 0.0.0.0:* users:((\"agora\",pid=736362,fd=4))\nLISTEN 0      64     192.0.2.20:18132 0.0.0.0:* users:((\"agora\",pid=736362,fd=4))\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "c3887901cbf6e2e3d937984f392717ccc035d3802b2e8d6651e414b98b88247c"
+    },
+    {
+      "id": "F-stable-owned-listener:ss-extra-row",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "5": "LISTEN 0      64     192.0.2.20:18132 0.0.0.0:* users:((\"agora\",pid=736362,fd=4))\nLISTEN 0      64     192.0.2.20:18132 0.0.0.0:* users:((\"agora\",pid=1,fd=4))\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "84ffdb08db299ca575f25c0980726a2996e6b6e540e66a356e80debc108b495c"
+    },
+    {
+      "id": "F-stable-owned-listener:ss-no-row",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "5": ""
+      },
+      "expected_exit": 2,
+      "captured_replay_exit": 2,
+      "public_replay_exit": 2,
+      "original_argv_sha256": "d137ceb31f18a283b2b7397b84f7d0ea36536bd72ce98d35d8ae7eabc55910ab"
+    },
+    {
+      "id": "F-stable-owned-listener:ss-spacing",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "5": "LISTEN\t0\t64\t192.0.2.20:18132\t0.0.0.0:*\tusers:((\"agora\",pid=736362,fd=4))\n"
+      },
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "0e16bdc31dbaae0d705ad4c2764144af92ffd0791e20b441923c3326d421b8eb"
+    },
+    {
+      "id": "F-stable-owned-listener:ss-queue-and-fd",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "5": "LISTEN 7 999     192.0.2.20:18132 0.0.0.0:* users:((\"agora\",pid=736362,fd=999))\n"
+      },
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "a70ed8e639e899ac28dba033f74006e8ca2d466e45bbbb8e3210f86790f9be5e"
+    },
+    {
+      "id": "F-stable-owned-listener:ps-numeric-whitespace",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "4": "  976\t964  \n",
+        "7": "\t976    964\n"
+      },
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "9195d31cb0ce0aaab131541230b7c94fb5edcbab401cfbf229b9fac8dab4d849"
+    },
+    {
+      "id": "F-stable-owned-listener:numeric-leading-zero",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "2": "0736362\n",
+        "5": "LISTEN 0      64     192.0.2.20:18132 0.0.0.0:* users:((\"agora\",pid=0736362,fd=4))\n",
+        "8": "0736362\n"
+      },
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "82ac98ca927f0d33bcf43354aa537326964151946493fb3643d11444f70a2aa3"
+    },
+    {
+      "id": "F-stable-owned-listener:elapsed-at-deadline",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "13": "10000000000"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "16c9d1a63d95a4b93ea4ccf92b31c7fa9470ec6756e5130f0494412b5c6456ee"
+    },
+    {
+      "id": "F-stable-owned-listener:elapsed-over-deadline",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "13": "99999999999"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "259aae2d8a2a8e528f471d3b2ff945b7be15f273abff9b96727c6ac8f89d2c1e"
+    },
+    {
+      "id": "F-stable-owned-listener:elapsed-removed",
+      "baseline": "F-stable-owned-listener",
+      "argument_overrides": {
+        "13": ""
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "35ad5a44f40509fd545527be62a2b5f2a5f49eac885e65327cfd7d8292a3bb5b"
+    },
+    {
+      "id": "E-preexec-ps:pid-changed",
+      "baseline": "E-preexec-ps",
+      "argument_overrides": {
+        "1": "1 root root (agora)\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "05755d2eb1684abc9b65dd6309b817f85b6e36fb5dd2238b1367f5b3a4bae123"
+    },
+    {
+      "id": "E-preexec-ps:pid-removed",
+      "baseline": "E-preexec-ps",
+      "argument_overrides": {
+        "1": "root root (agora)\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "35d5e6a3388d4d54e3824374f9aca8762fb6c04f5be8b54c0744c84dbb7a6e15"
+    },
+    {
+      "id": "E-preexec-ps:user-changed",
+      "baseline": "E-preexec-ps",
+      "argument_overrides": {
+        "1": "2319347 unexpected root (agora)\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "dd8f703a3afc3835d29026a63eb105656685bffcf3c8ef538106ef8bbe3e9624"
+    },
+    {
+      "id": "E-preexec-ps:user-removed",
+      "baseline": "E-preexec-ps",
+      "argument_overrides": {
+        "1": "2319347 root (agora)\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "d2c01764a4bff02c949f31d0c35b78147cb1450e1a4018eb6179e08f7f5e0fa9"
+    },
+    {
+      "id": "E-preexec-ps:group-changed",
+      "baseline": "E-preexec-ps",
+      "argument_overrides": {
+        "1": "2319347 root unexpected (agora)\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "9e01a07600f8ddba2d9a13852fa1b104f0b9eebf53aac6efb92d6c3aa660c1e0"
+    },
+    {
+      "id": "E-preexec-ps:group-removed",
+      "baseline": "E-preexec-ps",
+      "argument_overrides": {
+        "1": "2319347 root (agora)\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "d2c01764a4bff02c949f31d0c35b78147cb1450e1a4018eb6179e08f7f5e0fa9"
+    },
+    {
+      "id": "E-preexec-ps:args-changed",
+      "baseline": "E-preexec-ps",
+      "argument_overrides": {
+        "1": "2319347 root root unexpected\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "0b05f8e6016e5e24d5172edca09a4b32478f122f99dbbeb53a21891ae6eac606"
+    },
+    {
+      "id": "E-preexec-ps:args-removed",
+      "baseline": "E-preexec-ps",
+      "argument_overrides": {
+        "1": "2319347 root root\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "cf537c6d194b19553789c178f3559cfcc66501526c0ddeb6733c91e5a827f0e8"
+    },
+    {
+      "id": "E-preexec-ps:padding-tabs",
+      "baseline": "E-preexec-ps",
+      "argument_overrides": {
+        "1": "2319347\troot\troot\t(agora)\n"
+      },
+      "expected_exit": 2,
+      "captured_replay_exit": 2,
+      "public_replay_exit": 2,
+      "original_argv_sha256": "38434bcb3eb92530f3f24674a784d37d7ed60c66b4e7e55e1ce7e63f5011bc95"
+    },
+    {
+      "id": "E-preexec-ps:numeric-leading-zero",
+      "baseline": "E-preexec-ps",
+      "argument_overrides": {
+        "1": "02319347 root     root     (agora)\n"
+      },
+      "expected_exit": 2,
+      "captured_replay_exit": 2,
+      "public_replay_exit": 2,
+      "original_argv_sha256": "9bc6acab4d7ff02e1396f14f2c2aa2338fa0db48d48cd69b6fdce9544ab60d53"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_PID-changed",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"0\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "357e8f40419456db59c0499fc7317410fe1949c940fe61e350db8f60d7791f39"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_PID-removed",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "b20cc25e40e70244413ff5932d591e0e029d442db34114ac21a3bae993b85b74"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_PID-empty",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "b0c2dae2a7f78f0fd5678e91fc74419a67bd047d7b22e1c9ae736edc1a57764a"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_PID-null",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":null,\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "f794c4e156b7e99306f13de211b890bd30214557c85743c002e6059001475474"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_PID-number",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":1,\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "78474f92ac7cd24e0a1d2f1ce14dcd3540e4c7a7046c101729d192aa5bba2a3f"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_PID-array",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":[],\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "698247374c99bb3045cd2b44f9b94ec4c2205ac319dc4b7d9f29eff4ffb196fe"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_PID-embedded-nul",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\\u0000suffix\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "d47e7504c29be02d39d1288eb50c5b36ab7cff29b4c5dff5cb3af42ed35916f6"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_PID-duplicate",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\",\"_PID\":\"2319347\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "93277a2f6bf3df938105e82bb5dc0ca088b9c721dc9169f69849a33d93f21d22"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_UID-changed",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"0\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "2a5a8bff1dbbabf7ca37c76238e783a87a93d3d73fd3ecca6de27f4608e81c0f"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_UID-removed",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "f104f4a6141dfd5b8ce742d1841c56c24aaa907e4726c228066bd1ce39509cab"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_UID-empty",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "4f107c10384bb1767fcb8779ce65c7b87e41107b91021bf2a0e840b7766b670e"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_UID-null",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":null,\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "e8fc8f15c3c96b0f0bfa5601d1dc0fce2295fb29b18892653ff93eda0c082920"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_UID-number",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":1,\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "f1e7b3b3d600dd1c02972178a064e32cf40364f0a6da3cba14089e5950fdcd5e"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_UID-array",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":[],\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "a459acd704a899ae309d78f2407236a0a912c714561c73c418d416fc9b7a5ded"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_UID-embedded-nul",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\\u0000suffix\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "f850afc9345ddd0539281f1dcc4babc59e3616d8ebd09f62b4b25c26838e63a6"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_UID-duplicate",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\",\"_UID\":\"976\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "24fc742c71238490ed902c6d21c6782eb618a5f42357a2548714758669581f14"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_GID-changed",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"0\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "63cb38116bfd4308e3482d2b79771114fc0e2daf9d5fb154bdee50f12dd6fccc"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_GID-removed",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "4ed6a7faa382badfdc953e04d831705731b9691041b4be38eb770027423c5130"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_GID-empty",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "4121c9918deaeeda908fc1a965e73ec79e554b2957b309496565bb69b06665c3"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_GID-null",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":null,\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "8b1e549994d7d5865ca4735011120b9e368de07afea2bbf3a2155f5e441f721b"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_GID-number",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":1,\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "001e812153118aac647e0e4aa646378a3b2660a47cf1541ec7580993fc595427"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_GID-array",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":[],\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "6f577d0cc8e27edd864cac0a7041a5d1532a9beadfef654991cfaf3ce192170e"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_GID-embedded-nul",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\\u0000suffix\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "8a755f03ff5a027f12e7fcf41b463ea4cd71ac1b29d9f09bb1d6bc7d75472aa7"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_GID-duplicate",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\",\"_GID\":\"964\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "884c2368426e985b91da95fcdb8597f4022e271006009c2c800f26a0baa2191b"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_EXE-changed",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/unexpected\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "fc293064f5307e83de79aa0be9a71764cdf5613a22a744346dfebe1be1ffc875"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_EXE-removed",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "3d8a5aee71c294be685d578686d6b780f0648cc14d61b88505551b6830e9a0aa"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_EXE-empty",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "ff4c56de8730b308730685b1046ac027be482f4a7944edb25bb288555023adca"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_EXE-null",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":null,\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "bd0b1c5cc05ee228796546b333338344b19075402dfefeb90dda9a31b3e241a3"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_EXE-number",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":1,\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "bf510e6bb5fbbbcc46c00b246662ea9c0f94b5e8bb2702f5a1c188d75350e053"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_EXE-array",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":[],\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "51f4d11b3e2d4ee5e6a56e0a2df7113a9859f9fba7b220157cfddd9eb7bb07a0"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_EXE-embedded-nul",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\\u0000suffix\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "99cf5afa1c8eb3d210928521fb7a1e73b29de1f557437a2246ee6ce882984fba"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_EXE-duplicate",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\",\"_EXE\":\"/opt/aien/bin/agora\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "96bf2347020af103ce3aba8b8e8ca13895d332b12f8be9ee16704ce46643caba"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_SYSTEMD_UNIT-changed",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"/unexpected\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "abee246d1eafa70e71f022ce0fb910aa485338f644df7340eb8cf6d916fa73f3"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_SYSTEMD_UNIT-removed",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "0a6f3a9a2fd5979cb698151328386475dd6b3dd585cf0f25c85bfa9c26d5815f"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_SYSTEMD_UNIT-empty",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "ba2f2f649c6716cc07e4484706d900d2a5966498ebcf32265aa442f48fed6543"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_SYSTEMD_UNIT-null",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":null}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "0041751133f17a7536b4388add15ee3ba21322f2514475cf3dd0c5188b6509bc"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_SYSTEMD_UNIT-number",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":1}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "5d5eec1c13e66c391fac8e66a18bd21e5f98db674532e66040bbdb396995dbe4"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_SYSTEMD_UNIT-array",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":[]}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "98f890fe0f5489a9eda892f6b670caa4ee3917b2101baeb0d9e78518f68d8c4c"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_SYSTEMD_UNIT-embedded-nul",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\\u0000suffix\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "1870b4ae4ace66440066e3ad63709768137f27548b08ddf3762363e799f52ed4"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_SYSTEMD_UNIT-duplicate",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "19279bbef427f24104f0d38c5a2104bbd155831a89d706d1d8660e70b5c51fcb"
+    },
+    {
+      "id": "E-late-journal-provenance-only:MESSAGE-changed",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"/unexpected\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "37d92542d577e9563a696dfba220b7cbe041d02b32e8925980952dd2fdb62a63"
+    },
+    {
+      "id": "E-late-journal-provenance-only:MESSAGE-removed",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "b31ebab7e0cfa2edbd682e1d3fffe3ff7517140cb94cafc8c8046a4b59a79f72"
+    },
+    {
+      "id": "E-late-journal-provenance-only:MESSAGE-empty",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "85ee9e56d6b74e3fe5a486d80cbde0eea2ecd25a9a28cd6992414471b2193e02"
+    },
+    {
+      "id": "E-late-journal-provenance-only:MESSAGE-null",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":null,\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "689a106399df377cec2bc995287d84c3cbe9b70e0a8bd7d4deb7061d82d92e5b"
+    },
+    {
+      "id": "E-late-journal-provenance-only:MESSAGE-number",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":1,\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "b7a78c6297e8cd5db92105107cf7b2cefc3e2b4c63245c7e8052fee3f45ab29d"
+    },
+    {
+      "id": "E-late-journal-provenance-only:MESSAGE-array",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":[],\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "00097c74d243e48d0f6fd72b7752bf1f776e6f3cac442b8aa4967c89382e3758"
+    },
+    {
+      "id": "E-late-journal-provenance-only:MESSAGE-embedded-nul",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\\u0000suffix\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "33e061ab332c88a1540114d2c3b583d1836ace5b4f2858caf274b382b7b1b3ed"
+    },
+    {
+      "id": "E-late-journal-provenance-only:MESSAGE-duplicate",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\",\"MESSAGE\":\"listening 18132\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "12940ef63c2424f9bd2460c2053caee3bbfa23a6015b7e9ac58b789655c625e4"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_CMDLINE-changed",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/unexpected\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "472f70244f7952bd37d4ae3ac544cbed6979bc521397e013e93f1b29eabeac7f"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_CMDLINE-removed",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "8204b02398cc5e2b4df9759b4487ef1fe79c34032771c581d72de0a352bda3c5"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_CMDLINE-empty",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "83b6350fafae0ec3ffb2f9d6d6626027e71ccba0ad69a468fdea5ce7602d43dd"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_CMDLINE-null",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":null,\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "8316d5e5de280ab59c59c45037385ca03e45c8f7409476baf0e5694f37e95fd4"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_CMDLINE-number",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":1,\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "156cb6913b376306f8df6045c1c9bc23f46ba78bb92b8846a26e355571a205bf"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_CMDLINE-array",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":[],\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "3a137592da61fd90a2c3eeb3d892fee28fb192f7a4528f292058954e6fa6a9cb"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_CMDLINE-embedded-nul",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\\u0000suffix\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "a48a4321484592f340f7cfc206916cfb6d38bd0484a8dd419eb2012db5c66b59"
+    },
+    {
+      "id": "E-late-journal-provenance-only:_CMDLINE-duplicate",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "c4d513117c04d8f5d2d5b9cc0ee708d7811098fb26f02e0b6d1243514e3eef31"
+    },
+    {
+      "id": "E-late-journal-provenance-only:__REALTIME_TIMESTAMP-changed",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"0\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "f6d248df406fe5a3d8cf142f8889d8a66d2ba174a2e8c91c75f6ba55c049dfae"
+    },
+    {
+      "id": "E-late-journal-provenance-only:__REALTIME_TIMESTAMP-removed",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "6ebe5311d0abc25ac385e2391522d8b6337fb84dd31e8bd0aea66447a4abc4dc"
+    },
+    {
+      "id": "E-late-journal-provenance-only:__REALTIME_TIMESTAMP-empty",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "41acf553844e192da2112caf2171f796002c23e6089b53a32d627e29de749938"
+    },
+    {
+      "id": "E-late-journal-provenance-only:__REALTIME_TIMESTAMP-null",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":null,\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "f7c7812e2b6bf8f7540cb6dd2a6dd82795b2b5a64fe113fb032df7c75907fa91"
+    },
+    {
+      "id": "E-late-journal-provenance-only:__REALTIME_TIMESTAMP-number",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":1,\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "6b95d846d9bc945516f58453e70830f6a366d4ec6df2ec20005c453d843e1859"
+    },
+    {
+      "id": "E-late-journal-provenance-only:__REALTIME_TIMESTAMP-array",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":[],\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "dd9c5ba27c5a6b81a8d3a5526730f09054fbf7282b3f6604ad8d6ca8dc7fd9fb"
+    },
+    {
+      "id": "E-late-journal-provenance-only:__REALTIME_TIMESTAMP-embedded-nul",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\\u0000suffix\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "b5da2b256eb6a00808c865df46294d6dcdea9d93f68c1283bce7f760c8a0931f"
+    },
+    {
+      "id": "E-late-journal-provenance-only:__REALTIME_TIMESTAMP-duplicate",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\"}"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "c2a1a15f5bf0590a4d6cfadd3e206f4e273c6559129f5b32241a8da98614951b"
+    },
+    {
+      "id": "E-late-journal-provenance-only:malformed-json",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"2319347\",\"_UID\":\"976\",\"_GID\":\"964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\""
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "35dda3ea55013e11e141f8efd36fb9a75bb96204c91b7e1baaf40d33cd875d31"
+    },
+    {
+      "id": "E-late-journal-provenance-only:numeric-leading-zeros",
+      "baseline": "E-late-journal-provenance-only",
+      "argument_overrides": {
+        "1": "{\"MESSAGE\":\"listening 18132\",\"_PID\":\"02319347\",\"_UID\":\"0976\",\"_GID\":\"0964\",\"_EXE\":\"/opt/aien/bin/agora\",\"_CMDLINE\":\"/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen 192.0.2.20 --port 18132 --bits 20\",\"__REALTIME_TIMESTAMP\":\"1793202905374536\",\"_SYSTEMD_UNIT\":\"aien-agora.service\"}"
+      },
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "2ae55779451a9c5038e4047cc5cc40fd46055cc7402b403ad2e035a8bbb46243"
+    },
+    {
+      "id": "F-unit-reversed-deny-as-captured:over-capacity-hidden-policy-tail",
+      "baseline": "F-unit-reversed-deny-as-captured",
+      "argument_overrides": {
+        "1": "MainPID=736362\nExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; ignore_errors=no ; start_time=[Wed 2026-10-28 11:47:55 CDT] ; stop_time=[n/a] ; pid=736362 ; code=(null) ; status=0/0 }\nIPAddressAllow=127.0.0.1/32 192.0.2.10/32\nIPAddressDeny=::/0 0.0.0.0/0\nUser=aien-agora\nGroup=aien-agora\nFragmentPath=/etc/systemd/system/aien-agora.service\nDropInPaths=/etc/systemd/system/aien-agora.service.d/proxy.conf\nIPAddressAllow=                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        198.51.100.99/32\n"
+      },
+      "expected_exit": 90,
+      "captured_replay_exit": 90,
+      "public_replay_exit": 90,
+      "original_argv_sha256": "1c8548372e9bf7738ae2f34089b66993e6777127696fe6192c92ffc12e4aa249"
+    },
+    {
+      "id": "F-explicit-ancestor-policies",
+      "baseline": "F-explicit-ancestor-policies",
+      "argument_overrides": {},
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "669262db366c05606344b3de2977a3539c75bea52a81be78317b3d67bc02fcb3"
+    },
+    {
+      "id": "F-explicit-ancestor-policies:0-IPAddressAllow-changed",
+      "baseline": "F-explicit-ancestor-policies",
+      "argument_overrides": {
+        "1": "IPAddressAllow=198.51.100.99/32\nIPAddressDeny=\n\nIPAddressAllow=\nIPAddressDeny=\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "d2723a48e011cc1f6d99201a59103e66825788a8869c0b5481a70ee8c090b3ec"
+    },
+    {
+      "id": "F-explicit-ancestor-policies:0-IPAddressAllow-removed",
+      "baseline": "F-explicit-ancestor-policies",
+      "argument_overrides": {
+        "1": "IPAddressDeny=\n\nIPAddressAllow=\nIPAddressDeny=\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "a903b7ea88fc91222b32a842e598b6393df9c2c5e0d642c61cf680fb56b9073c"
+    },
+    {
+      "id": "F-explicit-ancestor-policies:0-IPAddressAllow-duplicate",
+      "baseline": "F-explicit-ancestor-policies",
+      "argument_overrides": {
+        "1": "IPAddressAllow=\nIPAddressDeny=\nIPAddressAllow=\n\nIPAddressAllow=\nIPAddressDeny=\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "fdafc69aa86d278d7429b64c9448cee0a2979a411e900776c1ea0437c69a84c0"
+    },
+    {
+      "id": "F-explicit-ancestor-policies:0-IPAddressDeny-changed",
+      "baseline": "F-explicit-ancestor-policies",
+      "argument_overrides": {
+        "1": "IPAddressAllow=\nIPAddressDeny=198.51.100.99/32\n\nIPAddressAllow=\nIPAddressDeny=\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "4c9bca801facea83d6ba49e73c88b55d8060faeb88daa833b74e440a5a719a20"
+    },
+    {
+      "id": "F-explicit-ancestor-policies:0-IPAddressDeny-removed",
+      "baseline": "F-explicit-ancestor-policies",
+      "argument_overrides": {
+        "1": "IPAddressAllow=\n\nIPAddressAllow=\nIPAddressDeny=\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "95bd319ec6e8354e01c0c4cbcfcb1058445913227db88243614eecc83a1e657c"
+    },
+    {
+      "id": "F-explicit-ancestor-policies:0-IPAddressDeny-duplicate",
+      "baseline": "F-explicit-ancestor-policies",
+      "argument_overrides": {
+        "1": "IPAddressAllow=\nIPAddressDeny=\nIPAddressDeny=\n\nIPAddressAllow=\nIPAddressDeny=\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "8f5773080df94d958bd026978a28ea4a3ec65172f9dace39d9d6a6db1759607c"
+    },
+    {
+      "id": "F-explicit-ancestor-policies:1-IPAddressAllow-changed",
+      "baseline": "F-explicit-ancestor-policies",
+      "argument_overrides": {
+        "1": "IPAddressAllow=\nIPAddressDeny=\n\nIPAddressAllow=198.51.100.99/32\nIPAddressDeny="
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "75a474f87042322a11cedce0dbf9e44fd602e4eba384a383ec2ed9e808b67125"
+    },
+    {
+      "id": "F-explicit-ancestor-policies:1-IPAddressAllow-removed",
+      "baseline": "F-explicit-ancestor-policies",
+      "argument_overrides": {
+        "1": "IPAddressAllow=\nIPAddressDeny=\n\nIPAddressDeny="
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "2b8f8c267550037c2fab09dc9d40be90cbeff35fe169d51169c2bf8fc4acba68"
+    },
+    {
+      "id": "F-explicit-ancestor-policies:1-IPAddressAllow-duplicate",
+      "baseline": "F-explicit-ancestor-policies",
+      "argument_overrides": {
+        "1": "IPAddressAllow=\nIPAddressDeny=\n\nIPAddressAllow=\nIPAddressDeny=\n\nIPAddressAllow="
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "aa06a9929d874cae71f71c34713efd6ed1382294e844d20465b4aa6b050c7765"
+    },
+    {
+      "id": "F-explicit-ancestor-policies:1-IPAddressDeny-changed",
+      "baseline": "F-explicit-ancestor-policies",
+      "argument_overrides": {
+        "1": "IPAddressAllow=\nIPAddressDeny=\n\nIPAddressAllow=\nIPAddressDeny=198.51.100.99/32"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "bf7001bf9a64ac11719e6ebb04583ea5a8f874d6b63d231e43c95c280f5d9dbb"
+    },
+    {
+      "id": "F-explicit-ancestor-policies:1-IPAddressDeny-removed",
+      "baseline": "F-explicit-ancestor-policies",
+      "argument_overrides": {
+        "1": "IPAddressAllow=\nIPAddressDeny=\n\nIPAddressAllow="
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "596804c715f0b08552ec132ba982c0d55462b8eb8b9cc669f98e9a7f954aaf74"
+    },
+    {
+      "id": "F-explicit-ancestor-policies:1-IPAddressDeny-duplicate",
+      "baseline": "F-explicit-ancestor-policies",
+      "argument_overrides": {
+        "1": "IPAddressAllow=\nIPAddressDeny=\n\nIPAddressAllow=\nIPAddressDeny=\n\nIPAddressDeny="
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "6cf19cd242feb8031b79b514cb751ed681c5e202b1dcbb6a843fb3df13d83b92"
+    },
+    {
+      "id": "F-explicit-ancestor-policies:property-order-and-empty-value-whitespace",
+      "baseline": "F-explicit-ancestor-policies",
+      "argument_overrides": {
+        "1": "IPAddressDeny=\t \nIPAddressAllow=  \n\nIPAddressDeny=\nIPAddressAllow=\t\n"
+      },
+      "expected_exit": 0,
+      "captured_replay_exit": 0,
+      "public_replay_exit": 0,
+      "original_argv_sha256": "4a266f0e1b10826b8b3dbf769bf408e81b2ffdfb25e64a13b53eb3154b88c3dd"
+    },
+    {
+      "id": "F-explicit-ancestor-policies:missing-record-boundary",
+      "baseline": "F-explicit-ancestor-policies",
+      "argument_overrides": {
+        "1": "IPAddressAllow=\nIPAddressDeny=\nIPAddressAllow=\nIPAddressDeny=\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "9d13fb03b328d910e62d0a79efcde84dbad75ec82b5f1b2430167673ceae52c1"
+    },
+    {
+      "id": "F-explicit-ancestor-policies:noisy-malformed-unit-selection",
+      "baseline": "F-explicit-ancestor-policies",
+      "argument_overrides": {
+        "1": "Id=-p.service\nIPAddressAllow=\nIPAddressDeny=\n\nIPAddressAllow=\nIPAddressDeny=\n"
+      },
+      "expected_exit": 1,
+      "captured_replay_exit": 1,
+      "public_replay_exit": 1,
+      "original_argv_sha256": "22637268cae2fa543dc3023419435fcb31bb6a3865095ec3419cae3de0d6a5dd"
+    }
+  ],
+  "full_conductor": {
+    "command": [
+      "env",
+      "NET_KEEP=1",
+      "OMEGA_OMC=/tmp/aienet-omc",
+      "NGINX_BIN=/tmp/aienet-nginx-oracle/usr/sbin/nginx",
+      "sh",
+      "om/agora/check.sh"
+    ],
+    "exit": 0,
+    "stdout_sha256": "c10b1edac25cc3971d1ae56c1a8d9e150c5de51103ceac56db417a0b598d88e2",
+    "scope": "Loopback/core/network verification, native startup/policy/reload controls, and public native observer regressions. No production activation."
+  },
+  "policy_source_mutants": {
+    "display_order": 41,
+    "missing_deny": 44,
+    "extra_allow": 46
+  },
+  "raw_capture_limits": [
+    "E/F have no completed live BPF, refused-source, nginx-reload, TLS-route, privacy or browser registration evidence because those attempts stopped earlier. Those production gates remain NOT_RUN for Retry G.",
+    "Journal provenance is checked separately and is never substituted for atomic executable/credential/listener observation.",
+    "E pre-exec root display and F changing-executable bracket must remain PENDING.",
+    "F command26 malformed ancestor selection is not accepted as evidence; command28 is the corrected raw source."
+  ],
+  "observer_audit": [
+    "F observer line43 exact endpoint is a legitimate policy check, but single-space/column-width equality would not be. Oracle tokenizes ss, permits whitespace, and requires exact endpoint, one row and exact PID delimiters.",
+    "F before/after metadata equality and MainPID bracketing are retained. Independent late journal metadata is never merged into a bracket. Effective credentials come from raw ps euid/egid output; readlink comes from raw /proc/PID/exe capture. E/F do not retain /proc/PID/status credential output; do not describe ps as captured /proc/status evidence.",
+    "Unit User/Group and ExecStart describe configured policy, not actual process credentials. They have separate modes and cannot independently produce startup readiness.",
+    "F /commands/121 ExecStart contains unresolved ${AGORA_LISTEN}; do not compare it to resolved /proc cmdline or journal _CMDLINE. Parent must supply separate display/resolved expectations.",
+    "Do not compare ExecStart timestamps, locale/timezone text, queue spacing, process display column widths, fd numbers or policy token order as identity facts.",
+    "F preflight /commands/26 includes a malformed systemctl show -- -.slice -p ... call: after --, -p is interpreted as a unit, and output actually contains Id=-p.service and Id=IPAddressAllow.service plus missing-unit records. This receipt is not clean evidence of explicitly selected ancestor policy fields. Future capture must put --property=IPAddressAllow,IPAddressDeny before -- -.slice, verify command status and exact target/unit scope; do not infer absent allow/deny from noisy combined output. No production check was run here.",
+    "Live collector must use numeric PID semantics and the native snapshot oracle, not a PID-string regex or column-width comparison.",
+    "tcpdump readiness must drain raw unbuffered stderr, and SYN flags must permit ECN flags; packet proofs never add counter rules."
+  ],
+  "guide_impact": "No Omega syntax, seeded compiler, pin, ownership or harness contract changed. Existing local deployment guide updated for the new native observer and exact-prefix-set policy."
+}

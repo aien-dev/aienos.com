@@ -3,7 +3,10 @@ on:
   pull_request:
     paths:
       - 'om/hive-page/**'
+      - 'om/hive-render/**'
+      - 'crates/hive-feed/**'
       - 'om/alpha-page/**'
+      - 'om/omega-reference/**'
       - 'public/js/alpha.js'
       - 'public/alpha/**'
       - 'public/js/hive.js'
@@ -14,6 +17,9 @@ on:
     branches: [main]
     paths:
       - 'om/hive-page/**'
+      - 'om/hive-render/**'
+      - 'crates/hive-feed/**'
+      - 'om/omega-reference/**'
       - 'om/alpha-page/**'
       - 'public/js/alpha.js'
       - 'public/alpha/**'
@@ -24,10 +30,34 @@ on:
 permissions:
   contents: read
 jobs:
+  native-privacy:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: Verify compiler and tool availability
+        run: |
+          printf '%s  %s\n' 734f0a39319fbfa930bcc62cb30dbf06d47d78e126372b74f5baf478e6126b61 om/hive-page/omc | sha256sum --check --strict
+          node --version
+          rustc --version
+      - name: Native collector and receiver checks
+        run: |
+          set -eu
+          cargo test --workspace
+          cargo build -p hive-feed --bins
+          scratch=$(mktemp -d)
+          trap 'rm -rf "$scratch"' EXIT
+          om/hive-page/omc < om/hive-render/render.om > "$scratch/render"
+          chmod +x "$scratch/render"
+          cmp "$scratch/render" om/hive-render/hive-render
+          cd om/hive-render
+          node test-replay.mjs "$scratch/render" ../hive-page/omc "$scratch/replay" ../../target/debug/hive-receive ../../target/debug/hive-feed
   artifact-hashes:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       # These tests only hash committed bytes; never execute the arm64 omc pin.
       - name: Check generated skeleton
         run: cargo test --manifest-path crates/site-builder/Cargo.toml components::hive::tests::the_embedded_skeleton_matches_its_recorded_sha256 -- --exact
@@ -35,3 +65,7 @@ jobs:
         run: cargo test --manifest-path crates/site-builder/Cargo.toml components::hive::tests::served_scripts_match_their_omega_generated_sha256 -- --exact
       - name: Check generated Alpha page and source
         run: cargo test --manifest-path crates/site-builder/Cargo.toml components::alpha::tests -- --nocapture
+      - name: Check generated Omega reference and its vendored inputs
+        run: |
+          sh om/omega-reference/check.sh --hashes
+          cargo test --manifest-path crates/site-builder/Cargo.toml components::omega_reference::tests -- --nocapture

@@ -1,0 +1,815 @@
+note page: writes /omega/reference/ to stdout from vendor.pin, vendor.sha256 and vendor/
+note Run from om/omega-reference with the pinned omc (check.sh). Inputs are read, never fetched.
+note Markdown subset of the guide: headings, paragraphs, lists, tables, fences, code, bold, links.
+note Every example file is printed byte for byte; html_to_text in seo.rs keeps it so in llms-full.
+om2
+text t_amp "&amp;"
+text t_lt "&lt;"
+text t_gt "&gt;"
+text t_quot "&quot;"
+text t_pin "vendor.pin"
+text t_pinkey "omega-harness "
+text t_man "vendor.sha256"
+text t_vend "vendor/"
+text t_skill "skills/writing-omega/SKILL.md"
+text t_gate "examples/gate"
+text t_dotsh ".sh"
+text t_om ".om"
+text t_exp ".expect"
+text t_sin ".stdin"
+text t_arg ".args"
+text t_env ".env"
+text t_out ".stdout"
+text t_fm "---\n"
+text t_dash3 "---"
+text t_fence "```"
+text t_h1 "# "
+text t_h2 "## "
+text t_h3 "### "
+text t_li "- "
+text t_two "  "
+text t_bar "|"
+text t_sep "|-"
+text t_up2 "../../"
+text t_up1 "../"
+text t_gh "https://github.com/aien-dev/omega-harness/blob/"
+text t_skl "/skills/"
+text t_pre "<pre>\n"
+text t_epre "</pre>"
+text t_p "<p>"
+text t_ep "</p>"
+text t_ul "<ul>"
+text t_eul "</li></ul>"
+text t_lio "<li>"
+text t_eli "</li>"
+text t_tab "<table>"
+text t_etab "</table>"
+text t_tr "<tr>"
+text t_etr "</tr>"
+text t_th "<th>"
+text t_eth "</th>"
+text t_td "<td>"
+text t_etd "</td>"
+text t_code "<code>"
+text t_ecode "</code>"
+text t_bo "<strong>"
+text t_ebo "</strong>"
+text t_ahref "<a href=\""
+text t_aend "\">"
+text t_ea "</a>"
+text t_hid "<h3 id=\"s"
+text t_art1 "<article class=\"ref-ex\" id=\"ex-"
+text t_art2 "\"><h3>"
+text t_art3 "</h3>"
+text t_eart "</article>"
+text t_lab1 "<p class=\"ref-file\">File: <code>"
+text t_lab2 "</code>"
+text t_empty " (empty file)</p>"
+text t_hexl " (hex bytes)</p><pre>\n"
+text t_nonl " (no final newline)</p><pre>\n"
+text t_endp "</p><pre>\n"
+text t_top1 "<div class=\"om-page ref-page\"><header class=\"om-hero\"><div class=\"container\"><p class=\"om-kicker\">Omega</p><h1 class=\"om-title\">Omega language reference</h1><p class=\"om-lead\">Everything an agent needs to write Omega that the pinned compiler accepts and that does what it should: program shape, types, declarations, statements, words, OM-2, the host words, every compiler error and trap exit code, common mistakes, and "
+text t_top2 " worked examples that each passed the examples gate.</p><p class=\"om-sub\">An Omega program writes this page: <code>om/omega-reference/page.om</code> in the aienos.com repository reads the guide <code>skills/writing-omega/SKILL.md</code> and the examples of omega-harness commit <a href=\""
+text t_top3 "https://github.com/aien-dev/omega-harness/tree/"
+text t_top4 "\"><code>"
+text t_top5 "</code></a> and prints every file byte for byte. The compiler pin is omega-mv <code>e5b32567a7aff3ce594e3254a622a846a6cd190b</code>, omc sha256 <code>2c82480596bbdc50cda9626866209ef662d5834f278f839ff4ce0250c495029f</code>. The same text is in <a href=\"/llms-full.txt\">llms-full.txt</a>.</p><nav class=\"om-toc\" aria-label=\"On this page\"><a href=\"#guide\">Guide</a> <a href=\"#s11\">Compiler errors</a> <a href=\"#s5\">Traps</a> <a href=\"#s12\">Common mistakes</a> <a href=\"#examples\">Worked examples</a> <a href=\"#gate\">Checking the examples</a></nav></div></header><div class=\"container\"><section class=\"om-section ref-guide\" id=\"guide\">"
+text t_mid1 "</section><section class=\"om-section ref-examples\" id=\"examples\"><h2 class=\"om-h2\">Worked examples</h2><p>"
+text t_mid2 " programs from <code>examples/</code> and <code>skills/omega-encoding/examples/</code>, each listed with its files. <code>NAME.om</code> is the program. <code>NAME.expect</code> is what the gate checks: <code>compile N</code> is the compiler's exit status, <code>stderr LINE</code> its whole stderr when N is not 0, <code>exit N</code> the program's exit status, <code>input dir</code> and <code>output full</code> the two refusals that need a special compiler input or output. <code>NAME.stdout</code> is the exact standard output, and an absent one means empty. <code>NAME.stdin</code>, <code>NAME.args</code> (one argument per line) and <code>NAME.env</code> (one KEY=VALUE per line) are what the program is given.</p><p>Each file is labelled <code>File: PATH</code> and followed by its bytes in one block. To copy a file out of llms-full.txt, take the lines between its two fences and end each with a newline. A label ending in (no final newline) means the file does not end in a newline, so drop the last one. A label ending in (hex bytes) means the block lists the bytes as two hex digits each, sixteen to a line. A label ending in (empty file) means the file has no bytes and no block follows.</p>"
+text t_end1 "</section><section class=\"om-section ref-gate\" id=\"gate\"><h2 class=\"om-h2\">Checking the examples</h2><p>Write every file on this page into one directory tree with the paths in the labels, then run <code>bash examples/gate.sh /path/to/omc</code>. The gate refuses any compiler but the pinned one. It compiles each program, runs it with an empty environment plus its <code>.env</code> in an empty scratch directory under a 20 second timeout, compares the exit status and the stdout bytes, requires an empty stderr, prints one PASS or FAIL line per program and ends with <code>GATE PASS examples=N</code> when all of them match. The aienos.com build checks that the files in llms-full.txt are these files, and <code>om/omega-reference/llms-check.sh</code> extracts them from llms-full.txt and runs this gate on them.</p>"
+text t_end2 "</section></div></div>"
+global ob uchar 65536
+global fb uchar 262144
+global mb uchar 65536
+global pb uchar 512
+global cm uchar 64
+global st ulong 8
+note st: 0 output fill, 1 file length, 2 manifest length, 3 commit length,
+note 4 path length, 5 bold open, 6 stem length
+
+fn oflush to void
+n = get st 0
+p = ulong 0
+while lt p n bound 65536
+k = write 1 ob p sub n p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+put st 0 0
+end
+
+fn putb b uchar to void
+n = get st 0
+if eq n len ob
+oflush
+n = ulong 0
+end
+put ob n b
+put st 0 add n 1
+end
+
+fn outs s view uchar * to void
+for i ulong len s
+putb get s i
+end
+end
+
+fn esc b uchar to void
+if eq b 38
+outs t_amp
+ret
+end
+if eq b 60
+outs t_lt
+ret
+end
+if eq b 62
+outs t_gt
+ret
+end
+if eq b 34
+outs t_quot
+ret
+end
+putb b
+end
+
+fn escfb a ulong b ulong to void
+p = a
+while lt p b bound 262144
+esc get fb p
+p = add p 1
+end
+end
+
+fn escmb a ulong b ulong to void
+p = a
+while lt p b bound 65536
+esc get mb p
+p = add p 1
+end
+end
+
+fn outcm to void
+n = get st 3
+for i ulong n
+putb get cm i
+end
+end
+
+fn outdec v ulong to void
+d = new uchar 20 0
+n = ulong 0
+x = v
+while true bound 21
+put d n add uchar rem x 10 48
+n = add n 1
+x = div x 10
+if eq x 0
+break
+end
+end
+while gt n 0 bound 21
+n = sub n 1
+putb get d n
+end
+end
+
+note slurp: read the file named by pb[0 .. st 4) into fb; its length, or -2 when it does not exist
+fn slurp to long
+fd = fopen pb 0 get st 4 0 0
+if lt fd 0
+if eq fd -2
+ret -2
+end
+exit 91
+end
+f = int fd
+t = ulong 0
+while true bound 262145
+if eq t len fb
+exit 92
+end
+k = read f fb t sub len fb t
+if lt k 0
+exit 93
+end
+if eq k 0
+break
+end
+t = add t ulong k
+end
+c = fclose f
+if ne c 0
+exit 93
+end
+put st 1 t
+ret long t
+end
+
+fn pbadd s view uchar * to void
+n = get st 4
+for i ulong len s
+put pb add n i get s i
+end
+put st 4 add n len s
+end
+
+fn pbmb a ulong b ulong to void
+n = get st 4
+p = a
+while lt p b bound 512
+put pb n get mb p
+n = add n 1
+p = add p 1
+end
+put st 4 n
+end
+
+note sw: does fb[p .. q) start with s
+fn sw p ulong q ulong s view uchar * to bool
+n = len s
+if gt n sub q p
+ret false
+end
+for i ulong n
+if ne get fb add p i get s i
+ret false
+end
+end
+ret true
+end
+
+fn eol p ulong e ulong to ulong
+q = p
+while lt q e bound 262144
+if eq get fb q 10
+ret q
+end
+q = add q 1
+end
+ret e
+end
+
+fn meol p ulong e ulong to ulong
+q = p
+while lt q e bound 65536
+if eq get mb q 10
+ret q
+end
+q = add q 1
+end
+ret e
+end
+
+note loadpin: the omega-harness commit from the first line of vendor.pin, into cm
+fn loadpin to void
+put st 4 0
+pbadd t_pin
+n = slurp
+if lt n 0
+exit 94
+end
+e = eol 0 ulong n
+if eq sw 0 e t_pinkey false
+exit 94
+end
+s = len t_pinkey
+if ne sub e s 40
+exit 94
+end
+for i ulong 40
+put cm i get fb add s i
+end
+put st 3 40
+end
+
+fn loadman to void
+put st 4 0
+pbadd t_man
+n = slurp
+if lt n 0
+exit 95
+end
+m = ulong n
+if gt m len mb
+exit 96
+end
+for i ulong m
+put mb i get fb i
+end
+put st 2 m
+end
+
+note isprog: is the manifest line [p .. q) a program, "HASH  PATH.om"
+fn isprog p ulong q ulong to bool
+if lt sub q p 70
+ret false
+end
+if ne get mb add p 64 32
+exit 96
+end
+if ne get mb sub q 3 46
+ret false
+end
+if ne get mb sub q 2 111
+ret false
+end
+if ne get mb sub q 1 109
+ret false
+end
+ret true
+end
+
+fn nprogs to ulong
+m = get st 2
+c = ulong 0
+p = ulong 0
+while lt p m bound 4096
+q = meol p m
+if isprog p q
+c = add c 1
+end
+p = add q 1
+end
+ret c
+end
+
+fn bold to void
+if eq get st 5 0
+outs t_bo
+put st 5 1
+else
+outs t_ebo
+put st 5 0
+end
+end
+
+fn icode p ulong b ulong to ulong
+q = add p 1
+while lt q b bound 65536
+if eq get fb q 96
+outs t_code
+escfb add p 1 q
+outs t_ecode
+ret add q 1
+end
+q = add q 1
+end
+esc 96
+ret add p 1
+end
+
+fn iurl a ulong b ulong to void
+if sw a b t_up2
+outs t_gh
+outcm
+putb 47
+escfb add a 6 b
+ret
+end
+if sw a b t_up1
+outs t_gh
+outcm
+outs t_skl
+escfb add a 3 b
+ret
+end
+escfb a b
+end
+
+note ilink: [text](url) at p; a lone [ is printed as it is
+fn ilink p ulong b ulong to ulong
+m = add p 1
+while lt add m 1 b bound 65536
+if and eq get fb m 93 eq get fb add m 1 40
+e = add m 2
+while lt e b bound 65536
+if eq get fb e 41
+outs t_ahref
+iurl add m 2 e
+outs t_aend
+inl add p 1 m
+outs t_ea
+ret add e 1
+end
+e = add e 1
+end
+esc 91
+ret add p 1
+end
+m = add m 1
+end
+esc 91
+ret add p 1
+end
+
+fn isbold p ulong b ulong to bool
+if lt add p 1 b
+if eq get fb add p 1 42
+ret true
+end
+end
+ret false
+end
+
+fn inl a ulong b ulong to void
+p = a
+while lt p b bound 65536
+y = get fb p
+if eq y 96
+p = icode p b
+else
+if and eq y 42 isbold p b
+bold
+p = add p 2
+else
+if eq y 91
+p = ilink p b
+else
+esc y
+p = add p 1
+end
+end
+end
+end
+end
+
+note head: a guide heading; # is h2, ## is h3 with id sN from its number, ### is h4
+fn head p ulong q ulong lvl ulong to void
+s = add p add lvl 1
+if eq lvl 2
+outs t_hid
+x = s
+while lt x q bound 8
+y = get fb x
+if or lt y 48 gt y 57
+break
+end
+putb y
+x = add x 1
+end
+outs t_aend
+else
+putb 60
+putb 104
+putb add uchar lvl 49
+putb 62
+end
+inl s q
+putb 60
+putb 47
+putb 104
+putb add uchar lvl 49
+putb 62
+end
+
+fn trims a ulong b ulong to ulong
+p = a
+while lt p b bound 4096
+if ne get fb p 32
+ret p
+end
+p = add p 1
+end
+ret b
+end
+
+fn trime a ulong b ulong to ulong
+q = b
+while gt q a bound 4096
+if ne get fb sub q 1 32
+ret q
+end
+q = sub q 1
+end
+ret a
+end
+
+fn cell a ulong b ulong hdr ulong to void
+s = trims a b
+e = trime s b
+if eq hdr 1
+outs t_th
+inl s e
+outs t_eth
+else
+outs t_td
+inl s e
+outs t_etd
+end
+end
+
+note row: one table row; a | inside a code span does not split cells
+fn row p ulong q ulong hdr ulong to void
+a = add p 1
+b = trime a q
+if gt b a
+if eq get fb sub b 1 124
+b = sub b 1
+end
+end
+outs t_tr
+s = a
+c = ulong 0
+x = a
+while lt x b bound 4096
+y = get fb x
+if eq y 96
+c = xor c 1
+end
+if and eq y 124 eq c 0
+cell s x hdr
+s = add x 1
+end
+x = add x 1
+end
+cell s b hdr
+outs t_etr
+end
+
+fn mdclose mode ulong to void
+if eq mode 1
+outs t_ep
+end
+if eq mode 2
+outs t_eul
+end
+if eq mode 3
+outs t_etab
+end
+if eq mode 4
+outs t_epre
+end
+end
+
+note mdline: one guide line in state mode (0 none, 1 paragraph, 2 list, 3 table, 4 fence)
+fn mdline p ulong q ulong mode ulong to ulong
+if eq mode 4
+if sw p q t_fence
+outs t_epre
+ret 0
+end
+escfb p q
+putb 10
+ret 4
+end
+if sw p q t_fence
+mdclose mode
+outs t_pre
+ret 4
+end
+if eq p q
+mdclose mode
+ret 0
+end
+if sw p q t_h3
+mdclose mode
+head p q 3
+ret 0
+end
+if sw p q t_h2
+mdclose mode
+head p q 2
+ret 0
+end
+if sw p q t_h1
+mdclose mode
+head p q 1
+ret 0
+end
+if sw p q t_li
+if eq mode 2
+outs t_eli
+else
+mdclose mode
+outs t_ul
+end
+outs t_lio
+inl add p 2 q
+ret 2
+end
+if and eq mode 2 sw p q t_two
+putb 10
+inl add p 2 q
+ret 2
+end
+if sw p q t_bar
+if sw p q t_sep
+ret 3
+end
+if eq mode 3
+row p q 0
+ret 3
+end
+mdclose mode
+outs t_tab
+row p q 1
+ret 3
+end
+if eq mode 1
+putb 10
+else
+mdclose mode
+outs t_p
+end
+inl p q
+ret 1
+end
+
+fn skipfm e ulong to ulong
+if sw 0 e t_fm
+p = ulong 4
+while lt p e bound 100000
+q = eol p e
+if eq sub q p 3
+if sw p q t_dash3
+ret add q 1
+end
+end
+p = add q 1
+end
+end
+ret 0
+end
+
+fn guide to void
+put st 4 0
+pbadd t_vend
+pbadd t_skill
+n = slurp
+if lt n 0
+exit 97
+end
+e = ulong n
+p = skipfm e
+mode = ulong 0
+while lt p e bound 100000
+q = eol p e
+mode = mdline p q mode
+p = add q 1
+end
+mdclose mode
+if ne get st 5 0
+exit 97
+end
+end
+
+fn hexd v uchar to uchar
+if lt v 10
+ret add v 48
+end
+ret add v 87
+end
+
+fn hexout n ulong to void
+for i ulong n
+b = get fb i
+putb hexd shr b 4
+putb hexd and b 15
+j = add i 1
+if eq rem j 16 0
+putb 10
+else
+if lt j n
+putb 32
+end
+end
+end
+if ne rem n 16 0
+putb 10
+end
+end
+
+note kind: 0 text ending in a newline, 1 text without one, 2 bytes to show in hex
+fn kind n ulong to ulong
+vis = ulong 0
+for i ulong n
+b = get fb i
+if gt b 126
+ret 2
+end
+if lt b 32
+if and ne b 9 ne b 10
+ret 2
+end
+end
+if gt b 32
+vis = ulong 1
+end
+end
+if eq vis 0
+ret 2
+end
+if eq get fb sub n 1 10
+ret 0
+end
+ret 1
+end
+
+note efile: pb holds vendor/STEM; print STEM plus x when that file exists
+fn efile x view uchar * to void
+put st 4 get st 6
+pbadd x
+r = slurp
+if lt r 0
+ret
+end
+n = ulong r
+outs t_lab1
+e = get st 4
+for i ulong sub e 7
+esc get pb add i 7
+end
+outs t_lab2
+if eq n 0
+outs t_empty
+ret
+end
+k = kind n
+if eq k 2
+outs t_hexl
+hexout n
+outs t_epre
+ret
+end
+if eq k 1
+outs t_nonl
+else
+outs t_endp
+end
+escfb 0 n
+outs t_epre
+end
+
+fn example a ulong q ulong to void
+s = sub q 3
+nb = a
+x = a
+while lt x s bound 512
+if eq get mb x 47
+nb = add x 1
+end
+x = add x 1
+end
+outs t_art1
+escmb nb s
+outs t_art2
+escmb nb s
+outs t_art3
+put st 4 0
+pbadd t_vend
+pbmb a s
+put st 6 get st 4
+efile t_om
+efile t_exp
+efile t_sin
+efile t_arg
+efile t_env
+efile t_out
+outs t_eart
+end
+
+fn examples to void
+m = get st 2
+p = ulong 0
+while lt p m bound 4096
+q = meol p m
+if isprog p q
+example add p 66 q
+end
+p = add q 1
+end
+end
+
+fn main to int
+loadpin
+loadman
+c = nprogs
+if eq c 0
+exit 96
+end
+outs t_top1
+outdec c
+outs t_top2
+outs t_top3
+outcm
+outs t_top4
+outcm
+outs t_top5
+guide
+outs t_mid1
+outdec c
+outs t_mid2
+examples
+outs t_end1
+put st 4 0
+pbadd t_vend
+pbadd t_gate
+put st 6 get st 4
+efile t_dotsh
+outs t_end2
+oflush
+ret 0
+end

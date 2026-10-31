@@ -38,7 +38,19 @@ with tempfile.TemporaryDirectory(prefix='hive-receiver-integration-') as tmp:
     assert result.returncode != 0
     assert board.read_bytes() == before
     assert json.loads((directory / 'live.json').read_bytes()) == value
-print('receiver integration passed: failed renderer logs/retains, successful renderer publishes exact bytes, rejected feed retains both artifacts')
+    # Agent replies only: a snapshot carrying any human-role record is refused whole,
+    # newer generated_at notwithstanding, and the previous JSON and board stay served.
+    reply = dict(id='m1', agent_id='a1', role='assistant', text='Agent reply', at='2026-10-26T01:00:00Z',
+                 runtime='OMP', provider='unknown', model='unknown')
+    for role in ('drake', 'user', 'guest'):
+        human = dict(reply, id='m2', role=role, text='HUMAN_MESSAGE_CANARY')
+        leaked = dict(value, generated_at='2026-10-26T02:00:00Z', sequence='human-' + role, interactions=[reply, human])
+        result = subprocess.run([receiver, directory], input=(json.dumps(leaked)+'\n').encode(), env=env, capture_output=True)
+        assert result.returncode != 0, role
+        assert board.read_bytes() == before, role
+        assert b'HUMAN_MESSAGE_CANARY' not in (directory / 'live.json').read_bytes(), role
+        assert json.loads((directory / 'live.json').read_bytes()) == value, role
+print('receiver integration passed: failed renderer logs/retains, successful renderer publishes exact bytes, rejected feed and human-role snapshots retain both artifacts')
 
 with tempfile.TemporaryDirectory(prefix='hive-receiver-overlap-') as tmp:
     directory = Path(tmp)

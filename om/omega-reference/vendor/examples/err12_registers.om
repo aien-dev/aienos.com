@@ -1,0 +1,21 @@
+note err12_registers: the 17th live name exhausts the 16-register pool. Fix: fewer live names, smaller functions
+fn main to int
+a1 = int 1
+a2 = int 2
+a3 = int 3
+a4 = int 4
+a5 = int 5
+a6 = int 6
+a7 = int 7
+a8 = int 8
+a9 = int 9
+a10 = int 10
+a11 = int 11
+a12 = int 12
+a13 = int 13
+a14 = int 14
+a15 = int 15
+a16 = int 16
+a17 = int 17
+ret add a1 add a2 add a3 add a4 add a5 add a6 add a7 add a8 add a9 add a10 add a11 add a12 add a13 add a14 add a15 add a16 a17
+end

@@ -1,0 +1,102 @@
+note pow.om -- test proof-of-work solver for the Agora wire.
+note Build: { printf 'om2\n'; cat sha256.om test/pow.om; } | omc > pow
+note Usage: pow <challenge_hex32> <bits> < rest_of_body
+note Prints the smallest decimal nonce n such that SHA-256(challenge "\n" n "\n" rest) starts with
+note <bits> zero bits, where rest is the request body after the nonce line.
+
+global g_in uchar 16384
+
+fn lzb d view uchar 32 to ulong
+z = ulong 0
+for i ulong 32
+c = get d i
+if eq c 0
+z = add z 8
+continue
+end
+for b ulong 8
+if ne and c shr uchar 128 b 0
+ret z
+end
+z = add z 1
+end
+ret z
+end
+ret z
+end
+
+fn cat b edit uchar 16500 p ulong v ulong to ulong
+d = new uchar 20 0
+i = ulong 20
+x = v
+for it ulong 20
+i = sub i 1
+put d i uchar add rem x 10 48
+x = div x 10
+if eq x 0
+break
+end
+end
+q = p
+for k ulong sub 20 i
+put b q get d add i k
+q = add q 1
+end
+ret q
+end
+
+fn try b edit uchar 16500 n ulong rn ulong nonce ulong need ulong to bool
+dg = new uchar 32 0
+q = cat b 33 nonce
+put b q 10
+q = add q 1
+for i ulong rn
+put b add q i get g_in i
+end
+sha256_hash view part b 0 add q rn dg
+ret ge lzb dg need
+end
+
+fn rdin to ulong
+n = ulong 0
+for it ulong 4096
+if ge n 16384
+ret n
+end
+r = read 0 g_in n sub 16384 n
+if le r 0
+ret n
+end
+n = add n ulong r
+end
+ret n
+end
+
+fn main to int
+b = new uchar 16500 0
+ab = new uchar 64 0
+c = argread 1 b 0 32
+if ne c 32
+ret 2
+end
+put b 32 10
+k = argread 2 ab 0 8
+need = ulong 0
+for i ulong ulong k
+need = add mul need 10 ulong sub get ab i 48
+end
+rn = rdin
+nonce = ulong 0
+for hi ulong 65536
+for lo ulong 65536
+if try b 33 rn nonce need
+q = cat b 33 nonce
+put b q 10
+w = write 1 b 33 sub q 32
+ret 0
+end
+nonce = add nonce 1
+end
+end
+ret 1
+end

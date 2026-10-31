@@ -7,57 +7,63 @@
     "generated": {
       "children": [
         {
+          "digest": "4236d0e02517c5596abad0b1dcf020ae36cfcd8de8775bc09892d05102353a38",
+          "last_commit": "124c8182",
+          "name": "aien/voice",
+          "purpose": "Aien's pre-recorded voice clips (ElevenLabs Output, voice Aien Cosmic 1) and catalog.json listin"
+        },
+        {
           "digest": "b8917c6f36b89eefce0ad992d3e57c834b50d2035a3316f3bdea333c1ae579c1",
-          "last_commit": "da2a360",
+          "last_commit": "96d38f36",
           "name": "alpha",
           "purpose": "Pinned alpha wizard source and unmodified terminal capture assets"
         },
         {
-          "digest": "d1e2bd3a55bfc80e4c99956c9cd0a1e4392fe49c2eb559efb8ad986951294303",
-          "last_commit": "d266bc3",
+          "digest": "dce69fbca079800fa65f9374bf626ec2daa1b3c2aef46126d0645c8f3f8bb8dc",
+          "last_commit": "d266bc3a",
           "name": "assets",
           "purpose": "Website styles including the project dashboard"
         },
         {
-          "digest": "64164d7c5eee640a6d6489f4ce3aebf7c3090d9ed417e0eb81307abe5ee6ca4d",
-          "last_commit": "d266bc3",
+          "digest": "701b00aacfafca2b32292040b1cb953054cf678a10665cbe32d0d5ca1a45614c",
+          "last_commit": "f33f701d",
           "name": "data",
           "purpose": "Published generated project measurements with pinned sources"
         },
         {
-          "digest": "08b80034ba5ae730d705211412f5fe382cec989bd325800b5074d0315b9a7253",
-          "last_commit": "3f268bb",
+          "digest": "f7663e11702c9495ea6de2f05d8ec832561970a0892403abbec155cf018405c5",
+          "last_commit": "3f268bbc",
           "name": "js",
           "purpose": "Browser interactions using public data only"
         },
         {
-          "digest": "df8f8844ff083b0697bccefee832eaac8184d2c2ec2ac9117573c3b12cd1cc82",
-          "last_commit": "983b3b4",
+          "digest": "6ee328cab957d221721e988204b9ac7f6b4fdd2a9bfe3e474625ed4ce8fa898e",
+          "last_commit": "983b3b40",
           "name": "licensing",
           "purpose": "Public static research or licensing pages using the shared website navigation"
         },
         {
-          "digest": "457773f02367ea0dc9f8a3eceb90f29b53b4219e2d4c1c4cd85c14abbcc2c497",
-          "last_commit": "983b3b4",
+          "digest": "936828b67284e18ab0ab934dfa6010a80e0adf4ea6cf29753f304b9b5edba1ec",
+          "last_commit": "983b3b40",
           "name": "post-llm-case",
           "purpose": "Public static research or licensing pages using the shared website navigation"
         },
         {
-          "digest": "8bc939e2afeab81799eeb7f73520c8963b649c0d0cb588b39f6f85aadc02bf77",
-          "last_commit": "99b3b4b",
+          "digest": "c484d91bbd5afaa165842ea77dcdf4cb921fb70a31ce8f730448c1fa21b3c242",
+          "last_commit": "99b3b4b9",
           "name": "research",
           "purpose": "Public static research or licensing pages using the shared website navigation"
         }
       ],
-      "children_root": "sha256:8f8099c086fc9b28ccfb226cd2d2b9e7fff22a59b63f175266e461ff6b759022",
-      "compiled_at": "2026-10-26T17:34:08Z",
+      "children_root": "sha256:daa620a7d36712578d383abfba5e2d1fc1a6d21e38d0c004fd9f0c96cac53722",
+      "compiled_at": "2026-10-31T02:16:53Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:9dce0ff6959e2c5a502a6d564e3930d9f6e8545d7764e2252b46a80b1cb91c62",
+      "digest": "sha256:7d71de59404d3cfde47cbcd23eae065e114799ec02ab26a80213a6c691d608a8",
       "evidence_files": 1,
-      "evidence_root": "sha256:a2ea74f9722821d4120cd2047554a3605939b2da603557928bf8b41eea78200a",
-      "files": 136,
-      "generated_at_commit": "33ac3cdd984d8aa9bb30b7daaae3b96921332c53",
-      "source_tree": "sha256:02f3b9e41707c077482b7db6818e0af7ccd44aa2ece270deb2e052fd42eadf22"
+      "evidence_root": "sha256:63bece7cb299b29d19622dcb0de4cbaa623357b117d8c7643a562de286c4b2fb",
+      "files": 726,
+      "generated_at_commit": "4d7b9cdb59a3378500df2cfde793c1255b5b50ab",
+      "source_tree": "sha256:bb30633aaed0af0584f712b2ccfa17554989e264bf7de27476cf5d729904783a"
     }
   },
   "invariants": [

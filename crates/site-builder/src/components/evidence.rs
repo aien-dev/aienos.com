@@ -28,14 +28,14 @@ fn cards() -> Vec<Card> {
         Card {
             verdict: "MEASURED",
             badge: "badge-green",
-            figure: "7.63 tok/s · 27B on Omega",
+            figure: "7.63 tok/s chip time · 27B on my own GPU kernels",
             title: "A 27B model answers through my own server",
-            desc: "Qwen3.8-27B (FP8) served by aien-serve-http on my own Omega GPU kernels, on the Spark. 131.05 ms per token, the median of 4 runs of 256 greedy tokens, 0.752 of the 10.15 tok/s memory ceiling. The old binary in the same folder did 6.29.",
+            desc: "Qwen3.8-27B (FP8) served by aien-serve-http on my own C GPU kernels, built inside the Omega project, on the Spark. 131.05 ms of GPU time per token, measured on the chip alone and not end to end, the median of 4 runs of 256 greedy tokens, 0.752 of the 10.15 tok/s memory ceiling worked out by arithmetic. The old binary in the same folder did 6.29.",
             date: "2026-10-19",
             environment: "Spark GB10, port 18091, branch qwen38/serve-fast",
             gate: "Live-server decode receipt",
-            proves: "The 27B answers through my own server and kernels at this speed, with the runs published beside the ceiling they sit under.",
-            not_proves: "That the number is on main yet (it is on a branch), or anything about any other machine.",
+            proves: "The 27B answers through my own server and kernels, with the chip time per token published beside the ceiling it sits under.",
+            not_proves: "The speed a client sees end to end (this is chip time only), that the number is on main yet (it is on a branch), or anything about any other machine.",
             url: "https://github.com/aien-dev/aien-sovereign-core-mv/tree/qwen38/serve-fast/evidence/qwen38-serve-fast-20261019",
             source: "aien-sovereign-core-mv · qwen38/serve-fast",
         },
@@ -58,7 +58,7 @@ fn cards() -> Vec<Card> {
             badge: "badge-green",
             figure: "24 of 24 emulator gates",
             title: "Every kernel gate, in QEMU, on main",
-            desc: "Aienux, the AienOS C kernel, passes all 24 emulator gates at commit 7f0de7e, each one a script anyone can rerun, with the receipt on main. The gate script now lists 26, so a newer receipt is owed.",
+            desc: "The AienOS C kernel, aienux, passes all 24 emulator gates at commit 7f0de7e, each one a script anyone can rerun, with the receipt on main. The gate script now lists 26, so a newer receipt is owed.",
             date: "2026-10-09",
             environment: "QEMU, AArch64 virt and x86_64 q35, on main",
             gate: "ck_gates.sh, 24 gates",
@@ -84,9 +84,9 @@ fn cards() -> Vec<Card> {
         Card {
             verdict: "MERGED",
             badge: "badge-blue",
-            figure: "Allen's window on an iMac",
+            figure: "Aien's window on an iMac",
             title: "The x86 port boots bare metal",
-            desc: "The x86_64 port of the C kernel booted an Intel iMac 2017: all cores started, both disks read, Ethernet seen. The whole screen is Allen's window. The kernel the iMac runs today sits in the open pull request stack (#414 to #424).",
+            desc: "The x86_64 port of the C kernel booted an Intel iMac 2017: all cores started, both disks read, Ethernet seen. The whole screen is Aien's window. The kernel the iMac runs today sits in the open pull request stack (#414 to #424).",
             date: "2026-10-17",
             environment: "Intel iMac 2017, bare metal, netboot from the Spark",
             gate: "iMac batch run, evidence/imac_kernel1_2026-10-17",
@@ -129,9 +129,12 @@ pub fn render_evidence() -> Markup {
                     }
                 }
 
-                div class="responsive-card-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px;" {
+                // Each card leads with its verdict, number and title, then
+                // what it proves. The description and the receipt fields sit
+                // in a native disclosure, so six cards read at a glance.
+                div class="responsive-card-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 32px;" {
                     @for c in &cards {
-                        div class="glow-box" style="padding: 28px; border-radius: 8px; display: flex; flex-direction: column; gap: 14px;" {
+                        div class="glow-box" style="padding: 32px; border-radius: 8px; display: flex; flex-direction: column; gap: 16px;" {
                             div {
                                 span class=(format!("badge {}", c.badge)) style="font-size: 10px;" {
                                     (c.verdict)
@@ -143,10 +146,7 @@ pub fn render_evidence() -> Markup {
                             h3 style="font-size: 17px; font-weight: 700; color: var(--text-primary);" {
                                 (c.title)
                             }
-                            p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin: 0;" {
-                                (super::omega::link_first(c.desc))
-                            }
-                            div style="font-size: 13.5px; line-height: 1.6; display: flex; flex-direction: column; gap: 6px;" {
+                            div style="font-size: 14px; line-height: 1.6; display: flex; flex-direction: column; gap: 8px;" {
                                 p style="margin: 0; color: var(--text-secondary);" {
                                     span style="color: var(--accent-green); font-weight: 700;" { "Proves: " }
                                     (c.proves)
@@ -156,11 +156,17 @@ pub fn render_evidence() -> Markup {
                                     (c.not_proves)
                                 }
                             }
-                            div style="margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border-subtle); font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); display: flex; flex-direction: column; gap: 5px;" {
-                                span { "DATE " (c.date) }
-                                span { "ENVIRONMENT " (c.environment) }
-                                span { "GATE " (c.gate) }
-                                span { "RECEIPT " (c.source) }
+                            details class="ev-more" style="margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border-subtle);" {
+                                summary style="cursor: pointer; font-size: 13px; color: var(--text-muted);" { "What was run, and the receipt" }
+                                p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin: 12px 0;" {
+                                    (super::omega::link_first(c.desc))
+                                }
+                                div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); display: flex; flex-direction: column; gap: 5px;" {
+                                    span { "DATE " (c.date) }
+                                    span { "ENVIRONMENT " (c.environment) }
+                                    span { "GATE " (c.gate) }
+                                    span { "RECEIPT " (c.source) }
+                                }
                             }
                             (foot(c.url, Target::Evidence))
                         }
@@ -191,10 +197,8 @@ mod tests {
         for must in ["7.63 tok/s", "FAIL AS WRITTEN", "24 of 24", "Raspberry Pi 5", "iMac", "install.sh exits 101"] {
             assert!(page.contains(must), "missing {must}");
         }
-        let lower = page.to_ascii_lowercase();
-        for w in crate::components::machines::FORBIDDEN {
-            assert!(!lower.contains(w), "forbidden word {w}");
-        }
+        let problems = crate::components::machines::comparison_errors(&page);
+        assert!(problems.is_empty(), "comparison problem on /evidence/: {problems:?}");
         assert_eq!(crate::components::boxlink::check_boxes(&page), Ok(6), "every receipt card links to GitHub");
     }
 }

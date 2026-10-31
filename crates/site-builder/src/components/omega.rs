@@ -1,10 +1,10 @@
 //! /omega/: what Omega is, in the same words as the omega repository's
 //! `docs/OMEGA.md`.
 //!
-//! Omega is AIEN's language for all computing, GPU to CPU; on the GPU it is
-//! the replacement for CUDA. The page renders, from `data/omega.json`:
-//! the parts of Omega, the CUDA stack piece by piece with Omega's
-//! replacement and its status, the one thing that is true today with its
+//! Omega is Aien's language for all computing, GPU to CPU. Replacing CUDA
+//! is not true yet. The page renders, from `data/omega.json`:
+//! the parts of Omega, the CUDA stack piece by piece with the Omega
+//! work beside each piece and its status, the one thing that is true today with its
 //! receipt, what is not true yet, and the bar C1 to C6 as a checklist.
 //! Every row links to its source or receipt on GitHub. A row whose status
 //! is MISSING is drawn like any other row; nothing is filtered out.
@@ -22,16 +22,17 @@ use serde::Deserialize;
 use super::boxlink::{foot_labelled, Target};
 
 pub const TITLE: &str = "What Omega is | AienOS";
-pub const DESCRIPTION: &str = "Omega is AIEN's language for all computing, GPU to CPU. On the GPU it is the replacement for CUDA. The CUDA stack piece by piece, the receipt for what is true today, what is not true yet, and the bar C1 to C6.";
+pub const DESCRIPTION: &str = "Omega is Aien's language for all computing, GPU to CPU. Replacing CUDA is not true yet. The CUDA stack piece by piece, the receipt for what is true today, what is not true yet, and the bar C1 to C6.";
 pub const URL: &str = "https://www.aienos.com/omega/";
 
 /// The data file, compiled in and published as /omega.json.
 pub const RAW: &str = include_str!("../../data/omega.json");
 
-/// Omega on GitHub. These paths land on main when the omega branch
-/// docs/what-omega-is merges.
-pub const OMEGA_BLOB: &str = "https://github.com/aien-dev/omega/blob/main/";
-pub const OMEGA_TREE: &str = "https://github.com/aien-dev/omega/tree/main/";
+/// Omega on GitHub. The repository aien-dev/omega was renamed to
+/// aien-dev/omega-mv; GitHub still redirects the old name, but the links
+/// name the repository as it is now.
+pub const OMEGA_BLOB: &str = "https://github.com/aien-dev/omega-mv/blob/main/";
+pub const OMEGA_TREE: &str = "https://github.com/aien-dev/omega-mv/tree/main/";
 
 /// Status words a CUDA row may carry, in the order the legend shows them.
 pub const STATUSES: [&str; 4] = ["PASS", "PARTIAL", "MISSING", "NOT REPLACEABLE"];
@@ -59,6 +60,7 @@ pub struct OmegaData {
 pub struct Performance {
     pub stand: String,
     pub how: String,
+    pub links: Vec<(String, String)>,
     #[serde(rename = "box")]
     pub box_: String,
     pub rule: String,
@@ -134,18 +136,22 @@ pub struct Bar {
 
 /// Expands a short link from the data file into a full address.
 /// `o:` a file in omega, `o/:` a folder in omega, `ob:` an omega branch,
-/// `p:` physics, `c:` aien-sovereign-core, `a:` aien-architecture, `b:` omega-bridge,
+/// `p:` physics, `c:` aien-sovereign-core, `c@:` an aien-sovereign-core file at a
+/// full commit, `c/:` an aien-sovereign-core folder at a full commit,
+/// `a:` aien-architecture, `b:` omega-bridge,
 /// `issue:` an omega issue. A link starting with `/` or `#` stays on this site.
 pub fn expand(link: &str) -> Result<String, String> {
-    const MAP: [(&str, &str); 8] = [
+    const MAP: [(&str, &str); 10] = [
         ("o/:", OMEGA_TREE),
-        ("ob:", "https://github.com/aien-dev/omega/tree/"),
+        ("ob:", "https://github.com/aien-dev/omega-mv/tree/"),
         ("o:", OMEGA_BLOB),
         ("p:", "https://github.com/aien-dev/physics-mv/blob/main/"),
+        ("c@:", "https://github.com/aien-dev/aien-sovereign-core-mv/blob/"),
+        ("c/:", "https://github.com/aien-dev/aien-sovereign-core-mv/tree/"),
         ("c:", "https://github.com/aien-dev/aien-sovereign-core-mv/blob/main/"),
         ("a:", "https://github.com/aien-dev/aien-architecture-mv/blob/main/"),
         ("b:", "https://github.com/aien-dev/omega-bridge/blob/main/"),
-        ("issue:", "https://github.com/aien-dev/omega/issues/"),
+        ("issue:", "https://github.com/aien-dev/omega-mv/issues/"),
     ];
     if link.starts_with('/') || link.starts_with('#') {
         return Ok(link.to_string());
@@ -208,6 +214,7 @@ pub fn validate(d: &OmegaData) -> Result<(), String> {
         return Err(format!("the performance bar must be P0 to P4 in order, found {pids:?}"));
     }
     boxes.push(&d.performance.box_);
+    links.extend(d.performance.links.iter().map(|x| x.1.as_str()));
     for b in d.bar.iter().chain(d.performance.bar.iter()) {
         if !STATUSES[..3].contains(&b.status.as_str()) {
             return Err(format!("{}: unknown status {:?}", b.id, b.status));
@@ -365,6 +372,11 @@ pub fn render_omega_page() -> Markup {
                         a href="/cudaplusplus/" { "CUDA++" }
                         "."
                     }
+                    p class="om-source" {
+                        "Writing Omega yourself, or pointing an agent at it: the "
+                        a href="/omega/reference/" { "Omega language reference" }
+                        " has every compiler error, every trap and every gated worked example."
+                    }
                 }
             }
 
@@ -502,11 +514,12 @@ pub fn render_omega_page() -> Markup {
 
             section id="performance" class="om-section" {
                 div class="container" {
-                    p class="om-kicker" { "5 \u{00B7} Performance: matching and then beating CUDA" }
+                    p class="om-kicker" { "5 \u{00B7} Performance: what has been measured" }
                     h2 class="om-h2" { (pmet) " of " (d.performance.bar.len()) " met" }
                     article class="om-gap om-perf" {
                         p { (d.performance.stand) }
                         p { (d.performance.how) }
+                        (inline_links(&d.performance.links))
                         (box_foot(&d.performance.box_))
                     }
                     p class="om-sub om-perf-rule" { (d.performance.rule) }
@@ -580,7 +593,7 @@ mod tests {
     fn data_parses_and_validates() {
         let d = parse(RAW).unwrap();
         validate(&d).unwrap();
-        assert_eq!(d.claim, "Omega is AIEN's language for all computing, GPU to CPU.");
+        assert_eq!(d.claim, "Omega is Aien's language for all computing, GPU to CPU.");
         assert_eq!(d.layers.len(), 13);
         assert_eq!(d.bar.len(), 6);
     }
@@ -589,8 +602,8 @@ mod tests {
     fn page_says_what_omega_is_first() {
         let s = render_omega_page().into_string();
         let h1 = s.find("<h1").unwrap();
-        assert!(s[h1..].starts_with("<h1 class=\"om-title\">Omega is AIEN&#39;s language for all computing, GPU to CPU.</h1>") || s[h1..].starts_with("<h1 class=\"om-title\">Omega is AIEN's language for all computing, GPU to CPU.</h1>"), "{}", &s[h1..h1 + 120]);
-        assert!(s.contains("On the GPU, that makes Omega the replacement for CUDA."));
+        assert!(s[h1..].starts_with("<h1 class=\"om-title\">Omega is Aien&#39;s language for all computing, GPU to CPU.</h1>") || s[h1..].starts_with("<h1 class=\"om-title\">Omega is Aien's language for all computing, GPU to CPU.</h1>"), "{}", &s[h1..h1 + 120]);
+        assert!(s.contains("Replacing CUDA on the GPU is not true yet."));
         assert_eq!(s.matches("<h1").count(), 1);
     }
 
@@ -613,8 +626,9 @@ mod tests {
         let n = check_boxes(&s).unwrap();
         let d = data();
         assert_eq!(n, d.parts.len() + 1 + d.layers.len() + 1 + d.not_yet.len() + d.bar.len() + d.beyond.len() + 1 + d.performance.bar.len());
-        assert!(s.contains("https://github.com/aien-dev/omega/blob/main/evidence/WHAT-OMEGA-IS-20261021/live-serve-no-cuda.txt"));
-        assert!(s.contains("https://github.com/aien-dev/omega/blob/main/docs/OMEGA.md"));
+        assert!(s.contains("https://github.com/aien-dev/omega-mv/blob/main/evidence/WHAT-OMEGA-IS-20261021/live-serve-no-cuda.txt"));
+        assert!(s.contains("https://github.com/aien-dev/omega-mv/blob/main/docs/OMEGA.md"));
+        assert!(!s.contains("https://github.com/aien-dev/omega/"));
     }
 
     #[test]
@@ -655,17 +669,19 @@ mod tests {
 
     #[test]
     fn link_expansion() {
-        assert_eq!(expand("o:docs/OMEGA.md").unwrap(), "https://github.com/aien-dev/omega/blob/main/docs/OMEGA.md");
-        assert_eq!(expand("o/:src/checker2").unwrap(), "https://github.com/aien-dev/omega/tree/main/src/checker2");
-        assert_eq!(expand("ob:runtime/r2-hello").unwrap(), "https://github.com/aien-dev/omega/tree/runtime/r2-hello");
+        assert_eq!(expand("o:docs/OMEGA.md").unwrap(), "https://github.com/aien-dev/omega-mv/blob/main/docs/OMEGA.md");
+        assert_eq!(expand("o/:src/checker2").unwrap(), "https://github.com/aien-dev/omega-mv/tree/main/src/checker2");
+        assert_eq!(expand("ob:runtime/r2-hello").unwrap(), "https://github.com/aien-dev/omega-mv/tree/runtime/r2-hello");
         assert_eq!(expand("/now/#L332").unwrap(), "/now/#L332");
+        assert_eq!(expand("c@:abc/docs/x.md").unwrap(), "https://github.com/aien-dev/aien-sovereign-core-mv/blob/abc/docs/x.md");
+        assert_eq!(expand("c/:abc/evidence/x").unwrap(), "https://github.com/aien-dev/aien-sovereign-core-mv/tree/abc/evidence/x");
     }
 
     #[test]
     fn link_first_links_only_the_word() {
         assert_eq!(
-            link_first("AIEN proposes. Omega checks. Omega again.").into_string(),
-            "AIEN proposes. <a class=\"omega-link\" href=\"/omega/\">Omega</a> checks. Omega again."
+            link_first("Aien proposes. Omega checks. Omega again.").into_string(),
+            "Aien proposes. <a class=\"omega-link\" href=\"/omega/\">Omega</a> checks. Omega again."
         );
         assert_eq!(link_first("Omegese only").into_string(), "Omegese only");
         assert_eq!(link_first("Omega's tools").into_string(), "<a class=\"omega-link\" href=\"/omega/\">Omega</a>&#39;s tools".replace("&#39;", "'"));
@@ -678,6 +694,97 @@ mod tests {
         let lower = s.to_ascii_lowercase();
         for w in ["revolutionary", "blazing", "cutting-edge", "seamless", "world-class", "powerful", "aienix"] {
             assert!(!lower.contains(w), "{w}");
+        }
+    }
+
+    #[test]
+    fn a_tie_does_not_pass_the_cuda_bars() {
+        let d = data();
+        for id in ["P1", "P2", "P3"] {
+            let bar = d.performance.bar.iter().find(|b| b.id == id).expect(id);
+            assert!(
+                bar.done_when.contains("beats the best measured CUDA number"),
+                "{id} must require a beat: {}",
+                bar.done_when
+            );
+            let lower = bar.done_when.to_ascii_lowercase();
+            assert!(!lower.contains("or past"), "{id} would let a tie pass");
+            assert!(!lower.contains("at the best"), "{id} would let a tie pass");
+        }
+    }
+
+    #[test]
+    fn speed_is_measured_only_never_compared() {
+        // The page states what was measured, keeps chip time apart from end
+        // to end, and does not say Omega the language runs the model.
+        // Overclaims stay banned. A comparison claim ("level with", "ahead
+        // of", "faster than") may appear only in a sentence that is dated
+        // and backed by a receipt or the other project's published numbers.
+        let s = render_omega_page().into_string();
+        let lower = s.to_ascii_lowercase();
+        for w in ["beating cuda", "matching and then", "runs on omega", "omega runs"] {
+            assert!(!lower.contains(w), "{w}");
+        }
+        // The page is scanned. Only the exact CUDA bar sentences are allowed.
+        let problems = crate::components::machines::comparison_errors_at("omega/index.html", &s);
+        assert!(problems.is_empty(), "live sentences: {problems:?}");
+        assert!(!crate::components::machines::is_prose_exempt("crates/site-builder/data/omega.json"));
+        assert!(!crate::components::machines::is_prose_exempt("omega/index.html"));
+        assert!(crate::components::machines::comparison_problem("2x faster than llama.cpp").unwrap().contains("unsourced"));
+        assert!(crate::components::machines::comparison_problem(
+            "On 2026-10-21 this run was faster than llama.cpp's published 40 tok/s (https://example.com/bench)."
+        ).is_some());
+        assert!(crate::components::machines::comparison_problem(
+            "On 2026-10-21 this run was faster than llama.cpp's published 40 tok/s (https://github.com/aien-dev/sovereign-intelligence)."
+        ).is_none());
+        let overclaim = format!(
+            "A {}, dated 2026-10-21, receipt https://example.com/r.",
+            concat!("replacement for ", "CUDA")
+        );
+        assert!(crate::components::machines::comparison_problem(&overclaim).unwrap().contains("overclaim"));
+        let d = data();
+        assert!(d.performance.stand.contains("end to end") && d.performance.stand.contains("chip time"));
+        assert!(d.performance.stand.contains("20.7 ms") && d.performance.stand.contains("48.31"));
+        assert!(!d.performance.stand.contains("20.1") && !d.performance.stand.contains("49.8"));
+        assert!(!d.performance.stand.to_ascii_lowercase().contains("leaves out the server"));
+        assert!(d.performance.stand.contains("prompt reading"));
+        assert!(d.performance.stand.contains("test server") && d.performance.stand.contains("branch build"));
+        assert!(d.performance.stand.contains("about 3B parameters active per token"));
+        assert!(d.true_today.contains("C GPU stack") && d.true_today.contains("bar C1"));
+        assert!(s.contains("https://github.com/aien-dev/aien-sovereign-core-mv/tree/9c62690a252ab1c0b75eb8933c550316b5c50d52/evidence/q36-batch-20261021"));
+        // The same phrases are refused in the sources that used to state them,
+        // not only in the rendered /omega/ page.
+        assert_no_parity("/omega/", &s);
+        for (name, text) in [
+            ("matrix.rs", include_str!("matrix.rs")),
+            ("facts.rs", include_str!("../facts.rs")),
+            ("omega.json", RAW),
+            ("cudaplusplus.json", include_str!("../../data/cudaplusplus.json")),
+            ("cudaplusplus.rs", include_str!("cudaplusplus.rs")),
+            ("seo.rs", include_str!("../seo.rs")),
+            ("main.rs", include_str!("../main.rs")),
+            ("omega.rs", include_str!("omega.rs")),
+            ("research/index.html", include_str!("../../../../public/research/index.html")),
+            ("research/omega-language/index.html", include_str!("../../../../public/research/omega-language/index.html")),
+            ("engineer.json", include_str!("../../../../public/data/engineer.json")),
+        ] {
+            assert_no_parity(name, text);
+        }
+    }
+
+    /// Phrases split so this file can be scanned without matching itself.
+    fn parity_phrases() -> [&'static str; 3] {
+        [
+            concat!("replacement for ", "CUDA"),
+            concat!("everything ", "CUDA gives you"),
+            concat!("Omega's replacement and ", "its status"),
+        ]
+    }
+
+    fn assert_no_parity(name: &str, text: &str) {
+        let lower = text.to_ascii_lowercase();
+        for w in parity_phrases() {
+            assert!(!lower.contains(&w.to_ascii_lowercase()), "{name} contains {w}");
         }
     }
 }

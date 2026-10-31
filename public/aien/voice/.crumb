@@ -1,5 +1,19 @@
 {
-  "schema_version": "1.0.0",
+  "extensions": {
+    "generated": {
+      "children": [],
+      "children_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compiled_at": "2026-10-31T02:16:53Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:4236d0e02517c5596abad0b1dcf020ae36cfcd8de8775bc09892d05102353a38",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 570,
+      "generated_at_commit": "4d7b9cdb59a3378500df2cfde793c1255b5b50ab",
+      "source_tree": "sha256:e4465606db86fdb27d8646774268935ca1bc042a3d8ed52917fc8fd65540b3ca"
+    }
+  },
   "name": "voice",
-  "purpose": "Aien's pre-recorded voice clips (ElevenLabs Output, voice Aien Cosmic 1) and catalog.json listing each clip's situation, text, sha256, license and source. Static, first party, not precached, not in the sitemap or llms.txt. tests/voice_catalog.rs hash-checks every clip. Clips are not training data (ElevenLabs Prohibited Use Policy s12)."
+  "purpose": "Aien's pre-recorded voice clips (ElevenLabs Output, voice Aien Cosmic 1) and catalog.json listing each clip's situation, text, sha256, license and source. Static, first party, not precached, not in the sitemap or llms.txt. tests/voice_catalog.rs hash-checks every clip. Clips are not training data (ElevenLabs Prohibited Use Policy s12).",
+  "schema_version": "1.0.0"
 }

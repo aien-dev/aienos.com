@@ -1,0 +1,4 @@
+note err02_output: error 2, the compiler could not write its output. The gate sends stdout to /dev/full; the program itself is valid
+fn main to int
+ret 0
+end

@@ -33,7 +33,7 @@
     ].join(",");
     var blocks = [
       ".section-head", ".hub-section", ".narr-section", ".rs-section", ".loop",
-      ".home-questions", ".research-wrap .section", ".aien-footer-top"
+      ".home-questions", ".research-wrap .section", ".aien-footer-row"
     ].join(",");
     var fold = window.innerHeight * 0.9;
     var seen = [];

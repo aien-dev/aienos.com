@@ -1,0 +1,9 @@
+#!/bin/sh
+# Root-run starter for cortex-visitors until aien-supervise owns it (no systemd unit by Drake's order).
+set -eu
+if ss -ltnH 'sport = :18096' | grep -q .; then echo "cortex-visitors: port 18096 already in use" >&2; exit 1; fi
+umask 027
+exec setsid setpriv --reuid=cortex-visitors --regid=cortex-visitors --init-groups \
+  --no-new-privs --inh-caps=-all --bounding-set=-all \
+  env -i HOME=/var/lib/cortex-visitors PATH=/usr/bin:/bin RUST_LOG=warn \
+  /opt/cortex-visitors/run </dev/null >>/var/log/cortex-visitors.log 2>&1 &

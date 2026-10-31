@@ -1,0 +1,6 @@
+note err21_const_index: a literal index outside the array is refused at compile time (a run-time index traps 3)
+fn main to int
+a = new uint 4 0
+put a 4 1
+ret 0
+end

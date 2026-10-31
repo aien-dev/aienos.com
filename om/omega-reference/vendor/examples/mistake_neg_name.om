@@ -1,0 +1,5 @@
+note mistake_neg_name: neg is the negation word, so it cannot name a value or a text. Fix: pick another name, for example negv
+fn main to int
+neg = int 1
+ret 0
+end

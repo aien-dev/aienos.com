@@ -58,6 +58,16 @@ pub fn render_learn_page() -> Markup {
                 p class="learn-invitation" {
                     "Start with a small change you can describe and observe. Let an agent help with the code. Keep hold of the purpose, the boundaries, and the decision to publish."
                 }
+                p class="learn-invitation" {
+                    "I use Human-Directed Agentic Engineering (HDAE): I define the goals, architecture, constraints, acceptance criteria and stopping points; my agents implement, run checks, diagnose failures and revise within those boundaries. I retain responsibility for the claims, acceptance and release decisions."
+                }
+                p {
+                    "For the documented method and a systems-software case study, see Gregory M. Kurtzer, "
+                    a href="https://doi.org/10.5281/zenodo.23682548" {
+                        "Ginux: Building an Independent Kernel That Runs Linux Userspace through Human-Directed Agentic Engineering"
+                    }
+                    " (2026)."
+                }
                 nav class="learn-jump" aria-label="Learning guide" {
                     a href="#workflow" { "The working loop" }
                     a href="#brief" { "A brief to copy" }
@@ -184,7 +194,7 @@ pub fn render_learn_page() -> Markup {
                     a class="learn-text-link" href="/engineer/" { "Meet the engineer" }
                 }
                 div class="learn-watch" {
-                    p { "I am Drake Stapleton. I grew up on a farm, worked the line at Taco Bell, became a chemist, then an engineer, and now I build a whole computer from the ground up with AI agents. I learned all of it the way this guide describes: one checked step at a time." }
+                    p { "I am Drake Stapleton. I grew up on a farm, worked the line at Taco Bell, trained in chemistry, became an engineer, and now I build a whole computer from the ground up by directing AI agents and holding them to proof. I learned all of it the way this guide describes: one checked step at a time." }
                     p {
                         "My story, my philosophy, the work I have shipped and the glossary of my terms are in "
                         a href="/engineer/" { "About the engineer" }

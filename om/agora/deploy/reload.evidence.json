@@ -1,0 +1,82 @@
+{
+  "status": "EXERCISED_HOST_ONLY",
+  "compiler": {
+    "source_pin": "omega-mv@e5b32567",
+    "sha256": "2c82480596bbdc50cda9626866209ef662d5834f278f839ff4ce0250c495029f"
+  },
+  "platform": "Linux AArch64",
+  "oracle": "nginx 1.24.0, unchanged external verification binary",
+  "source": "om/agora/reload-check.om",
+  "compose_command": "{ printf \"om2\\n\"; cat om/agora/http.om om/agora/reload-check.om; } | \"$OMEGA_OMC\" > \"$TMP/reload\"; chmod 700 \"$TMP/reload\"",
+  "run_command": "\"$TMP/reload\" \"$NGINX_BIN\" \"$EMPTY_SCRATCH\"",
+  "expected_real_exit": 0,
+  "observed_stdout": "AGORA RELOAD OMEGA PASS barrier; missing-reload and old-worker-alive refused; readiness 200/no-store/one upstream hit",
+  "controls": [
+    {
+      "name": "real",
+      "source_sha256": "2b98ff8480641d6567a51c47f7f8a82229f0fda0b0164b0e3d50678430bfae48",
+      "binary_sha256": "829a785aa82251224e96775cc10204d3bd48764375621fe7cf9124c77e102e1a",
+      "compile_exit": 0,
+      "expected_exit": 0,
+      "observed_exit": 0
+    },
+    {
+      "name": "barrier-off",
+      "source_sha256": "07a1ffe3482cd24092a4322a931337f8322447650c6ac0d068b94d3a864b4d54",
+      "binary_sha256": "4e63145f3b88401c498df364b86864f3549ca23b06bff5df2b185dabaa386c5a",
+      "compile_exit": 0,
+      "expected_exit": 11,
+      "observed_exit": 11
+    },
+    {
+      "name": "old-retirement-off",
+      "source_sha256": "b7c8c8dd597d7d29cfad8b78e8580f6f14395dfb319ccfe1406f6fc8bc009193",
+      "binary_sha256": "28edbbf9b5c8bdd9b2d7f5dee6db1e382050f5e0ceb0dde2ea377d6c1d51723a",
+      "compile_exit": 0,
+      "expected_exit": 14,
+      "observed_exit": 14
+    },
+    {
+      "name": "readiness-status-off",
+      "source_sha256": "8f76a7bc804fe7e431ecdd4594fbb192ff71d0d86cf6de5f23ed1402c04dfcf7",
+      "binary_sha256": "e670d12b02cec0214153d41bd9444e1d39b47d683d26e34bee502fb9dfd62ba9",
+      "compile_exit": 0,
+      "expected_exit": 17,
+      "observed_exit": 17
+    },
+    {
+      "name": "upstream-count-wrong",
+      "source_sha256": "82835522058e755e1aec303b396733dd4b8d8f579d50ee747efbfb3b13db01e4",
+      "binary_sha256": "afa3a936039263b0f49b06510c16cb3f375d9720d4fbb95e64ced68cc278ae13",
+      "compile_exit": 0,
+      "expected_exit": 20,
+      "observed_exit": 20
+    }
+  ],
+  "mutations": {
+    "barrier-off": [
+      "if and gt cur 0 ne cur old -> if gt cur 0",
+      "if eq killpid old 0 -3 -> if true"
+    ],
+    "old-retirement-off": [
+      "if eq killpid old 0 -3 -> if true"
+    ],
+    "readiness-status-off": [
+      "expected HTTP/1.1 200 OK -> HTTP/1.1 599 BAD"
+    ],
+    "upstream-count-wrong": [
+      "expected lines 1 -> lines 2"
+    ]
+  },
+  "wolfram": {
+    "query": "UnitConvert[Quantity[{30,0.1,0.01},\"Seconds\"],\"Nanoseconds\"]",
+    "result": "{Quantity[30000000000,\"Nanoseconds\"],Quantity[1.*^8,\"Nanoseconds\"],Quantity[1.*^7,\"Nanoseconds\"]}",
+    "provenance": "WolframLanguageEvaluator output relayed by Main, 2026-10-28"
+  },
+  "limits": [
+    "One-worker isolated fixture; not a general production worker enumerator",
+    "No live service changes in this receipt",
+    "Historical production reload cause remains inference",
+    "Production logging, browser, durability and deployment NOT_RUN in this receipt"
+  ]
+}

@@ -1,0 +1,8 @@
+note trap5_conv: a conversion whose value does not fit traps 5, exit 105
+text before "before\n"
+fn main to int
+k = write 1 before 0 len before
+x = uint 300
+c = uchar x
+ret 0
+end

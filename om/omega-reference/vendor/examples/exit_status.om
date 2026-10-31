@@ -1,0 +1,4 @@
+note exit_status: the exit status is main's value mod 256; 300 mod 256 = 44
+fn main to int
+ret 300
+end

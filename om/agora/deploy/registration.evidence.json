@@ -1,0 +1,37 @@
+{
+  "status": "EXERCISED_HOST_ONLY_NOT_DEPLOYED",
+  "date": "2026-10-28",
+  "integration_base": "919b8a5e98f6e31b7d8240bc3dcb187dadcc29b3",
+  "signup_input": "c05dcec667dae4923ebd2d336b356fc48949cfa9",
+  "core_input": "7c1985f8129fb305eff708d255bbad07d0ce8272",
+  "compiler_sha256": "2c82480596bbdc50cda9626866209ef662d5834f278f839ff4ce0250c495029f",
+  "platform": "Linux AArch64",
+  "checks": [
+    {"command": "NGINX_BIN=<nginx> python3 scripts/test-agora-deploy.py", "result": "PASS", "oracle": "Ubuntu nginx 1.24.0-2ubuntu7.19 arm64, debug-capable, extracted locally without installation", "scope": "isolated loopback nginx and synthetic upstream; exact allowed routes; HEAD and wrong-method refusal; malformed IDs and trailing segments; API deny precedence; empty PROXY identity refusal; spoof-resistant upstream identity and per-client quota; no upstream traffic on denial including 429; exact accepted body fidelity at 16k; oversized rejection; no-store/nosniff on success/failure; active access/debug controls; no API access entries or observed synthetic body sentinels; no retained temporary body files"},
+    {"command": "OMEGA_OMC=<pinned compiler> sh om/agora/check.sh", "result": "PASS", "scope": "real core and local network scenarios; seven core mutants and network/refusal mutants rejected; challenge table capacity, live token retention, recycling, single use and client quotas exercised; JSON-edge/drainer/federation fixtures only, no services enabled"},
+    {"command": "OMEGA_OMC=<pinned compiler> sh om/agora-page/check.sh", "result": "PASS", "page_sha256": "6461ca1dc9a3133355cc317ed44dc8d54f5622ad97947c11c465b69234fa4d84", "javascript_sha256": "4e9b46afd7db51b86c438bf6d340bb29e29fd26dc7f02a5a157585713a08ace4"},
+    {"command": "node scripts/test-aienet.cjs", "result": "PASS", "scope": "consent, saved readback, recovery handling, malformed/HTTP/network failure, mismatched profile and duplicate submission"},
+    {"command": "cargo test --workspace", "result": "PASS", "tests": 268},
+    {"command": "cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist", "result": "PASS", "scope": "Integrity & Unslop Invariants: PASS; authoritative origin/data/now files temporarily staged using the Pages workflow, then source inputs restored", "initial_attempt": "FAIL: absent accounts.tsv/routing.tsv live-data inputs; no source bypass added"},
+    {"command": "real Chromium, built local /aienet/ with intercepted synthetic API responses", "result": "PASS", "scope": "missing consent sends no registration calls; consented success performs same-origin GET challenge, POST hello, GET matching profile before success; browser-local recovery storage present without printing key; uncertain HTTP write stays unconfirmed, profile link hidden, synthetic second submit adds no request", "limitation": "fixture responses only, not a live registration; submission handler exercised by DOM submit events; not public TLS/SNI qualification"}
+  ],
+  "negative_controls": [
+    {"mutation": "forward visitor X-Real-IP instead of PROXY identity", "result": "REJECTED"},
+    {"mutation": "remove GET method refusal", "result": "REJECTED: HEAD no longer receives 405"},
+    {"mutation": "inherit API access logging", "result": "REJECTED: API request found in access log"},
+    {"mutation": "remove API error-log suppression", "result": "SURVIVED", "meaning": "Body-sentinel absence in this nginx build is observation only, not proof the suppression directive caused privacy. Effective production logging inspection remains mandatory."},
+    {"mutation": "redirect API access logging to a different sink", "result": "SURVIVED", "meaning": "Oracle checks its configured inherited sink, not every possible arbitrary log sink. Effective complete configuration inspection remains mandatory."}
+  ],
+  "not_run": [
+    "complete candidate configuration validation on intended hub nginx 1.28.3",
+    "actual dedicated-account executable/state ownership and effective systemd unit/drop-ins/ancestor-slice review",
+    "actual ingress/egress cgroup-BPF attachment and allowed hub versus independently reachable denied-source listener probes",
+    "actual sole-listener/no alternate IPv6 or socket-activation inspection",
+    "real TLS/SNI spoof identity/rate-bucket and non-PROXY 4445 refusal",
+    "effective production logging/cache/body storage and debug_connection inspection; transient spill qualification",
+    "published artifact hash match, public browser acceptance signup and durable restart/readback",
+    "merge, service installation, enablement or public routing"
+  ],
+  "rollback": "Remove registration routing include and HTTP-scope configuration, validate and reload nginx; stop/disable only the new registration unit if needed; retain all accepted profile state and recovery material.",
+  "guides": "No Omega harness guide affected: no language/compiler/pin/ownership/gate-policy changes. Existing deployment guide updated in the same change."
+}

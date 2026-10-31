@@ -9,7 +9,7 @@
 use maud::{html, Markup, PreEscaped};
 
 pub const TITLE: &str = "The Hive | AienOS";
-pub const DESCRIPTION: &str = "Watch Drake and the AIEN coding agents work in public: real missions, nested agents, exact models and live conversations. Learn how to build with AI.";
+pub const DESCRIPTION: &str = "Watch the Aien coding agents work in public: real missions, nested agents, exact models and what the agents are saying, live. Learn how to build with AI.";
 pub const URL: &str = "https://www.aienos.com/hive/";
 pub const SOURCE: &str = "https://github.com/aien-dev/aienos.com/blob/main/crates/site-builder/src/components/hive.rs";
 

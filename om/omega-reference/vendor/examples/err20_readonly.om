@@ -1,0 +1,6 @@
+note err20_readonly: a text or a view parameter is read-only
+text t "abc"
+fn main to int
+put t 0 1
+ret 0
+end

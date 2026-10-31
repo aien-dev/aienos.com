@@ -1,0 +1,13 @@
+{
+  "engine": "aien-dev/aien-math",
+  "commit": "43c629db362b48aeec3590a8f0cd30e927e5ec16",
+  "binary_sha256": "a3c538e9e2c8b255ba3daf4cf5a486b379e2722e86a177c173ff2d097e9ddd59",
+  "omc_sha256": "e623d440956b1473ca32da85a019cbb3c953d4bdd6e384952d9989e8039425e3",
+  "omc_source": "aien-dev/omega-mv 3d0000603ae7ab117538db1fb204c72635027976 (seed-built)",
+  "measured": "2026-10-26, aarch64 DGX Spark, CPU only",
+  "corpus": {"runner": "python3 tests/run.py --verbose (no --only/--limit)", "pass": 7316, "total": 7570, "intentional_differences": 0, "failures": 254, "corpus_fault": false, "exit": 1, "alpha_rows": "NOT_RUN here, see alpha"},
+  "alpha": {"runner": "python3 tests/run_alpha.py", "pass": 157, "total": 220, "exit": 1},
+  "guard": {"runner": "python3 -m unittest discover -s tests/unit -p test_oracle_guards.py -v", "tests": 9, "result": "OK", "exit": 0},
+  "pure_mode": false,
+  "hard20": {"rows": "evidence/hard20.jsonl", "main": "15 pass / 5 fail", "failing": ["L3 MatrixExp last digits", "D2 DSolve y''+y==0 unevaluated", "D3 heat-kernel Simplify not 0", "Q1 Gaussian moment Integrate unevaluated", "Q3 r^3 Exp[-2r] Integrate unevaluated"]}
+}

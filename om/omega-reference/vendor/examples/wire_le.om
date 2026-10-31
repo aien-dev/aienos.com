@@ -1,0 +1,68 @@
+note wire_le: there is no byte-layout type; encode and decode integers with shifts and masks
+note ---- output helpers: a function works on a global by naming it (a global is never an argument)
+global ob uchar 32
+note outb: write ob[off .. off+n) to stdout; a short write continues, 0 or an error exits 90
+note bound: every pass writes at least one byte and n <= 32, so at most 32 passes
+fn outb off ulong n ulong to void
+e = add off n
+p = off
+while lt p e bound 32
+k = write 1 ob p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline. A ulong has at most 20 digits, so 20 passes
+fn putu v ulong to void
+i = ulong 31
+put ob 31 10
+n = v
+while true bound 20
+i = sub i 1
+put ob i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outb i sub 32 i
+end
+note putl: a signed value; -(v+1)+1 avoids negating the minimum, which would trap 1
+fn putl v long to void
+if lt v 0
+put ob 0 45
+outb 0 1
+putu add ulong neg add v 1 1
+ret
+end
+putu ulong v
+end
+fn main to int
+b = new uchar 4 0
+h = uint 305419896
+put b 0 uchar and h 255
+put b 1 uchar and shr h 8 255
+put b 2 uchar and shr h 16 255
+put b 3 uchar and shr h 24 255
+for i ulong 4
+putu ulong get b i
+end
+v = or uint get b 0 shl uint get b 1 8
+v = or v shl uint get b 2 16
+v = or v shl uint get b 3 24
+putu ulong v
+note a signed 32-bit decode without integer bitcast (see omega-encoding section 5)
+s = long v
+put b 3 255
+u = or uint get b 0 shl uint get b 1 8
+u = or u shl uint get b 2 16
+u = or u shl uint get b 3 24
+s = long u
+if ge u 2147483648
+s = sub s 4294967296
+end
+putl s
+ret 0
+end
