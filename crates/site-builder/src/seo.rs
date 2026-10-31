@@ -133,6 +133,7 @@ pub const PAGES: &[PageInfo] = &[
     PageInfo { path: "/engineer/path/", name: "AI Architect Career Path", what: "Follow Drake Stapleton, an engineer who builds by directing AI agents and holds them to proof, from R&D labs through manufacturing engineering to AI architecture.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/engineer/what-i-learned/", name: "What I learned", what: "The experiences, production lessons, and disciplined returns that shaped Drake Stapleton's work as an AI operator.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/engineer/philosophy/", name: "Philosophy", what: "How Drake Stapleton approaches projects, duties, difficult things, and setbacks. The working philosophy behind everything he builds: there is always a way, and giving up is not one of the options.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
+    PageInfo { path: "/engineer/hive/", name: "A hive, not a swarm", what: "Why Drake Stapleton runs his AI agents as a controlled hive instead of a swarm: every agent on an assignment, one person in control, and the whole build run like a plant.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-29", doi: None },
     PageInfo { path: "/engineer/software/", name: "AI orchestration & architecture", what: "Drake Stapleton's AI orchestration frameworks, architectural patterns, operational methods, and verifiable systems history.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/engineer/evidence/", name: "Canonical evidence hub & verified claims", what: "Inspect the canonical evidence hub, structured claims index, physical Grace Blackwell silicon telemetry, and historical audit packages.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
     PageInfo { path: "/engineer/atlas/", name: "Why Atlas exists", what: "Explore Atlas, Drake Stapleton's personal R&D program in accountable AI architecture, continuity, model training, and orchestration.", section: Section::Engineer, kind: Kind::Page, image: "/og.png", published: "2026-10-26", doi: None },
@@ -798,6 +799,8 @@ pub fn enrich(dist: &Path, ctx: &BuildCtx) -> Vec<Emitted> {
         out.push_str(&html[head_end..]);
         let zh = page.is_zh();
         let out = crate::components::allen_intro::enrich(crate::components::support::enrich(crate::components::contact::enrich(crate::components::navbar::fold_legacy(ensure_glossary_link(out), zh), zh)));
+        // Last: the policy is derived from everything the page now loads.
+        let out = crate::components::csp::enrich(out);
         write_markdown_mirror(dist, page, &facts, &out);
         fs::write(&page.file, out).unwrap_or_else(|e| panic!("write {}: {e}", page.file.display()));
     }
@@ -1205,9 +1208,11 @@ fn verify_consent_boundary(dist: &Path) {
             } else if path.extension().and_then(|e| e.to_str()) == Some("html") {
                 let html = fs::read_to_string(&path).expect("read consent boundary HTML");
                 check_script_boundary(&html).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
-                // A redirect stub leaves at once: it loads no consent dialog and no pixel.
+                // A redirect stub leaves at once, and the program runner is replaced by
+                // what it runs in an opaque origin: neither loads a consent dialog or a pixel.
                 let rel = path.strip_prefix(dist).expect("under dist").to_string_lossy().replace('\\', "/");
-                let consent = if REDIRECTS.iter().any(|(old, _)| format!("{}index.html", &old[1..]) == rel) { 0 } else { 1 };
+                let frame_only = rel == crate::components::csp::RUNNER_PATH;
+                let consent = if frame_only || REDIRECTS.iter().any(|(old, _)| format!("{}index.html", &old[1..]) == rel) { 0 } else { 1 };
                 assert_eq!(html.matches("src=\"/js/allen-intro.js\"").count(), consent, "{} must have exactly {consent} first-party consent loader", path.display());
                 assert_eq!(html.matches("id=\"aien-allen-intro\"").count(), consent, "{} must have exactly {consent} consent dialog", path.display());
                 assert!(consent == 0 || html.contains("href=\"/privacy/\""), "{} must link privacy", path.display());
