@@ -7,8 +7,8 @@
     "generated": {
       "children": [
         {
-          "digest": "8ab3e6b1a96a8741eac496096349652717bffe1032c2c3dd535048a9de2bfc89",
-          "last_commit": "5803c14c",
+          "digest": "a6966fd9743e81453449f1a9db2142ff432681c0fd7db5571a88df65e6a6bb73",
+          "last_commit": "f7ad7eb8",
           "name": "src",
           "purpose": "Page assembly and site build verification"
         },
@@ -19,15 +19,15 @@
           "purpose": "Reviewed HTML templates for source-backed pages"
         }
       ],
-      "children_root": "sha256:f1b6a67ef945faa560ee2827db1a92ec8f33d31096b150af4427853911316934",
-      "compiled_at": "2026-10-31T11:21:48Z",
+      "children_root": "sha256:47da79488ddbbb0fffe2ea4266753f594fb4ff5ab00373e06cd72c223006e5e6",
+      "compiled_at": "2026-10-31T11:45:21Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:98724d04c902ffd3502adcbd7f1f8ab3a24ac280b0fd556b4fbd61a14a693ad8",
+      "digest": "sha256:bce60e73cd1bf5e802e497dd9a54de2de2f08f37482d7656e05d7d66670a2f2f",
       "evidence_files": 0,
       "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "files": 63,
-      "generated_at_commit": "5803c14c5ea12b429825f5e46603928377cd6165",
-      "source_tree": "sha256:c42506c4eff405c0af3dfb5476d4e302854254d067a9553fbd3fed23412a239c"
+      "generated_at_commit": "f7ad7eb8131209f00abdc44d91893825fb7c13a5",
+      "source_tree": "sha256:441e76bf4c6113592199e0b8dcc175c76440c9e302972e271b59a6ae53bbcbd1"
     }
   },
   "invariants": [
