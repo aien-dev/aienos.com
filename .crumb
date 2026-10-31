@@ -17,14 +17,14 @@
     "generated": {
       "children": [
         {
-          "digest": "3c49567df94c5f213b6feb7d54f4d37ddd7b4554981fee6e15e260036bf35685",
-          "last_commit": "132be895",
+          "digest": "43e838a6cbbb7e0d0ffa73cd396a1465492eaf3795b4d9dc80309399a836e668",
+          "last_commit": "8267d597",
           "name": ".github",
           "purpose": "GitHub automation configuration"
         },
         {
-          "digest": "b44f5e584391b4223f6e4edcb86a79f6a3c8e0ab870220ebad624cfb5fbc37cc",
-          "last_commit": "85c98395",
+          "digest": "830c5b102136e7ada852465c02cac50cb19de44876c5fba66acf69c59909f761",
+          "last_commit": "e7a4a477",
           "name": "crates",
           "purpose": "Native Rust website crates"
         },
@@ -77,15 +77,15 @@
           "purpose": "Isolated compute-only Allen tools and versioned glass-pane protocol; temporary host transport ar"
         }
       ],
-      "children_root": "sha256:4226f52a3072183d3ce15f8d48ebcd7a8fb07a5dd5ea170f8dd3b864a83c60af",
-      "compiled_at": "2026-10-31T11:00:21Z",
+      "children_root": "sha256:4eed589285b04a92b43dad5b5658fe9d61680b7f8a509eb62b80841f072b21ae",
+      "compiled_at": "2026-10-31T11:20:47Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:596855f5d92351b9862b91a14afc873ac71e9f739d789c240ed9f520b8ad6c5a",
+      "digest": "sha256:0cc4f17093fb68b8b48823246b911d24d3abd77f3ed5773161a088f35342b29a",
       "evidence_files": 6,
       "evidence_root": "sha256:7fde48972a09dd4b0f7206aca4e313cd02c8cd195ec602e3924e59246c016aa5",
       "files": 819,
-      "generated_at_commit": "ef5c0a4f3918b97df1bcef4f90c6bd0860e2dffc",
-      "source_tree": "sha256:6ef9c741261e6e1e7c7197ad4b72f7bdc1a5f2315860e95dbc59b33ffb38bb7f"
+      "generated_at_commit": "e7a4a47784c6e890e9924326c63cf956f22b1c66",
+      "source_tree": "sha256:63f1020bb66bf8e864e55c5ae0a024aa2364af27f4f1913f6d41674d2af13e40"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",
