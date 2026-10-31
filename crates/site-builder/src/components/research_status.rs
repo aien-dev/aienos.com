@@ -1108,6 +1108,15 @@ mod tests {
         assert!(parse(&count).is_err());
     }
 
+    #[test]
+    fn zh_cn_independent_recheck_count_is_the_number_of_links() {
+        // The zh-CN page is hand-written, so tie its count to the data file.
+        let zh = include_str!("../../../../public/zh-CN/research/status/index.html");
+        let r = &data().independent_rechecks;
+        let want = format!("独立复核：{}（截至 {}）", r.links.len(), r.as_of);
+        assert!(zh.contains(&want), "zh-CN status page lacks `{want}`");
+    }
+
     /// The homepage lookup check, as a function so a mutated copy can be
     /// shown to fail it.
     fn check_homepage(d: &StatusData) -> Result<(), String> {
