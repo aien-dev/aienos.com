@@ -17,75 +17,75 @@
     "generated": {
       "children": [
         {
-          "digest": "201dae855791459ce55c9060c32e18e229b0006db8606289e44dfe7f412cf6c4",
-          "last_commit": "7fd18a6",
+          "digest": "56136954a8b5f0dd43d98fc7bf549de759a89d3454d379d45e3767e75bfa39d1",
+          "last_commit": "a9c5dbbc",
           "name": ".github",
           "purpose": "GitHub automation configuration"
         },
         {
-          "digest": "7ce1c68a26a852505622949aff766ec2de015bde1925e13a85c338e1261d2719",
-          "last_commit": "a5b073f",
+          "digest": "364fc805a14fe3fa954e90bc000519325babcc4b3e22ebc47f319f356f95d91c",
+          "last_commit": "3105b6ca",
           "name": "crates",
           "purpose": "Native Rust website crates"
         },
         {
           "digest": "bb5b1f96cff14056a492f498929d784e8648a655c985da0d1ae96c580b47a2f0",
-          "last_commit": "",
+          "last_commit": "0a2c6e43",
           "name": "om/agora/tls",
           "purpose": "Verbatim pinned Omega TLS 1.3 client units for verified Agora peer pulls"
         },
         {
           "digest": "b2255e3fb36241b5fe4a87f595ab384f559aaf4b6d04a62831ccfc3a7b9444da",
-          "last_commit": "",
+          "last_commit": "22e46dbe",
           "name": "om/allen-scene",
           "purpose": "Native Allen scene reuse, Omega browser controller and independent frame oracle"
         },
         {
           "digest": "7e8d6412f116296354d537f1cf123c33f266e3ef74546b5862a579c077429176",
-          "last_commit": "fdb3d63",
+          "last_commit": "65d2b4ab",
           "name": "om/alpha-page",
           "purpose": "Seeded Omega alpha landing page and client, with pinned wizard source and real terminal capture"
         },
         {
           "digest": "c4e1b4fdfa83e5b9685aab9883ee681e3f5c1042baf104601afd85712e17b45c",
-          "last_commit": "21dc7ea",
+          "last_commit": "a9c5dbbc",
           "name": "om/hive-render",
           "purpose": "Seeded Omega edge rendering of validated canonical Hive JSON with fail-closed escaping and deter"
         },
         {
           "digest": "679153341779296d8c4d44f67d95e31e66dcb182a966817e280a37eec60cc743",
-          "last_commit": "",
+          "last_commit": "21c485cd",
           "name": "om/omega-reference",
           "purpose": "Seeded Omega generator of /omega/reference/ from a pinned, hash-recorded omega-harness vendor tr"
         },
         {
           "digest": "f3688673f9ce0597ad2cb249368c873301045a4b5f7677af596593b6a24639c4",
-          "last_commit": "a5b073f",
+          "last_commit": "5aace54d",
           "name": "om/support-page",
           "purpose": "Seeded Omega support page, shared invitation and CSS with deterministic artifact checks"
         },
         {
-          "digest": "90ee5eb1e6edbf824983fa3b4c9626ea11224f0155641fd22fe3c8a044aef947",
-          "last_commit": "fdb3d63",
+          "digest": "804fd47d206419cf07e69b81f39c3ffb66ebc83382ea0002784739d566ecdcb4",
+          "last_commit": "65d2b4ab",
           "name": "public",
           "purpose": "Static public website assets"
         },
         {
           "digest": "b77336127516b827d0e7a19a214d6bd15665865f7fd2f2d4eb323c6eca9c3893",
-          "last_commit": "e391556",
+          "last_commit": "11313098",
           "name": "scripts/allen/science",
           "purpose": "Isolated compute-only Allen tools and versioned glass-pane protocol; temporary host transport ar"
         }
       ],
-      "children_root": "sha256:140b2b3fd4893e67e2a1346599b600f3ac2e977677223a9c7008506ba4338e21",
-      "compiled_at": "2026-10-30T02:46:16Z",
+      "children_root": "sha256:1337fabb7d935282d07cec3045ef351992f43c012291c89545e18f81b3f809ff",
+      "compiled_at": "2026-10-31T02:10:52Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:988d037728486c72f9752150b69d52d1c88886fd771b969eb8a085d8577ddd90",
+      "digest": "sha256:87bf611888109bdae77827835740e6c28faf0aa82d3ffbb3c9d30ddc00cbc9ce",
       "evidence_files": 6,
       "evidence_root": "sha256:7fde48972a09dd4b0f7206aca4e313cd02c8cd195ec602e3924e59246c016aa5",
-      "files": 801,
-      "generated_at_commit": "fdb3d63d364b08a255fda26c00a9b4696553bd46",
-      "source_tree": "sha256:fe52e03aae097549803d8ffc0df1d054949f9cb5189d6721259e52108eb354ae"
+      "files": 814,
+      "generated_at_commit": "65d2b4ab2f7df087d6c7f8c663c63fb2cbba71cb",
+      "source_tree": "sha256:f0b20a2ee76d1f396b4a7b6ee7ec8c88aa0afc0213f8474934191080f182e910"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",

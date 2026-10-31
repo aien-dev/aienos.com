@@ -757,12 +757,12 @@ fn card(it: &Item) -> Markup {
                     (age_words(it.age_s))
                 }
             }
-            h3 class="now-item" { (keeper_name(&it.item)) }
+            h3 class="now-item" data-verbatim { (keeper_name(&it.item)) }
             @if let Some(n) = last_note(it) {
-                p class="now-note" { (note_markup(n, it.stream)) }
+                p class="now-note" data-verbatim { (note_markup(n, it.stream)) }
             }
             @if !it.done_when.is_empty() {
-                p class="now-done" { span class="now-done-k" { "done when" } " " (keeper_name(&it.done_when)) }
+                p class="now-done" data-verbatim { span class="now-done-k" { "done when" } " " (keeper_name(&it.done_when)) }
             }
             (line_foot(it))
         }
@@ -782,7 +782,7 @@ fn row(it: &Item) -> Markup {
     html! {
         li class="now-queue-row now-row" id=(it.id) {
             span class="now-id" { (it.id) }
-            span class="now-queue-item" {
+            span class="now-queue-item" data-verbatim {
                 (keeper_name(&it.item))
                 @if let Some(n) = last_note(it) {
                     span class="now-row-note" { (note_markup(n, it.stream)) }
@@ -832,9 +832,9 @@ fn settled_entry(it: &Item) -> Markup {
             div class="now-tl-body" {
                 span class=(format!("now-verdict now-verdict-{}", it.status)) { (it.status) }
                 span class="now-id" { (it.id) }
-                p class="now-tl-item" { (keeper_name(&it.item)) }
+                p class="now-tl-item" data-verbatim { (keeper_name(&it.item)) }
                 @if let Some(n) = last_note(it) {
-                    p class="now-tl-evidence" { (note_markup(n, it.stream)) }
+                    p class="now-tl-evidence" data-verbatim { (note_markup(n, it.stream)) }
                 }
                 (line_foot(it))
             }

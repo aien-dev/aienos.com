@@ -208,12 +208,15 @@ for field in ActiveState SubState IPAccounting ControlGroup; do
     raw=$(printf '%s' "$observer_state" | sed "/^$field=/d")
     observer_expect 1 "state-$field-removed" state "$raw" /system.slice/aien-agora.service
 done
+# The observer must see systemd's literal, unexpanded argv display.
+# shellcheck disable=SC2016
 observer_argv='/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20'
+# shellcheck disable=SC2016
 observer_exec='ExecStart={ path=/opt/aien/bin/agora ; argv[]=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20 ; start_time=[irrelevant timezone] ; pid=42 ; status=0/0 }
 '
 observer_expect 0 exec exec "$observer_exec" /opt/aien/bin/agora "$observer_argv" 42
 for field in 'path=' 'argv\[\]=' 'pid='; do
-    raw=$(printf '%s' "$observer_exec" | sed "s|$field[^;]*;||")
+    raw=$(printf '%s' "$observer_exec" | sed "s|${field}[^;]*;||")
     observer_expect 1 "exec-$field-removed" exec "$raw" /opt/aien/bin/agora "$observer_argv" 42
 done
 observer_ss='LISTEN 0 128 192.0.2.20:18132 0.0.0.0:* users:(("agora",pid=42,fd=4))'
@@ -223,6 +226,19 @@ observer_snapshot() {
 }
 observer_snapshot 0 stable /opt/aien/bin/agora '976 964' "$observer_ss" /opt/aien/bin/agora '976 964' 42 42 1
 observer_snapshot 2 preexec /usr/lib/systemd/systemd-executor '0 0' "$observer_ss" /opt/aien/bin/agora '976 964' 42 42 1
+observer_anon='LISTEN 0 64 192.0.2.20:18132 0.0.0.0:*'
+observer_snapshot 2 anonymous-exec-transition /usr/lib/systemd/systemd-executor '0 0' "$observer_anon" /opt/aien/bin/agora '976 964' 42 42 1
+observer_snapshot 1 anonymous-stable /opt/aien/bin/agora '976 964' "$observer_anon" /opt/aien/bin/agora '976 964' 42 42 1
+observer_snapshot 1 anonymous-expired /usr/lib/systemd/systemd-executor '0 0' "$observer_anon" /opt/aien/bin/agora '976 964' 42 42 10000000000
+observer_snapshot 1 anonymous-main-changed /usr/lib/systemd/systemd-executor '0 0' "$observer_anon" /opt/aien/bin/agora '976 964' 42 142 1
+observer_snapshot 1 anonymous-final-root /usr/lib/systemd/systemd-executor '0 0' "$observer_anon" /opt/aien/bin/agora '0 0' 42 42 1
+observer_snapshot 1 anonymous-final-wrong-exe /usr/lib/systemd/systemd-executor '0 0' "$observer_anon" /wrong/executable '976 964' 42 42 1
+observer_snapshot 1 anonymous-wrong-endpoint /usr/lib/systemd/systemd-executor '0 0' 'LISTEN 0 64 192.0.2.21:18132 0.0.0.0:*' /opt/aien/bin/agora '976 964' 42 42 1
+observer_snapshot 1 transition-wrong-owner /usr/lib/systemd/systemd-executor '0 0' 'LISTEN 0 64 192.0.2.20:18132 0.0.0.0:* users:(("agora",pid=142,fd=4))' /opt/aien/bin/agora '976 964' 42 42 1
+observer_snapshot 1 anonymous-multiple-rows /usr/lib/systemd/systemd-executor '0 0' "$observer_anon
+$observer_anon" /opt/aien/bin/agora '976 964' 42 42 1
+observer_snapshot 1 anonymous-trailing /usr/lib/systemd/systemd-executor '0 0' "$observer_anon unexpected" /opt/aien/bin/agora '976 964' 42 42 1
+observer_snapshot 1 anonymous-malformed /usr/lib/systemd/systemd-executor '0 0' 'LISTEN nope 64 192.0.2.20:18132 0.0.0.0:*' /opt/aien/bin/agora '976 964' 42 42 1
 observer_snapshot 1 root-past-deadline /usr/lib/systemd/systemd-executor '0 0' "$observer_ss" /usr/lib/systemd/systemd-executor '0 0' 42 42 10000000000
 observer_snapshot 1 stable-root /opt/aien/bin/agora '0 0' "$observer_ss" /opt/aien/bin/agora '0 0' 42 42 1
 observer_snapshot 1 changed-main /opt/aien/bin/agora '976 964' "$observer_ss" /opt/aien/bin/agora '976 964' 1 42 1

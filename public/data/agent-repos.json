@@ -474,7 +474,7 @@
     },
     {
       "name": "aienix",
-      "description": "AienOS front door: pinned repositories, source-linked lessons and verification paths. AienOS is in alpha testing; components remain separate and each states its own status.",
+      "description": "Retired. It is not the core tree or the entry point. Sovereign Intelligence (aien-dev/sovereign-intelligence) is the whole system: releases are assembled there, install starts there, and the signed Spark test runs there. AienOS is only the operating-system layer. Other repositories keep their own parts.",
       "url": "https://github.com/aien-dev/aienix",
       "default_branch": "main",
       "fork": false,
