@@ -1,0 +1,356 @@
+/* AienSpeed: the live speed test component from public/js/aien-speed.js.
+   Every rule is scoped under .aien-speed, which mount() puts on its element.
+   A host page recolours it with --speed-fg, --speed-muted, --speed-accent and
+   --speed-glass; each defaults to the site tokens of style.css, then to fixed
+   values. The graph reads --speed-lane-1..4, --speed-line and --speed-mono.
+   No motion, nothing loaded from outside. */
+
+.aien-speed {
+  --speed-fg: var(--text-primary, rgb(241, 245, 249));
+  --speed-muted: var(--text-secondary, rgb(148, 163, 184));
+  --speed-accent: var(--accent-blue, rgb(45, 127, 249));
+  --speed-glass: var(--bg-surface, rgb(14, 18, 25));
+  --speed-card: var(--bg-card, rgb(19, 24, 34));
+  --speed-card-hover: var(--bg-card-hover, rgb(24, 32, 45));
+  --speed-field: var(--bg-base, rgb(8, 9, 12));
+  --speed-line: var(--border-subtle, rgb(28, 37, 54));
+  --speed-good: var(--accent-green, rgb(0, 229, 153));
+  --speed-warn: var(--accent-amber, rgb(245, 158, 11));
+  --speed-lane-1: var(--speed-accent);
+  --speed-lane-2: var(--speed-good);
+  --speed-lane-3: var(--speed-warn);
+  --speed-lane-4: var(--speed-fg);
+  --speed-mono: var(--font-mono, ui-monospace, monospace);
+  --speed-sans: var(--font-sans, ui-sans-serif, sans-serif);
+  display: block;
+  min-width: 0;
+  color: var(--speed-fg);
+  font-family: var(--speed-sans);
+}
+.aien-speed *,
+.aien-speed *::before,
+.aien-speed *::after { box-sizing: border-box; }
+.aien-speed [hidden] { display: none; }
+
+.aien-speed .sp-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  background: var(--speed-glass);
+  border: 1px solid var(--speed-line);
+  border-radius: 10px;
+}
+.aien-speed p { margin: 0; }
+.aien-speed .sp-note { font-size: 13px; color: var(--speed-muted); }
+.aien-speed .sp-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Buttons and fields. */
+.aien-speed button {
+  font: inherit;
+  font-size: 13px;
+  color: var(--speed-fg);
+  background: var(--speed-card);
+  border: 1px solid var(--speed-line);
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.aien-speed button:hover { background: var(--speed-card-hover); }
+.aien-speed button:disabled { opacity: 0.5; cursor: default; }
+.aien-speed button:focus-visible,
+.aien-speed textarea:focus-visible,
+.aien-speed select:focus-visible,
+.aien-speed input:focus-visible,
+.aien-speed a:focus-visible {
+  outline: 2px solid var(--speed-good);
+  outline-offset: 2px;
+}
+.aien-speed select {
+  font: inherit;
+  font-size: 13px;
+  color: var(--speed-fg);
+  background: var(--speed-card);
+  border: 1px solid var(--speed-line);
+  border-radius: 6px;
+  padding: 3px 6px;
+}
+
+/* Presets: three big buttons, one press runs a test. */
+.aien-speed .sp-presets {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.aien-speed .sp-preset {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 8px;
+}
+.aien-speed .sp-preset:hover { border-color: var(--speed-accent); }
+.aien-speed .sp-preset[aria-pressed="true"] {
+  border-color: var(--speed-good);
+  box-shadow: inset 0 0 0 1px var(--speed-good);
+}
+.aien-speed .sp-preset-name { font-size: 20px; font-weight: 700; }
+.aien-speed .sp-preset-n { font-family: var(--speed-mono); font-size: 12px; color: var(--speed-muted); }
+
+.aien-speed .sp-modes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 14px;
+}
+.aien-speed .sp-modes legend {
+  float: left;
+  margin-right: 4px;
+  padding: 0;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--speed-muted);
+}
+.aien-speed .sp-mode { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+.aien-speed .sp-mode input { accent-color: var(--speed-good); margin: 0; }
+.aien-speed .sp-opt { color: var(--speed-muted); }
+
+.aien-speed .sp-compose {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+.aien-speed .sp-compose textarea {
+  width: 100%;
+  min-height: 3rem;
+  max-height: 40vh;
+  resize: vertical;
+  font: inherit;
+  font-size: 14px;
+  padding: 8px 10px;
+  color: var(--speed-fg);
+  background: var(--speed-field);
+  border: 1px solid var(--speed-line);
+  border-radius: 8px;
+}
+.aien-speed .sp-compose textarea:disabled { opacity: 0.5; }
+.aien-speed .sp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: flex-start;
+  gap: 6px;
+}
+.aien-speed .sp-readout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 4px 16px;
+}
+.aien-speed .sp-status { min-height: 1.4em; font-family: var(--speed-mono); font-size: 13px; color: var(--speed-muted); }
+.aien-speed .sp-panel[data-state="running"] .sp-status { color: var(--speed-good); }
+.aien-speed .sp-panel[data-state="offline"] .sp-status { color: var(--speed-warn); }
+.aien-speed .sp-panel[data-state="offline"] .sp-hero { display: none; }
+.aien-speed .sp-readout .sp-status { flex: 1 1 16rem; }
+.aien-speed .sp-hero {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  line-height: 1;
+}
+.aien-speed .sp-hero-n {
+  font-family: var(--speed-mono);
+  font-size: 44px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--speed-fg);
+}
+.aien-speed .sp-panel[data-state="running"] .sp-hero-n { color: var(--speed-good); }
+.aien-speed .sp-hero-t { max-width: 12rem; font-size: 12px; color: var(--speed-muted); }
+.aien-speed .sp-actions button { font-size: 14px; padding: 6px 14px; }
+.aien-speed .sp-run { background: var(--speed-accent); border-color: var(--speed-accent); font-weight: 600; }
+.aien-speed .sp-run:hover { background: var(--speed-accent); }
+.aien-speed .sp-max { font-size: 13px; color: var(--speed-muted); }
+
+/* Graph: raw buckets, drawn by the script. */
+.aien-speed .sp-graph { margin: 0; min-width: 0; }
+.aien-speed .sp-graph canvas {
+  display: block;
+  width: 100%;
+  height: 240px;
+  background: var(--speed-field);
+  border: 1px solid var(--speed-line);
+  border-radius: 8px;
+}
+.aien-speed .sp-graph figcaption { margin-top: 4px; font-size: 12px; color: var(--speed-muted); }
+
+/* Output: one column per stream, one row per sweep step. */
+.aien-speed .sp-outputs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+}
+.aien-speed .sp-outputs:empty { display: none; }
+.aien-speed .sp-out,
+.aien-speed .sp-step {
+  min-width: 0;
+  padding: 6px 8px;
+  background: var(--speed-card);
+  border: 1px solid var(--speed-line);
+  border-left: 3px solid var(--speed-lane-1);
+  border-radius: 6px;
+}
+.aien-speed [data-lane="1"] { border-left-color: var(--speed-lane-2); }
+.aien-speed [data-lane="2"] { border-left-color: var(--speed-lane-3); }
+.aien-speed [data-lane="3"] { border-left-color: var(--speed-lane-4); }
+.aien-speed .sp-step { grid-column: 1 / -1; }
+.aien-speed .sp-out-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--speed-muted);
+}
+.aien-speed .sp-out-name { font-weight: 600; }
+.aien-speed .sp-out-tally { font-family: var(--speed-mono); }
+.aien-speed .sp-text {
+  margin: 4px 0;
+  max-height: 12rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--speed-sans);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--speed-fg);
+}
+.aien-speed .sp-text:empty { display: none; }
+.aien-speed .sp-step .sp-text { max-height: 3rem; }
+.aien-speed .sp-out-stats { font-family: var(--speed-mono); font-size: 12px; color: var(--speed-muted); overflow-wrap: anywhere; }
+
+/* Result, history and own-GPU boxes. */
+.aien-speed .sp-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px 12px;
+  background: var(--speed-card);
+  border: 1px solid var(--speed-line);
+  border-radius: 8px;
+}
+.aien-speed .sp-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+  font-size: 15px;
+}
+.aien-speed .sp-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+.aien-speed .sp-results:empty { display: none; }
+.aien-speed .sp-stat {
+  min-width: 0;
+  padding: 5px 8px;
+  background: var(--speed-glass);
+  border: 1px solid var(--speed-line);
+  border-radius: 6px;
+}
+.aien-speed .sp-stat dt {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--speed-muted);
+}
+.aien-speed .sp-stat dd {
+  margin: 0;
+  font-family: var(--speed-mono);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.aien-speed .sp-label { font-size: 13px; color: var(--speed-muted); }
+.aien-speed .sp-verify {
+  padding: 6px 10px;
+  font-weight: 600;
+  color: var(--speed-muted);
+  border: 1px solid var(--speed-line);
+  border-radius: 6px;
+}
+.aien-speed .sp-verify[data-state="ok"] { color: var(--speed-good); border-color: var(--speed-good); }
+.aien-speed .sp-verify[data-state="bad"] { color: var(--speed-warn); border-color: var(--speed-warn); }
+.aien-speed .sp-table {
+  max-width: 100%;
+  max-height: 20rem;
+  overflow: auto;
+  border: 1px solid var(--speed-line);
+  border-radius: 6px;
+}
+.aien-speed .sp-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.aien-speed .sp-table th,
+.aien-speed .sp-table td {
+  padding: 4px 8px;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--speed-line);
+}
+.aien-speed .sp-table th {
+  position: sticky;
+  top: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--speed-muted);
+  background: var(--speed-glass);
+}
+.aien-speed .sp-table td { font-family: var(--speed-mono); color: var(--speed-muted); }
+.aien-speed .sp-table a { color: var(--speed-accent); }
+.aien-speed .sp-table .sp-empty { font-family: var(--speed-sans); white-space: normal; }
+.aien-speed .sp-cmd { display: flex; align-items: flex-start; gap: 8px; }
+.aien-speed .sp-cmd code {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  white-space: pre;
+  padding: 6px 8px;
+  font-family: var(--speed-mono);
+  font-size: 12px;
+  color: var(--speed-fg);
+  background: var(--speed-field);
+  border: 1px solid var(--speed-line);
+  border-radius: 6px;
+}
+
+@media (max-width: 640px) {
+  .aien-speed .sp-panel { padding: 8px; }
+  .aien-speed .sp-presets { gap: 6px; }
+  .aien-speed .sp-preset { padding: 10px 8px; }
+  .aien-speed .sp-preset-name { font-size: 17px; }
+  .aien-speed .sp-compose { grid-template-columns: minmax(0, 1fr); }
+  .aien-speed .sp-graph canvas { height: 200px; }
+  .aien-speed .sp-results { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .aien-speed .sp-cmd { flex-direction: column; align-items: stretch; }
+}

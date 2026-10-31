@@ -103,6 +103,8 @@ jobs:
         run: |
           sh om/omega-reference/check.sh --hashes
           cargo test --release -p site-builder components::omega_reference::tests
+      - name: Check Aien's voice clips against their catalog hashes
+        run: cargo test --release -p site-builder --test voice_catalog
       - name: Build static site with pure Rust engine
         run: cargo run --release --manifest-path crates/site-builder/Cargo.toml -- build dist
       # v4+ drops dotfiles by default. dist/ serves /.well-known/agora and
