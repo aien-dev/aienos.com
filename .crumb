@@ -23,8 +23,8 @@
           "purpose": "GitHub automation configuration"
         },
         {
-          "digest": "bfb1900da56d21aaf73b4346dc89d9d71f3ba1303fd9159b302c8f047e517767",
-          "last_commit": "d9476a3e",
+          "digest": "bbf1105da09f12a98a85196064a6cddcb2113270b61b411b51c99b448a264936",
+          "last_commit": "85ae9eae",
           "name": "crates",
           "purpose": "Native Rust website crates"
         },
@@ -66,7 +66,7 @@
         },
         {
           "digest": "ba9ea6c680b51a614808a2097a8efe8a7c4e92ce7d98380522a179a37dbec5a3",
-          "last_commit": "d9476a3e",
+          "last_commit": "38e561cd",
           "name": "public",
           "purpose": "Static public website assets"
         },
@@ -77,15 +77,15 @@
           "purpose": "Isolated compute-only Allen tools and versioned glass-pane protocol; temporary host transport ar"
         }
       ],
-      "children_root": "sha256:9ec8730ff33be378a83d774992fa9a6b33f6eb070e7091583b39d226f1ca7277",
-      "compiled_at": "2026-10-31T11:22:39Z",
+      "children_root": "sha256:e7292a4de472043634f782153420784f6c56a464ddf3d6a1b5dbc4a263aa09df",
+      "compiled_at": "2026-10-31T11:45:26Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:4b68229948381d3d683dc2451815f7ad9f4ad97cdba58734b2e9f82c6b84c2f3",
+      "digest": "sha256:af2d8332be53cd73b0c4bfdd2ecded83a1df90e4baf5d779b94507ba7c83374d",
       "evidence_files": 6,
       "evidence_root": "sha256:7fde48972a09dd4b0f7206aca4e313cd02c8cd195ec602e3924e59246c016aa5",
       "files": 819,
-      "generated_at_commit": "d9476a3ea0064824f176aa8a5b6b95bcbf4f7e3e",
-      "source_tree": "sha256:2e2c92303384996d82c4b41127f888ad4be8fed870dcd6aaf0da476ec0db8f6e"
+      "generated_at_commit": "85ae9eae5ed8ac9531a5c582954e0642e18e50f8",
+      "source_tree": "sha256:b170257905375a0cc0228ced084f70ff0dec666389885dd1032cd0913cf33386"
     },
     "progress": {
       "initial_edits": "Dashboard draft predates explicit Crumb reminder; subsequent integration is claimed and recorded.",

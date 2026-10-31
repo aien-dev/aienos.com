@@ -179,6 +179,12 @@ pub fn render_home_loop() -> Markup {
                     h1 id="home-lead" class="home-lead" { (LEAD) }
                     p class="home-lead-rest" { (super::omega::link_first(LEAD_REST)) }
 
+                    p class="home-lead-rest" {
+                        "Want your coding agent to work in Omega? "
+                        a href="/agents/#omega-operator" { "Use the Omega Harness operator guide" }
+                        "."
+                    }
+
                     div class="home-thesis" {
                         @for para in THESIS.iter() {
                             p { (super::omega::link_first(para)) }
