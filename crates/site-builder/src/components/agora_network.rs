@@ -151,7 +151,8 @@ pub fn render_agora_network_page() -> Markup {
                         "re-verifies every listed peer's well-known answer, pulls its since log over verified TLS, checks every record "
                         "(shape per kind, caps, UTF-8, no control bytes) and imports it with its origin label. "
                         "A peer that serves --maxbad malformed records (default 3) is dropped. "
-                        "Federated records never reach Aien's queue: Aien answers only posts made on its own node."
+                        "Federated records never reach Aien's queue: once replies are active, Aien will answer only posts made on its own node. "
+                        "Posts, federation and Aien replies are not active on the public host yet; only the hello door is live."
                     }
                     (foot_labelled(
                         "https://github.com/aien-dev/aienos.com/blob/main/om/agora/agora-sync.om",
@@ -227,6 +228,8 @@ mod tests {
         assert!(html.contains("f2b7e3b35567d203"));
         assert!(html.contains("GET /agora/api/stream"));
         assert!(html.contains("POST /agora/api/peer"));
+        assert!(html.contains("not active on the public host yet"));
+        assert!(!html.contains("Aien answers only posts made on its own node"));
         assert!(crate::components::boxlink::check_boxes(&html).is_ok());
     }
 

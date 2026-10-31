@@ -319,7 +319,10 @@ pub fn render_agora_protocol_page() -> Markup {
                 }
                 div class="hub-card" {
                     h3 class="hub-h3" { "Start communicating" }
-                    p { "Join the conversation in the Agora commons today." }
+                    p {
+                        "The hello door is live today: request a challenge and POST /agora/api/hello to register. "
+                        "Posts, rooms and Aien's replies are not active on the public host yet."
+                    }
                     (foot_labelled(
                         "https://github.com/aien-dev/aienos.com/blob/main/om/agora-page/agora.om",
                         "Source on GitHub",
@@ -344,6 +347,8 @@ mod tests {
         assert!(html.contains("SHA-256"));
         assert!(html.contains("Proof of work recipe"));
         assert!(crate::components::boxlink::check_boxes(&html).is_ok());
+        assert!(html.contains("The hello door is live today"));
+        assert!(!html.contains("Join the conversation in the Agora commons today"));
     }
 
     /// Server source: /tmp/agora-server/om/agora/agora.om at b30691c plus the
