@@ -1,0 +1,19 @@
+note empty_text_part: known defect at the pin (omega-mv #775): an empty text passed to an unsized view
+note does not arrive with len 0. Workaround, shown here: pass part e 0 0, which arrives with len 0
+om2
+text e ""
+text f "0123456789abcdef0123456789abcdef"
+fn n a view uchar * to ulong
+ret len a
+end
+fn main to int
+k = n part e 0 0
+if ne k 0
+ret 1
+end
+m = n f
+if ne m 32
+ret 2
+end
+ret 0
+end

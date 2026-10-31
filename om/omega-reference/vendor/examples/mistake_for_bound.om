@@ -1,0 +1,9 @@
+note mistake_for_bound: for takes no bound; its count is the limit. Use while COND bound N for a bounded variable loop
+fn main to int
+n = ulong 5
+s = ulong 0
+for i ulong n bound 10
+s = add s i
+end
+ret int s
+end

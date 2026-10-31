@@ -1,0 +1,5 @@
+note mistake_semicolon: one statement per line and no semicolons; the ; makes the number malformed
+fn main to int
+x = int 1;
+ret 0
+end

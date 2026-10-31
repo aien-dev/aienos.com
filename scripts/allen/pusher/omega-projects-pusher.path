@@ -1,0 +1,10 @@
+[Unit]
+Description=Run omega-projects-pusher when Allen drops an item into its spool
+
+[Path]
+# Only <id>.json triggers; the gateway's .tmp-* staging files do not match the glob.
+PathExistsGlob=/var/lib/allen-chat/spool-in/*.json
+Unit=omega-projects-pusher.service
+
+[Install]
+WantedBy=multi-user.target

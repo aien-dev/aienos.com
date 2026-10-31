@@ -1,0 +1,584 @@
+<article class="lab" id="lab">
+<header class="lab-hero">
+<div class="lab-sky" aria-hidden="true"><span></span><span></span><span></span></div>
+<p class="lab-kicker">OMEGA LAB · NOTHING TO INSTALL</p>
+<h1>Write a kernel.<br><span>Run it in one click.</span></h1>
+<p class="lab-lead">On the left is a data-parallel kernel in Omega, the language I build for programs written with AI. On the right is the same kernel in CUDA C. Press Run and it executes in this tab as WebAssembly, checked element by element against JavaScript. Edit it and press Compile: my compiler builds it on my DGX Spark and sends the WebAssembly back. No toolkit, no driver, no account.</p>
+<div class="lab-cta"><a class="lab-go" href="#lab-play">Run it now</a><a class="lab-alt" href="#lab-home">Take it home with git clone</a></div>
+<div class="lab-versus">
+<div class="lab-side lab-cuda"><p class="lab-side-h">CUDA C, before line one runs</p><ul><li>An NVIDIA GPU and driver</li><li>The CUDA toolkit: <span data-bytes="cuda_toolkit_bytes">see record.tsv</span> on my Spark</li><li>nvcc build of this kernel: <span data-us="nvcc_us">see record.tsv</span></li></ul></div>
+<div class="lab-side lab-omega"><p class="lab-side-h">Omega, on this page</p><ul><li>Any modern browser</li><li>The compiler and wasm back end: <span data-bytes="omega_tool_bytes">see record.tsv</span>, in the site repo</li><li>omc build of this kernel: <span data-us="omc_program_us">see record.tsv</span></li></ul></div>
+</div>
+<p class="lab-fact">Measured on my DGX Spark at 2026-10-27T00:42:59Z, load1 8.15, both compilers on the same 2 of 20 CPU cores. omc built the Omega kernel and its host loop into a Linux program in 1.881 ms. nvcc 13.0 built the CUDA C kernel and its host main in 593.800 ms. Median of 7 each, same minute.
+ <a href="https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/captures/record.tsv">record.tsv</a> · <a href="https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/record.sh">record.sh</a></p>
+</header>
+<section class="lab-section" id="lab-play">
+<p class="lab-kicker">01 / RUN IT</p>
+<h2>Same kernel. Two languages.</h2>
+<div class="lab-pair">
+<div class="lab-pane"><div class="lab-pane-h"><strong>Omega</strong><span>axpy.om · editable</span><a href="https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/axpy.om">GitHub</a></div><textarea id="lab-src" spellcheck="false" autocomplete="off" autocapitalize="off" rows="20" aria-label="Omega kernel source">note y[i] = a*x[i] + y[i]: one element, the work of one CUDA thread.
+fn axpy a long x long y long to long
+ret add mul a x y
+end
+note The grid: elements lo to hi-1, with x[i] = i and y[i] = 2i+1 generated in place.
+note Returns the sum of the results so a host can check every element.
+fn run a long lo long hi long to long
+s = long 0
+i = lo
+while lt i hi bound 999999
+s = add s axpy a i add mul long 2 i long 1
+i = add i long 1
+end
+ret s
+end
+</textarea></div>
+<div class="lab-pane"><div class="lab-pane-h"><strong>CUDA C</strong><span>axpy.cu · for comparison</span><a href="https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/axpy.cu">GitHub</a></div><pre class="lab-code">// The same kernel in CUDA C: y[i] = a*x[i] + y[i], one element per thread.
+#include &lt;cstdio&gt;
+#include &lt;cuda_runtime.h&gt;
+
+__global__ void axpy(long long a, const long long *x, long long *y, long long n) {
+  long long i = (long long)blockIdx.x * blockDim.x + threadIdx.x;
+  if (i &lt; n) y[i] = a * x[i] + y[i];
+}
+
+int main() {
+  const long long n = 1 &lt;&lt; 20, a = 3;
+  long long *x, *y;
+  cudaMallocManaged(&amp;x, n * sizeof *x);
+  cudaMallocManaged(&amp;y, n * sizeof *y);
+  for (long long i = 0; i &lt; n; i++) { x[i] = i; y[i] = 2 * i + 1; }
+  axpy&lt;&lt;&lt;(n + 255) / 256, 256&gt;&gt;&gt;(a, x, y, n);
+  cudaDeviceSynchronize();
+  long long s = 0;
+  for (long long i = 0; i &lt; n; i++) s += y[i];
+  printf("%lld\n", s);
+  cudaFree(x);
+  cudaFree(y);
+  return 0;
+}
+</pre></div>
+</div>
+<div class="lab-controls">
+<label>a <input id="lab-a" type="number" min="1" max="1000" value="3" inputmode="numeric"></label>
+<label>elements <select id="lab-n"><option value="1024">1,024</option><option value="65536">65,536</option><option value="1048576" selected>1,048,576</option><option value="4194304">4,194,304</option></select></label>
+<button id="lab-run" class="lab-primary" type="button">Run in my browser</button>
+<button id="lab-compile" type="button">Compile my edit</button>
+<button id="lab-break" type="button">Break it on purpose</button>
+<button id="lab-reset" type="button">Reset</button>
+</div>
+<p id="lab-status" class="lab-status" role="status" aria-live="polite">Loading the prebuilt kernel.</p>
+<p id="lab-verdict" class="lab-verdict" aria-live="polite"></p>
+<dl class="lab-results">
+<div><dt>Omega kernel, WebAssembly, this tab</dt><dd id="lab-r-wasm">not run yet</dd></div>
+<div><dt>Same math in plain JavaScript</dt><dd id="lab-r-js">not run yet</dd></div>
+<div><dt>Kernel checksum</dt><dd id="lab-r-sum">not run yet</dd></div>
+<div><dt>JavaScript checksum</dt><dd id="lab-r-ref">not run yet</dd></div>
+<div><dt>Kernel throughput</dt><dd id="lab-r-rate">not run yet</dd></div>
+<div><dt>Compile on my Spark</dt><dd id="lab-c-server">press Compile</dd></div>
+<div><dt>Round trip from this tab</dt><dd id="lab-c-trip">press Compile</dd></div>
+<div><dt>Compiler pins</dt><dd id="lab-c-pin">press Compile</dd></div>
+</dl>
+<p class="lab-small">How the check works: for every element the kernel computes y[i] = a·x[i] + y[i] with x[i] = i and y[i] = 2i + 1, and returns the sum of all results. JavaScript computes the same sum on its own. The page calls run in blocks of at most 999,999 elements, the way a CUDA grid splits work into blocks. Times are the median of three runs in a worker on your device. Integers only for now: the pinned WebAssembly path does not take f32 yet. Omega traps on integer overflow where CUDA C wraps silently. Break it on purpose changes add to sub so you can watch the check catch it.</p>
+</section>
+<section class="lab-section" id="lab-backends">
+<p class="lab-kicker">02 / ONE SOURCE, EVERY BACK END</p>
+<h2>What my compiler actually emitted.</h2>
+<p class="lab-intro">Recorded on my DGX Spark by record.sh, except the WebAssembly, which is whatever this tab is running right now.</p>
+<details class="lab-be" open><summary><strong>WebAssembly</strong><span class="lab-tag lab-pass">runs in this tab</span></summary><p id="lab-wasm-meta" class="lab-small">Loading.</p><pre id="lab-wasm" class="lab-code"></pre><p class="lab-small"><a href="https://github.com/aien-dev/aienos.com/blob/main/public/lab/axpy.wasm">axpy.wasm on GitHub</a></p></details>
+<details class="lab-be"><summary><strong>AArch64</strong><span class="lab-tag lab-pass">ran on the Spark CPU</span></summary><pre class="lab-code">compiler   omc sha256 734f0a39319fbfa930bcc62cb30dbf06d47d78e126372b74f5baf478e6126b61 (the site pin)
+command    omc &lt; axpy.om &gt; axpy.bin
+compile    1.455 ms, median of 7, Linux aarch64, 2 of 20 CPU cores allowed, DGX Spark (GB10), load1 7.90, 2026-10-27T00:42:59Z
+output     276 bytes of raw AArch64 code, sha256 7bdd7e87bb3c4c79897509c7b22f63b2e738195301e9afa665a40387172d2bb7
+program    axpy.om + harness.om into one Linux program: 1.881 ms, median of 7, load1 7.90
+run        a=3, n=1048576: checksum 2748777496576, awk reference 2748777496576, MATCH
+control    add changed to sub in the kernel: 549754241024, MISMATCH as it should be
+run time   4.345 ms per process (start, 1048576 elements, print, exit), median of 7, load1 7.90
+disasm     objdump -D -b binary -m aarch64 -M no-aliases (GNU objdump (GNU Binutils for Ubuntu) 2.42)
+
+0:	1400000d 	b	0x34
+4:	9b417c04 	smulh	x4, x0, x1
+8:	9b017c03 	madd	x3, x0, x1, xzr
+c:	eb83fc9f 	subs	xzr, x4, x3, asr #63
+10:	540000e1 	b.ne	0x2c  // b.any
+14:	ab020060 	adds	x0, x3, x2
+18:	540000a6 	b.vs	0x2c
+1c:	d65f03c0 	ret
+20:	aa0703e0 	orr	x0, xzr, x7
+24:	f94008f0 	ldr	x16, [x7, #16]
+28:	d61f0200 	br	x16
+2c:	d2800021 	movz	x1, #0x1
+30:	17fffffc 	b	0x20
+34:	d2800003 	movz	x3, #0x0
+38:	aa0103e4 	orr	x4, xzr, x1
+3c:	d2800005 	movz	x5, #0x0
+40:	eb02009f 	subs	xzr, x4, x2
+44:	5400056a 	b.ge	0xf0  // b.tcont
+48:	d28847e6 	movz	x6, #0x423f
+4c:	f2a001e6 	movk	x6, #0xf, lsl #16
+50:	eb0600bf 	subs	xzr, x5, x6
+54:	540005c2 	b.cs	0x10c  // b.hs, b.nlast
+58:	910004a5 	add	x5, x5, #0x1
+5c:	d2800046 	movz	x6, #0x2
+60:	9b447cc9 	smulh	x9, x6, x4
+64:	9b047cc8 	madd	x8, x6, x4, xzr
+68:	eb88fd3f 	subs	xzr, x9, x8, asr #63
+6c:	540004c1 	b.ne	0x104  // b.any
+70:	b100050a 	adds	x10, x8, #0x1
+74:	54000486 	b.vs	0x104
+78:	d10183ff 	sub	sp, sp, #0x60
+7c:	f90003e0 	str	x0, [sp]
+80:	f90007e1 	str	x1, [sp, #8]
+84:	f9000be2 	str	x2, [sp, #16]
+88:	f9000fe3 	str	x3, [sp, #24]
+8c:	f90013e4 	str	x4, [sp, #32]
+90:	f90017e5 	str	x5, [sp, #40]
+94:	f9001be6 	str	x6, [sp, #48]
+98:	f9001fe8 	str	x8, [sp, #56]
+9c:	f90023e9 	str	x9, [sp, #64]
+a0:	f90027ea 	str	x10, [sp, #72]
+a4:	f9002bfe 	str	x30, [sp, #80]
+a8:	f94003e0 	ldr	x0, [sp]
+ac:	f94013e1 	ldr	x1, [sp, #32]
+b0:	f94027e2 	ldr	x2, [sp, #72]
+b4:	97ffffd4 	bl	0x4
+b8:	aa0003e6 	orr	x6, xzr, x0
+bc:	f94003e0 	ldr	x0, [sp]
+c0:	f94007e1 	ldr	x1, [sp, #8]
+c4:	f9400be2 	ldr	x2, [sp, #16]
+c8:	f9400fe3 	ldr	x3, [sp, #24]
+cc:	f94013e4 	ldr	x4, [sp, #32]
+d0:	f94017e5 	ldr	x5, [sp, #40]
+d4:	f9402bfe 	ldr	x30, [sp, #80]
+d8:	910183ff 	add	sp, sp, #0x60
+dc:	ab060063 	adds	x3, x3, x6
+e0:	54000126 	b.vs	0x104
+e4:	b1000484 	adds	x4, x4, #0x1
+e8:	540000e6 	b.vs	0x104
+ec:	17ffffd5 	b	0x40
+f0:	aa0303e0 	orr	x0, xzr, x3
+f4:	d65f03c0 	ret
+f8:	aa0703e0 	orr	x0, xzr, x7
+fc:	f94008f0 	ldr	x16, [x7, #16]
+100:	d61f0200 	br	x16
+104:	d2800021 	movz	x1, #0x1
+108:	17fffffc 	b	0xf8
+10c:	d2800081 	movz	x1, #0x4
+110:	17fffffa 	b	0xf8
+</pre><p class="lab-small"><a href="https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/captures/aarch64.txt">aarch64.txt on GitHub</a></p></details>
+<details class="lab-be"><summary><strong>SPIR-V</strong><span class="lab-tag lab-pass">validated, ran on PoCL (CPU)</span><span class="lab-tag lab-not">GPU: NOT_RUN</span></summary><pre class="lab-code">compiler   omega-mv 369dbc96daa1684db2d7c2c7085bbf16b3fd77ee: omc sha256 2c82480596bbdc50cda9626866209ef662d5834f278f839ff4ce0250c495029f builds irspirv
+command    { printf 'ir\n'; cat axpy.om; } | omc &gt; axpy.ir &amp;&amp; irspirv &lt; axpy.ir &gt; axpy.spv
+translate  1.625 ms for irspirv, median of 7, Linux aarch64, 2 of 20 CPU cores allowed, DGX Spark (GB10), load1 7.90
+output     4140 bytes, sha256 adeb8af7af76a547329eb9d91d839032a66c1d70f0a9b3fd0f78000bd77d8f48
+validate   spirv-val --target-env opencl2.1: valid (SPIRV-Tools v2025.1 unknown hash, 2026-05-13T06:03:38+00:00)
+run        PoCL 7.2 on the CPU (cpu-cortex-a720-0xd87): run 3 0 1000 = 2498500, trap 0; reference 2498500, MATCH
+not run    no GPU has executed this SPIR-V yet
+
+; SPIR-V
+; Version: 1.0
+; Generator: Khronos; 0
+; Bound: 212
+; Schema: 0
+               OpCapability Addresses
+               OpCapability Kernel
+               OpCapability Int64
+               OpMemoryModel Physical64 OpenCL
+               OpEntryPoint Kernel %33 "axpy"
+               OpEntryPoint Kernel %35 "run"
+       %void = OpTypeVoid
+       %bool = OpTypeBool
+      %ulong = OpTypeInt 64 0
+%_ptr_Function_ulong = OpTypePointer Function %ulong
+%_ptr_CrossWorkgroup_ulong = OpTypePointer CrossWorkgroup %ulong
+          %6 = OpTypeFunction %void %_ptr_CrossWorkgroup_ulong %_ptr_CrossWorkgroup_ulong
+          %7 = OpTypeFunction %ulong %_ptr_Function_ulong
+          %8 = OpTypeFunction %ulong %_ptr_Function_ulong %ulong
+          %9 = OpTypeFunction %ulong %_ptr_Function_ulong %ulong %ulong
+         %10 = OpTypeFunction %ulong %_ptr_Function_ulong %ulong %ulong %ulong
+         %11 = OpTypeFunction %ulong %_ptr_Function_ulong %ulong %ulong %ulong %ulong
+         %12 = OpTypeFunction %ulong %_ptr_Function_ulong %ulong %ulong %ulong %ulong %ulong
+         %13 = OpTypeFunction %ulong %_ptr_Function_ulong %ulong %ulong %ulong %ulong %ulong %ulong
+    %ulong_0 = OpConstant %ulong 0
+%ulong_9223372036854775808 = OpConstant %ulong 9223372036854775808
+%ulong_9223372036854775807 = OpConstant %ulong 9223372036854775807
+    %ulong_1 = OpConstant %ulong 1
+  %ulong_101 = OpConstant %ulong 101
+    %ulong_2 = OpConstant %ulong 2
+%ulong_999999 = OpConstant %ulong 999999
+  %ulong_104 = OpConstant %ulong 104
+         %32 = OpFunction %ulong None %10
+         %36 = OpFunctionParameter %_ptr_Function_ulong
+         %37 = OpFunctionParameter %ulong
+         %38 = OpFunctionParameter %ulong
+         %39 = OpFunctionParameter %ulong
+         %40 = OpLabel
+         %41 = OpVariable %_ptr_Function_ulong Function
+         %42 = OpVariable %_ptr_Function_ulong Function
+         %43 = OpVariable %_ptr_Function_ulong Function
+         %44 = OpVariable %_ptr_Function_ulong Function
+         %45 = OpVariable %_ptr_Function_ulong Function
+               OpStore %41 %37
+               OpStore %42 %38
+               OpStore %43 %39
+               OpBranch %46
+         %46 = OpLabel
+         %47 = OpLoad %ulong %41
+         %48 = OpLoad %ulong %42
+         %50 = OpSLessThan %bool %47 %ulong_0
+         %51 = OpSLessThan %bool %48 %ulong_0
+         %52 = OpISub %ulong %ulong_0 %47
+         %53 = OpSelect %ulong %50 %52 %47
+         %54 = OpISub %ulong %ulong_0 %48
+         %55 = OpSelect %ulong %51 %54 %48
+         %56 = OpLogicalNotEqual %bool %50 %51
+         %59 = OpSelect %ulong %56 %ulong_9223372036854775808 %ulong_9223372036854775807
+         %60 = OpIEqual %bool %55 %ulong_0
+         %62 = OpSelect %ulong %60 %ulong_1 %55
+         %63 = OpUDiv %ulong %59 %62
+         %64 = OpUGreaterThan %bool %53 %63
+         %65 = OpINotEqual %bool %55 %ulong_0
+         %66 = OpLogicalAnd %bool %64 %65
+               OpBranchConditional %66 %67 %68
+         %67 = OpLabel
+               OpStore %36 %ulong_101
+               OpReturnValue %ulong_0
+         %68 = OpLabel
+         %70 = OpIMul %ulong %47 %48
+               OpStore %44 %70
+         %71 = OpLoad %ulong %44
+         %72 = OpLoad %ulong %43
+         %73 = OpIAdd %ulong %71 %72
+         %74 = OpBitwiseXor %ulong %71 %73
+         %75 = OpBitwiseXor %ulong %72 %73
+         %76 = OpBitwiseAnd %ulong %74 %75
+         %77 = OpSLessThan %bool %76 %ulong_0
+               OpBranchConditional %77 %78 %79
+         %78 = OpLabel
+               OpStore %36 %ulong_101
+               OpReturnValue %ulong_0
+         %79 = OpLabel
+               OpStore %45 %73
+         %80 = OpLoad %ulong %45
+               OpReturnValue %80
+               OpFunctionEnd
+         %33 = OpFunction %void None %6
+         %81 = OpFunctionParameter %_ptr_CrossWorkgroup_ulong
+         %82 = OpFunctionParameter %_ptr_CrossWorkgroup_ulong
+         %83 = OpLabel
+         %84 = OpVariable %_ptr_Function_ulong Function
+               OpStore %84 %ulong_0
+         %85 = OpPtrAccessChain %_ptr_CrossWorkgroup_ulong %81 %ulong_0
+         %86 = OpLoad %ulong %85
+         %87 = OpPtrAccessChain %_ptr_CrossWorkgroup_ulong %81 %ulong_1
+         %88 = OpLoad %ulong %87
+         %89 = OpPtrAccessChain %_ptr_CrossWorkgroup_ulong %81 %ulong_2
+         %91 = OpLoad %ulong %89
+         %92 = OpFunctionCall %ulong %32 %84 %86 %88 %91
+               OpStore %82 %92
+         %93 = OpPtrAccessChain %_ptr_CrossWorkgroup_ulong %82 %ulong_1
+         %94 = OpLoad %ulong %84
+               OpStore %93 %94
+               OpReturn
+               OpFunctionEnd
+         %34 = OpFunction %ulong None %10
+         %95 = OpFunctionParameter %_ptr_Function_ulong
+         %96 = OpFunctionParameter %ulong
+         %97 = OpFunctionParameter %ulong
+         %98 = OpFunctionParameter %ulong
+         %99 = OpLabel
+        %100 = OpVariable %_ptr_Function_ulong Function
+        %101 = OpVariable %_ptr_Function_ulong Function
+        %102 = OpVariable %_ptr_Function_ulong Function
+        %103 = OpVariable %_ptr_Function_ulong Function
+        %104 = OpVariable %_ptr_Function_ulong Function
+        %105 = OpVariable %_ptr_Function_ulong Function
+        %106 = OpVariable %_ptr_Function_ulong Function
+        %107 = OpVariable %_ptr_Function_ulong Function
+        %108 = OpVariable %_ptr_Function_ulong Function
+        %109 = OpVariable %_ptr_Function_ulong Function
+        %110 = OpVariable %_ptr_Function_ulong Function
+        %111 = OpVariable %_ptr_Function_ulong Function
+        %112 = OpVariable %_ptr_Function_ulong Function
+        %113 = OpVariable %_ptr_Function_ulong Function
+        %114 = OpVariable %_ptr_Function_ulong Function
+        %115 = OpVariable %_ptr_Function_ulong Function
+        %116 = OpVariable %_ptr_Function_ulong Function
+               OpStore %100 %96
+               OpStore %101 %97
+               OpStore %102 %98
+               OpBranch %117
+        %117 = OpLabel
+               OpStore %103 %ulong_0
+               OpStore %106 %ulong_0
+               OpStore %107 %ulong_1
+               OpStore %110 %ulong_999999
+               OpStore %112 %ulong_2
+               OpStore %114 %ulong_1
+        %124 = OpLoad %ulong %103
+               OpStore %104 %124
+        %125 = OpLoad %ulong %101
+               OpStore %105 %125
+        %126 = OpLoad %ulong %106
+               OpStore %108 %126
+               OpBranch %118
+        %118 = OpLabel
+        %127 = OpLoad %ulong %105
+        %128 = OpLoad %ulong %102
+        %129 = OpSLessThan %bool %127 %128
+        %130 = OpSelect %ulong %129 %ulong_1 %ulong_0
+               OpStore %109 %130
+        %131 = OpLoad %ulong %109
+        %132 = OpINotEqual %bool %131 %ulong_0
+               OpBranchConditional %132 %119 %122
+        %119 = OpLabel
+        %133 = OpLoad %ulong %108
+        %134 = OpLoad %ulong %110
+        %135 = OpUGreaterThanEqual %bool %133 %134
+        %136 = OpSelect %ulong %135 %ulong_1 %ulong_0
+               OpStore %111 %136
+        %137 = OpLoad %ulong %111
+        %138 = OpINotEqual %bool %137 %ulong_0
+               OpBranchConditional %138 %120 %121
+        %121 = OpLabel
+        %139 = OpLoad %ulong %108
+        %140 = OpLoad %ulong %107
+        %141 = OpIAdd %ulong %139 %140
+               OpStore %108 %141
+        %142 = OpLoad %ulong %112
+        %143 = OpLoad %ulong %105
+        %144 = OpSLessThan %bool %142 %ulong_0
+        %145 = OpSLessThan %bool %143 %ulong_0
+        %146 = OpISub %ulong %ulong_0 %142
+        %147 = OpSelect %ulong %144 %146 %142
+        %148 = OpISub %ulong %ulong_0 %143
+        %149 = OpSelect %ulong %145 %148 %143
+        %150 = OpLogicalNotEqual %bool %144 %145
+        %151 = OpSelect %ulong %150 %ulong_9223372036854775808 %ulong_9223372036854775807
+        %152 = OpIEqual %bool %149 %ulong_0
+        %153 = OpSelect %ulong %152 %ulong_1 %149
+        %154 = OpUDiv %ulong %151 %153
+        %155 = OpUGreaterThan %bool %147 %154
+        %156 = OpINotEqual %bool %149 %ulong_0
+        %157 = OpLogicalAnd %bool %155 %156
+               OpBranchConditional %157 %158 %159
+        %158 = OpLabel
+               OpStore %95 %ulong_101
+               OpReturnValue %ulong_0
+        %159 = OpLabel
+        %160 = OpIMul %ulong %142 %143
+               OpStore %113 %160
+        %161 = OpLoad %ulong %113
+        %162 = OpLoad %ulong %114
+        %163 = OpIAdd %ulong %161 %162
+        %164 = OpBitwiseXor %ulong %161 %163
+        %165 = OpBitwiseXor %ulong %162 %163
+        %166 = OpBitwiseAnd %ulong %164 %165
+        %167 = OpSLessThan %bool %166 %ulong_0
+               OpBranchConditional %167 %168 %169
+        %168 = OpLabel
+               OpStore %95 %ulong_101
+               OpReturnValue %ulong_0
+        %169 = OpLabel
+               OpStore %115 %163
+        %170 = OpLoad %ulong %100
+        %171 = OpLoad %ulong %105
+        %172 = OpLoad %ulong %115
+        %173 = OpFunctionCall %ulong %32 %95 %170 %171 %172
+        %174 = OpLoad %ulong %95
+        %177 = OpINotEqual %bool %174 %ulong_0
+               OpBranchConditional %177 %175 %176
+        %175 = OpLabel
+               OpReturnValue %ulong_0
+        %176 = OpLabel
+               OpStore %116 %173
+        %178 = OpLoad %ulong %104
+        %179 = OpLoad %ulong %116
+        %180 = OpIAdd %ulong %178 %179
+        %181 = OpBitwiseXor %ulong %178 %180
+        %182 = OpBitwiseXor %ulong %179 %180
+        %183 = OpBitwiseAnd %ulong %181 %182
+        %184 = OpSLessThan %bool %183 %ulong_0
+               OpBranchConditional %184 %185 %186
+        %185 = OpLabel
+               OpStore %95 %ulong_101
+               OpReturnValue %ulong_0
+        %186 = OpLabel
+               OpStore %104 %180
+        %187 = OpLoad %ulong %105
+        %188 = OpLoad %ulong %114
+        %189 = OpIAdd %ulong %187 %188
+        %190 = OpBitwiseXor %ulong %187 %189
+        %191 = OpBitwiseXor %ulong %188 %189
+        %192 = OpBitwiseAnd %ulong %190 %191
+        %193 = OpSLessThan %bool %192 %ulong_0
+               OpBranchConditional %193 %194 %195
+        %194 = OpLabel
+               OpStore %95 %ulong_101
+               OpReturnValue %ulong_0
+        %195 = OpLabel
+               OpStore %105 %189
+               OpBranch %118
+        %120 = OpLabel
+               OpStore %95 %ulong_104
+               OpReturnValue %ulong_0
+        %197 = OpLabel
+               OpBranch %122
+        %122 = OpLabel
+        %198 = OpLoad %ulong %104
+               OpReturnValue %198
+               OpFunctionEnd
+         %35 = OpFunction %void None %6
+        %199 = OpFunctionParameter %_ptr_CrossWorkgroup_ulong
+        %200 = OpFunctionParameter %_ptr_CrossWorkgroup_ulong
+        %201 = OpLabel
+        %202 = OpVariable %_ptr_Function_ulong Function
+               OpStore %202 %ulong_0
+        %203 = OpPtrAccessChain %_ptr_CrossWorkgroup_ulong %199 %ulong_0
+        %204 = OpLoad %ulong %203
+        %205 = OpPtrAccessChain %_ptr_CrossWorkgroup_ulong %199 %ulong_1
+        %206 = OpLoad %ulong %205
+        %207 = OpPtrAccessChain %_ptr_CrossWorkgroup_ulong %199 %ulong_2
+        %208 = OpLoad %ulong %207
+        %209 = OpFunctionCall %ulong %34 %202 %204 %206 %208
+               OpStore %200 %209
+        %210 = OpPtrAccessChain %_ptr_CrossWorkgroup_ulong %200 %ulong_1
+        %211 = OpLoad %ulong %202
+               OpStore %210 %211
+               OpReturn
+               OpFunctionEnd
+</pre><p class="lab-small"><a href="https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/captures/spirv.txt">spirv.txt on GitHub</a></p></details>
+<details class="lab-be"><summary><strong>NVIDIA SASS</strong><span class="lab-tag lab-not">this kernel: NOT_RUN</span></summary><p class="lab-small">omc does not lower this kernel to SASS yet. Below are two real listings for comparison: what nvcc emits for the CUDA C version (compiled here, not launched), then the vector add that did run on the GB10, written in asm2 and launched without any CUDA library.</p><pre class="lab-code">compiler   nvcc 13.0 (V13.0.88)
+command    nvcc -arch=sm_121 -o axpy axpy.cu   (host + device, a runnable program)
+compile    593.800 ms, median of 7, Linux aarch64, 2 of 20 CPU cores allowed, DGX Spark (GB10), load1 8.15
+device     nvcc -arch=sm_121 -cubin: 192.561 ms, median of 7
+not run    this CUDA program has not been launched; that needs a GPU window
+disasm     cuobjdump -sass axpy.cubin
+
+/*0000*/ LDC R1, c[0x0][0x37c] ;
+/*0010*/ S2R R2, SR_TID.X ;
+/*0020*/ S2UR UR4, SR_CTAID.X ;
+/*0030*/ LDCU.64 UR6, c[0x0][0x398] ;
+/*0040*/ HFMA2 R3, -RZ, RZ, 0, 0 ;
+/*0050*/ LDC R5, c[0x0][0x360] ;
+/*0060*/ IMAD.WIDE.U32 R2, R5, UR4, R2 ;
+/*0070*/ ISETP.GE.S64.AND P0, PT, R2, UR6, PT ;
+/*0080*/ @P0 EXIT ;
+/*0090*/ LDCU.64 UR6, c[0x0][0x388] ;
+/*00a0*/ SHF.L.U64.HI R3, R2.reuse, 0x3, R3 ;
+/*00b0*/ IMAD.SHL.U32 R2, R2, 0x8, RZ ;
+/*00c0*/ LDCU.64 UR8, c[0x0][0x390] ;
+/*00d0*/ LDCU.64 UR4, c[0x0][0x358] ;
+/*00e0*/ IADD.64 R4, R2.reuse, UR6 ;
+/*00f0*/ LDCU.64 UR6, c[0x0][0x380] ;
+/*0100*/ IADD.64 R2, R2, UR8 ;
+/*0110*/ LDG.E.64 R4, desc[UR4][R4.64] ;
+/*0120*/ LDG.E.64 R6, desc[UR4][R2.64] ;
+/*0130*/ IMAD R9, R5, UR6, RZ ;
+/*0140*/ IMAD.WIDE.U32 R6, R4, UR6, R6 ;
+/*0150*/ IMAD R9, R4, UR7, R9 ;
+/*0160*/ IADD3 R7, PT, PT, R7, R9, RZ ;
+/*0170*/ STG.E.64 desc[UR4][R2.64], R6 ;
+/*0180*/ EXIT ;
+/*0190*/ BRA 0x190;
+/*01a0*/ NOP;
+/*01b0*/ NOP;
+/*01c0*/ NOP;
+/*01d0*/ NOP;
+/*01e0*/ NOP;
+/*01f0*/ NOP;
+/*0200*/ NOP;
+/*0210*/ NOP;
+/*0220*/ NOP;
+/*0230*/ NOP;
+/*0240*/ NOP;
+/*0250*/ NOP;
+/*0260*/ NOP;
+/*0270*/ NOP;
+
+source     omega-mv seed/sm121/vecadd.s2, written in asm2 (not compiled from .om)
+run        GB10 (sm_121), 1048576 sums, 0 wrong, launch_to_done_ns=214257, 2026-10-19
+control    a mutated copy of the same kernel fails the same check
+note       launched by omega-mv's bytes tool with no CUDA library (seed/sm121/chip6.sh); the Spark still runs NVIDIA DGX OS and the GPU loads NVIDIA signed firmware; the run record says dirty=3 (the bytes tool, copied in)
+disasm     nvdisasm, as committed in evidence/SEED-0/sm121/vecadd.sass.txt
+
+/*0000*/ LDC R1, c[0x0][0x37c] ;
+/*0010*/ S2R R9, SR_CTAID.X ;
+/*0020*/ LDCU UR4, c[0x0][0x360] ;
+/*0030*/ S2R R0, SR_TID.X ;
+/*0040*/ LDCU UR5, c[0x0][0x398] ;
+/*0050*/ IMAD R9, R9, UR4, R0 ;
+/*0060*/ ISETP.GE.U32.AND P0, PT, R9, UR5, PT ;
+/*0070*/ @P0 EXIT ;
+/*0080*/ LDC.64 R2, c[0x0][0x380] ;
+/*0090*/ LDCU.64 UR4, c[0x0][0x358] ;
+/*00a0*/ LDC.64 R4, c[0x0][0x388] ;
+/*00b0*/ LDC.64 R6, c[0x0][0x390] ;
+/*00c0*/ IMAD.WIDE.U32 R2, R9, 0x4, R2 ;
+/*00d0*/ LDG.E R2, desc[UR4][R2.64] ;
+/*00e0*/ IMAD.WIDE.U32 R4, R9, 0x4, R4 ;
+/*00f0*/ LDG.E R5, desc[UR4][R4.64] ;
+/*0100*/ IMAD.WIDE.U32 R6, R9, 0x4, R6 ;
+/*0110*/ IADD3 R9, PT, PT, R2, R5, RZ ;
+/*0120*/ STG.E desc[UR4][R6.64], R9 ;
+/*0130*/ EXIT ;
+/*0140*/ BRA 0x140;
+</pre><p class="lab-small"><a href="https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/captures/nvcc.txt">nvcc.txt</a> · <a href="https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/captures/gb10.txt">gb10.txt</a></p></details>
+</section>
+<section class="lab-section" id="lab-race">
+<p class="lab-kicker">03 / THE HONEST RACE</p>
+<h2>Where it has run, and where it has not.</h2>
+<div class="lab-scroll"><table class="lab-table">
+<thead><tr><th>Where</th><th>What ran</th><th>Elements</th><th>Time</th><th>Check</th><th>Evidence</th></tr></thead>
+<tbody>
+<tr class="lab-you"><td>Your device, this tab</td><td>this kernel, Omega to WebAssembly</td><td data-live="n">press Run</td><td data-live="time">press Run</td><td data-live="check">press Run</td><td><a href="https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/axpy.om">kernel</a></td></tr>
+<tr><td>DGX Spark, Arm CPU</td><td>this kernel, Omega to AArch64, whole process</td><td>1,048,576</td><td data-us="native_run_us">see record.tsv</td><td>MATCH; sub control fails</td><td><a href="https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/captures/aarch64.txt">aarch64.txt</a></td></tr>
+<tr><td>DGX Spark, Arm CPU</td><td>this kernel, Omega to SPIR-V on PoCL</td><td>1,000</td><td>not timed</td><td>MATCH</td><td><a href="https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/captures/spirv.txt">spirv.txt</a></td></tr>
+<tr><td>GB10 GPU</td><td>vector add in asm2, no CUDA library (not this kernel)</td><td>1,048,576</td><td>214,257 ns launch to done</td><td>0 wrong</td><td><a href="https://github.com/aien-dev/omega-mv/commit/3e3da942ad630035ff773982b1aba89b36ba76d6">omega-mv SEED-0</a></td></tr>
+<tr><td>GB10 GPU</td><td>hello_gpu float add, kernel from my own builder (not this kernel)</td><td>1,048,576</td><td>947.5 µs GPU</td><td>0 wrong</td><td><a href="https://github.com/aien-dev/CUDApp/blob/2b4b2b14f1c67473b80878d2eff73b32b3522d54/evidence/l424/hello-chip.log">CUDApp log</a></td></tr>
+<tr class="lab-nr"><td>GB10 GPU</td><td>this kernel from omc</td><td colspan="3">NOT_RUN: omc has no SASS lowering for it yet</td><td><a href="https://github.com/aien-dev/omega-mv">omega-mv</a></td></tr>
+<tr class="lab-nr"><td>GB10 GPU</td><td>this kernel from nvcc</td><td colspan="3">NOT_RUN: built, not launched; needs a GPU window</td><td><a href="https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/captures/nvcc.txt">nvcc.txt</a></td></tr>
+</tbody></table></div>
+<p class="lab-small">Different kernels, sizes and machine load, so this is a ledger, not a ranking. The GB10 runs use NVIDIA's driver-loaded signed firmware on DGX OS; what they skip is the CUDA library. The asm2 run shared the machine at load1 61; the hello_gpu run had a quiet window.</p>
+</section>
+<section class="lab-section lab-model" id="lab-model">
+<p class="lab-kicker">04 / ASK FOR A KERNEL</p>
+<h2>Let Aien write the next one.</h2>
+<p>Aien is my assistant. It runs on my GB10 and writes Omega in the chat, with the same compile and run buttons you just used.</p>
+<p><a class="lab-go" href="/aien/">Talk to Aien</a> <a class="lab-alt" href="https://github.com/aien-dev/aienos.com/tree/main/om/allen-page">source</a></p>
+</section>
+<section class="lab-section" id="lab-home">
+<p class="lab-kicker">05 / TAKE IT HOME</p>
+<h2>Three lines, straight from GitHub.</h2>
+<div class="lab-install"><pre id="lab-home-cmd">git clone --depth 1 https://github.com/aien-dev/aienos.com
+cd aienos.com
+sh om/lab-page/run.sh</pre><button id="lab-copy" type="button">Copy</button></div>
+<p class="lab-small">Linux on 64-bit Arm runs the whole thing: it checks the compiler pins, builds the kernel, runs it, compares with awk, runs the broken control and writes the same axpy.wasm this page runs. Other machines get a plain NOT_RUN and a pointer back here. <a href="https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/run.sh">Read run.sh first.</a></p>
+<details class="lab-be"><summary><strong>What it printed from a fresh clone</strong></summary><pre class="lab-code">$ git clone --depth 1 https://github.com/aien-dev/aienos.com
+(recorded from branch feat/omega-lab before merge)
+$ cd aienos.com
+$ sh om/lab-page/run.sh
+pin     omc sha256 734f0a39319fbfa930bcc62cb30dbf06d47d78e126372b74f5baf478e6126b61
+pin     irwasm sha256 2d235a70c39ac1461a09c41e10e058d962b767ae83893cdcfc693ef6c47182e6
+build   omc: axpy.om + harness.om -&gt; out/axpy in 1048 us
+run     out/axpy a=3 n=1048576 -&gt; 2748777496576 in 3779 us (whole process)
+check   awk reference 2748777496576
+control add -&gt; sub gives 549754241024: mismatch, so the check can fail
+wasm    out/axpy.wasm 519 bytes, sha256 7607811d1d4440195bd39c5bab57385dd3b81f87321dc6e83f3855b2a5fba76e
+PASS
+(recorded 2026-10-27T00:43:06Z in an empty directory, Linux aarch64, load1 8.21)
+</pre><p class="lab-small"><a href="https://github.com/aien-dev/aienos.com/blob/main/om/lab-page/captures/home.txt">home.txt on GitHub</a></p></details>
+<h3>Start your own kernel repository.</h3>
+<p class="lab-small">One command makes a public repository from my template. Edit kernel.om and the Python reference beside it, push, and GitHub's ubuntu-24.04-arm runner builds your kernel for AArch64 and SPIR-V, runs both (SPIR-V on PoCL, a CPU), and checks every result against the reference. No GPU runs there.</p>
+<div class="lab-install"><pre>gh repo create my-kernel --template aien-dev/omega-kernel-template --public --clone</pre></div>
+<p class="lab-small"><a href="https://github.com/aien-dev/omega-kernel-template">omega-kernel-template</a> · <a href="https://github.com/aien-dev/omega-kernel-template/actions/runs/40426781699">passing check</a> · <a href="https://github.com/aien-dev/omega-kernel-template/actions/runs/40426783628">failing control: an overflowing kernel must fail</a></p>
+<h3>Do not trust my compiler? Rebuild it.</h3>
+<p class="lab-small">The seed challenge rebuilds the Omega seed chain from 408 bytes and must land on the same fixed output. It passes on GitHub's own ubuntu-24.04-arm runner, and its tampered-rung, wrong-value and forged-log controls fail as required. From a fresh full clone of omega-mv main (52eba88) on my Spark it printed CHALLENGE PASS in 1.06 s wall. It is a fixed-output reproducibility match, not general self-hosting and not diverse double compiling. It needs the full history, so no --depth.</p>
+<div class="lab-install"><pre>git clone https://github.com/aien-dev/omega-mv
+cd omega-mv
+sh seed/challenge/run.sh</pre></div>
+<p class="lab-small"><a href="https://github.com/aien-dev/omega-mv/blob/main/seed/challenge/CHALLENGE.md">CHALLENGE.md</a> · <a href="https://github.com/aien-dev/omega-seed-challenge/actions/runs/40426178383">passing run on GitHub</a> · <a href="https://github.com/aien-dev/omega-seed-challenge/issues/new?template=reproduced.yml">post your result</a></p>
+<h3>The NVIDIA GPU bench kit: kernels withdrawn.</h3>
+<p class="lab-small">The bench kit shipped GPU binaries my encoder wrote (sm_80, sm_86, sm_89) and loaded them through NVIDIA's own libcuda as an oracle. On 2026-10-27 I withdrew those binaries and the encoder that built them until a clean-room rewrite lands, so the kit now ships no kernel and ./run prints NOT_RUN on every GPU. The board keeps the three earlier rows from rented machines (RTX 4090, A100, RTX 3090), not timed. The kit's own run on real hardware: NOT_RUN.</p>
+<p class="lab-small"><a href="https://github.com/aien-dev/omega-gpu-bench">omega-gpu-bench</a> · <a href="https://aien-dev.github.io/omega-gpu-bench/">the board</a> · <a href="https://aien-dev.github.io/omega-gpu-bench/receipts.json">receipts.json</a></p>
+</section>
+<p class="lab-foot">Page structure and script generated by seeded Omega: <a href="https://github.com/aien-dev/aienos.com/tree/main/om/lab-page">om/lab-page</a>.</p>
+</article>

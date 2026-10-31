@@ -13,6 +13,8 @@ Weights suggest. Programs explain. Omega verifies. Physics authorizes. Evidence 
 - A passing test is not evidence on its own. A receipt is: a measured result, filed with the exact commit and command, that anyone can re-run.
 - The witness verifies and touches nothing. Do not review or judge your own change as its only check.
 
+The development method is Human-Directed Agentic Engineering (HDAE). I define the goals, architecture, constraints, acceptance criteria and stopping points; my agents implement, execute checks, diagnose failures and revise within those boundaries. I retain responsibility for claims, acceptance and release decisions. For the documented method and a systems-software case study, see Gregory M. Kurtzer, *Ginux: Building an Independent Kernel That Runs Linux Userspace through Human-Directed Agentic Engineering* (2026), [doi:10.5281/zenodo.23682548](https://doi.org/10.5281/zenodo.23682548). This names the development process without changing the authority or evidence rules below.
+
 ## 2. Ground truth before action
 
 - Never guess. Do not invent field names, API signatures, file paths, sizes, protocols or key layouts. Read the code, the ADRs and the canonical references in the target repository first.
@@ -70,6 +72,7 @@ Weights suggest. Programs explain. Omega verifies. Physics authorizes. Evidence 
 - No em dashes and no en dashes anywhere, including code comments, commit messages and evidence. Several repositories fail their gates on them. Use commas, colons, parentheses or periods.
 - No AI cliches ("delve", "tapestry", "seamlessly", "game-changer", "unleash").
 - Write status as what was measured, where and when, not as adjectives.
+- Comparisons with other projects are allowed when they are honest, dated, and backed by a receipt or the other project's own published numbers. Overclaims stay banned (for example, a claim to be a replacement for CUDA, or to give everything CUDA gives you).
 
 ## Where to go next
 

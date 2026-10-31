@@ -1,0 +1,49 @@
+# Allen's public catalog: reads only unauthenticated GitHub sources (public repos,
+# aienos.com seo.rs) and writes /var/lib/allen-catalog/{catalog,areas}.txt for the
+# allen-chat gateway. Runs as the credential-less system user allen-catalog; git runs
+# with credential.helper= and GIT_CONFIG_GLOBAL=/dev/null. Fails closed: a failed fetch
+# exits nonzero and the old files stay; unchanged output is not rewritten.
+[Unit]
+Description=Allen public catalog (unauthenticated GitHub read)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=allen-catalog
+Group=allen-catalog
+Nice=19
+TimeoutStartSec=300
+ExecStart=/usr/bin/python3 -I /opt/allen-catalog/catalog.py /var/lib/allen-catalog
+Environment=HOME=/nonexistent
+UMask=0022
+
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+PrivateUsers=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/allen-catalog
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectProc=invisible
+ProcSubset=pid
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+# Outbound HTTPS to GitHub only in practice: no loopback (the model server), LAN or
+# tailnet; the local DNS stub stays reachable.
+IPAddressAllow=127.0.0.53
+IPAddressDeny=127.0.0.0/8 ::1/128 169.254.0.0/16 fe80::/10 224.0.0.0/4 ff00::/8 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 100.64.0.0/10 fc00::/7
