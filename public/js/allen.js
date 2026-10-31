@@ -1729,13 +1729,18 @@ ${script}
     if (tag('head')) return source.slice(0, at) + meta + source.slice(at);
     return `${source.slice(0, lead)}<head>${meta}</head>${source.slice(lead)}`;
   }
+  /* The page policy forbids inline scripts, and a srcdoc frame would inherit
+     it, so the program runs in /aien/run.html, the one document whose policy
+     allows them. That document writes only what its parent posts, and only
+     while sandboxed to an opaque origin. */
   function runHtml(source, out) {
     const frame = document.createElement('iframe');
     frame.setAttribute('sandbox', SANDBOX);
     frame.setAttribute('referrerpolicy', 'no-referrer');
     frame.setAttribute('title', 'Program written by Aien, sandboxed');
     frame.className = 'allen-frame';
-    frame.srcdoc = sandboxed(source);
+    frame.addEventListener('load', () => frame.contentWindow.postMessage(sandboxed(source), '*'), { once: true });
+    frame.src = '/aien/run.html';
     const box = el('div', 'allen-frame-box');
     box.append(frame);
     out.replaceChildren(box, el('p', 'allen-note', 'Sandboxed: its scripts run with no access to this page or your cookies, and its content security policy blocks network loads. Drag the corner to resize.'));
