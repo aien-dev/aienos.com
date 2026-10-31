@@ -60,6 +60,7 @@ pub struct StatusData {
     pub evidence_hierarchy: String,
     pub abbreviations: Vec<Abbreviation>,
     pub caveats: Vec<String>,
+    pub independent_rechecks: IndependentRechecks,
     pub turing_definition: String,
     pub allowed_statuses: Vec<String>,
     pub allowed_ladder_states: Vec<String>,
@@ -69,6 +70,18 @@ pub struct StatusData {
     pub attempts: Vec<Attempt>,
     pub turing_rows: Vec<TuringRow>,
     pub implementation_rows: Vec<ImplementationRow>,
+}
+
+/// The count of receipts rechecked by someone outside the project. The
+/// count shown is the number of linked rechecks, so it changes only when
+/// an outside person's recheck is linked. Reviews by agents under the same
+/// operator are not rechecks and are never listed here.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct IndependentRechecks {
+    pub as_of: String,
+    pub rule: String,
+    pub links: Vec<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -270,6 +283,11 @@ pub fn validate(d: &StatusData) -> Result<(), String> {
             if !l.starts_with("https://github.com/aien-dev/") {
                 return Err(format!("{id}: link must be on github.com/aien-dev, got {l:?}"));
             }
+        }
+    }
+    for l in &d.independent_rechecks.links {
+        if !l.starts_with("https://") {
+            return Err(format!("independent recheck link must be an https URL, got {l:?}"));
         }
     }
 
@@ -663,6 +681,13 @@ pub fn render_research_status_page() -> Markup {
                 p class="rs-standfirst" {
                     "Every status on this page is rendered from one data file, built from the consolidated research status table. Failed and incomplete experiments are shown, not hidden. "
                     "As of " (d.as_of) "."
+                }
+                p class="rs-standfirst" id="independent-rechecks" {
+                    "Independent rechecks: " (d.independent_rechecks.links.len())
+                    " (as of " (d.independent_rechecks.as_of) "). " (d.independent_rechecks.rule)
+                    @for (i, l) in d.independent_rechecks.links.iter().enumerate() {
+                        " " a href=(l) rel="noopener noreferrer" { "Recheck " (i + 1) }
+                    }
                 }
                 nav class="rs-toc" aria-label="On this page" {
                     a href="#ladder" { "The ladder" }
@@ -1062,6 +1087,25 @@ mod tests {
         // Counterexample: a data file carrying an em dash is rejected.
         let dashed = RAW.replacen("Definition", "Definition \u{2014} zero", 1);
         assert!(parse(&dashed).is_err());
+    }
+
+    #[test]
+    fn independent_recheck_count_is_the_number_of_links() {
+        let page = render_research_status_page().into_string();
+        assert!(
+            page.contains("Independent rechecks: 0 (as of 2026-10-31). This changes only when an outside person's recheck is linked."),
+            "independent recheck line missing from the status page"
+        );
+        // The count follows the links: one linked recheck shows 1.
+        let one = RAW.replacen("\"links\": []", "\"links\": [\"https://example.org/recheck\"]", 1);
+        assert!(one != RAW);
+        assert_eq!(parse(&one).unwrap().independent_rechecks.links.len(), 1);
+        // Counterexample: a link that is not https is rejected.
+        let bad = RAW.replacen("\"links\": []", "\"links\": [\"http://example.org/recheck\"]", 1);
+        assert!(parse(&bad).is_err());
+        // Counterexample: a hand-set count field is not part of the schema.
+        let count = RAW.replacen("\"links\": []", "\"links\": [], \"count\": 1", 1);
+        assert!(parse(&count).is_err());
     }
 
     /// The homepage lookup check, as a function so a mutated copy can be
