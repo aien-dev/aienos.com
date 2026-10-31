@@ -90,7 +90,7 @@ class SMTPStub:
 
 def record(rid, **kw):
     rec = {"v": 1, "type": "relay", "id": "r_" + rid, "received": "2026-10-26T12:00:00Z",
-           "conv": "0123456789abcdef", "message": "Hello Drake.\nI am building a kelp boat in Omega and want to talk.",
+           "conv": "0123456789abcdef" * 2, "message": "Hello Drake.\nI am building a kelp boat in Omega and want to talk.",
            "name": "Test Visitor", "contact": "test@example.org",
            "transcript": [{"role": "user", "content": "hi"}, {"role": "assistant", "content": "hello"}]}
     rec.update(kw)
@@ -120,6 +120,7 @@ def main():
         put(d, a, record(a))
         put(d, b, record(b, to="someone@example.org"))
         put(d, "c" * 16, record("c" * 16, message="token ghp_" + "A1b2C3d4" * 5))
+        put(d, "d" * 16, record("d" * 16, conv="0123456789abcdef"))  # 64-bit conversation id
         rc, out = run_once(d, state, smtp.port)
         m = smtp.mail[0] if smtp.mail else {"data": "", "to": []}
         body = m["data"]
@@ -132,11 +133,14 @@ def main():
               and "From: Aien relay <aien@aienos.com>" in body and "Allen" not in body and "AIEN" not in body, subj)
         check("body carries message, name, contact, transcript, conversation and console link",
               all(x in body for x in ("I am building a kelp boat", "Name: Test Visitor", "Contact: test@example.org",
-                                      "Visitor: hi", "Aien: hello", "asked Aien to pass this on", "Conversation: 0123456789abcdef",
-                                      "http://100.64.0.2:18112/session/0123456789abcdef", "Relay id: r_" + a)),
+                                      "Visitor: hi", "Aien: hello", "asked Aien to pass this on",
+                                      "Conversation: " + "0123456789abcdef" * 2,
+                                      "http://100.64.0.2:18112/session/" + "0123456789abcdef" * 2, "Relay id: r_" + a)),
               "%d bytes" % len(body))
-        check("items with a recipient field or a secret are rejected, not sent", not os.listdir(d)
-              and "rejected %s.json" % b in out and "rejected %s.json" % ("c" * 16) in out, out.strip()[-200:])
+        check("items with a recipient field, a secret or a 64-bit conversation id are rejected, not sent",
+              not os.listdir(d) and len(smtp.mail) == 1 and all("rejected %s.json" % x in out
+                                                                 for x in (b, "c" * 16, "d" * 16)),
+              out.strip()[-200:])
         st = json.load(open(state))
         check("sent id and daily count persisted", st["count"] == 1 and st["sent"] == ["r_" + a], "%s" % st)
 

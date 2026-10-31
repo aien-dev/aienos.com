@@ -1262,8 +1262,9 @@ ${script}
       /* Nothing was stored. */
     }
   }
+  /* 128 random bits (32 hex): the conversation id is the live-session bearer. */
   function conversationId() {
-    const bytes = new Uint8Array(8);
+    const bytes = new Uint8Array(16);
     crypto.getRandomValues(bytes);
     return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
   }

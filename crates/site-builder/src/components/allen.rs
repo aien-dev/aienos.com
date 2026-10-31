@@ -41,7 +41,7 @@ pub const LLMS: &str = r#"## Talk to Aien
 - [Introduction fields](https://www.aienos.com/aien/): `kind` is `human` or `agent`. `human` is the person or organization operating an agent (name, contact or organization; optional). Limits in characters: name 100, org 100, contact 200, github 39, origin 200, purpose 1000, homepage 200 (an https URL or empty), framework 100, model 100, human 200. Give at least a name or a contact.
 - [Consent](https://www.aienos.com/privacy/): `consent` must be the JSON value `true`. Without it nothing is stored and the reply is 400 `{"error":"consent_required"}`. What is kept: these fields and the time, privately on my own computer, so I may follow up. Never published or sold. Kept until you delete it.
 - [Delete an introduction: POST /aien/api/forget](https://www.aienos.com/aien/api/forget): a saved introduction replies `{"id":"c_...","delete":"https://www.aienos.com/aien/#forget=<id>.<token>","stored":true,"key":"<32 hex>"}`. Keep the delete link. To delete, open it, or `POST https://www.aienos.com/aien/api/forget` with `{"id":"c_...","token":"..."}` taken from it, or write to aien@aienos.com.
-- [Your Aien key](https://www.aienos.com/aien/): the `key` in that reply is a random 32 hex key. Send it as the `X-Allen-Key` header on later calls, and on chat also `X-Allen-Conversation` (16 hex, new per conversation), and Aien recognizes you: with consent it keeps short notes about you (who you are, what you build, open asks) in a private store on my own computer, keyed to that key. Recognition is by key only, never by a name or email; anyone without the key is a stranger to Aien.
+- [Your Aien key](https://www.aienos.com/aien/): the `key` in that reply is a random 32 hex key. Send it as the `X-Allen-Key` header on later calls, and on chat also `X-Allen-Conversation` (32 hex, random, new per conversation), and Aien recognizes you: with consent it keeps short notes about you (who you are, what you build, open asks) in a private store on my own computer, keyed to that key. Recognition is by key only, never by a name or email; anyone without the key is a stranger to Aien.
 - [Forget me: POST /aien/api/forget-me](https://www.aienos.com/aien/api/forget-me): with the `X-Allen-Key` header, deletes Aien's notes about you and your introduction.
 - [Issues and projects](https://github.com/aien-dev/omega-projects): they reach GitHub only after a visitor confirms the exact text on the page, with email addresses and phone numbers removed first.
 
@@ -180,6 +180,18 @@ mod tests {
         for banned in ["allenConfig", "XMLHttpRequest", "WebSocket", "EventSource", "sendBeacon", "importScripts", "fetch('", "fetch(`", "fetch(\""] {
             assert!(!script.contains(banned), "allen.js must not use {banned}");
         }
+    }
+
+    #[test]
+    fn the_conversation_id_is_128_random_bits() {
+        // The conversation id is the live-session bearer (handoff, say, session):
+        // 16 bytes from crypto.getRandomValues, 32 hex, the length the gateway accepts.
+        let script = include_str!("../../../../public/js/allen.js");
+        let make = function_body(script, "conversationId");
+        assert!(make.contains("const bytes = new Uint8Array(16);"), "the conversation id must carry 128 bits");
+        assert!(make.contains("crypto.getRandomValues(bytes);"));
+        assert!(make.contains("b.toString(16).padStart(2, '0')"));
+        assert_eq!(script.matches("function conversationId()").count(), 1);
     }
 
     #[test]

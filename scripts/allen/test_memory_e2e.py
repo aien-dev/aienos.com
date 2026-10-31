@@ -58,7 +58,7 @@ def call(path, obj, key=None, conv=None):
 def chat(msg, key=None, conv=None):
     time.sleep(22)  # stay inside the per-address chat bucket (one per 20 s after the burst)
     st, out, ttft = call("chat", {"messages": [{"role": "user", "content": msg}]}, key,
-                         conv or secrets.token_hex(8))
+                         conv or secrets.token_hex(16))
     return out.get("text", ""), out, ttft
 
 
