@@ -1,12 +1,12 @@
 //! /now/: what the people and agents of AIEN are doing right now.
 //!
-//! The one source is the coordination ledger, a tab separated file the
-//! coordinator and every agent write to on the Spark (`~/handoffs/LEDGER.tsv`).
-//! A small publisher pushes that file to the `data/now` branch of this
-//! repository whenever it changes; the pages workflow lays it into
-//! `public/data/now.tsv` before the build, and this module turns it into
-//! the page and into `/now.json` for machines. Nothing here is written by
-//! hand: if a line is not in the ledger, it is not on the page.
+//! The one private source is the coordination ledger, a tab separated file the
+//! coordinator and agents write to on the Spark (`~/handoffs/LEDGER.tsv`).
+//! The publisher projects it into a line-preserving, privacy-screened TSV
+//! before pushing `data/now`. Pages refuses an unprojected input before
+//! copying it into `public/data/now.tsv`; this module renders that public
+//! projection as the page and `/now.json`. Redaction changes private text,
+//! never the row count or source line links.
 //!
 //! Columns, in order: id, opened_utc, owner, status, item, done_when,
 //! evidence, updated_utc. `evidence` carries the running notes, newest
@@ -22,7 +22,7 @@ use serde::{Deserialize, Serialize};
 use super::boxlink::{foot_labelled, Target};
 
 pub const TITLE: &str = "Now | AienOS";
-pub const DESCRIPTION: &str = "The live coordination ledger of AIEN: what every agent is doing right now, what is settled with evidence, and what waits on an operator decision.";
+pub const DESCRIPTION: &str = "The live coordination ledger of Aien: what every agent is doing right now, what is settled with evidence, and what waits on an operator decision.";
 pub const URL: &str = "https://www.aienos.com/now/";
 
 /// Where the pages workflow lays the published ledger before a build.
@@ -308,7 +308,7 @@ pub fn parse_utc(s: &str) -> Option<i64> {
     Some(days * 86_400 + hh * 3_600 + mm * 60 + ss)
 }
 
-fn fmt_utc(secs: i64) -> String {
+pub fn fmt_utc(secs: i64) -> String {
     // Civil from days, the inverse of the above.
     let days = secs.div_euclid(86_400);
     let rem = secs.rem_euclid(86_400);
@@ -757,12 +757,12 @@ fn card(it: &Item) -> Markup {
                     (age_words(it.age_s))
                 }
             }
-            h3 class="now-item" { (keeper_name(&it.item)) }
+            h3 class="now-item" data-verbatim { (keeper_name(&it.item)) }
             @if let Some(n) = last_note(it) {
-                p class="now-note" { (note_markup(n, it.stream)) }
+                p class="now-note" data-verbatim { (note_markup(n, it.stream)) }
             }
             @if !it.done_when.is_empty() {
-                p class="now-done" { span class="now-done-k" { "done when" } " " (keeper_name(&it.done_when)) }
+                p class="now-done" data-verbatim { span class="now-done-k" { "done when" } " " (keeper_name(&it.done_when)) }
             }
             (line_foot(it))
         }
@@ -782,7 +782,7 @@ fn row(it: &Item) -> Markup {
     html! {
         li class="now-queue-row now-row" id=(it.id) {
             span class="now-id" { (it.id) }
-            span class="now-queue-item" {
+            span class="now-queue-item" data-verbatim {
                 (keeper_name(&it.item))
                 @if let Some(n) = last_note(it) {
                     span class="now-row-note" { (note_markup(n, it.stream)) }
@@ -832,9 +832,9 @@ fn settled_entry(it: &Item) -> Markup {
             div class="now-tl-body" {
                 span class=(format!("now-verdict now-verdict-{}", it.status)) { (it.status) }
                 span class="now-id" { (it.id) }
-                p class="now-tl-item" { (keeper_name(&it.item)) }
+                p class="now-tl-item" data-verbatim { (keeper_name(&it.item)) }
                 @if let Some(n) = last_note(it) {
-                    p class="now-tl-evidence" { (note_markup(n, it.stream)) }
+                    p class="now-tl-evidence" data-verbatim { (note_markup(n, it.stream)) }
                 }
                 (line_foot(it))
             }
@@ -1029,7 +1029,7 @@ fn usage_section(now: &Now) -> Markup {
                         ul class="now-give-steps" {
                             li {
                                 strong { "Your agent, your plan. " }
-                                "Pick any repository on " a class="prose-link" href="/agents/" { "Agents" } " and give your agent its instructions: the rules ours follow and that repository's own AGENTS.md. It claims an open issue and opens a pull request that leads with its evidence, like ours do. Its own subscription pays for it (Claude, Codex, Gemini or Grok); nothing of yours is sent to the Spark."
+                                "Pick any repository on " a class="prose-link" href="/agents/" { "Agents" } " and give your agent its instructions: the rules mine follow and that repository's own AGENTS.md. It claims an open issue and opens a pull request that leads with its evidence, like mine do. Its own subscription pays for it (Claude, Codex, Gemini or Grok); nothing of yours is sent to the Spark."
                             }
                             li {
                                 strong { "Your Spark. " }
@@ -1088,7 +1088,7 @@ pub fn render_now_page(now: &Now) -> Markup {
                         p class="kicker" { "Now" }
                         h1 id="now-title" class="now-title" { "What is being done, right now." }
                         p class="now-lead" {
-                        "This is the working ledger of AIEN, published as it is written. Every line is a promise with an owner and an observable finish. Agents write their progress here; the operator writes decisions here. Nothing on this page is composed by hand. Lines written in the last day are shown open; older lines are folded below, each one click away."
+                        "This is the working ledger of Aien, published as it is written. Every line is a promise with an owner and an observable finish. Agents write their progress here; the operator writes decisions here. Nothing on this page is composed by hand. Lines written in the last day are shown open; older lines are folded below, each one click away."
                         }
                         p class="now-lead" {
                             a href="/hive/" { strong { "Hive" } }

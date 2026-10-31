@@ -1,0 +1,13 @@
+note contract_ensures: a false postcondition traps 10, exit 110; the bug here is the + 2
+om2
+text before "before\n"
+fn inc x uint to uint
+requires lt x 100
+ensures eq result add x 1
+ret add x 2
+end
+fn main to int
+k = write 1 before 0 len before
+h = inc 5
+ret 0
+end

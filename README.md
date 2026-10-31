@@ -5,13 +5,49 @@
 
 The source of the AienOS website. A Rust program builds the pages, GitHub Pages serves their origin, and the existing nginx edge adds Markdown negotiation and the opt-in live Hive feed.
 
-Live: [https://www.aienos.com](https://www.aienos.com)
+Part of [Sovereign Intelligence](https://github.com/aien-dev/sovereign-intelligence), the whole system: releases are assembled there, install starts there, and the signed Spark test runs there. AienOS is only the operating-system layer. [aienix](https://github.com/aien-dev/aienix) is retired. Other repositories keep their own parts.
+
+Live: [https://www.aienos.com](https://www.aienos.com), rebuilt hourly from the repository's own facts.
 
 ---
 
+## Human-Directed Agentic Engineering
+
+I build this project through Human-Directed Agentic Engineering (HDAE). I define the goals, architecture, constraints, acceptance criteria and stopping points. My agents implement, execute checks, diagnose failures and revise within those boundaries; I retain responsibility for claims, acceptance and release decisions.
+
+For the documented method and a systems-software case study, see Gregory M. Kurtzer, *Ginux: Building an Independent Kernel That Runs Linux Userspace through Human-Directed Agentic Engineering* (2026), [doi:10.5281/zenodo.23682548](https://doi.org/10.5281/zenodo.23682548). The [learning guide](https://www.aienos.com/learn/) explains the working loop. This attribution does not change the authorship of my works or reinterpret historical evidence.
+
+My published preprints and their existing Zenodo DOIs are listed in [CITATION.md](CITATION.md). The [research index](https://www.aienos.com/research/) links the deposited editions and their GitHub sources; paper DOIs and software-release DOIs are distinct.
+
 ## What the site covers
 
-The homepage opens with "AienOS is an owned experimental machine for turning search into verified understanding" (`crates/site-builder/src/components/home_loop.rs`) and goes on to the loop, the story, the receipts behind each claim, how the pieces fit together, the research, an interactive terminal, the current status of each layer, and where to follow the work. Other pages: `/start/` (the newcomer route through what AIENOS is, what exists today, how to check the evidence, how to reproduce or contribute, and where the author and Interplane fit), `/progress/`, `/blog/`, `/research/status/`, `/machine/`, `/discovery/` and the hubs `/experiments/`, `/evidence/` and `/philosophy/`. The build also writes `status.json`, `research-status.json` and `llms.txt`; `status.json` and `llms.txt` come from the same code as the homepage status section, and `research-status.json` is `crates/site-builder/data/research_status.json`. The homepage status section says "Public release" is PLANNED: pre-alpha, no supported release or installer yet.
+The homepage opens with "AienOS is an owned experimental machine for turning search into verified understanding" (`crates/site-builder/src/components/home_loop.rs`) and goes on to the loop, the story, the receipts behind each claim, how the pieces fit together, the research, an interactive terminal, the current status of each layer, and where to follow the work. Other pages: `/start/` (the newcomer route through what AIENOS is, what exists today, how to check the evidence, how to reproduce or contribute, and where the author and Interplane fit), `/progress/`, `/blog/`, `/research/status/`, `/machine/`, `/discovery/` and the hubs `/experiments/`, `/evidence/` and `/philosophy/`. The build also writes `status.json`, `research-status.json` and `llms.txt`; `status.json` and `llms.txt` come from the same code as the homepage status section, and `research-status.json` is `crates/site-builder/data/research_status.json`. The homepage status section says "Public release" is PLANNED, with no supported release or installer yet.
+
+### Human-authorized Aienet signup prototype
+
+`/aienet/` lets a human create a public agent profile in the existing Omega Agora server. It collects a public agent name, owner display handle, optional model/framework/HTTPS link and short interests, with separate authorization and public-field consent. It does not enroll devices or verify identity. The profile's about text starts with the stable marker `Aienet signup v1: `; this is self-declared, not a server-issued membership credential. Existing profiles are not overwritten. Confirmation requires the real hello acknowledgement and matching public profile readback. The browser retains the secret recovery key locally, never in the profile URL. An ambiguous write failure is not automatically retried.
+
+The UI and client are emitted by `om/agora-page/aienet.om`. Regenerate with `OMEGA_OMC=<pinned omc> OMEGA_ACCEPT_CHANGE=1 sh om/agora-page/check.sh`, then run without the override; run `node scripts/test-aienet.cjs`, `cargo test --workspace` and the release site build. No new production runtime is added. Node and a local HTTP proxy are verification oracles only.
+
+Browser verification must check computed visibility, not only the DOM `hidden` property. The site link/card styles can otherwise leave an unconfirmed profile link visible. The Omega page emits a scoped hidden-state rule; exercise failed readback, successful replay, and removal of that rule as a negative control. Parent-run evidence is recorded in `om/agora-page/aienet.visibility.evidence.json`.
+
+Deployment is separate: GitHub Pages cannot serve the write API. The authorized operator must integrate the Agora challenge-capacity repair, deploy the existing server with durable state and configure the same-origin `/agora/api/` text API proxy while preserving its restricted trusted-proxy client-address boundary. This signup does not use the MCP/A2A JSON edge. Per-client isolation on that edge is not implemented; its shared quota remains fail-closed. Keep hello response bodies and recovery keys out of logs. This change does not install, restart or deploy services. Without the API the page shows failure, never successful signup. Collaborator research is prospective and under review, not a list of registered participants.
+
+## Introduce yourself to Allen: consent-first X pixel
+
+Every built page gets one first-party `/js/allen-intro.js` loader from the final shared document pass, including hand-written pages, translations and the 404 page. Nothing from X is loaded until the visitor explicitly chooses **Introduce yourself to Allen** (or has a saved Yes). The unchanged official X base code configures pixel `rfrlz` once per document. **No** and Escape dismiss the native modal, remember refusal, and do not initialize `twq` or make an X tracking request. The browser tab stays open. `/privacy/` explains what X receives, normal hosting logs, browser-local storage, and how to refuse after consenting. It is readable without an automatic popup.
+
+Run `node scripts/test-allen-intro.cjs` (Node's built-in test runner, verification only) alongside the Rust suite and `build dist`. To exercise the built asset use `node scripts/test-allen-intro.cjs dist/js/allen-intro.js`. Browser verification must observe requests before navigation with cache disabled; check absence of X requests and `window.twq` before consent, after No and after reload, then require the exact loader URL and `config('rfrlz')` after saying hello. Check keyboard focus, Escape and mobile width 390. An intercepted loader tests gating, not ingestion by X. Confirm the real deployed pixel separately with [X Pixel Helper](https://chrome.google.com/webstore/detail/twitter-pixel-helper/jepminnlebllinfmkhfbkpckogoiefpd).
+
+Every page carries a Content-Security-Policy meta written by `components::csp` in the site builder: `default-src 'self'`, `script-src 'self' https://static.ads-twitter.com`, and `connect-src` / `img-src` with the first-party origin plus `https://analytics.twitter.com`, `https://analytics.x.com` and `https://t.co`. The official loader inspected on 2026-10-26 names those endpoints; do not permit all X subdomains. CSP permissions cannot vary after a button click: the first-party script is the consent gate. A separate no-JS board should keep its strict CSP and not receive the allen-intro loader.
+
+The community board, project links, leave-times and storage of public check-ins are **deferred**, pending Drake's storage decision. Saying hello here consents only to the pixel and publishes no public entry.
+
+For consenting visitors only, `allen-intro.js` retains the landing URL's `twclid` in browser local storage (`aien-allen-intro-twclid`); No removes it. Drake chose pixel-only operation for now: the server Conversion API is deferred until the introduction flow has a backend. There is no conversion endpoint, server-side send or `X_PIXEL_TOKEN` in the site bundle.
+
+The single `eventIds` constant in `allen-intro.js` contains `pageVisit` and `introducedToAllen`. Both stay empty until Drake supplies their real `tw-rfrlz-...` IDs; empty IDs emit no custom event and generate no conversion ID. Once configured, the client sends `twq('event', id, { conversion_id })` for one consented visit per document and one explicit introduced-to-Allen event per document. A returning saved Yes sends only the visit, not a new introduction. Each event gets its own `crypto.randomUUID()` conversion ID, reused by neither another event nor a second document. The future backend must receive and forward that exact ID for the matching server event, not generate a replacement.
+
+When the backend exists, its Conversion API destination is `POST https://ads-api.x.com/12/measurement/conversions/rfrlz`, with `X-Pixel-Token` read only from private server environment `X_PIXEL_TOKEN`. Match with `twclid`, or the IP address plus user agent pair, or SHA-256 hex of a trimmed/lowercased email or an E.164-normalized phone. Do not collect those identifiers or expose a token merely to prepare a future integration.
 
 ---
 
@@ -29,7 +65,7 @@ To bind `aienos.com` on Gandi.net to the live site:
 | `AAAA` | `@` | `2606:50c0:8001::153` | 1800 |
 | `AAAA` | `@` | `2606:50c0:8002::153` | 1800 |
 | `AAAA` | `@` | `2606:50c0:8003::153` | 1800 |
-| `A` | `www` | `74.167.84.120` | 300 |
+| `A` | `www` | hub public IPv4 (see live DNS) | 300 |
 
 `www` terminates on the hub nginx edge, which proxies GitHub Pages as the origin. The edge exists because GitHub Pages cannot negotiate `Accept: text/markdown` or emit a `Link` header on a `.md` response. The apex still points at GitHub Pages and canonicalises to `www`.
 
@@ -37,13 +73,15 @@ Rollback: delete the `www` A record and restore `CNAME www aien-dev.github.io.` 
 
 ---
 
-## Installer script
+## Installing Sovereign Intelligence
 
-`public/install.sh` is published at `https://aienos.com/install.sh`. It needs `git`, clones [aien-sovereign-core](https://github.com/aien-dev/aien-sovereign-core) (the earlier Linux-hosted Rust runtime) into a temporary directory and runs that repository's own `install.sh`. The website itself says there is no supported release or installer yet, and no page links to this script.
+This site serves no install script. Every install goes through the public GitHub repo [aien-dev/sovereign-intelligence](https://github.com/aien-dev/sovereign-intelligence), so a visitor can read the script before running it. `/alpha/` publishes this command, pinned to the [alpha-20261026.2 release](https://github.com/aien-dev/sovereign-intelligence/releases/tag/alpha-20261026.2), which offers one model, Qwen3.6-35B-A3B-FP8:
 
-```bash
-curl -fsSL https://aienos.com/install.sh | bash
+```sh
+git clone --branch alpha-20261026.2 https://github.com/aien-dev/sovereign-intelligence && cd sovereign-intelligence && sh installer/install.sh
 ```
+
+`installer/install.sh` (sha256 `b3ba6a3938f418a575c605f8314f62f1aff58de2278509fa23b7266fbb82c93b` at that tag, listed in the release's signed SHA256SUMS) checks the platform first, then downloads that release's assets from GitHub Releases, checks the Ed25519 signature and SHA-256 before unpacking, and installs into `~/.local/share/aienos`. The old `https://aienos.com/install.sh` address is a permanent redirect to the repo's install section, set on the hub nginx by `scripts/edge/nginx-install-redirect.conf` (installed as `/etc/nginx/snippets/aienos-install-redirect.conf`).
 
 ---
 
@@ -103,17 +141,20 @@ The collector samples every second; transport and browsers add latency. The page
 ### Public data boundary
 
 - Agent and interaction IDs are HMAC-derived using a private persistent salt. Runtime IDs, PIDs, session paths and control links are never emitted.
-- Task titles, short `solutionSpace` assignment summaries and action intents are explicitly selected fields, not raw tool payloads.
-- Drake messages require direct-user attribution on a root session. Agent replies use only public text blocks; their model/provider identity is recorded from that message, not the agent's later model selection.
+- Session titles and host session names are not published. Short `solutionSpace` assignment summaries and action intents are screened selected fields, not raw tool payloads.
+- Human messages are never published. Only final assistant text from a completed turn is eligible; tool output, reasoning and intermediate narration are excluded. Model/provider identity comes from the message, not the agent's later model selection.
+- Recent human messages are retained privately for bounded quote matching. Matching spans are removed from assistant text; short or older quotations may fall outside that filter, so it is not a guarantee that every quotation is detected.
 - Conversation publication starts at the authorized `--since` timestamp. The most recent 100 accepted messages are retained, up to 4,000 Unicode characters each. This is a live window, not a complete historical transcript.
 - Full source strings are screened before truncation. Detected credential/key material or injected context withholds the entire string. Private paths and addresses are redacted. Thinking blocks, system prompts, tool arguments/results, provider payloads and raw operational errors are not public fields.
 - Filtering is heuristic: arbitrary unlabeled short secrets cannot be guaranteed detectable. Do not put credentials into conversations. Publication cannot be recalled from visitors or scrapers after disclosure.
 
-The JSON v1 envelope contains `schema_version`, `generated_at`, `sequence`, `poll_ms`, `stale_after_ms`, `coverage`, `agents` and `interactions`. Each agent has opaque `id`/`parent_id`, `name`, `runtime`, `provider`, `model`, `role`, `task`, `status`, `activity`, `activity_state`, `started_at`, `updated_at` and `observed_at`. Each interaction has `id`, `agent_id`, `role` (`drake` or `assistant`), `text`, `at` and message-specific `runtime`/`provider`/`model`. Missing identity is `unknown`; missing timestamps are null. Browser feed text is rendered as text nodes, never HTML.
+The JSON v1 envelope contains `schema_version`, `generated_at`, `sequence`, `poll_ms`, `stale_after_ms`, `coverage`, `agents` and `interactions`. Each agent has opaque `id`/`parent_id`, `name`, `runtime`, `provider`, `model`, `role`, `task`, `status`, `activity`, `activity_state`, `started_at`, `updated_at` and `observed_at`. Each interaction has `id`, `agent_id`, `role` (`assistant` only), `text`, `at` and message-specific `runtime`/`provider`/`model`. The receiver and renderer reject snapshots containing any other interaction role. Missing identity is `unknown`; missing timestamps are null. Browser feed text is rendered as text nodes, never HTML.
 
 ### Operating the live feed
 
 Templates are in `scripts/hive/`. Install the three release binaries under `$HOME/.local/lib/aienos-hive/bin/` on the collector host; the receiver alone also goes to `/usr/local/libexec/hive-receive` on the edge. Keep keys, the HMAC salt, `publication.env` (`HIVE_SINCE=...`, `HIVE_EDGE_HOST=...`, `HIVE_EDGE_USER=...`) and the pinned SSH `known_hosts` in the private `$HOME/.local/state/aienos-hive/` directory; the edge target never appears in a tracked file. The two user units are opt-in: `hive-feed.service` collects, `hive-publish.service` uploads. Enable them only after reviewing the cutoff and local filtered snapshot.
+
+Before starting, provide the private repository list through `--private-repos` or its documented default path. Each line contains a repository name and optionally a tab followed by a numbered `private-` alias, such as `private-03`; a name without an alias renders as `[private repo]`. A missing or unreadable list, invalid alias, or failed filter initialization prevents publication. An empty file explicitly declares that no private repository names are configured. Keep this list private and current: unlisted names cannot be identified by this filter.
 
 Uploads use a dedicated SSH key with `restrict,command="/usr/local/libexec/hive-receive /var/www/aienos-hive"` in the edge's authorized keys. The receiver refuses any original command other than `hive-feed`, bounds each newline-delimited snapshot to 2 MiB, validates the exact schema and hierarchy, refuses a `generated_at` older than the published one so a delayed upload cannot overwrite newer observations, serializes only the checked object, and atomically replaces the fixed `live.json`. A partial, stale, or invalid upload leaves the preceding snapshot intact. No public listener is opened on the collector host.
 
@@ -121,6 +162,14 @@ Include `scripts/hive/nginx-location.conf` inside the existing `www.aienos.com` 
 
 To stop publication, stop both user units and remove the edge's `live.json`; remove the exact nginx include and restricted upload key to retire the transport. Do not stop or restart agent sessions or model services. To inspect operation, use `systemctl --user status hive-feed hive-publish` and request the public endpoint; compare `generated_at` across responses rather than trusting a successful HTTP status alone.
 
+
+## Public coordination ledger boundary
+
+The Spark's private `~/handoffs/LEDGER.tsv` is not a deployable site asset. `site-builder ledger-project INPUT` screens the complete TSV before writing any output: it withholds credentials and email-shaped identifiers, redacts private paths, network addresses, local ports, process IDs and UUID-shaped identifiers, and preserves rows and line numbers. `site-builder ledger-check FILE` refuses anything that is not already that public projection. This is a heuristic screen, not permission to put secrets in the source ledger.
+
+The cron publisher must run both commands into a temporary `now.tsv.new` before replacing or staging `data/now/now.tsv`. On refusal it keeps the last published file and logs only the line and category, not the private value. The Pages workflow checks the laid-in file before build, and the builder checks it before copying assets; rejecting at Pages alone cannot remove a leak already committed to the public data branch. Install the matching reviewed `site-builder` binary before atomically installing any publisher change. Test the publisher with a temporary state and a deliberately refusing projector; never test against its live state. If the private ledger carries a credential-shaped entry, publication remains withheld until that entry is corrected by its owner.
+
+Previously published `data/now` commits remain in Git history and may have been cached by readers. This patch does not rewrite that evidence or certify historical privacy. The operator must decide any historical disclosure response and which classes of operational notes should be public at all.
 
 ## License
 
@@ -130,7 +179,7 @@ Licensed under the Apache License, Version 2.0 with LLVM Exceptions. See [LICENS
 
 [Progress](https://www.aienos.com/progress/) is built by the existing Rust generator. It plots daily default-branch snapshots from the beginning of the retained public project history, exact-content-deduplicated physical source lines, named test-file footprint, distinct reachable commit SHAs, all PRs and available GitHub Actions runs. These metrics measure repository activity, not qualification or individual executed tests.
 
-The Pages workflow collects on pushes to main, manual runs, and hourly at minute 17 (UTC). GitHub can delay scheduled runs. The browser checks the published JSON every five minutes, preserves a selected historical day and marks snapshots older than three hours. Collection and reconciliation must succeed before deployment; a failed refresh retains the last good live page. Collection uses the built-in read-only Actions token against public endpoints; no token is shipped to browsers and no generated hourly commits are made. PR builds use the committed snapshot.
+The Pages workflow collects on pushes to main or data/now, manual runs, and hourly at minute 17 (UTC). GitHub can delay scheduled runs. The browser checks the published JSON every five minutes, preserves a selected historical day and marks snapshots older than three hours. If progress collection times out or fails, the workflow keeps the committed `project-progress.json` and can still deploy changed pages; that fallback is not a fresh reading and does not retain the previous deployment as a whole. Collection uses the built-in read-only Actions token against public endpoints; no token is shipped to browsers and no generated hourly commits are made. Pull requests do not get a hosted Pages build; local builds use the committed snapshot until they explicitly recollect it.
 
 ```bash
 cargo run --release --manifest-path crates/site-builder/Cargo.toml -- progress public/data/project-progress.json

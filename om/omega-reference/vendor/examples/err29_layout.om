@@ -1,0 +1,8 @@
+note err29_layout: an OM-2 layout field past the layout's size, or overlapping another field
+om2
+layout blk 4
+field lo uint at 2 little
+end
+fn main to int
+ret 0
+end

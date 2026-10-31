@@ -9,7 +9,7 @@ use maud::{html, Markup};
 use super::boxlink::{foot, source_href, Target};
 
 pub const TITLE: &str = "Intelligence should be owned | AienOS";
-pub const DESCRIPTION: &str = "Drake Stapleton on why language models belong to everyone who wrote the words they learned from, why running one yourself is a right and a responsibility, and what AIEN does about it, with receipts.";
+pub const DESCRIPTION: &str = "Drake Stapleton on why language models belong to everyone who wrote the words they learned from, why running one yourself is a right and a responsibility, and what Aien does about it, with receipts.";
 pub const URL: &str = "https://www.aienos.com/owned/";
 
 /// This file, for a box whose text has no other home on GitHub.
@@ -37,26 +37,26 @@ const RECEIPTS: &[Receipt] = &[
         on_branch: false,
     },
     Receipt {
-        title: "A 27 billion parameter model on our own engine",
-        says: "Qwen3.8-27B in 8-bit form, served by our own server on our own GPU kernels, on one DGX Spark. Measured 7.63 tokens a second against a ceiling of 10.15 for this machine and this model, which is 75.17 percent of the ceiling (calc:ce5d974e). Slower than I want.",
+        title: "A 27 billion parameter model on my own engine",
+        says: "Qwen3.8-27B in 8-bit form, served by my own server on my own GPU kernels, on one DGX Spark. Measured on the chip alone, not end to end: 7.63 tokens a second of GPU time per token against an arithmetic memory ceiling of 10.15 for this machine and this model, which is 75.17 percent of the ceiling (calc:ce5d974e). Slower than I want.",
         href: "https://github.com/aien-dev/aien-sovereign-core-mv/tree/qwen38/serve-fast/evidence/qwen38-serve-fast-20261019",
         on_branch: true,
     },
     Receipt {
         title: "The ceiling that number is judged against",
-        says: "How the 10.15 tokens a second limit was worked out from the machine's memory speed and the size of the model.",
+        says: "How the 10.15 tokens a second limit was worked out from the machine's memory speed and the size of the model. Arithmetic, not a measurement.",
         href: "https://github.com/aien-dev/aien-sovereign-core-mv/blob/alpha/ceiling-and-model/docs/qwen38/CEILING.md",
         on_branch: true,
     },
     Receipt {
         title: "An operating system on a 2017 iMac",
-        says: "Aienux, the AienOS kernel, boots on an ordinary desktop computer, bare metal, with no Linux underneath.",
+        says: "The AienOS kernel, aienux, boots on an ordinary desktop computer, bare metal, with no Linux underneath.",
         href: "https://github.com/aien-dev/aienux/blob/main/evidence/imac_kernel1_2026-10-17",
         on_branch: false,
     },
     Receipt {
         title: "Hardware runs on a Raspberry Pi 5",
-        says: "Aienux, the AienOS kernel, running on a small, inexpensive board, with a receipt for each run.",
+        says: "The AienOS kernel, aienux, running on a small, inexpensive board, with a receipt for each run.",
         href: "https://github.com/aien-dev/aienux/blob/main/evidence/pi5_hardware_runs_2026-10-13",
         on_branch: false,
     },
@@ -76,7 +76,7 @@ pub fn render_owned() -> Markup {
                     p class="narr-kicker" { "Manifesto" }
                     h1 class="narr-title" { "Intelligence should be owned" }
                     p class="narr-standfirst" {
-                        "I build AIEN because I believe the intelligence in a language model belongs to everyone who helped make it. That is a very large group, and I am one of them. So are you."
+                        "I build Aien because I believe the intelligence in a language model belongs to everyone who helped make it. That is a very large group, and I am one of them. So are you."
                     }
                     p class="narr-byline" { (SIGNATURE_LINE) }
                 }
@@ -87,7 +87,7 @@ pub fn render_owned() -> Markup {
                         "A language model learns from the written record of people. Books, papers, code, forum answers, recipes, letters, arguments, jokes. Billions of people wrote that record over thousands of years, mostly without knowing a machine would one day read it."
                     }
                     p {
-                        "A company can pay for the computers, hire the engineers and spend the months of training. I respect that work. The knowledge it turned into a model was never theirs to start with. It was ours."
+                        "A company can pay for the computers, hire the engineers and spend the months of training. I respect that work. The knowledge it turned into a model was never theirs to start with. It was everyone's."
                     }
                     p {
                         "That makes a model a common inheritance. Something built from all human knowledge cannot honestly belong to one account holder."
@@ -95,10 +95,10 @@ pub fn render_owned() -> Markup {
                 }
 
                 section id="right" class="narr-section" aria-labelledby="right-heading" {
-                    h2 id="right-heading" { "It is our right" }
+                    h2 id="right-heading" { "It is everyone's right" }
                     blockquote class="narr-rule" { p { (THESIS) } }
                     p {
-                        "It is our right to use the intelligence we created. Using it means more than asking it a question through someone else's window. It means holding a copy, running it on a machine you own, looking at how it works, and changing it."
+                        "It is everyone's right to use the intelligence people created. Using it means more than asking it a question through someone else's window. It means holding a copy, running it on a machine you own, looking at how it works, and changing it."
                     }
                     p {
                         "A person who can run it themselves has the right to. Nobody should need permission, a subscription or an invitation to do that."
@@ -106,9 +106,9 @@ pub fn render_owned() -> Markup {
                 }
 
                 section id="responsibility" class="narr-section" aria-labelledby="responsibility-heading" {
-                    h2 id="responsibility-heading" { "It is also our responsibility" }
+                    h2 id="responsibility-heading" { "It is also everyone's responsibility" }
                     p {
-                        "A right that nobody exercises does not last. If we only ever rent intelligence, the people who own the machines decide what we may ask, what it may answer, and what it costs. We would have given the inheritance back for a monthly fee."
+                        "A right that nobody exercises does not last. If people only ever rent intelligence, the people who own the machines decide what they may ask, what it may answer, and what it costs. They would have given the inheritance back for a monthly fee."
                     }
                     p {
                         "So running it yourself comes with work. Keep your copy. Learn how it behaves. Write down what you measured, including the bad numbers. Share what you learn so the next person starts further along. That is how a common inheritance stays common."
@@ -142,9 +142,9 @@ pub fn render_owned() -> Markup {
                 }
 
                 section id="aien" class="narr-section" aria-labelledby="aien-heading" {
-                    h2 id="aien-heading" { "What AIEN does about it" }
+                    h2 id="aien-heading" { "What Aien does about it" }
                     p {
-                        "AIEN is my attempt to keep that other door open. Everything we write is public under a licence that keeps it public. The stack is built to run on machines you own, with no outside service in the trusted core. Speed is reported against what the hardware could do at its limit."
+                        "Aien is my attempt to keep that other door open. Everything I and my agents write is public under a licence that keeps it public. The stack is built to run on machines you own, with no outside service in the trusted core. Speed is reported against what the hardware could do at its limit."
                     }
                     p {
                         "Here is what exists today, with the evidence beside it. Where the evidence is not on the main branch yet, the box says so."
@@ -163,7 +163,7 @@ pub fn render_owned() -> Markup {
                     }
                     h3 { "What is not true yet" }
                     p {
-                        "AIEN is pre-alpha. The model we serve was trained by others and keeps its maker's licence. We have not trained a model of our own. The install guide failed its first test. Speed is below the ceiling. I would rather you read that here than discover it later."
+                        "Sovereign Intelligence, built on AienOS, is in alpha testing. The model I serve was trained by others and keeps its maker's licence. I have not trained a model of my own. The install guide failed its first test. Speed is below the ceiling. I would rather you read that here than discover it later."
                     }
                 }
 
@@ -175,7 +175,7 @@ pub fn render_owned() -> Markup {
                     p {
                         "If you want to help here, read the code at "
                         a href="https://github.com/aien-dev" target="_blank" rel="noopener noreferrer" { "github.com/aien-dev" }
-                        ". Break the install guide and tell us where. Send a change. Publish what you measure, good or bad, with the receipt beside it."
+                        ". Break the install guide and tell me where. Send a change. Publish what you measure, good or bad, with the receipt beside it."
                     }
                     p {
                         "Then tell someone else that they are allowed to do the same."
@@ -183,7 +183,7 @@ pub fn render_owned() -> Markup {
                     p class="narr-byline" { (SIGNATURE_LINE) }
                     ul class="hub-cards" {
                         li class="hub-card" {
-                            a href="/philosophy/" { "More on the philosophy behind AIEN" }
+                            a href="/philosophy/" { "More on the philosophy behind Aien" }
                             p { "The Stapleton Doctrine and the Post-LLM Case, argued as positions and not as experimental results." }
                             (foot(&source_href(THIS_FILE), Target::Source))
                         }
@@ -240,10 +240,16 @@ mod tests {
     }
 
     #[test]
-    fn no_comparisons_with_other_systems() {
-        let body = render_owned().into_string().to_lowercase();
-        for word in ["chatgpt", "openai", "gemini", "llama", "gpt-", "anthropic", "claude"] {
-            assert!(!body.contains(word), "names another system: {word}");
-        }
+    fn comparisons_are_dated_and_sourced_or_absent() {
+        let body = render_owned().into_string();
+        let problems = crate::components::machines::comparison_errors(&body);
+        assert!(problems.is_empty(), "comparison problem on /owned/: {problems:?}");
+        assert!(crate::components::machines::comparison_problem("faster than ChatGPT").is_some());
+        assert!(crate::components::machines::comparison_problem(
+            "On 2026-10-21 this was faster than the published ChatGPT figure (https://example.com/n)."
+        ).is_some());
+        assert!(crate::components::machines::comparison_problem(
+            "On 2026-10-21 this was faster than the published ChatGPT figure (https://github.com/aien-dev/sovereign-intelligence)."
+        ).is_none());
     }
 }

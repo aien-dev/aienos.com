@@ -1,0 +1,20 @@
+{
+  "extensions": {
+    "generated": {
+      "children": [],
+      "children_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compiled_at": "2026-10-27T17:25:31Z",
+      "compiler": "crumb-compile/1",
+      "digest": "sha256:f3688673f9ce0597ad2cb249368c873301045a4b5f7677af596593b6a24639c4",
+      "evidence_files": 0,
+      "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "files": 5,
+      "generated_at_commit": "d877b71d12b95624a6926bc4299f5505f72a6327",
+      "source_tree": "sha256:729c32930573155dd65da3230e37d7cdc3e1034ef7dfee0ebaa543238bf80860"
+    }
+  },
+  "layer": "website",
+  "name": "support-page",
+  "purpose": "Seeded Omega support page, shared invitation and CSS with deterministic artifact checks",
+  "schema_version": "1.0.0"
+}

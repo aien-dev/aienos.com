@@ -1,0 +1,5 @@
+note mistake_slash_comment: note is the only comment form; // and # are unknown words
+// a comment
+fn main to int
+ret 0
+end

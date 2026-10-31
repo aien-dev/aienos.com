@@ -1,0 +1,14 @@
+#!/bin/sh
+# cortex-visitors launcher: isolated Cortex for public Allen visitor memory.
+# Runs as user cortex-visitors (started via setpriv; see /opt/cortex-visitors/README).
+set -eu
+umask 077
+DB=/var/lib/cortex-visitors/cortex.db
+set -a
+. /etc/cortex-visitors/env
+set +a
+# Compact on start so forgotten rows do not linger in free pages or the WAL.
+if [ -f "$DB" ]; then
+  /usr/bin/sqlite3 "$DB" 'PRAGMA wal_checkpoint(TRUNCATE); VACUUM;' >/dev/null
+fi
+exec /opt/cortex-visitors/cortex-rs --host 127.0.0.1 --port 18096 --db-path "$DB" --encoder-url http://127.0.0.1:9

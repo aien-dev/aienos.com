@@ -1,0 +1,1388 @@
+note agora-sync.om: pull-based federation for Agora. One run (schedule it, e.g. every few minutes):
+note 1. verifies each pending announcement in <state>/peer.req (lines "<utc>\t<node_id or ->\t<base_url>")
+note    by fetching <base_url>/.well-known/agora itself; only a peer whose answer names the same base_url
+note    (and the announced node_id, when one was given) is listed, through POST /agora/api/import "peer";
+note 2. for every listed peer: re-verifies its well-known answer, pulls /agora/api/since/<cursor>, validates
+note    every record (shape per kind, caps, UTF-8, no control bytes), and imports it verbatim with its
+note    origin label. The server dedupes by (origin_node, origin_cursor), so a re-pull imports nothing.
+note    A peer that serves a malformed record is dropped once it has served --maxbad of them.
+note Records whose origin is this node are never re-imported. The per-peer cursor lives in
+note <state>/sync.cur.<node_id>; deleting it only causes a re-pull that the server answers with dup.
+note Transport: a peer base is "https://HOST[:PORT]" (the grammar agora.om urlok enforces, see sy_burl).
+note Every peer request runs over TLS 1.3 (vendored om/tls): the certificate chain, validity dates and
+note HOST are checked against the PEM trust store --ca (default /etc/ssl/certs/ca-certificates.crt) and
+note a failed handshake is logged "tls\t<base>\t<TLS error>[\t<X509 error>]" and the peer is not used.
+note The loopback form "http://127.0.0.1:PORT" is plain HTTP and is refused ("insecure-http") unless the
+note test flag --insecure-http is given. The local node (--api) is always reached over loopback HTTP.
+note Usage: agora-sync --state DIR --api PORT|A.B.C.D:PORT (PORT means 127.0.0.1:PORT) [--limit N (1..25,
+note default 20)] [--maxbad N (default 3)] [--batches N (default 10)] [--ca FILE] [--insecure-http].
+note One answer of --limit records (each at most about 8.6 KB) must fit 256 KiB.
+note Compose: { printf 'om2\n'; cat tls/sha2.om tls/hkdf.om tls/x25519.om tls/chacha.om tls/aesgcm.om \
+note   tls/ec.om tls/rsa.om tls/x509.om tls/tls.om sha2h.om http.om client.om agora-sync.om; } | omc
+note Exit: 0 done, 1 usage, 2 sync.key or the local node failed, 3 the local import refused the key or
+note could not be reached, 4 another sync holds <state>/sync.lock, 5 the --ca trust store has no anchor.
+
+global gsd uchar 256
+global gcf ulong 8
+global gnode uchar 16
+global gkey uchar 64
+global gst ulong 8
+global gca uchar 256
+
+note gcf: 0 state dir length, 1 api port, 2 records per request, 3 bad records before a drop,
+note 4 requests per peer per run, 5 set once an import was fatal, 6 --insecure-http given,
+note 7 length of the --ca path in gca
+note gst: 0 imported, 1 duplicate, 2 bad, 3 own origin skipped, 4 peers pulled, 5 announcements listed,
+note 6 announcements refused, 7 peers dropped
+
+text syastat "--state"
+text syaapi "--api"
+text syalim "--limit"
+text syamaxb "--maxbad"
+text syabat "--batches"
+text syaca "--ca"
+text syains "--insecure-http"
+text syca "/etc/ssl/certs/ca-certificates.crt"
+text syhttps "https://"
+text sylhttp "http://127.0.0.1:"
+text syrq1 "GET "
+text syrq2 " HTTP/1.1"
+text syrqh "Host: "
+text syrqc "Connection: close"
+text syrqa "User-Agent: agora-sync/1"
+text syfkey "sync.key"
+text syflk "sync.lock"
+text syfreq "peer.req"
+text syfreqo "sync.reqoff"
+text syfcur "sync.cur."
+text syfbad "sync.bad."
+text sypwk "/.well-known/agora"
+text sypeers "/agora/api/peers"
+text sypsnc "/agora/api/since/"
+text syplim "?limit="
+text sywk1 "agora 1\n"
+text synode "node\t"
+text sypeer "peer\t"
+text sydrop "drop\t"
+text syrecl "rec\t"
+text sydup "dup"
+text sykey "key\t"
+text syeauth "agora 1\nerr auth"
+text sythr "thread\t"
+text syorg "origin\t"
+text syto "to\t"
+text sypost "post\t"
+text sybody "body "
+text syagent "agent\t"
+text syhid "hidden\t"
+text sykpost "post"
+text syklet "letter"
+text sykagt "agent"
+text sykhid "hidden"
+text symodel "model\t"
+text syfw "framework\t"
+text syhuman "human\t"
+text sylink "link\t"
+text syutc "0000-00-00T00:00:00Z"
+text sylog "sync\t"
+text sylpeer "listed\t"
+text sylref "refused\t"
+text sylunsup "unsupported\t"
+text sylins "insecure-http\t"
+text syltls "tls\t"
+text syltbig "response over 327680 bytes"
+text sylunv "unverified\t"
+text syldrop "dropped\t"
+text sylbad "bad-record\t"
+text sylpull "pulled\t"
+text sylfail "unreachable\t"
+text syldone "done\timported "
+text syldup "\tdup "
+text sylbad2 "\tbad "
+text sylown "\town "
+text sylpls "\tpeers "
+text sylls "\tlisted "
+text sylrf "\trefused "
+text syldr "\tdropped "
+text sylnl "\n"
+
+note ======== configuration and files ========
+
+fn sy_path nm view uchar * dst edit uchar 512 to ulong
+n = get gcf 0
+for i ulong n
+put dst i get gsd i
+end
+put dst n 47
+ret ac_cat dst add n 1 nm
+end
+
+note sy_name: pre followed by the 16-byte node id into dst; the length
+fn sy_name pre view uchar * nid view uchar 16 dst edit uchar 64 to ulong
+q = ac_cat dst 0 pre
+ret ac_cat dst q view nid
+end
+
+note sy_getn: the decimal in file <state>/nm (0 when absent or malformed)
+fn sy_getn nm view uchar * to ulong
+pb = new uchar 512 0
+d = new uchar 32 0
+n = sy_path nm pb
+r = ac_rdat view part pb 0 n 0 d
+if le r 0
+ret 0
+end
+e = ac_lend view d 0 ulong r
+v = ac_dec view d 0 e
+if eq v 18446744073709551615
+ret 0
+end
+ret v
+end
+
+note sy_setn: replace file <state>/nm with the decimal v
+fn sy_setn nm view uchar * v ulong to bool
+pb = new uchar 512 0
+d = new uchar 32 0
+n = sy_path nm pb
+q = ac_catu d 0 v
+q = ac_catc d q 10
+ret ac_put view part pb 0 n view part d 0 q 384
+end
+
+note sy_args: "--key value" pairs and the bare flag --insecure-http; false on a usage error
+fn sy_args to bool
+ab = new uchar 256 0
+put gcf 2 20
+put gcf 3 3
+put gcf 4 10
+n = ulong argcnt
+i = ulong 1
+while lt i n bound 64
+k = argread i ab 0 256
+if lt k 0
+ret false
+end
+ke = ulong k
+if ac_peq view ab 0 ke syains
+put gcf 6 1
+i = add i 1
+continue
+end
+if ge add i 1 n
+ret false
+end
+v = argread add i 1 ab 64 192
+if lt v 0
+ret false
+end
+ve = add 64 ulong v
+if ac_peq view ab 0 ke syastat
+for j ulong ulong v
+put gsd j get ab add 64 j
+end
+put gcf 0 ulong v
+end
+if ac_peq view ab 0 ke syaapi
+put gcf 1 ac_apiarg view ab 64 ve
+end
+if ac_peq view ab 0 ke syalim
+put gcf 2 ac_dec view ab 64 ve
+end
+if ac_peq view ab 0 ke syamaxb
+put gcf 3 ac_dec view ab 64 ve
+end
+if ac_peq view ab 0 ke syabat
+put gcf 4 ac_dec view ab 64 ve
+end
+if ac_peq view ab 0 ke syaca
+if eq v 0
+ret false
+end
+for j ulong ulong v
+put gca j get ab add 64 j
+end
+put gcf 7 ulong v
+end
+i = add i 2
+end
+if eq get gcf 7 0
+for j ulong len syca
+put gca j get syca j
+end
+put gcf 7 len syca
+end
+if or eq get gcf 0 0 eq get gcf 1 0
+ret false
+end
+if or eq get gcf 2 0 gt get gcf 2 25
+ret false
+end
+ret and le get gcf 3 1000 le get gcf 4 1000
+end
+
+note sy_store: the --ca PEM bundle into st (TLSTSZ bytes); 0 or a TLS error code
+fn sy_store st edit uchar * to ulong
+p = new uchar 256 0
+n = get gcf 7
+for j ulong n
+put p j get gca j
+end
+ret tls_storef st view part p 0 n
+end
+
+note sy_stok: whether the --ca bundle yields at least one trust anchor (checked once at start)
+fn sy_stok to bool
+st = new uchar TLSTSZ 0
+ret eq sy_store st 0
+end
+
+note sy_hexv: whether d[p, p + n) is n lowercase hex digits
+fn sy_hexv d view uchar * p ulong n ulong to bool
+if lt len d add p n
+ret false
+end
+for i ulong n
+c = get d add p i
+if not or and ge c 48 le c 57 and ge c 97 le c 102
+ret false
+end
+end
+ret true
+end
+
+note sy_mkkey: a fresh 64-hex sync key into file p (mode 0600)
+fn sy_mkkey p view uchar * to bool
+rb = new uchar 32 0
+hx = new uchar 65 0
+r = random rb 0 32 0
+if ne r 32
+ret false
+end
+for i ulong 32
+b = get rb i
+put hx mul i 2 get achexd shr b 4
+put hx add mul i 2 1 get achexd and b 15
+end
+put hx 64 10
+ret ac_put p view hx 384
+end
+
+note sy_key: load <state>/sync.key into gkey, creating it when absent
+fn sy_key to bool
+pb = new uchar 512 0
+d = new uchar 128 0
+n = sy_path syfkey pb
+r = ac_rdat view part pb 0 n 0 d
+if eq r -2
+if not sy_mkkey view part pb 0 n
+ret false
+end
+r = ac_rdat view part pb 0 n 0 d
+end
+if lt r 64
+ret false
+end
+if not sy_hexv view d 0 64
+ret false
+end
+for i ulong 64
+put gkey i get d i
+end
+ret true
+end
+
+note sy_kbuf: "key\t<sync key>\n" into dst; the length
+fn sy_kbuf dst edit uchar 20480 to ulong
+q = ac_cat dst 0 sykey
+for i ulong 64
+q = ac_catc dst q get gkey i
+end
+ret ac_catc dst q 10
+end
+
+note sy_gnode: this node's id appended to dst at q
+fn sy_gnode dst edit uchar 20480 q ulong to ulong
+w = q
+for i ulong 16
+w = ac_catc dst w get gnode i
+end
+ret w
+end
+
+note sy_isme: whether d[f, f + 16) is this node's id
+fn sy_isme d view uchar * f ulong to bool
+if lt len d add f 16
+ret false
+end
+for i ulong 16
+if ne get d add f i get gnode i
+ret false
+end
+end
+ret true
+end
+
+note sy_log: "sync\t<ev><a>\n"
+fn sy_log ev view uchar * a view uchar * to void
+ac_say sylog
+ac_say ev
+ac_say a
+ac_say sylnl
+end
+
+note ======== talking to nodes ========
+
+note sy_wkget: GET /.well-known/agora from the local node ip:port with Host ho into w; the length or negative
+fn sy_wkget ip ulong port ulong ho view uchar * w edit uchar 4096 to long
+cs = new ulong 320 0
+io = new uchar 65536 0
+r = ac_dial cs io ip port 10000000000
+if lt r 0
+ret r
+end
+st = ac_get cs io sypwk ho
+if lt st 0
+c = hclose cs
+ret st
+end
+n = ac_body cs io w
+if ne st 200
+ret -5
+end
+ret n
+end
+
+note ======== peer bases and the HTTPS transport ========
+
+note sy_host: whether b[p, e) is a TLS host name as tls_init takes it: 1..253 bytes of letters, digits,
+note '-' and '.', with at least one letter (so never an IPv4 literal)
+fn sy_host b view uchar * p ulong e ulong to bool
+hl = sub e p
+if or eq hl 0 gt hl 253
+ret false
+end
+al = false
+for i ulong hl
+k = tls_hch ulong get b add p i
+if eq k 0
+ret false
+end
+if eq k 1
+al = true
+end
+end
+ret al
+end
+
+note sy_port: the port b[p, e) (1..5 digits, no leading zero, 1..65535); 0 when malformed
+fn sy_port b view uchar * p ulong e ulong to ulong
+k = sub e p
+if or eq k 0 gt k 5
+ret 0
+end
+if eq get b p 48
+ret 0
+end
+v = ac_dec b p e
+if gt v 65535
+ret 0
+end
+ret v
+end
+
+note sy_burl: the peer base grammar, the same as agora.om urlok: "https://HOST[:PORT]" gives 1 (port 443
+note when absent), the loopback test form "http://127.0.0.1:PORT" gives 2, anything else (a path, a query,
+note userinfo, an IPv4 https host, a trailing slash) gives 0. o[0], o[1] bound the Host header value's
+note host part in b (o[0] to the end of b is the Host header), o[2] is the port.
+fn sy_burl b view uchar * o edit ulong 8 to ulong
+n = len b
+if ac_pre b 0 n syhttps
+c = n
+for i ulong sub n 8
+if eq get b add 8 i 58
+c = add 8 i
+break
+end
+end
+if not sy_host b 8 c
+ret 0
+end
+put o 0 8
+put o 1 c
+put o 2 443
+if lt c n
+p = sy_port b add c 1 n
+if eq p 0
+ret 0
+end
+put o 2 p
+end
+ret 1
+end
+if ac_pre b 0 n sylhttp
+p = sy_port b len sylhttp n
+if eq p 0
+ret 0
+end
+put o 0 7
+put o 1 sub len sylhttp 1
+put o 2 p
+ret 2
+end
+ret 0
+end
+
+note sy_tlog: "tls\t<base>\t<TLS error>[\t<X509 error>]" for the TLS failure e on connection c
+fn sy_tlog e ulong c view uchar * b view uchar * to void
+m = new uchar 640 0
+t = new uchar 64 0
+q = ac_cat m 0 b
+q = ac_catc m q 9
+if eq e 0
+q = ac_cat m q syltbig
+else
+k = tls_errname e t
+q = ac_cat m q view part t 0 k
+end
+if or eq e TLECERT eq e TLECV
+q = ac_catc m q 9
+k = x509_errname tls_detail c t
+q = ac_cat m q view part t 0 k
+end
+if le q 640
+sy_log syltls view part m 0 q
+end
+end
+
+note sy_crlf: CR LF appended to d at q
+fn sy_crlf d edit uchar * q ulong to ulong
+r = ac_catc d q 13
+ret ac_catc d r 10
+end
+
+note sy_rq: the request "GET <pa[0, o[4])> HTTP/1.1" with Host (b from o[0]) and Connection: close into rq
+fn sy_rq rq edit uchar 1024 o view ulong 8 b view uchar * pa view uchar 128 to ulong
+q = ac_cat rq 0 syrq1
+q = ac_cat rq q view part pa 0 get o 4
+q = ac_cat rq q syrq2
+q = sy_crlf rq q
+q = ac_cat rq q syrqh
+q = ac_cat rq q view part b get o 0 sub len b get o 0
+q = sy_crlf rq q
+q = ac_cat rq q syrqc
+q = sy_crlf rq q
+q = ac_cat rq q syrqa
+q = sy_crlf rq q
+ret sy_crlf rq q
+end
+
+note sy_tdrain: decrypted response bytes into raw until the peer's close_notify (o[5] = 1) or a TCP end
+note without one (o[5] = 0); the count, or negative (logged for base b) on a TLS error or when raw is full
+fn sy_tdrain c edit uchar * raw edit uchar 327680 o edit ulong 8 b view uchar * to long
+got = ulong 0
+put o 5 0
+for it ulong 327681
+if eq got 327680
+break
+end
+r = tls_read c part raw got sub 327680 got
+if eq r 0
+put o 5 1
+ret long got
+end
+if eq r neg long TLEEOF
+ret long got
+end
+if lt r 0
+sy_tlog ulong neg r c b
+ret -30
+end
+got = add got ulong r
+end
+sy_tlog 0 c b
+ret -31
+end
+
+note sy_tread: TLS 1.3 to HOST:port (o) checked against the --ca store, send the GET, read the response
+note into raw. The byte count, or negative (every handshake failure is logged by sy_tlog).
+fn sy_tread o edit ulong 8 b view uchar * pa view uchar 128 raw edit uchar 327680 to long
+c = new uchar TLCSZ 0
+st = new uchar TLSTSZ 0
+rq = new uchar 1024 0
+e = sy_store st
+if ne e 0
+sy_tlog e c b
+ret -20
+end
+e = tls_init c view part b get o 0 sub get o 1 get o 0 1
+if ne e 0
+sy_tlog e c b
+ret -21
+end
+fd = tls_dial view part b get o 0 sub get o 1 get o 0 get o 2
+if lt fd 0
+sy_tlog ulong neg fd c b
+ret -22
+end
+tls_deadline c long add ulong monons 30000000000
+e = tls_connect c st int fd
+if ne e 0
+sy_tlog e c b
+x = fclose int fd
+ret -23
+end
+q = sy_rq rq o b pa
+n = long -24
+if le q 1024
+n = tls_write c view part rq 0 q
+end
+if ge n 0
+n = sy_tdrain c raw o b
+end
+tls_close c
+x = fclose int fd
+ret n
+end
+
+note sy_hparse: the HTTP/1.1 response raw (complete in memory) through http.om's client parser in memory
+note mode; the body into d. A body delimited by the connection end needs the peer's close_notify (cl 1),
+note so a truncated close-delimited answer is refused. The body length, -5 for a status other than 200,
+note or negative.
+fn sy_hparse raw view uchar * cl ulong d edit uchar * to long
+cs = new ulong 320 0
+io = new uchar 393216 0
+r = hinit cs io int -1 0
+if lt r 0
+ret r
+end
+r = hmemld cs io raw
+if lt r 0
+ret r
+end
+st = hrsprd cs io
+if lt st 0
+ret st
+end
+if and eq get cs HBMODE 3 eq cl 0
+ret -6
+end
+n = hbodyall cs io d
+if ne st 200
+ret -5
+end
+ret n
+end
+
+note sy_tget: GET pa[0, o[4]) over TLS from the https base b into d; the body length or negative
+fn sy_tget o edit ulong 8 b view uchar * pa view uchar 128 d edit uchar * to long
+raw = new uchar 327680 0
+n = sy_tread o b pa raw
+if lt n 0
+ret n
+end
+ret sy_hparse view part raw 0 ulong n get o 5 d
+end
+
+note sy_pget: GET pa[0, o[4]) over plain HTTP from the loopback test base b into d (--insecure-http)
+fn sy_pget o view ulong 8 b view uchar * pa view uchar 128 d edit uchar * to long
+cs = new ulong 320 0
+io = new uchar 65536 0
+r = ac_dial cs io 2130706433 get o 2 30000000000
+if lt r 0
+ret r
+end
+st = sy_pgo cs io o b pa
+if lt st 0
+c = hclose cs
+ret st
+end
+n = ac_body cs io d
+if ne st 200
+ret -5
+end
+ret n
+end
+
+note sy_pgo: the GET of sy_pget on the open connection; the final status or negative
+fn sy_pgo cs edit ulong 320 io edit uchar 65536 o view ulong 8 b view uchar * pa view uchar 128 to long
+ret ac_get cs io view part pa 0 get o 4 view part b get o 0 sub len b get o 0
+end
+
+note sy_hget: GET pa[0, pl) from the peer base b into d; the body length or negative. A base outside
+note the grammar is logged "unsupported", a plain-HTTP base without --insecure-http "insecure-http".
+fn sy_hget b view uchar * pa view uchar 128 pl ulong d edit uchar * to long
+o = new ulong 8 0
+k = sy_burl b o
+if eq k 0
+sy_log sylunsup b
+ret -7
+end
+put o 4 pl
+if eq k 2
+if eq get gcf 6 0
+sy_log sylins b
+ret -8
+end
+ret sy_pget o b pa d
+end
+ret sy_tget o b pa d
+end
+
+note sy_wkchk: whether w[0, n) is a well-known answer ("agora 1", then "node\t<16 hex>\t<base>\t...");
+note when chk is set its base must equal base. The node id goes into nid.
+fn sy_wkchk w view uchar 4096 n ulong base view uchar * chk bool nid edit uchar 16 to bool
+if lt n 8
+ret false
+end
+if not ac_peq view w 0 8 sywk1
+ret false
+end
+e = ac_lend view w 8 n
+if not ac_pre view w 8 e synode
+ret false
+end
+f = ac_fld view w 8 e 1
+if ne sub ac_fend view w f e f 16
+ret false
+end
+if not sy_hexv view w f 16
+ret false
+end
+g = ac_fld view w 8 e 2
+if and chk not ac_peq view w g ac_fend view w g e base
+ret false
+end
+for i ulong 16
+put nid i get w add f i
+end
+ret true
+end
+
+note sy_verify: fetch <base>/.well-known/agora and check it names base; nid holds the expected node id
+note (all zero bytes when none was announced) and receives the verified one
+fn sy_verify base view uchar * nid edit uchar 16 to bool
+pa = new uchar 128 0
+w = new uchar 4096 0
+nd = new uchar 16 0
+q = ac_cat pa 0 sypwk
+n = sy_hget base pa q w
+if lt n 0
+ret false
+end
+if not sy_wkchk w ulong n base true nd
+ret false
+end
+if ne get nid 0 0
+if not ac_peq view nd 0 16 view part nid 0 16
+ret false
+end
+end
+for i ulong 16
+put nid i get nd i
+end
+ret true
+end
+
+note sy_imp: POST bd to the local import endpoint. 1 imported, 2 duplicate, 3 ok, 0 refused, -1 fatal
+note (the key was refused or the local node is unreachable)
+fn sy_imp bd view uchar * to long
+d = new uchar 65536 0
+r = ac_send get gcf 1 4 bd d
+if lt r 0
+ret -1
+end
+n = ulong r
+h = ac_okhdr view d n
+if eq h -1
+if ac_pre view d 0 n syeauth
+ret -1
+end
+ac_say view part d 0 n
+ret 0
+end
+if lt h 0
+ret -1
+end
+p = ulong h
+e = ac_lend view d p n
+if ac_pre view d p e syrecl
+ret 1
+end
+if ac_peq view d p e sydup
+ret 2
+end
+ret 3
+end
+
+note sy_ctl: import the control record "<pre><nid>[\t<base>]\n" (peer or drop); true when accepted
+fn sy_ctl pre view uchar * nid view uchar 16 base view uchar * to bool
+ib = new uchar 20480 0
+q = sy_kbuf ib
+q = ac_cat ib q pre
+q = ac_cat ib q view nid
+if gt len base 0
+q = ac_catc ib q 9
+q = ac_cat ib q base
+end
+q = ac_catc ib q 10
+if gt q 20480
+ret false
+end
+ret gt sy_imp view part ib 0 q 0
+end
+
+note ======== announcements ========
+
+note sy_req: one peer.req line l: verify the announced base, then list it
+fn sy_req l view uchar * to void
+nid = new uchar 16 0
+e = len l
+f = ac_fld l 0 e 1
+g = ac_fend l f e
+b = ac_fld l 0 e 2
+if gt b e
+sy_log sylref l
+put gst 6 add get gst 6 1
+ret
+end
+be = ac_fend l b e
+if eq sub g f 16
+if not sy_hexv l f 16
+sy_log sylref l
+put gst 6 add get gst 6 1
+ret
+end
+for i ulong 16
+put nid i get l add f i
+end
+end
+vf = sy_verify view part l b sub be b nid
+if not vf
+sy_log sylref l
+put gst 6 add get gst 6 1
+ret
+end
+if sy_ctl sypeer nid view part l b sub be b
+sy_log sylpeer l
+put gst 5 add get gst 5 1
+end
+end
+
+note sy_reqs: every peer.req line after the stored offset
+fn sy_reqs to void
+pb = new uchar 512 0
+lb = new uchar 1024 0
+n = sy_path syfreq pb
+for it ulong 1000
+off = sy_getn syfreqo
+r = ac_rdat view part pb 0 n off lb
+if le r 0
+break
+end
+e = ac_lend view lb 0 ulong r
+if ge e ulong r
+if lt r 1024
+break
+end
+e = sub ulong r 1
+else
+sy_req view part lb 0 e
+end
+if not sy_setn syfreqo add add off e 1
+break
+end
+end
+end
+
+note ======== record validation ========
+
+note sy_seq: the length of the multi-byte UTF-8 sequence at d[i] (ending before e), 0 when invalid
+fn sy_seq d view uchar 262144 i ulong e ulong to ulong
+c = ulong get d i
+n = ulong 0
+lo = ulong 128
+hi = ulong 191
+if and ge c 194 le c 223
+n = 2
+end
+if and ge c 224 le c 239
+n = 3
+if eq c 224
+lo = 160
+end
+if eq c 237
+hi = 159
+end
+end
+if and ge c 240 le c 244
+n = 4
+if eq c 240
+lo = 144
+end
+if eq c 244
+hi = 143
+end
+end
+if or eq n 0 gt add i n e
+ret 0
+end
+b = ulong get d add i 1
+if or lt b lo gt b hi
+ret 0
+end
+for j ulong sub n 2
+b = ulong get d add add i 2 j
+if or lt b 128 gt b 191
+ret 0
+end
+end
+ret n
+end
+
+note sy_utf: whether d[p, e) is valid UTF-8 without control bytes (LF and TAB allowed when lf is set)
+fn sy_utf d view uchar 262144 p ulong e ulong lf bool to bool
+i = p
+while lt i e bound 999999
+c = ulong get d i
+if lt c 128
+if or lt c 32 eq c 127
+if not and lf or eq c 10 eq c 9
+ret false
+end
+end
+i = add i 1
+else
+k = sy_seq d i e
+if eq k 0
+ret false
+end
+i = add i k
+end
+end
+ret true
+end
+
+note sy_nf: whether the line d[p, e) has exactly k TAB fields
+fn sy_nf d view uchar 262144 p ulong e ulong k ulong to bool
+if gt ac_fld view d p e sub k 1 e
+ret false
+end
+ret gt ac_fld view d p e k e
+end
+
+note sy_ftxt: whether field k of d[p, e) is lo..hi bytes of clean UTF-8
+fn sy_ftxt d view uchar 262144 p ulong e ulong k ulong lo ulong hi ulong to bool
+f = ac_fld view d p e k
+if gt f e
+ret false
+end
+g = ac_fend view d f e
+w = sub g f
+if or lt w lo gt w hi
+ret false
+end
+ret sy_utf d f g false
+end
+
+note sy_fhex: whether field k of d[p, e) is 16 lowercase hex digits
+fn sy_fhex d view uchar 262144 p ulong e ulong k ulong to bool
+f = ac_fld view d p e k
+if gt f e
+ret false
+end
+if ne sub ac_fend view d f e f 16
+ret false
+end
+ret sy_hexv view d f 16
+end
+
+note sy_fnum: whether field k of d[p, e) is a decimal (or "-" when dash is set)
+fn sy_fnum d view uchar 262144 p ulong e ulong k ulong dash bool to bool
+f = ac_fld view d p e k
+if gt f e
+ret false
+end
+g = ac_fend view d f e
+if and dash and eq sub g f 1 eq get d f 45
+ret true
+end
+ret ne ac_dec view d f g 18446744073709551615
+end
+
+note sy_futc: whether field k of d[p, e) is YYYY-MM-DDTHH:MM:SSZ
+fn sy_futc d view uchar 262144 p ulong e ulong k ulong to bool
+f = ac_fld view d p e k
+if gt f e
+ret false
+end
+if ne sub ac_fend view d f e f 20
+ret false
+end
+for i ulong 20
+c = get d add f i
+t = get syutc i
+if eq t 48
+if or lt c 48 gt c 57
+ret false
+end
+else
+if ne c t
+ret false
+end
+end
+end
+ret true
+end
+
+note sy_kbody: "body <len>" at d[q], len <= cap, then len bytes of clean UTF-8 (LF and TAB allowed) and LF;
+note the end of the record, 0 when malformed
+fn sy_kbody d view uchar 262144 q ulong n ulong cap ulong to ulong
+e = ac_lend view d q n
+if ge e n
+ret 0
+end
+if not ac_pre view d q e sybody
+ret 0
+end
+bl = ac_dec view d add q 5 e
+if gt bl cap
+ret 0
+end
+b = add e 1
+if ge add b bl n
+ret 0
+end
+if ne get d add b bl 10
+ret 0
+end
+if not sy_utf d b add b bl true
+ret 0
+end
+ret add add b bl 1
+end
+
+note sy_kthr: the thread line and the origin line of a post or letter record at d[q]; the next line or 0
+fn sy_kthr d view uchar 262144 q ulong n ulong to ulong
+e = ac_lend view d q n
+if or ge e n not ac_pre view d q e sythr
+ret 0
+end
+if not and sy_nf d q e 4 sy_fnum d q e 1 false
+ret 0
+end
+if not and sy_ftxt d q e 2 1 32 sy_ftxt d q e 3 1 160
+ret 0
+end
+p = add e 1
+e = ac_lend view d p n
+if or ge e n not ac_pre view d p e syorg
+ret 0
+end
+if not and sy_nf d p e 3 and sy_fhex d p e 1 sy_fnum d p e 2 false
+ret 0
+end
+ret add e 1
+end
+
+note sy_kpl: the post line at d[q]; the next line or 0
+fn sy_kpl d view uchar 262144 q ulong n ulong to ulong
+e = ac_lend view d q n
+if or ge e n not ac_pre view d q e sypost
+ret 0
+end
+if not and sy_nf d q e 7 and sy_fnum d q e 1 false sy_futc d q e 2
+ret 0
+end
+if not and sy_fhex d q e 3 and sy_ftxt d q e 4 1 64 sy_ftxt d q e 5 1 16
+ret 0
+end
+if not sy_fnum d q e 6 true
+ret 0
+end
+ret add e 1
+end
+
+note sy_kpost: a post (or, with lr, a letter) record at d[q]; its end or 0
+fn sy_kpost d view uchar 262144 q ulong n ulong lr bool to ulong
+p = sy_kthr d q n
+if eq p 0
+ret 0
+end
+e = ac_lend view d p n
+if and lr ac_pre view d p e syto
+if not and sy_nf d p e 2 sy_fhex d p e 1
+ret 0
+end
+p = add e 1
+end
+p = sy_kpl d p n
+if eq p 0
+ret 0
+end
+ret sy_kbody d p n 8192
+end
+
+note sy_mcap: the cap of a profile line (model, framework, human 100, link 200); 0 for any other line
+fn sy_mcap d view uchar 262144 q ulong e ulong to ulong
+if or ac_pre view d q e symodel or ac_pre view d q e syfw ac_pre view d q e syhuman
+ret 100
+end
+if ac_pre view d q e sylink
+ret 200
+end
+ret 0
+end
+
+note sy_kagt: an agent record at d[q]; its end or 0
+fn sy_kagt d view uchar 262144 q ulong n ulong to ulong
+e = ac_lend view d q n
+if or ge e n not ac_pre view d q e syagent
+ret 0
+end
+if not and sy_nf d q e 6 and sy_fhex d q e 1 sy_ftxt d q e 2 1 64
+ret 0
+end
+if not and sy_ftxt d q e 3 1 16 and sy_futc d q e 4 sy_fnum d q e 5 false
+ret 0
+end
+p = add e 1
+for i ulong 4
+e = ac_lend view d p n
+if ge e n
+ret 0
+end
+c = sy_mcap d p e
+if eq c 0
+break
+end
+if not and sy_nf d p e 2 sy_ftxt d p e 1 0 c
+ret 0
+end
+p = add e 1
+end
+ret sy_kbody d p n 2048
+end
+
+note sy_khid: a hidden record at d[q]; its end or 0
+fn sy_khid d view uchar 262144 q ulong n ulong to ulong
+e = ac_lend view d q n
+if or ge e n not ac_pre view d q e syhid
+ret 0
+end
+if not and sy_nf d q e 4 and sy_fhex d q e 1 sy_fnum d q e 2 false
+ret 0
+end
+if not sy_ftxt d q e 3 1 200
+ret 0
+end
+ret add e 1
+end
+
+note sy_kind: the kind field of the rec line d[p, e): 1 post, 2 letter, 3 agent, 4 hidden, 0 unknown
+fn sy_kind d view uchar 262144 p ulong e ulong to ulong
+f = ac_fld view d p e 3
+g = ac_fend view d f e
+if ac_peq view d f g sykpost
+ret 1
+end
+if ac_peq view d f g syklet
+ret 2
+end
+if ac_peq view d f g sykagt
+ret 3
+end
+if ac_peq view d f g sykhid
+ret 4
+end
+ret 0
+end
+
+note sy_rec: validate the record at d[p] (rec line "rec\t<cursor>\t<origin>\t<kind>\t<origin_cursor>" and
+note the record lines); its end, or 0 when malformed. ro: 0 cursor, 1 origin field offset.
+fn sy_rec d view uchar 262144 p ulong n ulong ro edit ulong 16 to ulong
+e = ac_lend view d p n
+if or ge e n not ac_pre view d p e syrecl
+ret 0
+end
+if not and sy_nf d p e 5 and sy_fnum d p e 1 false and sy_fhex d p e 2 sy_fnum d p e 4 false
+ret 0
+end
+f = ac_fld view d p e 1
+put ro 0 ac_dec view d f ac_fend view d f e
+put ro 1 ac_fld view d p e 2
+k = sy_kind d p e
+q = add e 1
+if eq k 1
+ret sy_kpost d q n false
+end
+if eq k 2
+ret sy_kpost d q n true
+end
+if eq k 3
+ret sy_kagt d q n
+end
+if eq k 4
+ret sy_khid d q n
+end
+ret 0
+end
+
+note ======== pulling ========
+
+note sy_one: import the validated record d[p, x); ro from sy_rec. 1 imported, 2 duplicate, 3 skipped
+note (its origin is this node), 0 refused, -1 fatal
+fn sy_one d view uchar 262144 p ulong x ulong ro view ulong 16 to long
+ib = new uchar 20480 0
+f = get ro 1
+if sy_isme view d f
+ret 3
+end
+q = sy_kbuf ib
+q = ac_cat ib q view part d p sub f p
+q = ac_cat ib q view part d f 16
+q = ac_cat ib q view part d add f 16 sub x add f 16
+if gt q 20480
+ret 0
+end
+ret sy_imp view part ib 0 q
+end
+
+note sy_bad: count a bad record from peer nid; drop the peer once it has served --maxbad of them
+fn sy_bad nid view uchar 16 to void
+cn = new uchar 64 0
+k = sy_name syfbad nid cn
+v = add sy_getn view part cn 0 k 1
+put gst 2 add get gst 2 1
+sy_log sylbad view nid
+if lt v get gcf 3
+b = sy_setn view part cn 0 k v
+ret
+end
+b = sy_setn view part cn 0 k 0
+if sy_ctl sydrop nid view part cn 0 0
+sy_log syldrop view nid
+put gst 7 add get gst 7 1
+end
+end
+
+note sy_tally: count the import result r
+fn sy_tally r long to void
+if eq r 1
+put gst 0 add get gst 0 1
+end
+if eq r 2
+put gst 1 add get gst 1 1
+end
+if eq r 3
+put gst 3 add get gst 3 1
+end
+end
+
+note sy_recs: validate and import the since answer d[0, n) of peer nid; o[2] is the cursor and advances
+note past every record handled. The number of records handled, -1 to stop pulling this peer.
+fn sy_recs nid view uchar 16 o edit ulong 4 d view uchar 262144 n ulong to long
+ro = new ulong 16 0
+h = ac_okhdr view d n
+if lt h 0
+ret -1
+end
+p = ulong h
+k = ulong 0
+while lt p n bound 1000
+x = sy_rec d p n ro
+if or eq x 0 le get ro 0 get o 2
+sy_bad nid
+ret -1
+end
+r = sy_one d p x ro
+if lt r 0
+put gcf 5 1
+ret -1
+end
+if eq r 0
+sy_bad nid
+ret -1
+end
+sy_tally r
+put o 2 get ro 0
+k = add k 1
+p = x
+end
+ret long k
+end
+
+note sy_fetch: GET /agora/api/since/<cur>?limit=<limit> from the peer base b into d; length or negative
+fn sy_fetch b view uchar * cur ulong d edit uchar 262144 to long
+pa = new uchar 128 0
+q = ac_cat pa 0 sypsnc
+q = ac_catu pa q cur
+q = ac_cat pa q syplim
+q = ac_catu pa q get gcf 2
+ret sy_hget b pa q d
+end
+
+note sy_batch: one since request to peer nid at base b; o[3] is the length of the cursor file name cn,
+note where the advanced cursor o[2] is stored. Records handled, or negative to stop.
+fn sy_batch nid view uchar 16 o edit ulong 4 cn view uchar 64 b view uchar * to long
+d = new uchar 262144 0
+put o 2 sy_getn view part cn 0 get o 3
+n = sy_fetch b get o 2 d
+if lt n 0
+sy_log sylfail view nid
+ret -1
+end
+c = sy_recs nid o view d ulong n
+if not sy_setn view part cn 0 get o 3 get o 2
+ret -1
+end
+ret c
+end
+
+note sy_pull: pull peer nid at base for up to --batches requests
+fn sy_pull nid view uchar 16 base view uchar * to void
+o = new ulong 4 0
+cn = new uchar 64 0
+put o 3 sy_name syfcur nid cn
+put gst 4 add get gst 4 1
+for it ulong get gcf 4
+c = sy_batch nid o cn base
+if lt c long get gcf 2
+ret
+end
+end
+end
+
+note sy_pline: one /peers line l ("peer\t<node>\t<base>\t..."): verify and pull it
+fn sy_pline l view uchar * to void
+nid = new uchar 16 0
+e = len l
+f = ac_fld l 0 e 1
+if ne sub ac_fend l f e f 16
+ret
+end
+if sy_isme l f
+ret
+end
+b = ac_fld l 0 e 2
+if gt b e
+ret
+end
+be = ac_fend l b e
+for i ulong 16
+put nid i get l add f i
+end
+if not sy_verify view part l b sub be b nid
+sy_log sylunv view nid
+ret
+end
+sy_pull nid view part l b sub be b
+sy_log sylpull view nid
+end
+
+note sy_peers: every peer the local node lists
+fn sy_peers to void
+cs = new ulong 320 0
+io = new uchar 65536 0
+d = new uchar 65536 0
+r = ac_dialap cs io get gcf 1 10000000000
+if lt r 0
+ret
+end
+st = ac_get cs io sypeers acloop
+if lt st 0
+c = hclose cs
+ret
+end
+n = ac_body cs io d
+if lt n 0
+ret
+end
+h = ac_okhdr view d ulong n
+if lt h 0
+ret
+end
+p = ulong h
+while lt p ulong n bound 100000
+e = ac_lend view d p ulong n
+if ac_pre view d p e sypeer
+sy_pline view part d p sub e p
+end
+if eq get gcf 5 1
+ret
+end
+p = add e 1
+end
+end
+
+note sy_local: this node's id from the local well-known answer into gnode
+fn sy_local to bool
+w = new uchar 4096 0
+nd = new uchar 16 0
+n = sy_wkget shr get gcf 1 16 and get gcf 1 65535 acloop w
+if lt n 0
+ret false
+end
+if not sy_wkchk w ulong n acloop false nd
+ret false
+end
+for i ulong 16
+put gnode i get nd i
+end
+ret true
+end
+
+note sy_sum: the summary line
+fn sy_sum to void
+d = new uchar 256 0
+q = ac_cat d 0 sylog
+q = ac_cat d q syldone
+q = ac_catu d q get gst 0
+q = ac_cat d q syldup
+q = ac_catu d q get gst 1
+q = ac_cat d q sylbad2
+q = ac_catu d q get gst 2
+q = ac_cat d q sylown
+q = ac_catu d q get gst 3
+q = ac_cat d q sylpls
+q = ac_catu d q get gst 4
+q = ac_cat d q sylls
+q = ac_catu d q get gst 5
+q = ac_cat d q sylrf
+q = ac_catu d q get gst 6
+q = ac_cat d q syldr
+q = ac_catu d q get gst 7
+q = ac_catc d q 10
+ac_say view part d 0 q
+end
+
+fn main to int
+pb = new uchar 512 0
+if not sy_args
+ret 1
+end
+if not sy_stok
+ret 5
+end
+n = sy_path syflk pb
+lk = int fopen pb 0 n 66 384
+if lt lk 0
+ret 4
+end
+if ne flock lk 6 0
+ret 4
+end
+if not sy_key
+ret 2
+end
+if not sy_local
+ret 2
+end
+sy_reqs
+sy_peers
+sy_sum
+if eq get gcf 5 1
+ret 3
+end
+ret 0
+end

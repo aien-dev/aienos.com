@@ -1,0 +1,272 @@
+note Allen's startup sound: the merger chirp of the iMac night, ported from aienux
+note native/kernel/ui/chirp.c and chirp.h at da55660ea7337f2b6a42095fcd1fb6ddebe1cc7c (git blobs
+note d3e732908a72a372816584d0fe3d62a3db256f1b and 359f0f4e63e5c194b005906d3bd7b03cfb7e8703;
+note CK_NIGHT_MERGE_MS 12000 from ui/night.h). The same files are byte-identical at the iMac build
+note 0930240d2aa550de95535c116eb10c2df466f616. That source makes exactly one sound: this chirp. It
+note has no other boom, voice or opening sound; every speaker path (x86/hda_x86.c, dev/virtio_snd.c)
+note plays ck_chirp_fill or ck_chirp_fill_441 from the night's current moment.
+note
+note The sound: silent until 640 ms before the merger, comes in over 40 ms (smoothstep) at 200 Hz,
+note sweeps up as L^(-3/8) in pitch and L^(-1/4) in loudness (L the share of the 600 ms inspiral
+note left) until the pitch reaches 1000 Hz, holds 1000 Hz at peak 22937 to the merger at 12000 ms,
+note then decays with a 30 ms time constant until 12300 ms. Integer only, exactly as the C:
+note phases in 2^32ths of a cycle, L and its powers in Q30, a 4096-entry Q14 sine table built by
+note rotation. Every function below mirrors one C function and keeps its rounding order.
+note
+note Not a program by itself: check.sh concatenates this unit with asset.om (the web asset and the
+note browser script) or native.om (the oracle layout of aienux ui/tests/chirp_test.c).
+note
+note Frame constants, from chirp.h with CK_CHIRP_RATE 48000 and CK_NIGHT_MERGE_MS 12000, checked
+note with WolframLanguageEvaluator: {48000/1000*(12000-600-40), 48000/1000*(12000-600),
+note 48000/1000*12000, 48000/1000*(12000+300)} -> {545280, 547200, 576000, 590400};
+note Round[Exp[-1/(30/1000*48000)]*2^30] -> 1072996429 (the C literal DECAY);
+note Round[Cos[2 Pi/4096]*2^30] -> 1073740561, Round[Sin[2 Pi/4096]*2^30] -> 1647099 (C, S).
+
+const RATE ulong 48000
+const FROMHZ ulong 200
+const TOHZ ulong 1000
+const PEAK ulong 22937
+const FZERO ulong 545280
+const FONE ulong 547200
+const FTWO ulong 576000
+const FEND ulong 590400
+const DECAY ulong 1072996429
+const QONE ulong 1073741824
+const COSQ long 1073740561
+const SINQ long 1647099
+
+note sint: the Q14 sine table. cap: 0 cap_frame, 1 cap_l14, 2 cap_phase (chirp.c setup).
+global sint long 4096
+global cap ulong 3
+
+note Output: one buffered stream, written to the descriptor in ofd.
+global obuf uchar 65536
+global oused ulong 1
+global ofd int 1
+
+text riff "RIFF"
+text wavefmt "WAVEfmt "
+text datatag "data"
+
+note Integer square root, chirp.c isqrt. Each loop divides bit by 4 from 2^62, so neither runs more
+note than 32 passes.
+fn isqrt x ulong to ulong
+r = ulong 0
+b = shl ulong 1 62
+v = x
+while gt b v bound 40
+b = shr b 2
+end
+while ne b 0 bound 40
+if ge v add r b
+v = sub v add r b
+r = add shr r 1 b
+else
+r = shr r 1
+end
+b = shr b 2
+end
+ret r
+end
+
+note L at a frame of the inspiral, Q30 (chirp.c left_q30).
+fn leftq f ulong to ulong
+ret div shl sub FTWO f 30 sub FTWO FONE
+end
+
+note Eighth root of a Q30 value (chirp.c root8: three square roots).
+fn root8 l ulong to ulong
+v = isqrt shl l 30
+v = isqrt shl v 30
+v = isqrt shl v 30
+ret v
+end
+
+fn mulq a ulong b ulong to ulong
+ret shr mul a b 30
+end
+
+note Phase over the inspiral before the cap: P1 + K (1 - L^(5/8)) (chirp.c inspiral_phase).
+fn insphase f ulong to ulong
+r = root8 leftq f
+l58 = mulq mulq mulq mulq r r r r r
+p1 = div shl mul FROMHZ sub FONE FZERO 32 RATE
+k = mul mul FROMHZ 8 sub FTWO FONE
+ret add p1 div shl mul k sub QONE l58 2 mul 5 RATE
+end
+
+note The sine table by rotation, chirp.c setup, same store order. k runs 0..1024: 1025 passes.
+fn sintab to void
+c = long 1073741824
+s = long 0
+k = ulong 0
+while le k 1024 bound 1025
+v = long 16384
+if ne k 1024
+v = shr add s 32768 16
+end
+put sint k v
+put sint sub 2048 k v
+put sint and add 2048 k 4095 neg v
+put sint and sub 4096 k 4095 neg v
+nc = shr sub mul c COSQ mul s SINQ 30
+ns = shr add mul s COSQ mul c SINQ 30
+c = nc
+s = ns
+k = add k 1
+end
+end
+
+note The first frame where L^(3/8) falls to FROMHZ / TOHZ: binary search over the 28800 inspiral
+note frames, at most 15 passes.
+fn capfind to ulong
+want = div shl FROMHZ 30 TOHZ
+lo = add FONE 0
+hi = add FTWO 0
+while lt lo hi bound 64
+mid = add lo div sub hi lo 2
+r = root8 leftq mid
+if le mulq mulq r r r want
+hi = mid
+else
+lo = add mid 1
+end
+end
+ret lo
+end
+
+fn setup to void
+sintab
+lo = capfind
+r = root8 leftq lo
+put cap 0 lo
+put cap 1 mulq r r
+put cap 2 insphase lo
+end
+
+note chirp.c phase_at; called only for frames with a nonzero level (f >= FZERO).
+fn phaseat f ulong to ulong
+if lt f FONE
+ret div shl mul FROMHZ sub f FZERO 32 RATE
+end
+if lt f get cap 0
+ret insphase f
+end
+ret add get cap 2 div shl mul TOHZ sub f get cap 0 32 RATE
+end
+
+note DECAY^k in Q30 by squaring; k < 2^14 here, so at most 14 passes.
+fn decaypow k ulong to ulong
+r = add QONE 0
+b = add DECAY 0
+n = k
+while ne n 0 bound 70
+if eq and n 1 1
+r = mulq r b
+end
+b = mulq b b
+n = shr n 1
+end
+ret r
+end
+
+note chirp.c ck_chirp_level: 0..PEAK at a frame.
+fn level f ulong to ulong
+if or lt f FZERO ge f FEND
+ret 0
+end
+if lt f FONE
+steady = shr mul PEAK get cap 1 30
+x = div shl sub f FZERO 16 sub FONE FZERO
+s = mul mul x x sub mul ulong 3 65536 mul 2 x
+ret shr mul steady s 48
+end
+if lt f get cap 0
+r = root8 leftq f
+ret div mul PEAK get cap 1 mulq r r
+end
+if lt f FTWO
+ret PEAK
+end
+ret shr mul PEAK decaypow sub f FTWO 30
+end
+
+note One sample of chirp.c ck_chirp_fill: the table read at the phase's top 12 bits, a straight
+note line by the next 16, scaled by the level. Signed shr keeps the sign, as the C's int64 shifts.
+fn sample f ulong to long
+a = level f
+if eq a 0
+ret long 0
+end
+ph = and phaseat f 4294967295
+k = shr ph 20
+fr = and shr ph 4 65535
+s0 = get sint k
+s1 = get sint and add k 1 4095
+s = add s0 shr mul sub s1 s0 long fr 16
+ret shr mul s long a 14
+end
+
+fn oflush to void
+p = ulong 0
+while lt p get oused 0 bound 65536
+n = write get ofd 0 obuf p sub get oused 0 p
+if le n 0
+trap 3
+end
+p = add p ulong n
+end
+put oused 0 0
+end
+
+fn obyte c uchar to void
+if eq get oused 0 len obuf
+oflush
+end
+put obuf get oused 0 c
+put oused 0 add get oused 0 1
+end
+
+fn ole16 v ulong to void
+obyte uchar and v 255
+obyte uchar and shr v 8 255
+end
+
+fn ole32 v ulong to void
+ole16 and v 65535
+ole16 shr v 16
+end
+
+note A 16-bit little-endian sample (two's complement).
+fn osample v long to void
+u = ulong 0
+if lt v 0
+u = ulong add v 65536
+else
+u = ulong v
+end
+ole16 u
+end
+
+note The canonical 44-byte PCM WAV header (the layout of chirp_test.c write_wav).
+fn owav ch ulong frames ulong to void
+bytes = mul frames mul 2 ch
+for i ulong len riff
+obyte get riff i
+end
+ole32 add 36 bytes
+for i ulong len wavefmt
+obyte get wavefmt i
+end
+ole32 16
+ole16 1
+ole16 ch
+ole32 RATE
+ole32 mul RATE mul 2 ch
+ole16 mul 2 ch
+ole16 16
+for i ulong len datatag
+obyte get datatag i
+end
+ole32 bytes
+end

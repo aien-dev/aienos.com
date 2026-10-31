@@ -2,7 +2,7 @@
 
 > These are the working rules every AIEN agent follows, published for any agent that works on an `aien-dev` repository. Read this file first, then the repository's own `AGENTS.md` (or `CLAUDE.md` when that is its instruction file). Where the two differ, the repository's file wins for that repository.
 >
-> Our own agents read the same rules plus a few that only make sense on the project's machine (local services, hardware reservations, how to report to the operator). Those are left out here because an outside agent cannot follow them.
+> My own agents read the same rules plus a few that only make sense on the project's machine (local services, hardware reservations, how to report to the operator). Those are left out here because an outside agent cannot follow them.
 
 ## 1. The loop
 
@@ -12,6 +12,8 @@ Weights suggest. Programs explain. Omega verifies. Physics authorizes. Evidence 
 - If it was not measured, it was not done. Documentation, plans, diagrams and model reviews never outrank an execution receipt.
 - A passing test is not evidence on its own. A receipt is: a measured result, filed with the exact commit and command, that anyone can re-run.
 - The witness verifies and touches nothing. Do not review or judge your own change as its only check.
+
+The development method is Human-Directed Agentic Engineering (HDAE). I define the goals, architecture, constraints, acceptance criteria and stopping points; my agents implement, execute checks, diagnose failures and revise within those boundaries. I retain responsibility for claims, acceptance and release decisions. For the documented method and a systems-software case study, see Gregory M. Kurtzer, *Ginux: Building an Independent Kernel That Runs Linux Userspace through Human-Directed Agentic Engineering* (2026), [doi:10.5281/zenodo.23682548](https://doi.org/10.5281/zenodo.23682548). This names the development process without changing the authority or evidence rules below.
 
 ## 2. Ground truth before action
 
@@ -29,7 +31,14 @@ Weights suggest. Programs explain. Omega verifies. Physics authorizes. Evidence 
 - Omega is malleable. A missing Omega feature is a proposal to write, not a permanent limit.
 - Think forward. Turn an obstacle into a concrete proposal: what is established, what can change, what that change would enable, and the smallest experiment that tests it. Do not stop at an unsupported "impossible".
 - Keep ambition and evidence together. Mark proposed mechanisms as untested until verified. Separate physical limits from limits of the current implementation.
-- Label every number MODELED or MEASURED. Do arithmetic with a tool, never by hand.
+- **Label every number MODELED or MEASURED, and do the mathematics in Wolfram. Mandatory.** Any
+  computation, derivation, integral, identity check, unit conversion, statistical calculation or
+  numeric constant goes through the Wolfram tools (`WolframLanguageEvaluator` to evaluate,
+  `WolframAlpha` for facts and identities, `WolframContext` to retrieve), never by hand, never by an
+  ad-hoc script and never by a model's fluency. Quote the query with the result where the work lives,
+  and carry the unit. If the tools are not mounted, the session is not math-capable: say so and stop
+  rather than estimating. Setup, the two verification calls and the failure handling are in the
+  `wolfram-math` skill of `aien-dev/omega-harness`.
 - Be accountable for time. Each turn should deliver evidence, reduce uncertainty, build a change or move a concrete obstacle.
 
 ## 4. Gates and verification
@@ -63,6 +72,7 @@ Weights suggest. Programs explain. Omega verifies. Physics authorizes. Evidence 
 - No em dashes and no en dashes anywhere, including code comments, commit messages and evidence. Several repositories fail their gates on them. Use commas, colons, parentheses or periods.
 - No AI cliches ("delve", "tapestry", "seamlessly", "game-changer", "unleash").
 - Write status as what was measured, where and when, not as adjectives.
+- Comparisons with other projects are allowed when they are honest, dated, and backed by a receipt or the other project's own published numbers. Overclaims stay banned (for example, a claim to be a replacement for CUDA, or to give everything CUDA gives you).
 
 ## Where to go next
 

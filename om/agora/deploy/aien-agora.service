@@ -1,0 +1,46 @@
+[Unit]
+Description=Aienet public registration backend in Omega
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=aien-agora
+Group=aien-agora
+StateDirectory=aien-agora
+StateDirectoryMode=0750
+UMask=0077
+Environment=AGORA_LISTEN=127.0.0.1
+EnvironmentFile=-/etc/aien-agora/runtime.env
+WorkingDirectory=/var/lib/aien-agora
+ExecStart=/opt/aien/bin/agora serve --state /var/lib/aien-agora --listen ${AGORA_LISTEN} --port 18132 --bits 20
+Restart=always
+RestartSec=5s
+
+# Security hardening
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/aien-agora
+PrivateTmp=true
+NoNewPrivileges=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictAddressFamilies=AF_INET
+RestrictSUIDSGID=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+# Fail closed to loopback by default. A reviewed local drop-in may add the
+# exact trusted proxy address, never a whole network. Verify cgroup BPF.
+IPAddressAllow=
+IPAddressAllow=127.0.0.1/32
+IPAddressDeny=any
+IPAccounting=true
+
+# Resource caps
+LimitNOFILE=65536
+LimitNPROC=256
+
+[Install]
+WantedBy=multi-user.target

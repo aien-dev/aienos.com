@@ -1,0 +1,5 @@
+repository https://github.com/aien-dev/omega-mv
+source_commit e5b32567a7aff3ce594e3254a622a846a6cd190b
+source_path seed/net/http.om
+source_sha256 aff258ecd3858454056811a5e6fe1f660f9d650a7207d6c41885105110e046a7
+note Pinned HTTP/1.1 library unit in seeded Omega (OM-2 profile), compiled by omc.

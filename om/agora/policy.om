@@ -1,0 +1,152 @@
+note Native exact prefix-set policy. Compose after om2 and before one program entry.
+note String arguments are offsets into po_buf, never raw pointers. Caller owns slot separation.
+note Each string needs a NUL within 4096 bytes and within the pool. No allocation or host effects.
+note Whitespace is ASCII space or bytes 9 through 13. Duplicates have set semantics.
+note Expected prefixes are exact configuration tokens, not address-normalization requests.
+global po_buf uchar 16384
+text po_v4 "0.0.0.0/0"
+text po_v6 "::/0"
+fn po_len off ulong to ulong
+if ge off len po_buf
+ret 4096
+end
+for i ulong 4096
+if ge i sub len po_buf off
+ret 4096
+end
+if eq get po_buf add off i 0
+ret i
+end
+end
+ret 4096
+end
+fn po_load off ulong src view uchar * to bool
+if ge off len po_buf
+ret false
+end
+if or ge len src 4096 ge len src sub len po_buf off
+ret false
+end
+for i ulong len src
+if eq get src i 0
+ret false
+end
+end
+for i ulong len src
+put po_buf add off i get src i
+end
+put po_buf add off len src 0
+ret true
+end
+fn po_ws c uchar to bool
+ret or eq c 32 and ge c 9 le c 13
+end
+fn po_atom off ulong to bool
+n = po_len off
+if or eq n 0 eq n 4096
+ret false
+end
+slash = false
+for i ulong n
+c = get po_buf add off i
+if or le c 32 ge c 127
+ret false
+end
+if eq c 47
+if or slash or eq i 0 eq i sub n 1
+ret false
+end
+slash = true
+end
+end
+ret slash
+end
+fn po_text off ulong n ulong src view uchar * to bool
+if ne n len src
+ret false
+end
+for i ulong n
+if ne get po_buf add off i get src i
+ret false
+end
+end
+ret true
+end
+fn po_same off ulong n ulong exp ulong to bool
+if ne n po_len exp
+ret false
+end
+for i ulong n
+if ne get po_buf add off i get po_buf add exp i
+ret false
+end
+end
+ret true
+end
+fn po_kind off ulong n ulong a ulong b ulong deny bool to ulong
+if deny
+if po_text off n po_v4
+ret 1
+end
+if po_text off n po_v6
+ret 2
+end
+else
+if po_same off n a
+ret 1
+end
+if po_same off n b
+ret 2
+end
+end
+ret 4
+end
+fn po_stop off ulong n ulong i ulong to ulong
+while lt i n bound 4096
+if po_ws get po_buf add off i
+ret i
+end
+i = add i 1
+end
+ret i
+end
+note po_set result bits: first expected=1, second=2, unknown=4; malformed=8.
+fn po_set off ulong a ulong b ulong deny bool to ulong
+n = po_len off
+if or eq n 0 eq n 4096
+ret 8
+end
+i = ulong 0
+mask = ulong 0
+note Every pass advances i by at least one; n is strictly below 4096.
+while lt i n bound 4096
+if po_ws get po_buf add off i
+i = add i 1
+else
+stop = po_stop off n i
+mask = or mask po_kind add off i sub stop i a b deny
+i = stop
+end
+end
+if eq mask 0
+ret 8
+end
+ret mask
+end
+fn po_check allow ulong deny ulong proxy ulong local ulong to bool
+if not po_atom proxy
+ret false
+end
+if not po_atom local
+ret false
+end
+note Equal expected tokens still describe a singleton semantic set.
+want = ulong 3
+if po_same proxy po_len proxy local
+want = 1
+end
+if ne po_set allow proxy local false want
+ret false
+end
+ret eq po_set deny proxy local true 3
+end

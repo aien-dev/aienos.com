@@ -1,0 +1,793 @@
+{
+ "entries": [
+  {
+   "a": "",
+   "alt": [
+    "What is SI?",
+    "Tell me about Sovereign Intelligence",
+    "What is Sovereign Intelligence (SI)?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "si",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is Sovereign Intelligence?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about Omega",
+    "What is the Omega language?",
+    "What is Omega used for?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "omega",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is Omega?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about AienOS",
+    "What is AIENOS?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "aienos",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is AienOS?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "What are you?",
+    "Who is Allen?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "allen",
+   "model": "",
+   "prefix_sha": "",
+   "q": "Who are you?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about CUDA++",
+    "What is CUDA plus plus?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "cudapp-what",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is CUDA++?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "How do I install SI?",
+    "How do I install it?",
+    "How can I install AienOS?",
+    "How do I get started?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "install",
+   "model": "",
+   "prefix_sha": "",
+   "q": "How do I install Sovereign Intelligence?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Who is Drake Stapleton?",
+    "Who made this?",
+    "Who built AienOS?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "drake",
+   "model": "",
+   "prefix_sha": "",
+   "q": "Who is Drake?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Is AienOS open source?",
+    "What license do you use?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "license",
+   "model": "",
+   "prefix_sha": "",
+   "q": "Is this open source?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Does any of this actually work?",
+    "Where is the evidence?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "evidence",
+   "model": "",
+   "prefix_sha": "",
+   "q": "Where can I see evidence that any of this actually works?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "How do I contribute?",
+    "Can I help?",
+    "How can I help?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "contribute",
+   "model": "",
+   "prefix_sha": "",
+   "q": "How can I contribute?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "How do I learn to build with AI?",
+    "Teach me something"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "learn",
+   "model": "",
+   "prefix_sha": "",
+   "q": "Can you teach me to code with AI?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about aegis-runtime-mv",
+    "What does aegis-runtime-mv do?",
+    "What does the aegis-runtime-mv repo do?",
+    "What is the aegis-runtime-mv repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-aegis-runtime-mv",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is aegis-runtime-mv?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about agent-archive",
+    "What does agent-archive do?",
+    "What does the agent-archive repo do?",
+    "What is the agent-archive repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-agent-archive",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is agent-archive?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about aien-architecture-mv",
+    "What does aien-architecture-mv do?",
+    "What does the aien-architecture-mv repo do?",
+    "What is the aien-architecture-mv repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-aien-architecture-mv",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is aien-architecture-mv?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about aien-edge",
+    "What does aien-edge do?",
+    "What does the aien-edge repo do?",
+    "What is the aien-edge repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-aien-edge",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is aien-edge?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about aien-protocols-mv",
+    "What does aien-protocols-mv do?",
+    "What does the aien-protocols-mv repo do?",
+    "What is the aien-protocols-mv repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-aien-protocols-mv",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is aien-protocols-mv?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about aien-receipts",
+    "What does aien-receipts do?",
+    "What does the aien-receipts repo do?",
+    "What is the aien-receipts repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-aien-receipts",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is aien-receipts?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about aien-rig",
+    "What does aien-rig do?",
+    "What does the aien-rig repo do?",
+    "What is the aien-rig repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-aien-rig",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is aien-rig?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about aien-sovereign-core-mv",
+    "What does aien-sovereign-core-mv do?",
+    "What does the aien-sovereign-core-mv repo do?",
+    "What is the aien-sovereign-core-mv repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-aien-sovereign-core-mv",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is aien-sovereign-core-mv?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about aien-train",
+    "What does aien-train do?",
+    "What does the aien-train repo do?",
+    "What is the aien-train repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-aien-train",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is aien-train?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about aien-translate",
+    "What does aien-translate do?",
+    "What does the aien-translate repo do?",
+    "What is the aien-translate repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-aien-translate",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is aien-translate?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about aienix",
+    "What does aienix do?",
+    "What does the aienix repo do?",
+    "What is the aienix repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-aienix",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is aienix?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about AienOS-nv",
+    "What does AienOS-nv do?",
+    "What does the AienOS-nv repo do?",
+    "What is the AienOS-nv repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-aienos-nv",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is AienOS-nv?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about aienos.com",
+    "What does aienos.com do?",
+    "What does the aienos.com repo do?",
+    "What is the aienos.com repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-aienos.com",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is aienos.com?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about aienux",
+    "What does aienux do?",
+    "What does the aienux repo do?",
+    "What is the aienux repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-aienux",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is aienux?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about allen",
+    "What does allen do?",
+    "What does the allen repo do?",
+    "What is the allen repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-allen",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is allen?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about atlas",
+    "What does atlas do?",
+    "What does the atlas repo do?",
+    "What is the atlas repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-atlas",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is atlas?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about benchmarks-mv",
+    "What does benchmarks-mv do?",
+    "What does the benchmarks-mv repo do?",
+    "What is the benchmarks-mv repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-benchmarks-mv",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is benchmarks-mv?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about cortex",
+    "What does cortex do?",
+    "What does the cortex repo do?",
+    "What is the cortex repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-cortex",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is cortex?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about CUDApp",
+    "What does CUDApp do?",
+    "What does the CUDApp repo do?",
+    "What is the CUDApp repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-cudapp",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is CUDApp?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about interplane-mv",
+    "What does interplane-mv do?",
+    "What does the interplane-mv repo do?",
+    "What is the interplane-mv repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-interplane-mv",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is interplane-mv?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about interplane.io",
+    "What does interplane.io do?",
+    "What does the interplane.io repo do?",
+    "What is the interplane.io repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-interplane.io",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is interplane.io?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about mobhub",
+    "What does mobhub do?",
+    "What does the mobhub repo do?",
+    "What is the mobhub repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-mobhub",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is mobhub?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about omega-bridge",
+    "What does omega-bridge do?",
+    "What does the omega-bridge repo do?",
+    "What is the omega-bridge repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-omega-bridge",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is omega-bridge?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about omega-harness",
+    "What does omega-harness do?",
+    "What does the omega-harness repo do?",
+    "What is the omega-harness repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-omega-harness",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is omega-harness?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about omega-mv",
+    "What does omega-mv do?",
+    "What does the omega-mv repo do?",
+    "What is the omega-mv repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-omega-mv",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is omega-mv?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about omega-projects",
+    "What does omega-projects do?",
+    "What does the omega-projects repo do?",
+    "What is the omega-projects repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-omega-projects",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is omega-projects?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about omnet",
+    "What does omnet do?",
+    "What does the omnet repo do?",
+    "What is the omnet repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-omnet",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is omnet?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about open-humanity",
+    "What does open-humanity do?",
+    "What does the open-humanity repo do?",
+    "What is the open-humanity repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-open-humanity",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is open-humanity?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about physics-mv",
+    "What does physics-mv do?",
+    "What does the physics-mv repo do?",
+    "What is the physics-mv repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-physics-mv",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is physics-mv?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about pi-register",
+    "What does pi-register do?",
+    "What does the pi-register repo do?",
+    "What is the pi-register repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-pi-register",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is pi-register?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about readings-window",
+    "What does readings-window do?",
+    "What does the readings-window repo do?",
+    "What is the readings-window repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-readings-window",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is readings-window?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about sovereign-intelligence",
+    "What does sovereign-intelligence do?",
+    "What does the sovereign-intelligence repo do?",
+    "What is the sovereign-intelligence repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-sovereign-intelligence",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is sovereign-intelligence?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about spark-connector",
+    "What does spark-connector do?",
+    "What does the spark-connector repo do?",
+    "What is the spark-connector repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-spark-connector",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is spark-connector?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about spark-rsi-mv",
+    "What does spark-rsi-mv do?",
+    "What does the spark-rsi-mv repo do?",
+    "What is the spark-rsi-mv repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-spark-rsi-mv",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is spark-rsi-mv?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about spark-supervisor",
+    "What does spark-supervisor do?",
+    "What does the spark-supervisor repo do?",
+    "What is the spark-supervisor repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-spark-supervisor",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is spark-supervisor?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Tell me about synapse",
+    "What does synapse do?",
+    "What does the synapse repo do?",
+    "What is the synapse repo?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "repo-synapse",
+   "model": "",
+   "prefix_sha": "",
+   "q": "What is synapse?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Do you have an operating system kernel?",
+    "Is there a kernel?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "have-kernel",
+   "model": "",
+   "prefix_sha": "",
+   "q": "Do you have a kernel?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Is there a compiler?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "have-compiler",
+   "model": "",
+   "prefix_sha": "",
+   "q": "Do you have a compiler?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Do you have something that replaces CUDA?",
+    "Can I program NVIDIA GPUs without CUDA?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "have-gpu",
+   "model": "",
+   "prefix_sha": "",
+   "q": "Do you have a GPU toolchain?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Is there an installer?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "have-installer",
+   "model": "",
+   "prefix_sha": "",
+   "q": "Do you have an installer?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Do you have agent memory?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "have-memory",
+   "model": "",
+   "prefix_sha": "",
+   "q": "Do you have a memory system for agents?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Do you have a VPN?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "have-network",
+   "model": "",
+   "prefix_sha": "",
+   "q": "Do you have a networking stack?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Can I use Omega from Python?",
+    "Does Omega have bindings for other languages?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "have-bridge",
+   "model": "",
+   "prefix_sha": "",
+   "q": "Can Omega call C or Python?"
+  },
+  {
+   "a": "",
+   "alt": [
+    "Where are the receipts?"
+   ],
+   "generated_at": "",
+   "grounding_sha": "",
+   "id": "have-receipts",
+   "model": "",
+   "prefix_sha": "",
+   "q": "Do you publish test receipts?"
+  }
+ ],
+ "format": 1
+}

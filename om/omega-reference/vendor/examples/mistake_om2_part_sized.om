@@ -1,0 +1,9 @@
+note mistake_om2_part_sized: part goes only to an unsized view T * parameter, not a sized one
+om2
+fn f a view uchar 2 to ulong
+ret len a
+end
+fn main to int
+b = new uchar 8 0
+ret int f part b 0 2
+end

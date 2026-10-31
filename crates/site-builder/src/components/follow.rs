@@ -19,15 +19,15 @@ pub fn render_follow() -> Markup {
                         "Learning to code with AI? You are welcome here. "
                         a href="/learn/" style="color: var(--text-primary); text-decoration: underline;" { "Start with a practical working method" }
                         ", then "
-                        a href="/hive/" style="color: var(--text-primary); text-decoration: underline;" { "watch Drake and the agents in Hive" }
-                        ": the instructions, the models, the corrections, and the work as it happens."
+                        a href="/hive/" style="color: var(--text-primary); text-decoration: underline;" { "watch the agents in Hive" }
+                        ": the models, the corrections, and the work as it happens."
                     }
                     div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;" {
                         a href="https://github.com/aien-dev" target="_blank" rel="noopener noreferrer" style="background: var(--accent-green); color: var(--bg-base); border-radius: 4px; padding: 12px 22px; font-family: var(--font-mono); font-size: 13px; font-weight: 700;" {
                             "GitHub: aien-dev"
                         }
                         a href="https://github.com/aien-dev/aien-sovereign-core" target="_blank" rel="noopener noreferrer" style="background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 12px 22px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;" {
-                            "AIEN core tree"
+                            "Sovereign core runtime"
                         }
                         a href="/now/" style="background: transparent; color: var(--text-primary); border: 1px solid var(--accent-green); border-radius: 4px; padding: 12px 22px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;" {
                             "Now: what is being done today"
@@ -35,6 +35,15 @@ pub fn render_follow() -> Markup {
                         a href="/progress/" style="background: transparent; color: var(--text-secondary); border: 1px solid var(--border-subtle); border-radius: 4px; padding: 12px 22px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;" {
                             "Project progress"
                         }
+                    }
+                    p id="follow-reach" style="color: var(--text-secondary); line-height: 1.7; max-width: 600px; margin: 24px auto 0; font-size: 16px;" {
+                        "Want to reach me? "
+                        a href=(crate::seo::X_URL) target="_blank" rel="me noopener noreferrer" style="color: var(--text-primary); text-decoration: underline;" { "Follow me on X, " (crate::seo::X_HANDLE) }
+                        ", email "
+                        a href="mailto:drake@aienos.com" style="color: var(--text-primary); text-decoration: underline;" { "drake@aienos.com" }
+                        ", or read "
+                        a href="/contact/" style="color: var(--text-primary); text-decoration: underline;" { "where I am and how to reach me" }
+                        "."
                     }
                     p style="color: var(--text-muted); font-size: 13px; margin-top: 28px; font-family: var(--font-mono);" {
                         "Machine-readable: "

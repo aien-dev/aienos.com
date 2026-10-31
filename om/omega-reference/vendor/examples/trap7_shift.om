@@ -1,0 +1,8 @@
+note trap7_shift: a shift amount outside 0..width-1 traps 7, exit 107
+text before "before\n"
+fn main to int
+k = write 1 before 0 len before
+s = uint 32
+x = shl uint 1 s
+ret 0
+end

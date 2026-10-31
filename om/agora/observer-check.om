@@ -1,0 +1,776 @@
+note Captured-output oracle, not a collector or authorization to touch production.
+note Compose om2, json.om, policy.om, observer-check.om with omega-mv e5b32567.
+note All raw argv fields are bounded to 4095 bytes. Private expectations are runtime inputs.
+note Exit 0 predicate PASS, 1 REFUSE, 2 PENDING never readiness, 90 bad CLI/capacity.
+note Modes and mutation contract are in the operator's local replay input table.
+global ob_buf uchar 262144
+text ob_unit "unit"
+text ob_snap "snapshot"
+text ob_ps "ps"
+text ob_jour "journal"
+text ob_extra "state"
+text ob_exec "exec"
+text ob_anc "ancestors"
+text ob_pid "MainPID"
+text ob_user "User"
+text ob_group "Group"
+text ob_allow "IPAddressAllow"
+text ob_deny "IPAddressDeny"
+text ob_frag "FragmentPath"
+text ob_drop "DropInPaths"
+text ob_actk "ActiveState"
+text ob_sub "SubState"
+text ob_cg "ControlGroup"
+text ob_acct "IPAccounting"
+text ob_run "running"
+text ob_yes "yes"
+text ob_act "active"
+text ob_exkey "ExecStart"
+text ob_path "path="
+text ob_argv "argv[]="
+text ob_epid "pid="
+text ob_list "LISTEN"
+text ob_owner "pid="
+text ob_pre "(agora)"
+text ob_sexec "/usr/lib/systemd/systemd-executor"
+text ob_peer "0.0.0.0:*"
+text ob_root "root"
+text ob_jpid "_PID"
+text ob_juid "_UID"
+text ob_jgid "_GID"
+text ob_jexe "_EXE"
+text ob_junit "_SYSTEMD_UNIT"
+text ob_jmsg "MESSAGE"
+text ob_jtime "__REALTIME_TIMESTAMP"
+text ob_jcmd "_CMDLINE"
+
+fn ob_ws c uchar to bool
+ret or eq c 32 and ge c 9 le c 13
+end
+fn ob_at idx ulong to ulong
+ret mul idx 4096
+end
+fn ob_len p ulong to ulong
+for i ulong 4096
+if eq get ob_buf add p i 0
+ret i
+end
+end
+ret 4096
+end
+fn ob_trim p ulong to ulong
+while ob_ws get ob_buf p bound 4096
+p = add p 1
+end
+ret p
+end
+fn ob_size p ulong to ulong
+n = ob_len p
+while gt n 0 bound 4096
+if not ob_ws get ob_buf sub add p n 1
+break
+end
+n = sub n 1
+end
+ret n
+end
+fn ob_eq a ulong b ulong to bool
+a = ob_trim a
+b = ob_trim b
+n = ob_size a
+if ne n ob_size b
+ret false
+end
+for i ulong n
+if ne get ob_buf add a i get ob_buf add b i
+ret false
+end
+end
+ret true
+end
+fn ob_text p ulong t view uchar * to bool
+p = ob_trim p
+if ne ob_size p len t
+ret false
+end
+for i ulong len t
+if ne get ob_buf add p i get t i
+ret false
+end
+end
+ret true
+end
+fn ob_copy p ulong n ulong dst ulong to ulong
+if gt n 4095
+exit 90
+end
+for i ulong n
+put ob_buf add dst i get ob_buf add p i
+end
+put ob_buf add dst n 0
+ret dst
+end
+fn ob_num p ulong to long
+p = ob_trim p
+n = ob_size p
+if or eq n 0 gt n 18
+ret -1
+end
+v = long 0
+for i ulong n
+c = get ob_buf add p i
+if or lt c 48 gt c 57
+ret -1
+end
+v = add mul v 10 long sub c 48
+end
+ret v
+end
+note Token extraction preserves raw input; each token uses its own scratch slot.
+fn ob_tok p ulong wanted ulong to ulong
+p = ob_trim p
+for k ulong 16
+s = p
+while ne get ob_buf p 0 bound 4096
+if ob_ws get ob_buf p
+break
+end
+p = add p 1
+end
+if eq k wanted
+ret ob_copy s sub p s ob_at add 40 wanted
+end
+p = ob_trim p
+end
+exit 90
+end
+fn ob_count p ulong to ulong
+p = ob_trim p
+n = ulong 0
+while ne get ob_buf p 0 bound 4096
+n = add n 1
+while ne get ob_buf p 0 bound 4096
+if ob_ws get ob_buf p
+break
+end
+p = add p 1
+end
+p = ob_trim p
+end
+ret n
+end
+note Exact key, one occurrence, arbitrary property ordering; duplicate keys refuse.
+fn ob_lineq start ulong stop ulong key view uchar * to bool
+if le sub stop start len key
+ret false
+end
+for i ulong len key
+if ne get ob_buf add start i get key i
+ret false
+end
+end
+ret eq get ob_buf add start len key 61
+end
+fn ob_field raw ulong key view uchar * to ulong
+p = raw
+found = false
+dst = ob_at 58
+put ob_buf dst 0
+while ne get ob_buf p 0 bound 4096
+s = p
+while ne get ob_buf p 0 bound 4096
+if eq get ob_buf p 10
+break
+end
+p = add p 1
+end
+if ob_lineq s p key
+if found
+exit 1
+end
+found = true
+s = add add s len key 1
+r = ob_copy s sub p s dst
+end
+if eq get ob_buf p 10
+p = add p 1
+end
+end
+if not found
+exit 1
+end
+ret dst
+end
+fn ob_prop key view uchar * expected ulong to bool
+ret ob_eq ob_field ob_at 2 key ob_at expected
+end
+fn ob_to_po src ulong dst ulong to void
+n = ob_size src
+if gt n 4095
+exit 90
+end
+for i ulong n
+put po_buf add dst i get ob_buf add src i
+end
+put po_buf add dst n 0
+end
+fn ob_policy to bool
+ob_to_po ob_field ob_at 2 ob_allow 0
+ob_to_po ob_field ob_at 2 ob_deny 4096
+ob_to_po ob_at 6 8192
+ob_to_po ob_at 7 12288
+ret po_check 0 4096 8192 12288
+end
+fn ob_unitcheck to int
+if ne argcnt 10
+ret 90
+end
+if le ob_num ob_at 3 0
+ret 1
+end
+if ne ob_num ob_field ob_at 2 ob_pid ob_num ob_at 3
+ret 1
+end
+if not ob_prop ob_user 4
+ret 1
+end
+if not ob_prop ob_group 5
+ret 1
+end
+if not ob_prop ob_frag 8
+ret 1
+end
+if not ob_prop ob_drop 9
+ret 1
+end
+if not ob_policy
+ret 1
+end
+ret 0
+end
+fn ob_statecheck to int
+if ne argcnt 4
+ret 90
+end
+if not ob_text ob_field ob_at 2 ob_actk ob_act
+ret 1
+end
+if not ob_text ob_field ob_at 2 ob_sub ob_run
+ret 1
+end
+if not ob_text ob_field ob_at 2 ob_acct ob_yes
+ret 1
+end
+if not ob_prop ob_cg 3
+ret 1
+end
+ret 0
+end
+note ss -H -ltnp has exactly one nonempty LISTEN row. Queue sizes and fd are not identity.
+note Require the exact local endpoint token and one actual pid= owner, not substring PID matches.
+fn ob_isown p ulong to bool
+if ne get ob_buf p 112
+ret false
+end
+if ne get ob_buf add p 1 105
+ret false
+end
+if ne get ob_buf add p 2 100
+ret false
+end
+ret eq get ob_buf add p 3 61
+end
+fn ob_ownr p ulong raw ulong to long
+if eq p raw
+exit 1
+end
+if ne get ob_buf sub p 1 44
+exit 1
+end
+q = add p 4
+s = q
+while and ge get ob_buf q 48 le get ob_buf q 57 bound 4096
+q = add q 1
+end
+if ne get ob_buf q 44
+exit 1
+end
+q = ob_copy s sub q s ob_at 57
+ret ob_num q
+end
+fn ob_socket raw ulong pid ulong endpoint ulong to int
+p = ob_trim raw
+if eq get ob_buf p 0
+ret 2
+end
+if ne ob_count raw 6
+ret 1
+end
+if not ob_text ob_tok p 0 ob_list
+ret 1
+end
+if not ob_eq ob_tok p 3 endpoint
+ret 1
+end
+owner = long -1
+while ne get ob_buf p 0 bound 4096
+if eq get ob_buf p 10
+q = ob_trim add p 1
+if ne get ob_buf q 0
+ret 1
+end
+end
+if ob_isown p
+if ne owner -1
+ret 1
+end
+owner = ob_ownr p raw
+end
+p = add p 1
+end
+if ne owner ob_num pid
+ret 1
+end
+if le owner 0
+ret 1
+end
+ret 0
+end
+fn ob_creds raw ulong uid ulong gid ulong to bool
+if ne ob_count raw 2
+ret false
+end
+if ne ob_num ob_tok raw 0 ob_num uid
+ret false
+end
+ret eq ob_num ob_tok raw 1 ob_num gid
+end
+fn ob_validcreds raw ulong uid ulong gid ulong to bool
+if ob_creds raw uid gid
+ret true
+end
+if ne ob_count raw 2
+ret false
+end
+if ne ob_num ob_tok raw 0 0
+ret false
+end
+v = ob_num ob_tok raw 1
+ret or eq v 0 eq v ob_num gid
+end
+fn ob_pssame a ulong b ulong to bool
+if ne ob_num ob_tok a 0 ob_num ob_tok b 0
+ret false
+end
+ret eq ob_num ob_tok a 1 ob_num ob_tok b 1
+end
+note snapshot PID MAIN_BEFORE EXE_BEFORE PS_BEFORE SS EXE_AFTER PS_AFTER MAIN_AFTER EXE UID GID ENDPOINT ELAPSED LIMIT.
+note Captured elapsed/limit are compared as data, never against the replay machine's current clock.
+note A single ownerless socket row during a recognized exec transition is pending only.
+fn ob_anon raw ulong endpoint ulong to bool
+if ne ob_count raw 5
+ret false
+end
+if not ob_text ob_tok raw 0 ob_list
+ret false
+end
+if lt ob_num ob_tok raw 1 0
+ret false
+end
+if lt ob_num ob_tok raw 2 0
+ret false
+end
+if not ob_eq ob_tok raw 3 endpoint
+ret false
+end
+if not ob_text ob_tok raw 4 ob_peer
+ret false
+end
+p = ob_trim raw
+while ne get ob_buf p 0 bound 4096
+if eq get ob_buf p 10
+if ne get ob_buf ob_trim add p 1 0
+ret false
+end
+end
+p = add p 1
+end
+ret true
+end
+
+fn ob_snapshot to int
+if ne argcnt 16
+ret 90
+end
+if or le ob_num ob_at 11 0 le ob_num ob_at 12 0
+ret 1
+end
+if or eq ob_size ob_at 10 0 eq ob_size ob_at 13 0
+ret 1
+end
+if le ob_num ob_at 2 0
+ret 1
+end
+if ne ob_num ob_at 2 ob_num ob_at 3
+ret 1
+end
+if ne ob_num ob_at 2 ob_num ob_at 9
+ret 1
+end
+if or lt ob_num ob_at 14 0 le ob_num ob_at 15 0
+ret 1
+end
+if ge ob_num ob_at 14 ob_num ob_at 15
+ret 1
+end
+if or eq ob_size ob_at 4 0 eq ob_size ob_at 7 0
+ret 1
+end
+if not ob_validcreds ob_at 5 ob_at 11 ob_at 12
+ret 1
+end
+if not ob_validcreds ob_at 8 ob_at 11 ob_at 12
+ret 1
+end
+owned = ob_socket ob_at 6 ob_at 2 ob_at 13
+if eq owned 1
+if ob_text ob_at 4 ob_sexec
+if ob_eq ob_at 7 ob_at 10
+if ob_creds ob_at 8 ob_at 11 ob_at 12
+if ob_anon ob_at 6 ob_at 13
+ret 2
+end
+end
+end
+end
+ret 1
+end
+if not ob_eq ob_at 4 ob_at 7
+ret 2
+end
+if not ob_pssame ob_at 5 ob_at 8
+ret 2
+end
+if not ob_eq ob_at 7 ob_at 10
+if eq owned 0
+ret 1
+end
+ret 2
+end
+if not ob_creds ob_at 8 ob_at 11 ob_at 12
+ret 1
+end
+ret owned
+end
+note Legacy ps display supplies no /proc proof. Only root/root/(agora) is recognized as pre-exec PENDING.
+fn ob_pscheck to int
+if ne argcnt 7
+ret 90
+end
+if ne ob_num ob_tok ob_at 2 0 ob_num ob_at 3
+ret 1
+end
+if le ob_num ob_at 3 0
+ret 1
+end
+if eq ob_count ob_at 2 4
+if ob_text ob_tok ob_at 2 1 ob_root
+if ob_text ob_tok ob_at 2 2 ob_root
+if ob_text ob_tok ob_at 2 3 ob_pre
+ret 2
+end
+end
+end
+end
+if not ob_eq ob_tok ob_at 2 1 ob_at 4
+ret 1
+end
+if not ob_eq ob_tok ob_at 2 2 ob_at 5
+ret 1
+end
+note Compare args from the fourth token onwards, preserving internal spaces.
+p = ob_trim ob_at 2
+for i ulong 3
+while ne get ob_buf p 0 bound 4096
+if ob_ws get ob_buf p
+break
+end
+p = add p 1
+end
+p = ob_trim p
+end
+if not ob_eq p ob_at 6
+ret 1
+end
+ret 0
+end
+note ExecStart runtime timestamps/status formatting is not executable identity.
+note Parse only exact semicolon-delimited path, argv[] and pid fields, require each once.
+fn ob_execfield raw ulong key view uchar * to ulong
+p = ob_trim raw
+if eq get ob_buf p 123
+p = ob_trim add p 1
+end
+found = false
+dst = ob_at 59
+put ob_buf dst 0
+while ne get ob_buf p 0 bound 4096
+s = p
+while ne get ob_buf p 0 bound 4096
+if eq get ob_buf p 59
+break
+end
+p = add p 1
+end
+same = ge sub p s len key
+if same
+for i ulong len key
+if ne get ob_buf add s i get key i
+same = false
+end
+end
+end
+if same
+if found
+exit 1
+end
+found = true
+v = add s len key
+r = ob_copy v sub p v dst
+end
+if eq get ob_buf p 59
+p = ob_trim add p 1
+end
+end
+if not found
+exit 1
+end
+ret dst
+end
+fn ob_execcheck to int
+if ne argcnt 6
+ret 90
+end
+raw = ob_field ob_at 2 ob_exkey
+if not ob_eq ob_execfield raw ob_path ob_at 3
+ret 1
+end
+if not ob_eq ob_execfield raw ob_argv ob_at 4
+ret 1
+end
+if ne ob_num ob_execfield raw ob_epid ob_num ob_at 5
+ret 1
+end
+ret 0
+end
+note Journal JSON is parsed by the existing strict native reader. Duplicated keys refuse.
+fn ob_jval src view uchar * off ulong to ulong
+outbuf = new uchar 4096 0
+n = js_sget src off outbuf
+if or lt n 0 gt n 4095
+exit 1
+end
+dst = ob_at 60
+for i ulong ulong n
+if eq get outbuf i 0
+exit 1
+end
+put ob_buf add dst i get outbuf i
+end
+put ob_buf add dst ulong n 0
+ret dst
+end
+fn ob_jfield src view uchar * tape view uint * key view uchar * to ulong
+k = js_first tape 0
+found = false
+dst = ob_at 60
+put ob_buf dst 0
+while ne k jsnone bound 4096
+if js_streq src js_off tape k key
+if found
+exit 1
+end
+found = true
+if ne js_type tape add k 1 jsstr
+exit 1
+end
+dst = ob_jval src js_off tape add k 1
+end
+k = js_mnext tape k
+end
+if not found
+exit 1
+end
+ret dst
+end
+note journal JSON EXPECT_PID UID GID EXE UNIT MESSAGE CMDLINE MIN_REALTIME MAX_REALTIME.
+note A journal PASS proves provenance of that historical message only, never socket readiness.
+fn ob_journal to int
+src = new uchar 4096 0
+tape = new uint 4096 0
+if ne argcnt 12
+ret 90
+end
+n = ob_len ob_at 2
+for i ulong n
+put src i get ob_buf add ob_at 2 i
+end
+r = js_init tape 4096 16
+if lt r 0
+ret 1
+end
+r = js_parse src tape n
+if lt r 0
+ret 1
+end
+if ne js_type tape 0 jsobj
+ret 1
+end
+if ne ob_num ob_jfield src tape ob_jpid ob_num ob_at 3
+ret 1
+end
+if ne ob_num ob_jfield src tape ob_juid ob_num ob_at 4
+ret 1
+end
+if ne ob_num ob_jfield src tape ob_jgid ob_num ob_at 5
+ret 1
+end
+if not ob_eq ob_jfield src tape ob_jexe ob_at 6
+ret 1
+end
+if not ob_eq ob_jfield src tape ob_junit ob_at 7
+ret 1
+end
+if not ob_eq ob_jfield src tape ob_jmsg ob_at 8
+ret 1
+end
+if not ob_eq ob_jfield src tape ob_jcmd ob_at 9
+ret 1
+end
+stamp = ob_num ob_jfield src tape ob_jtime
+lo = ob_num ob_at 10
+hi = ob_num ob_at 11
+if or le lo 0 lt hi lo
+ret 1
+end
+if or lt stamp lo gt stamp hi
+ret 1
+end
+ret 0
+end
+note Ancestor policy is collected with show options before --, one or two explicitly selected units.
+note Empty allow/deny properties must each occur once per blank-delimited unit record.
+fn ob_blank start ulong stop ulong to bool
+while lt start stop bound 4096
+if not ob_ws get ob_buf start
+ret false
+end
+start = add start 1
+end
+ret true
+end
+fn ob_ancrow start ulong stop ulong mask ulong to ulong
+if ob_lineq start stop ob_allow
+if ne and mask 1 0
+exit 1
+end
+start = add add start len ob_allow 1
+if not ob_blank start stop
+exit 1
+end
+ret or mask 1
+end
+if ob_lineq start stop ob_deny
+if ne and mask 2 0
+exit 1
+end
+start = add add start len ob_deny 1
+if not ob_blank start stop
+exit 1
+end
+ret or mask 2
+end
+exit 1
+end
+fn ob_eol p ulong to ulong
+while and ne get ob_buf p 0 ne get ob_buf p 10 bound 4096
+p = add p 1
+end
+ret p
+end
+fn ob_anccheck to int
+if ne argcnt 4
+ret 90
+end
+want = ob_num ob_at 3
+if or lt want 1 gt want 2
+ret 1
+end
+p = ob_at 2
+mask = ulong 0
+records = ulong 0
+while ne get ob_buf p 0 bound 4096
+s = p
+p = ob_eol p
+if ob_blank s p
+if ne mask 0
+if ne mask 3
+ret 1
+end
+records = add records 1
+mask = ulong 0
+end
+else
+mask = ob_ancrow s p mask
+end
+if eq get ob_buf p 10
+p = add p 1
+end
+end
+if ne mask 0
+if ne mask 3
+ret 1
+end
+records = add records 1
+end
+if ne long records want
+ret 1
+end
+ret 0
+end
+fn main to int
+if or lt argcnt 2 gt argcnt 32
+ret 90
+end
+for i ulong ulong sub argcnt 1
+idx = add i 1
+p = ob_at idx
+n = argread idx ob_buf p 4095
+if or lt n 0 ge n 4095
+ret 90
+end
+put ob_buf add p ulong n 0
+end
+if ob_text ob_at 1 ob_unit
+ret ob_unitcheck
+end
+if ob_text ob_at 1 ob_snap
+ret ob_snapshot
+end
+if ob_text ob_at 1 ob_ps
+ret ob_pscheck
+end
+if ob_text ob_at 1 ob_jour
+ret ob_journal
+end
+if ob_text ob_at 1 ob_extra
+ret ob_statecheck
+end
+if ob_text ob_at 1 ob_exec
+ret ob_execcheck
+end
+if ob_text ob_at 1 ob_anc
+ret ob_anccheck
+end
+ret 90
+end

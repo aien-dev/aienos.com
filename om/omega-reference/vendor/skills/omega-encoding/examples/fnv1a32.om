@@ -1,0 +1,55 @@
+note fnv1a32: read all of stdin (at most 65535 bytes), write its FNV-1a 32-bit hash as 4 little-endian bytes
+note exit 0 ok, 2 read error or input of 65536 bytes or more, 3 short or failed write
+global inb uchar 65536
+global outb uchar 4
+fn rdall to long
+t = ulong 0
+while lt t len inb bound 65536
+k = read 0 inb t sub len inb t
+if lt k 0
+ret k
+end
+if eq k 0
+ret long t
+end
+t = add t ulong k
+end
+ret neg long 27
+end
+fn fnv n ulong to uint
+h = uint 2166136261
+for i ulong n
+h = mul xor h uint get inb i 16777619
+end
+ret h
+end
+fn put4 h uint to void
+put outb 0 uchar and h 255
+put outb 1 uchar and shr h 8 255
+put outb 2 uchar and shr h 16 255
+put outb 3 uchar and shr h 24 255
+end
+fn wrall n ulong to long
+d = ulong 0
+while lt d n bound 4
+w = write 1 outb d sub n d
+if le w 0
+ret w
+end
+d = add d ulong w
+end
+ret long d
+end
+fn main to int
+r = rdall
+if lt r 0
+ret 2
+end
+h = fnv ulong r
+put4 h
+w = wrall 4
+if ne w 4
+ret 3
+end
+ret 0
+end

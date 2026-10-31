@@ -1,0 +1,1962 @@
+note Edge renderer. Input is receiver-canonical sorted JSON, never HTML.
+note All output is buffered; every refusal before final write yields zero bytes.
+global inp uchar 2097152
+global dec uchar 2097152
+global out uchar 16777216
+global out2 uchar 16777216
+global st ulong 16
+global fld ulong 322000
+global par ulong 10000
+global first ulong 10001
+global next ulong 10000
+global seen uchar 10000
+fn peek to uchar
+p = get st 0
+if ge p get st 1
+trap 8
+end
+ret get inp p
+end
+fn take c uchar to void
+if ne peek c
+trap 8
+end
+put st 0 add get st 0 1
+end
+fn decoded c uchar to void
+p = get st 2
+put dec p c
+put st 2 add p 1
+end
+fn hex to uchar
+c = peek
+put st 0 add get st 0 1
+if and ge c 48 le c 57
+ret sub c 48
+end
+if and ge c 97 le c 102
+ret add sub c 97 10
+end
+trap 8
+end
+fn string to void
+take 34
+put st 3 get st 2
+while true
+c = peek
+put st 0 add get st 0 1
+if eq c 34
+break
+end
+if lt c 32
+trap 8
+end
+if eq c 92
+c = peek
+put st 0 add get st 0 1
+if eq c 117
+take 48
+take 48
+h = hex
+c = add mul h 16 hex
+if ge c 32
+trap 8
+end
+if lt c 32
+if not or or eq c 8 eq c 9 or eq c 10 or eq c 12 eq c 13
+trap 8
+end
+end
+else
+if eq c 110
+c = 10
+else
+if eq c 114
+c = 13
+else
+if eq c 116
+c = 9
+else
+if eq c 98
+c = 8
+else
+if eq c 102
+c = 12
+else
+if not or eq c 34 eq c 92
+trap 8
+end
+end
+end
+end
+end
+end
+end
+end
+if eq c 0
+trap 8
+end
+decoded c
+end
+put st 4 sub get st 2 get st 3
+end
+fn equal a ulong b ulong to bool
+n = get fld add a 1
+if ne n get fld add b 1
+ret false
+end
+for i ulong n
+x = get dec add get fld a i
+y = get dec add get fld b i
+if ne x y
+ret false
+end
+end
+ret true
+end
+fn ident a ulong to void
+n = get fld add a 1
+if or eq n 0 gt n 128
+trap 8
+end
+for i ulong n
+c = get dec add get fld a i
+ok = or and ge c 48 le c 57 and ge c 65 le c 90
+ok = or ok and ge c 97 le c 122
+ok = or ok or eq c 45 eq c 95
+if not ok
+trap 8
+end
+end
+end
+fn digit a ulong i ulong to ulong
+c = get dec add get fld a i
+if or lt c 48 gt c 57
+trap 8
+end
+ret ulong sub c 48
+end
+fn number a ulong i ulong n ulong to ulong
+v = ulong 0
+for j ulong n
+v = add mul v 10 digit a add i j
+end
+ret v
+end
+fn leap y ulong to bool
+ok = or ne rem y 100 0 eq rem y 400 0
+ret and eq rem y 4 0 ok
+end
+fn stamp a ulong to void
+n = get fld add a 1
+if or lt n 20 gt n 40
+trap 8
+end
+p = get fld a
+ok = and eq get dec add p 4 45 eq get dec add p 7 45
+ok = and ok eq get dec add p 10 84
+ok = and ok eq get dec add p 13 58
+ok = and ok eq get dec add p 16 58
+if not ok
+trap 8
+end
+if ne get dec sub add p n 1 90
+trap 8
+end
+y = number a 0 4
+m = number a 5 2
+d = number a 8 2
+if or eq m 0 gt m 12
+trap 8
+end
+lim = ulong 31
+if or or eq m 4 eq m 6 or eq m 9 eq m 11
+lim = 30
+end
+if eq m 2
+lim = 28
+if leap y
+lim = 29
+end
+end
+if or eq d 0 gt d lim
+trap 8
+end
+if gt number a 11 2 23
+trap 8
+end
+if gt number a 14 2 59
+trap 8
+end
+if gt number a 17 2 60
+trap 8
+end
+if gt n 20
+if eq n 21
+trap 8
+end
+if ne get dec add p 19 46
+trap 8
+end
+for i ulong sub n 21
+v = digit a add i 20
+end
+end
+end
+fn utf8 p ulong n ulong to void
+need = ulong 0
+cp = ulong 0
+low = ulong 0
+for i ulong n
+c = ulong get dec add p i
+if eq need 0
+if ge c 128
+if and ge c 194 le c 223
+need = 1
+cp = and c 31
+low = 128
+else
+if and ge c 224 le c 239
+need = 2
+cp = and c 15
+low = 2048
+else
+if and ge c 240 le c 244
+need = 3
+cp = and c 7
+low = 65536
+else
+trap 8
+end
+end
+end
+end
+else
+if or lt c 128 gt c 191
+trap 8
+end
+cp = add mul cp 64 and c 63
+need = sub need 1
+if eq need 0
+if or lt cp low gt cp 1114111
+trap 8
+end
+if and ge cp 55296 le cp 57343
+trap 8
+end
+end
+end
+end
+if ne need 0
+trap 8
+end
+end
+fn value a ulong kind ulong cap ulong to void
+if eq peek 110
+take 110
+take 117
+take 108
+take 108
+if ne kind 3
+if ne kind 4
+trap 8
+end
+end
+put fld a 0
+put fld add a 1 0
+ret
+end
+string
+if gt get st 4 cap
+trap 8
+end
+utf8 get st 3 get st 4
+put fld a get st 3
+put fld add a 1 get st 4
+if or eq kind 1 eq kind 3
+ident a
+end
+if or eq kind 2 eq kind 4
+stamp a
+end
+end
+fn uintval to ulong
+v = ulong 0
+n = ulong 0
+while and ge peek 48 le peek 57 bound 9
+v = add mul v 10 ulong sub peek 48
+put st 0 add get st 0 1
+n = add n 1
+end
+if eq n 0
+trap 8
+end
+ret v
+end
+fn boolval to void
+if eq peek 116
+take 116
+take 114
+take 117
+take 101
+else
+take 102
+take 97
+take 108
+take 115
+take 101
+end
+end
+fn push c uchar to void
+p = get st 5
+if lt p len out
+put out p c
+else
+put out2 sub p len out c
+end
+put st 5 add p 1
+end
+fn escape p ulong n ulong to void
+for i ulong n
+c = get dec add p i
+if eq c 38
+lit 0
+else
+if eq c 60
+lit 1
+else
+if eq c 62
+lit 2
+else
+if eq c 34
+lit 3
+else
+if eq c 39
+lit 4
+else
+push c
+end
+end
+end
+end
+end
+end
+end
+text hexchars "0123456789abcdef"
+fn attrseq to void
+push 115
+push 45
+for i ulong get fld 3
+c = get dec add get fld 2 i
+push get hexchars ulong shr c 4
+push get hexchars ulong and c 15
+end
+end
+fn field a ulong to void
+escape get fld a get fld add a 1
+end
+fn decimal v ulong to void
+if ge v 10
+decimal div v 10
+end
+push uchar add rem v 10 48
+end
+text options "working|waiting|idle|completed|failed|unknown|running|finished|unknown|assistant|"
+fn optmatch a ulong p ulong n ulong to bool
+if ne n get fld add a 1
+ret false
+end
+q = get fld a
+for i ulong n
+x = get dec add q i
+if ne x get options add p i
+ret false
+end
+end
+ret true
+end
+fn option a ulong p ulong n ulong to void
+for j ulong n
+start = p
+while ne get options p 124 bound 20
+p = add p 1
+end
+ok = optmatch a start sub p start
+if ok
+ret
+end
+p = add p 1
+end
+trap 8
+end
+fn agent a ulong to void
+take 123
+key 0
+value add a 0 0 16000
+take 44
+key 1
+value add a 2 0 20
+option add a 2 46 3
+take 44
+key 2
+value add a 4 1 128
+take 44
+key 3
+value add a 6 0 720
+take 44
+key 4
+value add a 8 0 720
+take 44
+key 5
+value add a 10 2 40
+take 44
+key 6
+value add a 12 3 128
+take 44
+key 7
+value add a 14 0 720
+take 44
+key 8
+value add a 16 0 720
+take 44
+key 9
+value add a 18 0 720
+take 44
+key 10
+value add a 20 4 40
+take 44
+key 11
+value add a 22 0 20
+option add a 22 0 6
+take 44
+key 12
+value add a 24 0 16000
+take 44
+key 13
+value add a 26 4 40
+take 125
+end
+fn message a ulong to void
+take 123
+key 14
+value add a 0 1 128
+take 44
+key 15
+value add a 2 2 40
+take 44
+key 2
+value add a 4 1 128
+take 44
+key 3
+value add a 6 0 720
+take 44
+key 7
+value add a 8 0 720
+take 44
+key 8
+value add a 10 0 20
+option add a 10 71 1
+take 44
+key 9
+value add a 12 0 720
+take 44
+key 16
+value add a 14 0 16000
+take 125
+end
+fn parse to void
+take 123
+key 17
+take 91
+n = ulong 0
+if ne peek 93
+while true bound 10000
+agent add 64 mul n 32
+n = add n 1
+if eq peek 93
+break
+end
+take 44
+end
+end
+put st 6 n
+take 93
+take 44
+key 18
+take 123
+key 17
+if ne uintval n
+trap 8
+end
+take 44
+key 19
+boolval
+take 44
+key 20
+value 8 0 512
+take 44
+key 21
+value 10 0 4096
+take 44
+key 22
+put st 8 uintval
+take 125
+take 44
+key 23
+value 0 2 40
+take 44
+key 24
+take 91
+n = 0
+if ne peek 93
+while true bound 100
+message add 320064 mul n 16
+n = add n 1
+if eq peek 93
+break
+end
+take 44
+end
+end
+put st 7 n
+take 93
+take 44
+key 25
+if ne uintval 1000
+trap 8
+end
+take 44
+key 26
+if ne uintval 1
+trap 8
+end
+take 44
+key 27
+value 2 0 128
+take 44
+key 28
+if ne uintval 15000
+trap 8
+end
+take 125
+if lt get st 0 get st 1
+take 10
+end
+if ne get st 0 get st 1
+trap 8
+end
+end
+fn key k ulong to void
+string
+if eq k 0
+if ne get st 4 8
+trap 8
+end
+if ne get dec add get st 3 0 97
+trap 8
+end
+if ne get dec add get st 3 1 99
+trap 8
+end
+if ne get dec add get st 3 2 116
+trap 8
+end
+if ne get dec add get st 3 3 105
+trap 8
+end
+if ne get dec add get st 3 4 118
+trap 8
+end
+if ne get dec add get st 3 5 105
+trap 8
+end
+if ne get dec add get st 3 6 116
+trap 8
+end
+if ne get dec add get st 3 7 121
+trap 8
+end
+take 58
+ret
+end
+if eq k 1
+if ne get st 4 14
+trap 8
+end
+if ne get dec add get st 3 0 97
+trap 8
+end
+if ne get dec add get st 3 1 99
+trap 8
+end
+if ne get dec add get st 3 2 116
+trap 8
+end
+if ne get dec add get st 3 3 105
+trap 8
+end
+if ne get dec add get st 3 4 118
+trap 8
+end
+if ne get dec add get st 3 5 105
+trap 8
+end
+if ne get dec add get st 3 6 116
+trap 8
+end
+if ne get dec add get st 3 7 121
+trap 8
+end
+if ne get dec add get st 3 8 95
+trap 8
+end
+if ne get dec add get st 3 9 115
+trap 8
+end
+if ne get dec add get st 3 10 116
+trap 8
+end
+if ne get dec add get st 3 11 97
+trap 8
+end
+if ne get dec add get st 3 12 116
+trap 8
+end
+if ne get dec add get st 3 13 101
+trap 8
+end
+take 58
+ret
+end
+if eq k 2
+if ne get st 4 2
+trap 8
+end
+if ne get dec add get st 3 0 105
+trap 8
+end
+if ne get dec add get st 3 1 100
+trap 8
+end
+take 58
+ret
+end
+if eq k 3
+if ne get st 4 5
+trap 8
+end
+if ne get dec add get st 3 0 109
+trap 8
+end
+if ne get dec add get st 3 1 111
+trap 8
+end
+if ne get dec add get st 3 2 100
+trap 8
+end
+if ne get dec add get st 3 3 101
+trap 8
+end
+if ne get dec add get st 3 4 108
+trap 8
+end
+take 58
+ret
+end
+if eq k 4
+if ne get st 4 4
+trap 8
+end
+if ne get dec add get st 3 0 110
+trap 8
+end
+if ne get dec add get st 3 1 97
+trap 8
+end
+if ne get dec add get st 3 2 109
+trap 8
+end
+if ne get dec add get st 3 3 101
+trap 8
+end
+take 58
+ret
+end
+if eq k 5
+if ne get st 4 11
+trap 8
+end
+if ne get dec add get st 3 0 111
+trap 8
+end
+if ne get dec add get st 3 1 98
+trap 8
+end
+if ne get dec add get st 3 2 115
+trap 8
+end
+if ne get dec add get st 3 3 101
+trap 8
+end
+if ne get dec add get st 3 4 114
+trap 8
+end
+if ne get dec add get st 3 5 118
+trap 8
+end
+if ne get dec add get st 3 6 101
+trap 8
+end
+if ne get dec add get st 3 7 100
+trap 8
+end
+if ne get dec add get st 3 8 95
+trap 8
+end
+if ne get dec add get st 3 9 97
+trap 8
+end
+if ne get dec add get st 3 10 116
+trap 8
+end
+take 58
+ret
+end
+if eq k 6
+if ne get st 4 9
+trap 8
+end
+if ne get dec add get st 3 0 112
+trap 8
+end
+if ne get dec add get st 3 1 97
+trap 8
+end
+if ne get dec add get st 3 2 114
+trap 8
+end
+if ne get dec add get st 3 3 101
+trap 8
+end
+if ne get dec add get st 3 4 110
+trap 8
+end
+if ne get dec add get st 3 5 116
+trap 8
+end
+if ne get dec add get st 3 6 95
+trap 8
+end
+if ne get dec add get st 3 7 105
+trap 8
+end
+if ne get dec add get st 3 8 100
+trap 8
+end
+take 58
+ret
+end
+if eq k 7
+if ne get st 4 8
+trap 8
+end
+if ne get dec add get st 3 0 112
+trap 8
+end
+if ne get dec add get st 3 1 114
+trap 8
+end
+if ne get dec add get st 3 2 111
+trap 8
+end
+if ne get dec add get st 3 3 118
+trap 8
+end
+if ne get dec add get st 3 4 105
+trap 8
+end
+if ne get dec add get st 3 5 100
+trap 8
+end
+if ne get dec add get st 3 6 101
+trap 8
+end
+if ne get dec add get st 3 7 114
+trap 8
+end
+take 58
+ret
+end
+if eq k 8
+if ne get st 4 4
+trap 8
+end
+if ne get dec add get st 3 0 114
+trap 8
+end
+if ne get dec add get st 3 1 111
+trap 8
+end
+if ne get dec add get st 3 2 108
+trap 8
+end
+if ne get dec add get st 3 3 101
+trap 8
+end
+take 58
+ret
+end
+if eq k 9
+if ne get st 4 7
+trap 8
+end
+if ne get dec add get st 3 0 114
+trap 8
+end
+if ne get dec add get st 3 1 117
+trap 8
+end
+if ne get dec add get st 3 2 110
+trap 8
+end
+if ne get dec add get st 3 3 116
+trap 8
+end
+if ne get dec add get st 3 4 105
+trap 8
+end
+if ne get dec add get st 3 5 109
+trap 8
+end
+if ne get dec add get st 3 6 101
+trap 8
+end
+take 58
+ret
+end
+if eq k 10
+if ne get st 4 10
+trap 8
+end
+if ne get dec add get st 3 0 115
+trap 8
+end
+if ne get dec add get st 3 1 116
+trap 8
+end
+if ne get dec add get st 3 2 97
+trap 8
+end
+if ne get dec add get st 3 3 114
+trap 8
+end
+if ne get dec add get st 3 4 116
+trap 8
+end
+if ne get dec add get st 3 5 101
+trap 8
+end
+if ne get dec add get st 3 6 100
+trap 8
+end
+if ne get dec add get st 3 7 95
+trap 8
+end
+if ne get dec add get st 3 8 97
+trap 8
+end
+if ne get dec add get st 3 9 116
+trap 8
+end
+take 58
+ret
+end
+if eq k 11
+if ne get st 4 6
+trap 8
+end
+if ne get dec add get st 3 0 115
+trap 8
+end
+if ne get dec add get st 3 1 116
+trap 8
+end
+if ne get dec add get st 3 2 97
+trap 8
+end
+if ne get dec add get st 3 3 116
+trap 8
+end
+if ne get dec add get st 3 4 117
+trap 8
+end
+if ne get dec add get st 3 5 115
+trap 8
+end
+take 58
+ret
+end
+if eq k 12
+if ne get st 4 4
+trap 8
+end
+if ne get dec add get st 3 0 116
+trap 8
+end
+if ne get dec add get st 3 1 97
+trap 8
+end
+if ne get dec add get st 3 2 115
+trap 8
+end
+if ne get dec add get st 3 3 107
+trap 8
+end
+take 58
+ret
+end
+if eq k 13
+if ne get st 4 10
+trap 8
+end
+if ne get dec add get st 3 0 117
+trap 8
+end
+if ne get dec add get st 3 1 112
+trap 8
+end
+if ne get dec add get st 3 2 100
+trap 8
+end
+if ne get dec add get st 3 3 97
+trap 8
+end
+if ne get dec add get st 3 4 116
+trap 8
+end
+if ne get dec add get st 3 5 101
+trap 8
+end
+if ne get dec add get st 3 6 100
+trap 8
+end
+if ne get dec add get st 3 7 95
+trap 8
+end
+if ne get dec add get st 3 8 97
+trap 8
+end
+if ne get dec add get st 3 9 116
+trap 8
+end
+take 58
+ret
+end
+if eq k 14
+if ne get st 4 8
+trap 8
+end
+if ne get dec add get st 3 0 97
+trap 8
+end
+if ne get dec add get st 3 1 103
+trap 8
+end
+if ne get dec add get st 3 2 101
+trap 8
+end
+if ne get dec add get st 3 3 110
+trap 8
+end
+if ne get dec add get st 3 4 116
+trap 8
+end
+if ne get dec add get st 3 5 95
+trap 8
+end
+if ne get dec add get st 3 6 105
+trap 8
+end
+if ne get dec add get st 3 7 100
+trap 8
+end
+take 58
+ret
+end
+if eq k 15
+if ne get st 4 2
+trap 8
+end
+if ne get dec add get st 3 0 97
+trap 8
+end
+if ne get dec add get st 3 1 116
+trap 8
+end
+take 58
+ret
+end
+if eq k 16
+if ne get st 4 4
+trap 8
+end
+if ne get dec add get st 3 0 116
+trap 8
+end
+if ne get dec add get st 3 1 101
+trap 8
+end
+if ne get dec add get st 3 2 120
+trap 8
+end
+if ne get dec add get st 3 3 116
+trap 8
+end
+take 58
+ret
+end
+if eq k 17
+if ne get st 4 6
+trap 8
+end
+if ne get dec add get st 3 0 97
+trap 8
+end
+if ne get dec add get st 3 1 103
+trap 8
+end
+if ne get dec add get st 3 2 101
+trap 8
+end
+if ne get dec add get st 3 3 110
+trap 8
+end
+if ne get dec add get st 3 4 116
+trap 8
+end
+if ne get dec add get st 3 5 115
+trap 8
+end
+take 58
+ret
+end
+if eq k 18
+if ne get st 4 8
+trap 8
+end
+if ne get dec add get st 3 0 99
+trap 8
+end
+if ne get dec add get st 3 1 111
+trap 8
+end
+if ne get dec add get st 3 2 118
+trap 8
+end
+if ne get dec add get st 3 3 101
+trap 8
+end
+if ne get dec add get st 3 4 114
+trap 8
+end
+if ne get dec add get st 3 5 97
+trap 8
+end
+if ne get dec add get st 3 6 103
+trap 8
+end
+if ne get dec add get st 3 7 101
+trap 8
+end
+take 58
+ret
+end
+if eq k 19
+if ne get st 4 8
+trap 8
+end
+if ne get dec add get st 3 0 99
+trap 8
+end
+if ne get dec add get st 3 1 111
+trap 8
+end
+if ne get dec add get st 3 2 109
+trap 8
+end
+if ne get dec add get st 3 3 112
+trap 8
+end
+if ne get dec add get st 3 4 108
+trap 8
+end
+if ne get dec add get st 3 5 101
+trap 8
+end
+if ne get dec add get st 3 6 116
+trap 8
+end
+if ne get dec add get st 3 7 101
+trap 8
+end
+take 58
+ret
+end
+if eq k 20
+if ne get st 4 5
+trap 8
+end
+if ne get dec add get st 3 0 108
+trap 8
+end
+if ne get dec add get st 3 1 97
+trap 8
+end
+if ne get dec add get st 3 2 98
+trap 8
+end
+if ne get dec add get st 3 3 101
+trap 8
+end
+if ne get dec add get st 3 4 108
+trap 8
+end
+take 58
+ret
+end
+if eq k 21
+if ne get st 4 6
+trap 8
+end
+if ne get dec add get st 3 0 110
+trap 8
+end
+if ne get dec add get st 3 1 111
+trap 8
+end
+if ne get dec add get st 3 2 116
+trap 8
+end
+if ne get dec add get st 3 3 105
+trap 8
+end
+if ne get dec add get st 3 4 99
+trap 8
+end
+if ne get dec add get st 3 5 101
+trap 8
+end
+take 58
+ret
+end
+if eq k 22
+if ne get st 4 5
+trap 8
+end
+if ne get dec add get st 3 0 114
+trap 8
+end
+if ne get dec add get st 3 1 111
+trap 8
+end
+if ne get dec add get st 3 2 111
+trap 8
+end
+if ne get dec add get st 3 3 116
+trap 8
+end
+if ne get dec add get st 3 4 115
+trap 8
+end
+take 58
+ret
+end
+if eq k 23
+if ne get st 4 12
+trap 8
+end
+if ne get dec add get st 3 0 103
+trap 8
+end
+if ne get dec add get st 3 1 101
+trap 8
+end
+if ne get dec add get st 3 2 110
+trap 8
+end
+if ne get dec add get st 3 3 101
+trap 8
+end
+if ne get dec add get st 3 4 114
+trap 8
+end
+if ne get dec add get st 3 5 97
+trap 8
+end
+if ne get dec add get st 3 6 116
+trap 8
+end
+if ne get dec add get st 3 7 101
+trap 8
+end
+if ne get dec add get st 3 8 100
+trap 8
+end
+if ne get dec add get st 3 9 95
+trap 8
+end
+if ne get dec add get st 3 10 97
+trap 8
+end
+if ne get dec add get st 3 11 116
+trap 8
+end
+take 58
+ret
+end
+if eq k 24
+if ne get st 4 12
+trap 8
+end
+if ne get dec add get st 3 0 105
+trap 8
+end
+if ne get dec add get st 3 1 110
+trap 8
+end
+if ne get dec add get st 3 2 116
+trap 8
+end
+if ne get dec add get st 3 3 101
+trap 8
+end
+if ne get dec add get st 3 4 114
+trap 8
+end
+if ne get dec add get st 3 5 97
+trap 8
+end
+if ne get dec add get st 3 6 99
+trap 8
+end
+if ne get dec add get st 3 7 116
+trap 8
+end
+if ne get dec add get st 3 8 105
+trap 8
+end
+if ne get dec add get st 3 9 111
+trap 8
+end
+if ne get dec add get st 3 10 110
+trap 8
+end
+if ne get dec add get st 3 11 115
+trap 8
+end
+take 58
+ret
+end
+if eq k 25
+if ne get st 4 7
+trap 8
+end
+if ne get dec add get st 3 0 112
+trap 8
+end
+if ne get dec add get st 3 1 111
+trap 8
+end
+if ne get dec add get st 3 2 108
+trap 8
+end
+if ne get dec add get st 3 3 108
+trap 8
+end
+if ne get dec add get st 3 4 95
+trap 8
+end
+if ne get dec add get st 3 5 109
+trap 8
+end
+if ne get dec add get st 3 6 115
+trap 8
+end
+take 58
+ret
+end
+if eq k 26
+if ne get st 4 14
+trap 8
+end
+if ne get dec add get st 3 0 115
+trap 8
+end
+if ne get dec add get st 3 1 99
+trap 8
+end
+if ne get dec add get st 3 2 104
+trap 8
+end
+if ne get dec add get st 3 3 101
+trap 8
+end
+if ne get dec add get st 3 4 109
+trap 8
+end
+if ne get dec add get st 3 5 97
+trap 8
+end
+if ne get dec add get st 3 6 95
+trap 8
+end
+if ne get dec add get st 3 7 118
+trap 8
+end
+if ne get dec add get st 3 8 101
+trap 8
+end
+if ne get dec add get st 3 9 114
+trap 8
+end
+if ne get dec add get st 3 10 115
+trap 8
+end
+if ne get dec add get st 3 11 105
+trap 8
+end
+if ne get dec add get st 3 12 111
+trap 8
+end
+if ne get dec add get st 3 13 110
+trap 8
+end
+take 58
+ret
+end
+if eq k 27
+if ne get st 4 8
+trap 8
+end
+if ne get dec add get st 3 0 115
+trap 8
+end
+if ne get dec add get st 3 1 101
+trap 8
+end
+if ne get dec add get st 3 2 113
+trap 8
+end
+if ne get dec add get st 3 3 117
+trap 8
+end
+if ne get dec add get st 3 4 101
+trap 8
+end
+if ne get dec add get st 3 5 110
+trap 8
+end
+if ne get dec add get st 3 6 99
+trap 8
+end
+if ne get dec add get st 3 7 101
+trap 8
+end
+take 58
+ret
+end
+if eq k 28
+if ne get st 4 14
+trap 8
+end
+if ne get dec add get st 3 0 115
+trap 8
+end
+if ne get dec add get st 3 1 116
+trap 8
+end
+if ne get dec add get st 3 2 97
+trap 8
+end
+if ne get dec add get st 3 3 108
+trap 8
+end
+if ne get dec add get st 3 4 101
+trap 8
+end
+if ne get dec add get st 3 5 95
+trap 8
+end
+if ne get dec add get st 3 6 97
+trap 8
+end
+if ne get dec add get st 3 7 102
+trap 8
+end
+if ne get dec add get st 3 8 116
+trap 8
+end
+if ne get dec add get st 3 9 101
+trap 8
+end
+if ne get dec add get st 3 10 114
+trap 8
+end
+if ne get dec add get st 3 11 95
+trap 8
+end
+if ne get dec add get st 3 12 109
+trap 8
+end
+if ne get dec add get st 3 13 115
+trap 8
+end
+take 58
+ret
+end
+trap 8
+end
+fn graph to void
+n = get st 6
+roots = ulong 0
+for i ulong n
+a = add 64 mul i 32
+p = n
+if ne get fld add a 13 0
+found = false
+for j ulong n
+b = add 64 mul j 32
+if equal add a 12 add b 4
+p = j
+found = true
+end
+end
+if not found
+trap 8
+end
+else
+roots = add roots 1
+end
+for j ulong i
+if equal add a 4 add 68 mul j 32
+trap 8
+end
+end
+put par i p
+end
+if ne roots get st 8
+trap 8
+end
+for i ulong n
+p = i
+while lt p n bound 10000
+if eq get seen p 1
+trap 8
+end
+put seen p 1
+p = get par p
+end
+p = i
+while lt p n bound 10000
+put seen p 0
+p = get par p
+end
+end
+for i ulong add n 1
+put first i n
+end
+for rev ulong n
+i = sub sub n rev 1
+p = get par i
+put next i get first p
+put first p i
+end
+end
+fn msgids to void
+for i ulong get st 7
+for j ulong i
+a = add 320068 mul i 16
+b = add 320068 mul j 16
+if equal a b
+trap 8
+end
+end
+end
+end
+note Gregorian ordinal and duration verified by Wolfram query recorded in DEPLOY-board.md.
+fn seconds a ulong to ulong
+note Shift calendar by one 400-year cycle so year 0000 has unsigned ordinals.
+y = add number a 0 4 399
+days = sub add add mul y 365 div y 4 div y 400 div y 100
+m = number a 5 2
+for i ulong sub m 1
+v = ulong 31
+if or or eq i 3 eq i 5 or eq i 8 eq i 10
+v = 30
+end
+if eq i 1
+v = 28
+yr = add y 1
+if leap yr
+v = 29
+end
+end
+days = add days v
+end
+days = add days number a 8 2
+v = add mul days 24 number a 11 2
+v = add mul v 60 number a 14 2
+ret add mul v 60 number a 17 2
+end
+fn millis a ulong to ulong
+v = mul seconds a 1000
+n = get fld add a 1
+f = ulong 0
+for i ulong 3
+f = mul f 10
+if gt n add i 21
+f = add f digit a add i 20
+end
+end
+ret add v f
+end
+fn age a ulong to void
+if eq get fld add a 1 0
+lit 5
+ret
+end
+now = millis 0
+then = millis a
+if gt then now
+lit 6
+else
+decimal div sub now then 1000
+lit 7
+end
+end
+fn row i ulong to void
+a = add 64 mul i 32
+lit 8
+field add a 4
+lit 9
+field add a 4
+lit 10
+field add a 4
+lit 11
+field add a 4
+lit 12
+field add a 8
+lit 13
+field add a 22
+lit 14
+field add a 6
+lit 15
+field add a 14
+lit 16
+age add a 20
+lit 17
+field a
+lit 18
+age add a 10
+lit 19
+end
+fn tree to void
+n = get st 6
+i = get first n
+while lt i n bound 10000
+row i
+if lt get first i n
+i = get first i
+else
+while true bound 10001
+lit 20
+if lt get next i n
+i = get next i
+break
+end
+i = get par i
+if eq i n
+break
+end
+end
+end
+end
+end
+fn manifest i ulong to void
+a = add 64 mul i 32
+lit 21
+field add a 4
+lit 22
+field add a 8
+lit 23
+lit 24
+field add a 0
+lit 25
+lit 26
+field add a 2
+lit 25
+lit 27
+field add a 4
+lit 25
+lit 28
+field add a 6
+lit 25
+lit 29
+field add a 8
+lit 25
+lit 30
+field add a 10
+lit 25
+lit 31
+field add a 12
+lit 25
+lit 32
+field add a 14
+lit 25
+lit 33
+field add a 16
+lit 25
+lit 34
+field add a 18
+lit 25
+lit 35
+field add a 20
+lit 25
+lit 36
+field add a 22
+lit 25
+lit 37
+field add a 24
+lit 25
+lit 38
+field add a 26
+lit 25
+lit 39
+end
+fn chat i ulong to void
+a = add 320064 mul i 16
+lit 40
+field add a 4
+lit 11
+field a
+lit 41
+field add a 10
+lit 42
+field add a 6
+lit 15
+field add a 8
+lit 43
+field add a 2
+lit 44
+field add a 14
+lit 45
+end
+fn render to void
+lit 46
+field 0
+lit 47
+attrseq
+lit 48
+field 0
+lit 49
+decimal get st 6
+lit 50
+decimal get st 8
+lit 51
+field 8
+lit 52
+field 10
+lit 53
+tree
+lit 54
+for i ulong get st 6
+manifest i
+end
+lit 55
+for i ulong get st 7
+chat i
+end
+lit 56
+end
+text html "&amp;&lt;&gt;&quot;&#x27;Not reportedAfter snapshots<li class=\"hive-node\" id=\"node-\"><details id=\"branch-\" open><summary class=\"hive-record\"><a class=\"hive-select\" href=\"#agent=\" data-agent=\"\"></a><span class=\"hive-pill\"></span><span class=\"hive-chip\"> / </span><span class=\"hive-elapsed\"></span><span class=\"hive-activity\"></span></summary><p class=\"hive-small\">Observation  behind snapshot</p><ul class=\"hive-children\"></ul></details></li><details class=\"hive-manifest-card\" id=\"manifest-\"><summary></summary><div class=\"hive-manifest-body\"><dl class=\"hive-fields\"><dt>activity</dt><dd></dd><dt>activity state</dt><dd><dt>id</dt><dd><dt>model</dt><dd><dt>name</dt><dd><dt>observed at</dt><dd><dt>parent id</dt><dd><dt>provider</dt><dd><dt>role</dt><dd><dt>runtime</dt><dd><dt>started at</dt><dd><dt>status</dt><dd><dt>task</dt><dd><dt>updated at</dt><dd></dl></div></details><li class=\"hive-message\" id=\"message-\"><div class=\"hive-message-who\"><strong></strong><span class=\"hive-message-model\"></span><time></time></div><p class=\"hive-message-text\"></p></li><!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><meta http-equiv=\"refresh\" content=\"15\"><title>The Hive board | AienOS</title><link rel=\"stylesheet\" href=\"/assets/style.css\"><link rel=\"stylesheet\" href=\"/assets/hive.css\"></head><body><main class=\"hive\" id=\"hive-board\" data-generated=\"\" data-sequence=\"\" data-stale-after=\"15000\"><div class=\"hive-sections\"><section id=\"hive-strip\" class=\"hive-section hive-section-full\"><h1>The Hive board</h1><p id=\"hive-connection\">Snapshot observation, not a live connection guarantee.</p><p id=\"hive-freshness\">This no-script board reloads every 15 seconds. If its source timestamp stops advancing, the source is stale; last observation retained.</p><time id=\"hive-source-time\"></time><p id=\"hive-counts\"> agents /  missions</p><p id=\"hive-coverage\" class=\"hive-coverage\">: </p></section><section id=\"hive-tree-section\" class=\"hive-section hive-section-main hive-panel\"><div class=\"hive-panel-head\"><h2>Current missions</h2></div><div class=\"hive-panel-body\"><ul class=\"hive-tree\" id=\"hive-tree\"></ul></div></section><section id=\"hive-manifest\" class=\"hive-section hive-section-narrow hive-panel\"><div class=\"hive-panel-head\"><h2>Agent manifests</h2><p>Open a manifest below. Runtime observations are not proof of success.</p></div><div class=\"hive-panel-body\" id=\"hive-manifest-cards\"></div></section><section id=\"hive-chat-section\" class=\"hive-section hive-section-full\"><h2>What the agents are saying, live</h2><ol class=\"hive-chat\" id=\"hive-chat\" tabindex=\"0\"></ol></section></div></main></body></html>\n"
+fn lit k ulong to void
+p = ulong 0
+n = ulong 0
+if eq k 0
+p = 0
+n = 5
+end
+if eq k 1
+p = 5
+n = 4
+end
+if eq k 2
+p = 9
+n = 4
+end
+if eq k 3
+p = 13
+n = 6
+end
+if eq k 4
+p = 19
+n = 6
+end
+if eq k 5
+p = 25
+n = 12
+end
+if eq k 6
+p = 37
+n = 14
+end
+if eq k 7
+p = 51
+n = 1
+end
+if eq k 8
+p = 52
+n = 31
+end
+if eq k 9
+p = 83
+n = 22
+end
+if eq k 10
+p = 105
+n = 72
+end
+if eq k 11
+p = 177
+n = 14
+end
+if eq k 12
+p = 191
+n = 2
+end
+if eq k 13
+p = 193
+n = 28
+end
+if eq k 14
+p = 221
+n = 31
+end
+if eq k 15
+p = 252
+n = 3
+end
+if eq k 16
+p = 255
+n = 34
+end
+if eq k 17
+p = 289
+n = 35
+end
+if eq k 18
+p = 324
+n = 51
+end
+if eq k 19
+p = 375
+n = 46
+end
+if eq k 20
+p = 421
+n = 20
+end
+if eq k 21
+p = 441
+n = 49
+end
+if eq k 22
+p = 490
+n = 11
+end
+if eq k 23
+p = 501
+n = 66
+end
+if eq k 24
+p = 567
+n = 21
+end
+if eq k 25
+p = 588
+n = 5
+end
+if eq k 26
+p = 593
+n = 27
+end
+if eq k 27
+p = 620
+n = 15
+end
+if eq k 28
+p = 635
+n = 18
+end
+if eq k 29
+p = 653
+n = 17
+end
+if eq k 30
+p = 670
+n = 24
+end
+if eq k 31
+p = 694
+n = 22
+end
+if eq k 32
+p = 716
+n = 21
+end
+if eq k 33
+p = 737
+n = 17
+end
+if eq k 34
+p = 754
+n = 20
+end
+if eq k 35
+p = 774
+n = 23
+end
+if eq k 36
+p = 797
+n = 19
+end
+if eq k 37
+p = 816
+n = 17
+end
+if eq k 38
+p = 833
+n = 23
+end
+if eq k 39
+p = 856
+n = 21
+end
+if eq k 40
+p = 877
+n = 37
+end
+if eq k 41
+p = 914
+n = 40
+end
+if eq k 42
+p = 954
+n = 42
+end
+if eq k 43
+p = 996
+n = 13
+end
+if eq k 44
+p = 1009
+n = 42
+end
+if eq k 45
+p = 1051
+n = 9
+end
+if eq k 46
+p = 1060
+n = 364
+end
+if eq k 47
+p = 1424
+n = 17
+end
+if eq k 48
+p = 1441
+n = 413
+end
+if eq k 49
+p = 1854
+n = 27
+end
+if eq k 50
+p = 1881
+n = 10
+end
+if eq k 51
+p = 1891
+n = 57
+end
+if eq k 52
+p = 1948
+n = 2
+end
+if eq k 53
+p = 1950
+n = 222
+end
+if eq k 54
+p = 2172
+n = 290
+end
+if eq k 55
+p = 2462
+n = 178
+end
+if eq k 56
+p = 2640
+n = 43
+end
+for i ulong n
+push get html add p i
+end
+end
+fn main to int
+n = ulong 0
+while lt n len inp
+r = read 0 inp n sub len inp n
+if lt r 0
+ret 1
+end
+if eq r 0
+break
+end
+n = add n ulong r
+end
+if eq n len inp
+r = read 0 dec 0 1
+if ne r 0
+ret 2
+end
+end
+put st 1 n
+parse
+graph
+msgids
+render
+n = get st 5
+p = ulong 0
+while lt p n
+k = sub n p
+if lt p len out
+if gt k sub len out p
+k = sub len out p
+end
+r = write 1 out p k
+if le r 0
+ret 3
+end
+p = add p ulong r
+else
+r = write 1 out2 sub p len out k
+if le r 0
+ret 3
+end
+p = add p ulong r
+end
+end
+ret 0
+end

@@ -1,0 +1,5 @@
+note err22_text_escape: a text escape other than backslash n, t, backslash or quote
+text t "a\q"
+fn main to int
+ret 0
+end

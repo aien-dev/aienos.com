@@ -1,0 +1,6 @@
+note mistake_om2_upper_hex: OM-2 hex digits are lowercase after a lowercase 0x
+om2
+fn main to int
+x = uint 0X10
+ret 0
+end

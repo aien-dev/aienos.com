@@ -2,11 +2,15 @@
    places it. Two layers live here and they are read in that order: layout and
    state first (the bounded panels, the branch disclosure, the row grid, the
    status pill and model chip, tabular numbers, the clamped activity line, the
-   focus rings), then the presentation layer at the end of the file (the galaxy
-   behind the masthead, its scrim, the display type scale and the softer radii).
+   focus rings), then the presentation layer at the end of the file (the
+   masthead scene, its scrim, the display type scale and the softer radii).
    Palette tokens from assets/style.css only: no local hex, no bespoke near
    black. Motion is compositor only, one transform transition, removed for
-   prefers-reduced-motion and whenever the page's own motion control is off. */
+   prefers-reduced-motion and whenever the page's own motion control is off.
+   The masthead scene is Allen's two black holes: its markup, its samples and
+   every keyframe of it are emitted by the Omega program into
+   om/hive-page/main.html, and this file only places the stage and paints the
+   discs. It animates nothing of its own. */
 .hive {
   --hive-h1: clamp(2.4rem, 5.4vw, 4rem);
   --hive-h2: clamp(1.2rem, 1.4vw, 1.45rem);
@@ -14,20 +18,12 @@
   --hive-body: 0.85rem;
   --hive-label: 0.7rem;
   --hive-micro: 0.66rem;
-  /* Height of the sticky site header, consumed by the sticky side panel. */
-  --hive-nav: 0px;
   --hive-scroll: clamp(360px, 74vh, 880px);
   max-width: 1320px;
   margin: 0 auto;
   padding: 32px 5vw 72px;
   color: var(--text-primary);
   font-family: var(--font-sans);
-}
-
-/* The site header is sticky from this width up, so the sticky side panel
-   starts below it instead of sliding under it. */
-@media (min-width: 1100px) {
-  .hive { --hive-nav: 133px; }
 }
 
 .hive [hidden] { display: none !important; }
@@ -52,14 +48,13 @@
 .hive-jumps a { color: var(--text-secondary); font-size: var(--hive-body); text-decoration: none; }
 .hive-jumps a:hover { color: var(--accent-blue); }
 
-/* Sections are placed by the grid, not by their markup order, so the section
-   list, its order and its width class stay a hive.om decision. One panel per
-   region, one 1px separator inside it, and no card nested in a card. */
-.hive-sections { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 380px); gap: 20px; align-items: start; }
+/* Below the masthead the page is one reading column: one idea per section,
+   in hive.om's order (Signal, Missions, Selected mission, Conversations),
+   with room between them. A side column made the manifest pin over the
+   conversations and crowded every row, so there is none. */
+.hive-omega, .hive-sections, .hive-closing { max-width: 920px; }
+.hive-sections { display: grid; grid-template-columns: minmax(0, 1fr); gap: 56px; align-items: start; }
 .hive-section { min-width: 0; padding: 18px 20px; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--bg-surface); }
-.hive-section-full { grid-column: 1 / -1; }
-.hive-section-main { grid-column: 1; }
-.hive-section-narrow { grid-column: 2; }
 .hive-note { color: var(--text-secondary); font-size: var(--hive-body); line-height: 1.55; margin: 8px 0 0; max-width: 74ch; }
 .hive-section > .hive-eyebrow + h2 + .hive-note { margin-bottom: 14px; }
 
@@ -70,9 +65,6 @@
 .hive-panel-head .hive-note { margin-bottom: 0; padding-bottom: 12px; border-bottom: 1px solid var(--border-subtle); }
 .hive-panel-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 18px 16px; scroll-padding-top: 76px; }
 .hive-panel-body > * + * { margin-top: 12px; }
-.hive-section-narrow { position: sticky; top: calc(var(--hive-nav) + 12px); } /* While the manifest is
-   shorter than the missions panel it pins at that offset and stays readable as the reader moves
-   through the row; the bounded panels are what keep both on screen. */
 
 /* The missions tools ride at the top of the scroll box, so search is reachable
    while the tree scrolls under it. */
@@ -107,47 +99,42 @@
 .hive input::placeholder { color: var(--text-muted); }
 
 /* The mission tree. One 1px separator per row and one indentation rail per
-   level carry the hierarchy; nothing else decorates a row. */
+   level carry the hierarchy. A row reads in three short lines: the task and
+   its state, what it is doing now, then the model in quiet type. Elapsed time
+   and the per-row observation lag are details, so they show on the selected
+   row only (the Signal section discloses the source lag for the whole page). */
 .hive-tree, .hive-children { list-style: none; margin: 0; padding: 0; }
-.hive-children { margin-left: 10px; padding-left: 10px; border-left: 1px solid var(--border-subtle); }
+.hive-children { margin-left: 12px; padding-left: 16px; border-left: 1px solid var(--border-subtle); }
 .hive-node[hidden] { display: none !important; }
 .hive-record {
   position: relative;
   display: grid;
-  grid-template-columns: 2.2rem minmax(0, 1fr) max-content max-content max-content;
-  gap: 3px 10px;
+  grid-template-columns: 1.5rem minmax(0, 1fr) max-content;
+  gap: 4px 12px;
   align-items: baseline;
-  padding: 6px 10px;
-  margin: 0 -10px;
+  padding: 14px 12px;
+  margin: 0 -12px;
   border-bottom: 1px solid var(--border-subtle);
   border-radius: 3px 3px 0 0;
 }
 .hive-record:hover { background: var(--bg-card-hover); }
-.hive-disclose { grid-area: 1 / 1; display: inline-flex; align-items: center; gap: 4px; padding: 0; min-height: 0; background: transparent; border: 0; color: var(--text-muted); }
-.hive .hive-disclose { padding: 0; min-height: 0; border: 0; background: transparent; }
-.hive-disclose::before { content: ""; flex: 0 0 auto; width: 5px; height: 5px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; transform: rotate(-45deg); transition: transform 140ms ease-out; }
-.hive-disclose[aria-expanded="true"]::before { transform: rotate(45deg); }
-.hive-disclose:hover { color: var(--text-primary); border-color: transparent; }
-.hive-branch { font-family: var(--font-mono); font-size: var(--hive-micro); font-variant-numeric: tabular-nums; }
+summary.hive-record { list-style: none; cursor: pointer; }
+summary.hive-record::-webkit-details-marker { display: none; }
+summary.hive-record::before { content: ""; grid-area: 1 / 1; width: 5px; height: 5px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; transform: rotate(-45deg); transition: transform 140ms ease-out; }
+details[open] > summary.hive-record::before { transform: rotate(45deg); }
 .hive .hive-select { grid-area: 1 / 2; text-align: left; font-size: var(--hive-row); font-weight: 600; line-height: 1.35; color: var(--text-primary); background: transparent; border: 0; padding: 0; min-height: 0; overflow-wrap: anywhere; }
 .hive-select:hover { border-color: transparent; color: var(--accent-blue); }
 .hive-pill { grid-area: 1 / 3; font-family: var(--font-mono); font-size: var(--hive-micro); letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; color: var(--text-muted); border: 1px solid var(--border-subtle); border-radius: 999px; padding: 1px 8px; }
-.hive-node[data-status="working"] > .hive-record .hive-pill { color: var(--accent-green); }
-.hive-node[data-status="waiting"] > .hive-record .hive-pill,
-.hive-node[data-status="idle"] > .hive-record .hive-pill { color: var(--accent-amber); }
-.hive-node[data-status="completed"] > .hive-record .hive-pill { color: var(--text-secondary); }
-.hive-node[data-status="failed"] > .hive-record .hive-pill { color: var(--rs-fail); }
-.hive-node[data-status="unknown"] > .hive-record .hive-pill { color: var(--text-muted); }
-.hive-chip { grid-area: 1 / 4; font-family: var(--font-mono); font-size: var(--hive-micro); color: var(--text-secondary); background: var(--bg-base); border-radius: 3px; padding: 1px 6px; min-width: 0; max-width: 28ch; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hive-elapsed { grid-area: 1 / 5; font-family: var(--font-mono); font-size: var(--hive-micro); color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 5ch; text-align: right; }
-/* Rewritten as the source advances: two fixed lines, so the row never resizes
+/* Rewritten as the source advances: one fixed line, so the row never resizes
    and the pointer never falls off the row it is over. */
-.hive-activity { grid-area: 2 / 2 / 3 / -1; font-size: var(--hive-body); line-height: 1.4; color: var(--text-secondary); overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; min-height: calc(1.4em * 2); }
-.hive-node[data-context="true"] > .hive-record { opacity: 0.6; }
-.hive-node[data-selected="true"] > .hive-record { background: var(--bg-card); }
-.hive-node[data-selected="true"] > .hive-record::before { content: ""; position: absolute; left: -1px; top: 3px; bottom: 3px; width: 2px; background: var(--accent-blue); border-radius: 1px; }
-.hive-node[data-selected="true"] > .hive-record .hive-select { color: var(--accent-blue); }
-.hive-node[data-ancestor="true"] > .hive-record { border-bottom-color: var(--accent-blue); }
+.hive-activity { grid-area: 2 / 2 / 3 / -1; font-size: var(--hive-body); line-height: 1.4; color: var(--text-secondary); overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; overflow: hidden; min-height: 1.4em; }
+.hive-chip { grid-area: 3 / 2; justify-self: start; font-family: var(--font-mono); font-size: var(--hive-micro); color: var(--text-muted); min-width: 0; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hive-elapsed { grid-area: 3 / 3; font-family: var(--font-mono); font-size: var(--hive-micro); color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.hive-node:not([data-selected="true"]) > details > .hive-record .hive-elapsed,
+.hive-node:not([data-selected="true"]) > details > .hive-small { display: none; }
+.hive-node > details > .hive-small { padding: 6px 0 10px 1.5rem; }
+.hive-node[data-selected="true"] > details > .hive-record { background: var(--bg-card); }
+.hive-node[data-selected="true"] > details > .hive-record .hive-select { color: var(--accent-blue); }
 .hive-empty { color: var(--text-muted); font-size: var(--hive-body); line-height: 1.55; }
 
 /* Selected-agent manifest: label and value pairs, no cards inside it. */
@@ -159,78 +146,160 @@
 
 /* The message feed. Only the list scrolls, and the page never jumps with it. */
 .hive-conversation-controls { display: flex; flex-wrap: wrap; gap: 8px; }
-.hive-chat { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; max-height: min(60vh, 520px); overflow-y: auto; overscroll-behavior: contain; }
+.hive-chat { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; max-height: min(64vh, 560px); overflow-y: auto; overscroll-behavior: contain; }
 .hive-chat:focus-visible { outline: 2px solid var(--accent-green); outline-offset: 4px; }
-.hive-message { display: grid; gap: 3px; padding: 8px 10px 8px 12px; border-left: 2px solid var(--border-subtle); }
-.hive-message[data-role="drake"] { border-left-color: var(--accent-blue); }
+.hive-message { display: grid; gap: 6px; padding: 8px 10px 8px 14px; border-left: 2px solid var(--border-subtle); }
 .hive-message-who { display: flex; flex-wrap: wrap; gap: 3px 12px; font-family: var(--font-mono); font-size: var(--hive-micro); color: var(--text-muted); }
 .hive-message-who strong { color: var(--text-primary); font-weight: 600; }
-.hive-message-text { color: var(--text-secondary); font-size: var(--hive-body); overflow-wrap: anywhere; white-space: pre-wrap; }
+.hive-message-text { color: var(--text-secondary); font-size: var(--hive-body); max-width: 72ch; overflow-wrap: anywhere; white-space: pre-wrap; }
 
 .hive-closing { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: baseline; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border-subtle); }
 .hive-closing p { color: var(--text-muted); }
 
 @media (max-width: 900px) {
   .hive { padding: 24px 4vw 56px; --hive-scroll: clamp(320px, 68vh, 640px); }
-  .hive-sections { grid-template-columns: minmax(0, 1fr); gap: 16px; }
-  .hive-section-full, .hive-section-main, .hive-section-narrow { grid-column: 1; }
-  .hive-section-narrow { position: static; }
+  .hive-sections { gap: 40px; }
   .hive-section { padding: 16px; }
   .hive-section.hive-panel { padding: 0; }
   .hive-panel-head { padding: 14px 14px 0; }
   .hive-panel-body { padding: 0 14px 14px; }
-  .hive-record { grid-template-columns: 2rem minmax(0, 1fr) max-content; column-gap: 8px; padding: 6px 8px; margin: 0 -8px; }
-  .hive-disclose { grid-area: 1 / 1; }
-  .hive .hive-select { grid-area: 1 / 2; }
-  .hive-pill { grid-area: 1 / 3; }
-  .hive-chip { grid-area: 2 / 2 / 3 / 3; max-width: 100%; justify-self: start; }
-  .hive-elapsed { grid-area: 2 / 3 / 3 / 4; }
-  .hive-activity { grid-area: 3 / 2 / 4 / -1; }
+  .hive-record { grid-template-columns: 1.25rem minmax(0, 1fr) max-content; column-gap: 10px; padding: 12px 8px; margin: 0 -8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .hive *, .hive *::before, .hive *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
 }
 
-.hive[data-motion="off"] *, .hive[data-motion="off"] *::before, .hive[data-motion="off"] *::after {
+.hive:not(:has(#hive-motion:checked)) *, .hive:not(:has(#hive-motion:checked)) *::before, .hive:not(:has(#hive-motion:checked)) *::after {
   transition: none !important;
   animation: none !important;
   scroll-behavior: auto !important;
 }
 
-/* Presentation layer, from #91. The sky is decorative and belongs to the
-   masthead alone: it never encodes agent position, progress, topology or live
-   activity, and it is inert (no script, no animation, no external reference).
-   Where a rule here collided with the bounded panels or the row grid, the
-   structure won: the record grid, the panel scroll boxes and the manifest
-   offset are set once, in the sections above. */
+/* Presentation layer, from #91. The sky is decorative: it never encodes agent
+   position, progress, topology or live activity, and it is inert (no script,
+   no animation, no external reference). Where a rule here collided with the
+   bounded panels or the row grid, the structure won: the record grid, the
+   panel scroll boxes and the manifest offset are set once, in the sections
+   above. */
 .hive { max-width:1600px; padding:22px 4vw 80px; }
 .hive *, .hive *::before, .hive *::after { box-sizing:border-box; }
-.hive-jumps { margin-bottom:0; border-top:0; padding:14px 0; gap:12px 30px; }
+/* The sky sits behind the whole page, not inside a band: one fixed layer the
+   size of the viewport, so it has no edge to show and never scrolls. A fixed,
+   composited layer is rasterised once and only moved by the compositor;
+   the old band was a cover-sized layer at half opacity under a gradient scrim
+   that was repainted with the holes, which read as faded and flickering.
+   No negative z-index: under isolation Chromium rebuilt that layer on
+   scroll. The layer is at 0 and every child of .hive is lifted to 1. */
+.hive::before {
+  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:url('/assets/hive-universe.svg') 60% 45% / cover no-repeat;
+  transform:translateZ(0); will-change:transform;
+}
+.hive > * { position:relative; z-index:1; }
+/* The site footer and, below 1100px, the site header (sticky only above it)
+   follow the static flow, so the fixed sky would paint over them; this sheet
+   only loads on /hive/, so lifting them here is local. */
+.aien-footer { position:relative; z-index:1; }
+@media (max-width:1099px) { .aien-header { position:relative; z-index:50; } }
+/* The jumps and the closing line are the only prose outside a section, scrim
+   or opaque card, so they get the sections' 86% --bg-surface glass rather
+   than sitting straight on the sky's bright core. */
+.hive-jumps { margin-bottom:0; border-top:0; padding:14px 18px; gap:12px 30px; border-radius:12px; background:color-mix(in srgb, var(--bg-surface) 86%, transparent); }
+.hive-closing { padding:16px 18px; border-radius:12px; background:color-mix(in srgb, var(--bg-surface) 86%, transparent); }
 .hive-jumps a { font-size:.73rem; letter-spacing:.04em; }
 .hive-masthead {
-  position:relative; isolation:isolate; overflow:hidden;
+  position:relative; overflow:hidden;
   max-width:none; min-height:520px; margin:0 -4vw 36px;
   padding:80px 8vw 72px; display:flex; flex-direction:column; justify-content:center;
-  background:var(--bg-base);
 }
-.hive-masthead::before {
-  content:""; position:absolute; inset:0 -10% 0 18%; z-index:-2; pointer-events:none;
-  background:url('/assets/hive-universe.svg') 55% 48% / cover no-repeat;
-  opacity:.95;
+
+/* The scene: Allen's two black holes (native/kernel/ui/night.c and chirp.c,
+   ported by om/hive-page/hive.om). The markup, the samples and every keyframe
+   come from that program; this block only places the stage and paints the
+   discs, and it animates nothing. The emitted <style> in the artifact
+   attaches the animations, inside a prefers-reduced-motion:no-preference
+   query and behind the native motion checkbox, so with motion off the
+   base values below are what the reader sees: one frame of the sequence, the
+   two holes at a visible separation (t = 7000 ms of the 19000 ms cycle), no
+   merged hole and no ripple.
+   Units: 1em is one unit of Allen's picture (a0 is 270 of them), and the
+   scene's font-size is that unit, so the whole scene scales on one number. */
+.hive-masthead > .hive-scene {
+  position:absolute; inset:0; z-index:0; overflow:hidden; pointer-events:none;
+  font-size:var(--hive-u,1px); contain:paint;
 }
+.hive-stage { position:absolute; left:74%; top:44%; width:0; height:0; }
+.hive-hole, .hive-merge {
+  position:absolute; left:0; top:0; width:0; height:0;
+  transform:translateZ(0); will-change:transform;
+}
+/* The bend: the region whose light a hole bends (night.c's Einstein radius,
+   60 units). A page cannot warp starlight with a transform, so the timing of
+   this halo is Allen's, the 2600 to 5200 ms ramp, and the shape is the
+   page's: it is the one place the scene simplifies. */
+.hive-bend, .hive-mglow {
+  position:absolute; left:0; top:0; border-radius:50%;
+  background:radial-gradient(circle closest-side,
+    color-mix(in srgb, var(--accent-blue) 20%, transparent) 0%,
+    color-mix(in srgb, var(--accent-blue) 8%, transparent) 46%,
+    transparent 74%);
+}
+.hive-bend { width:180em; height:180em; margin:-90em 0 0 -90em; }
+.hive-mglow { width:254em; height:254em; margin:-127em 0 0 -127em; }
+/* The shadow: night.c draws an opaque disc of radius rs (20 units), a thin
+   ring at 1.04 rs, and a glow that dies out by 1.5 rs. The box is 60em
+   across, 3 rs, so each stop below is one of those radii as a share of the
+   box, and scaling the box scales all three together. */
+.hive-plate, .hive-mplate {
+  position:absolute; left:0; top:0; width:60em; height:60em; margin:-30em 0 0 -30em;
+  border-radius:50%;
+  background:radial-gradient(circle closest-side,
+    var(--bg-base) 0 65.8%,
+    color-mix(in srgb, var(--accent-amber) 62%, var(--text-primary)) 68.9% 69.7%,
+    color-mix(in srgb, var(--accent-amber) 30%, transparent) 70.6%,
+    transparent 100%);
+}
+/* The ring that wobbles after the merger, inside the merged shadow's own
+   scale so it always sits just outside the shadow it belongs to. */
+.hive-ring {
+  position:absolute; inset:0; border-radius:50%;
+  background:radial-gradient(circle closest-side, transparent 0 66.4%,
+    color-mix(in srgb, var(--text-primary) 56%, transparent) 68.6% 70%,
+    transparent 72%);
+}
+/* The ripple: one circle from the merge point, out to 1000 units, drawn in
+   night.c's shape (a band a tenth of the radius wide) and its envelope. */
+.hive-ripple {
+  position:absolute; left:0; top:0; width:2em; height:2em; margin:-1em 0 0 -1em;
+  border-radius:50%;
+  background:radial-gradient(circle closest-side, transparent 0 64%,
+    color-mix(in srgb, var(--accent-blue) 34%, transparent) 82% 94%,
+    transparent 100%);
+}
+/* The two parts that exist only after the merger. With motion off the frame is
+   the pair, so both stay hidden; the emitted keyframes are what turn them on,
+   and they win over these declarations while they run. */
+.hive-merge, .hive-ripple { opacity:0; }
+@media (max-width:600px) {
+  /* The prose is bottom aligned on a phone, so the pair rides in the upper
+     fifth: at 0.86 of the unit the discs bottom out at about 457 CSS px, above
+     the first line at 464, and the scrim over the prose is untouched. */
+  .hive-masthead > .hive-scene { --hive-u:.86px; }
+  .hive-stage { left:50%; top:15%; }
+}
+.hive-masthead > * { position:relative; z-index:2; }
 /* Scrim. The prose always sits over --bg-base at a token-derived alpha, never
-   straight over the scene. The first 68% (74% on a phone) of the band stays at
-   0.90 or more of --bg-base, and against the brightest pixel the scene could
-   produce (white) 0.90 leaves --text-primary at 14.7:1, --text-secondary at
-   6.2:1 and --text-muted at 6.0:1, so no width of this decoration can outshout
-   the text. scripts/test-hive-cosmic.py checks the stop contract; the browser
-   audit in the pull request measures the prose against those stops. */
+   straight over the sky. It is an ellipse that dies out to transparent on
+   every side, so the band has no top, bottom or right edge: the sky runs
+   straight through. Inside the inner 68% of the ellipse (where the prose is)
+   it stays at 0.90 or more of --bg-base, and against the brightest pixel the
+   sky could produce (white) 0.90 leaves --text-primary at 14.7:1,
+   --text-secondary at 6.2:1 and --text-muted at 6.0:1.
+   scripts/test-hive-cosmic.py checks the stop contract. */
 .hive-masthead::after {
-  content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
-  background:
-    linear-gradient(90deg, color-mix(in srgb, var(--bg-base) 92%, transparent) 0%, color-mix(in srgb, var(--bg-base) 90%, transparent) 68%, color-mix(in srgb, var(--bg-base) 55%, transparent) 86%, color-mix(in srgb, var(--bg-base) 12%, transparent) 100%),
-    linear-gradient(0deg, var(--bg-base) 0%, transparent 18%, transparent 86%, var(--bg-base) 100%);
+  content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
+  background:radial-gradient(ellipse 72% 95% at 24% 52%, color-mix(in srgb, var(--bg-base) 92%, transparent) 0%, color-mix(in srgb, var(--bg-base) 90%, transparent) 68%, color-mix(in srgb, var(--bg-base) 55%, transparent) 86%, transparent 100%);
 }
 .hive-masthead .hive-eyebrow { color:var(--text-secondary); font-size:.65rem; letter-spacing:.24em; margin-bottom:22px; }
 .hive h1 { font-size:clamp(4rem,9vw,8.5rem); font-weight:400; letter-spacing:-.065em; margin:0 0 24px; }
@@ -239,30 +308,40 @@
 .hive-welcome { max-width:43ch; font-size:.85rem; margin-top:16px; }
 .hive-learn { align-self:flex-start; margin-top:25px; padding:12px 19px; border:1px solid var(--border-subtle); border-radius:30px; text-decoration:none; font-size:.76rem; background:var(--bg-surface); }
 .hive-learn:hover { border-color:var(--border-active); background:var(--bg-card); }
-.hive-sections { gap:28px; }
-.hive-section { border-radius:16px; padding:26px; background:var(--bg-surface); }
+
+/* Provenance: this page is generated by Omega, and that is the point of the
+   page, so it says so above the fleet rather than in a footnote. */
+.hive-omega {
+  display:grid; gap:6px; margin:0 0 22px; padding:18px 20px 18px 22px;
+  border:1px solid var(--border-subtle); border-left:3px solid var(--accent-blue);
+  border-radius:10px; background:var(--bg-surface);
+}
+.hive-omega-kicker { font-family:var(--font-mono); font-size:.7rem; letter-spacing:.2em; text-transform:uppercase; color:var(--accent-green); }
+.hive-omega-line { font-size:1rem; line-height:1.5; color:var(--text-primary); }
+.hive-omega-note { font-size:.85rem; line-height:1.55; color:var(--text-secondary); }
+.hive-omega-source { justify-self:start; margin-top:4px; font-family:var(--font-mono); font-size:.72rem; }
+/* Sections are glass over the sky, not opaque slabs: 86% of --bg-surface
+   keeps the text contrast (0.86 over white) and lets the galaxy run on. */
+.hive-section { border-radius:16px; padding:32px; background:color-mix(in srgb, var(--bg-surface) 86%, transparent); }
 .hive-section .hive-eyebrow { font-size:.61rem; letter-spacing:.18em; }
 .hive h2 { font-size:1.5rem; font-weight:450; letter-spacing:-.025em; }
 .hive-note { font-size:.78rem; }
-/* The Signal band is three short rows, not a column of stacked headings: the
-   eyebrow, heading and note share one head row (hive.om opens that row in field
-   1 and closes it in field 7), the two timestamps sit beside the connection
-   state, counts sit beside coverage, and the motion control takes the top
-   right. The band stays near 180px, so the Missions head is on screen at 1280
-   by 900 without a scroll. */
-#hive-strip { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px 24px; padding:14px 22px 16px; }
+/* The Signal band reads top to bottom in three short groups: the heading,
+   the connection state beside the two timestamps, then counts and coverage.
+   Each group gets its own line and room around it. */
+#hive-strip { display:grid; grid-template-columns:minmax(0,1fr); gap:20px; }
 #hive-strip > * { margin-top:0; }
-.hive-head-row { grid-column:1; grid-row:1; display:flex; flex-wrap:wrap; align-items:baseline; column-gap:16px; row-gap:2px; }
+.hive-head-row { display:flex; flex-wrap:wrap; align-items:baseline; column-gap:16px; row-gap:6px; }
 .hive-head-row .hive-eyebrow { margin:0; }
 .hive-head-row h2 { margin:0; }
-.hive-head-row .hive-note { flex:1 1 100%; margin:2px 0 0; }
-.hive-strip-facts { grid-column:1 / -1; grid-row:2; display:grid; grid-template-columns:minmax(0,max-content) minmax(0,1fr); gap:2px 28px; align-items:start; }
-.hive-strip-facts .hive-times { gap:1px 14px; }
-.hive-strip-facts .hive-strip-status { gap:1px; }
-.hive-strip-foot { grid-column:1 / -1; grid-row:3; display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 22px; }
+.hive-head-row .hive-note { flex:1 1 100%; margin:0; }
+.hive-strip-facts { display:flex; flex-wrap:wrap; gap:12px 48px; align-items:start; }
+.hive-strip-facts .hive-times { gap:4px 16px; }
+.hive-strip-facts .hive-strip-status { gap:4px; flex:1 1 24ch; }
+.hive-strip-foot { display:grid; gap:8px; padding-top:16px; border-top:1px solid var(--border-subtle); }
 .hive-strip-foot .hive-counts, .hive-strip-foot .hive-coverage { min-width:0; }
-.hive-strip-foot .hive-coverage { flex:1 1 auto; }
-#hive-strip > #hive-motion { grid-column:2; grid-row:1; align-self:center; justify-self:end; min-height:32px; padding:4px 12px; font-size:.72rem; }
+.hive input.hive-motion-check { width: 1.1rem; min-height: 1.1rem; padding: 0; margin: 0 8px 14px 0; accent-color: var(--accent-blue); }
+.hive-motion-label { color: var(--text-muted); font-size: var(--hive-micro); cursor: pointer; }
 @media (min-width:901px) {
   /* One line of context above the facts; the text is short enough to fit. */
   .hive-head-row .hive-note { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:1; overflow:hidden; }
@@ -274,16 +353,15 @@
 .hive-chip { font-size:.66rem; }
 .hive-pill,.hive-elapsed { font-size:.63rem; }
 .hive-activity { font-size:.76rem; }
-.hive-node[data-selected="true"] > .hive-record { background:var(--bg-card); border-radius:8px; }
+.hive-node[data-selected="true"] > details > .hive-record { background:var(--bg-card); border-radius:8px; }
 .hive-children { margin-left:10px; padding-left:15px; }
 .hive-message { border-radius:10px; padding:16px 18px; }
 .hive-message-text { font-size:.88rem; line-height:1.75; }
 .hive-closing { font-size:.78rem; }
-/* Fold budget. The Signal band is 172px and the presentation masthead was 538,
-   which put the Missions head at 977 on a 900px viewport. The band below trims
-   the hero (smaller display size, tighter padding and rhythm) and the gaps
-   around the strip, without touching the scene or any section head, so the
-   Missions head lands above the fold at 1280 by 900. */
+/* Desktop rhythm. The masthead keeps its trimmed hero (smaller display size,
+   tighter padding) without touching the scene; below it the sections get
+   room rather than a fold budget, because a crowded first screen read worse
+   than one scroll. */
 @media (min-width:901px) {
   .hive { padding-top:14px; }
   .hive-masthead { min-height:380px; margin:0 -4vw 22px; padding:40px 8vw 32px; }
@@ -292,13 +370,11 @@
   .hive-welcome { margin-top:10px; }
   .hive-learn { margin-top:14px; }
   .hive-jumps { padding:8px 0; }
-  .hive-sections { gap:18px; }
-  #hive-strip { padding:10px 22px 12px; gap:6px 24px; }
+  .hive-sections { gap:48px; }
 }
 
 @media (max-width:900px) {
   .hive-masthead { min-height:460px; padding:58px 7vw; }
-  .hive-masthead::before { inset:0 -30% 0 10%; opacity:.75; }
   .hive-section { padding:22px; }
 }
 @media (max-width:600px) {
@@ -306,15 +382,14 @@
   .hive-jumps { gap:10px 20px; }
   .hive-jumps a { font-size:.65rem; }
   .hive-masthead { margin:0 -20px 22px; padding:54px 28px 48px; min-height:520px; justify-content:flex-end; }
-  .hive-masthead::before { inset:-25% -65% 15% -25%; background-position:center; opacity:.7; }
-  /* The prose is bottom-aligned here, so the scrim is too. */
+  /* The prose is bottom-aligned here, so the scrim ellipse sits low. */
   .hive-masthead::after {
-    background:linear-gradient(0deg, color-mix(in srgb, var(--bg-base) 94%, transparent) 0%, color-mix(in srgb, var(--bg-base) 90%, transparent) 74%, color-mix(in srgb, var(--bg-base) 60%, transparent) 92%, color-mix(in srgb, var(--bg-base) 30%, transparent) 100%);
+    background:radial-gradient(ellipse 110% 70% at 50% 82%, color-mix(in srgb, var(--bg-base) 94%, transparent) 0%, color-mix(in srgb, var(--bg-base) 90%, transparent) 55%, color-mix(in srgb, var(--bg-base) 60%, transparent) 80%, transparent 100%);
   }
   .hive h1 { font-size:clamp(3.7rem,17vw,5rem); margin-bottom:18px; }
   .hive-intro { font-size:1rem; }
   .hive-welcome { font-size:.78rem; }
-  .hive-sections { gap:18px; }
+  .hive-sections { gap:32px; }
   .hive-section { padding:20px 16px; border-radius:12px; }
   #hive-strip { display:block; padding:16px; }
   #hive-strip > * + * { margin-top:12px; }

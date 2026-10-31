@@ -1,0 +1,51 @@
+note float_to_int: float to integer truncates toward zero and saturates; NaN becomes 0; no trap
+note ---- output helpers: a function works on a global by naming it (a global is never an argument)
+global ob uchar 32
+note outb: write ob[off .. off+n) to stdout; a short write continues, 0 or an error exits 90
+note bound: every pass writes at least one byte and n <= 32, so at most 32 passes
+fn outb off ulong n ulong to void
+e = add off n
+p = off
+while lt p e bound 32
+k = write 1 ob p sub e p
+if le k 0
+exit 90
+end
+p = add p ulong k
+end
+end
+note putu: v in decimal, then a newline. A ulong has at most 20 digits, so 20 passes
+fn putu v ulong to void
+i = ulong 31
+put ob 31 10
+n = v
+while true bound 20
+i = sub i 1
+put ob i uchar add rem n 10 48
+n = div n 10
+if eq n 0
+break
+end
+end
+outb i sub 32 i
+end
+note putl: a signed value; -(v+1)+1 avoids negating the minimum, which would trap 1
+fn putl v long to void
+if lt v 0
+put ob 0 45
+outb 0 1
+putu add ulong neg add v 1 1
+ret
+end
+putu ulong v
+end
+fn main to int
+putl long 1.0e30f64
+putl long -1.0e30f64
+putl long -5.75f64
+putu ulong uint -5.5f64
+z = f64 0.0
+putl long div z z
+putu ulong uchar 300.0f64
+ret 0
+end

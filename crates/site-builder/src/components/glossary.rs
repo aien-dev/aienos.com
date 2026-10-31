@@ -23,16 +23,16 @@ pub fn render_glossary() -> Markup {
                     "The terms this site uses in its own sense. Each definition points at the page where the term does real work, so a reader can check the usage rather than trust the summary."
                 }
                 p style="color: var(--text-muted); font-size: 14px; line-height: 1.6;" {
-                    "Status: experimental, pre-alpha. Definitions change when the evidence changes."
+                    "Sovereign Intelligence, built on AienOS, is in alpha testing. Each component keeps its own evidence level. Definitions change when the evidence changes."
                 }
 
                 h2 style="font-size: 24px; font-weight: 700; color: var(--text-primary); margin: 44px 0 4px 0;" { "The system" }
                 dl style="margin: 0;" {
                     (term("AienOS", html! {
-                        "The experimental, open source machine this site documents. A sovereign substrate that owns the hardware and keeps a persistent intelligence alive and continuous. Pre-alpha. See "
+                        "The experimental, open source OS layer this site documents. AienOS keeps its own identity within Sovereign Intelligence, the front door and alpha download. See "
                         a href="/machine/" { "The Machine" } "."
                     }))
-                    (term("AIEN", html! {
+                    (term("Aien", html! {
                         "The persistent intelligence that learns. Weights suggest, programs explain, verification decides, evidence teaches. See "
                         a href="/machine/" { "The Machine" } " and " a href="/research/" { "Research" } "."
                     }))
@@ -44,7 +44,7 @@ pub fn render_glossary() -> Markup {
                         a href="/omega/" { "What Omega is" } "."
                     }))
                     (term("CUDA++", html! {
-                        "The GPU half of Omega, MIT licensed, for the NVIDIA GPUs people already own. See "
+                        "The GPU half of Omega, licensed Apache-2.0 with the LLVM exception, for the NVIDIA GPUs people already own. See "
                         a href="/cudaplusplus/" { "CUDA++" } "."
                     }))
                     (term("Turing", html! {

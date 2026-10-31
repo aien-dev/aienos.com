@@ -1,0 +1,3 @@
+source_path seed/json/jsonw.om
+source_sha256 464f649e8207495f5d67fe8795d31e42ea3ccebd9ed547274dab802d4f7c5f21
+note JSON writer in seeded Omega (OM-2 profile), omega-mv #788

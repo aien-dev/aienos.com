@@ -44,7 +44,7 @@ Run the relevant repository checks and exercise the keyboard behavior
 in a browser. Report the commit, exact commands, results, and which
 pages and browser you checked. If a check cannot run, say NOT RUN and
 why. Show the diff, remaining limitations, and any unrelated changes.
-Do not call it complete just because it compiles."#;
+When it compiles, celebrate, then run the keyboard check before calling it complete."#;
 
 pub fn render_learn_page() -> Markup {
     html! {
@@ -53,15 +53,26 @@ pub fn render_learn_page() -> Markup {
                 p class="learn-eyebrow" { "A field guide for your first change" }
                 h1 { "Build" br; "with AI." }
                 p class="learn-lede" {
-                    "You are welcome here. You do not need to arrive knowing all the words. If you have been dismissed for learning with AI, you can still bring your questions and make something worth checking."
+                    "You are welcome here. You do not need to arrive knowing all the words. Learning with AI is how I learned too: I am not a programmer, and I build everything by talking to AI. Bring your questions and your ideas, and I will help you build something you will be proud to show people."
                 }
                 p class="learn-invitation" {
                     "Start with a small change you can describe and observe. Let an agent help with the code. Keep hold of the purpose, the boundaries, and the decision to publish."
+                }
+                p class="learn-invitation" {
+                    "I use Human-Directed Agentic Engineering (HDAE): I define the goals, architecture, constraints, acceptance criteria and stopping points; my agents implement, run checks, diagnose failures and revise within those boundaries. I retain responsibility for the claims, acceptance and release decisions."
+                }
+                p {
+                    "For the documented method and a systems-software case study, see Gregory M. Kurtzer, "
+                    a href="https://doi.org/10.5281/zenodo.23682548" {
+                        "Ginux: Building an Independent Kernel That Runs Linux Userspace through Human-Directed Agentic Engineering"
+                    }
+                    " (2026)."
                 }
                 nav class="learn-jump" aria-label="Learning guide" {
                     a href="#workflow" { "The working loop" }
                     a href="#brief" { "A brief to copy" }
                     a href="/hive/" { "Watch the Hive" }
+                    a href="/engineer/" { "About the engineer" }
                 }
                 div class="learn-orbit" aria-hidden="true" {
                     span class="learn-orbit-ring" {}
@@ -83,10 +94,10 @@ pub fn render_learn_page() -> Markup {
                     li {
                         h3 { "Give the agent the relevant ground." }
                         p {
-                            "Point to the repository instructions, the affected feature, existing patterns, and the commands used to build and test. State non-goals and actions that need approval. Ask it to read before guessing. Our "
+                            "Point to the repository instructions, the affected feature, existing patterns, and the commands used to build and test. State non-goals and actions that need approval. Ask it to read before guessing. My "
                             a href="/agents/" { "repository guide" }
                             " and " a href="/agents/RULES.md" { "public agent rules" }
-                            " show what those constraints look like here. Use your own project's rules, not ours by default."
+                            " show what those constraints look like here. Use your own project's rules, not mine by default."
                         }
                     }
                     li {
@@ -99,16 +110,16 @@ pub fn render_learn_page() -> Markup {
                     }
                     li {
                         h3 { "Run the behavior you asked for." }
-                        p { "Run the project's relevant checks, then try the acceptance steps yourself. A successful build says the code can be built. A passing test says that test passed under those conditions. Neither proves every user journey, security property, or future input is correct." }
+                        p { "Run the project's relevant checks, then try the acceptance steps yourself. When it builds, celebrate, then try it with the keyboard and see it work for real. A passing build and a passing test are great signs, and trying the real behavior yourself is the moment you know it works." }
                     }
                     li {
                         h3 { "Use a failure to make the next instruction precise." }
-                        p { "Record what you did, what you expected, and what happened. Ask for the cause, not a way to hide the symptom. Reduce the case if needed, change one thing, and repeat the check that failed. Mistakes are part of learning; weakening the check does not fix the behavior." }
+                        p { "Record what you did, what you expected, and what happened. Ask for the cause, not a way to hide the symptom. Reduce the case if needed, change one thing, and repeat the check that failed. Mistakes are part of learning. If a check fails, that is the fun part: it is pointing you at the next thing to fix, so keep the check and fix the behavior." }
                     }
                     li {
                         h3 { "Publish the outcome, with its limits." }
                         p {
-                            "Keep the commit, exact commands, results, and manual steps together. Say what failed or was not run. Review the diff before opening a pull request, and review again before deployment. Our "
+                            "Keep the commit, exact commands, results, and manual steps together. Say what failed or was not run. Review the diff before opening a pull request, and review again before deployment. My "
                             a href="/evidence/" { "evidence guide" }
                             " explains how to read a claim alongside its receipt."
                         }
@@ -147,9 +158,9 @@ pub fn render_learn_page() -> Markup {
                         dt { "Check the fix" }
                         dd { "Repeat the same steps on the affected layouts. Check visible focus at narrow width and high zoom. Have the reviewer inspect the target ID and focus behavior, as well as the diff." }
                         dt { "Write an honest handoff" }
-                        dd { "Record the actual browser, pages, commands, commit, and observed results. If you checked only one browser, say so. If the keyboard check still fails, the feature is not finished." }
+                        dd { "Record the actual browser, pages, commands, commit, and observed results. If you checked only one browser, say so. If the keyboard check still fails, that is your next thing to fix." }
                     }
-                    p { "You do not have to know the implementation in advance to notice that the promised behavior did not happen. That observation is a useful contribution." }
+                    p { "Noticing that something does not work the way it should is one of the most valuable things anyone can do. Testers and product people do it every day, and I want to hear what you find." }
                 }
             }
 
@@ -161,7 +172,7 @@ pub fn render_learn_page() -> Markup {
                     a class="learn-text-link" href="/hive/" { "Open the live Hive" }
                 }
                 div class="learn-watch" {
-                    p { "Watch Drake give instructions and corrections, and read the agents' public replies. Follow how a broad request becomes a bounded task. Look for what changed after a correction, then follow the public source and evidence rather than treating an activity label as proof." }
+                    p { "Watch me work with my coding agents, the wins and the retries both, because that is what building really looks like, and read the agents' public replies. Follow how a broad request becomes a bounded task. Look for what changed after a correction, then follow the public source and evidence rather than treating an activity label as proof." }
                     dl class="learn-terms" {
                         dt { "Runtime" }
                         dd { "The program running the agent session. It manages tools, permissions, and the conversation. It is not the model." }
@@ -170,14 +181,32 @@ pub fn render_learn_page() -> Markup {
                         dt { "Subagent role" }
                         dd { "The job given to a child agent, such as implementation or read-only review. A role describes responsibility, not a different model. The tree shows the observed parent and child relationships." }
                     }
-                    p { "Read the Hive's coverage and freshness notices. Unknown identity is unknown, not an invitation to guess. A fresh snapshot does not mean every task just advanced, and a working agent is not a successful result." }
+                    p { "Read the Hive's coverage and freshness notices. If the Hive does not know which model is answering, it says so, and that honesty helps everyone. A fresh snapshot does not mean every task just advanced, and a working agent is not a successful result." }
                     p { "The interaction view is a filtered public record, not the entire session. It does not expose hidden reasoning, private tool payloads, secrets, or automatic system context. An absent message is not evidence that no discussion happened." }
                     p { "For a broader view of the project, use " a href="/now/" { "Now" } ". For the project introduction, use " a href="/start/" { "Start here" } "." }
                 }
             }
 
+            section class="learn-section" id="engineer" aria-labelledby="engineer-title" {
+                div class="learn-margin" {
+                    p class="learn-eyebrow" { "05 / Who is teaching" }
+                    h2 id="engineer-title" { "About the engineer." }
+                    a class="learn-text-link" href="/engineer/" { "Meet the engineer" }
+                }
+                div class="learn-watch" {
+                    p { "I am Drake Stapleton. I grew up on a farm, worked the line at Taco Bell, trained in chemistry, became an engineer, and now I build a whole computer from the ground up by directing AI agents and holding them to proof. I learned all of it the way this guide describes: one checked step at a time." }
+                    p {
+                        "My story, my philosophy, the work I have shipped and the glossary of my terms are in "
+                        a href="/engineer/" { "About the engineer" }
+                        ". Start with " a href="/engineer/path/" { "my path" } ", "
+                        a href="/engineer/philosophy/" { "my philosophy" } " or "
+                        a href="/engineer/works/" { "my works" } "."
+                    }
+                }
+            }
+
             footer class="learn-outro" {
-                p class="learn-eyebrow" { "Leave something another person can check" }
+                p class="learn-eyebrow" { "Leave something another person can enjoy and build on" }
                 h2 { "One useful change. An honest record." }
                 p { "Pick something small enough to try today. Ask questions, keep the boundaries clear, and tell the next person what actually happened. You can learn the vocabulary as you go." }
                 p class="learn-source-links" {
