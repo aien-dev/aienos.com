@@ -1433,7 +1433,11 @@
       frame.setAttribute('allow', "camera 'none'; microphone 'none'; geolocation 'none'; usb 'none'; serial 'none'; bluetooth 'none'; payment 'none'; display-capture 'none'; clipboard-read 'none'; clipboard-write 'none'; fullscreen 'none'");
       frame.setAttribute('title', `${rec.title}, an app written by Aien, sandboxed`);
       frame.className = 'allen-pane-frame';
-      frame.srcdoc = sandboxed(rec.content.html);
+      /* A srcdoc frame would inherit the page policy, which forbids inline
+         scripts; /aien/run.html writes what this page posts, sandboxed. */
+      const html = sandboxed(rec.content.html);
+      frame.addEventListener('load', () => frame.contentWindow.postMessage(html, '*'), { once: true });
+      frame.src = '/aien/run.html';
       stage.replaceChildren(frame);
       rec.app = { frame, run, stop };
       run.hidden = true;

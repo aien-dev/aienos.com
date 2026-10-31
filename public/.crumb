@@ -7,8 +7,8 @@
     "generated": {
       "children": [
         {
-          "digest": "b8917c6f36b89eefce0ad992d3e57c834b50d2035a3316f3bdea333c1ae579c1",
-          "last_commit": "96d38f3",
+          "digest": "937ca48aa52a1bcdaea3533e8e508e7c154415294449fe8ff99c65be0eea2c1d",
+          "last_commit": "0804a19",
           "name": "alpha",
           "purpose": "Pinned alpha wizard source and unmodified terminal capture assets"
         },
@@ -19,14 +19,14 @@
           "purpose": "Website styles including the project dashboard"
         },
         {
-          "digest": "701b00aacfafca2b32292040b1cb953054cf678a10665cbe32d0d5ca1a45614c",
-          "last_commit": "e588e63",
+          "digest": "fbddcd26c59b9bf8dc30cfc42ba010787d5c934670fbe030b21b7c3552a636bc",
+          "last_commit": "37adb76",
           "name": "data",
           "purpose": "Published generated project measurements with pinned sources"
         },
         {
-          "digest": "f7663e11702c9495ea6de2f05d8ec832561970a0892403abbec155cf018405c5",
-          "last_commit": "6e76cd8",
+          "digest": "15e41d311cc2a344f5a9337f8aa092e73ba2304ff351b41a5ad863ef55349490",
+          "last_commit": "863c0fa",
           "name": "js",
           "purpose": "Browser interactions using public data only"
         },
@@ -37,8 +37,8 @@
           "purpose": "Public static research or licensing pages using the shared website navigation"
         },
         {
-          "digest": "936828b67284e18ab0ab934dfa6010a80e0adf4ea6cf29753f304b9b5edba1ec",
-          "last_commit": "8f55098",
+          "digest": "92ddc743ca7340b6a0f015a1ca78e1f6978e87f089182fe0bf1abc9e6b4fe48d",
+          "last_commit": "863c0fa",
           "name": "post-llm-case",
           "purpose": "Public static research or licensing pages using the shared website navigation"
         },
@@ -49,15 +49,15 @@
           "purpose": "Public static research or licensing pages using the shared website navigation"
         }
       ],
-      "children_root": "sha256:340dcd0a00b3ec1122508e52f375012eaced9c9883f92e03d6e623b867f34bf5",
-      "compiled_at": "2026-10-30T21:58:06Z",
+      "children_root": "sha256:66c4427ecaea2fd667ece74aba469b70aefac2a7a82c68570a93cbdeb56a007b",
+      "compiled_at": "2026-10-31T09:45:58Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:77b391620746765f7cfd7b80a0e0872021c80af249c787c3f16864b8b6150695",
+      "digest": "sha256:47f5bd186e43673d3fdf11b3ea370607c1f13d4fd583fa35993b61aed4d2e291",
       "evidence_files": 1,
       "evidence_root": "sha256:63bece7cb299b29d19622dcb0de4cbaa623357b117d8c7643a562de286c4b2fb",
-      "files": 156,
-      "generated_at_commit": "016e6f1f1ab539dc11e965de5a00088e6496b155",
-      "source_tree": "sha256:08d1d4f564193ec24a51771a17779fff7a61fed744852698dc974b20a890c55b"
+      "files": 158,
+      "generated_at_commit": "863c0faa01ef9615fb77bb8f7d38ac43b1e9b143",
+      "source_tree": "sha256:a6a083100862559e8f2c22c38a10b2aa8303c766b04dde92ac456217d2cdc9ed"
     }
   },
   "invariants": [
