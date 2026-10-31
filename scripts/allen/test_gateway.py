@@ -1933,7 +1933,9 @@ def edge_route_faults(text):
                 'if ($proxy_protocol_addr = "") { return 503; }']
         if "limit_except POST" in b:
             need.append("if ($allen_xsite) { return 403; }")
-            if "transcribe" not in h:  # raw audio, not JSON
+            if "/a2a" in h:  # JSON or application/a2a+json, its own stricter map
+                need.append("if ($allen_a2a_notjson) { return 415; }")
+            elif "transcribe" not in h:  # raw audio, not JSON
                 need.append("if ($allen_notjson) { return 415; }")
         faults += ["%s: %s" % (h, n) for n in need if n not in " ".join(b.split())]
     return faults
@@ -1952,7 +1954,8 @@ def edge_tests(a):
     check("edge: the route check finds one dropped X-Forwarded-For line (control)",
           len(edge_route_faults(broken)) == len(faults) + 1, "%d" % len(edge_route_faults(broken)))
     maps = {m.group(1) for m in re.finditer(r"^map\s+\S+\s+\$(\w+)\s*\{", zones, re.M)}
-    check("edge: zones define the $allen_xsite and $allen_notjson maps", {"allen_xsite", "allen_notjson"} <= maps,
+    check("edge: zones define the $allen_xsite, $allen_notjson and $allen_a2a_notjson maps",
+          {"allen_xsite", "allen_notjson", "allen_a2a_notjson"} <= maps,
           "%s" % sorted(maps))
     nginx = os.environ.get("NGINX") or shutil.which("nginx")
     if not nginx:

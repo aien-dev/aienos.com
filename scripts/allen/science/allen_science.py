@@ -14,7 +14,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 # Isolated interpreter (-I) intentionally excludes cwd; only the root-owned install dir is imported.
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from science_protocol import MAX_BYTES, event, packed, validate
+from science_protocol import MAX_BYTES, TOOLS, event, packed, validate
 from science_protocol import content as validate_content
 from science_sandbox import AIEN_MATH_PIN, run_math, run_omega, selftest
 ENGINE = 'aien-math'
@@ -129,6 +129,8 @@ class Handler(BaseHTTPRequestHandler):
             if len(raw) != size: raise ValueError('Truncated request')
             from science_protocol import parse_call
             name, args = parse_call(raw.decode('utf-8'))
+            if name not in self.server.tools:
+                self.reply(403, {'error':'tool_not_allowed'}); return
             output = perform(name,args)
         except (ValueError, UnicodeError, json.JSONDecodeError):
             self.reply(422, {'error':'invalid_compute_request'}); return
@@ -141,6 +143,7 @@ class Server(socketserver.ThreadingMixIn, HTTPServer):
     daemon_threads = True
     allow_reuse_address = True
     slots = threading.BoundedSemaphore(2)
+    tools = frozenset(TOOLS)
     def process_request(self, request, client_address):
         if not self.slots.acquire(False):
             request.sendall(b'HTTP/1.0 503 Service Unavailable\r\nContent-Length: 0\r\n\r\n')
@@ -153,10 +156,19 @@ class Server(socketserver.ThreadingMixIn, HTTPServer):
         try: super().process_request_thread(request,client_address)
         finally: self.slots.release()
 
+def allowed_tools(text):
+    """The --tools list: a non-empty, duplicate-free subset of TOOLS. A public gateway gets an
+    instance that serves only what it calls, so its reach is the tool, not the whole service."""
+    names = text.split(',')
+    if not text or len(set(names)) != len(names) or not set(names) <= set(TOOLS):
+        raise argparse.ArgumentTypeError('--tools takes a comma list of ' + ','.join(TOOLS))
+    return frozenset(names)
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--listen', default='127.0.0.1:18113', choices=['127.0.0.1:18113'])
     parser.add_argument('--listen-fd', type=int)
+    parser.add_argument('--port', type=int, default=18113, choices=[18113, 18114])
+    parser.add_argument('--tools', type=allowed_tools, default=frozenset(TOOLS))
     options = parser.parse_args()
     load_manifest()
     problems = selftest()
@@ -164,10 +176,11 @@ if __name__ == '__main__':
         raise SystemExit('Science sandbox self-test refused startup: ' + '; '.join(problems))
     if options.listen_fd is None:
         raise SystemExit('Science service requires the isolated inherited-socket launcher')
-    server = Server(('127.0.0.1',18113),Handler,bind_and_activate=False)
+    server = Server(('127.0.0.1',options.port),Handler,bind_and_activate=False)
+    server.tools = options.tools
     server.socket.close()
     server.socket = socket.socket(fileno=options.listen_fd)
     server.server_address = server.socket.getsockname()
-    if server.server_address != ('127.0.0.1',18113):
+    if server.server_address != ('127.0.0.1',options.port):
         raise SystemExit('Unexpected inherited listener')
     server.serve_forever()

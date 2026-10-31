@@ -5,11 +5,19 @@
 
 The source of the AienOS website. A Rust program builds the pages, GitHub Pages serves their origin, and the existing nginx edge adds Markdown negotiation and the opt-in live Hive feed.
 
-Part of [Aienix](https://github.com/aien-dev/aienix), the core tree of AIEN: start there for what the project is and how the pieces fit.
+Part of [Sovereign Intelligence](https://github.com/aien-dev/sovereign-intelligence), the whole system: releases are assembled there, install starts there, and the signed Spark test runs there. AienOS is only the operating-system layer. [aienix](https://github.com/aien-dev/aienix) is retired. Other repositories keep their own parts.
 
 Live: [https://www.aienos.com](https://www.aienos.com), rebuilt hourly from the repository's own facts.
 
 ---
+
+## Human-Directed Agentic Engineering
+
+I build this project through Human-Directed Agentic Engineering (HDAE). I define the goals, architecture, constraints, acceptance criteria and stopping points. My agents implement, execute checks, diagnose failures and revise within those boundaries; I retain responsibility for claims, acceptance and release decisions.
+
+For the documented method and a systems-software case study, see Gregory M. Kurtzer, *Ginux: Building an Independent Kernel That Runs Linux Userspace through Human-Directed Agentic Engineering* (2026), [doi:10.5281/zenodo.23682548](https://doi.org/10.5281/zenodo.23682548). The [learning guide](https://www.aienos.com/learn/) explains the working loop. This attribution does not change the authorship of my works or reinterpret historical evidence.
+
+My published preprints and their existing Zenodo DOIs are listed in [CITATION.md](CITATION.md). The [research index](https://www.aienos.com/research/) links the deposited editions and their GitHub sources; paper DOIs and software-release DOIs are distinct.
 
 ## What the site covers
 

@@ -28,7 +28,8 @@ the hub never proxies. Visitor text and model tokens never reach that channel.
 
 Privacy: no prompt, reply, source or address is written anywhere. Rate-limit
 keys are salted hashes held in memory only. The only log line is an aggregate
-counter summary.
+counter summary. POST /allen/api/a2a is A2A 1.0 SendMessage only; it calls the
+introduce door and stores nothing itself (a2a.py lists the methods that error).
 
 Python standard library only. README.md and DEPENDENCIES.md sit next to this
 file (in aien-dev/aienos.com scripts/allen/ and installed in /opt/allen-chat):
@@ -67,6 +68,7 @@ import allen_speed  # noqa: E402
 import allen_infer  # noqa: E402  (speed test: infer, infer-verify; allen_infer.py)
 import allen_math  # noqa: E402  (math panes: POST math to the Omega engine; allen_math.py)
 import allen_transcribe  # noqa: E402  (POST transcribe: push-to-talk, off unless --whisper-cli)
+import a2a  # noqa: E402  (POST a2a: A2A 1.0 SendMessage, passed to introduce)
 
 try:
     import allen_memory  # noqa: E402  (isolated visitor Cortex client; optional)
@@ -1274,17 +1276,28 @@ class Handler(BaseHTTPRequestHandler):
             extra = {"Retry-After": str(retry)}
         self.send_json(code, obj, extra)
 
-    def read_json(self):
+    def read_bytes(self):
+        """The raw body, or None when the size refusal was already sent."""
         try:
             n = int(self.headers.get("Content-Length", "0"))
-        except ValueError:
+        except (TypeError, ValueError):
             n = -1
         if n < 0 or n > MAX_BODY:
             self.refuse(413, "too_long", "The request is too large.")
             return None
         try:
             data = self.rfile.read(n)
-            self.body_read = True
+        except OSError:
+            self.close_connection = True
+            return None
+        self.body_read = True
+        return data
+
+    def read_json(self):
+        data = self.read_bytes()
+        if data is None:
+            return None
+        try:
             return json.loads(data)
         except (ValueError, UnicodeDecodeError):
             self.refuse(400, "bad_request", "The request is not valid JSON.")
@@ -1331,6 +1344,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.submit()
         if r == "introduce":
             return self.introduce()
+        if r == "a2a":
+            return self.a2a()
         if r == "forget":
             return self.forget()
         if r == "forget-me":
@@ -1361,7 +1376,8 @@ class Handler(BaseHTTPRequestHandler):
         that still carries Sec-Fetch-Site is a browser and refused; with neither it is a
         non-browser client (server-side callers, tests), which the Content-Type rule still binds.
         Content-Type must be application/json, except transcribe, which checks its audio type
-        itself; so a cross-site "simple" request (text/plain, form) never executes."""
+        itself, and /a2a, which also accepts application/a2a+json. A cross-site "simple"
+        request (text/plain, form) never executes."""
         origin = self.headers.get("Origin")
         if origin is not None:
             ok = origin in self.app.args.allow_origin
@@ -1372,7 +1388,10 @@ class Handler(BaseHTTPRequestHandler):
             return False
         if r != "transcribe":
             ctype = self.headers.get("Content-Type", "").split(";")[0].strip().lower()
-            if ctype != "application/json":
+            allowed = {"application/json"}
+            if r == "a2a":
+                allowed.add("application/a2a+json")
+            if ctype not in allowed:
                 self.refuse(415, "content_type", "Send the request as application/json.")
                 return False
         return True
@@ -1932,51 +1951,55 @@ class Handler(BaseHTTPRequestHandler):
     INTRO_FIELDS = {"kind": 5, "name": 100, "org": 100, "contact": 200, "github": 39, "origin": 200,
                     "purpose": 1000, "homepage": 200, "framework": 100, "model": 100, "human": 200}
 
-    def introduce(self):
-        """Consent-gated introduction. The record is dropped for the separate ingest unit;
-        this process cannot read the contact store (it is not in its mount namespace)."""
-        app = self.app
-        app.stats.add("introduce_requests")
+    def introduction_gate(self):
+        """None when an introduction may be read. Otherwise (status, body). Stores nothing."""
         if anonymous(self):
-            app.stats.add("introduce_anonymous")
-            return self.send_json(409, {"error": "anonymous", "message": "Anonymous mode is on, so nothing "
-                                        "was stored. Turn it off to introduce yourself."})
-        if not app.args.contacts_drop:
-            return self.send_json(404, {"error": "not_found"})
-        req = self.read_json()
-        if req is None:
-            return
+            self.app.stats.add("introduce_anonymous")
+            return 409, {"error": "anonymous", "message": "Anonymous mode is on, so nothing "
+                         "was stored. Turn it off to introduce yourself."}
+        if not self.app.args.contacts_drop:
+            return 404, {"error": "not_found"}
+        return None
+
+    def accept_introduction(self, req):
+        """The introduce door. Returns (status, body, retry).
+
+        Stores one drop only when consent is the JSON boolean true and the
+        fields pass. Every other result stores nothing. POST /introduce and
+        POST /a2a both call this.
+        """
+        app = self.app
         if not isinstance(req, dict) or req.get("consent") is not True:
             app.stats.add("introduce_no_consent")
-            return self.send_json(400, {"error": "consent_required",
-                                        "message": "Nothing was stored. Send consent: true to agree to the notice."})
+            return 400, {"error": "consent_required",
+                         "message": "Nothing was stored. Send consent: true to agree to the notice."}, None
         extra = set(req) - set(self.INTRO_FIELDS) - {"consent"}
         if extra:
-            return self.send_json(422, {"error": "invalid", "message": "Unknown fields: " + ", ".join(sorted(extra))[:200]})
+            return 422, {"error": "invalid", "message": "Unknown fields: " + ", ".join(sorted(extra))[:200]}, None
         rec = {}
         for k, cap in self.INTRO_FIELDS.items():
             v = req.get(k, "")
             if v is None:
                 v = ""
             if not isinstance(v, str):
-                return self.send_json(422, {"error": "invalid", "message": "%s must be text" % k})
+                return 422, {"error": "invalid", "message": "%s must be text" % k}, None
             v = v.strip()
             if len(v) > cap:
-                return self.send_json(413, {"error": "too_long", "message": "%s is limited to %d characters" % (k, cap)})
+                return 413, {"error": "too_long", "message": "%s is limited to %d characters" % (k, cap)}, None
             if any((ord(c) < 32 and c not in "\n\t") or ord(c) == 127 for c in v):
-                return self.send_json(422, {"error": "invalid", "message": "%s contains control characters" % k})
+                return 422, {"error": "invalid", "message": "%s contains control characters" % k}, None
             rec[k] = v
         if rec["kind"] not in ("human", "agent"):
-            return self.send_json(422, {"error": "invalid", "message": "kind must be human or agent"})
+            return 422, {"error": "invalid", "message": "kind must be human or agent"}, None
         if not (rec["name"] or rec["contact"]):
-            return self.send_json(422, {"error": "invalid", "message": "Give at least a name or a contact."})
+            return 422, {"error": "invalid", "message": "Give at least a name or a contact."}, None
         if rec["homepage"] and not re.match(r"^https://[^\s]{4,}$", rec["homepage"]):
-            return self.send_json(422, {"error": "invalid", "message": "homepage must be an https URL"})
+            return 422, {"error": "invalid", "message": "homepage must be an https URL"}, None
         retry = app.intro_rate.take(app.client_key(self))
         if retry:
-            return self.refuse(429, "rate", "You have introduced yourself several times already.", retry)
+            return 429, {"error": "rate", "message": "You have introduced yourself several times already."}, retry
         if not app.submit_day():
-            return self.refuse(503, "busy", "Allen has taken as many introductions as he may today.", 3600)
+            return 503, {"error": "busy", "message": "Allen has taken as many introductions as he may today."}, 3600
         cid = "c_" + secrets.token_hex(8)
         token = secrets.token_urlsafe(24)
         # A visitor who already has a key keeps it; otherwise consent creates one.
@@ -1993,7 +2016,50 @@ class Handler(BaseHTTPRequestHandler):
         out = {"id": cid, "stored": True, "delete": "https://www.aienos.com/aien/#forget=%s.%s" % (cid, token)}
         if vid:
             out["key"] = key
-        self.send_json(200, out)
+        return 200, out, None
+
+    def send_introduction(self, code, body, retry):
+        if retry is not None:
+            return self.refuse(code, body["error"], body["message"], retry)
+        self.send_json(code, body)
+
+    def introduce(self):
+        """Consent-gated introduction. The record is dropped for the separate ingest unit;
+        this process cannot read the contact store (it is not in its mount namespace)."""
+        app = self.app
+        app.stats.add("introduce_requests")
+        gate = self.introduction_gate()
+        if gate:
+            return self.send_json(gate[0], gate[1])
+        req = self.read_json()
+        if req is None:
+            return
+        self.send_introduction(*self.accept_introduction(req))
+
+    def a2a(self):
+        """A2A 1.0 JSON-RPC. SendMessage (legacy name message/send) calls accept_introduction.
+
+        Every other A2A method is a JSON-RPC error from a2a.py and stores nothing.
+        Consent and Cache-Control: no-store match introduce. The envelope is not stored.
+        """
+        app = self.app
+        app.stats.add("a2a_requests")
+        app.stats.add("introduce_requests")
+        raw = self.read_bytes()
+        if raw is None:
+            return
+
+        def accept(req):
+            gate = self.introduction_gate()
+            if gate:
+                return gate[0], gate[1], None
+            code, body, retry = self.accept_introduction(req)
+            if retry is not None:
+                app.stats.add("refused_" + body["error"])
+            return code, body, retry
+
+        status, obj, extra = a2a.dispatch(raw, self.headers, accept, self.path)
+        self.send_json(status, obj, extra)
 
     def project_summary(self):
         """The visitor's own project summary, sent only by a separate Sync click after a
