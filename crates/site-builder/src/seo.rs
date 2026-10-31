@@ -1208,9 +1208,11 @@ fn verify_consent_boundary(dist: &Path) {
             } else if path.extension().and_then(|e| e.to_str()) == Some("html") {
                 let html = fs::read_to_string(&path).expect("read consent boundary HTML");
                 check_script_boundary(&html).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
-                // A redirect stub leaves at once: it loads no consent dialog and no pixel.
+                // A redirect stub leaves at once, and the program runner is replaced by
+                // what it runs in an opaque origin: neither loads a consent dialog or a pixel.
                 let rel = path.strip_prefix(dist).expect("under dist").to_string_lossy().replace('\\', "/");
-                let consent = if REDIRECTS.iter().any(|(old, _)| format!("{}index.html", &old[1..]) == rel) { 0 } else { 1 };
+                let frame_only = rel == crate::components::csp::RUNNER_PATH;
+                let consent = if frame_only || REDIRECTS.iter().any(|(old, _)| format!("{}index.html", &old[1..]) == rel) { 0 } else { 1 };
                 assert_eq!(html.matches("src=\"/js/allen-intro.js\"").count(), consent, "{} must have exactly {consent} first-party consent loader", path.display());
                 assert_eq!(html.matches("id=\"aien-allen-intro\"").count(), consent, "{} must have exactly {consent} consent dialog", path.display());
                 assert!(consent == 0 || html.contains("href=\"/privacy/\""), "{} must link privacy", path.display());
