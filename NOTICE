@@ -6,3 +6,10 @@ Licensed under the Apache License, Version 2.0 with LLVM Exceptions.
 "AIEN", "AIENOS", "Omega", "CUDA++", "CUDApp", "INTERPLANE", "FORGE" and
 "Aienux" are trademarks of Drake Stapleton. Section 6 of the Apache License
 does not grant trademark rights.
+
+The audio clips under public/aien/voice/ (*.mp3) are not covered by the
+Apache License. They are ElevenLabs Output generated on a paid ElevenLabs
+Creator plan; their terms are recorded per clip in public/aien/voice/catalog.json
+and in README.md ("Aien's voice clips"). They must not be used to train,
+fine-tune or improve any AI model, or be included in a training dataset.
+The clip script text in catalog.json is under the Apache License above.

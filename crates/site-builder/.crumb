@@ -8,7 +8,7 @@
       "children": [
         {
           "digest": "c80aff9769e55302d5a19c54163858aa4c48b089767fc2f4f594b04166096da5",
-          "last_commit": "f63d96e5",
+          "last_commit": "784bc2e8",
           "name": "src",
           "purpose": "Page assembly and site build verification"
         },
@@ -20,14 +20,14 @@
         }
       ],
       "children_root": "sha256:335bb4044b6b92b5a1a6e6c7fd7119e5991b7569ec56d61a3626d5ae397da3a3",
-      "compiled_at": "2026-10-31T11:58:01Z",
+      "compiled_at": "2026-10-31T12:08:33Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:969a005bcc6df220e39493651483c63ae532fa7d6d8d195916f8795192706863",
+      "digest": "sha256:10bf72ea8da6cfd17648f2788b7b5b75c915e14eb05bf8a51c4b858aaba55330",
       "evidence_files": 0,
       "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "files": 63,
-      "generated_at_commit": "f63d96e593b2864e61a0148cadd521090e0e1d17",
-      "source_tree": "sha256:6f0f7fa7875c63ac90b5be4b28a94845b1d8f8c87b764b5f7cadb7f5cb880260"
+      "files": 64,
+      "generated_at_commit": "ea5ca2325b383901eb5e72e5a3c969bace290192",
+      "source_tree": "sha256:6f44936a44b82686968e149f3a3a1a0a185c9a548bf47a3c99539229add17957"
     }
   },
   "invariants": [
