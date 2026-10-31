@@ -1,16 +1,16 @@
-checked	2026-10-30T23:55Z
+checked	2026-10-31T00:25Z
 limit	Anthropic	1		5h	Claude 5 Hour	0		ok
 limit	Anthropic	1		week	Claude 7 Day	100	2026-11-02T04:00Z	exhausted
 limit	Anthropic	1		week	Claude 7 Day (Fable)	51	2026-11-02T04:00Z	ok
 limit	Anthropic	2		5h	Claude 5 Hour	0		ok
-limit	Anthropic	2		week	Claude 7 Day	100	2026-10-31T15:59Z	exhausted
-limit	Anthropic	2		week	Claude 7 Day (Fable)	100	2026-10-31T15:59Z	exhausted
+limit	Anthropic	2		week	Claude 7 Day	100	2026-10-31T16:00Z	exhausted
+limit	Anthropic	2		week	Claude 7 Day (Fable)	100	2026-10-31T16:00Z	exhausted
 limit	Anthropic	3		5h	Claude 5 Hour	0		ok
-limit	Anthropic	3		week	Claude 7 Day	100	2026-10-31T07:59Z	exhausted
-limit	Anthropic	3		week	Claude 7 Day (Fable)	63	2026-10-31T07:59Z	ok
-limit	Anthropic	4		5h	Claude 5 Hour	63	2026-10-31T01:50Z	ok
-limit	Anthropic	4		week	Claude 7 Day	34	2026-11-03T19:00Z	ok
-limit	Anthropic	4		week	Claude 7 Day (Fable)	23	2026-11-03T19:00Z	ok
+limit	Anthropic	3		week	Claude 7 Day	100	2026-10-31T08:00Z	exhausted
+limit	Anthropic	3		week	Claude 7 Day (Fable)	63	2026-10-31T08:00Z	ok
+limit	Anthropic	4		5h	Claude 5 Hour	77	2026-10-31T01:50Z	ok
+limit	Anthropic	4		week	Claude 7 Day	38	2026-11-03T19:00Z	ok
+limit	Anthropic	4		week	Claude 7 Day (Fable)	27	2026-11-03T19:00Z	ok
 limit	Anthropic	5		5h	Claude 5 Hour	0		ok
 limit	Anthropic	5		week	Claude 7 Day	100	2026-11-02T13:59Z	exhausted
 limit	Anthropic	5		week	Claude 7 Day (Fable)	55	2026-11-02T13:59Z	ok
