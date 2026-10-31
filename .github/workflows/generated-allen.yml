@@ -9,6 +9,8 @@ on:
       - 'public/js/allen*.js'
       - 'public/js/aien-universe.js'
       - 'public/assets/allen*.css'
+      - 'public/js/aien-speed.js'
+      - 'public/assets/aien-speed.css'
       - 'public/allen/**'
       - 'crates/site-builder/**'
       - 'scripts/allen/a2a.py'
@@ -27,6 +29,8 @@ on:
       - 'public/js/allen*.js'
       - 'public/js/aien-universe.js'
       - 'public/assets/allen*.css'
+      - 'public/js/aien-speed.js'
+      - 'public/assets/aien-speed.css'
       - 'public/allen/**'
       - 'crates/site-builder/**'
       - 'scripts/allen/a2a.py'
@@ -45,6 +49,8 @@ jobs:
       # These tests only hash and read committed bytes; never execute the arm64 omc pin.
       - name: Check the /aien/ page, its generated scripts and stylesheet
         run: cargo test --manifest-path crates/site-builder/Cargo.toml components::allen::tests
+      - name: Check generated speed-test component
+        run: cargo test --manifest-path crates/site-builder/Cargo.toml components::speed::tests
   # The whole site-builder suite and the site build for a pull request, so a
   # change can be tested and previewed without the Spark. The built site is a
   # workflow artifact (aienos-dist); nothing here publishes.
