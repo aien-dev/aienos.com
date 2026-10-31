@@ -8,19 +8,19 @@
       "children": [
         {
           "digest": "175af417f39cba6b8246609fc127c777eda2c718e099fe70a1b174530e3bb66a",
-          "last_commit": "6f1c828d",
+          "last_commit": "fbf91fc8",
           "name": "workflows",
           "purpose": "Test, collect public project metrics and deploy the GitHub Pages site"
         }
       ],
       "children_root": "sha256:5bbc3128c5a6f165d6cf8e1e231571154dd22a8be47921938ba6337fda5327a2",
-      "compiled_at": "2026-10-31T11:22:00Z",
+      "compiled_at": "2026-10-31T11:45:24Z",
       "compiler": "crumb-compile/1",
       "digest": "sha256:c8acc4e961da21cba22c299b594cf85375bcab2da64b6700eae527ab7470db40",
       "evidence_files": 0,
       "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "files": 6,
-      "generated_at_commit": "6f1c828d5587a564860b40d81fc3ae67235a1014",
+      "generated_at_commit": "12ecc4899399e61e396b51084ded4c7c4f63605f",
       "source_tree": "sha256:7aaaf6abb37ad15b90dc26f4a32bdba915475625d8527c4b60efef52bf6ab347"
     }
   },
