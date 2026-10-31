@@ -11,7 +11,7 @@ use std::path::{Path, PathBuf};
 use std::time::Instant;
 
 use layouts::base::{render_base_layout, render_page_layout};
-use maud::html;
+use maud::{html, DOCTYPE};
 
 fn copy_dir_all(src: &Path, dst: &Path) -> std::io::Result<()> {
     if !src.exists() {
@@ -271,7 +271,40 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
     );
     fs::create_dir_all(dist.join("aien")).expect("Create Aien directory");
     fs::write(dist.join("aien/index.html"), allen_page.into_string()).expect("Write Aien page");
-    // Old addresses (seo::REDIRECTS) forward visitors, with any ?query and #hash, to the new one.
+    // Programs Aien writes run in this document, never in a srcdoc frame, which
+    // would inherit the page policy (components::csp). A direct visitor sees
+    // the shared header and footer and a pointer back to /aien/.
+    let run_page = html! {
+        (DOCTYPE)
+        html lang="en" {
+            head {
+                meta charset="utf-8";
+                meta name="viewport" content="width=device-width, initial-scale=1";
+                title { "Program runner | AienOS" }
+                meta name="description" content="Runs a program Aien wrote, sandboxed, inside the Aien page.";
+                meta name="robots" content="noindex";
+                link rel="icon" type="image/svg+xml" href="/favicon.svg";
+                link rel="stylesheet" href="/assets/style.css";
+                link rel="stylesheet" href="/assets/site-nav.css";
+                link rel="stylesheet" href="/assets/turing-look.css";
+                script src=(components::csp::RUNNER_SCRIPT) {}
+            }
+            body {
+                div id="root" style="min-height: 100vh; display: flex; flex-direction: column;" {
+                    (components::navbar::render_navbar())
+                    main id="main-content" style="flex: 1;" {
+                        section class="container" {
+                            p { "This document runs programs Aien writes, inside a sandboxed frame on " a href="/aien/" { "aienos.com/aien/" } "." }
+                        }
+                    }
+                    (components::footer::render_footer())
+                }
+            }
+        }
+    };
+    fs::write(dist.join(components::csp::RUNNER_PATH), components::csp::enrich(run_page.into_string())).expect("Write the program runner");
+    // Old addresses (seo::REDIRECTS) forward visitors, with any ?query and #hash,
+    // to the new one; /js/redirect.js reads the target from data-to.
     for (old, new) in seo::REDIRECTS {
         let page = render_page_layout(
             &format!("Moved to {new} | AienOS"),
@@ -281,7 +314,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
             html! {
                 meta name="robots" content="noindex";
                 meta http-equiv="refresh" content=(format!("0; url={new}"));
-                script { (maud::PreEscaped(format!("location.replace('{new}' + location.search + location.hash);"))) }
+                script src="/js/redirect.js" data-to=(new) {}
             },
             html! {
                 section class="container" {
@@ -291,7 +324,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
         );
         let dir = dist.join(old.trim_matches('/'));
         fs::create_dir_all(&dir).expect("Create redirect directory");
-        fs::write(dir.join("index.html"), page.into_string()).expect("Write redirect page");
+        fs::write(dir.join("index.html"), components::csp::enrich(page.into_string())).expect("Write redirect page");
     }
     let alpha_page = render_page_layout(
         components::alpha::TITLE,
@@ -561,7 +594,7 @@ fn build_pure_rust_site(dist: &Path, facts_path: &Path) {
         seo::head_404(),
         seo::render_404(),
     );
-    fs::write(dist.join("404.html"), components::allen_intro::enrich(components::support::enrich(not_found.into_string()))).expect("Failed to write 404.html");
+    fs::write(dist.join("404.html"), components::csp::enrich(components::allen_intro::enrich(components::support::enrich(not_found.into_string())))).expect("Failed to write 404.html");
 
     // Every page written above (generated or copied from public/) gets the same
     // head: www canonical, cards, hreflang, feeds, JSON-LD. Then the machine
@@ -892,6 +925,8 @@ fn verify_site(dist: &Path) {
     components::names::verify_canonical_names(dist);
     // Every page shows the X contact button in its header and the contact line in its footer.
     components::contact::verify(dist);
+    // Every page carries its Content-Security-Policy and needs no inline script.
+    components::csp::verify(dist);
 
     println!("------------------------------------------------------------");
     println!("  Verified index.html ({} bytes)", content.len());

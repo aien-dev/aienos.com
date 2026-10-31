@@ -8,7 +8,7 @@
       "children": [
         {
           "digest": "937ca48aa52a1bcdaea3533e8e508e7c154415294449fe8ff99c65be0eea2c1d",
-          "last_commit": "fdb3d63",
+          "last_commit": "0804a19",
           "name": "alpha",
           "purpose": "Pinned alpha wizard source and unmodified terminal capture assets"
         },
@@ -25,8 +25,8 @@
           "purpose": "Published generated project measurements with pinned sources"
         },
         {
-          "digest": "f7663e11702c9495ea6de2f05d8ec832561970a0892403abbec155cf018405c5",
-          "last_commit": "6e76cd8",
+          "digest": "15e41d311cc2a344f5a9337f8aa092e73ba2304ff351b41a5ad863ef55349490",
+          "last_commit": "863c0fa",
           "name": "js",
           "purpose": "Browser interactions using public data only"
         },
@@ -37,8 +37,8 @@
           "purpose": "Public static research or licensing pages using the shared website navigation"
         },
         {
-          "digest": "936828b67284e18ab0ab934dfa6010a80e0adf4ea6cf29753f304b9b5edba1ec",
-          "last_commit": "8f55098",
+          "digest": "92ddc743ca7340b6a0f015a1ca78e1f6978e87f089182fe0bf1abc9e6b4fe48d",
+          "last_commit": "863c0fa",
           "name": "post-llm-case",
           "purpose": "Public static research or licensing pages using the shared website navigation"
         },
@@ -49,15 +49,15 @@
           "purpose": "Public static research or licensing pages using the shared website navigation"
         }
       ],
-      "children_root": "sha256:1dc96ed8af99361ffb59e6bab603f542a78c15babd56294469864d1a1e90b180",
-      "compiled_at": "2026-10-31T02:30:20Z",
+      "children_root": "sha256:66c4427ecaea2fd667ece74aba469b70aefac2a7a82c68570a93cbdeb56a007b",
+      "compiled_at": "2026-10-31T09:45:58Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:4e0b99a85603ed0df420b6b264141f4172504377ccaa4be8f42c239c95acdf5b",
+      "digest": "sha256:47f5bd186e43673d3fdf11b3ea370607c1f13d4fd583fa35993b61aed4d2e291",
       "evidence_files": 1,
       "evidence_root": "sha256:63bece7cb299b29d19622dcb0de4cbaa623357b117d8c7643a562de286c4b2fb",
-      "files": 156,
-      "generated_at_commit": "dbc8d1cdba74d49904001bec14847596d203368c",
-      "source_tree": "sha256:b6e0f34a0332f46579ebaecf490b71404450a0d081699cb875af58a79fe52437"
+      "files": 158,
+      "generated_at_commit": "863c0faa01ef9615fb77bb8f7d38ac43b1e9b143",
+      "source_tree": "sha256:a6a083100862559e8f2c22c38a10b2aa8303c766b04dde92ac456217d2cdc9ed"
     }
   },
   "invariants": [
