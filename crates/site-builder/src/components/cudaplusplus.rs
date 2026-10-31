@@ -22,7 +22,7 @@ use serde::Deserialize;
 use super::boxlink::{foot_labelled, Target};
 
 pub const TITLE: &str = "CUDA++ | AienOS";
-pub const DESCRIPTION: &str = "CUDA++ is the GPU half of Omega: everything CUDA gives you plus the motor, for the NVIDIA GPUs people already own, with no NVIDIA user-space software. Apache-2.0 with the LLVM exception. What it is for, how I did it, CUDA's pain points and the swap.";
+pub const DESCRIPTION: &str = "CUDA++ is the GPU half of Omega, plus the motor, for the NVIDIA GPUs people already own, with no NVIDIA user-space software. Apache-2.0 with the LLVM exception. What it is for, how I did it, CUDA's pain points and the swap.";
 pub const URL: &str = "https://www.aienos.com/cudaplusplus/";
 
 /// The data file, compiled in and published as /cudaplusplus.json.
@@ -450,7 +450,7 @@ mod tests {
     #[test]
     fn page_names_it_with_the_plus_signs() {
         let s = render_cudaplusplus_page().into_string();
-        assert!(s.contains("<h1 class=\"om-title\">CUDA++ is the GPU half of Omega: everything CUDA gives you, plus the motor.</h1>"));
+        assert!(s.contains("<h1 class=\"om-title\">CUDA++ is the GPU half of Omega, plus the motor.</h1>"));
         assert_eq!(s.matches("<h1").count(), 1);
         assert!(s.contains("Less computation, out of the big data centers."));
         for id in ["path", "how", "pain-points", "swap"] {
