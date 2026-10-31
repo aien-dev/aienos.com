@@ -70,8 +70,8 @@ The development method is Human-Directed Agentic Engineering (HDAE). I define th
 ## 7. Writing
 
 - Plain, direct English. No filler openers ("Certainly!", "Great question!"), no sycophancy.
-- No em dashes and no en dashes anywhere, including code comments, commit messages and evidence. Several repositories fail their gates on them. Use commas, colons, parentheses or periods.
-- No AI cliches ("delve", "tapestry", "seamlessly", "game-changer", "unleash").
+- No em dashes and no en dashes anywhere, including code comments, commit messages and evidence. Use commas, colons, parentheses or periods. Measured on 2026-10-31: CI jobs in aien-sovereign-core-mv, aegis-runtime-mv, aien-protocols-mv, interplane.io and spark-supervisor fail on them in pull requests, and the aienos.com deploy job fails on them in voice clip text. None of these style checks is a required status check on any default branch; whether each one stays blocking is decided per repository on DRA-99.
+- No AI cliches ("delve", "tapestry", "seamlessly", "game-changer", "unleash"). Only the spark-inquisitor reviewer checks for them in CI (spark-supervisor pull requests and the aien-sovereign-core-mv Alpha); everywhere else this rule is enforced by review.
 - Write status as what was measured, where and when, not as adjectives.
 - Comparisons with other projects are allowed when they are honest, dated, and backed by a receipt or the other project's own published numbers. Overclaims stay banned (for example, a claim to be a replacement for CUDA, or to give everything CUDA gives you).
 
