@@ -19,7 +19,7 @@
           "purpose": "Pinned alpha wizard source and unmodified terminal capture assets"
         },
         {
-          "digest": "dce69fbca079800fa65f9374bf626ec2daa1b3c2aef46126d0645c8f3f8bb8dc",
+          "digest": "de7ce2104d541caba722cdc4da9ec2fc6cc3bf6ce135e9ac17f879a43c0700ff",
           "last_commit": "a9c5dbbc",
           "name": "assets",
           "purpose": "Website styles including the project dashboard"
@@ -31,7 +31,7 @@
           "purpose": "Published generated project measurements with pinned sources"
         },
         {
-          "digest": "9ce5562cb449b0209c2cea73999b1dbee3148b40bea8034c591b60becc6d4210",
+          "digest": "f2e0189fd09e6dc97622ad8e2ac6586bc8e32ec2dae0efc8093ed440eb0bcebd",
           "last_commit": "85c98395",
           "name": "js",
           "purpose": "Browser interactions using public data only"
@@ -55,15 +55,15 @@
           "purpose": "Public static research or licensing pages using the shared website navigation"
         }
       ],
-      "children_root": "sha256:fa4cf9853c77c1a9e00940ce3346841dcdf569868fbcf1436f8f8ca31481af19",
-      "compiled_at": "2026-10-31T11:22:00Z",
+      "children_root": "sha256:4f53b204175e53c522e4d2b9eaa31ccf6366ef4162dc64a4cef83b5163406e29",
+      "compiled_at": "2026-10-31T12:08:33Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:88e9c8620ad1f8336eda5f1cf895f131250f3b13a0de6c7a7da8ac655420ec17",
+      "digest": "sha256:10705ff52040f8b8ef815eca218622e6534684e2ef957e8664db54c902c494c4",
       "evidence_files": 1,
       "evidence_root": "sha256:63bece7cb299b29d19622dcb0de4cbaa623357b117d8c7643a562de286c4b2fb",
-      "files": 730,
-      "generated_at_commit": "6f1c828d5587a564860b40d81fc3ae67235a1014",
-      "source_tree": "sha256:24ab30d986d4801c53816c113656467b7756599909259d5229dd9beda8b512c2"
+      "files": 732,
+      "generated_at_commit": "ea5ca2325b383901eb5e72e5a3c969bace290192",
+      "source_tree": "sha256:bc1a92cb7c24181b0c49675f42b593aa601c5365fecaf10c0aea9b061555f41c"
     }
   },
   "invariants": [
