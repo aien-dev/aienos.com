@@ -7,21 +7,21 @@
     "generated": {
       "children": [
         {
-          "digest": "81ee3e9e8fa78e755c09d15eec76048232d642e9b131566eb7d1705aeaa695f4",
-          "last_commit": "132be895",
+          "digest": "6de2945c8dbc1fca38e91ec37ac100c735dc4426102a649afa08fdf4189faa3c",
+          "last_commit": "1c0196f4",
           "name": "workflows",
           "purpose": "Test, collect public project metrics and deploy the GitHub Pages site"
         }
       ],
-      "children_root": "sha256:53d1e3bbcbb90c55abb6b24872f3c34d9be726ff1f1ebdd4f6f64c28a7bbe316",
-      "compiled_at": "2026-10-31T11:00:21Z",
+      "children_root": "sha256:f5097b5cbdcf3f8dbd80206d1de27f8bdb58ecc42e072b050c806a2382f32f18",
+      "compiled_at": "2026-10-31T11:25:25Z",
       "compiler": "crumb-compile/1",
-      "digest": "sha256:3c49567df94c5f213b6feb7d54f4d37ddd7b4554981fee6e15e260036bf35685",
+      "digest": "sha256:43e838a6cbbb7e0d0ffa73cd396a1465492eaf3795b4d9dc80309399a836e668",
       "evidence_files": 0,
       "evidence_root": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "files": 6,
-      "generated_at_commit": "ef5c0a4f3918b97df1bcef4f90c6bd0860e2dffc",
-      "source_tree": "sha256:c6dd1bdb2fbd26f1fa2982bb5700fbe847e9e9f5f5bd8c38092436cefe545fe2"
+      "generated_at_commit": "b85e773912876bc9175a9c6532804bf327d4a434",
+      "source_tree": "sha256:9980a09757aaa02394c46751ffb8294e9214c590cfb719a9e4822482b246ab4a"
     }
   },
   "invariants": [
