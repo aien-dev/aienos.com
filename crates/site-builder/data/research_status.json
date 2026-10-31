@@ -17,6 +17,11 @@
     "Nothing was built, run or re-scored for this table. \"Receipt exists\" means the file is on main, not that it was rerun.",
     "Brownian sealed records are in the private aien-sealed repo. The EXP-002A, EXP-002B and EXP-002C verdicts were checked against the private sealed records on 2026-10-01; the records themselves stay private until BRN-10 seals."
   ],
+  "independent_rechecks": {
+    "as_of": "2026-10-31",
+    "rule": "This changes only when an outside person's recheck is linked.",
+    "links": []
+  },
   "turing_definition": "The Turing measures net held-out explanatory compression: one operational component of machine understanding.",
   "allowed_statuses": ["PASS", "FAIL", "INCOMPLETE", "BLOCKED", "PARTIAL", "NOT ESTABLISHED", "NOT STARTED"],
   "allowed_ladder_states": ["achieved", "partial", "not achieved", "not attempted"],
