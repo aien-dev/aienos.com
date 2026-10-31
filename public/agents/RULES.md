@@ -20,7 +20,7 @@ The development method is Human-Directed Agentic Engineering (HDAE). I define th
 - Never guess. Do not invent field names, API signatures, file paths, sizes, protocols or key layouts. Read the code, the ADRs and the canonical references in the target repository first.
 - GitHub is canonical. The default branch, its merged history, its evidence directory, its issues and its pull requests are the project's state. A local checkout may be stale; compare it with GitHub before you treat it as evidence. An open pull request is proposed work, not current behavior.
 - Implementation and evidence beat planning claims. When code and a plan disagree, record the discrepancy; never write as if the plan were already built.
-- Read the directory's `.crumb` before working in it. It states the directory's role and its invariants (see the Crumb Protocol). `.crumb.local` is temporary coordination state, not project knowledge.
+- Read the directory's `.crumb` before working in it. It states the directory's role and its invariants (see the Crumb Protocol). `.crumb.local` and the crumb store are single-machine scratch state. They help agents on one machine avoid stepping on each other, but no other machine, container or clone is guaranteed to see them. Coordination between agents happens only through Linear claims and draft pull requests. Never treat a crumb lock or whisper as a claim.
 - In cross-repository work, the authority for status and sequencing is `aien-dev/aien-architecture-mv` (`PLAN_AUTHORITY.md`, `CURRENT_EXECUTION_PLAN.md`, `doctrine/ARCHITECTURE.md`, `doctrine/ROADMAP.md` and accepted ADRs).
 
 ## 3. How work is done
