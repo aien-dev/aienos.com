@@ -244,12 +244,19 @@ same rules before proxying.
   (SSE: `state`, `human`, heartbeat every 15 s), `POST say`. While I have
   joined a conversation, `POST chat` answers `event: error {"code":"human"}`
   without calling the model. `event: human` is written only by the console.
-  These routes are keyed by `X-Allen-Conversation`, which is the live-session
-  bearer: 32 hex (128 random bits) made fresh by the page per conversation.
-  `handoff`, `session` and `say` refuse any other length with 400 (`chat`
-  then runs without a conversation), so the page and the gateway deploy
-  together; drain `relay-drop/` first, because the mailer re-validates the
-  same 32-hex rule on every queued file.
+  These routes are keyed by `X-Allen-Conversation`, the live-session bearer.
+  The page draws 32 hex (128 random bits) per conversation. The gateway, the
+  console session routes and the relay spool also accept a 16-hex id: a tab
+  left open across the page deploy keeps the id it minted, and a relay file
+  queued before the deploy still has one. Any other shape is refused with 400
+  (`chat` then runs without a conversation; the console route answers 404).
+  Deploy this gateway, `allen_spool.py` and the relay mailer before the page.
+  GitHub Pages publishes the page on merge, and the gateway they replace
+  accepts only 16 hex, so a 32-hex page against that gateway makes handoff,
+  say and session return 400. Once this gateway is running, merging the page
+  is safe and open tabs keep working. Do not tighten the check to 32 hex only
+  until an hour after the page is live (`STREAM_MAX_S`), so those tabs have
+  ended, and until `relay-drop/` has no remaining 16-hex `conv`.
 - The console is a second listener in the gateway on `100.64.0.2:18112`. The
   hub never proxies it, and nft admits it only from 100.64.0.1 and 100.64.0.4
   (plus the Spark itself over loopback). Login is with the token held in

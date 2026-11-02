@@ -1306,6 +1306,22 @@ def relay_tests(a):
         st, j3 = relay(ok, "198.51.100.42", {"X-Allen-Conversation": "f" * 32})
         check("same message from another conversation is new (control)", st == 200 and not j3.get("duplicate")
               and len(g.files("relay")) == 2, "%d %s" % (st, j3))
+        st, j16 = relay(dict(ok, message="from a tab still holding 16 hex"), "198.51.100.43",
+                        {"X-Allen-Conversation": "a1b2c3d4e5f60718"})
+        rec16 = {}
+        if st == 200:
+            name = j16["id"][2:] + ".json"
+            rec16 = json.load(open(os.path.join(g.dirs["relay"], name)))
+        check("relay keeps a 16-hex conversation id from an open tab", st == 200 and not j16.get("duplicate")
+              and rec16.get("conv") == "a1b2c3d4e5f60718", "%d %s conv %s" % (st, j16, rec16.get("conv")))
+        st, jbad = relay(dict(ok, message="conversation id is not hex"), "198.51.100.44",
+                         {"X-Allen-Conversation": "g" * 32})
+        recbad = {}
+        if st == 200:
+            name = jbad["id"][2:] + ".json"
+            recbad = json.load(open(os.path.join(g.dirs["relay"], name)))
+        check("relay stores no conversation id when the header is not 16 or 32 hex",
+              st == 200 and recbad.get("conv") == "", "%d %s conv %r" % (st, jbad, recbad.get("conv")))
         codes = [relay(dict(ok, message="per address %d" % k), "198.51.100.77")[0] for k in range(4)]
         other = relay(dict(ok, message="other address"), "198.51.100.78")[0]
         check("relay per-address 3 per hour then 429", codes == [200, 200, 200, 429], "%s" % codes)
@@ -1381,20 +1397,58 @@ def live_tests(a):
                                                            {"role": "assistant", "content": "hello"}]}, headers=H)
         j = json.loads(r.read())
         check("handoff accepted while online (control)", r.status == 200 and j.get("waiting"), "%d %s" % (r.status, j))
-        # W8: the conversation id is the live-session bearer, 128 bits; a 64-bit (16 hex) id is refused.
-        legacy = {"X-Allen-Conversation": conv[:16]}
-        c, r = g.post("/allen/api/handoff", {"transcript": []}, headers=legacy)
-        hs = r.status
-        r.read()
-        c, r = g.get("/allen/api/session", headers=legacy)
-        ss = r.status
-        r.read()
-        c, r = g.post("/allen/api/say", {"text": "hi"}, headers=legacy)
-        ys = r.status
-        r.read()
-        st, _, _ = cons.req("GET", "/session/%s.json" % conv[:16])
-        check("64-bit (16 hex) conversation id refused on handoff, session, say and console",
-              (hs, ss, ys, st) == (400, 400, 400, 404), "handoff %d session %d say %d console %d" % (hs, ss, ys, st))
+
+        def live_codes(headers):
+            """handoff, session and say statuses. A 200 session is closed so its listener drops."""
+            c, r = g.post("/allen/api/handoff", {"transcript": []}, headers=headers)
+            hs = r.status
+            r.read()
+            c.close()
+            c, r = g.get("/allen/api/session", headers=headers)
+            ss = r.status
+            # Connection: close moves the socket onto the response; closing it
+            # ends the stream so the gateway drops the listener.
+            r.close()
+            c.close()
+            c, r = g.post("/allen/api/say", {"text": "still here"}, headers=headers)
+            ys = r.status
+            r.read()
+            c.close()
+            return hs, ss, ys
+
+        def console_live(cid):
+            st, _, js = cons.req("GET", "/session/%s.json" % cid)
+            hb, _, _ = cons.post("/session/%s/handback" % cid)
+            return st, js, hb
+
+        # The page draws 32 hex. A separate id from `conv` so this check does not
+        # take the listener the rest of the test holds open.
+        fresh = "ab" * 16
+        hs, ss, ys = live_codes({"X-Allen-Conversation": fresh})
+        cst, cjs, chb = console_live(fresh)
+        check("32-hex conversation id accepted on handoff, session, say and console",
+              (hs, ss, ys, cst, chb) == (200, 200, 200, 200, 303)
+              and json.loads(cjs).get("state") == "waiting",
+              "handoff %d session %d say %d console %d handback %d %s" % (hs, ss, ys, cst, chb, cjs[:80]))
+        # A tab left open across the cutover still holds the 16-hex id minted on load.
+        legacy_id = "0123456789abcdef"
+        hs, ss, ys = live_codes({"X-Allen-Conversation": legacy_id})
+        cst, cjs, chb = console_live(legacy_id)
+        check("16-hex conversation id from an open tab accepted on handoff, session, say and console",
+              (hs, ss, ys, cst, chb) == (200, 200, 200, 200, 303)
+              and json.loads(cjs).get("state") == "waiting",
+              "handoff %d session %d say %d console %d handback %d %s" % (hs, ss, ys, cst, chb, cjs[:80]))
+        bad_ids = ("", "abc", "a" * 15, "a" * 17, "a" * 31, "a" * 33, "a" * 64,
+                   "A" * 16, "A" * 32, "g" * 16, "g" * 32, "0123456789abcdef" + "G" * 16)
+        refused = []
+        for bad in bad_ids:
+            hs, ss, ys = live_codes({"X-Allen-Conversation": bad})
+            st, _, body = cons.req("GET", "/session/%s.json" % bad)
+            pst, _, pbody = cons.req("POST", "/session/%s/handback" % bad, {"csrf": cons.csrf})
+            if (hs, ss, ys) != (400, 400, 400) or st != 404 or body != "not found\n" or pst != 404 or pbody != "not found\n":
+                refused.append("%r -> %d %d %d console %d %r post %d %r" % (bad, hs, ss, ys, st, body[:40], pst, pbody[:40]))
+        check("conversation id that is not 16 or 32 hex refused on handoff, session, say and console",
+              not refused, "; ".join(refused) or "all refused")
         L = Listener(g, conv)
         time.sleep(1.5)
 

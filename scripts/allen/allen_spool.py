@@ -154,7 +154,12 @@ RELAY_FIELD = 200
 TRANSCRIPT_MSGS = 24
 TRANSCRIPT_CHARS = 16000
 RELAY_ID = re.compile(r"^r_[0-9a-f]{16}$")
-CONV = re.compile(r"^[0-9a-f]{32}$")
+# Live-session bearer. The page draws 32 hex (128 bits). A tab opened on the
+# previous page, and a relay file queued before this gateway is deployed, still
+# carry 16 hex. Both are accepted; anything else is refused. 32 is first so a
+# path match cannot stop at the first 16 of a longer id.
+CONV_BODY = r"[0-9a-f]{32}|[0-9a-f]{16}"
+CONV = re.compile(r"^(?:%s)$" % CONV_BODY)
 RECEIVED = re.compile(r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$")
 
 

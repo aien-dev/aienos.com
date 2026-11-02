@@ -185,7 +185,9 @@ mod tests {
     #[test]
     fn the_conversation_id_is_128_random_bits() {
         // The conversation id is the live-session bearer (handoff, say, session):
-        // 16 bytes from crypto.getRandomValues, 32 hex, the length the gateway accepts.
+        // 16 bytes from crypto.getRandomValues, 32 hex. The gateway also accepts
+        // a 16-hex id from a tab opened before this page, so the page can ship
+        // after the gateway without a simultaneous cut.
         let script = include_str!("../../../../public/js/allen.js");
         let make = function_body(script, "conversationId");
         assert!(make.contains("const bytes = new Uint8Array(16);"), "the conversation id must carry 128 bits");

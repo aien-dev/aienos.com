@@ -120,7 +120,7 @@ def main():
         put(d, a, record(a))
         put(d, b, record(b, to="someone@example.org"))
         put(d, "c" * 16, record("c" * 16, message="token ghp_" + "A1b2C3d4" * 5))
-        put(d, "d" * 16, record("d" * 16, conv="0123456789abcdef"))  # 64-bit conversation id
+        put(d, "d" * 16, record("d" * 16, conv="0123456789abcde"))  # 15 hex: neither 16 nor 32
         rc, out = run_once(d, state, smtp.port)
         m = smtp.mail[0] if smtp.mail else {"data": "", "to": []}
         body = m["data"]
@@ -137,7 +137,7 @@ def main():
                                       "Conversation: " + "0123456789abcdef" * 2,
                                       "http://100.64.0.2:18112/session/" + "0123456789abcdef" * 2, "Relay id: r_" + a)),
               "%d bytes" % len(body))
-        check("items with a recipient field, a secret or a 64-bit conversation id are rejected, not sent",
+        check("items with a recipient field, a secret or an invalid conversation id are rejected, not sent",
               not os.listdir(d) and len(smtp.mail) == 1 and all("rejected %s.json" % x in out
                                                                  for x in (b, "c" * 16, "d" * 16)),
               out.strip()[-200:])
@@ -184,6 +184,31 @@ def main():
         M.send(msg, M.RECIPIENT, "", ("127.0.0.1", smtp.port, False))
         check("send() refuses any recipient but drake@aienos.com", refused, "refused=%s" % refused)
         check("send() to drake@aienos.com works (control)", len(smtp.mail) == n + 1, "%d mails" % len(smtp.mail))
+
+        def conv_ok(conv):
+            try:
+                M.allen_spool.validate_relay_record(record("9" * 16, conv=conv))
+                return True
+            except M.allen_spool.Invalid:
+                return False
+
+        check("relay record accepts a 32-hex conversation id", conv_ok("0123456789abcdef" * 2), "32")
+        check("relay record accepts a 16-hex conversation id from an open tab", conv_ok("0123456789abcdef"), "16")
+        check("relay record accepts an empty conversation id", conv_ok(""), "empty")
+        bad_convs = ("15 hex", "0123456789abcde"), ("17 hex", "0123456789abcdef0"), ("31 hex", "a" * 31), (
+            "33 hex", "a" * 33), ("64 hex", "a" * 64), ("uppercase 16", "A" * 16), ("uppercase 32", "A" * 32), (
+            "non-hex", "g" * 32)
+        accepted = [name for name, conv in bad_convs if conv_ok(conv)]
+        check("relay record refuses a conversation id that is not 16 or 32 hex", not accepted, "%s" % accepted)
+        legacy = "abcdef0123456789"
+        put(d, "3" * 16, record("3" * 16, conv=legacy))
+        before = len(smtp.mail)
+        rc, out = run_once(d, state, smtp.port, "--per-day", "20")
+        sent = [m for m in smtp.mail[before:] if ("Conversation: " + legacy) in m["data"]]
+        check("a queued 16-hex conversation id is mailed, not rejected",
+              rc == 0 and len(sent) == 1 and not any(name.startswith("3" * 16) for name in os.listdir(d))
+              and "rejected %s.json" % ("3" * 16) not in out,
+              "rc %d new mails %d" % (rc, len(smtp.mail) - before))
         try:
             M.send(msg, M.RECIPIENT, "", ("192.0.2.1", 25, False))
             plain = False

@@ -81,7 +81,8 @@ except ImportError:
     allen_voice = None
 
 KEY = re.compile(r"^[0-9a-f]{32}$")
-CONV = re.compile(r"^[0-9a-f]{32}$")  # live-session bearer: 128 random bits from the page
+CONV = allen_spool.CONV  # 32 hex from the page, or 16 hex from a tab opened before it
+CONV_REQUIRED = "Send X-Allen-Conversation (16 or 32 hex)."
 EXTRACT_SYSTEM = (
     "You keep short private notes for Allen about one visitor of aienos.com/allen/. From the exchange "
     "below, write at most 5 new or updated facts about the VISITOR only: who they are, human or agent, "
@@ -2217,7 +2218,7 @@ class Handler(BaseHTTPRequestHandler):
         app.stats.add("handoff_requests")
         conv = self.conversation()
         if not conv:
-            return self.refuse(400, "bad_request", "Send X-Allen-Conversation (32 hex).")
+            return self.refuse(400, "bad_request", CONV_REQUIRED)
         req = self.read_json()
         if req is None:
             return
@@ -2247,7 +2248,7 @@ class Handler(BaseHTTPRequestHandler):
         app = self.app
         conv = self.conversation()
         if not conv:
-            return self.refuse(400, "bad_request", "Send X-Allen-Conversation (32 hex).")
+            return self.refuse(400, "bad_request", CONV_REQUIRED)
         req = self.read_json()
         if req is None:
             return
@@ -2278,7 +2279,7 @@ class Handler(BaseHTTPRequestHandler):
         app = self.app
         conv = self.conversation()
         if not conv:
-            return self.refuse(400, "bad_request", "Send X-Allen-Conversation (32 hex).")
+            return self.refuse(400, "bad_request", CONV_REQUIRED)
         retry = app.session_rate.take(app.client_key(self))
         if retry:
             return self.refuse(429, "rate", "Reconnecting too quickly. Try again shortly.", retry)
@@ -2523,7 +2524,7 @@ class ConsoleHandler(BaseHTTPRequestHandler):
             return self.login_page(200 if path == "/login" else 401)
         if path == "/":
             return self.dashboard(csrf)
-        m = re.match(r"^/session/([0-9a-f]{32})(\.json)?$", path)
+        m = re.match(r"^/session/(%s)(\.json)?$" % allen_spool.CONV_BODY, path)
         if m and m.group(2):
             d = self.app.live.detail(m.group(1))
             body = json.dumps(d if d else {"state": "none", "listeners": 0, "transcript": []},
@@ -2570,7 +2571,7 @@ class ConsoleHandler(BaseHTTPRequestHandler):
             return self.redirect("/")
         if allen_projects.console_post(self, path, f):
             return
-        m = re.match(r"^/session/([0-9a-f]{32})/(join|reply|handback)$", path)
+        m = re.match(r"^/session/(%s)/(join|reply|handback)$" % allen_spool.CONV_BODY, path)
         if not m:
             return self.send_body(404, b"not found\n", "text/plain")
         conv, op = m.group(1), m.group(2)
