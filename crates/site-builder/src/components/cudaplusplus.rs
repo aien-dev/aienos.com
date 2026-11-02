@@ -448,6 +448,24 @@ mod tests {
     }
 
     #[test]
+    fn repository_is_public() {
+        let d = data();
+        assert_eq!(d.source.visibility, "public");
+        assert_eq!(d.source.repo, "https://github.com/aien-dev/CUDApp");
+        let note = d.private_note.to_ascii_lowercase();
+        assert!(!note.contains("private"), "{}", d.private_note);
+        assert!(!note.contains("safety audit"), "{}", d.private_note);
+        assert!(d.private_note.contains("https://github.com/aien-dev/CUDApp"));
+        assert!(d.private_note.contains("https://github.com/aien-dev/CUDApp/blob/main/docs/AUDIT.md"));
+        let s = render_cudaplusplus_page().into_string();
+        assert!(s.contains("https://github.com/aien-dev/CUDApp"));
+        assert!(s.contains("docs/AUDIT.md"));
+        assert!(!s.contains("private until"));
+        assert!(!s.contains("CUDAplusplus"));
+        assert!(!s.contains("AGPL"));
+    }
+
+    #[test]
     fn page_names_it_with_the_plus_signs() {
         let s = render_cudaplusplus_page().into_string();
         assert!(s.contains("<h1 class=\"om-title\">CUDA++ is the GPU half of Omega, plus the motor.</h1>"));
