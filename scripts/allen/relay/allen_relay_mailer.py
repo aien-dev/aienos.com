@@ -53,7 +53,7 @@ import allen_spool  # noqa: E402
 SENDER = "aien@aienos.com"
 RECIPIENT = "drake@aienos.com"
 CONSOLE = "http://100.64.0.2:18112"
-DROP_NAME = re.compile(r"^[0-9a-f]{16}\.json$")
+DROP_NAME = re.compile(r"\A[0-9a-f]{16}\.json\Z")
 MAX_FILE = 128 * 1024
 POLL_S = 2.0
 BACKOFF_MAX = 900.0
@@ -191,7 +191,7 @@ def run(args, password):
     while True:
         now = time.monotonic()
         try:
-            names = sorted(n for n in os.listdir(args.drop) if DROP_NAME.match(n))
+            names = sorted(n for n in os.listdir(args.drop) if DROP_NAME.fullmatch(n))
         except OSError as e:
             log("cannot list the drop directory: %s" % e.strerror)
             names = []

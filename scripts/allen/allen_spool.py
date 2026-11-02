@@ -25,7 +25,7 @@ import secrets
 TEMPLATES = ("feature", "question", "bug")
 SLUG = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$")
 AREA = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$")
-ID = re.compile(r"^[0-9a-f]{20}$")
+ID = re.compile(r"\A[0-9a-f]{20}\Z")
 
 SECRET_SHAPES = [
     re.compile(p) for p in (
@@ -124,7 +124,7 @@ def write_item(spool_in, item):
 
 def spool_file(directory, iid):
     """directory/iid.json for a well-formed id, or None; the real path must stay in directory."""
-    if not ID.match(iid or ""):
+    if not ID.fullmatch(iid or ""):
         return None
     root = os.path.realpath(directory)
     path = os.path.realpath(os.path.join(root, iid + ".json"))
@@ -153,9 +153,16 @@ RELAY_MESSAGE = 4000
 RELAY_FIELD = 200
 TRANSCRIPT_MSGS = 24
 TRANSCRIPT_CHARS = 16000
-RELAY_ID = re.compile(r"^r_[0-9a-f]{16}$")
-CONV = re.compile(r"^[0-9a-f]{16}$")
-RECEIVED = re.compile(r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$")
+RELAY_ID = re.compile(r"\Ar_[0-9a-f]{16}\Z")
+# Live-session bearer. The page draws 32 hex (128 bits). A tab opened on the
+# previous page, and a relay file queued before this gateway is deployed, still
+# carry 16 hex. Both are accepted until 2026-12-02
+# (https://github.com/aien-dev/aienos.com/issues/196). Anything else is refused.
+# 32 is first so a path match cannot stop at the first 16 of a longer id.
+# \Z, not $: a trailing newline must not pass. ASCII digits only.
+CONV_BODY = r"[0-9a-f]{32}|[0-9a-f]{16}"
+CONV = re.compile(r"\A(?:%s)\Z" % CONV_BODY)
+RECEIVED = re.compile(r"\A[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z\Z")
 
 
 def validate_transcript(t):
@@ -202,11 +209,11 @@ def validate_relay_record(rec):
         raise Invalid("not a version 1 relay record")
     if set(rec) != {"v", "type", "id", "received", "conv", "message", "name", "contact", "transcript"}:
         raise Invalid("relay record fields do not match")
-    if not isinstance(rec["id"], str) or not RELAY_ID.match(rec["id"]):
+    if not isinstance(rec["id"], str) or not RELAY_ID.fullmatch(rec["id"]):
         raise Invalid("bad relay id")
-    if not isinstance(rec["received"], str) or not RECEIVED.match(rec["received"]):
+    if not isinstance(rec["received"], str) or not RECEIVED.fullmatch(rec["received"]):
         raise Invalid("bad received time")
-    if not isinstance(rec["conv"], str) or not (rec["conv"] == "" or CONV.match(rec["conv"])):
+    if not isinstance(rec["conv"], str) or not (rec["conv"] == "" or CONV.fullmatch(rec["conv"])):
         raise Invalid("bad conversation id")
     item = validate_relay({k: rec[k] for k in ("message", "name", "contact", "transcript")})
     return dict(item, v=1, type="relay", id=rec["id"], received=rec["received"], conv=rec["conv"])

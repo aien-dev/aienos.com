@@ -244,17 +244,37 @@ same rules before proxying.
   (SSE: `state`, `human`, heartbeat every 15 s), `POST say`. While I have
   joined a conversation, `POST chat` answers `event: error {"code":"human"}`
   without calling the model. `event: human` is written only by the console.
+  These routes are keyed by `X-Allen-Conversation`, the live-session bearer.
+  The page draws 32 hex (128 random bits) per conversation. The gateway, the
+  console session routes and the relay spool also accept a 16-hex id: a tab
+  left open across the page deploy keeps the id it minted, and a relay file
+  queued before the deploy still has one. Any other shape is refused with 400
+  (`chat` then runs without a conversation; the console route answers 404).
+  Deploy this gateway, `allen_spool.py` and the relay mailer before the page.
+  GitHub Pages publishes the page on merge, and the gateway they replace
+  accepts only 16 hex, so a 32-hex page against that gateway makes handoff,
+  say and session return 400. Once this gateway is running, merging the page
+  is safe and open tabs keep working. The 16-hex acceptance comes out on
+  2026-12-02 (https://github.com/aien-dev/aienos.com/issues/196).
+  `STREAM_MAX_S` ends one session stream after an hour and the page
+  reconnects with the same id, so a tab left open still sends 16 hex until
+  the visitor reloads. After that date those tabs get 400 on handoff, say
+  and session until reload.
 - The console is a second listener in the gateway on `100.64.0.2:18112`. The
   hub never proxies it, and nft admits it only from 100.64.0.1 and 100.64.0.4
   (plus the Spark itself over loopback). Login is with the token held in
   atlas-vault as `ALLEN_CONSOLE_TOKEN`; the gateway holds only its sha256
   (`ALLEN_CONSOLE_TOKEN_SHA256` in `/etc/allen-chat/env`). Sessions use an
   HttpOnly SameSite=Strict cookie that lasts 12 h, with a CSRF token on every
-  POST, no CORS and a pinned Host. The cookie has no `Secure` flag on purpose:
-  the console is plain HTTP inside the tailnet (WireGuard-encrypted), where a
-  Secure cookie would never come back; the nft rule above is the compensating
-  control. Availability is kept in
-  `/var/lib/allen-chat/console/presence.json`.
+  POST, no CORS and a pinned Host. By default the cookie (`allen_console`) has
+  no `Secure` flag on purpose: the console is plain HTTP inside the tailnet
+  (WireGuard-encrypted), where a Secure cookie would never come back; the nft
+  rule above is the compensating control. If the console is ever served over
+  TLS, start the gateway with `--console-secure-cookie`: the cookie becomes
+  `__Host-allen_console` with `Secure` (host-only, `Path=/`), and the plain
+  name is no longer accepted. Do not set it on the plain-HTTP console, or
+  login will loop, because the browser never returns the cookie. Availability
+  is kept in `/var/lib/allen-chat/console/presence.json`.
 - Anonymous mode: `X-Allen-Anonymous: 1` means no recall and no notes, whatever
   key is sent, and `introduce` answers 409 `anonymous`.
 - `POST project-summary` {"summary" (at most 1000 bytes of text, no email,
@@ -510,7 +530,8 @@ routes in `allen_projects.py`:
 python3 scripts/allen/test_sandbox.py              # compile sandbox escape tests, each with a control
 python3 scripts/allen/test_a2a.py                 # A2A SendMessage: consent, errors, nothing stored
 python3 scripts/allen/test_gateway.py --omc om/hive-page/omc --irwasm om/hive-page/irwasm \
-    --system-prompt scripts/allen/system-prompt.txt [--skip-model]
+    --system-prompt scripts/allen/system-prompt.txt [--skip-model --upstream 127.0.0.1:<closed port>]
+    # cookie/edge suites: console cookie flags, nginx copies' guards; NGINX=/path/to/nginx adds nginx -t
 python3 scripts/allen/probe.py                     # run inside the unit's properties (systemd-run) and outside
 python3 scripts/allen/relay/test_relay_mailer.py      # relay mailer against a loopback SMTP stub, each with a control
 python3 scripts/allen/test_reaching_drake_prod.py  # production: console reachability, one real TEST relay email, live takeover

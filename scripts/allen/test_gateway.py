@@ -28,6 +28,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 results = []
+UPSTREAM = "127.0.0.1:18091"  # --upstream; suites with their own stub pass upstream= explicitly
 
 
 def check(name, ok, detail):
@@ -44,7 +45,8 @@ def free_port():
 
 
 class Gateway:
-    def __init__(self, a, *extra, upstream="127.0.0.1:18091", env=None, console=False):
+    def __init__(self, a, *extra, upstream=None, env=None, console=False):
+        upstream = upstream or UPSTREAM
         self.port = free_port()
         self.dirs = {k: tempfile.mkdtemp(prefix="allenchat-test-" + k)
                      for k in ("in", "status", "drop", "relay", "console")}
@@ -754,7 +756,7 @@ def speed_tests(a):
         key = "5" * 32
         vid = hmac.new(secret.encode(), key.encode(), hashlib.sha256).hexdigest()
         allen_memory.Memory("http://127.0.0.1:%d" % cx.server_address[1], "t" * 40).remember(vid, ["Builds kelp boats"])
-        r = run(g, u("What is Omega?"), headers={"X-Allen-Key": key, "X-Allen-Conversation": "a" * 16})
+        r = run(g, u("What is Omega?"), headers={"X-Allen-Key": key, "X-Allen-Conversation": "a" * 32})
         check("visitor with recalled notes is not served from the cache", r["meta"] != "cache"
               and r["text"] == "from model", "%s" % r["meta"])
         r = run(g, u("What is Omega?"), headers={"X-Allen-Key": key, "X-Allen-Anonymous": "1"})
@@ -1266,7 +1268,7 @@ class Listener:
 def relay_tests(a):
     g = Gateway(a)
     try:
-        conv = {"X-Allen-Conversation": "a1b2c3d4e5f60718"}
+        conv = {"X-Allen-Conversation": "a1b2c3d4e5f60718" * 2}
 
         def relay(body, ip, h=conv):
             c, r = g.post("/allen/api/relay", body, ip=ip, headers=h)
@@ -1289,7 +1291,7 @@ def relay_tests(a):
         rec = json.load(open(os.path.join(g.dirs["relay"], drops[0]))) if drops else {}
         mode = oct(os.stat(os.path.join(g.dirs["relay"], drops[0])).st_mode & 0o777) if drops else None
         check("relay accepts a valid message (control)", st == 200 and j.get("sent") and not j.get("duplicate")
-              and len(drops) == 1 and rec.get("id") == j["id"] and rec.get("conv") == "a1b2c3d4e5f60718"
+              and len(drops) == 1 and rec.get("id") == j["id"] and rec.get("conv") == "a1b2c3d4e5f60718" * 2
               and mode == "0o640" and drops[0] == j["id"][2:] + ".json", "%d %s mode %s" % (st, j, mode))
         import allen_spool
         try:
@@ -1301,9 +1303,25 @@ def relay_tests(a):
         st, j2 = relay(ok, "198.51.100.41")
         check("identical message in the same conversation deduped", st == 200 and j2.get("duplicate")
               and j2["id"] == j["id"] and len(g.files("relay")) == 1, "%d %s" % (st, j2))
-        st, j3 = relay(ok, "198.51.100.42", {"X-Allen-Conversation": "ffffffffffffffff"})
+        st, j3 = relay(ok, "198.51.100.42", {"X-Allen-Conversation": "f" * 32})
         check("same message from another conversation is new (control)", st == 200 and not j3.get("duplicate")
               and len(g.files("relay")) == 2, "%d %s" % (st, j3))
+        st, j16 = relay(dict(ok, message="from a tab still holding 16 hex"), "198.51.100.43",
+                        {"X-Allen-Conversation": "a1b2c3d4e5f60718"})
+        rec16 = {}
+        if st == 200:
+            name = j16["id"][2:] + ".json"
+            rec16 = json.load(open(os.path.join(g.dirs["relay"], name)))
+        check("relay keeps a 16-hex conversation id from an open tab", st == 200 and not j16.get("duplicate")
+              and rec16.get("conv") == "a1b2c3d4e5f60718", "%d %s conv %s" % (st, j16, rec16.get("conv")))
+        st, jbad = relay(dict(ok, message="conversation id is not hex"), "198.51.100.44",
+                         {"X-Allen-Conversation": "g" * 32})
+        recbad = {}
+        if st == 200:
+            name = jbad["id"][2:] + ".json"
+            recbad = json.load(open(os.path.join(g.dirs["relay"], name)))
+        check("relay stores no conversation id when the header is not 16 or 32 hex",
+              st == 200 and recbad.get("conv") == "", "%d %s conv %r" % (st, jbad, recbad.get("conv")))
         codes = [relay(dict(ok, message="per address %d" % k), "198.51.100.77")[0] for k in range(4)]
         other = relay(dict(ok, message="other address"), "198.51.100.78")[0]
         check("relay per-address 3 per hour then 429", codes == [200, 200, 200, 429], "%s" % codes)
@@ -1329,7 +1347,7 @@ def live_tests(a):
     sha = hashlib.sha256(TOKEN.encode()).hexdigest()
     g = Gateway(a, "--heartbeat", "1", upstream="127.0.0.1:%d" % s.server_address[1], console=True,
                 env={"ALLEN_CONSOLE_TOKEN_SHA256": sha})
-    conv = "0123456789abcdef"
+    conv = "0123456789abcdef" * 2
     H = {"X-Allen-Conversation": conv}
     cons = Console(g)
     try:
@@ -1379,6 +1397,76 @@ def live_tests(a):
                                                            {"role": "assistant", "content": "hello"}]}, headers=H)
         j = json.loads(r.read())
         check("handoff accepted while online (control)", r.status == 200 and j.get("waiting"), "%d %s" % (r.status, j))
+
+        def live_codes(headers):
+            """handoff, session and say statuses. A 200 session is closed so its listener drops."""
+            c, r = g.post("/allen/api/handoff", {"transcript": []}, headers=headers)
+            hs = r.status
+            r.read()
+            c.close()
+            c, r = g.get("/allen/api/session", headers=headers)
+            ss = r.status
+            # Connection: close moves the socket onto the response; closing it
+            # ends the stream so the gateway drops the listener.
+            r.close()
+            c.close()
+            c, r = g.post("/allen/api/say", {"text": "still here"}, headers=headers)
+            ys = r.status
+            r.read()
+            c.close()
+            return hs, ss, ys
+
+        def console_live(cid):
+            st, _, js = cons.req("GET", "/session/%s.json" % cid)
+            hb, _, _ = cons.post("/session/%s/handback" % cid)
+            return st, js, hb
+
+        # The page draws 32 hex. A separate id from `conv` so this check does not
+        # take the listener the rest of the test holds open.
+        fresh = "ab" * 16
+        hs, ss, ys = live_codes({"X-Allen-Conversation": fresh})
+        cst, cjs, chb = console_live(fresh)
+        check("32-hex conversation id accepted on handoff, session, say and console",
+              (hs, ss, ys, cst, chb) == (200, 200, 200, 200, 303)
+              and json.loads(cjs).get("state") == "waiting",
+              "handoff %d session %d say %d console %d handback %d %s" % (hs, ss, ys, cst, chb, cjs[:80]))
+        # A tab left open across the cutover still holds the 16-hex id minted on load.
+        legacy_id = "0123456789abcdef"
+        hs, ss, ys = live_codes({"X-Allen-Conversation": legacy_id})
+        cst, cjs, chb = console_live(legacy_id)
+        check("16-hex conversation id from an open tab accepted on handoff, session, say and console",
+              (hs, ss, ys, cst, chb) == (200, 200, 200, 200, 303)
+              and json.loads(cjs).get("state") == "waiting",
+              "handoff %d session %d say %d console %d handback %d %s" % (hs, ss, ys, cst, chb, cjs[:80]))
+        bad_ids = ("", "abc", "a" * 15, "a" * 17, "a" * 31, "a" * 33, "a" * 64,
+                   "A" * 16, "A" * 32, "g" * 16, "g" * 32, "0123456789abcdef" + "G" * 16,
+                   "../" + "a" * 29, "%2e%2e" + "a" * 26)
+        refused = []
+        for bad in bad_ids:
+            hs, ss, ys = live_codes({"X-Allen-Conversation": bad})
+            st, _, body = cons.req("GET", "/session/%s.json" % bad)
+            pst, _, pbody = cons.req("POST", "/session/%s/handback" % bad, {"csrf": cons.csrf})
+            if (hs, ss, ys) != (400, 400, 400) or st != 404 or body != "not found\n" or pst != 404 or pbody != "not found\n":
+                refused.append("%r -> %d %d %d console %d %r post %d %r" % (bad, hs, ss, ys, st, body[:40], pst, pbody[:40]))
+        check("conversation id that is not 16 or 32 hex refused on handoff, session, say and console",
+              not refused, "; ".join(refused) or "all refused")
+        # A newline cannot be an HTTP header value. The spool is the re-check, and
+        # \Z / fullmatch must refuse it, a ../ id, and a fullwidth-digit id (\d would not).
+        import allen_spool
+        fullwidth = "\uff10" * 32
+        anchored = (("trailing newline", "a" * 32 + "\n"), ("dotdot", "../" + "a" * 29),
+                    ("fullwidth digits", fullwidth))
+        slipped = [name for name, bad in anchored if allen_spool.CONV.fullmatch(bad) or allen_spool.CONV.match(bad)]
+        for name, bad in anchored:
+            rec = {"v": 1, "type": "relay", "id": "r_" + "9" * 16, "received": "2026-11-02T00:00:00Z",
+                   "conv": bad, "message": "hello", "name": "", "contact": "", "transcript": []}
+            try:
+                allen_spool.validate_relay_record(rec)
+                slipped.append(name + " record")
+            except allen_spool.Invalid:
+                pass
+        check("conversation id rejects a trailing newline, dotdot and fullwidth digits",
+              not slipped, "%s" % slipped)
         L = Listener(g, conv)
         time.sleep(1.5)
 
@@ -1446,7 +1534,7 @@ def live_tests(a):
               "%s" % js[:120])
         # Availability off -> handoff refused again.
         cons.post("/presence", hours="")
-        c, r = g.post("/allen/api/handoff", {"transcript": []}, headers={"X-Allen-Conversation": "1111222233334444"})
+        c, r = g.post("/allen/api/handoff", {"transcript": []}, headers={"X-Allen-Conversation": "1111222233334444" * 2})
         r.read()
         check("availability off refuses handoff again", r.status == 409, "%d" % r.status)
         st, _, _ = cons.post("/logout")
@@ -1479,20 +1567,20 @@ def anon_tests(a):
         return writes(key)
     try:
         k1, k2, k3 = "1" * 32, "2" * 32, "3" * 32
-        chat_events(g, "I build kelp boats.", headers={"X-Allen-Key": k1, "X-Allen-Conversation": "aaaaaaaaaaaaaaaa"})
+        chat_events(g, "I build kelp boats.", headers={"X-Allen-Key": k1, "X-Allen-Conversation": "a" * 32})
         n1 = wait_writes(k1, 0)
         check("keyed chat writes visitor notes (control)", n1 >= 1, "%d writes" % n1)
         chat_events(g, "I build kelp boats.", headers={"X-Allen-Key": k2, "X-Allen-Anonymous": "1",
-                                                       "X-Allen-Conversation": "bbbbbbbbbbbbbbbb"})
+                                                       "X-Allen-Conversation": "b" * 32})
         n2 = wait_writes(k2, 0, 4)
         with cx.lock:
             searched = sum(1 for q in cx.searches if q == space(k2))
         check("anonymous chat: zero Cortex writes and no recall even with a key", n2 == 0 and searched == 0,
               "%d writes, %d searches" % (n2, searched))
-        chat_events(g, "turn one", headers={"X-Allen-Key": k3, "X-Allen-Conversation": "cccccccccccccccc"})
+        chat_events(g, "turn one", headers={"X-Allen-Key": k3, "X-Allen-Conversation": "c" * 32})
         m1 = wait_writes(k3, 0)
         chat_events(g, "turn two", headers={"X-Allen-Key": k3, "X-Allen-Anonymous": "1",
-                                            "X-Allen-Conversation": "cccccccccccccccc"})
+                                            "X-Allen-Conversation": "c" * 32})
         m2 = wait_writes(k3, m1, 4)
         check("switching to anonymous mid-conversation stops writes", m1 >= 1 and m2 == m1,
               "writes %d before, %d after the switch" % (m1, m2))
@@ -1508,7 +1596,7 @@ def anon_tests(a):
         before = len(cx.writes)
         c, r = g.post("/allen/api/relay", {"message": "From an anonymous visitor.", "name": "Anon Name",
                                            "contact": "anon@example.org"}, ip="203.0.113.92",
-                      headers={"X-Allen-Anonymous": "1", "X-Allen-Conversation": "dddddddddddddddd"})
+                      headers={"X-Allen-Anonymous": "1", "X-Allen-Conversation": "d" * 32})
         r.read()
         relays = g.files("relay")
         rec = json.load(open(os.path.join(g.dirs["relay"], relays[0]))) if relays else {}
@@ -1837,19 +1925,157 @@ def model_tests(a):
         g.close()
 
 
+def cookie_tests(a):
+    """W7: the console cookie is plain by default; --console-secure-cookie adds Secure and __Host-."""
+    sha = hashlib.sha256(TOKEN.encode()).hexdigest()
+    for secure in (False, True):
+        label = "secure" if secure else "default"
+        g = Gateway(a, *(["--console-secure-cookie"] if secure else []), console=True,
+                    env={"ALLEN_CONSOLE_TOKEN_SHA256": sha})
+        cons = Console(g)
+        try:
+            st, setc = cons.login()
+            name, _, rest = setc.partition("=")
+            sid, _, attrs = rest.partition(";")
+            attrs = [x.strip() for x in attrs.split(";")]
+            if not secure:
+                check("console cookie default: allen_console, no Secure (plain-HTTP tailnet console, control)",
+                      st == 303 and name == "allen_console" and "Secure" not in attrs and cons.csrf,
+                      "%d %s %s" % (st, name, attrs))
+                continue
+            check("console cookie with --console-secure-cookie: __Host- name, Secure, Path=/, no Domain",
+                  st == 303 and name == "__Host-allen_console" and "Secure" in attrs and "Path=/" in attrs
+                  and "HttpOnly" in attrs and "SameSite=Strict" in attrs
+                  and not any(x.lower().startswith("domain") for x in attrs) and cons.csrf,
+                  "%d %s %s" % (st, name, attrs))
+            st2, _, _ = cons.req("GET", "/", cookie=False, headers={"Cookie": "allen_console=" + sid})
+            check("secure console ignores the unprefixed cookie name", st2 == 401, "%d" % st2)
+            st3, setc3, _ = cons.post("/logout")
+            check("secure console logout clears the __Host- cookie with Secure",
+                  st3 == 303 and setc3.startswith("__Host-allen_console=;") and "Secure" in setc3
+                  and "Max-Age=0" in setc3, "%d %s" % (st3, setc3))
+        except OSError as e:
+            check("console cookie %s: gateway answers" % label, False, "%s: %s" % (type(e).__name__, e))
+        finally:
+            g.close()
+
+
+def nginx_blocks(text):
+    """(header, body) for every {...} block of an nginx file; quote-aware, comments dropped."""
+    out, stack, head, q, i = [], [], [], None, 0
+    while i < len(text):
+        ch = text[i]
+        if q:
+            head.append(ch)
+            if ch == "\\":
+                head.append(text[i + 1])
+                i += 1
+            elif ch == q:
+                q = None
+        elif ch == "#":
+            i = text.find("\n", i)
+            if i < 0:
+                break
+            continue
+        elif ch in "'\"":
+            q = ch
+            head.append(ch)
+        elif ch == "{":
+            stack.append((" ".join("".join(head).split()), i + 1))
+            head = []
+        elif ch == "}":
+            h, b = stack.pop()
+            out.append((h, text[b:i]))
+            head = []
+        elif ch == ";":
+            head = []
+        else:
+            head.append(ch)
+        i += 1
+    return out
+
+
+def edge_route_faults(text):
+    """Proxied routes in a location snippet that miss a forwarding or origin guard."""
+    faults = []
+    for h, b in nginx_blocks(text):
+        if not h.startswith("location") or "proxy_pass" not in b:
+            continue
+        need = ['proxy_set_header X-Forwarded-For "";', "proxy_set_header X-Real-IP $proxy_protocol_addr;",
+                'if ($proxy_protocol_addr = "") { return 503; }']
+        if "limit_except POST" in b:
+            need.append("if ($allen_xsite) { return 403; }")
+            if "/a2a" in h:  # JSON or application/a2a+json, its own stricter map
+                need.append("if ($allen_a2a_notjson) { return 415; }")
+            elif "transcribe" not in h:  # raw audio, not JSON
+                need.append("if ($allen_notjson) { return 415; }")
+        faults += ["%s: %s" % (h, n) for n in need if n not in " ".join(b.split())]
+    return faults
+
+
+def edge_tests(a):
+    """W5/W6: the committed hub nginx copies carry every edge guard the live hub has."""
+    loc = open(os.path.join(HERE, "nginx-allen-location.conf")).read()
+    zones = open(os.path.join(HERE, "nginx-allen-zones.conf")).read()
+    routes = [h for h, b in nginx_blocks(loc) if h.startswith("location") and "proxy_pass" in b]
+    faults = edge_route_faults(loc)
+    check("edge: every proxied route clears X-Forwarded-For, keys X-Real-IP on PROXY protocol, "
+          "and POST routes refuse cross-site and non-JSON", len(routes) >= 8 and not faults,
+          "%d routes; missing %s" % (len(routes), faults))
+    broken = loc.replace('proxy_set_header X-Forwarded-For "";', "", 1)
+    check("edge: the route check finds one dropped X-Forwarded-For line (control)",
+          len(edge_route_faults(broken)) == len(faults) + 1, "%d" % len(edge_route_faults(broken)))
+    maps = {m.group(1) for m in re.finditer(r"^map\s+\S+\s+\$(\w+)\s*\{", zones, re.M)}
+    check("edge: zones define the $allen_xsite, $allen_notjson and $allen_a2a_notjson maps",
+          {"allen_xsite", "allen_notjson", "allen_a2a_notjson"} <= maps,
+          "%s" % sorted(maps))
+    nginx = os.environ.get("NGINX") or shutil.which("nginx")
+    if not nginx:
+        print("NOT_RUN edge: nginx -t (no nginx binary; set NGINX=/path/to/nginx)", flush=True)
+        return
+    d = tempfile.mkdtemp(prefix="allenchat-test-nginx")
+    try:
+        def syntax(location_text):
+            with open(os.path.join(d, "zones.conf"), "w") as f:
+                f.write(zones)
+            with open(os.path.join(d, "location.conf"), "w") as f:
+                f.write(location_text)
+            temps = "".join("%s_temp_path %s/%s;\n" % (k, d, k) for k in ("client_body", "proxy", "fastcgi",
+                                                                          "uwsgi", "scgi"))
+            with open(os.path.join(d, "nginx.conf"), "w") as f:
+                f.write("pid %s/nginx.pid;\nerror_log %s/error.log;\nevents {}\nhttp {\n%saccess_log off;\n"
+                        "include %s/zones.conf;\nserver {\nlisten 127.0.0.1:8443 proxy_protocol;\n"
+                        "server_name www.aienos.com;\ninclude %s/location.conf;\n}\n}\n" % (d, d, temps, d, d))
+            p = subprocess.run([nginx, "-t", "-p", d, "-c", os.path.join(d, "nginx.conf"), "-e",
+                                os.path.join(d, "error.log")], capture_output=True, text=True, timeout=20)
+            return p.returncode, (p.stdout + p.stderr).strip().splitlines()
+        rc, out = syntax(loc)
+        check("edge: nginx -t accepts zones + location snippet", rc == 0 and any("test is successful" in x for x in out),
+              "rc %d %s" % (rc, out[-1:]))
+        rc, out = syntax(loc.replace("proxy_buffering off;", "proxy_buffering offf;", 1))
+        check("edge: nginx -t refuses a broken directive (control)", rc != 0, "rc %d %s" % (rc, out[-1:]))
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+
 def main():
+    global UPSTREAM
     ap = argparse.ArgumentParser()
     ap.add_argument("--omc", required=True)
     ap.add_argument("--irwasm", required=True)
     ap.add_argument("--system-prompt", required=True)
     ap.add_argument("--skip-model", action="store_true")
+    ap.add_argument("--upstream", default=UPSTREAM,
+                    help="model upstream for suites without their own stub (a closed port keeps them off the model)")
     a = ap.parse_args()
+    UPSTREAM = a.upstream
     only = os.environ.get("ALLEN_TEST_ONLY", "")
     for name, fn in (("offline", offline_tests), ("spool", spool_tests), ("pool", pool_tests),
                      ("relay", relay_tests), ("live", live_tests), ("anon", anon_tests),
                      ("summary", summary_tests), ("volunteer", volunteer_tests), ("tools", tool_tests),
                      ("warm", warm_tests), ("speed", speed_tests), ("voice", voice_tests),
-                     ("infer", infer_tests)):
+                     ("infer", infer_tests), ("cookie", cookie_tests), ("edge", edge_tests)):
         if not only or name in only.split(","):
             fn(a)
     if not a.skip_model:

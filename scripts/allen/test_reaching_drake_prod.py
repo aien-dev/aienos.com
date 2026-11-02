@@ -118,7 +118,7 @@ def main():
         nonce = secrets.token_hex(4)
         msg = ("TEST from AllenRelay %s: production relay check, please ignore. This verifies that a visitor "
                "message relayed by public Allen reaches drake@aienos.com." % nonce)
-        conv = secrets.token_hex(8)
+        conv = secrets.token_hex(16)
         c, r = public("POST", "/allen/api/relay", {"message": msg, "name": "AllenRelay test", "contact": "",
                                                    "transcript": [{"role": "user", "content": "test"},
                                                                   {"role": "assistant", "content": "test reply"}]},
@@ -152,7 +152,7 @@ def main():
               if found else "not found in the last 15 messages after 2 min")
 
     # Live takeover end to end.
-    conv = secrets.token_hex(8)
+    conv = secrets.token_hex(16)
     H = {"X-Allen-Conversation": conv, "X-Allen-Anonymous": "1"}
     try:
         st = cons.post("/presence", online="on", hours=prev_hours or "")

@@ -90,7 +90,7 @@ class SMTPStub:
 
 def record(rid, **kw):
     rec = {"v": 1, "type": "relay", "id": "r_" + rid, "received": "2026-10-26T12:00:00Z",
-           "conv": "0123456789abcdef", "message": "Hello Drake.\nI am building a kelp boat in Omega and want to talk.",
+           "conv": "0123456789abcdef" * 2, "message": "Hello Drake.\nI am building a kelp boat in Omega and want to talk.",
            "name": "Test Visitor", "contact": "test@example.org",
            "transcript": [{"role": "user", "content": "hi"}, {"role": "assistant", "content": "hello"}]}
     rec.update(kw)
@@ -120,6 +120,7 @@ def main():
         put(d, a, record(a))
         put(d, b, record(b, to="someone@example.org"))
         put(d, "c" * 16, record("c" * 16, message="token ghp_" + "A1b2C3d4" * 5))
+        put(d, "d" * 16, record("d" * 16, conv="0123456789abcde"))  # 15 hex: neither 16 nor 32
         rc, out = run_once(d, state, smtp.port)
         m = smtp.mail[0] if smtp.mail else {"data": "", "to": []}
         body = m["data"]
@@ -132,11 +133,14 @@ def main():
               and "From: Aien relay <aien@aienos.com>" in body and "Allen" not in body and "AIEN" not in body, subj)
         check("body carries message, name, contact, transcript, conversation and console link",
               all(x in body for x in ("I am building a kelp boat", "Name: Test Visitor", "Contact: test@example.org",
-                                      "Visitor: hi", "Aien: hello", "asked Aien to pass this on", "Conversation: 0123456789abcdef",
-                                      "http://100.64.0.2:18112/session/0123456789abcdef", "Relay id: r_" + a)),
+                                      "Visitor: hi", "Aien: hello", "asked Aien to pass this on",
+                                      "Conversation: " + "0123456789abcdef" * 2,
+                                      "http://100.64.0.2:18112/session/" + "0123456789abcdef" * 2, "Relay id: r_" + a)),
               "%d bytes" % len(body))
-        check("items with a recipient field or a secret are rejected, not sent", not os.listdir(d)
-              and "rejected %s.json" % b in out and "rejected %s.json" % ("c" * 16) in out, out.strip()[-200:])
+        check("items with a recipient field, a secret or an invalid conversation id are rejected, not sent",
+              not os.listdir(d) and len(smtp.mail) == 1 and all("rejected %s.json" % x in out
+                                                                 for x in (b, "c" * 16, "d" * 16)),
+              out.strip()[-200:])
         st = json.load(open(state))
         check("sent id and daily count persisted", st["count"] == 1 and st["sent"] == ["r_" + a], "%s" % st)
 
@@ -180,6 +184,50 @@ def main():
         M.send(msg, M.RECIPIENT, "", ("127.0.0.1", smtp.port, False))
         check("send() refuses any recipient but drake@aienos.com", refused, "refused=%s" % refused)
         check("send() to drake@aienos.com works (control)", len(smtp.mail) == n + 1, "%d mails" % len(smtp.mail))
+
+        def conv_ok(conv):
+            try:
+                M.allen_spool.validate_relay_record(record("9" * 16, conv=conv))
+                return True
+            except M.allen_spool.Invalid:
+                return False
+
+        check("relay record accepts a 32-hex conversation id", conv_ok("0123456789abcdef" * 2), "32")
+        check("relay record accepts a 16-hex conversation id from an open tab", conv_ok("0123456789abcdef"), "16")
+        check("relay record accepts an empty conversation id", conv_ok(""), "empty")
+        bad_convs = (("15 hex", "0123456789abcde"), ("17 hex", "0123456789abcdef0"), ("31 hex", "a" * 31),
+                     ("33 hex", "a" * 33), ("64 hex", "a" * 64), ("uppercase 16", "A" * 16),
+                     ("uppercase 32", "A" * 32), ("non-hex", "g" * 32),
+                     ("trailing newline", "a" * 32 + "\n"), ("dotdot", "../" + "a" * 29),
+                     ("fullwidth digits", "\uff10" * 32))
+        accepted = [name for name, conv in bad_convs if conv_ok(conv)]
+        check("relay record refuses a conversation id that is not 16 or 32 hex", not accepted, "%s" % accepted)
+        # $ matches before a trailing newline. \Z / fullmatch must not. \d would
+        # accept a fullwidth digit; the received time is ASCII [0-9] only.
+        anchors = []
+        fw_time = "\uff12" + "026-11-02T00:00:00Z"
+        for name, rx, good, bad in (
+                ("RELAY_ID", M.allen_spool.RELAY_ID, "r_" + "a" * 16, "r_" + "a" * 16 + "\n"),
+                ("ID", M.allen_spool.ID, "a" * 20, "a" * 20 + "\n"),
+                ("RECEIVED", M.allen_spool.RECEIVED, "2026-11-02T00:00:00Z", "2026-11-02T00:00:00Z\n"),
+                ("DROP_NAME", M.DROP_NAME, "a" * 16 + ".json", "a" * 16 + ".json\n"),
+                ("CONV", M.allen_spool.CONV, "a" * 32, "a" * 32 + "\n")):
+            if not rx.fullmatch(good) or rx.fullmatch(bad) or rx.match(bad):
+                anchors.append(name)
+        if M.allen_spool.RECEIVED.fullmatch(fw_time) or M.allen_spool.CONV.fullmatch("\uff10" * 32):
+            anchors.append("unicode digit")
+        if M.DROP_NAME.fullmatch("../" + "a" * 13 + ".json"):
+            anchors.append("DROP_NAME dotdot")
+        check("id validators reject a trailing newline and a unicode digit", not anchors, "%s" % anchors)
+        legacy = "abcdef0123456789"
+        put(d, "3" * 16, record("3" * 16, conv=legacy))
+        before = len(smtp.mail)
+        rc, out = run_once(d, state, smtp.port, "--per-day", "20")
+        sent = [m for m in smtp.mail[before:] if ("Conversation: " + legacy) in m["data"]]
+        check("a queued 16-hex conversation id is mailed, not rejected",
+              rc == 0 and len(sent) == 1 and not any(name.startswith("3" * 16) for name in os.listdir(d))
+              and "rejected %s.json" % ("3" * 16) not in out,
+              "rc %d new mails %d" % (rc, len(smtp.mail) - before))
         try:
             M.send(msg, M.RECIPIENT, "", ("192.0.2.1", 25, False))
             plain = False
