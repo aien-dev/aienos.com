@@ -40,7 +40,7 @@ pub struct Data {
     pub purpose_title: String,
     pub purpose: String,
     pub purpose_link: String,
-    pub private_note: String,
+    pub source_note: String,
     pub audit_link: String,
     pub hops: Vec<Hop>,
     pub how_lead: String,
@@ -285,6 +285,46 @@ fn ext(href: &str, text: &str) -> Markup {
     html! { a href=(href) target="_blank" rel="noopener noreferrer" { (text) } }
 }
 
+/// Splits a note into plain text and `https://` links. A trailing period,
+/// comma, semicolon, colon or closing parenthesis stays outside the link.
+fn link_spans(note: &str) -> Vec<(bool, &str)> {
+    let mut out = Vec::new();
+    let mut rest = note;
+    while let Some(start) = rest.find("https://") {
+        if start > 0 {
+            out.push((false, &rest[..start]));
+        }
+        let after = &rest[start..];
+        let bytes = after.as_bytes();
+        let mut end = "https://".len();
+        while end < bytes.len() && !bytes[end].is_ascii_whitespace() && !matches!(bytes[end], b'<' | b'>' | b'"' | b'\'') {
+            end += 1;
+        }
+        let mut href_end = end;
+        while href_end > "https://".len() && matches!(bytes[href_end - 1], b'.' | b',' | b';' | b':' | b')') {
+            href_end -= 1;
+        }
+        out.push((true, &after[..href_end]));
+        rest = &after[href_end..];
+    }
+    if !rest.is_empty() {
+        out.push((false, rest));
+    }
+    out
+}
+
+fn linked_note(note: &str) -> Markup {
+    html! {
+        @for (is_link, text) in link_spans(note) {
+            @if is_link {
+                (ext(text, text))
+            } @else {
+                (text)
+            }
+        }
+    }
+}
+
 fn rows(list: &[Row]) -> Markup {
     html! {
         div class="cp-rows" {
@@ -332,7 +372,7 @@ pub fn render_cudaplusplus_page() -> Markup {
                         div class="om-verdict om-verdict-not" {
                             p class="om-verdict-k" { "The repository" }
                             p class="om-verdict-s mono" { (ext(&d.source.repo, "aien-dev/CUDApp")) }
-                            p class="cp-purpose" { (d.private_note) }
+                            p class="cp-purpose" { (linked_note(&d.source_note)) }
                             a class="om-verdict-a" href=(gh(&d.audit_link)) target="_blank" rel="noopener noreferrer" { "The audit, docs/AUDIT.md" }
                         }
                     }
@@ -452,14 +492,15 @@ mod tests {
         let d = data();
         assert_eq!(d.source.visibility, "public");
         assert_eq!(d.source.repo, "https://github.com/aien-dev/CUDApp");
-        let note = d.private_note.to_ascii_lowercase();
-        assert!(!note.contains("private"), "{}", d.private_note);
-        assert!(!note.contains("safety audit"), "{}", d.private_note);
-        assert!(d.private_note.contains("https://github.com/aien-dev/CUDApp"));
-        assert!(d.private_note.contains("https://github.com/aien-dev/CUDApp/blob/main/docs/AUDIT.md"));
+        let note = d.source_note.to_ascii_lowercase();
+        assert!(!note.contains("private"), "{}", d.source_note);
+        assert!(!note.contains("safety audit"), "{}", d.source_note);
+        assert!(d.source_note.contains("https://github.com/aien-dev/CUDApp"));
+        assert!(d.source_note.contains("https://github.com/aien-dev/CUDApp/blob/main/docs/AUDIT.md"));
+        assert!(!RAW.contains("private_note"));
         let s = render_cudaplusplus_page().into_string();
-        assert!(s.contains("https://github.com/aien-dev/CUDApp"));
-        assert!(s.contains("docs/AUDIT.md"));
+        assert!(s.contains("<a href=\"https://github.com/aien-dev/CUDApp\" target=\"_blank\" rel=\"noopener noreferrer\">https://github.com/aien-dev/CUDApp</a>."));
+        assert!(s.contains("<a href=\"https://github.com/aien-dev/CUDApp/blob/main/docs/AUDIT.md\" target=\"_blank\" rel=\"noopener noreferrer\">https://github.com/aien-dev/CUDApp/blob/main/docs/AUDIT.md</a>"));
         assert!(!s.contains("private until"));
         assert!(!s.contains("CUDAplusplus"));
         assert!(!s.contains("AGPL"));

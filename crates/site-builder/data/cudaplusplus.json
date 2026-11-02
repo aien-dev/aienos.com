@@ -22,7 +22,7 @@
   "purpose_title": "Less computation, out of the big data centers.",
   "purpose": "The goal is not a faster way to rent a data center. It is to need less of one: the same work with fewer bytes moved, fewer operations and fewer joules per answer, so it runs on a machine a person owns (a DGX Spark, a PC with one graphics card, a laptop). Every result is reported as work per answer, against the machine's own ceiling.",
   "purpose_link": "om@:89aad7c99b4fced80f92b656d2a3f350699456f0/docs/OMEGA.md",
-  "private_note": "The repository is public: https://github.com/aien-dev/CUDApp. Its audit is https://github.com/aien-dev/CUDApp/blob/main/docs/AUDIT.md (Status CLEAN).",
+  "source_note": "The repository is public: https://github.com/aien-dev/CUDApp. Its audit is https://github.com/aien-dev/CUDApp/blob/main/docs/AUDIT.md (Status CLEAN).",
   "audit_link": "cp:docs/AUDIT.md",
   "hops": [
     {
