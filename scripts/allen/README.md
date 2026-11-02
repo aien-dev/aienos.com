@@ -254,9 +254,12 @@ same rules before proxying.
   GitHub Pages publishes the page on merge, and the gateway they replace
   accepts only 16 hex, so a 32-hex page against that gateway makes handoff,
   say and session return 400. Once this gateway is running, merging the page
-  is safe and open tabs keep working. Do not tighten the check to 32 hex only
-  until an hour after the page is live (`STREAM_MAX_S`), so those tabs have
-  ended, and until `relay-drop/` has no remaining 16-hex `conv`.
+  is safe and open tabs keep working. The 16-hex acceptance comes out on
+  2026-12-02 (https://github.com/aien-dev/aienos.com/issues/196).
+  `STREAM_MAX_S` ends one session stream after an hour and the page
+  reconnects with the same id, so a tab left open still sends 16 hex until
+  the visitor reloads. After that date those tabs get 400 on handoff, say
+  and session until reload.
 - The console is a second listener in the gateway on `100.64.0.2:18112`. The
   hub never proxies it, and nft admits it only from 100.64.0.1 and 100.64.0.4
   (plus the Spark itself over loopback). Login is with the token held in

@@ -195,11 +195,30 @@ def main():
         check("relay record accepts a 32-hex conversation id", conv_ok("0123456789abcdef" * 2), "32")
         check("relay record accepts a 16-hex conversation id from an open tab", conv_ok("0123456789abcdef"), "16")
         check("relay record accepts an empty conversation id", conv_ok(""), "empty")
-        bad_convs = ("15 hex", "0123456789abcde"), ("17 hex", "0123456789abcdef0"), ("31 hex", "a" * 31), (
-            "33 hex", "a" * 33), ("64 hex", "a" * 64), ("uppercase 16", "A" * 16), ("uppercase 32", "A" * 32), (
-            "non-hex", "g" * 32)
+        bad_convs = (("15 hex", "0123456789abcde"), ("17 hex", "0123456789abcdef0"), ("31 hex", "a" * 31),
+                     ("33 hex", "a" * 33), ("64 hex", "a" * 64), ("uppercase 16", "A" * 16),
+                     ("uppercase 32", "A" * 32), ("non-hex", "g" * 32),
+                     ("trailing newline", "a" * 32 + "\n"), ("dotdot", "../" + "a" * 29),
+                     ("fullwidth digits", "\uff10" * 32))
         accepted = [name for name, conv in bad_convs if conv_ok(conv)]
         check("relay record refuses a conversation id that is not 16 or 32 hex", not accepted, "%s" % accepted)
+        # $ matches before a trailing newline. \Z / fullmatch must not. \d would
+        # accept a fullwidth digit; the received time is ASCII [0-9] only.
+        anchors = []
+        fw_time = "\uff12" + "026-11-02T00:00:00Z"
+        for name, rx, good, bad in (
+                ("RELAY_ID", M.allen_spool.RELAY_ID, "r_" + "a" * 16, "r_" + "a" * 16 + "\n"),
+                ("ID", M.allen_spool.ID, "a" * 20, "a" * 20 + "\n"),
+                ("RECEIVED", M.allen_spool.RECEIVED, "2026-11-02T00:00:00Z", "2026-11-02T00:00:00Z\n"),
+                ("DROP_NAME", M.DROP_NAME, "a" * 16 + ".json", "a" * 16 + ".json\n"),
+                ("CONV", M.allen_spool.CONV, "a" * 32, "a" * 32 + "\n")):
+            if not rx.fullmatch(good) or rx.fullmatch(bad) or rx.match(bad):
+                anchors.append(name)
+        if M.allen_spool.RECEIVED.fullmatch(fw_time) or M.allen_spool.CONV.fullmatch("\uff10" * 32):
+            anchors.append("unicode digit")
+        if M.DROP_NAME.fullmatch("../" + "a" * 13 + ".json"):
+            anchors.append("DROP_NAME dotdot")
+        check("id validators reject a trailing newline and a unicode digit", not anchors, "%s" % anchors)
         legacy = "abcdef0123456789"
         put(d, "3" * 16, record("3" * 16, conv=legacy))
         before = len(smtp.mail)

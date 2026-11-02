@@ -1439,7 +1439,8 @@ def live_tests(a):
               and json.loads(cjs).get("state") == "waiting",
               "handoff %d session %d say %d console %d handback %d %s" % (hs, ss, ys, cst, chb, cjs[:80]))
         bad_ids = ("", "abc", "a" * 15, "a" * 17, "a" * 31, "a" * 33, "a" * 64,
-                   "A" * 16, "A" * 32, "g" * 16, "g" * 32, "0123456789abcdef" + "G" * 16)
+                   "A" * 16, "A" * 32, "g" * 16, "g" * 32, "0123456789abcdef" + "G" * 16,
+                   "../" + "a" * 29, "%2e%2e" + "a" * 26)
         refused = []
         for bad in bad_ids:
             hs, ss, ys = live_codes({"X-Allen-Conversation": bad})
@@ -1449,6 +1450,23 @@ def live_tests(a):
                 refused.append("%r -> %d %d %d console %d %r post %d %r" % (bad, hs, ss, ys, st, body[:40], pst, pbody[:40]))
         check("conversation id that is not 16 or 32 hex refused on handoff, session, say and console",
               not refused, "; ".join(refused) or "all refused")
+        # A newline cannot be an HTTP header value. The spool is the re-check, and
+        # \Z / fullmatch must refuse it, a ../ id, and a fullwidth-digit id (\d would not).
+        import allen_spool
+        fullwidth = "\uff10" * 32
+        anchored = (("trailing newline", "a" * 32 + "\n"), ("dotdot", "../" + "a" * 29),
+                    ("fullwidth digits", fullwidth))
+        slipped = [name for name, bad in anchored if allen_spool.CONV.fullmatch(bad) or allen_spool.CONV.match(bad)]
+        for name, bad in anchored:
+            rec = {"v": 1, "type": "relay", "id": "r_" + "9" * 16, "received": "2026-11-02T00:00:00Z",
+                   "conv": bad, "message": "hello", "name": "", "contact": "", "transcript": []}
+            try:
+                allen_spool.validate_relay_record(rec)
+                slipped.append(name + " record")
+            except allen_spool.Invalid:
+                pass
+        check("conversation id rejects a trailing newline, dotdot and fullwidth digits",
+              not slipped, "%s" % slipped)
         L = Listener(g, conv)
         time.sleep(1.5)
 

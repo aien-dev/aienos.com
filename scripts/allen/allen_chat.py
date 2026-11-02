@@ -1498,7 +1498,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def conversation(self):
         conv = self.headers.get("X-Allen-Conversation", "").strip()
-        return conv if CONV.match(conv) else None
+        return conv if CONV.fullmatch(conv) else None
 
     def chat(self):
         app = self.app
@@ -1542,7 +1542,7 @@ class Handler(BaseHTTPRequestHandler):
             queued_ms = int((time.monotonic() - t0) * 1000)
             vid = app.vid(self)
             conv = self.headers.get("X-Allen-Conversation", "").strip()
-            notes = app.notes_for(vid, conv if CONV.match(conv) else "")
+            notes = app.notes_for(vid, conv if CONV.fullmatch(conv) else "")
             self.sse("start", {"model": MODEL, "queued_ms": queued_ms, "remembered": bool(notes)})
             self.sse("meta", {"source": source})
             # Tools run only when --tools is set and the visitor did not send X-Allen-Tools: 0.
@@ -2323,7 +2323,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def status(self, iid):
         app = self.app
-        if not app.args.spool_status or not allen_spool.ID.match(iid):
+        if not app.args.spool_status or not allen_spool.ID.fullmatch(iid):
             return self.send_json(404, {"error": "not_found"})
         st = allen_spool.read_status(app.args.spool_status, iid)
         p = allen_spool.spool_file(app.args.spool_in, iid)
