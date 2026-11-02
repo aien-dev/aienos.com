@@ -357,7 +357,7 @@ pub fn render_cudaplusplus_page() -> Markup {
         div class="om-page cp-page" {
             header class="om-hero" {
                 div class="container" {
-                    p class="om-kicker" { "CUDA++ \u{00B7} open source, Apache-2.0 with LLVM exception" }
+                    p class="om-kicker" { "CUDA++ \u{00B7} open source, Apache-2.0 with the LLVM exception" }
                     h1 class="om-title" { (d.claim) }
                     @for p in &d.claim_rest {
                         p class="om-lead" { (p) }
@@ -501,6 +501,8 @@ mod tests {
         let s = render_cudaplusplus_page().into_string();
         assert!(s.contains("<a href=\"https://github.com/aien-dev/CUDApp\" target=\"_blank\" rel=\"noopener noreferrer\">https://github.com/aien-dev/CUDApp</a>."));
         assert!(s.contains("<a href=\"https://github.com/aien-dev/CUDApp/blob/main/docs/AUDIT.md\" target=\"_blank\" rel=\"noopener noreferrer\">https://github.com/aien-dev/CUDApp/blob/main/docs/AUDIT.md</a>"));
+        assert!(s.contains("Apache-2.0 with the LLVM exception"));
+        assert!(!s.contains("with LLVM exception"));
         assert!(!s.contains("private until"));
         assert!(!s.contains("CUDAplusplus"));
         assert!(!s.contains("AGPL"));
