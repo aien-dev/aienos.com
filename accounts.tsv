@@ -1,4 +1,4 @@
-checked	2026-11-02T04:05Z
+checked	2026-11-02T04:10Z
 limit	Anthropic	1		week	Claude 7 Day	0	2026-11-09T04:00Z	ok
 limit	Anthropic	1		week	Claude 7 Day (Fable)	0	2026-11-09T04:00Z	ok
 limit	Anthropic	2		5h	Claude 5 Hour	0		ok
@@ -6,7 +6,7 @@ limit	Anthropic	2		week	Claude 7 Day	32	2026-11-07T07:59Z	ok
 limit	Anthropic	2		week	Claude 7 Day (Fable)	1	2026-11-07T07:59Z	ok
 limit	Anthropic	3		5h	Claude 5 Hour	3	2026-11-02T07:30Z	ok
 limit	Anthropic	3		week	Claude 7 Day	76	2026-11-03T19:00Z	ok
-limit	Anthropic	3		week	Claude 7 Day (Fable)	37	2026-11-03T19:00Z	ok
+limit	Anthropic	3		week	Claude 7 Day (Fable)	37	2026-11-03T18:59Z	ok
 limit	Anthropic	4		week	Claude 7 Day	100	2026-11-02T14:00Z	exhausted
 limit	Anthropic	4		week	Claude 7 Day (Fable)	55	2026-11-02T14:00Z	ok
 limit	OpenAI Codex	1		week	7 days	76	2026-11-08T13:20Z	ok
